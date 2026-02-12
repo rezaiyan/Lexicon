@@ -1,0 +1,64 @@
+{
+  "project_info": {
+    "project_number": "127380082635",
+    "project_id": "vokab-737ec",
+    "storage_bucket": "vokab-737ec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:127380082635:android:e5693cd005628a0b25b04e",
+        "android_client_info": {
+          "package_name": "com.alirezaiyan.vokab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "127380082635-1esmciugdnv23fi3206544sned30bpbn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alirezaiyan.vokab",
+            "certificate_hash": "6aa3b002966f2884b8069d21300e5e4b414d6bb2"
+          }
+        },
+        {
+          "client_id": "127380082635-k24257v3ieulodd8jdtnqrf94q9nd6ie.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alirezaiyan.vokab",
+            "certificate_hash": "8c6ac31d3c4b6cc09c7aaa4eabe70f8e81c70f92"
+          }
+        },
+        {
+          "client_id": "127380082635-e35pbv2asflcsuepbksqu9kcaila2a01.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZzZtt92-OXnoe4D8VGnwybE1I2plvAhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "127380082635-e35pbv2asflcsuepbksqu9kcaila2a01.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "127380082635-m5h08pktbi5a7osnehmp03bdncipil49.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.alirezaiyan.vokab",
+                "app_store_id": "6753774009"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+

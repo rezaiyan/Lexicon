@@ -1,0 +1,53 @@
+package presentation.viewmodel
+
+import analytics.IAnalyticsTracker
+import domain.word.model.Word
+import domain.word.usecase.UpdateWordUseCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import presentation.model.WordManagerEvent
+import presentation.model.WordManagerScreenState
+
+class WordEditingHandler(
+    private val updateWordUseCase: UpdateWordUseCase,
+    private val analyticsTracker: IAnalyticsTracker,
+    private val state: MutableStateFlow<WordManagerScreenState>,
+    private val events: SendChannel<WordManagerEvent>,
+    private val scope: CoroutineScope
+) {
+    
+    fun startEditing(word: Word) {
+        state.value = state.value.copy(editingWord = word)
+        analyticsTracker.logEvent("word_manager_edit_started")
+    }
+    
+    fun cancelEditing() {
+        state.value = state.value.copy(editingWord = null)
+    }
+    
+    fun updateWord(word: Word) {
+        scope.launch {
+            val result = updateWordUseCase(word)
+            result.fold(
+                onSuccess = { updatedWord ->
+                    state.value = state.value.copy(editingWord = null)
+                    events.send(WordManagerEvent.WordUpdated(updatedWord))
+                    analyticsTracker.logEvent("word_manager_word_updated")
+                },
+                onFailure = { error ->
+                    val errorMsg = error.message ?: ""
+                    events.send(WordManagerEvent.Error(errorMsg))
+                    analyticsTracker.logNonFatalError(
+                        message = "Word update failed",
+                        additionalInfo = mapOf("error" to (errorMsg.ifEmpty { "unknown" }))
+                    )
+                }
+            )
+        }
+    }
+}
+
+
+

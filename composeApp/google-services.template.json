@@ -1,0 +1,64 @@
+{
+  "project_info": {
+    "project_number": "${FIREBASE_PROJECT_NUMBER}",
+    "project_id": "${FIREBASE_PROJECT_ID}",
+    "storage_bucket": "${FIREBASE_STORAGE_BUCKET}"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "${FIREBASE_MOBILE_SDK_APP_ID}",
+        "android_client_info": {
+          "package_name": "${ANDROID_PACKAGE_NAME}"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "${GOOGLE_ANDROID_CLIENT_ID_RELEASE}",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "${ANDROID_PACKAGE_NAME}",
+            "certificate_hash": "${ANDROID_CERT_HASH_RELEASE}"
+          }
+        },
+        {
+          "client_id": "${GOOGLE_ANDROID_CLIENT_ID_DEBUG}",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "${ANDROID_PACKAGE_NAME}",
+            "certificate_hash": "${ANDROID_CERT_HASH_DEBUG}"
+          }
+        },
+        {
+          "client_id": "${GOOGLE_SERVER_CLIENT_ID}",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "${FIREBASE_ANDROID_API_KEY}"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "${GOOGLE_SERVER_CLIENT_ID}",
+              "client_type": 3
+            },
+            {
+              "client_id": "${GOOGLE_IOS_CLIENT_ID}",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "${IOS_BUNDLE_ID}",
+                "app_store_id": "${IOS_APP_STORE_ID}"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+

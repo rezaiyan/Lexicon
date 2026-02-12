@@ -1,0 +1,19 @@
+package data.auth.mapper
+
+import data.auth.remote.model.UserDto
+import domain.auth.model.AuthUser
+import domain.auth.model.SubscriptionStatus
+
+internal fun UserDto.toDomain(): AuthUser {
+    return AuthUser(
+        id = this.id,
+        email = this.email,
+        name = this.name,
+        profileImageUrl = this.profileImageUrl,
+        subscriptionStatus = SubscriptionStatus.valueOf(this.subscriptionStatus),
+        subscriptionExpiresAt = this.subscriptionExpiresAt,
+        currentStreak = this.currentStreak,
+        longestStreak = this.longestStreak
+    )
+}
+

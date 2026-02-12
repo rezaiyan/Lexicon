@@ -1,0 +1,83 @@
+package domain.word.usecase
+
+import domain.word.model.LearningStage
+import domain.word.model.ProgressStats
+import domain.word.model.Word
+import domain.word.repository.DeleteWordsProgress
+import domain.word.repository.IWordRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class DeleteWordUseCaseTest {
+
+    private val repository = FakeWordRepository()
+    private val useCase = DeleteWordUseCase(repository)
+
+    @Test
+    fun `successful deletion returns success result`() = runTest {
+        val result = useCase(42)
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, repository.deleteWordCallCount)
+        assertEquals(42, repository.lastDeletedId)
+    }
+
+    @Test
+    fun `repository exception returns failure result`() = runTest {
+        repository.shouldThrow = true
+
+        val result = useCase(99)
+
+        assertTrue(result.isFailure)
+        assertEquals(1, repository.deleteWordCallCount)
+    }
+
+    @Test
+    fun `negative id returns failure when repository rejects`() = runTest {
+        repository.throwOnNegative = true
+
+        val result = useCase(-5)
+
+        assertTrue(result.isFailure)
+        assertEquals(1, repository.deleteWordCallCount)
+        assertEquals(-5, repository.lastDeletedId)
+    }
+
+    private class FakeWordRepository : IWordRepository {
+        var deleteWordCallCount = 0
+        var lastDeletedId: Int? = null
+        var shouldThrow = false
+        var throwOnNegative = false
+
+        override suspend fun deleteWord(id: Int) {
+            deleteWordCallCount++
+            lastDeletedId = id
+            if (throwOnNegative && id < 0) {
+                throw IllegalArgumentException("Invalid id")
+            }
+            if (shouldThrow) {
+                throw IllegalStateException("Repository failure")
+            }
+        }
+
+        override suspend fun updateWord(word: Word) {}
+        override suspend fun insertWords(words: List<Word>): Int = words.size
+        override suspend fun getAllWordsAsync(): List<Word> = emptyList()
+        override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
+        override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
+        override suspend fun getWordById(id: Int): Word? = null
+        override suspend fun deleteAllWords(): Result<Unit> = Result.success(Unit)
+        override suspend fun syncWithRemote(): Result<Unit> = Result.success(Unit)
+        override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> = Result.success(Unit)
+        override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
+        override suspend fun getTotalCount(): Int = 0
+        override suspend fun getDueCount(): Int = 0
+    }
+}
+

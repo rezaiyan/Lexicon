@@ -1,0 +1,395 @@
+<resources>
+    <!-- App Info -->
+    <string name="app_name">LEXICON</string>
+    <string name="app_tagline">Meistere dein Vokabular</string>
+    <string name="app_description">Vokab - Vokabellern-App</string>
+    <string name="version">Version %1$d</string>
+    
+    <!-- Time-based Greetings -->
+    <string name="greeting_midnight">Nachteule? 🌙</string>
+    <string name="greeting_morning">Guten Morgen! ☀️</string>
+    <string name="greeting_afternoon">Guten Tag! 🌤️</string>
+    <string name="greeting_evening">Guten Abend! 🌆</string>
+    <string name="greeting_night">Gute Nacht! 🌃</string>
+    
+    <!-- Common -->
+    <string name="cancel">Abbrechen</string>
+    <string name="done">Fertig</string>
+    <string name="close">Schließen</string>
+    <string name="retry">Wiederholen</string>
+    <string name="change">Ändern</string>
+    <string name="logout">Abmelden</string>
+    
+    <!-- Navigation -->
+    <string name="profile">Profil</string>
+    <string name="study">Studieren</string>
+    <string name="settings">Einstellungen</string>
+    
+    <!-- Settings Screen -->
+    <string name="theme">Design</string>
+    <string name="translation_language">Übersetzungssprache</string>
+    <string name="notifications">Benachrichtigungen</string>
+    <string name="about">Über</string>
+    
+    <!-- Profile Screen -->
+    <string name="logout_title">Abmelden</string>
+    <string name="logout_message">Möchten Sie sich wirklich abmelden? Sie müssen sich erneut anmelden, um AI-Funktionen zu nutzen.</string>
+    <string name="delete_account">Konto löschen</string>
+    <string name="delete_account_title">Konto löschen</string>
+    <string name="delete_account_message">Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden. Alle Ihre Daten werden dauerhaft gelöscht.</string>
+    <string name="delete_account_confirm">Löschen</string>
+    <string name="profile_picture">Profilbild</string>
+    <string name="sign_in_to_vokab">Bei Vokab anmelden</string>
+    <string name="sign_in_description">Melden Sie sich an, um KI-gestützte Funktionen freizuschalten:\n• Vokabeln aus Bildern extrahieren\n• Tägliche Einblicke erhalten</string>
+    <string name="offline_usage_info">Sie können Vokab offline ohne Anmeldung nutzen, aber KI-Funktionen erfordern ein Konto.</string>
+    <string name="premium_member">Premium-Mitglied</string>
+    <string name="trial_active">Testversion aktiv</string>
+    <string name="free_plan">Kostenloser Plan</string>
+    <string name="subscription_cancelled">Abonnement gekündigt</string>
+    <string name="subscription_expired">Abonnement abgelaufen</string>
+    <string name="expires">Läuft ab: %1$s</string>
+    
+    <!-- Enhanced Delete Account Flow -->
+    <string name="delete_account_hidden_title">Konto-Löschung</string>
+    <string name="delete_account_hidden_message">Sie sind dabei, Ihr Konto dauerhaft zu löschen. Diese Aktion kann nicht rückgängig gemacht werden und wird alle Ihre Daten entfernen.</string>
+    <string name="delete_account_hidden_continue">Mit Löschvorgang fortfahren</string>
+    <string name="delete_account_cooling_period_title">⏰ Bedenkzeit</string>
+    <string name="delete_account_cooling_period_message">Bitte warten Sie %1$d Sekunden, bevor Sie fortfahren. Dies gibt Ihnen Zeit zum Überdenken.</string>
+    <string name="delete_account_cooling_period_cancel">Löschung abbrechen</string>
+    <string name="delete_account_final_title">🚨 Endgültige Bestätigung</string>
+    <string name="delete_account_final_message">Dies wird dauerhaft löschen:\n\n• Alle Ihre Vokabeln\n• Lernfortschritt und Serien\n• KI-generierte Einblicke\n• Kontoeinstellungen\n\nDiese Aktion kann NICHT rückgängig gemacht werden!</string>
+    <string name="delete_account_final_confirm">Ja, mein Konto löschen</string>
+    <string name="delete_account_long_press_hint">Langes Drücken des Profilbildes für Konto-Löschung</string>
+    <string name="proceed_to_final_confirmation">Zur endgültigen Bestätigung fortfahren</string>
+    <string name="ready_to_proceed_deletion">Bereit zur Konto-Löschung fortzufahren. Bitte bestätigen Sie unten.</string>
+    <string name="day_streak">Tage-Serie</string>
+    <string name="best_streak">Beste Serie</string>
+    
+    <!-- Notifications -->
+    <string name="notification_enabled">Aktiviert</string>
+    <string name="notification_disabled">Deaktiviert</string>
+    <string name="notification_disabled_system">In Systemeinstellungen deaktiviert</string>
+    <string name="notification_permission_required">Berechtigung nicht erteilt - du erhältst keine Benachrichtigungen</string>
+    <string name="notification_permission_title">Bleib in Verbindung mit deinen Wörtern! 🎯</string>
+    <string name="notification_permission_message">Lass uns dein Lernpartner sein und dir freundliche Erinnerungen senden, wenn es Zeit zum Üben ist!</string>
+    <string name="notification_features_title">Du bekommst:</string>
+    <string name="notification_feature_reminders">📚 Sanfte Lern-Erinnerungen</string>
+    <string name="notification_feature_motivation">💪 Motivationsschübe</string>
+    <string name="notification_feature_timing">🎯 Intelligentes Timing - nur wenn hilfreich</string>
+    <string name="notification_no_spam_message">Kein Spam, nur freundliche Stupser! Tippe auf den Button, um Benachrichtigungen in deinen Geräteeinstellungen zu aktivieren.</string>
+    <string name="notification_open_settings">Aktivieren</string>
+    <string name="notification_enable_button">Los geht's!</string>
+    <string name="notification_maybe_later">Vielleicht Später</string>
+    <string name="notification_settings_title">Benachrichtigungseinstellungen</string>
+    <string name="notification_settings_subtitle">Passe deine Lernerinnerungen an</string>
+    <string name="notification_enable_notifications">Benachrichtigungen Aktivieren</string>
+    <string name="notification_stay_motivated">Bleib motiviert mit freundlichen Erinnerungen 🌟</string>
+    <string name="notification_missing_nudges">Lern-Erinnerungen verpassen 😢</string>
+    <string name="notification_gentle_reminders">Wir senden dir sanfte Erinnerungen, wenn Wörter zum Wiederholen bereit sind. Perfektes Timing, kein Spam!</string>
+    
+    <!-- Progress Screen -->
+    <string name="total_words">Gesamtwörter</string>
+    <string name="cards_due_for_review">%1$d Karten zur Wiederholung</string>
+    <string name="start_review">Wiederholung starten</string>
+    <string name="learning_stages">Lernphasen</string>
+    <string name="import_words">Wörter importieren</string>
+    <string name="generating_daily_insight">Ihre tägliche Einsicht wird generiert...</string>
+    
+    <!-- Learning Stages (7 Levels) -->
+    <string name="level_0_fresh">Erste Begegnung</string>
+    <string name="level_0_description">Level 1 • Gerade entdeckt</string>
+    <string name="level_1_learning">Vertraut werden</string>
+    <string name="level_1_description">Level 2 • Alle 10 Minuten</string>
+    <string name="level_2_familiar">Bleibt hängen</string>
+    <string name="level_2_description">Level 3 • Tägliches Üben</string>
+    <string name="level_3_building">Selbstvertrauen aufbauen</string>
+    <string name="level_3_description">Level 4 • Alle 3 Tage</string>
+    <string name="level_4_almost">Fast gemeistert</string>
+    <string name="level_4_description">Level 5 • Wöchentliche Wiederholungen</string>
+    <string name="level_5_strong">Gut gemeistert</string>
+    <string name="level_5_description">Level 6 • Zweiwöchentliche Wiederholungen</string>
+    <string name="level_6_mastered">Vollständig gemeistert</string>
+    <string name="level_6_description">Level 7 • Monatliche Wiederholungen</string>
+    
+    <!-- Review Screen -->
+    <string name="review_due_cards">Fällige Karten wiederholen</string>
+    <string name="stage_words">%1$d Wörter</string>
+    <string name="how_well_did_you_know">Wie gut kannten Sie das?</string>
+    <string name="again">Wieder</string>
+    <string name="hard">Schwer</string>
+    <string name="good">Gut</string>
+    <string name="easy">Leicht</string>
+    <string name="forgot">Nö 😅</string>
+    <string name="remembered">Hab's! ✓</string>
+    <string name="did_you_remember">Hast du's gewusst?</string>
+    <string name="restart">Nochmal</string>
+    <string name="advance">Weiter so</string>
+    <string name="browse_your_words">Durchsuche deine Wörter</string>
+    <string name="back">Zurück</string>
+    <string name="next">Weiter</string>
+    <string name="show_answer">Antwort anzeigen</string>
+    <string name="think_of_answer_first">Erstmal kurz nachdenken</string>
+    <string name="no_words_to_review">Keine Wörter zu wiederholen</string>
+    <string name="less_than_1m">&lt;1m</string>
+    <string name="less_than_10m">&lt;10m</string>
+    <string name="less_than_1d">&lt;1T</string>
+    <string name="less_than_4d">&lt;4T</string>
+    
+    <!-- Import Dialog -->
+    <string name="image_import_options">Bildimport-Optionen:</string>
+    <string name="extract_individual_words">Einzelne Wörter extrahieren</string>
+    <string name="extract_example_sentences">Beispielsätze extrahieren</string>
+    <string name="select_at_least_one_option">Mindestens eine Option wählen</string>
+    
+    <!-- Dialogs -->
+    <string name="exit_review">Wiederholung beenden?</string>
+    <string name="exit_review_message">Möchten Sie die Wiederholung wirklich beenden? Ihr Fortschritt wird gespeichert.</string>
+    <string name="yes_exit">Ja, beenden</string>
+    <string name="continue_reviewing">Wiederholung fortsetzen</string>
+    <string name="review_complete">🎉 Wiederholung abgeschlossen!</string>
+    <string name="review_complete_message">Großartige Arbeit! Üben Sie weiter, um Ihr Vokabular zu meistern.</string>
+    
+    <!-- Import Dialog -->
+    <string name="translation">Übersetzung: %1$d</string>
+    <string name="processing_image_with_ai">Bild wird mit KI verarbeitet...</string>
+    <string name="processing_file">Datei wird verarbeitet...</string>
+    <string name="enter_words">Wörter eingeben</string>
+    <string name="import_from_image">Aus Bild importieren (KI)</string>
+    <string name="show_format_info">Formatinformationen anzeigen</string>
+    <string name="hide_format_info">Formatinformationen ausblenden</string>
+    <string name="import_text">Text importieren</string>
+    <string name="upgrade_to_premium">Auf Premium upgraden</string>
+    <string name="ai_image_extraction_description">Vokabeln aus Bildern mit KI-gestützter Erkennung extrahieren</string>
+    
+    <!-- Import Bottom Sheet - Redesigned -->
+    <string name="type_text">Text eingeben</string>
+    <string name="from_file">Aus Datei</string>
+    <string name="from_image">Aus Bild</string>
+    <string name="type_or_paste_words">Wörter eingeben oder einfügen</string>
+    <string name="enter_words_manually_description">Geben Sie Ihre Vokabeln manuell ein oder fügen Sie sie aus der Zwischenablage ein</string>
+    <string name="import_from_file">Aus Datei importieren</string>
+    <string name="select_txt_file_description">Wählen Sie eine .txt-Datei mit Ihrer Vokabelliste</string>
+    <string name="choose_file">Datei auswählen</string>
+    <string name="txt_format">.txt Format</string>
+    <string name="supported_format">Unterstütztes Format</string>
+    <string name="format_example_1">wort,übersetzung</string>
+    <string name="format_example_2">wort,übersetzung,beschreibung</string>
+    <string name="format_example_3">Getrennt durch Semikolons oder neue Zeilen</string>
+    <string name="format_hint_comma_separated">Format: wort,übersetzung</string>
+    <string name="ai_powered_extraction">KI-gestützte Extraktion</string>
+    <string name="capture_vocab_from_image">Vokabeln aus Fotos oder Screenshots erfassen</string>
+    <string name="ai_extractions">KI-Extraktionen</string>
+    <string name="remaining_extractions">Verbleibende Extraktionen</string>
+    <string name="extraction_options">Extraktionsoptionen</string>
+    <string name="individual_words_hint">Einzelne Wörter und kurze Phrasen extrahieren</string>
+    <string name="sentences_hint">Vollständige Sätze und Beispiele extrahieren</string>
+    <string name="take_or_choose_photo">Foto aufnehmen oder auswählen</string>
+    <string name="camera">Kamera</string>
+    <string name="gallery">Galerie</string>
+    <string name="choose_image_source">Bildquelle wählen</string>
+    <string name="take_new_photo">Neues Foto aufnehmen</string>
+    <string name="choose_from_library">Aus Bibliothek wählen</string>
+    <string name="premium_feature">Premium-Funktion</string>
+    <string name="upgrade_for_ai_extraction">Upgraden Sie auf Premium, um KI-gestützte Bildextraktion zu nutzen</string>
+    <string name="login_required">Anmeldung erforderlich</string>
+    <string name="login_for_ai_features">Melden Sie sich an, um KI-gestützte Funktionen freizuschalten</string>
+    <string name="go_to_profile">Zum Profil gehen</string>
+    
+    <!-- Success/Error Messages -->
+    <string name="success_imported_words">✓ %1$d Wörter erfolgreich importiert</string>
+    <string name="success_imported_from_image">✓ %1$d Wörter erfolgreich aus Bild importiert</string>
+    <string name="error_message">✗ %1$d</string>
+    <string name="error">Fehler: %1$d</string>
+    
+    <!-- Progress Screen -->
+    <string name="no_words_yet">• Noch keine Wörter</string>
+    
+    <!-- AI Daily Insights -->
+    <string name="welcome_insight">Willkommen! Beginne deine Vokabelreise, indem du deine ersten Wörter hinzufügst! 🚀✨</string>
+    <string name="fallback_many_due">Du hast %1$d Karten bereit! Zeit, deine Fähigkeiten zu stärken! 💪⚡</string>
+    <string name="fallback_mostly_mastered">Beeindruckend! Über die Hälfte deines Vokabulars ist gemeistert! Du bist eine Legende! 👑🎯</string>
+    <string name="fallback_learning">Weitermachen! %1$d Wörter im Training. Jede Wiederholung macht dich stärker! 🎮🔥</string>
+    <string name="fallback_some_due">Perfektes Timing! %1$d Karten warten. Lass uns diese Session rocken! 💥✨</string>
+    <string name="fallback_all_caught_up">Du bist auf dem neuesten Stand! Zeit, mehr Wörter hinzuzufügen und aufzusteigen! 🌟🎯</string>
+    <string name="subscriptions_coming_soon_message">Abonnements sind bald verfügbar, um vollen Zugriff freizuschalten. Bleib dran! Du kannst die Funktionen vorübergehend mit begrenzten Guthaben nutzen.</string>
+    
+    <!-- Mastery Levels (for badge) -->
+    <string name="new">Neu</string>
+    <string name="learning">Lernen</string>
+    <string name="familiar">Vertraut</string>
+    <string name="consolidating">Sicher</string>
+    <string name="young">Fast da</string>
+    <string name="mature">Gut gelernt</string>
+    <string name="mastered">Gemeistert</string>
+    <string name="unknown">Unbekannt</string>
+    
+    <!-- Theme Descriptions -->
+    <string name="theme_light_desc">Immer helles Design verwenden</string>
+    <string name="theme_dark_desc">Immer dunkles Design verwenden</string>
+    <string name="theme_auto_desc">Systemeinstellungen folgen</string>
+    
+    <!-- Word Manager Screen -->
+    <string name="word_manager">Wort-Manager</string>
+    <string name="word_manager_subtitle">Verwalten Sie Ihr Vokabular</string>
+    <string name="search_words">Wörter suchen...</string>
+    <string name="clear">Löschen</string>
+    <string name="selected_count">%1$d ausgewählt</string>
+    <string name="select_all">Alle auswählen</string>
+    <string name="deselect_all">Alle abwählen</string>
+    <string name="delete">Löschen</string>
+    <string name="more_options">Weitere Optionen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="save">Speichern</string>
+    <string name="share">Teilen</string>
+    <string name="loading_words">Wörter werden geladen...</string>
+    <string name="no_results_found">Keine Ergebnisse gefunden</string>
+    <string name="no_words_match">Keine Wörter entsprechen "%1$d"</string>
+    <string name="empty_library">Deine Wortbibliothek ist leer</string>
+    <string name="start_by_importing">Beginne damit, einige Wörter zu importieren, um dein Vokabular aufzubauen</string>
+    <string name="total_words_count">%1$d Wörter in deiner Bibliothek</string>
+    <string name="edit_word">Wort bearbeiten</string>
+    <string name="original_word">Originalwort</string>
+    <string name="translation_label">Übersetzung</string>
+    <string name="description_optional">Beschreibung (Optional)</string>
+    <string name="delete_words_title">Wörter löschen?</string>
+    <string name="delete_words_message">Möchten Sie wirklich %1$d Wort(e) löschen? Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="deleting_words">Wörter löschen</string>
+    <string name="deleting_words_message">%1$d Wort(e) werden gelöscht…</string>
+    <string name="deleting_words_please_wait">Wörter werden gelöscht, bitte warten…</string>
+    <string name="deleting">Wird gelöscht…</string>
+    <string name="please_wait">Bitte warten…</string>
+    <string name="word_deleted">Wort gelöscht</string>
+    <string name="words_deleted">%1$d Wörter gelöscht</string>
+    <string name="word_updated">Wort erfolgreich aktualisiert</string>
+    <string name="export_words">Exportieren</string>
+    <string name="words_exported">✓ %1$d Wörter in Zwischenablage exportiert</string>
+    <string name="export_all">Alle exportieren</string>
+    <string name="export_selected">Ausgewählte exportieren</string>
+    
+    <!-- Word Manager Messages -->
+    <string name="no_words_selected">Bitte wählen Sie Wörter zum Löschen aus</string>
+    
+    <!-- Learning Mode Settings -->
+    <string name="learning_mode">Lernmodus</string>
+    <string name="learning_mode_settings">Erfolge: %1$d | Strafe: %2$d Stufen</string>
+    
+    <!-- Vocabulary Import/Review Messages -->
+    <string name="please_login_for_ai">Bitte melden Sie sich an, um Vokabeln aus Bildern zu extrahieren</string>
+    <string name="import_failed">Import fehlgeschlagen: %1$d</string>
+    <string name="import_failed_generic">Import fehlgeschlagen</string>
+    <string name="image_import_failed">Bildimport fehlgeschlagen: %1$d</string>
+    <string name="image_import_failed_generic">Bildimport fehlgeschlagen</string>
+    
+    <!-- Share/Export -->
+    <string name="vokab_export_filename">vokab_words_%1$d.txt</string>
+    
+    <!-- Image Preview -->
+    <string name="preview_selected_image">Vorschau des ausgewählten Bildes</string>
+    <string name="review_before_processing">Vor Verarbeitung prüfen</string>
+    <string name="selected_image">Ausgewähltes Bild</string>
+    <string name="failed_to_load_image">Fehler beim Laden des Bildes</string>
+    <string name="try_another_image">Bitte wählen Sie ein anderes Bild</string>
+    <string name="confirm_and_extract">Bestätigen und extrahieren</string>
+    <string name="confirm_image_help_text">Stellen Sie sicher, dass der Text für optimale Erkennung deutlich sichtbar ist</string>
+    
+    <!-- Collections Feature -->
+    <string name="collections">Sammlungen</string>
+    <string name="collections_loading">Sammlungen werden geladen...</string>
+    <string name="collections_empty">Keine Sammlungen verfügbar</string>
+    <string name="collections_empty_message">Kommen Sie später für neue Vokabularsammlungen zurück.</string>
+    <string name="collections_error">Sammlungen konnten nicht geladen werden</string>
+    <string name="collections_dismiss">Abbrechen</string>
+    <string name="learn_language">Lernen Sie %1$s</string>
+    <string name="from_language">aus %1$s</string>
+    <string name="collections_import">Importieren</string>
+    <string name="collections_downloading">Sammlung wird heruntergeladen</string>
+    <string name="collections_downloading_progress">Wird heruntergeladen...</string>
+    <string name="collections_parsing_progress">Wird analysiert...</string>
+    <string name="collections_importing">Sammlung wird importiert</string>
+    <string name="collections_checking_duplicates">Auf Duplikate wird geprüft...</string>
+    <string name="collections_importing_progress">Wird importiert... %1$d/%2$d</string>
+    <string name="collections_import_confirm_title">Sammlung importieren?</string>
+    <string name="collections_import_confirm_word_count">Diese Sammlung enthält %1$d Wörter, die zu Ihrer Vokabelliste hinzugefügt werden.</string>
+    <string name="collections_import_confirm_proceed">Möchten Sie fortfahren?</string>
+    <string name="collections_import_success">%1$d Wörter aus %2$s erfolgreich importiert!</string>
+    <string name="collections_import_failed">Sammlung konnte nicht importiert werden</string>
+    <string name="collections_download_failed">Sammlung konnte nicht heruntergeladen werden</string>
+    <string name="collections_parse_failed">Sammlung konnte nicht analysiert werden</string>
+    <string name="collections_downloading_message">%1$s</string>
+    <string name="collections_importing_message">%1$s</string>
+    
+    <!-- Subscription -->
+    <string name="subscription">Abonnement</string>
+    <string name="subscription_screen_title">Premium werden</string>
+    <string name="restore_purchases">Meine Käufe wiederherstellen</string>
+    <string name="cancel_anytime_prices_in_usd">Jederzeit kündbar, keine Fragen! 💙 Preise in USD.</string>
+    <string name="premium_unlocked">🎉 Alles bereit!</string>
+    <string name="premium_unlocked_message">Willkommen bei Premium! Genieße unbegrenzten Zugriff auf alle tollen Funktionen und beschleunige deine Lernreise!</string>
+    <string name="unlock_premium">Premium freischalten</string>
+    <string name="premium_subtitle">Beschleunige deine Vokabellernreise mit mächtigen Funktionen!</string>
+    <string name="compare_plans">Kostenlos vs Premium</string>
+    <string name="free_label">Kostenlos</string>
+    <string name="premium_label">Premium</string>
+    <string name="everything_you_get">Alles, was du bekommst</string>
+    <string name="most_popular_badge">Am beliebtesten</string>
+    <string name="processing_ellipsis">Einen Moment bitte...</string>
+    <string name="unlock_now">Jetzt freischalten</string>
+    <string name="subscribe_now">Jetzt abonnieren</string>
+    <string name="subscribe">Abonnieren</string>
+    <string name="subscription_unable_to_load">Ups! Wir konnten die Abonnements nicht laden 😅</string>
+    <string name="subscription_terms">Die Zahlung wird deinem Konto belastet. Dein Abonnement verlängert sich automatisch, es sei denn, du kündigst es mindestens 24 Stunden vor Ablauf der aktuellen Periode. Du kannst dein Abonnement jederzeit in deinen Kontoeinstellungen verwalten.</string>
+    <string name="feature_unlimited_words">Unbegrenzte Wörter</string>
+    <string name="feature_unlimited_words_desc">Füge so viele Wörter hinzu, wie dein Herz begehrt - keine Grenzen!</string>
+    <string name="feature_ai_extraction">KI-Extraktion</string>
+    <string name="feature_ai_extraction_desc">Wörter im Handumdrehen aus Bildern extrahieren - Magie in deinen Fingerspitzen!</string>
+    <string name="feature_ai_image_extraction">KI-Bilderkennung</string>
+    <string name="feature_advanced_analytics">Erweiterte Analysen</string>
+    <string name="feature_advanced_analytics_desc">Verfolge deinen Fortschritt und sieh, wie großartig du wirst!</string>
+    <string name="feature_export_data">Daten exportieren</string>
+    <string name="feature_export_data_desc">Nimm deinen Wortschatz überallhin mit - deine Wörter, deine Art!</string>
+    <string name="feature_export_backup">Export &amp; Backup</string>
+    <string name="feature_priority_support">Priorisierter Support</string>
+    <string name="feature_priority_support_desc">Wir haben deinen Rücken - erhalte Hilfe, wann immer du sie brauchst!</string>
+    <string name="feature_ad_free">Werbefrei</string>
+    <string name="feature_ad_free_desc">Konzentriere dich aufs Lernen ohne Ablenkungen!</string>
+    <string name="feature_basic_vocabulary_lists">Grundlegende Vokabellisten</string>
+    <string name="features">Funktionen</string>
+    <string name="vokab_pro">Vokab Pro</string>
+    <string name="subscription_active">Aktiv</string>
+    <string name="manage_subscription">Abonnement verwalten</string>
+    <string name="cancel_subscription">Abonnement kündigen</string>
+    <string name="billing_period_monthly">Monatlich</string>
+    <string name="billing_period_annual">Jährlich</string>
+    <string name="premium_plan_name">Premium</string>
+    <string name="subscription_load_failed">Wir konnten die Abonnementoptionen gerade nicht laden. Bitte versuche es erneut!</string>
+    <string name="purchase_failed">Ups! Der Kauf konnte nicht durchgeführt werden. Bitte versuche es erneut!</string>
+    <string name="purchases_restored_success">Großartig! Deine Käufe wurden erfolgreich wiederhergestellt!</string>
+    <string name="no_purchases_to_restore">Wir konnten keine aktiven Käufe zum Wiederherstellen finden. Stelle sicher, dass du mit demselben Konto angemeldet bist.</string>
+    <string name="restore_purchases_failed">Wir konnten deine Käufe gerade nicht wiederherstellen. Bitte überprüfe deine Verbindung und versuche es erneut!</string>
+    <string name="manage_subscription_device_settings">Du kannst dein Abonnement jederzeit in den Geräteeinstellungen verwalten</string>
+    <string name="manage_subscription_google_play">Verwalte dein Abonnement in Google Play</string>
+    <string name="manage_subscription_app_store">Verwalte dein Abonnement im App Store</string>
+    <string name="subscription_info_unavailable">Wir haben Probleme beim Zugriff auf deine Abonnementinformationen. Bitte versuche es später erneut!</string>
+    <string name="terms_of_use">Nutzungsbedingungen</string>
+    <string name="privacy_policy">Datenschutzrichtlinie</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Set Your Preferences</string>
+    <string name="onboarding_subtitle">Help us personalize your learning experience</string>
+    <string name="select_target_language">I want to learn:</string>
+    <string name="select_native_language">I speak:</string>
+    <string name="select_level">My level:</string>
+    <string name="beginner">Beginner</string>
+    <string name="intermediate">Intermediate</string>
+    <string name="advanced">Advanced</string>
+    <string name="skip_preferences">Skip</string>
+    <string name="submit_preferences">Submit</string>
+    <string name="vocabulary_preview_title">Suggested Vocabulary</string>
+    <string name="import_selected">Import Selected</string>
+    <string name="skip_import">Skip</string>
+    <string name="login_required_title">Welcome to Lexicon</string>
+    <string name="login_required_subtitle">Sign in to start learning vocabulary</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="sign_in_apple">Sign in with Apple</string>
+</resources>
+

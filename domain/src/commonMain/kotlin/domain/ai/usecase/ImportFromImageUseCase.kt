@@ -1,0 +1,56 @@
+package domain.ai.usecase
+
+import domain.ai.repository.IAiRepository
+import domain.settings.usecase.GetCurrentLanguageUseCase
+import domain.word.usecase.ImportWordsUseCase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+
+class ImportFromImageUseCase(
+    private val aiRepository: IAiRepository,
+    private val importWordsUseCase: ImportWordsUseCase,
+    private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
+    ) {
+    operator fun invoke(
+        imageBytes: ByteArray, 
+        extractWords: Boolean = true,
+        extractSentences: Boolean = false
+    ): Flow<ImportImageResult> = flow {
+        emit(ImportImageResult.Loading)
+    }.flatMapLatest {
+        val targetLanguage = getCurrentLanguageUseCase.invoke()
+        val extractionResult = aiRepository.extractVocabularyFromImage(
+            imageBytes, 
+            targetLanguage, 
+            extractWords, 
+            extractSentences
+        )
+        
+        extractionResult.fold(
+            onSuccess = { extractedText ->
+                importWordsUseCase(extractedText)
+                    .map { importResult ->
+                        when (importResult) {
+                            is ImportWordsUseCase.ImportResult.Success -> {
+                                ImportImageResult.Success(importResult.count)
+                            }
+                            is ImportWordsUseCase.ImportResult.Error -> {
+                                ImportImageResult.Error(importResult.message)
+                            }
+                        }
+                    }
+            },
+            onFailure = { error: Throwable ->
+                flow { emit(ImportImageResult.Error(error.message ?: "Failed to extract vocabulary from image")) }
+            }
+        )
+    }
+}
+
+sealed class ImportImageResult {
+    data object Loading : ImportImageResult()
+    data class Success(val count: Int) : ImportImageResult()
+    data class Error(val message: String) : ImportImageResult()
+}

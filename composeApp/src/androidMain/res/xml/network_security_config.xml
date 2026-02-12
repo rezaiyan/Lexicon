@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for local development -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Android Emulator localhost -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- Localhost for physical devices (if needed) -->
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">192.168.178.101</domain>
+        <!-- Add your local development IP if testing on physical device -->
+        <!-- <domain includeSubdomains="true">192.168.x.x</domain> -->
+    </domain-config>
+    
+    <!-- Production: HTTPS only (default behavior) -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+
+

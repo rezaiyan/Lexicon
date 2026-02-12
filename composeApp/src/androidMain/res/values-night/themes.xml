@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Splash screen theme for dark mode -->
+    <style name="Theme.Vokab.Starting" parent="Theme.SplashScreen">
+        <!-- Splash screen background color (dark) -->
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        
+        <!-- Center icon drawable -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        
+        <!-- No icon background for cleaner look -->
+        <!-- <item name="windowSplashScreenIconBackgroundColor">@color/splash_icon_background</item> -->
+        
+        <!-- Minimal animation duration - custom splash will handle animations -->
+        <item name="windowSplashScreenAnimationDuration">0</item>
+        
+        <!-- Theme to use after splash screen -->
+        <item name="postSplashScreenTheme">@style/Theme.Vokab</item>
+    </style>
+</resources>
+

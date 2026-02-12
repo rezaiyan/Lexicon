@@ -1,0 +1,374 @@
+package domain.word.usecase
+
+import domain.word.model.Word
+import domain.word.model.LearningStage
+import domain.word.model.ProgressStats
+import domain.word.repository.IWordRepository
+import domain.word.repository.DeleteWordsProgress
+import domain.word.service.ImportValidationService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.test.fail
+
+/**
+ * Comprehensive tests for word import parsing logic
+ * 
+ * Tests cover:
+ * - Basic word pairs
+ * - Words with commas (phrases)
+ * - Multiple words with descriptions
+ * - Edge cases (empty, malformed, special characters)
+ */
+class ImportWordsUseCaseTest {
+    
+    private val fakeRepository = FakeWordRepositoryForImport()
+    private val validationService = ImportValidationService()
+    private val useCase = ImportWordsUseCase(fakeRepository, validationService)
+    
+    private suspend fun executeImport(input: String): ImportWordsUseCase.ImportResult =
+        useCase(input).first()
+    
+    private suspend fun executeImportSuccess(input: String): ImportWordsUseCase.ImportResult.Success {
+        return when (val result = executeImport(input)) {
+            is ImportWordsUseCase.ImportResult.Success -> result
+            is ImportWordsUseCase.ImportResult.Error -> fail("Expected success but got error: ${result.message}")
+        }
+    }
+    
+    @Test
+    fun `basic word pair should parse correctly`() = runTest {
+        val input = "hello,hola"
+        val result = executeImportSuccess(input)
+        
+        assertEquals(1, result.count)
+        assertEquals(1, fakeRepository.insertedWords.size)
+        
+        val word = fakeRepository.insertedWords[0]
+        assertEquals("hello", word.originalWord)
+        assertEquals("hola", word.translation)
+        assertEquals("", word.description)
+    }
+    
+    @Test
+    fun `multiple word pairs separated by semicolon should parse correctly`() = runTest {
+        val input = "hello,hola;goodbye,adiós;thanks,gracias"
+        val result = executeImportSuccess(input)
+        
+        assertEquals(3, result.count)
+        assertEquals(3, fakeRepository.insertedWords.size)
+        
+        assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
+        assertEquals("hola", fakeRepository.insertedWords[0].translation)
+        
+        assertEquals("goodbye", fakeRepository.insertedWords[1].originalWord)
+        assertEquals("adiós", fakeRepository.insertedWords[1].translation)
+        
+        assertEquals("thanks", fakeRepository.insertedWords[2].originalWord)
+        assertEquals("gracias", fakeRepository.insertedWords[2].translation)
+    }
+    
+    @Test
+    fun `word with description should parse correctly`() = runTest {
+        val input = "hello,hola,A common greeting"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        
+        val word = fakeRepository.insertedWords[0]
+        assertEquals("hello", word.originalWord)
+        assertEquals("hola", word.translation)
+        assertEquals("A common greeting", word.description)
+    }
+    
+    @Test
+    fun `phrase with commas using comma delimiter should parse with smart splitting`() = runTest {
+        // With comma delimiter and limit=3, split on first 2 commas, preserve rest
+        val input = "Hello my friend,Hola mi amigo"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        
+        val word = fakeRepository.insertedWords[0]
+        assertEquals("Hello my friend", word.originalWord)
+        assertEquals("Hola mi amigo", word.translation)
+        assertEquals("", word.description)
+    }
+    
+    @Test
+    fun `phrase with commas using comma delimiter splits on first TWO commas`() = runTest {
+        // With comma delimiter and limit=3, split() splits on first 2 commas
+        // This is expected behavior - users should use pipe for phrases with commas
+        val input = "Hello, my friend,Hola, mi amigo"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        
+        val word = fakeRepository.insertedWords[0]
+        // split(",", limit=3) on "Hello, my friend,Hola, mi amigo" gives:
+        // ["Hello", " my friend", "Hola, mi amigo"]
+        assertEquals("Hello", word.originalWord)
+        assertEquals("my friend", word.translation)
+        assertEquals("Hola, mi amigo", word.description)
+    }
+    
+    @Test
+    fun `phrase with description using comma delimiter preserves commas in description`() = runTest {
+        val input = "Hello my dear friend,Hola mi querido amigo,A formal greeting used in Spanish-speaking countries"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        
+        val word = fakeRepository.insertedWords[0]
+        assertEquals("Hello my dear friend", word.originalWord)
+        assertEquals("Hola mi querido amigo", word.translation)
+        assertEquals("A formal greeting used in Spanish-speaking countries", word.description)
+    }
+    
+    @Test
+    fun `multiple phrases using comma delimiter should parse correctly`() = runTest {
+        val input = """
+            Hello how are you,Hola cómo estás
+            Good morning sir,Buenos días señor
+            Thank you very much,Muchas gracias
+        """.trimIndent()
+        
+        val result = executeImportSuccess(input)
+        assertEquals(3, result.count)
+        
+        assertEquals("Hello how are you", fakeRepository.insertedWords[0].originalWord)
+        assertEquals("Hola cómo estás", fakeRepository.insertedWords[0].translation)
+        
+        assertEquals("Good morning sir", fakeRepository.insertedWords[1].originalWord)
+        assertEquals("Buenos días señor", fakeRepository.insertedWords[1].translation)
+        
+        assertEquals("Thank you very much", fakeRepository.insertedWords[2].originalWord)
+        assertEquals("Muchas gracias", fakeRepository.insertedWords[2].translation)
+    }
+    
+    @Test
+    fun `very long phrase with description using comma delimiter should not truncate`() = runTest {
+        val longPhrase = "This is a very long phrase with detailed information"
+        val longTranslation = "Esta es una frase muy larga con información detallada"
+        val longDescription = "This description has commas, subclauses, and extra details"
+        val input = "$longPhrase,$longTranslation,$longDescription"
+        
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        
+        val word = fakeRepository.insertedWords[0]
+        assertEquals(longPhrase, word.originalWord)
+        assertEquals(longTranslation, word.translation)
+        assertEquals(longDescription, word.description)
+    }
+    
+    @Test
+    fun `description with commas should not split incorrectly using comma delimiter with limit`() = runTest {
+        val input = "word,translation,This is a description with commas, multiple clauses, and details"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        
+        val word = fakeRepository.insertedWords[0]
+        assertEquals("word", word.originalWord)
+        assertEquals("translation", word.translation)
+        assertEquals("This is a description with commas, multiple clauses, and details", word.description)
+    }
+    
+    @Test
+    fun `description with commas using comma delimiter preserves commas in description`() = runTest {
+        // With comma delimiter + limit=3, first 2 commas are delimiters, rest are preserved
+        val input = "word,translation,This is a description with commas, multiple clauses, and details"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        
+        val word = fakeRepository.insertedWords[0]
+        assertEquals("word", word.originalWord)
+        assertEquals("translation", word.translation)
+        // The description should contain all the commas after the 2nd delimiter comma
+        assertEquals("This is a description with commas, multiple clauses, and details", word.description)
+    }
+    
+    @Test
+    fun `empty input should return error`() = runTest {
+        val result = executeImport("")
+        assertTrue(result is ImportWordsUseCase.ImportResult.Error)
+    }
+    
+    @Test
+    fun `whitespace only should return error`() = runTest {
+        val result = executeImport("   \n\n  \t  ")
+        assertTrue(result is ImportWordsUseCase.ImportResult.Error)
+    }
+    
+    @Test
+    fun `malformed entry with only one part should be skipped`() = runTest {
+        val input = "onlyoneword;hello,hola"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        assertEquals(1, fakeRepository.insertedWords.size)
+        assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
+    }
+    
+    @Test
+    fun `empty entries should be skipped`() = runTest {
+        val input = "hello,hola;;;goodbye,adiós"
+        val result = executeImportSuccess(input)
+        assertEquals(2, result.count)
+        assertEquals(2, fakeRepository.insertedWords.size)
+    }
+    
+    @Test
+    fun `entries with blank parts should be skipped`() = runTest {
+        val input = " ,hola;hello, ;hello,hola"
+        val result = executeImportSuccess(input)
+        assertEquals(1, result.count)
+        assertEquals(1, fakeRepository.insertedWords.size)
+        assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
+    }
+    
+    @Test
+    fun `mixed valid and invalid entries should parse valid ones only`() = runTest {
+        val input = """
+            hello,hola;
+            invalid;
+            good,bien,A positive word;
+            ,empty;
+            test,prueba
+        """.trimIndent()
+        
+        val result = executeImportSuccess(input)
+        assertEquals(3, result.count)
+        assertEquals(3, fakeRepository.insertedWords.size)
+    }
+    
+    @Test
+    fun `real world example with comma delimiter should parse correctly`() = runTest {
+        val input = """
+            Hello,Hola,Common greeting
+            How are you,Cómo estás
+            I am fine thank you,Estoy bien gracias,Polite response
+            See you later,Hasta luego
+        """.trimIndent()
+        
+        val result = executeImportSuccess(input)
+        assertEquals(4, result.count)
+        
+        // Verify first word
+        assertEquals("Hello", fakeRepository.insertedWords[0].originalWord)
+        assertEquals("Hola", fakeRepository.insertedWords[0].translation)
+        assertEquals("Common greeting", fakeRepository.insertedWords[0].description)
+        
+        // Verify phrase with description
+        assertEquals("I am fine thank you", fakeRepository.insertedWords[2].originalWord)
+        assertEquals("Estoy bien gracias", fakeRepository.insertedWords[2].translation)
+        assertEquals("Polite response", fakeRepository.insertedWords[2].description)
+    }
+    
+    @Test
+    fun `multiple entries with semicolon and newline separators should work`() = runTest {
+        val input = """
+            hello,hola
+            How are you,Cómo estás;good,bien,positive word
+        """.trimIndent()
+        
+        val result = executeImportSuccess(input)
+        assertEquals(3, result.count)
+        
+        // First entry
+        assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
+        assertEquals("hola", fakeRepository.insertedWords[0].translation)
+        
+        // Second entry
+        assertEquals("How are you", fakeRepository.insertedWords[1].originalWord)
+        assertEquals("Cómo estás", fakeRepository.insertedWords[1].translation)
+        
+        // Third entry with description
+        assertEquals("good", fakeRepository.insertedWords[2].originalWord)
+        assertEquals("bien", fakeRepository.insertedWords[2].translation)
+        assertEquals("positive word", fakeRepository.insertedWords[2].description)
+    }
+    
+    @Test
+    fun `special characters should be preserved`() = runTest {
+        val input = "¡Hola!,Hello!;¿Qué tal?,How are you?;Café,Coffee"
+        val result = executeImportSuccess(input)
+        assertEquals(3, result.count)
+        
+        assertEquals("¡Hola!", fakeRepository.insertedWords[0].originalWord)
+        assertEquals("¿Qué tal?", fakeRepository.insertedWords[1].originalWord)
+        assertEquals("Café", fakeRepository.insertedWords[2].originalWord)
+    }
+    
+    @Test
+    fun `newlines and extra whitespace should be handled`() = runTest {
+        val input = """
+            hello  ,  hola  ;
+            
+            goodbye,  adiós  
+        """.trimIndent()
+        
+        val result = executeImportSuccess(input)
+        assertEquals(2, result.count)
+        
+        assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
+        assertEquals("hola", fakeRepository.insertedWords[0].translation)
+    }
+}
+
+/**
+ * Fake repository for testing ImportWordsUseCase
+ */
+internal class FakeWordRepositoryForImport : IWordRepository {
+    val insertedWords = mutableListOf<Word>()
+    
+    override suspend fun insertWords(words: List<Word>): Int {
+        insertedWords.addAll(words)
+        return words.size
+    }
+    
+    override suspend fun getAllWordsAsync(): List<Word> = insertedWords.toList()
+    
+    override fun getAllWords(): Flow<List<Word>> = flowOf(insertedWords)
+    
+    override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+    
+    override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
+    
+    override suspend fun updateWord(word: Word) {
+        // For testing purposes, just update the word in the list
+        val index = insertedWords.indexOfFirst { it.id == word.id }
+        if (index >= 0) {
+            insertedWords[index] = word
+        }
+    }
+    
+    override suspend fun deleteWord(id: Int) {
+        insertedWords.removeAll { it.id == id }
+    }
+    
+    override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> =
+        flowOf(DeleteWordsProgress.Completed(ids.size))
+    
+    override suspend fun syncWithRemote(): Result<Unit> = Result.success(Unit)
+    override suspend fun deleteAllWords(): Result<Unit> = Result.success(Unit)
+    override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> = Result.success(Unit)
+    
+    override suspend fun getWordById(id: Int): Word? = insertedWords.find { it.id == id }
+    
+    override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats(
+        totalWords = insertedWords.size,
+        dueCards = 0,
+        level0Count = 0,
+        level1Count = 0,
+        level2Count = 0,
+        level3Count = 0,
+        level4Count = 0,
+        level5Count = 0,
+        level6Count = 0
+    ))
+    
+    override suspend fun getTotalCount(): Int = insertedWords.size
+    
+    override suspend fun getDueCount(): Int = 0
+}
+

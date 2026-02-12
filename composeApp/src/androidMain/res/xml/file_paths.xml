@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Cache directory for shared files -->
+    <cache-path name="shared_files" path="shared_files/" />
+    <!-- Cache directory for camera photos -->
+    <cache-path name="camera_photos" path="." />
+</paths>
+

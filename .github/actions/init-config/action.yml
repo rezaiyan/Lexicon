@@ -1,0 +1,65 @@
+name: "Initialize Config"
+description: "Validates required environment variables and generates local.properties for CI"
+runs:
+  using: "composite"
+  steps:
+    - name: Validate required environment variables
+      shell: bash
+      run: |
+        REQUIRED_KEYS=(
+          VOKAB_BACKEND_URL
+          GOOGLE_SERVER_CLIENT_ID
+          GOOGLE_IOS_CLIENT_ID
+          GOOGLE_IOS_URL_SCHEME
+          FIREBASE_ANDROID_API_KEY
+          FIREBASE_PROJECT_NUMBER
+          FIREBASE_PROJECT_ID
+          FIREBASE_STORAGE_BUCKET
+          FIREBASE_MOBILE_SDK_APP_ID
+          ANDROID_PACKAGE_NAME
+          GOOGLE_ANDROID_CLIENT_ID_RELEASE
+          ANDROID_CERT_HASH_RELEASE
+          GOOGLE_ANDROID_CLIENT_ID_DEBUG
+          ANDROID_CERT_HASH_DEBUG
+          IOS_BUNDLE_ID
+          IOS_APP_STORE_ID
+          REVENUECAT_ANDROID_KEY
+          REVENUECAT_IOS_KEY
+        )
+
+        missing=()
+        for key in "${REQUIRED_KEYS[@]}"; do
+          value="${!key}"
+          if [ -z "${value}" ]; then
+            missing+=("${key}")
+          fi
+        done
+
+        if [ "${#missing[@]}" -ne 0 ]; then
+          echo "::error::Missing required environment variables: ${missing[*]}"
+          exit 1
+        fi
+
+    - name: Generate local.properties
+      shell: bash
+      run: |
+        cat <<EOF > local.properties
+        vokab.backend.url=${VOKAB_BACKEND_URL}
+        FIREBASE_ANDROID_API_KEY=${FIREBASE_ANDROID_API_KEY}
+        FIREBASE_PROJECT_NUMBER=${FIREBASE_PROJECT_NUMBER}
+        FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+        FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}
+        FIREBASE_MOBILE_SDK_APP_ID=${FIREBASE_MOBILE_SDK_APP_ID}
+        ANDROID_PACKAGE_NAME=${ANDROID_PACKAGE_NAME}
+        GOOGLE_ANDROID_CLIENT_ID_RELEASE=${GOOGLE_ANDROID_CLIENT_ID_RELEASE}
+        ANDROID_CERT_HASH_RELEASE=${ANDROID_CERT_HASH_RELEASE}
+        GOOGLE_ANDROID_CLIENT_ID_DEBUG=${GOOGLE_ANDROID_CLIENT_ID_DEBUG}
+        ANDROID_CERT_HASH_DEBUG=${ANDROID_CERT_HASH_DEBUG}
+        GOOGLE_SERVER_CLIENT_ID=${GOOGLE_SERVER_CLIENT_ID}
+        GOOGLE_IOS_CLIENT_ID=${GOOGLE_IOS_CLIENT_ID}
+        GOOGLE_IOS_URL_SCHEME=${GOOGLE_IOS_URL_SCHEME}
+        IOS_BUNDLE_ID=${IOS_BUNDLE_ID}
+        IOS_APP_STORE_ID=${IOS_APP_STORE_ID}
+        REVENUECAT_ANDROID_KEY=${REVENUECAT_ANDROID_KEY}
+        REVENUECAT_IOS_KEY=${REVENUECAT_IOS_KEY}
+        EOF

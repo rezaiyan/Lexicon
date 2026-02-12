@@ -1,0 +1,395 @@
+<resources>
+    <!-- App Info -->
+    <string name="app_name">LEXICON</string>
+    <string name="app_tagline">掌握你的词汇</string>
+    <string name="app_description">Vokab - 词汇学习应用</string>
+    <string name="version">版本 %1$d</string>
+    
+    <!-- Time-based Greetings -->
+    <string name="greeting_midnight">熬夜了？🌙</string>
+    <string name="greeting_morning">早上好！☀️</string>
+    <string name="greeting_afternoon">下午好！🌤️</string>
+    <string name="greeting_evening">晚上好！🌆</string>
+    <string name="greeting_night">晚安！🌃</string>
+    
+    <!-- Common -->
+    <string name="cancel">取消</string>
+    <string name="done">完成</string>
+    <string name="close">关闭</string>
+    <string name="retry">重试</string>
+    <string name="change">更改</string>
+    <string name="logout">退出登录</string>
+    
+    <!-- Navigation -->
+    <string name="profile">个人资料</string>
+    <string name="study">学习</string>
+    <string name="settings">设置</string>
+    
+    <!-- Settings Screen -->
+    <string name="theme">主题</string>
+    <string name="translation_language">翻译语言</string>
+    <string name="notifications">通知</string>
+    <string name="about">关于</string>
+    
+    <!-- Profile Screen -->
+    <string name="logout_title">退出登录</string>
+    <string name="logout_message">您确定要退出登录吗？您需要重新登录才能使用AI功能。</string>
+    <string name="delete_account">删除账户</string>
+    <string name="delete_account_title">删除账户</string>
+    <string name="delete_account_message">您确定要删除您的账户吗？此操作无法撤销。您的所有数据将被永久删除。</string>
+    <string name="delete_account_confirm">删除</string>
+    <string name="profile_picture">头像</string>
+    <string name="sign_in_to_vokab">登录 Vokab</string>
+    <string name="sign_in_description">登录以解锁AI驱动的功能：\n• 从图像中提取词汇\n• 获取每日洞察</string>
+    <string name="offline_usage_info">您可以在不登录的情况下离线使用Vokab，但AI功能需要账户。</string>
+    <string name="premium_member">高级会员</string>
+    <string name="trial_active">试用中</string>
+    <string name="free_plan">免费计划</string>
+    <string name="subscription_cancelled">订阅已取消</string>
+    <string name="subscription_expired">订阅已过期</string>
+    <string name="expires">到期：%1$s</string>
+    
+    <!-- Enhanced Delete Account Flow -->
+    <string name="delete_account_hidden_title">账户删除</string>
+    <string name="delete_account_hidden_message">您即将永久删除您的账户。此操作无法撤销，将删除您的所有数据。</string>
+    <string name="delete_account_hidden_continue">继续删除流程</string>
+    <string name="delete_account_cooling_period_title">⏰ 冷静期</string>
+    <string name="delete_account_cooling_period_message">请等待 %1$d 秒后再继续。这给您时间重新考虑。</string>
+    <string name="delete_account_cooling_period_cancel">取消删除</string>
+    <string name="delete_account_final_title">🚨 最终确认</string>
+    <string name="delete_account_final_message">这将永久删除：\n\n• 您的所有词汇\n• 学习进度和连续记录\n• AI生成的洞察\n• 账户设置\n\n此操作无法撤销！</string>
+    <string name="delete_account_final_confirm">是的，删除我的账户</string>
+    <string name="delete_account_long_press_hint">长按头像以访问账户删除</string>
+    <string name="proceed_to_final_confirmation">进行最终确认</string>
+    <string name="ready_to_proceed_deletion">准备进行账户删除。请在下方确认。</string>
+    <string name="day_streak">连续天数</string>
+    <string name="best_streak">最佳记录</string>
+    
+    <!-- Notifications -->
+    <string name="notification_enabled">已启用</string>
+    <string name="notification_disabled">已禁用</string>
+    <string name="notification_disabled_system">在系统设置中已禁用</string>
+    <string name="notification_permission_required">未授予权限 - 你不会收到通知</string>
+    <string name="notification_permission_title">与你的单词保持联系！🎯</string>
+    <string name="notification_permission_message">让我们成为你的学习伙伴，在该练习时给你发送友好的提醒！</string>
+    <string name="notification_features_title">你将获得：</string>
+    <string name="notification_feature_reminders">📚 温和的复习提醒</string>
+    <string name="notification_feature_motivation">💪 动力提升</string>
+    <string name="notification_feature_timing">🎯 智能时机 - 仅在有用时</string>
+    <string name="notification_no_spam_message">没有垃圾信息，只有友好的提醒！点击按钮在设备设置中启用通知。</string>
+    <string name="notification_open_settings">启用</string>
+    <string name="notification_enable_button">开始吧！✨</string>
+    <string name="notification_maybe_later">以后再说</string>
+    <string name="notification_settings_title">通知设置</string>
+    <string name="notification_settings_subtitle">自定义你的学习提醒</string>
+    <string name="notification_enable_notifications">启用通知</string>
+    <string name="notification_stay_motivated">通过友好的提醒保持动力 🌟</string>
+    <string name="notification_missing_nudges">错过学习提醒 😢</string>
+    <string name="notification_gentle_reminders">当你有单词准备好复习时，我们会发送温和的提醒。完美的时机，没有垃圾信息！</string>
+    
+    <!-- Progress Screen -->
+    <string name="total_words">总单词数</string>
+    <string name="cards_due_for_review">%1$d 张卡片待复习</string>
+    <string name="start_review">开始复习</string>
+    <string name="learning_stages">学习阶段</string>
+    <string name="import_words">导入单词</string>
+    <string name="generating_daily_insight">正在生成每日洞察...</string>
+    
+    <!-- Learning Stages (7 Levels) -->
+    <string name="level_0_fresh">初次遇见</string>
+    <string name="level_0_description">等级 1 • 刚刚发现</string>
+    <string name="level_1_learning">开始熟悉</string>
+    <string name="level_1_description">等级 2 • 每10分钟</string>
+    <string name="level_2_familiar">开始记住</string>
+    <string name="level_2_description">等级 3 • 每日练习</string>
+    <string name="level_3_building">建立信心</string>
+    <string name="level_3_description">等级 4 • 每3天</string>
+    <string name="level_4_almost">接近掌握</string>
+    <string name="level_4_description">等级 5 • 每周复习</string>
+    <string name="level_5_strong">良好掌握</string>
+    <string name="level_5_description">等级 6 • 两周复习</string>
+    <string name="level_6_mastered">完全掌握</string>
+    <string name="level_6_description">等级 7 • 每月复习</string>
+    
+    <!-- Review Screen -->
+    <string name="review_due_cards">复习到期卡片</string>
+    <string name="stage_words">%1$d 单词</string>
+    <string name="how_well_did_you_know">你对此了解多少？</string>
+    <string name="again">再次</string>
+    <string name="hard">困难</string>
+    <string name="good">好</string>
+    <string name="easy">简单</string>
+    <string name="forgot">不记得 😅</string>
+    <string name="remembered">记住了! ✓</string>
+    <string name="did_you_remember">你知道吗？</string>
+    <string name="restart">再来一次</string>
+    <string name="advance">继续加油!</string>
+    <string name="browse_your_words">浏览你的单词</string>
+    <string name="back">上一个</string>
+    <string name="next">下一个</string>
+    <string name="show_answer">显示答案</string>
+    <string name="think_of_answer_first">先想一想</string>
+    <string name="no_words_to_review">没有单词需要复习</string>
+    <string name="less_than_1m">&lt;1分</string>
+    <string name="less_than_10m">&lt;10分</string>
+    <string name="less_than_1d">&lt;1天</string>
+    <string name="less_than_4d">&lt;4天</string>
+    
+    <!-- Import Dialog -->
+    <string name="image_import_options">图片导入选项：</string>
+    <string name="extract_individual_words">提取单个单词</string>
+    <string name="extract_example_sentences">提取示例句子</string>
+    <string name="select_at_least_one_option">至少选择一个选项</string>
+    
+    <!-- Dialogs -->
+    <string name="exit_review">退出复习？</string>
+    <string name="exit_review_message">确定要停止复习吗？您的进度将被保存。</string>
+    <string name="yes_exit">是的，退出</string>
+    <string name="continue_reviewing">继续复习</string>
+    <string name="review_complete">🎉 复习完成！</string>
+    <string name="review_complete_message">干得好！继续练习以掌握你的词汇。</string>
+    
+    <!-- Import Dialog -->
+    <string name="translation">翻译: %1$d</string>
+    <string name="processing_image_with_ai">使用AI处理图像...</string>
+    <string name="processing_file">正在处理文件...</string>
+    <string name="enter_words">输入单词</string>
+    <string name="import_from_image">从图像导入 (AI)</string>
+    <string name="show_format_info">显示格式信息</string>
+    <string name="hide_format_info">隐藏格式信息</string>
+    <string name="import_text">导入文本</string>
+    <string name="upgrade_to_premium">升级到高级版</string>
+    <string name="ai_image_extraction_description">使用AI识别从图像中提取词汇</string>
+    
+    <!-- Import Bottom Sheet - Redesigned -->
+    <string name="type_text">输入文本</string>
+    <string name="from_file">从文件</string>
+    <string name="from_image">从图片</string>
+    <string name="type_or_paste_words">输入或粘贴单词</string>
+    <string name="enter_words_manually_description">手动输入您的词汇或从剪贴板粘贴</string>
+    <string name="import_from_file">从文件导入</string>
+    <string name="select_txt_file_description">选择包含您的词汇列表的 .txt 文件</string>
+    <string name="choose_file">选择文件</string>
+    <string name="txt_format">.txt 格式</string>
+    <string name="supported_format">支持的格式</string>
+    <string name="format_example_1">单词,翻译</string>
+    <string name="format_example_2">单词,翻译,描述</string>
+    <string name="format_example_3">用分号或换行符分隔</string>
+    <string name="format_hint_comma_separated">格式：单词,翻译</string>
+    <string name="ai_powered_extraction">AI 智能提取</string>
+    <string name="capture_vocab_from_image">从照片或截图中捕获词汇</string>
+    <string name="ai_extractions">AI 提取</string>
+    <string name="remaining_extractions">剩余提取次数</string>
+    <string name="extraction_options">提取选项</string>
+    <string name="individual_words_hint">提取单个单词和短语</string>
+    <string name="sentences_hint">提取完整句子和示例</string>
+    <string name="take_or_choose_photo">拍摄或选择照片</string>
+    <string name="camera">相机</string>
+    <string name="gallery">相册</string>
+    <string name="choose_image_source">选择图片来源</string>
+    <string name="take_new_photo">拍摄新照片</string>
+    <string name="choose_from_library">从相册选择</string>
+    <string name="premium_feature">高级功能</string>
+    <string name="upgrade_for_ai_extraction">升级到高级版以使用 AI 图像提取</string>
+    <string name="login_required">需要登录</string>
+    <string name="login_for_ai_features">登录以解锁 AI 功能</string>
+    <string name="go_to_profile">前往个人资料</string>
+    
+    <!-- Success/Error Messages -->
+    <string name="success_imported_words">✓ 成功导入 %1$d 个单词</string>
+    <string name="success_imported_from_image">✓ 从图像成功导入 %1$d 个单词</string>
+    <string name="error_message">✗ %1$d</string>
+    <string name="error">错误: %1$d</string>
+    
+    <!-- Progress Screen -->
+    <string name="no_words_yet">• 还没有单词</string>
+    
+    <!-- AI Daily Insights -->
+    <string name="welcome_insight">欢迎！通过添加您的第一批单词开始词汇之旅！🚀✨</string>
+    <string name="fallback_many_due">你有%1$d张卡片准备好了！是时候提升你的技能了！💪⚡</string>
+    <string name="fallback_mostly_mastered">令人印象深刻！超过一半的词汇已掌握！你是传奇！👑🎯</string>
+    <string name="fallback_learning">继续努力！%1$d个单词正在训练中。每次复习都让你更强！🎮🔥</string>
+    <string name="fallback_some_due">完美时机！%1$d张卡片等待中。让我们粉碎这次会话！💥✨</string>
+    <string name="fallback_all_caught_up">你已经全部完成了！是时候添加更多单词并升级了！🌟🎯</string>
+    <string name="subscriptions_coming_soon_message">订阅功能即将上线，解锁完整访问。敬请期待！目前你可以使用有限额度临时体验功能。</string>
+    
+    <!-- Mastery Levels (for badge) -->
+    <string name="new">新词</string>
+    <string name="learning">学习中</string>
+    <string name="familiar">熟悉</string>
+    <string name="consolidating">有信心</string>
+    <string name="young">接近掌握</string>
+    <string name="mature">良好掌握</string>
+    <string name="mastered">完全掌握</string>
+    <string name="unknown">未知</string>
+    
+    <!-- Theme Descriptions -->
+    <string name="theme_light_desc">始终使用浅色主题</string>
+    <string name="theme_dark_desc">始终使用深色主题</string>
+    <string name="theme_auto_desc">跟随系统设置</string>
+    
+    <!-- Word Manager Screen -->
+    <string name="word_manager">单词管理</string>
+    <string name="word_manager_subtitle">管理您的词汇</string>
+    <string name="search_words">搜索单词...</string>
+    <string name="clear">清除</string>
+    <string name="selected_count">已选择 %1$d 个</string>
+    <string name="select_all">全选</string>
+    <string name="deselect_all">取消全选</string>
+    <string name="delete">删除</string>
+    <string name="more_options">更多选项</string>
+    <string name="edit">编辑</string>
+    <string name="save">保存</string>
+    <string name="share">分享</string>
+    <string name="loading_words">加载单词中...</string>
+    <string name="no_results_found">未找到结果</string>
+    <string name="no_words_match">没有匹配"%1$d"的单词</string>
+    <string name="empty_library">您的单词库是空的</string>
+    <string name="start_by_importing">开始导入一些单词来建立您的词汇</string>
+    <string name="total_words_count">您的库中有 %1$d 个单词</string>
+    <string name="edit_word">编辑单词</string>
+    <string name="original_word">原始单词</string>
+    <string name="translation_label">翻译</string>
+    <string name="description_optional">描述（可选）</string>
+    <string name="delete_words_title">删除单词？</string>
+    <string name="delete_words_message">确定要删除 %1$d 个单词吗？此操作无法撤消。</string>
+    <string name="deleting_words">正在删除单词</string>
+    <string name="deleting_words_message">正在删除 %1$d 个单词…</string>
+    <string name="deleting_words_please_wait">正在删除单词，请稍候…</string>
+    <string name="deleting">正在删除…</string>
+    <string name="please_wait">请稍候…</string>
+    <string name="word_deleted">单词已删除</string>
+    <string name="words_deleted">已删除 %1$d 个单词</string>
+    <string name="word_updated">单词更新成功</string>
+    <string name="export_words">导出</string>
+    <string name="words_exported">✓ 已导出 %1$d 个单词到剪贴板</string>
+    <string name="export_all">导出全部</string>
+    <string name="export_selected">导出所选</string>
+    
+    <!-- Word Manager Messages -->
+    <string name="no_words_selected">请选择要删除的单词</string>
+    
+    <!-- Learning Mode Settings -->
+    <string name="learning_mode">学习模式</string>
+    <string name="learning_mode_settings">成功次数: %1$d | 惩罚: %2$d 级</string>
+    
+    <!-- Vocabulary Import/Review Messages -->
+    <string name="please_login_for_ai">请登录以从图片中提取词汇</string>
+    <string name="import_failed">导入失败: %1$d</string>
+    <string name="import_failed_generic">导入失败</string>
+    <string name="image_import_failed">图片导入失败: %1$d</string>
+    <string name="image_import_failed_generic">图片导入失败</string>
+    
+    <!-- Share/Export -->
+    <string name="vokab_export_filename">vokab_words_%1$d.txt</string>
+    
+    <!-- Image Preview -->
+    <string name="preview_selected_image">预览所选图片</string>
+    <string name="review_before_processing">处理前检查</string>
+    <string name="selected_image">所选图片</string>
+    <string name="failed_to_load_image">加载图片失败</string>
+    <string name="try_another_image">请选择另一张图片</string>
+    <string name="confirm_and_extract">确认并提取</string>
+    <string name="confirm_image_help_text">确保文字清晰可见以获得最佳识别效果</string>
+    
+    <!-- Collections Feature -->
+    <string name="collections">收藏</string>
+    <string name="collections_loading">正在加载收藏...</string>
+    <string name="collections_empty">暂无收藏可用</string>
+    <string name="collections_empty_message">稍后再来看新的词汇收藏。</string>
+    <string name="collections_error">加载收藏失败</string>
+    <string name="collections_dismiss">关闭</string>
+    <string name="learn_language">学习 %1$s</string>
+    <string name="from_language">来自 %1$s</string>
+    <string name="collections_import">导入</string>
+    <string name="collections_downloading">正在下载收藏</string>
+    <string name="collections_downloading_progress">正在下载...</string>
+    <string name="collections_parsing_progress">正在解析...</string>
+    <string name="collections_importing">正在导入收藏</string>
+    <string name="collections_checking_duplicates">正在检查重复项...</string>
+    <string name="collections_importing_progress">正在导入... %1$d/%2$d</string>
+    <string name="collections_import_confirm_title">导入收藏？</string>
+    <string name="collections_import_confirm_word_count">此收藏包含 %1$d 个单词，将添加到您的词汇列表中。</string>
+    <string name="collections_import_confirm_proceed">要继续吗？</string>
+    <string name="collections_import_success">成功从 %2$s 导入 %1$d 个单词！</string>
+    <string name="collections_import_failed">导入收藏失败</string>
+    <string name="collections_download_failed">下载收藏失败</string>
+    <string name="collections_parse_failed">解析收藏失败</string>
+    <string name="collections_downloading_message">%1$s</string>
+    <string name="collections_importing_message">%1$s</string>
+    
+    <!-- Subscription -->
+    <string name="subscription">订阅</string>
+    <string name="subscription_screen_title">升级高级版</string>
+    <string name="restore_purchases">恢复我的购买</string>
+    <string name="cancel_anytime_prices_in_usd">随时可取消，无需理由！💙 价格为美元。</string>
+    <string name="premium_unlocked">🎉 一切就绪！</string>
+    <string name="premium_unlocked_message">欢迎使用高级版！尽享所有精彩功能的无限访问，加速你的学习之旅！🚀</string>
+    <string name="unlock_premium">解锁高级版</string>
+    <string name="premium_subtitle">用强大的功能加速你的词汇学习之旅！</string>
+    <string name="compare_plans">免费 vs 高级版</string>
+    <string name="free_label">免费</string>
+    <string name="premium_label">高级版</string>
+    <string name="everything_you_get">你将获得的一切</string>
+    <string name="most_popular_badge">最受欢迎</string>
+    <string name="processing_ellipsis">请稍候...</string>
+    <string name="unlock_now">立即解锁</string>
+    <string name="subscribe_now">立即订阅</string>
+    <string name="subscribe">订阅</string>
+    <string name="subscription_unable_to_load">哎呀！我们无法加载订阅 😅</string>
+    <string name="subscription_terms">费用将从你的账户扣除。除非你在当前周期结束前至少24小时取消，否则你的订阅将自动续订。你可以随时在账户设置中管理你的订阅。</string>
+    <string name="feature_unlimited_words">无限单词</string>
+    <string name="feature_unlimited_words_desc">想加多少就加多少 - 没有限制！</string>
+    <string name="feature_ai_extraction">AI 提取</string>
+    <string name="feature_ai_extraction_desc">眨眼间从图片提取单词 - 魔法就在你的指尖！</string>
+    <string name="feature_ai_image_extraction">AI 图片提取</string>
+    <string name="feature_advanced_analytics">高级分析</string>
+    <string name="feature_advanced_analytics_desc">跟踪你的进度，看看你变得多棒！</string>
+    <string name="feature_export_data">导出数据</string>
+    <string name="feature_export_data_desc">随时随地带上你的词库 - 你的单词，你的方式！</string>
+    <string name="feature_export_backup">导出与备份</string>
+    <string name="feature_priority_support">优先支持</string>
+    <string name="feature_priority_support_desc">我们支持你 - 需要时即可获得帮助！</string>
+    <string name="feature_ad_free">无广告</string>
+    <string name="feature_ad_free_desc">专注学习不被打扰！</string>
+    <string name="feature_basic_vocabulary_lists">基础词汇列表</string>
+    <string name="features">功能</string>
+    <string name="vokab_pro">Vokab Pro</string>
+    <string name="subscription_active">活跃</string>
+    <string name="manage_subscription">管理订阅</string>
+    <string name="cancel_subscription">取消订阅</string>
+    <string name="billing_period_monthly">月度</string>
+    <string name="billing_period_annual">年度</string>
+    <string name="premium_plan_name">高级版</string>
+    <string name="subscription_load_failed">我们暂时无法加载订阅选项。请稍后再试！</string>
+    <string name="purchase_failed">糟糕！购买未成功。请再试一次！</string>
+    <string name="purchases_restored_success">太好了！您的购买已成功恢复！</string>
+    <string name="no_purchases_to_restore">我们找不到可恢复的有效购买。请确保您使用同一账户登录。</string>
+    <string name="restore_purchases_failed">我们暂时无法恢复您的购买。请检查您的网络连接后重试！</string>
+    <string name="manage_subscription_device_settings">您可以随时通过设备设置管理您的订阅</string>
+    <string name="manage_subscription_google_play">在 Google Play 管理您的订阅</string>
+    <string name="manage_subscription_app_store">在 App Store 管理您的订阅</string>
+    <string name="subscription_info_unavailable">我们无法访问您的订阅信息。请稍后再试！</string>
+    <string name="terms_of_use">使用条款</string>
+    <string name="privacy_policy">隐私政策</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Set Your Preferences</string>
+    <string name="onboarding_subtitle">Help us personalize your learning experience</string>
+    <string name="select_target_language">I want to learn:</string>
+    <string name="select_native_language">I speak:</string>
+    <string name="select_level">My level:</string>
+    <string name="beginner">Beginner</string>
+    <string name="intermediate">Intermediate</string>
+    <string name="advanced">Advanced</string>
+    <string name="skip_preferences">Skip</string>
+    <string name="submit_preferences">Submit</string>
+    <string name="vocabulary_preview_title">Suggested Vocabulary</string>
+    <string name="import_selected">Import Selected</string>
+    <string name="skip_import">Skip</string>
+    <string name="login_required_title">Welcome to Lexicon</string>
+    <string name="login_required_subtitle">Sign in to start learning vocabulary</string>
+    <string name="sign_in_google">Sign in with Google</string>
+    <string name="sign_in_apple">Sign in with Apple</string>
+</resources>
+

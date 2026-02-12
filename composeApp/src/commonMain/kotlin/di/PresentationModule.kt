@@ -1,0 +1,161 @@
+package di
+
+import analytics.IAnalyticsTracker
+import analytics.createAnalyticsTracker
+import data.subscription.RevenueCatSubscriptionManager
+import domain.auth.manager.IUserManager
+import domain.streak.manager.IStreakManager
+import domain.subscription.ISubscriptionManager
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
+import presentation.feature.auth.AuthViewModel
+import presentation.feature.collection.VocabularyCollectionsViewModel
+import presentation.feature.profile.ProfileViewModel
+import presentation.feature.settings.NotificationPermissionMonitor
+import presentation.feature.settings.SettingsViewModel
+import presentation.feature.study.StudyViewModel
+import presentation.feature.subscription.SubscriptionViewModel
+import presentation.manager.StreakManagerImpl
+import presentation.manager.UserManagerImpl
+import presentation.ui.components.imports.ImportViewModel
+import presentation.feature.onboarding.OnboardingViewModel
+import presentation.feature.onboarding.VocabularyPreviewViewModel
+import presentation.viewmodel.VocabularyViewModel
+import presentation.viewmodel.WordManagerViewModel
+
+fun presentationModule() = module {
+
+    // Analytics Tracker (platform-specific)
+    single<IAnalyticsTracker> { createAnalyticsTracker() }
+
+    // Subscription Manager
+    single<ISubscriptionManager> {
+        RevenueCatSubscriptionManager()
+    }
+
+    // User Manager
+    single<IUserManager> {
+        UserManagerImpl(
+            loginWithGoogleUseCase = get(),
+            loginWithAppleUseCase = get(),
+            logoutUseCase = get(),
+            deleteAccountUseCase = get(),
+            authDataSource = get(),
+            secureStorage = get(),
+            subscriptionManager = get(),
+        )
+    }
+
+    // Streak Manager
+    single<IStreakManager> {
+        StreakManagerImpl(streakRepository = get())
+    }
+
+    // Notification Permission Monitor
+    single { NotificationPermissionMonitor(notificationRepository = get()) }
+
+    // Singleton ViewModels (shared global state)
+    single {
+        AuthViewModel(
+            loginWithGoogleUseCase = get(),
+            loginWithAppleUseCase = get(),
+            logoutUseCase = get(),
+            deleteAccountUseCase = get(),
+            isAuthenticatedUseCase = get(),
+            verifySessionUseCase = get(),
+            registerPushTokenUseCase = get(),
+            syncRemoteToLocalUseCase = get(),
+            streakRemoteDataSource = get(),
+            analyticsTracker = get(),
+            settingsRepository = get(),
+        )
+    }
+
+    single {
+        SettingsViewModel(
+            settingsRepository = get(),
+            notificationRepository = get(),
+            analyticsTracker = get(),
+            authRepository = get(),
+            notificationPermissionMonitor = get(),
+            appVersionProvider = get(),
+        )
+    }
+
+    // Screen-Scoped ViewModels
+    viewModel {
+        StudyViewModel(
+            getProgressStatsUseCase = get(),
+            scheduleNotificationsUseCase = get(),
+            getDueWordsUseCase = get(),
+            analyticsTracker = get()
+        )
+    }
+
+    viewModel {
+        ImportViewModel(
+            getFeatureAccessUseCase = get(),
+            importWordsUseCase = get(),
+            importViaFileUseCase = get(),
+            importFromImageUseCase = get(),
+            userManager = get(),
+        )
+    }
+
+    viewModel {
+        VocabularyViewModel(
+            getDueWordsUseCase = get(),
+            getWordsByStageUseCase = get(),
+            reviewWordUseCase = get(),
+            updateWordUseCase = get(),
+            deleteWordUseCase = get(),
+            analyticsTracker = get(),
+            streakRemoteDataSource = get(),
+        )
+    }
+    viewModel {
+        WordManagerViewModel(
+            getAllWordsUseCase = get(),
+            deleteWordsUseCase = get(),
+            updateWordUseCase = get(),
+            exportWordsUseCase = get(),
+            subscriptionManager = get(),
+            analyticsTracker = get(),
+        )
+    }
+
+    viewModel {
+        VocabularyCollectionsViewModel(
+            collectionRemoteDataSource = get(),
+            importVocabularyCollectionUseCase = get(),
+            importWordsUseCase = get()
+        )
+    }
+
+    viewModel {
+        ProfileViewModel(
+            userManager = get(),
+            getFeatureAccessUseCase = get(),
+            streakManager = get()
+        )
+    }
+
+    viewModel {
+        SubscriptionViewModel(
+            subscriptionManager = get()
+        )
+    }
+
+    // Onboarding ViewModels
+    viewModel {
+        OnboardingViewModel(
+            submitPreferencesUseCase = get()
+        )
+    }
+
+    viewModel {
+        VocabularyPreviewViewModel(
+            importSuggestedVocabularyUseCase = get()
+        )
+    }
+}

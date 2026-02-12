@@ -1,0 +1,25 @@
+# CocoaPods
+# We commit Podfile and Podfile.lock, but ignore the Pods directory
+# Run `pod install` to regenerate Pods/
+Pods/
+
+# Xcode
+xcuserdata/
+*.xcworkspace
+!*.xcworkspace/contents.xcworkspacedata
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+
+# Generated files
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Local secrets overrides (do not commit)
+Configuration/Config.secrets.xcconfig
+
+# macOS
+.DS_Store
+

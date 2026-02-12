@@ -1,0 +1,142 @@
+package presentation.ui.screens.subscription
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.text.style.TextDecoration
+import com.revenuecat.purchases.kmp.models.Package
+import com.revenuecat.purchases.kmp.models.PackageType
+import expects.openUrl
+import org.jetbrains.compose.resources.stringResource
+import theme.AppColors
+import theme.Theme
+import vokab.resources.generated.resources.Res
+import vokab.resources.generated.resources.billing_period_annual
+import vokab.resources.generated.resources.billing_period_monthly
+import vokab.resources.generated.resources.privacy_policy
+import vokab.resources.generated.resources.restore_purchases
+import vokab.resources.generated.resources.terms_of_use
+
+@Composable
+fun SubscriptionNotSubscribedContent(
+    packages: List<Package>,
+    isPurchasing: Boolean,
+    onPurchaseClick: (Package) -> Unit,
+    onRestoreClick: () -> Unit,
+    onPackagesSectionPositioned: (Float) -> Unit = {}
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = Theme.spacing.extraLarge4),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+    ) {
+        PremiumHeroSection()
+
+        ComparisonTable()
+
+        PremiumFeaturesGrid()
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .onGloballyPositioned { coordinates ->
+                    onPackagesSectionPositioned(coordinates.positionInRoot().y)
+                }
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+            ) {
+                packages.forEachIndexed { index, pkg ->
+                    val billingPeriod = when (pkg.packageType) {
+                        PackageType.MONTHLY -> stringResource(Res.string.billing_period_monthly)
+                        PackageType.ANNUAL -> stringResource(Res.string.billing_period_annual)
+                        else -> null
+                    }
+                    val isRecommended = pkg.packageType == PackageType.ANNUAL
+                    val accentColor = if (isRecommended) {
+                        AppColors.subscriptionRecommended
+                    } else {
+                        AppColors.subscriptionStandard
+                    }
+
+                    if (billingPeriod.isNullOrBlank().not()) {
+                        val subscriptionPlan = SubscriptionPlan(
+                            title = pkg.storeProduct.title,
+                            billingPeriod = billingPeriod,
+                            description = pkg.storeProduct.localizedDescription ?: "",
+                            price = pkg.storeProduct.price.formatted,
+                            accentColor = accentColor
+                        )
+
+                        PlanCard(
+                            plan = subscriptionPlan,
+                            isRecommended = isRecommended,
+                            isPurchasing = isPurchasing,
+                            onClick = { onPurchaseClick(pkg) }
+                        )
+                    }
+                }
+            }
+        }
+
+        SubscriptionLegalLinks()
+
+        OutlinedButton(
+            onClick = onRestoreClick,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !isPurchasing
+        ) {
+            Text(stringResource(Res.string.restore_purchases))
+        }
+    }
+}
+
+@Composable
+private fun SubscriptionLegalLinks() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Theme.spacing.medium, vertical = Theme.spacing.small),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = stringResource(Res.string.terms_of_use),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier
+                .clickable {
+                    openUrl("https://alirezaiyan.com/vokab/terms")
+                }
+                .padding(horizontal = Theme.spacing.small)
+        )
+        Text(
+            text = " • ",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = stringResource(Res.string.privacy_policy),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier
+                .clickable {
+                    openUrl("https://alirezaiyan.com/vokab/privacy")
+                }
+                .padding(horizontal = Theme.spacing.small)
+        )
+    }
+}

@@ -1,0 +1,98 @@
+@file:OptIn(ExperimentalTime::class)
+
+package domain.word.service
+
+import domain.word.model.Word
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+
+interface IImportValidationService {
+    fun validateAndParse(text: String): ValidationResult
+
+    sealed interface ValidationResult {
+        data class Success(val words: List<Word>) : ValidationResult
+        data class Error(val message: String) : ValidationResult
+    }
+}
+
+class ImportValidationService : IImportValidationService {
+
+    override fun validateAndParse(text: String): IImportValidationService.ValidationResult {
+        val trimmed = text.trim()
+
+        return when {
+            trimmed.isEmpty() ->
+                IImportValidationService.ValidationResult.Error("File is empty")
+
+            !isValidFormat(trimmed) ->
+                IImportValidationService.ValidationResult.Error(
+                    "File content doesn't match expected format. Expected: word,translation or word,translation,description"
+                )
+
+            else -> {
+                val parsed = parseImportText(trimmed)
+
+                if (parsed.isEmpty()) {
+                    IImportValidationService.ValidationResult.Error(
+                        "No valid words found. Check format: word,translation"
+                    )
+                } else {
+                    IImportValidationService.ValidationResult.Success(parsed)
+                }
+            }
+        }
+    }
+    
+    private fun isValidFormat(text: String): Boolean {
+        if (!text.contains(",")) return false
+        
+        val lines = text.split(Regex("[;\n]+")).map { it.trim() }.filter { it.isNotBlank() }
+        return lines.any { line ->
+            if (line.startsWith("#")) return@any false
+            val parts = line.split(",")
+            parts.size >= 2 && parts[0].isNotBlank() && parts[1].isNotBlank()
+        }
+    }
+    
+    private fun parseImportText(text: String): List<Word> {
+        val words = mutableListOf<Word>()
+        val entries = text.trim()
+            .split(Regex("[;\n]+"))
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+        
+        entries.forEach { entry ->
+            if (entry.isBlank() || entry.startsWith("#")) return@forEach
+            
+            val parts = entry.split(",", limit = 3).map { it.trim() }
+            if (parts.size < 2) return@forEach
+            
+            val originalWord = parts[0]
+            val translation = parts[1]
+            val description = if (parts.size > 2) parts[2] else ""
+            
+            if (originalWord.isNotBlank() && translation.isNotBlank()) {
+                @OptIn(ExperimentalTime::class)
+                val nextReviewTime = Clock.System.now().toEpochMilliseconds() - 1000
+                words.add(
+                    Word(
+                        id = 0,
+                        originalWord = originalWord,
+                        translation = translation,
+                        description = description,
+                        sourceLanguage = "",
+                        targetLanguage = "",
+                        level = 0,
+                        easeFactor = 2.5f,
+                        interval = 0,
+                        repetitions = 0,
+                        lastReviewDate = 0L,
+                        nextReviewDate = nextReviewTime
+                    )
+                )
+            }
+        }
+        
+        return words
+    }
+}

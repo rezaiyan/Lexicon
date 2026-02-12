@@ -1,0 +1,125 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
+package presentation.ui.components
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import org.jetbrains.compose.resources.stringResource
+import theme.Theme
+import vokab.resources.generated.resources.Res
+import vokab.resources.generated.resources.done
+import vokab.resources.generated.resources.notification_enable_notifications
+import vokab.resources.generated.resources.notification_gentle_reminders
+import vokab.resources.generated.resources.notification_maybe_later
+import vokab.resources.generated.resources.notification_missing_nudges
+import vokab.resources.generated.resources.notification_open_settings
+import vokab.resources.generated.resources.notification_permission_message
+import vokab.resources.generated.resources.notification_permission_title
+import vokab.resources.generated.resources.notification_settings_subtitle
+import vokab.resources.generated.resources.notification_settings_title
+import vokab.resources.generated.resources.notification_stay_motivated
+
+@Composable
+fun NotificationPermissionDialog(
+    onDismiss: () -> Unit,
+    onEnableNotifications: () -> Unit
+) {
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        icon = Icons.Default.Notifications,
+        title = stringResource(Res.string.notification_permission_title),
+        message = stringResource(Res.string.notification_permission_message),
+        primaryButtonText = stringResource(Res.string.notification_open_settings),
+        primaryButtonOnClick = onEnableNotifications,
+        secondaryButtonText = stringResource(Res.string.notification_maybe_later),
+        secondaryButtonOnClick = onDismiss
+    )
+}
+
+@Composable
+fun NotificationSettingsDialog(
+    notificationsEnabled: Boolean,
+    systemNotificationsEnabled: Boolean,
+    onNotificationsToggle: (Boolean) -> Unit,
+    onDismiss: () -> Unit
+) {
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        icon = Icons.Default.Notifications,
+        title = stringResource(Res.string.notification_settings_title),
+        content = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
+            ) {
+                Text(
+                    stringResource(Res.string.notification_settings_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                            alpha = 0.5f
+                        )
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Theme.spacing.cardPadding),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                stringResource(Res.string.notification_enable_notifications),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                if (notificationsEnabled) stringResource(Res.string.notification_stay_motivated)
+                                else stringResource(Res.string.notification_missing_nudges),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = notificationsEnabled,
+                            onCheckedChange = if (systemNotificationsEnabled) onNotificationsToggle else null,
+                            enabled = systemNotificationsEnabled
+                        )
+                    }
+                }
+
+                if (notificationsEnabled) {
+                    Text(
+                        stringResource(Res.string.notification_gentle_reminders),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        },
+        primaryButtonText = stringResource(Res.string.done),
+        primaryButtonOnClick = onDismiss
+    )
+}
