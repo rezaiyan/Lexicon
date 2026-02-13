@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +31,6 @@ private enum class SignInProvider {
 fun AuthGateScreen(
     onLoginWithGoogle: suspend (String) -> Unit,
     onLoginWithApple: (String, String?, String) -> Unit,
-    onDevLogin: (() -> Unit)? = null,
     isLoading: Boolean = false
 ) {
     var activeProvider by remember { mutableStateOf<SignInProvider?>(null) }
@@ -84,14 +82,6 @@ fun AuthGateScreen(
                     .fillMaxWidth()
                     .padding(top = 12.dp)
             )
-
-            // TODO: Remove dev login after testing
-            if (onDevLogin != null) {
-                Spacer(modifier = Modifier.height(24.dp))
-                TextButton(onClick = onDevLogin) {
-                    Text("Dev Login (skip auth)", color = MaterialTheme.colorScheme.error)
-                }
-            }
         }
     }
 }

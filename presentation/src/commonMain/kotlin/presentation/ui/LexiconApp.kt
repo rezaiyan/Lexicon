@@ -35,7 +35,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -241,7 +240,6 @@ fun LexiconApp() {
                     is AppUiState.AuthGate -> {
                         val pendingVocabulary = state.pendingVocabulary
                         val importUseCase: ImportSuggestedVocabularyUseCase = koinInject()
-                        val scope = rememberCoroutineScope()
 
                         AuthGateScreen(
                             onLoginWithGoogle = { idToken ->
@@ -249,15 +247,6 @@ fun LexiconApp() {
                             },
                             onLoginWithApple = { idToken, fullName, appleUserId ->
                                 authViewModel.loginWithApple(idToken, fullName, appleUserId)
-                            },
-                            // TODO: Remove dev login after testing
-                            onDevLogin = {
-                                scope.launch {
-                                    if (pendingVocabulary.isNotEmpty()) {
-                                        importUseCase(pendingVocabulary)
-                                    }
-                                    appNavigationViewModel.onAuthComplete()
-                                }
                             },
                             isLoading = authState.isLoading
                         )
