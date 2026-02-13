@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
@@ -59,11 +60,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 import presentation.model.OnboardingUiState
 import theme.AppDimensions
 import theme.AppSpacing
 import theme.Theme
+import vokab.resources.generated.resources.Res
+import vokab.resources.generated.resources.flag_gb
+import vokab.resources.generated.resources.flag_de
+import vokab.resources.generated.resources.flag_fr
+import vokab.resources.generated.resources.flag_es
+import vokab.resources.generated.resources.flag_it
+import vokab.resources.generated.resources.flag_pt
+import vokab.resources.generated.resources.flag_nl
+import vokab.resources.generated.resources.flag_ru
+import vokab.resources.generated.resources.flag_cn
+import vokab.resources.generated.resources.flag_jp
+import vokab.resources.generated.resources.flag_kr
+import vokab.resources.generated.resources.flag_sa
+import vokab.resources.generated.resources.flag_tr
+import vokab.resources.generated.resources.flag_ir
 
 private const val OnboardingTransitionDuration = 300
 private const val OnboardingDisplayTotalSteps = 4
@@ -86,20 +105,20 @@ private val languageNativeNames = mapOf(
 )
 
 private val languageFlags = mapOf(
-    "English" to "\uD83C\uDDEC\uD83C\uDDE7",
-    "German" to "\uD83C\uDDE9\uD83C\uDDEA",
-    "French" to "\uD83C\uDDEB\uD83C\uDDF7",
-    "Spanish" to "\uD83C\uDDEA\uD83C\uDDF8",
-    "Italian" to "\uD83C\uDDEE\uD83C\uDDF9",
-    "Portuguese" to "\uD83C\uDDF5\uD83C\uDDF9",
-    "Dutch" to "\uD83C\uDDF3\uD83C\uDDF1",
-    "Russian" to "\uD83C\uDDF7\uD83C\uDDFA",
-    "Chinese" to "\uD83C\uDDE8\uD83C\uDDF3",
-    "Japanese" to "\uD83C\uDDEF\uD83C\uDDF5",
-    "Korean" to "\uD83C\uDDF0\uD83C\uDDF7",
-    "Arabic" to "\uD83C\uDDF8\uD83C\uDDE6",
-    "Turkish" to "\uD83C\uDDF9\uD83C\uDDF7",
-    "Persian" to "\uD83C\uDDEE\uD83C\uDDF7"
+    "English" to Res.drawable.flag_gb,
+    "German" to Res.drawable.flag_de,
+    "French" to Res.drawable.flag_fr,
+    "Spanish" to Res.drawable.flag_es,
+    "Italian" to Res.drawable.flag_it,
+    "Portuguese" to Res.drawable.flag_pt,
+    "Dutch" to Res.drawable.flag_nl,
+    "Russian" to Res.drawable.flag_ru,
+    "Chinese" to Res.drawable.flag_cn,
+    "Japanese" to Res.drawable.flag_jp,
+    "Korean" to Res.drawable.flag_kr,
+    "Arabic" to Res.drawable.flag_sa,
+    "Turkish" to Res.drawable.flag_tr,
+    "Persian" to Res.drawable.flag_ir
 )
 
 @Composable
@@ -278,7 +297,7 @@ private fun OnboardingStep1Content(
                 LanguageGridCard(
                     language = language,
                     nativeName = languageNativeNames[language] ?: language.uppercase(),
-                    flag = languageFlags[language] ?: "",
+                    flag = languageFlags[language],
                     selected = state.selectedTargetLanguage == language,
                     onClick = { onTargetLanguageSelected(language) },
                     spacing = spacing,
@@ -337,7 +356,7 @@ private fun OnboardingStep1Content(
 private fun LanguageGridCard(
     language: String,
     nativeName: String,
-    flag: String,
+    flag: DrawableResource?,
     selected: Boolean,
     onClick: () -> Unit,
     spacing: AppSpacing,
@@ -376,10 +395,14 @@ private fun LanguageGridCard(
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = flag,
-                        style = MaterialTheme.typography.headlineLarge
-                    )
+                    if (flag != null) {
+                        Image(
+                            painter = painterResource(flag),
+                            contentDescription = "$language flag",
+                            modifier = Modifier.height(32.dp),
+                            contentScale = ContentScale.FillHeight
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(spacing.extraSmall2))
                 Text(
@@ -467,7 +490,7 @@ private fun OnboardingStep2Content(
                 LanguageGridCard(
                     language = language,
                     nativeName = languageNativeNames[language] ?: language.uppercase(),
-                    flag = languageFlags[language] ?: "",
+                    flag = languageFlags[language],
                     selected = state.selectedNativeLanguage == language,
                     onClick = { onNativeLanguageSelected(language) },
                     spacing = spacing,
