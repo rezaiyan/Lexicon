@@ -1,5 +1,8 @@
 package presentation.manager
 
+import domain.common.Try
+import domain.common.fold
+import domain.common.onSuccess
 import domain.streak.model.StreakData
 import domain.streak.manager.IStreakManager
 import domain.streak.repository.IStreakRepository
@@ -29,15 +32,9 @@ class StreakManagerImpl(
         )
     }
 
-    override suspend fun recordActivity(): Result<StreakData> {
-        return streakRepository.recordActivity().fold(
-            onSuccess = { streakData ->
-                _cachedStreak.value = streakData
-                Result.success(streakData)
-            },
-            onFailure = { error ->
-                Result.failure(error)
-            }
-        )
+    override suspend fun recordActivity(): Try<StreakData> {
+        return streakRepository.recordActivity().onSuccess { streakData ->
+            _cachedStreak.value = streakData
+        }
     }
 }

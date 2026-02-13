@@ -3,6 +3,8 @@ package data.ai.remote
 import data.ai.remote.model.ExtractVocabularyRequest
 import data.ai.remote.model.VocabularyExtractionResponse
 import data.core.network.client.ApiClient
+import domain.common.Try
+import domain.common.fold
 import expects.logNetwork
 import utils.Language
 import kotlin.io.encoding.Base64
@@ -20,15 +22,15 @@ class AiRemoteDataSource(
         targetLanguage: Language,
         extractWords: Boolean = true,
         extractSentences: Boolean = false
-    ): Result<String> {
+    ): Try<String> {
         // Validate image size
         val maxSizeBytes = 3 * 1024 * 1024
         if (imageBytes.size > maxSizeBytes) {
-            return Result.failure(Exception("Image too large. Maximum size is 5MB. Please use a smaller image."))
+            return Try.failure(Exception("Image too large. Maximum size is 5MB. Please use a smaller image."))
         }
 
         if (imageBytes.size < 128) {
-            return Result.failure(Exception("Image too small or corrupted. Please try a different image."))
+            return Try.failure(Exception("Image too small or corrupted. Please try a different image."))
         }
 
         val base64Image = Base64.encode(imageBytes)
@@ -46,24 +48,17 @@ class AiRemoteDataSource(
             body = request
         )
 
-        return when {
-            result.isSuccess -> {
-                val response = result.getOrNull()
-                if (response != null) {
-                    val extractedText = response.extractedText
-                    if (extractedText.isEmpty()) {
-                        Result.failure<String>(Exception("No vocabulary found in the image. Please use an image with visible text."))
-                    } else {
-                        logNetwork("AiRemoteDataSource", "Successfully extracted vocabulary from image")
-                        Result.success(extractedText)
-                    }
+        return result.fold(
+            onSuccess = { response ->
+                val extractedText = response.extractedText
+                if (extractedText.isEmpty()) {
+                    Try.failure(Exception("No vocabulary found in the image. Please use an image with visible text."))
                 } else {
-                    Result.failure(Exception("No vocabulary found in the image. Please use an image with visible text."))
+                    logNetwork("AiRemoteDataSource", "Successfully extracted vocabulary from image")
+                    Try.success(extractedText)
                 }
-            }
-
-            else -> {
-                val error = result.exceptionOrNull() ?: Exception("Unknown error")
+            },
+            onFailure = { error ->
                 logNetwork("AiRemoteDataSource", "Error extracting vocabulary: ${error.message}")
                 val userMessage = when {
                     error.message?.contains("Unable to resolve host", ignoreCase = true) == true ->
@@ -74,9 +69,8 @@ class AiRemoteDataSource(
 
                     else -> error.message ?: "Service temporarily unavailable. Please try again later."
                 }
-                Result.failure<String>(Exception(userMessage))
+                Try.failure(Exception(userMessage))
             }
-        }
+        )
     }
 }
-

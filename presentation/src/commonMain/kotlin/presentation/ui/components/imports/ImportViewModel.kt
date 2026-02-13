@@ -14,6 +14,7 @@ import domain.ai.usecase.ImportFromImageUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.ai.usecase.ImportImageResult
 import domain.auth.manager.IUserManager
+import domain.common.fold
 import domain.auth.model.AuthUser
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
@@ -139,16 +140,15 @@ class ImportViewModel(
         if (text.isNotBlank()) {
             viewModelScope.launch {
                 withContext(Dispatchers.Default) {
-                    when (val result = importWordsUseCase.execute(text)) {
-                        is ImportWordsUseCase.ImportResult.Error -> {
-                            _events.send(ImportEvent.Error(result.message))
-                        }
-
-                        is ImportWordsUseCase.ImportResult.Success -> {
+                    importWordsUseCase.execute(text).fold(
+                        onSuccess = { count ->
                             updateTextEntry("")
-                            _events.send(ImportEvent.TextImportSuccessful(result.count))
+                            _events.send(ImportEvent.TextImportSuccessful(count))
+                        },
+                        onFailure = { error ->
+                            _events.send(ImportEvent.Error(error.message ?: "Import failed"))
                         }
-                    }
+                    )
                 }
             }
         }
@@ -208,21 +208,21 @@ class ImportViewModel(
             delay(1500)
 
             withContext(Dispatchers.Default) {
-                when (val result = importViaFileUseCase(fileContent, fileName)) {
-                    is ImportViaFileUseCase.ImportResult.Error -> {
+                importViaFileUseCase(fileContent, fileName).fold(
+                    onSuccess = { count ->
                         _state = _state.copy(
-                            fileImportState = ImportFileState.Error(result.message)
+                            fileImportState = ImportFileState.Success(count)
                         )
-                        _events.send(ImportEvent.Error(result.message))
-                    }
-
-                    is ImportViaFileUseCase.ImportResult.Success -> {
+                        _events.send(ImportEvent.FileImportSuccessful(count))
+                    },
+                    onFailure = { error ->
+                        val message = error.message ?: "Import failed"
                         _state = _state.copy(
-                            fileImportState = ImportFileState.Success(result.count)
+                            fileImportState = ImportFileState.Error(message)
                         )
-                        _events.send(ImportEvent.FileImportSuccessful(result.count))
+                        _events.send(ImportEvent.Error(message))
                     }
-                }
+                )
             }
         }
     }

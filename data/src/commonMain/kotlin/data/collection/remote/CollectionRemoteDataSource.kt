@@ -4,6 +4,9 @@ import data.collection.remote.model.DownloadCollectionRequest
 import data.collection.remote.model.VocabularyCollection
 import data.collection.remote.model.VocabularyContentResponse
 import data.core.network.client.ApiClient
+import domain.common.Try
+import domain.common.doOnFailure
+import domain.common.map
 import expects.logNetwork
 
 /**
@@ -14,10 +17,10 @@ class CollectionRemoteDataSource(
     private val apiClient: ApiClient
 ) {
 
-    suspend fun getAvailableCollections(): Result<List<VocabularyCollection>> =
+    suspend fun getAvailableCollections(): Try<List<VocabularyCollection>> =
         apiClient.get<List<VocabularyCollection>>("/github")
             .map { it ?: emptyList() }
-            .onFailure { error ->
+            .doOnFailure { error ->
                 logNetwork("CollectionRemoteDataSource", "Error getting collections: ${error.message}")
             }
 
@@ -25,12 +28,11 @@ class CollectionRemoteDataSource(
         targetLanguage: String,
         originLanguage: String,
         fileName: String
-    ): Result<VocabularyContentResponse> =
+    ): Try<VocabularyContentResponse> =
         apiClient.postNotNull<VocabularyContentResponse>(
             path = "/collections/download",
             body = DownloadCollectionRequest(targetLanguage, originLanguage, fileName)
-        ).onFailure { error ->
+        ).doOnFailure { error ->
             logNetwork("CollectionRemoteDataSource", "Error downloading collection: ${error.message}")
         }
 }
-

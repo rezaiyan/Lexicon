@@ -6,6 +6,9 @@ import data.word.local.IWordLocalDataSource
 import data.word.mapper.WordMapper
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
+import domain.common.Try
+import domain.common.fold
+import domain.common.onFailure
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -99,7 +102,7 @@ class WordRepositoryImpl(
                 }
             }
             .catch { error ->
-                kotlin.runCatching {
+                Try {
                     val deletedCount = localDataSource.deleteWords(ids)
                     emit(DeleteWordsProgress.Completed(deletedCount))
                 }.onFailure {
@@ -108,8 +111,8 @@ class WordRepositoryImpl(
             }
     }
 
-    override suspend fun syncWithRemote(): Result<Unit> {
-        return kotlin.runCatching {
+    override suspend fun syncWithRemote(): Try<Unit> {
+        return Try {
             val remoteWordsResult = remoteSyncHandler.syncFromRemote()
 
             remoteWordsResult.fold(
@@ -135,7 +138,7 @@ class WordRepositoryImpl(
         }
     }
 
-    override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> {
+    override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> {
         return syncWithRemote()
     }
 
@@ -157,8 +160,8 @@ class WordRepositoryImpl(
         return localDataSource.getDueCount()
     }
 
-    override suspend fun deleteAllWords(): Result<Unit> {
-        return kotlin.runCatching {
+    override suspend fun deleteAllWords(): Try<Unit> {
+        return Try {
             localDataSource.deleteAllWords()
         }
     }

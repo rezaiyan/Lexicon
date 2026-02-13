@@ -1,9 +1,10 @@
 package domain.word.service
 
+import domain.common.exceptionOrNull
+import domain.common.getOrThrow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class ImportValidationServiceTest {
@@ -14,10 +15,11 @@ class ImportValidationServiceTest {
     fun `single entry parses trimmed word translation and description`() = runTest {
         val result = service.validateAndParse("  hello  ,  hola  ,  greeting ")
 
-        val success = assertIs<IImportValidationService.ValidationResult.Success>(result)
-        assertEquals(1, success.words.size)
+        assertTrue(result.isSuccess)
+        val words = result.getOrThrow()
+        assertEquals(1, words.size)
 
-        val word = success.words.first()
+        val word = words.first()
         assertEquals("hello", word.originalWord)
         assertEquals("hola", word.translation)
         assertEquals("greeting", word.description)
@@ -32,12 +34,13 @@ class ImportValidationServiceTest {
 
         val result = service.validateAndParse(input)
 
-        val success = assertIs<IImportValidationService.ValidationResult.Success>(result)
-        assertEquals(3, success.words.size)
-        assertEquals("hello", success.words[0].originalWord)
-        assertEquals("goodbye", success.words[1].originalWord)
-        assertEquals("thanks", success.words[2].originalWord)
-        assertEquals("Thank you note", success.words[2].description)
+        assertTrue(result.isSuccess)
+        val words = result.getOrThrow()
+        assertEquals(3, words.size)
+        assertEquals("hello", words[0].originalWord)
+        assertEquals("goodbye", words[1].originalWord)
+        assertEquals("thanks", words[2].originalWord)
+        assertEquals("Thank you note", words[2].description)
     }
 
     @Test
@@ -46,8 +49,9 @@ class ImportValidationServiceTest {
 
         val result = service.validateAndParse(input)
 
-        val success = assertIs<IImportValidationService.ValidationResult.Success>(result)
-        val word = success.words.first()
+        assertTrue(result.isSuccess)
+        val words = result.getOrThrow()
+        val word = words.first()
         assertEquals("Hello", word.originalWord)
         assertEquals("my friend", word.translation)
         assertEquals("Hola, mi amigo,Used as a friendly greeting", word.description)
@@ -66,25 +70,26 @@ class ImportValidationServiceTest {
 
         val result = service.validateAndParse(input)
 
-        val success = assertIs<IImportValidationService.ValidationResult.Success>(result)
-        assertEquals(2, success.words.size)
-        assertTrue(success.words.none { it.originalWord.startsWith("#") })
+        assertTrue(result.isSuccess)
+        val words = result.getOrThrow()
+        assertEquals(2, words.size)
+        assertTrue(words.none { it.originalWord.startsWith("#") })
     }
 
     @Test
     fun `empty input returns error`() = runTest {
         val result = service.validateAndParse("   \n ")
 
-        val error = assertIs<IImportValidationService.ValidationResult.Error>(result)
-        assertTrue(error.message.contains("empty"))
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()?.message?.contains("empty") == true)
     }
 
     @Test
     fun `invalid format returns descriptive error`() = runTest {
         val result = service.validateAndParse("invalid-line-without-comma")
 
-        val error = assertIs<IImportValidationService.ValidationResult.Error>(result)
-        assertTrue(error.message.contains("expected", ignoreCase = true))
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()?.message?.contains("expected", ignoreCase = true) == true)
     }
 }
 

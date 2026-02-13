@@ -1,5 +1,6 @@
 package domain.subscription
 
+import domain.common.Try
 import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
@@ -9,21 +10,21 @@ import kotlinx.coroutines.flow.StateFlow
 interface ISubscriptionManager {
     val customerInfo: StateFlow<SubscriptionCustomerInfo?>
 
-    suspend fun getOfferings(): Result<SubscriptionOffering>
+    suspend fun getOfferings(): Try<SubscriptionOffering>
 
-    suspend fun purchase(packageToPurchase: SubscriptionPackage): Result<SubscriptionCustomerInfo>
+    suspend fun purchase(packageToPurchase: SubscriptionPackage): Try<SubscriptionCustomerInfo>
 
-    suspend fun restore(): Result<SubscriptionCustomerInfo>
+    suspend fun restore(): Try<SubscriptionCustomerInfo>
 
     fun isSubscribed(): Flow<Boolean>
 
-    suspend fun logIn(userId: String): Result<SubscriptionCustomerInfo>
+    suspend fun logIn(userId: String): Try<SubscriptionCustomerInfo>
 
-    suspend fun logOut(): Result<SubscriptionCustomerInfo>
+    suspend fun logOut(): Try<SubscriptionCustomerInfo>
 
     fun getCurrentCustomerInfo(): SubscriptionCustomerInfo?
 
-    suspend fun manageSubscription(): Result<Unit>
+    suspend fun manageSubscription(): Try<Unit>
 
-    suspend fun cancelSubscription(): Result<Unit>
+    suspend fun cancelSubscription(): Try<Unit>
 }

@@ -1,6 +1,8 @@
 package domain.ai.usecase
 
 import domain.ai.repository.IAiRepository
+import domain.common.Try
+import domain.common.fold
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +16,7 @@ class ImportFromImageUseCase(
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     ) {
     operator fun invoke(
-        imageBytes: ByteArray, 
+        imageBytes: ByteArray,
         extractWords: Boolean = true,
         extractSentences: Boolean = false
     ): Flow<ImportImageResult> = flow {
@@ -22,24 +24,24 @@ class ImportFromImageUseCase(
     }.flatMapLatest {
         val targetLanguage = getCurrentLanguageUseCase.invoke()
         val extractionResult = aiRepository.extractVocabularyFromImage(
-            imageBytes, 
-            targetLanguage, 
-            extractWords, 
+            imageBytes,
+            targetLanguage,
+            extractWords,
             extractSentences
         )
-        
+
         extractionResult.fold(
             onSuccess = { extractedText ->
                 importWordsUseCase(extractedText)
-                    .map { importResult ->
-                        when (importResult) {
-                            is ImportWordsUseCase.ImportResult.Success -> {
-                                ImportImageResult.Success(importResult.count)
+                    .map { tryResult: Try<Int> ->
+                        tryResult.fold(
+                            onSuccess = { count ->
+                                ImportImageResult.Success(count)
+                            },
+                            onFailure = { error ->
+                                ImportImageResult.Error(error.message ?: "Import failed")
                             }
-                            is ImportWordsUseCase.ImportResult.Error -> {
-                                ImportImageResult.Error(importResult.message)
-                            }
-                        }
+                        )
                     }
             },
             onFailure = { error: Throwable ->

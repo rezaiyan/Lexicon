@@ -2,6 +2,8 @@ package data.settings.remote
 
 import data.core.network.client.ApiClient
 import data.settings.remote.model.RemoteSettings
+import domain.common.Try
+import domain.common.getOrNull
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -13,17 +15,17 @@ class SettingsRemoteDataSource(
     private val apiClient: ApiClient
 ) {
 
-    suspend fun getSettings(): Result<RemoteSettings> =
+    suspend fun getSettings(): Try<RemoteSettings> =
         apiClient.getNotNull<RemoteSettings>("/settings")
 
-    suspend fun updateSettings(settings: RemoteSettings): Result<RemoteSettings> =
+    suspend fun updateSettings(settings: RemoteSettings): Try<RemoteSettings> =
         apiClient.patchNotNull(
             path = "/settings",
             body = settings
         )
 
     /**
-     * Flow-based wrappers to avoid exposing Result types to callers.
+     * Flow-based wrappers to avoid exposing Try types to callers.
      * Emits only on success; failures complete without emission.
      */
     fun getSettingsAsFlow(): Flow<RemoteSettings> = flow {
@@ -36,4 +38,3 @@ class SettingsRemoteDataSource(
         result.getOrNull()?.let { emit(it) }
     }
 }
-

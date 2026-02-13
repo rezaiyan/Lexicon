@@ -1,11 +1,12 @@
 package domain.streak.manager
 
+import domain.common.Try
 import domain.streak.model.StreakData
 import kotlinx.coroutines.flow.Flow
 
 interface IStreakManager {
     fun getStreak(): Flow<StreakState>
-    suspend fun recordActivity(): Result<StreakData>
+    suspend fun recordActivity(): Try<StreakData>
     
     sealed interface StreakState {
         data object Loading : StreakState

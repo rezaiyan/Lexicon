@@ -1,5 +1,8 @@
 package domain.onboarding.usecase
 
+import domain.common.Try
+import domain.common.exceptionOrNull
+import domain.common.getOrNull
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.model.SuggestedVocabularyResponse
@@ -37,7 +40,7 @@ class SubmitPreferencesUseCaseTest {
             nativeLanguage = "en",
             currentLevel = "beginner"
         )
-        repository.submitResult = Result.success(expectedResponse)
+        repository.submitResult = Try.success(expectedResponse)
 
         val preferences = OnboardingPreferences(
             targetLanguage = "es",
@@ -55,7 +58,7 @@ class SubmitPreferencesUseCaseTest {
     @Test
     fun `returns failure on error`() = runTest {
         val exception = RuntimeException("Network error")
-        repository.submitResult = Result.failure(exception)
+        repository.submitResult = Try.failure(exception)
 
         val preferences = OnboardingPreferences(
             targetLanguage = "es",
@@ -70,12 +73,12 @@ class SubmitPreferencesUseCaseTest {
     }
 
     private class FakeOnboardingRepository : IOnboardingRepository {
-        var submitResult: Result<SuggestedVocabularyResponse> = Result.success(
+        var submitResult: Try<SuggestedVocabularyResponse> = Try.success(
             SuggestedVocabularyResponse(emptyList(), "", "", "")
         )
         private var onboardingCompleted = false
 
-        override suspend fun submitPreferences(preferences: OnboardingPreferences): Result<SuggestedVocabularyResponse> =
+        override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> =
             submitResult
 
         override suspend fun hasCompletedOnboarding(): Boolean = onboardingCompleted

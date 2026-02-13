@@ -7,6 +7,9 @@ import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
+import domain.common.Try
+import domain.common.fold
+import domain.common.onSuccess
 import domain.subscription.ISubscriptionManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,16 +63,11 @@ class UserManagerImpl(
             .catch { emit(null) }
     }
 
-    override suspend fun loginWithGoogle(idToken: String): Result<AuthUser> {
+    override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> {
         val authResult = loginWithGoogleUseCase.invoke(idToken).first()
-        return when (authResult) {
-            is LoginWithGoogleUseCase.AuthResult.Success -> {
-                _currentUser.value = authResult.user
-                subscriptionManager.logIn(authResult.user.id.toString())
-                Result.success(authResult.user)
-            }
-
-            is LoginWithGoogleUseCase.AuthResult.Error -> Result.failure(Exception(authResult.message))
+        return authResult.onSuccess { user ->
+            _currentUser.value = user
+            subscriptionManager.logIn(user.id.toString())
         }
     }
 
@@ -77,40 +75,22 @@ class UserManagerImpl(
         idToken: String,
         fullName: String?,
         appleUserId: String
-    ): Result<AuthUser> {
+    ): Try<AuthUser> {
         val authResult = loginWithAppleUseCase.invoke(idToken, fullName, appleUserId).first()
-        return when (authResult) {
-            is LoginWithAppleUseCase.AuthResult.Success -> {
-                _currentUser.value = authResult.user
-                subscriptionManager.logIn(authResult.user.id.toString())
-                Result.success(authResult.user)
-            }
-
-            is LoginWithAppleUseCase.AuthResult.Error -> Result.failure(Exception(authResult.message))
+        return authResult.onSuccess { user ->
+            _currentUser.value = user
+            subscriptionManager.logIn(user.id.toString())
         }
     }
 
-    override suspend fun logout(): Result<Unit> {
+    override suspend fun logout(): Try<Unit> {
         val logoutResult = logoutUseCase.invoke().first()
-        return when (logoutResult) {
-            is LogoutUseCase.LogoutResult.Success -> {
-                subscriptionManager.logOut()
-                Result.success(Unit)
-            }
-
-            is LogoutUseCase.LogoutResult.Error -> Result.failure(Exception(logoutResult.message))
+        return logoutResult.onSuccess {
+            subscriptionManager.logOut()
         }
     }
 
-    override suspend fun deleteAccount(): Result<Unit> {
-        val deleteResult = deleteAccountUseCase.invoke().first()
-        return when (deleteResult) {
-            is DeleteAccountUseCase.DeleteAccountResult.Success -> Result.success(Unit)
-            is DeleteAccountUseCase.DeleteAccountResult.Error -> Result.failure(
-                Exception(
-                    deleteResult.message
-                )
-            )
-        }
+    override suspend fun deleteAccount(): Try<Unit> {
+        return deleteAccountUseCase.invoke().first()
     }
 }

@@ -2,6 +2,7 @@ package domain.auth.repository
 
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
+import domain.common.Try
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -11,22 +12,22 @@ interface IAuthRepository {
     /**
      * Login with Google ID token
      */
-    suspend fun loginWithGoogle(idToken: String): Result<AuthUser>
+    suspend fun loginWithGoogle(idToken: String): Try<AuthUser>
 
     /**
      * Login with Apple ID token
      */
-    suspend fun loginWithApple(idToken: String, fullName: String? = null, appleUserId: String): Result<AuthUser>
+    suspend fun loginWithApple(idToken: String, fullName: String? = null, appleUserId: String): Try<AuthUser>
     
     /**
      * Logout current user
      */
-    suspend fun logout(): Result<Unit>
+    suspend fun logout(): Try<Unit>
     
     /**
      * Delete user account permanently
      */
-    suspend fun deleteAccount(): Result<Unit>
+    suspend fun deleteAccount(): Try<Unit>
     
     /**
      * Get current access token
@@ -36,7 +37,7 @@ interface IAuthRepository {
     /**
      * Get the current user's profile
      */
-    suspend fun getUserProfile(): Result<AuthUser>
+    suspend fun getUserProfile(): Try<AuthUser>
 
     /**
      * Check if user is authenticated

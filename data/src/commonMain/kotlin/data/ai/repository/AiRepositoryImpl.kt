@@ -2,6 +2,7 @@ package data.ai.repository
 
 import data.ai.remote.AiRemoteDataSource
 import domain.ai.repository.IAiRepository
+import domain.common.Try
 import utils.Language
 
 class AiRepositoryImpl(
@@ -13,7 +14,7 @@ class AiRepositoryImpl(
         targetLanguage: Language,
         extractWords: Boolean,
         extractSentences: Boolean
-    ): Result<String> {
+    ): Try<String> {
         return aiRemoteDataSource.extractVocabularyFromImage(
             imageBytes,
             targetLanguage,

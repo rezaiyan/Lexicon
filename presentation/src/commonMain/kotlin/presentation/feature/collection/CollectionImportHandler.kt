@@ -4,6 +4,9 @@ import domain.collection.model.VocabularyCollection
 import domain.collection.repository.ICollectionRepository
 import domain.word.usecase.ImportVocabularyCollectionUseCase
 import domain.word.usecase.ImportWordsUseCase
+import domain.common.exceptionOrNull
+import domain.common.fold
+import domain.common.getOrThrow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -39,7 +42,7 @@ internal class CollectionImportHandler(
                 return@launch
             }
             
-            val content = downloadResult.getOrNull()!!.content
+            val content = downloadResult.getOrThrow().content
             
             state.value = state.value.copy(downloadProgress = "Parsing...")
             val parseResult = importVocabularyCollectionUseCase.parseCollection(
@@ -55,7 +58,7 @@ internal class CollectionImportHandler(
                 return@launch
             }
             
-            val totalWords = parseResult.getOrNull()!!.size
+            val totalWords = parseResult.getOrThrow().size
             
             state.value = state.value.copy(
                 selectedCollection = collection,
@@ -85,21 +88,21 @@ internal class CollectionImportHandler(
             importWordsUseCase(
                 text = downloadInfo.content
             ).collect { importResult ->
-                when (importResult) {
-                    is ImportWordsUseCase.ImportResult.Success -> {
+                importResult.fold(
+                    onSuccess = { count ->
                         state.value = state.value.copy(
                             isImporting = false,
                             importProgress = "",
-                            successMessage = "Successfully imported ${importResult.count} words from ${collection.title}!"
+                            successMessage = "Successfully imported $count words from ${collection.title}!"
                         )
-                    }
-                    is ImportWordsUseCase.ImportResult.Error -> {
+                    },
+                    onFailure = { error ->
                         state.value = state.value.copy(
                             isImporting = false,
-                            error = importResult.message
+                            error = error.message ?: "Import failed"
                         )
                     }
-                }
+                )
             }
         }
     }

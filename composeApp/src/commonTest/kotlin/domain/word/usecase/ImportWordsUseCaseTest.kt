@@ -1,5 +1,7 @@
 package domain.word.usecase
 
+import domain.common.Try
+import domain.common.getOrThrow
 import domain.word.model.Word
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
@@ -13,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.fail
 
 /**
  * Comprehensive tests for word import parsing logic
@@ -30,14 +31,12 @@ class ImportWordsUseCaseTest {
     private val validationService = ImportValidationService()
     private val useCase = ImportWordsUseCase(fakeRepository, validationService)
     
-    private suspend fun executeImport(input: String): ImportWordsUseCase.ImportResult =
+    private suspend fun executeImport(input: String): Try<Int> =
         useCase(input).first()
-    
-    private suspend fun executeImportSuccess(input: String): ImportWordsUseCase.ImportResult.Success {
-        return when (val result = executeImport(input)) {
-            is ImportWordsUseCase.ImportResult.Success -> result
-            is ImportWordsUseCase.ImportResult.Error -> fail("Expected success but got error: ${result.message}")
-        }
+
+    private suspend fun executeImportSuccess(input: String): Int {
+        val result = executeImport(input)
+        return result.getOrThrow()
     }
     
     @Test
@@ -45,9 +44,9 @@ class ImportWordsUseCaseTest {
         val input = "hello,hola"
         val result = executeImportSuccess(input)
         
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         assertEquals(1, fakeRepository.insertedWords.size)
-        
+
         val word = fakeRepository.insertedWords[0]
         assertEquals("hello", word.originalWord)
         assertEquals("hola", word.translation)
@@ -59,15 +58,15 @@ class ImportWordsUseCaseTest {
         val input = "hello,hola;goodbye,adiós;thanks,gracias"
         val result = executeImportSuccess(input)
         
-        assertEquals(3, result.count)
+        assertEquals(3, result)
         assertEquals(3, fakeRepository.insertedWords.size)
-        
+
         assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
         assertEquals("hola", fakeRepository.insertedWords[0].translation)
-        
+
         assertEquals("goodbye", fakeRepository.insertedWords[1].originalWord)
         assertEquals("adiós", fakeRepository.insertedWords[1].translation)
-        
+
         assertEquals("thanks", fakeRepository.insertedWords[2].originalWord)
         assertEquals("gracias", fakeRepository.insertedWords[2].translation)
     }
@@ -76,7 +75,7 @@ class ImportWordsUseCaseTest {
     fun `word with description should parse correctly`() = runTest {
         val input = "hello,hola,A common greeting"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         
         val word = fakeRepository.insertedWords[0]
         assertEquals("hello", word.originalWord)
@@ -89,7 +88,7 @@ class ImportWordsUseCaseTest {
         // With comma delimiter and limit=3, split on first 2 commas, preserve rest
         val input = "Hello my friend,Hola mi amigo"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         
         val word = fakeRepository.insertedWords[0]
         assertEquals("Hello my friend", word.originalWord)
@@ -103,7 +102,7 @@ class ImportWordsUseCaseTest {
         // This is expected behavior - users should use pipe for phrases with commas
         val input = "Hello, my friend,Hola, mi amigo"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         
         val word = fakeRepository.insertedWords[0]
         // split(",", limit=3) on "Hello, my friend,Hola, mi amigo" gives:
@@ -117,7 +116,7 @@ class ImportWordsUseCaseTest {
     fun `phrase with description using comma delimiter preserves commas in description`() = runTest {
         val input = "Hello my dear friend,Hola mi querido amigo,A formal greeting used in Spanish-speaking countries"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         
         val word = fakeRepository.insertedWords[0]
         assertEquals("Hello my dear friend", word.originalWord)
@@ -134,7 +133,7 @@ class ImportWordsUseCaseTest {
         """.trimIndent()
         
         val result = executeImportSuccess(input)
-        assertEquals(3, result.count)
+        assertEquals(3, result)
         
         assertEquals("Hello how are you", fakeRepository.insertedWords[0].originalWord)
         assertEquals("Hola cómo estás", fakeRepository.insertedWords[0].translation)
@@ -154,7 +153,7 @@ class ImportWordsUseCaseTest {
         val input = "$longPhrase,$longTranslation,$longDescription"
         
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         
         val word = fakeRepository.insertedWords[0]
         assertEquals(longPhrase, word.originalWord)
@@ -166,7 +165,7 @@ class ImportWordsUseCaseTest {
     fun `description with commas should not split incorrectly using comma delimiter with limit`() = runTest {
         val input = "word,translation,This is a description with commas, multiple clauses, and details"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         
         val word = fakeRepository.insertedWords[0]
         assertEquals("word", word.originalWord)
@@ -179,7 +178,7 @@ class ImportWordsUseCaseTest {
         // With comma delimiter + limit=3, first 2 commas are delimiters, rest are preserved
         val input = "word,translation,This is a description with commas, multiple clauses, and details"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         
         val word = fakeRepository.insertedWords[0]
         assertEquals("word", word.originalWord)
@@ -191,20 +190,20 @@ class ImportWordsUseCaseTest {
     @Test
     fun `empty input should return error`() = runTest {
         val result = executeImport("")
-        assertTrue(result is ImportWordsUseCase.ImportResult.Error)
+        assertTrue(result.isFailure)
     }
     
     @Test
     fun `whitespace only should return error`() = runTest {
         val result = executeImport("   \n\n  \t  ")
-        assertTrue(result is ImportWordsUseCase.ImportResult.Error)
+        assertTrue(result.isFailure)
     }
     
     @Test
     fun `malformed entry with only one part should be skipped`() = runTest {
         val input = "onlyoneword;hello,hola"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         assertEquals(1, fakeRepository.insertedWords.size)
         assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
     }
@@ -213,7 +212,7 @@ class ImportWordsUseCaseTest {
     fun `empty entries should be skipped`() = runTest {
         val input = "hello,hola;;;goodbye,adiós"
         val result = executeImportSuccess(input)
-        assertEquals(2, result.count)
+        assertEquals(2, result)
         assertEquals(2, fakeRepository.insertedWords.size)
     }
     
@@ -221,7 +220,7 @@ class ImportWordsUseCaseTest {
     fun `entries with blank parts should be skipped`() = runTest {
         val input = " ,hola;hello, ;hello,hola"
         val result = executeImportSuccess(input)
-        assertEquals(1, result.count)
+        assertEquals(1, result)
         assertEquals(1, fakeRepository.insertedWords.size)
         assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
     }
@@ -237,7 +236,7 @@ class ImportWordsUseCaseTest {
         """.trimIndent()
         
         val result = executeImportSuccess(input)
-        assertEquals(3, result.count)
+        assertEquals(3, result)
         assertEquals(3, fakeRepository.insertedWords.size)
     }
     
@@ -251,7 +250,7 @@ class ImportWordsUseCaseTest {
         """.trimIndent()
         
         val result = executeImportSuccess(input)
-        assertEquals(4, result.count)
+        assertEquals(4, result)
         
         // Verify first word
         assertEquals("Hello", fakeRepository.insertedWords[0].originalWord)
@@ -272,7 +271,7 @@ class ImportWordsUseCaseTest {
         """.trimIndent()
         
         val result = executeImportSuccess(input)
-        assertEquals(3, result.count)
+        assertEquals(3, result)
         
         // First entry
         assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
@@ -292,7 +291,7 @@ class ImportWordsUseCaseTest {
     fun `special characters should be preserved`() = runTest {
         val input = "¡Hola!,Hello!;¿Qué tal?,How are you?;Café,Coffee"
         val result = executeImportSuccess(input)
-        assertEquals(3, result.count)
+        assertEquals(3, result)
         
         assertEquals("¡Hola!", fakeRepository.insertedWords[0].originalWord)
         assertEquals("¿Qué tal?", fakeRepository.insertedWords[1].originalWord)
@@ -308,7 +307,7 @@ class ImportWordsUseCaseTest {
         """.trimIndent()
         
         val result = executeImportSuccess(input)
-        assertEquals(2, result.count)
+        assertEquals(2, result)
         
         assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
         assertEquals("hola", fakeRepository.insertedWords[0].translation)
@@ -349,9 +348,9 @@ internal class FakeWordRepositoryForImport : IWordRepository {
     override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> =
         flowOf(DeleteWordsProgress.Completed(ids.size))
     
-    override suspend fun syncWithRemote(): Result<Unit> = Result.success(Unit)
-    override suspend fun deleteAllWords(): Result<Unit> = Result.success(Unit)
-    override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> = Result.success(Unit)
+    override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
+    override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
+    override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
     
     override suspend fun getWordById(id: Int): Word? = insertedWords.find { it.id == id }
     

@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import domain.common.Try
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.first
@@ -266,9 +267,9 @@ internal class FakeWordRepositoryForDelete : IWordRepository {
     override suspend fun insertWords(words: List<domain.word.model.Word>): Int = words.size
     override suspend fun updateWord(word: domain.word.model.Word) {}
     override suspend fun deleteWord(id: Int) {}
-    override suspend fun deleteAllWords(): Result<Unit> = Result.success(Unit)
-    override suspend fun syncWithRemote() = Result.success(Unit)
-    override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> = Result.success(Unit)
+    override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
+    override suspend fun syncWithRemote() = Try.success(Unit)
+    override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
     override fun getProgressStats() = kotlinx.coroutines.flow.flowOf(domain.word.model.ProgressStats())
     override suspend fun getTotalCount() = 0
     override suspend fun getDueCount() = 0

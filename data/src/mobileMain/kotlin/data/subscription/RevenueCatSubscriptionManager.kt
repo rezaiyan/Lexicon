@@ -9,6 +9,9 @@ import com.revenuecat.purchases.kmp.models.PackageType
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.StoreProduct
 import com.revenuecat.purchases.kmp.models.StoreTransaction
+import domain.common.Try
+import domain.common.fold
+import domain.common.getOrNull
 import domain.subscription.ISubscriptionManager
 import domain.subscription.model.PackagePeriod
 import domain.subscription.model.SubscriptionCustomerInfo
@@ -56,71 +59,71 @@ class RevenueCatSubscriptionManager(
         )
     }
 
-    private suspend fun getRawCustomerInfo(): Result<CustomerInfo> =
+    private suspend fun getRawCustomerInfo(): Try<CustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.getCustomerInfo(
                 onError = { error ->
-                    continuation.resume(Result.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(Exception(error.message)))
                 },
                 onSuccess = { customerInfo ->
                     _customerInfo.value = customerInfo.toDomain()
-                    continuation.resume(Result.success(customerInfo))
+                    continuation.resume(Try.success(customerInfo))
                 }
             )
         }
 
-    override suspend fun getOfferings(): Result<SubscriptionOffering> =
+    override suspend fun getOfferings(): Try<SubscriptionOffering> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.getOfferings(
                 onError = { error ->
-                    continuation.resume(Result.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(Exception(error.message)))
                 },
                 onSuccess = { offerings ->
                     val current = offerings.current
                     if (current != null) {
                         val packages = current.availablePackages
                         cachedPackages = packages.associateBy { it.identifier }
-                        continuation.resume(Result.success(offerings.toDomain()))
+                        continuation.resume(Try.success(offerings.toDomain()))
                     } else {
-                        continuation.resume(Result.success(SubscriptionOffering(emptyList())))
+                        continuation.resume(Try.success(SubscriptionOffering(emptyList())))
                     }
                 }
             )
         }
 
-    override suspend fun purchase(packageToPurchase: SubscriptionPackage): Result<SubscriptionCustomerInfo> {
+    override suspend fun purchase(packageToPurchase: SubscriptionPackage): Try<SubscriptionCustomerInfo> {
         val rcPackage = cachedPackages[packageToPurchase.identifier]
-            ?: return Result.failure(Exception("Package not found: ${packageToPurchase.identifier}"))
+            ?: return Try.failure(Exception("Package not found: ${packageToPurchase.identifier}"))
 
         return suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.purchase(
                 packageToPurchase = rcPackage,
                 onError = { error: PurchasesError, userCancelled: Boolean ->
                     if (userCancelled) {
-                        continuation.resume(Result.failure(CancelledPurchaseException()))
+                        continuation.resume(Try.failure(CancelledPurchaseException()))
                     } else {
-                        continuation.resume(Result.failure(Exception(error.message)))
+                        continuation.resume(Try.failure(Exception(error.message)))
                     }
                 },
                 onSuccess = { _: StoreTransaction, customerInfo: CustomerInfo ->
                     val domainInfo = customerInfo.toDomain()
                     _customerInfo.value = domainInfo
-                    continuation.resume(Result.success(domainInfo))
+                    continuation.resume(Try.success(domainInfo))
                 }
             )
         }
     }
 
-    override suspend fun restore(): Result<SubscriptionCustomerInfo> =
+    override suspend fun restore(): Try<SubscriptionCustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.restorePurchases(
                 onError = { error ->
-                    continuation.resume(Result.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(Exception(error.message)))
                 },
                 onSuccess = { customerInfo ->
                     val domainInfo = customerInfo.toDomain()
                     _customerInfo.value = domainInfo
-                    continuation.resume(Result.success(domainInfo))
+                    continuation.resume(Try.success(domainInfo))
                 }
             )
         }
@@ -129,31 +132,31 @@ class RevenueCatSubscriptionManager(
         info?.activeEntitlements?.isNotEmpty() ?: false
     }
 
-    override suspend fun logIn(userId: String): Result<SubscriptionCustomerInfo> =
+    override suspend fun logIn(userId: String): Try<SubscriptionCustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.logIn(
                 newAppUserID = userId,
                 onError = { error ->
-                    continuation.resume(Result.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(Exception(error.message)))
                 },
                 onSuccess = { customerInfo, _ ->
                     val domainInfo = customerInfo.toDomain()
                     _customerInfo.value = domainInfo
-                    continuation.resume(Result.success(domainInfo))
+                    continuation.resume(Try.success(domainInfo))
                 }
             )
         }
 
-    override suspend fun logOut(): Result<SubscriptionCustomerInfo> =
+    override suspend fun logOut(): Try<SubscriptionCustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.logOut(
                 onError = { error ->
-                    continuation.resume(Result.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(Exception(error.message)))
                 },
                 onSuccess = { customerInfo ->
                     val domainInfo = customerInfo.toDomain()
                     _customerInfo.value = domainInfo
-                    continuation.resume(Result.success(domainInfo))
+                    continuation.resume(Try.success(domainInfo))
                 }
             )
         }
@@ -182,22 +185,22 @@ class RevenueCatSubscriptionManager(
     ) {
     }
 
-    override suspend fun manageSubscription(): Result<Unit> {
+    override suspend fun manageSubscription(): Try<Unit> {
         val customerInfoResult = getRawCustomerInfo()
 
         val rawCustomerInfo = customerInfoResult.getOrNull()
-            ?: return Result.failure(Exception("Failed to retrieve subscription information"))
+            ?: return Try.failure(Exception("Failed to retrieve subscription information"))
 
         val managementURL = rawCustomerInfo.managementUrlString
 
         if (managementURL.isNullOrBlank()) {
-            return Result.failure(Exception("Unable to open subscription management. Please manage your subscription through your device settings."))
+            return Try.failure(Exception("Unable to open subscription management. Please manage your subscription through your device settings."))
         }
 
-        return Result.success(openUrl(managementURL))
+        return Try.success(openUrl(managementURL))
     }
 
-    override suspend fun cancelSubscription(): Result<Unit> {
+    override suspend fun cancelSubscription(): Try<Unit> {
         return manageSubscription()
     }
 }

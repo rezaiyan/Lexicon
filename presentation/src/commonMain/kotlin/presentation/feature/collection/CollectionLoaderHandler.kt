@@ -1,6 +1,7 @@
 package presentation.feature.collection
 
 import domain.collection.repository.ICollectionRepository
+import domain.common.fold
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch

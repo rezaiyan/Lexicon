@@ -1,5 +1,6 @@
 package domain.word.repository
 
+import domain.common.Try
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -19,9 +20,9 @@ interface IWordRepository {
     suspend fun updateWord(word: Word)
     suspend fun deleteWord(id: Int)
     fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress>
-    suspend fun deleteAllWords(): Result<Unit>
-    suspend fun syncWithRemote(): Result<Unit>
-    suspend fun syncRemoteToLocal(clearFirst: Boolean = false): Result<Unit>
+    suspend fun deleteAllWords(): Try<Unit>
+    suspend fun syncWithRemote(): Try<Unit>
+    suspend fun syncRemoteToLocal(clearFirst: Boolean = false): Try<Unit>
     fun getProgressStats(): Flow<ProgressStats>
     suspend fun getTotalCount(): Int
     suspend fun getDueCount(): Int

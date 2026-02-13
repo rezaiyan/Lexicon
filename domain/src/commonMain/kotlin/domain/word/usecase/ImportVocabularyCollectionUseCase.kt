@@ -2,6 +2,7 @@
 
 package domain.word.usecase
 
+import domain.common.Try
 import domain.word.model.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,20 +20,20 @@ import kotlin.time.ExperimentalTime
  * - Tab-separated format
  */
 class ImportVocabularyCollectionUseCase {
-    
-    suspend fun parseCollection(content: String, targetLanguage: String, sourceLanguage: String): Result<List<Word>> = withContext(Dispatchers.Default) {
-        try {
+
+    suspend fun parseCollection(content: String, targetLanguage: String, sourceLanguage: String): Try<List<Word>> = withContext(Dispatchers.Default) {
+        Try {
             val words = mutableListOf<Word>()
             val lines = content.trim().lines()
-            
+
             var wordId = 0
-            
+
             lines.forEach { line ->
                 val trimmed = line.trim()
                 if (trimmed.isBlank() || trimmed.startsWith("#")) {
                     return@forEach // Skip empty lines and comments
                 }
-                
+
                 // Handle semicolon-separated entries (multiple word pairs on one line)
                 // Format: "word1,translation1;word2,translation2;..."
                 if (trimmed.contains(";")) {
@@ -50,17 +51,15 @@ class ImportVocabularyCollectionUseCase {
                     }
                 }
             }
-            
+
             if (words.isEmpty()) {
-                Result.failure(Exception("No valid words found in the collection"))
-            } else {
-                Result.success(words)
+                throw Exception("No valid words found in the collection")
             }
-        } catch (e: Exception) {
-            Result.failure(Exception("Failed to parse collection: ${e.message}"))
+
+            words.toList()
         }
     }
-    
+
     private fun parseLine(line: String, id: Int, targetLanguage: String, sourceLanguage: String): Word? {
         // Handle semicolon-separated format (most common for vocabulary files)
         // Format: "word,translation;word2,translation2;..."
@@ -69,7 +68,7 @@ class ImportVocabularyCollectionUseCase {
             val pairs = line.split(";")
             return null // Skip this, caller should handle individual pairs
         }
-        
+
         // Try colon-separated format: "word : translation : description"
         if (line.contains(":") && !line.startsWith("http")) {
             val colonParts = line.split(":").map { it.trim() }
@@ -90,7 +89,7 @@ class ImportVocabularyCollectionUseCase {
                 )
             }
         }
-        
+
         // Try comma-separated format: "word,translation"
         if (line.contains(",")) {
             val commaParts = line.split(",").map { it.trim() }
@@ -111,7 +110,7 @@ class ImportVocabularyCollectionUseCase {
                 )
             }
         }
-        
+
         // Try tab-separated format
         if (line.contains("\t")) {
             val tabParts = line.split("\t").map { it.trim() }
@@ -132,7 +131,7 @@ class ImportVocabularyCollectionUseCase {
                 )
             }
         }
-        
+
         // Couldn't parse the line
         return null
     }

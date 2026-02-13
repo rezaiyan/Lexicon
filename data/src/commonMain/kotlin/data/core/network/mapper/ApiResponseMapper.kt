@@ -2,6 +2,7 @@ package data.core.network.mapper
 
 import data.core.network.error.HttpErrorMapper
 import data.core.network.model.ApiResponse
+import domain.common.Try
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
@@ -13,44 +14,35 @@ import io.ktor.client.statement.HttpResponse
 class ApiResponseMapper {
 
     /**
-     * Maps an HTTP response to a Result containing the API response data
+     * Maps an HTTP response to a Try containing the API response data
      * Handles non-success status codes and invalid API responses
      */
     suspend inline fun <reified T> mapResponse(
         httpResponse: HttpResponse
-    ): Result<T?> {
-        return try {
-            if (httpResponse.status.value !in 200..299) {
-                val exception = HttpErrorMapper.mapHttpResponse(httpResponse)
-                return Result.failure(exception)
-            }
-
-            val apiResponse = httpResponse.body<ApiResponse<T>>()
-
-            if (!apiResponse.success) {
-                val errorMessage = apiResponse.message ?: "API request failed"
-                return Result.failure(Exception(errorMessage))
-            }
-
-            Result.success(apiResponse.data)
-        } catch (e: Exception) {
-            Result.failure(e)
+    ): Try<T?> {
+        if (httpResponse.status.value !in 200..299) {
+            val exception = HttpErrorMapper.mapHttpResponse(httpResponse)
+            return Try.failure(exception)
         }
+
+        val apiResponse = httpResponse.body<ApiResponse<T>>()
+
+        if (!apiResponse.success) {
+            val errorMessage = apiResponse.message ?: "API request failed"
+            return Try.failure(Exception(errorMessage))
+        }
+
+        return Try.success(apiResponse.data)
     }
 
     suspend fun mapUnitResponse(
         httpResponse: HttpResponse
-    ): Result<Unit> {
-        return try {
-            if (httpResponse.status.value !in 200..299) {
-                val exception = HttpErrorMapper.mapHttpResponse(httpResponse)
-                return Result.failure(exception)
-            }
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    ): Try<Unit> {
+        if (httpResponse.status.value !in 200..299) {
+            val exception = HttpErrorMapper.mapHttpResponse(httpResponse)
+            return Try.failure(exception)
         }
+
+        return Try.success(Unit)
     }
 }
-

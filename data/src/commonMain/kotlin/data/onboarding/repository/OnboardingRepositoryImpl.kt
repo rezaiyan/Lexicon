@@ -3,6 +3,8 @@ package data.onboarding.repository
 import data.onboarding.remote.OnboardingRemoteDataSource
 import data.onboarding.remote.model.OnboardingPreferencesRequest
 import data.storage.SecureStorage
+import domain.common.Try
+import domain.common.fold
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.model.SuggestedVocabularyResponse
@@ -16,8 +18,8 @@ class OnboardingRepositoryImpl(
     // TODO: Remove fake response after testing
     private val useFakeResponse = true
 
-    override suspend fun submitPreferences(preferences: OnboardingPreferences): Result<SuggestedVocabularyResponse> {
-        if (useFakeResponse) return Result.success(createFakeResponse(preferences))
+    override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> {
+        if (useFakeResponse) return Try.success(createFakeResponse(preferences))
 
         val request = OnboardingPreferencesRequest(
             targetLanguage = preferences.targetLanguage,
@@ -41,10 +43,10 @@ class OnboardingRepositoryImpl(
                     nativeLanguage = dto.nativeLanguage,
                     currentLevel = dto.currentLevel
                 )
-                Result.success(response)
+                Try.success(response)
             },
             onFailure = { error ->
-                Result.failure(error)
+                Try.failure(error)
             }
         )
     }

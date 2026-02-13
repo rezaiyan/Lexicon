@@ -1,8 +1,10 @@
 package domain.notifications.repository
 
+import domain.common.Try
+
 interface IPushTokenRepository {
-    suspend fun registerToken(token: String): Result<Unit>
-    suspend fun deactivateAllTokens(): Result<Unit>
+    suspend fun registerToken(token: String): Try<Unit>
+    suspend fun deactivateAllTokens(): Try<Unit>
     fun initializeAndRegister()
 }
 

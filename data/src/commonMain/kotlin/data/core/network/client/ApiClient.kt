@@ -1,6 +1,9 @@
 package data.core.network.client
 
 import data.core.network.mapper.ApiResponseMapper
+import domain.common.Try
+import domain.common.flatMap
+import domain.common.getOrNull
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
@@ -17,7 +20,7 @@ import kotlin.PublishedApi
 
 /**
  * Base API client that handles common HTTP operations with consistent error handling
- * Eliminates try-catch repetition and provides a clean API for Result<T> and Flow<T>
+ * Eliminates try-catch repetition and provides a clean API for Try<T> and Flow<T>
  * Relies on HttpClient interceptors for authentication and error handling
  */
 class ApiClient(
@@ -26,13 +29,13 @@ class ApiClient(
     @PublishedApi internal val apiResponseMapper: ApiResponseMapper
 ) {
     /**
-     * Executes a GET request and returns Result<T>
+     * Executes a GET request and returns Try<T?>
      * Automatically handles errors via ApiResponseMapper
      */
     suspend inline fun <reified T> get(
         path: String,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<T?> {
+    ): Try<T?> {
         return executeRequest {
             httpClient.get("$baseUrl$path") {
                 block()
@@ -41,35 +44,27 @@ class ApiClient(
     }
 
     /**
-     * Executes a GET request and returns Result<T> (non-null)
-     * Throws if response data is null
+     * Executes a GET request and returns Try<T> (non-null)
+     * Returns failure if response data is null
      */
     suspend inline fun <reified T> getNotNull(
         path: String,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<T> {
-        val result = get<T>(path, block)
-        return when {
-            result.isSuccess && result.getOrNull() != null -> {
-                Result.success(result.getOrNull()!!)
-            }
-            result.isSuccess -> {
-                Result.failure(Exception("Response data is null"))
-            }
-            else -> {
-                Result.failure(result.exceptionOrNull() ?: Exception("Unknown error"))
-            }
+    ): Try<T> {
+        return get<T>(path, block).flatMap { value ->
+            if (value != null) Try.success(value)
+            else Try.failure(Exception("Response data is null"))
         }
     }
 
     /**
-     * Executes a POST request and returns Result<T>
+     * Executes a POST request and returns Try<T?>
      */
     suspend inline fun <reified T> post(
         path: String,
         body: Any? = null,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<T?> {
+    ): Try<T?> {
         return executeRequest {
             httpClient.post("$baseUrl$path") {
                 contentType(ContentType.Application.Json)
@@ -80,35 +75,27 @@ class ApiClient(
     }
 
     /**
-     * Executes a POST request and returns Result<T> (non-null)
+     * Executes a POST request and returns Try<T> (non-null)
      */
     suspend inline fun <reified T> postNotNull(
         path: String,
         body: Any? = null,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<T> {
-        val result = post<T>(path, body, block)
-        return when {
-            result.isSuccess && result.getOrNull() != null -> {
-                Result.success(result.getOrNull()!!)
-            }
-            result.isSuccess -> {
-                Result.failure(Exception("Response data is null"))
-            }
-            else -> {
-                Result.failure(result.exceptionOrNull() ?: Exception("Unknown error"))
-            }
+    ): Try<T> {
+        return post<T>(path, body, block).flatMap { value ->
+            if (value != null) Try.success(value)
+            else Try.failure(Exception("Response data is null"))
         }
     }
 
     /**
-     * Executes a POST request and returns Result<Unit>
+     * Executes a POST request and returns Try<Unit>
      */
     suspend inline fun postUnit(
         path: String,
         body: Any? = null,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<Unit> {
+    ): Try<Unit> {
         return executeUnitRequest {
             httpClient.post("$baseUrl$path") {
                 contentType(ContentType.Application.Json)
@@ -119,13 +106,13 @@ class ApiClient(
     }
 
     /**
-     * Executes a PATCH request and returns Result<T>
+     * Executes a PATCH request and returns Try<T?>
      */
     suspend inline fun <reified T> patch(
         path: String,
         body: Any? = null,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<T?> {
+    ): Try<T?> {
         return executeRequest {
             httpClient.patch("$baseUrl$path") {
                 contentType(ContentType.Application.Json)
@@ -136,35 +123,27 @@ class ApiClient(
     }
 
     /**
-     * Executes a PATCH request and returns Result<T> (non-null)
+     * Executes a PATCH request and returns Try<T> (non-null)
      */
     suspend inline fun <reified T> patchNotNull(
         path: String,
         body: Any? = null,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<T> {
-        val result = patch<T>(path, body, block)
-        return when {
-            result.isSuccess && result.getOrNull() != null -> {
-                Result.success(result.getOrNull()!!)
-            }
-            result.isSuccess -> {
-                Result.failure(Exception("Response data is null"))
-            }
-            else -> {
-                Result.failure(result.exceptionOrNull() ?: Exception("Unknown error"))
-            }
+    ): Try<T> {
+        return patch<T>(path, body, block).flatMap { value ->
+            if (value != null) Try.success(value)
+            else Try.failure(Exception("Response data is null"))
         }
     }
 
     /**
-     * Executes a PATCH request and returns Result<Unit>
+     * Executes a PATCH request and returns Try<Unit>
      */
     suspend inline fun patchUnit(
         path: String,
         body: Any? = null,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<Unit> {
+    ): Try<Unit> {
         return executeUnitRequest {
             httpClient.patch("$baseUrl$path") {
                 contentType(ContentType.Application.Json)
@@ -175,12 +154,12 @@ class ApiClient(
     }
 
     /**
-     * Executes a DELETE request and returns Result<Unit>
+     * Executes a DELETE request and returns Try<Unit>
      */
     suspend inline fun delete(
         path: String,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Result<Unit> {
+    ): Try<Unit> {
         return executeUnitRequest {
             httpClient.delete("$baseUrl$path") {
                 block()
@@ -189,50 +168,43 @@ class ApiClient(
     }
 
     /**
-     * Executes a GET request and returns Flow<T>
+     * Executes a GET request and returns Flow<Try<T?>>
      */
     inline fun <reified T> getFlow(
         path: String,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Flow<Result<T?>> = flow {
+    ): Flow<Try<T?>> = flow {
         val result = get<T>(path, block)
         emit(result)
     }
 
     /**
-     * Executes a GET request and returns Flow<T> (non-null)
+     * Executes a GET request and returns Flow<Try<T>> (non-null)
      */
     inline fun <reified T> getFlowNotNull(
         path: String,
         crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Flow<Result<T>> = flow {
+    ): Flow<Try<T>> = flow {
         val result = getNotNull<T>(path, block)
         emit(result)
     }
 
     /**
      * Core execution method that handles HTTP responses via ApiResponseMapper
-     * Wraps exceptions in Result automatically
+     * Wraps exceptions in Try automatically
      */
     suspend inline fun <reified T> executeRequest(
         crossinline request: suspend () -> HttpResponse
-    ): Result<T?> = runCatching {
-        val httpResponse = request()
-        apiResponseMapper.mapResponse<T>(httpResponse)
-    }.getOrElse { exception ->
-        Result.failure(exception)
-    }
+    ): Try<T?> = Try {
+        apiResponseMapper.mapResponse<T>(request())
+    }.flatMap { it }
 
     /**
      * Core execution method for Unit responses
      */
     suspend inline fun executeUnitRequest(
         crossinline request: suspend () -> HttpResponse
-    ): Result<Unit> = runCatching {
-        val httpResponse = request()
-        apiResponseMapper.mapUnitResponse(httpResponse)
-    }.getOrElse { exception ->
-        Result.failure(exception)
-    }
+    ): Try<Unit> = Try {
+        apiResponseMapper.mapUnitResponse(request())
+    }.flatMap { it }
 }
-

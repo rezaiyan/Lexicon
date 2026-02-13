@@ -2,6 +2,8 @@ package data.core.network.interceptor
 
 import data.auth.refresh.ITokenRefreshManager
 import data.core.network.error.AuthenticationException
+import domain.common.Try
+import domain.common.fold
 import expects.logNetwork
 import io.ktor.client.HttpClient
 import io.ktor.client.call.HttpClientCall
@@ -97,7 +99,7 @@ class RefreshAndRetryInterceptor(
                                 "RefreshAndRetry",
                                 "Retry rejected after successful refresh — clearing session"
                             )
-                            runCatching { plugin.tokenRefreshManagerProvider().clearSession() }
+                            Try { plugin.tokenRefreshManagerProvider().clearSession() }
                             throw e
                         }
 

@@ -1,6 +1,7 @@
 package presentation.viewmodel
 
 import analytics.IAnalyticsTracker
+import domain.common.fold
 import domain.word.model.Word
 import domain.word.usecase.UpdateWordUseCase
 import kotlinx.coroutines.CoroutineScope

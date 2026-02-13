@@ -2,6 +2,9 @@ package data.notification.remote
 
 import data.core.network.model.ApiResponse
 import data.notification.remote.model.RegisterPushTokenRequest
+import domain.common.Try
+import domain.common.doOnFailure
+import domain.common.map
 import expects.logNetwork
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -23,26 +26,25 @@ class PushNotificationDataSource(
     /**
      * Register FCM push token with the backend
      */
-    suspend fun registerPushToken(request: RegisterPushTokenRequest): Result<Unit> {
+    suspend fun registerPushToken(request: RegisterPushTokenRequest): Try<Unit> {
         if (getAuthToken() == null) {
             logNetwork("PushNotification", "Cannot register token - user not authenticated")
-            return Result.failure(Exception("User not authenticated"))
+            return Try.failure(Exception("User not authenticated"))
         }
 
         logNetwork("PushNotification", "Registering push token for platform: ${request.platform}")
 
-        return runCatching {
+        return Try {
             httpClient.post("$baseUrl/notifications/register-token") {
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }.body<ApiResponse<Unit>>()
-        }.mapCatching { response ->
+        }.map { response ->
             if (!response.success) {
                 throw Exception(response.message ?: "Failed to register push token")
             }
             logNetwork("PushNotification", "Push token registered successfully")
-            Unit
-        }.onFailure { error ->
+        }.doOnFailure { error ->
             logNetwork("PushNotification", "Error registering push token: ${error.message}")
         }
     }
@@ -50,28 +52,23 @@ class PushNotificationDataSource(
     /**
      * Deactivate all push tokens for the current user (useful for logout)
      */
-    suspend fun deactivateAllTokens(): Result<Unit> {
+    suspend fun deactivateAllTokens(): Try<Unit> {
         if (getAuthToken() == null) {
-            return Result.success(Unit)
+            return Try.success(Unit)
         }
 
         logNetwork("PushNotification", "Deactivating all push tokens")
 
-        val result = runCatching {
+        return Try {
             httpClient.delete("$baseUrl/notifications/tokens")
-        }
-
-        return result.fold(
-            onSuccess = {
+        }.let {
+            // Best effort cleanup – still report success to callers
+            if (it.isSuccess) {
                 logNetwork("PushNotification", "Push tokens deactivated")
-                Result.success(Unit)
-            },
-            onFailure = { error ->
-                logNetwork("PushNotification", "Error deactivating tokens: ${error.message}")
-                // Best effort cleanup – still report success to callers
-                Result.success(Unit)
+            } else {
+                logNetwork("PushNotification", "Error deactivating tokens: ${(it as Try.Failure).throwable.message}")
             }
-        )
+            Try.success(Unit)
+        }
     }
 }
-

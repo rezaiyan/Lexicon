@@ -1,5 +1,7 @@
 package domain.word.usecase
 
+import domain.common.Try
+import domain.common.fold
 import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
 import kotlinx.coroutines.flow.Flow
@@ -11,75 +13,61 @@ class ImportWordsUseCase(
     private val validationService: IImportValidationService
 ) {
 
-    suspend fun execute(text: String): ImportResult =
+    suspend fun execute(text: String): Try<Int> =
         validationService.validateAndParse(text)
-            .let { validationResult ->
-                when (validationResult) {
-                    is IImportValidationService.ValidationResult.Error -> {
-                        return@let ImportResult.Error(validationResult.message)
+            .fold(
+                onSuccess = { parsedWords ->
+                    val importWords = parsedWords.distinctBy {
+                        Pair(
+                            it.originalWord.trim().lowercase(),
+                            it.translation.trim().lowercase()
+                        )
                     }
 
-                    is IImportValidationService.ValidationResult.Success -> {
-                        val parsedWords = validationResult.words
-                        val importWords = parsedWords.distinctBy {
-                            Pair(
-                                it.originalWord.trim().lowercase(),
-                                it.translation.trim().lowercase()
-                            )
-                        }
-
-                        val importedWords = wordRepository.insertWords(importWords)
-                        if (importedWords > 0) {
-                            ImportResult.Success(importWords.size)
-                        } else {
-                            ImportResult.Error("All ${importWords.size} word(s) already exist in your collection.")
-                        }
-
+                    val importedWords = wordRepository.insertWords(importWords)
+                    if (importedWords > 0) {
+                        Try.success(importWords.size)
+                    } else {
+                        Try.failure(Exception("All ${importWords.size} word(s) already exist in your collection."))
                     }
+                },
+                onFailure = { throwable ->
+                    Try.failure(throwable)
                 }
-            }
+            )
 
 
-    operator fun invoke(text: String): Flow<ImportResult> =
+    operator fun invoke(text: String): Flow<Try<Int>> =
         validationService.validateAndParse(text)
-            .let { validationResult ->
-                when (validationResult) {
-                    is IImportValidationService.ValidationResult.Error -> {
-                        flow { emit(ImportResult.Error(validationResult.message)) }
+            .fold(
+                onSuccess = { parsedWords ->
+                    val uniqueImportWords = parsedWords.distinctBy {
+                        Pair(
+                            it.originalWord.trim().lowercase(),
+                            it.translation.trim().lowercase()
+                        )
                     }
 
-                    is IImportValidationService.ValidationResult.Success -> {
-                        val parsedWords = validationResult.words
-                        val uniqueImportWords = parsedWords.distinctBy {
-                            Pair(
-                                it.originalWord.trim().lowercase(),
-                                it.translation.trim().lowercase()
-                            )
-                        }
-
-                        wordRepository.getAllWords()
-                            .flatMapLatest { existingWords ->
-                                flow {
-                                    val newWords = uniqueImportWords.filter { newWord ->
-                                        existingWords.none { existingWord ->
-                                            existingWord.isSameContent(newWord)
-                                        }
-                                    }
-
-                                    if (newWords.isEmpty()) {
-                                        emit(ImportResult.Error("All ${uniqueImportWords.size} word(s) already exist in your collection."))
-                                    } else {
-                                        wordRepository.insertWords(newWords)
-                                        emit(ImportResult.Success(newWords.size))
+                    wordRepository.getAllWords()
+                        .flatMapLatest { existingWords ->
+                            flow {
+                                val newWords = uniqueImportWords.filter { newWord ->
+                                    existingWords.none { existingWord ->
+                                        existingWord.isSameContent(newWord)
                                     }
                                 }
-                            }
-                    }
-                }
-            }
 
-    sealed class ImportResult {
-        data class Success(val count: Int) : ImportResult()
-        data class Error(val message: String) : ImportResult()
-    }
+                                if (newWords.isEmpty()) {
+                                    emit(Try.failure(Exception("All ${uniqueImportWords.size} word(s) already exist in your collection.")))
+                                } else {
+                                    wordRepository.insertWords(newWords)
+                                    emit(Try.success(newWords.size))
+                                }
+                            }
+                        }
+                },
+                onFailure = { throwable ->
+                    flow { emit(Try.failure(throwable)) }
+                }
+            )
 }

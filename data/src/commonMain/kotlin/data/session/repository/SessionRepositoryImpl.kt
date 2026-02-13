@@ -10,6 +10,7 @@ import domain.auth.model.AuthUser
 import domain.auth.model.SubscriptionStatus
 import domain.auth.repository.ISessionRepository
 import domain.auth.repository.SessionVerificationResult
+import domain.common.fold
 
 /**
  * Session repository that verifies sessions using backend tokens only

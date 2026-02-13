@@ -1,5 +1,7 @@
 package domain.onboarding.usecase
 
+import domain.common.Try
+import domain.common.getOrNull
 import domain.onboarding.model.SuggestedVocabulary
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
@@ -111,9 +113,9 @@ class ImportSuggestedVocabularyUseCaseTest {
         override suspend fun updateWord(word: Word) {}
         override suspend fun deleteWord(id: Int) {}
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
-        override suspend fun deleteAllWords(): Result<Unit> = Result.success(Unit)
-        override suspend fun syncWithRemote(): Result<Unit> = Result.success(Unit)
-        override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> = Result.success(Unit)
+        override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
+        override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
+        override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
         override suspend fun getTotalCount(): Int = insertedWords.size
         override suspend fun getDueCount(): Int = 0

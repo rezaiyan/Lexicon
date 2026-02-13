@@ -3,6 +3,9 @@ package data.notification.repository
 import data.notification.remote.PushNotificationDataSource
 import data.notification.remote.model.Platform
 import data.notification.remote.model.RegisterPushTokenRequest
+import domain.common.Try
+import domain.common.onFailure
+import domain.common.onSuccess
 import domain.notifications.repository.IPushTokenRepository
 import expects.logNetwork
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +38,7 @@ class PushTokenRepositoryImpl(
         }
     }
 
-    override suspend fun registerToken(token: String): Result<Unit> {
+    override suspend fun registerToken(token: String): Try<Unit> {
         logNetwork("RegisterPushToken", "📤 Sending token to backend...")
 
         val request = RegisterPushTokenRequest(
@@ -53,7 +56,7 @@ class PushTokenRepositoryImpl(
         }
     }
 
-    override suspend fun deactivateAllTokens(): Result<Unit> {
+    override suspend fun deactivateAllTokens(): Try<Unit> {
         logNetwork("RegisterPushToken", "🔕 Deactivating all push tokens...")
         return pushNotificationDataSource.deactivateAllTokens()
     }

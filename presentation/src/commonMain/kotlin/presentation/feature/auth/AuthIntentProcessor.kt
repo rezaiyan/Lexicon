@@ -1,16 +1,19 @@
 package presentation.feature.auth
 
 import analytics.IAnalyticsTracker
-import domain.streak.repository.IStreakRepository
 import domain.auth.model.AuthState
+import domain.auth.model.AuthUser
 import domain.auth.repository.SessionVerificationResult
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.VerifySessionUseCase
+import domain.common.Try
+import domain.common.fold
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.settings.repository.ISettingsRepository
+import domain.streak.repository.IStreakRepository
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -40,9 +43,9 @@ class AuthIntentProcessor(
     private val authState: MutableStateFlow<AuthState>,
     private val onPushNotificationInit: () -> Unit
 ) {
-    
+
     private val authMutex = Mutex()
-    
+
     suspend fun process(intent: AuthIntent) {
         when (intent) {
             is AuthIntent.VerifyAndRestore -> processVerifyAndRestore(intent.onComplete)
@@ -53,7 +56,7 @@ class AuthIntentProcessor(
             AuthIntent.RecordStreak -> processRecordStreak()
         }
     }
-    
+
     private suspend fun processVerifyAndRestore(onComplete: () -> Unit) {
         authState.value = authState.value.copy(isLoading = true)
         when (val result = verifySessionUseCase()) {
@@ -82,7 +85,7 @@ class AuthIntentProcessor(
             }
         }
     }
-    
+
     private suspend fun processLogin(idToken: String) {
         authMutex.withLock {
             loginWithGoogleUseCase.invoke(idToken)
@@ -92,14 +95,13 @@ class AuthIntentProcessor(
                     authState.value = newState
                 }
                 .collect { result ->
-                    when (result) {
-                        is LoginWithGoogleUseCase.AuthResult.Success -> {
-                            val user = result.user
+                    result.fold(
+                        onSuccess = { user ->
                             analyticsTracker.logEvent(
                                 "login_success",
                                 mapOf("user_id" to user.id.toString(), "provider" to "google")
                             )
-                            
+
                             val loadingState = AuthState(
                                 isAuthenticated = true,
                                 isLoading = true,
@@ -107,22 +109,22 @@ class AuthIntentProcessor(
                                 error = null
                             )
                             authState.value = loadingState
-                            
+
                             syncRemoteToLocalUseCase(clearFirst = false)
                             onPushNotificationInit()
                             val finalState = authState.value.copy(isLoading = false)
                             authState.value = finalState
-                        }
-                        is LoginWithGoogleUseCase.AuthResult.Error -> {
+                        },
+                        onFailure = { error ->
                             analyticsTracker.logEvent("login_failed", mapOf("provider" to "google"))
-                            val newState = AuthState(isAuthenticated = false, isLoading = false, error = result.message)
+                            val newState = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
                             authState.value = newState
                         }
-                    }
+                    )
                 }
         }
     }
-    
+
     private suspend fun processLoginWithApple(idToken: String, fullName: String?, appleUserId: String) {
         authMutex.withLock {
             loginWithAppleUseCase.invoke(idToken, fullName, appleUserId)
@@ -132,14 +134,13 @@ class AuthIntentProcessor(
                     authState.value = newState
                 }
                 .collect { result ->
-                    when (result) {
-                        is LoginWithAppleUseCase.AuthResult.Success -> {
-                            val user = result.user
+                    result.fold(
+                        onSuccess = { user ->
                             analyticsTracker.logEvent(
                                 "login_success",
                                 mapOf("user_id" to user.id.toString(), "provider" to "apple")
                             )
-                            
+
                             val loadingState = AuthState(
                                 isAuthenticated = true,
                                 isLoading = true,
@@ -147,56 +148,45 @@ class AuthIntentProcessor(
                                 error = null
                             )
                             authState.value = loadingState
-                            
+
                             syncRemoteToLocalUseCase(clearFirst = false)
                             onPushNotificationInit()
                             val finalState = authState.value.copy(isLoading = false)
                             authState.value = finalState
-                        }
-                        is LoginWithAppleUseCase.AuthResult.Error -> {
+                        },
+                        onFailure = { error ->
                             analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
-                            val newState = AuthState(isAuthenticated = false, isLoading = false, error = result.message)
+                            val newState = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
                             authState.value = newState
                         }
-                    }
+                    )
                 }
         }
     }
-    
+
     private suspend fun processLogout() {
         analyticsTracker.logEvent("logout")
-        
+
         registerPushTokenUseCase.deactivateAllTokens()
         logoutUseCase.invoke()
             .catch { error ->
                 val newState = AuthState(isAuthenticated = false, isLoading = true)
                 authState.value = newState
                 settingsRepository.clearInsightData()
-                
+
                 val finalState = authState.value.copy(isLoading = false)
                 authState.value = finalState
             }
             .collect { result ->
-                when (result) {
-                    is LogoutUseCase.LogoutResult.Success -> {
-                        val loadingState = AuthState(isAuthenticated = false, isLoading = true)
-                        authState.value = loadingState
-                        settingsRepository.clearInsightData()
-                        
-                        val finalState = authState.value.copy(isLoading = false)
-                        authState.value = finalState
-                    }
-                    is LogoutUseCase.LogoutResult.Error -> {
-                        val loadingState = AuthState(isAuthenticated = false, isLoading = true)
-                        authState.value = loadingState
-                        settingsRepository.clearInsightData()
-                        val finalState = authState.value.copy(isLoading = false)
-                        authState.value = finalState
-                    }
-                }
+                val loadingState = AuthState(isAuthenticated = false, isLoading = true)
+                authState.value = loadingState
+                settingsRepository.clearInsightData()
+
+                val finalState = authState.value.copy(isLoading = false)
+                authState.value = finalState
             }
     }
-    
+
     private suspend fun processDeleteAccount() {
         analyticsTracker.logEvent("account_deleted")
 
@@ -210,23 +200,23 @@ class AuthIntentProcessor(
                 authState.value = newState
             }
             .collect { result ->
-                when (result) {
-                    is DeleteAccountUseCase.DeleteAccountResult.Success -> {
+                result.fold(
+                    onSuccess = {
                         val loadingState = AuthState(isAuthenticated = false, isLoading = true)
                         authState.value = loadingState
                         settingsRepository.clearInsightData()
 
                         val finalState = authState.value.copy(isLoading = false)
                         authState.value = finalState
-                    }
-                    is DeleteAccountUseCase.DeleteAccountResult.Error -> {
+                    },
+                    onFailure = { error ->
                         val newState = authState.value.copy(
                             isLoading = false,
-                            error = "Failed to delete account: ${result.message}"
+                            error = "Failed to delete account: ${error.message}"
                         )
                         authState.value = newState
                     }
-                }
+                )
             }
     }
 

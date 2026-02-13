@@ -8,6 +8,9 @@ import data.auth.remote.FeatureAccessRemoteDataSource
 import domain.auth.session.ISessionManager
 import data.auth.token.ITokenManager
 import domain.auth.model.AuthUser
+import domain.common.Try
+import domain.common.fold
+import domain.common.map
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
@@ -26,7 +29,7 @@ class AuthRepositoryImpl(
     private val appleAuthStateProvider: IAppleAuthStateProvider
 ) : IAuthRepository {
 
-    override suspend fun loginWithGoogle(idToken: String): Result<AuthUser> {
+    override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> {
         return performLogin {
             authDataSource.authenticateWithGoogle(idToken)
         }
@@ -36,15 +39,15 @@ class AuthRepositoryImpl(
         idToken: String,
         fullName: String?,
         appleUserId: String
-    ): Result<AuthUser> {
+    ): Try<AuthUser> {
         return performLogin {
             authDataSource.authenticateWithApple(idToken, fullName, appleUserId)
         }
     }
 
     private suspend fun performLogin(
-        authenticate: suspend () -> Result<data.auth.remote.model.AuthResponse>
-    ): Result<AuthUser> {
+        authenticate: suspend () -> Try<data.auth.remote.model.AuthResponse>
+    ): Try<AuthUser> {
         val authResult = authenticate()
 
         return authResult.fold(
@@ -55,15 +58,15 @@ class AuthRepositoryImpl(
                 )
                 sessionManager.setAuthenticated(true)
                 val user = authResponse.user.toDomain()
-                Result.success(user)
+                Try.success(user)
             },
             onFailure = { error ->
-                Result.failure(error)
+                Try.failure(error)
             }
         )
     }
 
-    override suspend fun logout(): Result<Unit> {
+    override suspend fun logout(): Try<Unit> {
         val refreshToken = tokenManager.getRefreshToken()
         if (refreshToken != null) {
             authDataSource.logout(refreshToken)
@@ -75,14 +78,14 @@ class AuthRepositoryImpl(
         tokenManager.clearTokens()
         sessionManager.setAuthenticated(false)
 
-        return Result.success(Unit)
+        return Try.success(Unit)
     }
 
-    override suspend fun deleteAccount(): Result<Unit> {
+    override suspend fun deleteAccount(): Try<Unit> {
         val accessToken = tokenManager.getAccessToken()
 
         if (accessToken == null) {
-            return Result.failure(Exception("Not authenticated"))
+            return Try.failure(Exception("Not authenticated"))
         }
 
         val deleteResult = authDataSource.deleteAccount()
@@ -97,14 +100,14 @@ class AuthRepositoryImpl(
         tokenManager.clearTokens()
         sessionManager.setAuthenticated(false)
 
-        return Result.success(Unit)
+        return Try.success(Unit)
     }
 
     override suspend fun getAccessToken(): String? {
         return tokenManager.getAccessToken()
     }
 
-    override suspend fun getUserProfile(): Result<AuthUser> {
+    override suspend fun getUserProfile(): Try<AuthUser> {
         return authDataSource.getUserProfile().map { it.toDomain() }
     }
 

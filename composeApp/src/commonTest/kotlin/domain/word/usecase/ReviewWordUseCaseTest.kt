@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import domain.common.Try
 import domain.settings.model.ReviewSettings
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetReviewSettingsUseCase
@@ -138,9 +139,9 @@ class ReviewWordUseCaseTest {
         override suspend fun insertWords(words: List<Word>): Int = words.size
         override suspend fun deleteWord(id: Int) {}
         override suspend fun getWordById(id: Int): Word? = null
-        override suspend fun deleteAllWords(): Result<Unit> = Result.success(Unit)
-        override suspend fun syncWithRemote(): Result<Unit> = Result.success(Unit)
-        override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> = Result.success(Unit)
+        override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
+        override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
+        override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override suspend fun getTotalCount(): Int = 0
         override suspend fun getDueCount(): Int = 0
 

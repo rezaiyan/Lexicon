@@ -1,5 +1,7 @@
 package domain.word.service
 
+import domain.common.Try
+import domain.common.getOrThrow
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -28,7 +30,7 @@ class WordSyncServiceTest {
         val result = service.syncWords(remote).first()
 
         assertEquals(2, repository.lastInserted.size)
-        assertEquals(2, (result as IWordSyncService.SyncResult.Success).syncedCount)
+        assertEquals(2, result.getOrThrow())
         assertTrue(repository.lastInserted.containsAll(remote))
     }
 
@@ -46,7 +48,7 @@ class WordSyncServiceTest {
 
         assertEquals(1, repository.lastInserted.size)
         assertEquals("Goodbye", repository.lastInserted.first().originalWord)
-        assertEquals(1, (result as IWordSyncService.SyncResult.Success).syncedCount)
+        assertEquals(1, result.getOrThrow())
     }
 
     @Test
@@ -57,7 +59,7 @@ class WordSyncServiceTest {
         val result = service.syncWords(emptyList()).first()
 
         assertTrue(repository.lastInserted.isEmpty())
-        assertEquals(0, (result as IWordSyncService.SyncResult.Success).syncedCount)
+        assertEquals(0, result.getOrThrow())
     }
 
     private fun createWord(
@@ -108,9 +110,9 @@ class WordSyncServiceTest {
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> =
             flowOf(DeleteWordsProgress.Completed(0))
         override suspend fun getWordById(id: Int): Word? = null
-        override suspend fun deleteAllWords(): Result<Unit> = Result.success(Unit)
-        override suspend fun syncWithRemote(): Result<Unit> = Result.success(Unit)
-        override suspend fun syncRemoteToLocal(clearFirst: Boolean): Result<Unit> = Result.success(Unit)
+        override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
+        override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
+        override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
         override suspend fun getTotalCount(): Int = existingFlow.value.size
         override suspend fun getDueCount(): Int = 0

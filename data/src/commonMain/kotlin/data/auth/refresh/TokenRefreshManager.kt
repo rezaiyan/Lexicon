@@ -4,6 +4,8 @@ import data.auth.remote.AuthDataSource
 import data.auth.state.IAuthenticationStateManager
 import data.auth.token.ITokenManager
 import data.core.network.error.AuthenticationException
+import domain.common.Try
+import domain.common.fold
 import expects.logNetwork
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -27,7 +29,7 @@ class TokenRefreshManager(
 
     private val refreshMutex = Mutex()
 
-    override suspend fun refresh(): Result<String> {
+    override suspend fun refresh(): Try<String> {
         val tokenBeforeWait = tokenManager.getAccessToken()
 
         return refreshMutex.withLock {
@@ -37,7 +39,7 @@ class TokenRefreshManager(
             val currentToken = tokenManager.getAccessToken()
             if (currentToken != null && currentToken != tokenBeforeWait) {
                 logNetwork("TokenRefresh", "Token already refreshed by another caller, reusing")
-                return@withLock Result.success(currentToken)
+                return@withLock Try.success(currentToken)
             }
 
             val refreshToken = tokenManager.getRefreshToken()
@@ -45,7 +47,7 @@ class TokenRefreshManager(
                 logNetwork("TokenRefresh", "No refresh token available")
                 tokenManager.clearTokens()
                 authenticationStateManager.setAuthenticated(false)
-                return@withLock Result.failure(AuthenticationException("No refresh token available"))
+                return@withLock Try.failure(AuthenticationException("No refresh token available"))
             }
 
             logNetwork("TokenRefresh", "Attempting token refresh")
@@ -59,7 +61,7 @@ class TokenRefreshManager(
                         refreshToken = authResponse.refreshToken
                     )
                     authenticationStateManager.setAuthenticated(true)
-                    Result.success(authResponse.accessToken)
+                    Try.success(authResponse.accessToken)
                 },
                 onFailure = { error ->
                     logNetwork("TokenRefresh", "Token refresh failed: ${error.message}")
@@ -74,7 +76,7 @@ class TokenRefreshManager(
                     } else {
                         logNetwork("TokenRefresh", "Transient error — keeping session intact")
                     }
-                    Result.failure(error)
+                    Try.failure(error)
                 }
             )
         }

@@ -2,50 +2,46 @@
 
 package domain.word.service
 
+import domain.common.Try
 import domain.word.model.Word
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 interface IImportValidationService {
-    fun validateAndParse(text: String): ValidationResult
-
-    sealed interface ValidationResult {
-        data class Success(val words: List<Word>) : ValidationResult
-        data class Error(val message: String) : ValidationResult
-    }
+    fun validateAndParse(text: String): Try<List<Word>>
 }
 
 class ImportValidationService : IImportValidationService {
 
-    override fun validateAndParse(text: String): IImportValidationService.ValidationResult {
+    override fun validateAndParse(text: String): Try<List<Word>> {
         val trimmed = text.trim()
 
         return when {
             trimmed.isEmpty() ->
-                IImportValidationService.ValidationResult.Error("File is empty")
+                Try.failure(Exception("File is empty"))
 
             !isValidFormat(trimmed) ->
-                IImportValidationService.ValidationResult.Error(
-                    "File content doesn't match expected format. Expected: word,translation or word,translation,description"
+                Try.failure(
+                    Exception("File content doesn't match expected format. Expected: word,translation or word,translation,description")
                 )
 
             else -> {
                 val parsed = parseImportText(trimmed)
 
                 if (parsed.isEmpty()) {
-                    IImportValidationService.ValidationResult.Error(
-                        "No valid words found. Check format: word,translation"
+                    Try.failure(
+                        Exception("No valid words found. Check format: word,translation")
                     )
                 } else {
-                    IImportValidationService.ValidationResult.Success(parsed)
+                    Try.success(parsed)
                 }
             }
         }
     }
-    
+
     private fun isValidFormat(text: String): Boolean {
         if (!text.contains(",")) return false
-        
+
         val lines = text.split(Regex("[;\n]+")).map { it.trim() }.filter { it.isNotBlank() }
         return lines.any { line ->
             if (line.startsWith("#")) return@any false
@@ -53,24 +49,24 @@ class ImportValidationService : IImportValidationService {
             parts.size >= 2 && parts[0].isNotBlank() && parts[1].isNotBlank()
         }
     }
-    
+
     private fun parseImportText(text: String): List<Word> {
         val words = mutableListOf<Word>()
         val entries = text.trim()
             .split(Regex("[;\n]+"))
             .map { it.trim() }
             .filter { it.isNotBlank() }
-        
+
         entries.forEach { entry ->
             if (entry.isBlank() || entry.startsWith("#")) return@forEach
-            
+
             val parts = entry.split(",", limit = 3).map { it.trim() }
             if (parts.size < 2) return@forEach
-            
+
             val originalWord = parts[0]
             val translation = parts[1]
             val description = if (parts.size > 2) parts[2] else ""
-            
+
             if (originalWord.isNotBlank() && translation.isNotBlank()) {
                 @OptIn(ExperimentalTime::class)
                 val nextReviewTime = Clock.System.now().toEpochMilliseconds() - 1000
@@ -92,7 +88,7 @@ class ImportValidationService : IImportValidationService {
                 )
             }
         }
-        
+
         return words
     }
 }

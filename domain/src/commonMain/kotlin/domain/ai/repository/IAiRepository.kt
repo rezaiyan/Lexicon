@@ -1,5 +1,6 @@
 package domain.ai.repository
 
+import domain.common.Try
 import utils.Language
 
 interface IAiRepository {
@@ -8,6 +9,6 @@ interface IAiRepository {
         targetLanguage: Language,
         extractWords: Boolean = true,
         extractSentences: Boolean = false
-    ): Result<String>
+    ): Try<String>
 }
 

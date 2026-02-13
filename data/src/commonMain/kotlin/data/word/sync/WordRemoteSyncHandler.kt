@@ -5,17 +5,19 @@ import data.core.network.error.NetworkErrorHandler
 import data.word.remote.WordRemoteDataSource
 import data.word.remote.model.RemoteWord
 import domain.auth.repository.IAuthRepository
+import domain.common.Try
+import domain.common.map
 import domain.word.model.Word
 import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 interface IWordRemoteSyncHandler {
-    suspend fun syncWordsToRemote(words: List<Word>): Result<Unit>
-    suspend fun syncWordUpdateToRemote(id: Long, word: Word): Result<Unit>
-    suspend fun syncWordDeletionToRemote(id: Long): Result<Unit>
-    suspend fun syncWordsDeletionToRemote(ids: List<Long>): Result<Unit>
-    suspend fun syncFromRemote(): Result<List<RemoteWord>>
+    suspend fun syncWordsToRemote(words: List<Word>): Try<Unit>
+    suspend fun syncWordUpdateToRemote(id: Long, word: Word): Try<Unit>
+    suspend fun syncWordDeletionToRemote(id: Long): Try<Unit>
+    suspend fun syncWordsDeletionToRemote(ids: List<Long>): Try<Unit>
+    suspend fun syncFromRemote(): Try<List<RemoteWord>>
 }
 
 class WordRemoteSyncHandler(
@@ -25,8 +27,8 @@ class WordRemoteSyncHandler(
     // Lazy injection to break circular dependency
     private val authRepository: IAuthRepository by inject()
 
-    override suspend fun syncWordsToRemote(words: List<Word>): Result<Unit> {
-        if (words.isEmpty()) return Result.success(Unit)
+    override suspend fun syncWordsToRemote(words: List<Word>): Try<Unit> {
+        if (words.isEmpty()) return Try.success(Unit)
 
         val remoteWords = words.map { it.toRemote() }
         val result = wordRemoteDataSource.upsertWords(remoteWords)
@@ -41,7 +43,7 @@ class WordRemoteSyncHandler(
         )
     }
 
-    override suspend fun syncWordUpdateToRemote(id: Long, word: Word): Result<Unit> {
+    override suspend fun syncWordUpdateToRemote(id: Long, word: Word): Try<Unit> {
         val result = wordRemoteDataSource.updateWord(id, word.toRemote())
 
         return NetworkErrorHandler.handleResult(
@@ -54,7 +56,7 @@ class WordRemoteSyncHandler(
         )
     }
 
-    override suspend fun syncWordDeletionToRemote(id: Long): Result<Unit> {
+    override suspend fun syncWordDeletionToRemote(id: Long): Try<Unit> {
         val result = wordRemoteDataSource.deleteWord(id)
 
         return NetworkErrorHandler.handleResult(
@@ -67,8 +69,8 @@ class WordRemoteSyncHandler(
         )
     }
 
-    override suspend fun syncWordsDeletionToRemote(ids: List<Long>): Result<Unit> {
-        if (ids.isEmpty()) return Result.success(Unit)
+    override suspend fun syncWordsDeletionToRemote(ids: List<Long>): Try<Unit> {
+        if (ids.isEmpty()) return Try.success(Unit)
 
         val result = wordRemoteDataSource.deleteWords(ids).first()
 
@@ -82,7 +84,7 @@ class WordRemoteSyncHandler(
         )
     }
 
-    override suspend fun syncFromRemote(): Result<List<RemoteWord>> {
+    override suspend fun syncFromRemote(): Try<List<RemoteWord>> {
         val result = wordRemoteDataSource.getWords()
 
         return NetworkErrorHandler.handleResult(
@@ -107,4 +109,3 @@ class WordRemoteSyncHandler(
         createdAt = dateAdded
     )
 }
-

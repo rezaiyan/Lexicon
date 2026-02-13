@@ -1,5 +1,6 @@
 package domain.notifications.usecase
 
+import domain.common.Try
 import domain.notifications.repository.IPushTokenRepository
 
 class RegisterPushTokenUseCase(
@@ -8,13 +9,12 @@ class RegisterPushTokenUseCase(
     fun initializeAndRegister() {
         pushTokenRepository.initializeAndRegister()
     }
-    
-    suspend fun registerToken(token: String): Result<Unit> {
+
+    suspend fun registerToken(token: String): Try<Unit> {
         return pushTokenRepository.registerToken(token)
     }
-    
-    suspend fun deactivateAllTokens(): Result<Unit> {
+
+    suspend fun deactivateAllTokens(): Try<Unit> {
         return pushTokenRepository.deactivateAllTokens()
     }
 }
-

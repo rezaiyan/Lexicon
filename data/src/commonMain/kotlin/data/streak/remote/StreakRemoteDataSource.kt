@@ -2,6 +2,9 @@ package data.streak.remote
 
 import data.core.network.client.ApiClient
 import data.streak.remote.model.StreakResponse
+import domain.common.Try
+import domain.common.doOnFailure
+import domain.common.doOnSuccess
 import expects.logNetwork
 
 /**
@@ -12,19 +15,18 @@ class StreakRemoteDataSource(
     private val apiClient: ApiClient
 ) {
 
-    suspend fun getStreak(): Result<StreakResponse> =
+    suspend fun getStreak(): Try<StreakResponse> =
         apiClient.getNotNull<StreakResponse>("/streak")
-            .onSuccess { response ->
+            .doOnSuccess { response ->
                 logNetwork("StreakRemoteDataSource", "Streak retrieved: ${response.currentStreak}")
             }
 
-    suspend fun recordActivity(): Result<StreakResponse> =
+    suspend fun recordActivity(): Try<StreakResponse> =
         apiClient.postNotNull<StreakResponse>("/streak/record")
-            .onSuccess { response ->
+            .doOnSuccess { response ->
                 logNetwork("StreakRemoteDataSource", "Activity recorded: streak=${response.currentStreak}")
             }
-            .onFailure { error ->
+            .doOnFailure { error ->
                 logNetwork("StreakRemoteDataSource", "Error recording activity: ${error.message}")
             }
 }
-

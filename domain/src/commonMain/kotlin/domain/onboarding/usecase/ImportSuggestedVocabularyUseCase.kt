@@ -2,6 +2,7 @@
 
 package domain.onboarding.usecase
 
+import domain.common.Try
 import domain.onboarding.model.SuggestedVocabulary
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
@@ -11,7 +12,7 @@ import kotlin.time.ExperimentalTime
 class ImportSuggestedVocabularyUseCase(
     private val wordRepository: IWordRepository
 ) {
-    suspend operator fun invoke(suggestions: List<SuggestedVocabulary>): Result<Int> {
+    suspend operator fun invoke(suggestions: List<SuggestedVocabulary>): Try<Int> {
         val now = Clock.System.now().toEpochMilliseconds()
         val words = suggestions.map { suggestion ->
             Word(
@@ -30,6 +31,6 @@ class ImportSuggestedVocabularyUseCase(
                 dateAdded = now
             )
         }
-        return Result.success(wordRepository.insertWords(words))
+        return Try.success(wordRepository.insertWords(words))
     }
 }

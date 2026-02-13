@@ -2,6 +2,7 @@ package presentation.feature.profile
 
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthUser
+import domain.common.fold
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

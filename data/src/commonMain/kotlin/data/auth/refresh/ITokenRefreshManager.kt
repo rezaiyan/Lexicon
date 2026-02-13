@@ -1,5 +1,7 @@
 package data.auth.refresh
 
+import domain.common.Try
+
 /**
  * Interface for token refresh manager with single-flight refresh support
  */
@@ -10,9 +12,9 @@ interface ITokenRefreshManager {
      * On success, saves new tokens.
      * On auth rejection (401/403), clears tokens and logs out.
      * On transient errors (network/server), returns failure without clearing tokens.
-     * @return Result with new access token on success, or error on failure
+     * @return Try with new access token on success, or error on failure
      */
-    suspend fun refresh(): Result<String>
+    suspend fun refresh(): Try<String>
 
     /**
      * Clears tokens and sets authentication state to false.
@@ -21,4 +23,3 @@ interface ITokenRefreshManager {
      */
     suspend fun clearSession()
 }
-

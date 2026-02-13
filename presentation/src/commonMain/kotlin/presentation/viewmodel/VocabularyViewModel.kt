@@ -13,6 +13,9 @@ import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
+import domain.common.fold
+import domain.common.onFailure
+import domain.common.onSuccess
 import events.VocabularyEffect
 import expects.logNetwork
 import kotlinx.coroutines.channels.Channel

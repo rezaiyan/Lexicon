@@ -1,6 +1,8 @@
 package data.core.network.error
 
 import domain.auth.repository.IAuthRepository
+import domain.common.Try
+import domain.common.fold
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 
@@ -25,20 +27,20 @@ object NetworkErrorHandler {
     }
 
     suspend fun <T> handleResult(
-        result: Result<T>,
+        result: Try<T>,
         authRepository: IAuthRepository,
         onSuccess: (T) -> Unit = {},
         onError: (Exception) -> Unit = {}
-    ): Result<T> {
+    ): Try<T> {
         return result.fold(
             onSuccess = { value ->
                 onSuccess(value)
-                Result.success(value)
+                Try.success(value)
             },
             onFailure = { exception ->
                 val mappedException = HttpErrorMapper.mapException(exception)
                 onError(mappedException)
-                Result.failure(mappedException)
+                Try.failure(mappedException)
             }
         )
     }

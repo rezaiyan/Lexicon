@@ -4,6 +4,7 @@ import data.core.network.client.ApiClient
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
+import domain.common.fold
 import expects.logNetwork
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -53,4 +54,3 @@ class FeatureAccessRemoteDataSource(private val apiClient: ApiClient) {
         )
     }
 }
-

@@ -1,7 +1,5 @@
-@file:Suppress("unused")
-package presentation
+package domain.common
 
-import androidx.annotation.CheckResult
 import kotlinx.coroutines.CancellationException
 
 /**
@@ -23,7 +21,6 @@ sealed class Try<out T> {
          *
          * It rethrows [CancellationException] and [Error].
          */
-        @CheckResult
         inline operator fun <T> invoke(block: () -> T): Try<T> {
             return try {
                 success(item = block())
@@ -36,16 +33,13 @@ sealed class Try<out T> {
             }
         }
 
-        @CheckResult
         fun <T> success(item: T): Try<T> = Success(value = item)
 
-        @CheckResult
         fun <T> failure(throwable: Throwable): Try<T> = Failure(throwable)
 
         /**
          * If any item is [Failure], returns the first failure, otherwise [Success(Unit)].
          */
-        @CheckResult
         fun zipUnit(vararg tries: Try<Any?>): Try<Unit> {
             for (t in tries) {
                 if (t is Failure) return Failure(t.throwable)
@@ -61,23 +55,28 @@ sealed class Try<out T> {
         get() = this is Success
 }
 
-@CheckResult
 fun <T> Try<T>.getOrNull(): T? = if (this is Try.Success<T>) value else null
 
-@CheckResult
 fun <T> Try<T>.getOrDefault(default: T): T = if (this is Try.Success<T>) value else default
 
 /**
  * Returns the encapsulated value if this is [Try.Success], or throws the encapsulated throwable if this is [Try.Failure].
  */
-@CheckResult
 fun <T> Try<T>.getOrThrow(): T =
     when (this) {
         is Try.Success -> value
         is Try.Failure -> throw throwable
     }
 
-@CheckResult
+/**
+ * Returns the encapsulated value if this is [Try.Success], or the result of [defaultValue] if this is [Try.Failure].
+ */
+inline fun <T> Try<T>.getOrElse(defaultValue: (Throwable) -> T): T =
+    when (this) {
+        is Try.Success -> value
+        is Try.Failure -> defaultValue(throwable)
+    }
+
 fun <T> Try<T>.exceptionOrNull(): Throwable? = if (this is Try.Failure) throwable else null
 
 /**
@@ -85,7 +84,6 @@ fun <T> Try<T>.exceptionOrNull(): Throwable? = if (this is Try.Failure) throwabl
  *
  * This function catches any throwable thrown by [transform], except [CancellationException] and [Error].
  */
-@CheckResult
 inline fun <T, R> Try<T>.map(transform: (T) -> R): Try<R> {
     return when (this) {
         is Try.Success -> try {
@@ -107,7 +105,6 @@ inline fun <T, R> Try<T>.map(transform: (T) -> R): Try<R> {
  *
  * This function catches any throwable thrown by [transform], except [CancellationException] and [Error].
  */
-@CheckResult
 inline fun <T, R> Try<T>.flatMap(transform: (T) -> Try<R>): Try<R> {
     return when (this) {
         is Try.Success -> try {
@@ -124,7 +121,6 @@ inline fun <T, R> Try<T>.flatMap(transform: (T) -> Try<R>): Try<R> {
     }
 }
 
-@CheckResult
 inline fun <T, R> Try<T>.fold(
     onSuccess: (T) -> R,
     onFailure: (Throwable) -> R,
@@ -139,7 +135,6 @@ inline fun <T, R> Try<T>.fold(
  *
  * This is a side effect and does not catch exceptions.
  */
-@CheckResult
 inline fun <T> Try<T>.doOnSuccess(action: (T) -> Unit): Try<T> {
     if (this is Try.Success) {
         action(value)
@@ -152,12 +147,52 @@ inline fun <T> Try<T>.doOnSuccess(action: (T) -> Unit): Try<T> {
  *
  * This is a side effect and does not catch exceptions.
  */
-@CheckResult
 inline fun <T> Try<T>.doOnFailure(action: (Throwable) -> Unit): Try<T> {
     if (this is Try.Failure) {
         action(throwable)
     }
     return this
+}
+
+/**
+ * Alias for [doOnSuccess].
+ */
+inline fun <T> Try<T>.onSuccess(action: (T) -> Unit): Try<T> = doOnSuccess(action)
+
+/**
+ * Alias for [doOnFailure].
+ */
+inline fun <T> Try<T>.onFailure(action: (Throwable) -> Unit): Try<T> = doOnFailure(action)
+
+/**
+ * Returns the encapsulated result of the given [transform] applied to the encapsulated [Throwable]
+ * if this is [Try.Failure], or the original [Try.Success] value unchanged.
+ *
+ * This function catches any throwable thrown by [transform], except [CancellationException] and [Error].
+ */
+inline fun <T> Try<T>.recover(transform: (Throwable) -> T): Try<T> {
+    return when (this) {
+        is Try.Success -> this
+        is Try.Failure -> try {
+            Try.success(transform(throwable))
+        } catch (error: Error) {
+            throw error
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (throwable: Throwable) {
+            Try.failure(throwable)
+        }
+    }
+}
+
+/**
+ * Transforms the encapsulated [Throwable] if this is [Try.Failure], keeping [Try.Success] unchanged.
+ */
+inline fun <T> Try<T>.mapFailure(transform: (Throwable) -> Throwable): Try<T> {
+    return when (this) {
+        is Try.Success -> this
+        is Try.Failure -> Try.failure(transform(throwable))
+    }
 }
 
 /**
@@ -167,7 +202,6 @@ inline fun <T> Try<T>.doOnFailure(action: (Throwable) -> Unit): Try<T> {
  *
  * This function catches any throwable thrown by [combiner], except [CancellationException] and [Error].
  */
-@CheckResult
 inline fun <T, R, S> Try<T>.zipWith(
     other: Try<R>,
     combine: (T, R) -> S,
