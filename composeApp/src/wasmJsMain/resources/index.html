@@ -16,6 +16,33 @@
             width: 100%;
             height: 100%;
         }
+        .loader {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #F0EDFF, #FAF9FF);
+        }
+        .loader-title {
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 64px;
+            font-weight: 900;
+            color: #7F5AF0;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes pulse {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+        @media (prefers-color-scheme: dark) {
+            .loader {
+                background: linear-gradient(to bottom, #0F0F1E, #1A1A2E);
+            }
+            .loader-title {
+                color: #A78BFA;
+            }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -85,7 +112,11 @@
     </script>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div class="loader">
+            <div class="loader-title">Lexicon</div>
+        </div>
+    </div>
     <script src="composeApp.js"></script>
 </body>
 </html>
