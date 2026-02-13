@@ -19,7 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import presentation.feature.profile.ProfileEvent
 import presentation.feature.profile.ProfileViewModel
+import presentation.model.ProfileUiData
 import presentation.model.UiState
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
@@ -32,6 +35,7 @@ import presentation.ui.components.profile.MoreOptionsBottomSheetContent
 import presentation.ui.components.profile.StreakSection
 import presentation.ui.components.profile.UserInfoSection
 import presentation.ui.overlay.LocalOverlayHost
+import presentation.ui.overlay.OverlayHost
 import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
 import presentation.ui.overlay.dialog.showDialog
 import theme.Theme
@@ -44,7 +48,8 @@ import vokab.resources.generated.resources.profile
  * Manages its own ViewModel and state internally
  */
 @Composable
-fun ProfileScreen(profileViewModel: ProfileViewModel) {
+fun ProfileScreen() {
+    val profileViewModel = koinViewModel<ProfileViewModel>()
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
 
@@ -56,11 +61,11 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
                 message = (uiState as UiState.Error).message,
                 withDismissAction = true
             )
-            profileViewModel.clearError()
+            profileViewModel.onEvent(ProfileEvent.ClearError)
         }
     }
 
-    val profileData = (uiState as? UiState.Loaded)?.value
+    val profileData = (uiState as? UiState.Loaded<ProfileUiData>)?.value
 
     val isLoggedIn = profileData?.userInfo != null
     val isLoading = uiState is UiState.Loading
@@ -80,29 +85,15 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
                                     LogoutDialogContent(
                                         onConfirm = {
                                             nav.dismiss()
-                                            profileViewModel.logout()
+                                            profileViewModel.onEvent(ProfileEvent.Logout)
                                         },
                                         onDismiss = { nav.dismiss() }
                                     )
                                 }
                             },
                             onDeleteAccount = {
-                                overlayHost.showDialog(tag = "delete-account-hidden") { nav ->
-                                    DeleteAccountHiddenDialogContent(
-                                        onConfirm = {
-                                            nav.dismiss()
-                                            overlayHost.showDialog(tag = "delete-account-cooling") { coolingNav ->
-                                                DeleteAccountCoolingDialogContent(
-                                                    onConfirm = {
-                                                        coolingNav.dismiss()
-                                                        profileViewModel.deleteAccount()
-                                                    },
-                                                    onDismiss = { coolingNav.dismiss() }
-                                                )
-                                            }
-                                        },
-                                        onDismiss = { nav.dismiss() }
-                                    )
+                                showDeleteAccountFlow(overlayHost) {
+                                    profileViewModel.onEvent(ProfileEvent.DeleteAccount)
                                 }
                             },
                             navigator = navigator
@@ -128,56 +119,22 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
                 is UiState.Error -> {
                     if (profileData == null) {
                         AuthenticationSection(
-                            profileViewModel = profileViewModel,
-                            isLoading = isLoading
+                            isLoading = isLoading,
+                            onLoginWithGoogle = { idToken -> profileViewModel.onEvent(ProfileEvent.LoginWithGoogle(idToken)) },
+                            onLoginWithApple = { idToken, fullName, appleUserId -> profileViewModel.onEvent(ProfileEvent.LoginWithApple(idToken, fullName, appleUserId)) }
                         )
                     }
                 }
 
                 is UiState.Loaded -> {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        if (isLoggedIn) {
-                            UserInfoSection(
-                                userInfo = profileData.userInfo,
-                                onProfilePictureLongPress = {
-                                    overlayHost.showDialog(tag = "delete-account-hidden") { nav ->
-                                        DeleteAccountHiddenDialogContent(
-                                            onConfirm = {
-                                                nav.dismiss()
-                                                overlayHost.showDialog(tag = "delete-account-cooling") { coolingNav ->
-                                                    DeleteAccountCoolingDialogContent(
-                                                        onConfirm = {
-                                                            coolingNav.dismiss()
-                                                            profileViewModel.deleteAccount()
-                                                        },
-                                                        onDismiss = { coolingNav.dismiss() }
-                                                    )
-                                                }
-                                            },
-                                            onDismiss = { nav.dismiss() }
-                                        )
-                                    }
-                                },
-                            )
-
-                            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
-
-                            if (profileData.streak != null) {
-                                StreakSection(streak = profileData.streak)
-                                Spacer(modifier = Modifier.height(Theme.spacing.cardSpacingLarge))
-                            }
-
-                            Spacer(modifier = Modifier.height(Theme.spacing.large))
-                        } else {
-                            AuthenticationSection(
-                                profileViewModel = profileViewModel,
-                                isLoading = isLoading
-                            )
-                        }
-                    }
+                    val loadedData = (uiState as UiState.Loaded<ProfileUiData>).value
+                    ProfileLoadedContent(
+                        profileData = loadedData,
+                        isLoading = isLoading,
+                        onLoginWithGoogle = { idToken -> profileViewModel.onEvent(ProfileEvent.LoginWithGoogle(idToken)) },
+                        onLoginWithApple = { idToken, fullName, appleUserId -> profileViewModel.onEvent(ProfileEvent.LoginWithApple(idToken, fullName, appleUserId)) },
+                        onDeleteAccount = { profileViewModel.onEvent(ProfileEvent.DeleteAccount) },
+                    )
                 }
             }
 
@@ -192,5 +149,68 @@ fun ProfileScreen(profileViewModel: ProfileViewModel) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ProfileLoadedContent(
+    profileData: ProfileUiData,
+    isLoading: Boolean,
+    onLoginWithGoogle: suspend (String) -> Unit,
+    onLoginWithApple: (String, String?, String) -> Unit,
+    onDeleteAccount: () -> Unit,
+) {
+    val overlayHost = LocalOverlayHost.current
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (profileData.userInfo != null) {
+            UserInfoSection(
+                userInfo = profileData.userInfo,
+                onProfilePictureLongPress = {
+                    showDeleteAccountFlow(overlayHost, onDeleteAccount)
+                },
+            )
+
+            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+
+            if (profileData.streak != null) {
+                StreakSection(streak = profileData.streak)
+                Spacer(modifier = Modifier.height(Theme.spacing.cardSpacingLarge))
+            }
+
+            Spacer(modifier = Modifier.height(Theme.spacing.large))
+        } else {
+            AuthenticationSection(
+                isLoading = isLoading,
+                onLoginWithGoogle = onLoginWithGoogle,
+                onLoginWithApple = onLoginWithApple,
+            )
+        }
+    }
+}
+
+private fun showDeleteAccountFlow(
+    overlayHost: OverlayHost,
+    onDeleteAccount: () -> Unit,
+) {
+    overlayHost.showDialog(tag = "delete-account-hidden") { nav ->
+        DeleteAccountHiddenDialogContent(
+            onConfirm = {
+                nav.dismiss()
+                overlayHost.showDialog(tag = "delete-account-cooling") { coolingNav ->
+                    DeleteAccountCoolingDialogContent(
+                        onConfirm = {
+                            coolingNav.dismiss()
+                            onDeleteAccount()
+                        },
+                        onDismiss = { coolingNav.dismiss() }
+                    )
+                }
+            },
+            onDismiss = { nav.dismiss() }
+        )
     }
 }

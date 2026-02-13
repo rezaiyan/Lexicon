@@ -3,7 +3,6 @@ package presentation.feature.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.onboarding.model.SuggestedVocabulary
-import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,15 +12,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import presentation.model.VocabularyPreviewUiState
 
-class VocabularyPreviewViewModel(
-    private val importSuggestedVocabularyUseCase: ImportSuggestedVocabularyUseCase
-) : ViewModel() {
+class VocabularyPreviewViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(VocabularyPreviewUiState())
     val state: StateFlow<VocabularyPreviewUiState> = _state.asStateFlow()
 
     sealed interface Event {
-        data object NavigateToMain : Event
+        data class ProceedWithSelection(val words: List<SuggestedVocabulary>) : Event
+        data object SkipVocabulary : Event
     }
 
     private val _events = MutableSharedFlow<Event>()
@@ -58,27 +56,17 @@ class VocabularyPreviewViewModel(
         _state.update { it.copy(selectedIndices = emptySet()) }
     }
 
-    fun importSelected() {
+    fun proceedWithSelected() {
         val currentState = _state.value
         val selectedWords = currentState.selectedIndices.map { currentState.words[it] }
-        if (selectedWords.isEmpty()) return
-
         viewModelScope.launch {
-            _state.update { it.copy(isImporting = true, error = null) }
-            importSuggestedVocabularyUseCase(selectedWords)
-                .onSuccess {
-                    _state.update { it.copy(isImporting = false) }
-                    _events.emit(Event.NavigateToMain)
-                }
-                .onFailure { error ->
-                    _state.update { it.copy(isImporting = false, error = error.message) }
-                }
+            _events.emit(Event.ProceedWithSelection(selectedWords))
         }
     }
 
     fun skip() {
         viewModelScope.launch {
-            _events.emit(Event.NavigateToMain)
+            _events.emit(Event.SkipVocabulary)
         }
     }
 }

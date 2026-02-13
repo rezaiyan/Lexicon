@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import java.util.Properties
 
 plugins {
@@ -39,6 +38,33 @@ private val googleServerClientId: String = requireConfigValue("GOOGLE_SERVER_CLI
 private val revenuecatAndroidKey: String = requireConfigValue("REVENUECAT_ANDROID_KEY")
 private val revenuecatIosKey: String = requireConfigValue("REVENUECAT_IOS_KEY")
 
+val generatedWasmConfigDir = layout.buildDirectory.dir("generated/wasmJsConfig")
+
+val generateWasmJsBuildConfig by tasks.registering {
+    group = "configuration"
+    description = "Generates BuildConfig for wasmJs from local.properties"
+
+    val outputDir = generatedWasmConfigDir
+    outputs.dir(outputDir)
+
+    doLast {
+        val dir = outputDir.get().asFile.resolve("config")
+        dir.mkdirs()
+        dir.resolve("WasmBuildConfig.kt").writeText(
+            """
+            |package config
+            |
+            |internal object WasmBuildConfig {
+            |    const val VOKAB_BACKEND_HOST: String = ${backendHost.toQuotedLiteral()}
+            |    const val GOOGLE_SERVER_CLIENT_ID: String = ${googleServerClientId.toQuotedLiteral()}
+            |    const val REVENUECAT_ANDROID_KEY: String = ${revenuecatAndroidKey.toQuotedLiteral()}
+            |    const val REVENUECAT_IOS_KEY: String = ${revenuecatIosKey.toQuotedLiteral()}
+            |}
+            """.trimMargin()
+        )
+    }
+}
+
 kotlin {
     androidTarget {
         @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -68,7 +94,7 @@ kotlin {
         }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser()
     }
@@ -100,11 +126,14 @@ kotlin {
         }
 
         val wasmJsMain by getting {
-            dependencies {
-            }
+            kotlin.srcDir(generatedWasmConfigDir)
         }
     }
     jvmToolchain(11)
+}
+
+tasks.matching { it.name.startsWith("compileKotlinWasmJs") }.configureEach {
+    dependsOn(generateWasmJsBuildConfig)
 }
 
 android {

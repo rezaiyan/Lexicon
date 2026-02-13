@@ -52,11 +52,11 @@ data class WordManagerScreenState(
 /**
  * Events for Word Manager
  */
-sealed class WordManagerEvent {
-    data class WordDeleted(val count: Int) : WordManagerEvent()
-    data class WordUpdated(val word: Word) : WordManagerEvent()
-    data class WordsShared(val count: Int, val text: String, val timestamp: Long) : WordManagerEvent()
-    data object ShareFailed : WordManagerEvent()
-    data class Error(val message: String) : WordManagerEvent()
+sealed class WordManagerEffect {
+    data class WordDeleted(val count: Int) : WordManagerEffect()
+    data class WordUpdated(val word: Word) : WordManagerEffect()
+    data class WordsShared(val count: Int, val text: String, val timestamp: Long) : WordManagerEffect()
+    data object ShareFailed : WordManagerEffect()
+    data class Error(val message: String) : WordManagerEffect()
 }
 

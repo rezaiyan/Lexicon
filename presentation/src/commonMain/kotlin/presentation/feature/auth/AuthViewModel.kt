@@ -3,7 +3,7 @@ package presentation.feature.auth
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import data.streak.remote.StreakRemoteDataSource
+import domain.streak.repository.IStreakRepository
 import domain.auth.model.AuthState
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.IsAuthenticatedUseCase
@@ -28,7 +28,7 @@ class AuthViewModel(
     private val verifySessionUseCase: VerifySessionUseCase,
     private val registerPushTokenUseCase: RegisterPushTokenUseCase,
     private val syncRemoteToLocalUseCase: SyncRemoteToLocalUseCase,
-    private val streakRemoteDataSource: StreakRemoteDataSource,
+    private val streakRepository: IStreakRepository,
     private val analyticsTracker: IAnalyticsTracker,
     private val settingsRepository: ISettingsRepository,
 ) : ViewModel() {
@@ -46,7 +46,7 @@ class AuthViewModel(
         verifySessionUseCase = verifySessionUseCase,
         registerPushTokenUseCase = registerPushTokenUseCase,
         syncRemoteToLocalUseCase = syncRemoteToLocalUseCase,
-        streakRemoteDataSource = streakRemoteDataSource,
+        streakRepository = streakRepository,
         analyticsTracker = analyticsTracker,
         settingsRepository = settingsRepository,
         authState = _authState,

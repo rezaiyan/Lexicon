@@ -1,18 +1,11 @@
 package data.core.database
 
 import android.content.Context
-import androidx.room.Room
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import kotlinx.coroutines.Dispatchers
+import app.cash.sqldelight.async.coroutines.synchronous
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 
 actual class DatabaseDriverFactory(private val context: Context) {
-    actual fun createDatabase(): AppDatabase {
-        val dbFile = context.getDatabasePath(dbFileName)
-        return Room.databaseBuilder<AppDatabase>(context, dbFile.absolutePath)
-            .setDriver(BundledSQLiteDriver())
-            .setQueryCoroutineContext(Dispatchers.IO)
-            .fallbackToDestructiveMigration(false)
-            .build()
-    }
+    actual fun createDriver(): SqlDriver =
+        AndroidSqliteDriver(LexiconDatabase.Schema.synchronous(), context, dbFileName)
 }
-

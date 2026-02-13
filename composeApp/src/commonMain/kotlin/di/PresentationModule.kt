@@ -2,10 +2,8 @@ package di
 
 import analytics.IAnalyticsTracker
 import analytics.createAnalyticsTracker
-import data.subscription.RevenueCatSubscriptionManager
 import domain.auth.manager.IUserManager
 import domain.streak.manager.IStreakManager
-import domain.subscription.ISubscriptionManager
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import presentation.feature.auth.AuthViewModel
@@ -20,6 +18,7 @@ import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel
 import presentation.feature.onboarding.OnboardingViewModel
 import presentation.feature.onboarding.VocabularyPreviewViewModel
+import presentation.viewmodel.AppNavigationViewModel
 import presentation.viewmodel.VocabularyViewModel
 import presentation.viewmodel.WordManagerViewModel
 
@@ -28,11 +27,6 @@ fun presentationModule() = module {
     // Analytics Tracker (platform-specific)
     single<IAnalyticsTracker> { createAnalyticsTracker() }
 
-    // Subscription Manager
-    single<ISubscriptionManager> {
-        RevenueCatSubscriptionManager()
-    }
-
     // User Manager
     single<IUserManager> {
         UserManagerImpl(
@@ -40,8 +34,7 @@ fun presentationModule() = module {
             loginWithAppleUseCase = get(),
             logoutUseCase = get(),
             deleteAccountUseCase = get(),
-            authDataSource = get(),
-            secureStorage = get(),
+            authRepository = get(),
             subscriptionManager = get(),
         )
     }
@@ -54,8 +47,8 @@ fun presentationModule() = module {
     // Notification Permission Monitor
     single { NotificationPermissionMonitor(notificationRepository = get()) }
 
-    // Singleton ViewModels (shared global state)
-    single {
+    // ViewModels (properly scoped)
+    viewModel {
         AuthViewModel(
             loginWithGoogleUseCase = get(),
             loginWithAppleUseCase = get(),
@@ -65,13 +58,13 @@ fun presentationModule() = module {
             verifySessionUseCase = get(),
             registerPushTokenUseCase = get(),
             syncRemoteToLocalUseCase = get(),
-            streakRemoteDataSource = get(),
+            streakRepository = get(),
             analyticsTracker = get(),
             settingsRepository = get(),
         )
     }
 
-    single {
+    viewModel {
         SettingsViewModel(
             settingsRepository = get(),
             notificationRepository = get(),
@@ -81,6 +74,8 @@ fun presentationModule() = module {
             appVersionProvider = get(),
         )
     }
+
+    viewModel { AppNavigationViewModel(onboardingRepository = get()) }
 
     // Screen-Scoped ViewModels
     viewModel {
@@ -110,7 +105,7 @@ fun presentationModule() = module {
             updateWordUseCase = get(),
             deleteWordUseCase = get(),
             analyticsTracker = get(),
-            streakRemoteDataSource = get(),
+            streakRepository = get(),
         )
     }
     viewModel {
@@ -126,7 +121,7 @@ fun presentationModule() = module {
 
     viewModel {
         VocabularyCollectionsViewModel(
-            collectionRemoteDataSource = get(),
+            collectionRepository = get(),
             importVocabularyCollectionUseCase = get(),
             importWordsUseCase = get()
         )
@@ -153,9 +148,5 @@ fun presentationModule() = module {
         )
     }
 
-    viewModel {
-        VocabularyPreviewViewModel(
-            importSuggestedVocabularyUseCase = get()
-        )
-    }
+    viewModel { VocabularyPreviewViewModel() }
 }

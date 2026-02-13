@@ -23,7 +23,7 @@ fun settingsModule() = module {
     // Repositories
     single {
         SettingsRepositoryImpl(
-            dao = get(),
+            queries = get(),
             settingsRemoteDataSource = get()
         )
     } bind ISettingsRepository::class

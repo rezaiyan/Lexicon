@@ -30,10 +30,8 @@ koin = "4.1.1"
 koinCompose = "4.1.1"
 lifecycleViewmodelCompose = "2.9.5"
 navigationCompose = "2.9.1"
-room = "2.8.2"
-ksp = "2.2.20-2.0.2"
+sqldelight = "2.1.0"
 securityCrypto = "1.1.0"
-sqliteBundled = "2.6.1"
 firebaseBom = "34.4.0"
 kmpauth = "2.4.0-alpha05"
 gitliveFirebase = "2.3.0"
@@ -41,11 +39,9 @@ revenuecat-kmp = "2.2.10+17.19.1"
 
 [libraries]
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
-androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-rules = { module = "androidx.test:rules", version.ref = "coreKtx" }
 androidx-runner = { module = "androidx.test:runner", version.ref = "coreKtx" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
-androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
 billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = "billingKtx" }
 core-ktx = { module = "androidx.test:core-ktx", version.ref = "coreKtx" }
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
@@ -81,7 +77,10 @@ lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifec
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-ktor = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coilCompose" }
-androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
+sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
+sqldelight-web-worker-driver = { module = "app.cash.sqldelight:web-worker-driver", version.ref = "sqldelight" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koinCompose" }
@@ -120,11 +119,14 @@ composeAppCommonMainApi = [
 ]
 composeAppCommonMainImplementation = [
     "coil-compose",
-    "coil-network-ktor",
+    "coil-network-ktor"
+]
+composeAppMobileMainImplementation = [
     "kmpauth-google",
     "kmpauth-firebase",
     "kmpauth-uihelper",
-    "gitlive-firebase-auth"
+    "gitlive-firebase-auth",
+    "purchases-kmp-core"
 ]
 composeAppAndroidMainImplementation = [
     "androidx-activity-compose",
@@ -134,8 +136,6 @@ composeAppAndroidMainImplementation = [
     "koin-compose",
     "billing-ktx",
     "androidx-core-splashscreen",
-    "androidx-room-runtime",
-    "androidx-sqlite-bundled",
     "androidx-security-crypto",
     "google-firebase-analytics",
     "google-firebase-crashlytics",
@@ -152,7 +152,6 @@ composeAppAndroidInstrumentedTestImplementation = [
     "kotlin-test",
     "kotlin-test-junit",
     "kotlinx-coroutines-test",
-    "androidx-room-runtime",
     "core-ktx",
     "androidx-runner",
     "androidx-rules"
@@ -171,7 +170,6 @@ jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-androidxRoom = { id = "androidx.room", version.ref = "room" }
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 googleServices = { id = "com.google.gms.google-services", version = "4.4.4" }
 firebaseCrashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }

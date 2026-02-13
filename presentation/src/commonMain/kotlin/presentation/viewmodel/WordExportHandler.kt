@@ -8,14 +8,14 @@ import domain.word.usecase.ExportWordsUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
-import presentation.model.WordManagerEvent
+import presentation.model.WordManagerEffect
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 class WordExportHandler(
     private val exportWordsUseCase: ExportWordsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
-    private val events: SendChannel<WordManagerEvent>,
+    private val events: SendChannel<WordManagerEffect>,
     private val scope: CoroutineScope
 ) {
     
@@ -28,14 +28,14 @@ class WordExportHandler(
             }
             
             if (wordsToExport.isEmpty()) {
-                events.send(WordManagerEvent.ShareFailed)
+                events.send(WordManagerEffect.ShareFailed)
                 return@launch
             }
             
             val exportText = exportWordsUseCase(wordsToExport)
             val timestamp = Clock.System.now().toEpochMilliseconds()
             
-            events.send(WordManagerEvent.WordsShared(
+            events.send(WordManagerEffect.WordsShared(
                 count = wordsToExport.size,
                 text = exportText,
                 timestamp = timestamp

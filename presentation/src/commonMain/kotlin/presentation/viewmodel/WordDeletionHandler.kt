@@ -7,19 +7,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import presentation.model.WordManagerEvent
+import presentation.model.WordManagerEffect
 
 class WordDeletionHandler(
     private val deleteWordsUseCase: DeleteWordsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val state: MutableStateFlow<presentation.model.WordManagerScreenState>,
-    private val events: SendChannel<WordManagerEvent>,
+    private val events: SendChannel<WordManagerEffect>,
     private val scope: CoroutineScope
 ) {
     
     fun deleteSelectedWords(selectedIds: List<Int>) {
         if (selectedIds.isEmpty()) {
-            events.trySend(WordManagerEvent.Error("No words selected"))
+            events.trySend(WordManagerEffect.Error("No words selected"))
             return
         }
         
@@ -46,7 +46,7 @@ class WordDeletionHandler(
                             errorMessage = null
                         )
                         
-                        events.send(WordManagerEvent.WordDeleted(result.count))
+                        events.send(WordManagerEffect.WordDeleted(result.count))
                         
                         analyticsTracker.logEvent(
                             "word_manager_words_deleted",
@@ -65,7 +65,7 @@ class WordDeletionHandler(
                             errorMessage = result.message
                         )
                         
-                        events.send(WordManagerEvent.Error(result.message))
+                        events.send(WordManagerEffect.Error(result.message))
                         
                         analyticsTracker.logNonFatalError(
                             message = "Batch delete failed",

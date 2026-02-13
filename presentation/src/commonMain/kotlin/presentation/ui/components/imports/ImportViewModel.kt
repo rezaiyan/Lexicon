@@ -18,7 +18,6 @@ import domain.auth.model.AuthUser
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
@@ -139,7 +138,7 @@ class ImportViewModel(
         val text = _state.textInputState.text
         if (text.isNotBlank()) {
             viewModelScope.launch {
-                withContext(Dispatchers.IO) {
+                withContext(Dispatchers.Default) {
                     when (val result = importWordsUseCase.execute(text)) {
                         is ImportWordsUseCase.ImportResult.Error -> {
                             _events.send(ImportEvent.Error(result.message))
@@ -170,7 +169,7 @@ class ImportViewModel(
             // set loading
             _state = _state.copy(imageImportState = ImageImportState.Loading)
 
-            withContext(Dispatchers.IO) {
+            withContext(Dispatchers.Default) {
                 importFromImageUseCase(
                     imageBytes = imageBytes,
                     extractWords = extractWords,
@@ -208,7 +207,7 @@ class ImportViewModel(
 
             delay(1500)
 
-            withContext(Dispatchers.IO) {
+            withContext(Dispatchers.Default) {
                 when (val result = importViaFileUseCase(fileContent, fileName)) {
                     is ImportViaFileUseCase.ImportResult.Error -> {
                         _state = _state.copy(

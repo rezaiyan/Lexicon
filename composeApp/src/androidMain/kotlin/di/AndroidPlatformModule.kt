@@ -5,8 +5,8 @@ import auth.AndroidAppleAuthStateProvider
 import auth.AndroidGoogleAuthStateProvider
 import auth.IAppleAuthStateProvider
 import auth.IGoogleAuthStateProvider
-import data.core.database.AppDatabase
 import data.core.database.DatabaseDriverFactory
+import data.core.database.LexiconDatabase
 import data.storage.AndroidSecureStorage
 import data.storage.SecureStorage
 import org.koin.core.module.Module
@@ -20,18 +20,18 @@ import platform.IAppVersionProvider
  */
 fun androidPlatformModule(context: Context): Module = module {
     // Database
-    single<AppDatabase> { 
-        DatabaseDriverFactory(context).createDatabase() 
-    }
-    
+    val driver = DatabaseDriverFactory(context).createDriver()
+    single { LexiconDatabase(driver) }
+    single { get<LexiconDatabase>().lexiconQueries }
+
     // Application Context
     single<Context> { context }
-    
+
     // Secure Storage
-    single<SecureStorage> { 
-        AndroidSecureStorage(context) 
+    single<SecureStorage> {
+        AndroidSecureStorage(context)
     }
-    
+
     // App Version Provider
     single<IAppVersionProvider> {
         AndroidAppVersionProvider(get())
@@ -41,11 +41,11 @@ fun androidPlatformModule(context: Context): Module = module {
     single<IAppleAuthStateProvider> {
         AndroidAppleAuthStateProvider()
     }
-    
+
     single<IGoogleAuthStateProvider> {
         AndroidGoogleAuthStateProvider()
     }
-    
+
     // Notification Display Service
     single<notification.NotificationDisplayService> {
         notification.AndroidNotificationDisplayService(
@@ -53,4 +53,3 @@ fun androidPlatformModule(context: Context): Module = module {
         )
     }
 }
-

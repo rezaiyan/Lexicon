@@ -26,6 +26,7 @@ import com.revenuecat.purchases.kmp.PurchasesConfiguration
 import config.AppConfig
 import di.androidPlatformModule
 import di.appModule
+import di.mobileModule
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -83,6 +84,7 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory {
             androidContext(this@LexiconApplication)
             modules(
                 androidPlatformModule(this@LexiconApplication),
+                mobileModule(),
                 appModule(
                     backendUrl = AppConfig.VOKAB_BACKEND_URL,
                     platform = data.notification.remote.model.Platform.ANDROID
@@ -97,7 +99,7 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "vokab_notifications",
+                "lexicon_notifications",
                 "Lexicon Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {

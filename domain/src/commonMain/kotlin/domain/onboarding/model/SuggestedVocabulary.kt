@@ -14,6 +14,7 @@ data class SuggestedVocabulary(
 @Serializable
 data class SuggestedVocabularyResponse(
     val suggestedVocabulary: List<SuggestedVocabulary>,
-    val collectionName: String,
-    val totalCount: Int
+    val targetLanguage: String,
+    val nativeLanguage: String,
+    val currentLevel: String
 )

@@ -1,7 +1,6 @@
 package domain.word.usecase
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
 class ImportViaFileUseCase(
@@ -9,7 +8,7 @@ class ImportViaFileUseCase(
 ) {
 
     suspend operator fun invoke(fileContent: String, fileName: String? = null): ImportResult {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.Default) {
             if (fileContent.isBlank()) {
                 return@withContext ImportResult.Error("File is empty")
             }

@@ -3,7 +3,6 @@ package di
 import data.onboarding.remote.OnboardingRemoteDataSource
 import data.onboarding.repository.OnboardingRepositoryImpl
 import domain.onboarding.repository.IOnboardingRepository
-import domain.onboarding.usecase.GetSuggestedVocabularyUseCase
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import org.koin.core.module.dsl.singleOf
@@ -24,6 +23,5 @@ fun onboardingModule() = module {
 
     // Use Cases
     singleOf(::SubmitPreferencesUseCase)
-    singleOf(::GetSuggestedVocabularyUseCase)
     singleOf(::ImportSuggestedVocabularyUseCase)
 }

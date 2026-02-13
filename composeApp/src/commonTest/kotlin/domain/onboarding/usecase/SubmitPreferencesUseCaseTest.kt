@@ -33,8 +33,9 @@ class SubmitPreferencesUseCaseTest {
                     targetLanguage = "es"
                 )
             ),
-            collectionName = "Basic Greetings",
-            totalCount = 2
+            targetLanguage = "es",
+            nativeLanguage = "en",
+            currentLevel = "beginner"
         )
         repository.submitResult = Result.success(expectedResponse)
 
@@ -70,7 +71,7 @@ class SubmitPreferencesUseCaseTest {
 
     private class FakeOnboardingRepository : IOnboardingRepository {
         var submitResult: Result<SuggestedVocabularyResponse> = Result.success(
-            SuggestedVocabularyResponse(emptyList(), "", 0)
+            SuggestedVocabularyResponse(emptyList(), "", "", "")
         )
         private var onboardingCompleted = false
 

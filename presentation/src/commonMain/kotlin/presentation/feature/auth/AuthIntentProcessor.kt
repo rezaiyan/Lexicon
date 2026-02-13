@@ -1,7 +1,7 @@
 package presentation.feature.auth
 
 import analytics.IAnalyticsTracker
-import data.streak.remote.StreakRemoteDataSource
+import domain.streak.repository.IStreakRepository
 import domain.auth.model.AuthState
 import domain.auth.repository.SessionVerificationResult
 import domain.auth.usecase.DeleteAccountUseCase
@@ -34,7 +34,7 @@ class AuthIntentProcessor(
     private val verifySessionUseCase: VerifySessionUseCase,
     private val registerPushTokenUseCase: RegisterPushTokenUseCase,
     private val syncRemoteToLocalUseCase: SyncRemoteToLocalUseCase,
-    private val streakRemoteDataSource: StreakRemoteDataSource,
+    private val streakRepository: IStreakRepository,
     private val analyticsTracker: IAnalyticsTracker,
     private val settingsRepository: ISettingsRepository,
     private val authState: MutableStateFlow<AuthState>,
@@ -231,13 +231,13 @@ class AuthIntentProcessor(
     }
 
     private suspend fun processRecordStreak() {
-        streakRemoteDataSource.recordActivity().fold(
-            onSuccess = { streakResponse ->
+        streakRepository.recordActivity().fold(
+            onSuccess = { streakData ->
                 val currentUser = authState.value.user
                 if (currentUser != null) {
                     val updatedUser = currentUser.copy(
-                        currentStreak = streakResponse.currentStreak,
-                        longestStreak = streakResponse.longestStreak
+                        currentStreak = streakData.currentStreak,
+                        longestStreak = streakData.highestStreak
                     )
                     val newState = authState.value.copy(user = updatedUser)
                     authState.value = newState

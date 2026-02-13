@@ -29,7 +29,7 @@
         <!-- Firebase default notification channel -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="vokab_notifications" />
+            android:value="lexicon_notifications" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"

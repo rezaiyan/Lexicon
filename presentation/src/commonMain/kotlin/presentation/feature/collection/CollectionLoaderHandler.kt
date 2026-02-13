@@ -1,6 +1,6 @@
 package presentation.feature.collection
 
-import data.collection.remote.CollectionRemoteDataSource
+import domain.collection.repository.ICollectionRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -10,16 +10,16 @@ import kotlinx.coroutines.launch
  * Manages fetching and grouping collections by language
  */
 internal class CollectionLoaderHandler(
-    private val collectionRemoteDataSource: CollectionRemoteDataSource,
+    private val collectionRepository: ICollectionRepository,
     private val state: MutableStateFlow<CollectionsUiState>,
     private val scope: CoroutineScope
 ) {
-    
+
     fun loadCollections() {
         scope.launch {
             state.value = state.value.copy(isLoading = true)
-            
-            val result = collectionRemoteDataSource.getAvailableCollections()
+
+            val result = collectionRepository.getAvailableCollections()
             
             result.fold(
                 onSuccess = { collections ->

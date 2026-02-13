@@ -1,7 +1,7 @@
 package presentation.feature.collection
 
-import data.collection.remote.CollectionRemoteDataSource
-import data.collection.remote.model.VocabularyCollection
+import domain.collection.model.VocabularyCollection
+import domain.collection.repository.ICollectionRepository
 import domain.word.usecase.ImportVocabularyCollectionUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.CoroutineScope
@@ -13,18 +13,18 @@ import kotlinx.coroutines.launch
  * Manages collection download, parsing, and import process
  */
 internal class CollectionImportHandler(
-    private val collectionRemoteDataSource: CollectionRemoteDataSource,
+    private val collectionRepository: ICollectionRepository,
     private val importVocabularyCollectionUseCase: ImportVocabularyCollectionUseCase,
     private val importWordsUseCase: ImportWordsUseCase,
     private val state: MutableStateFlow<CollectionsUiState>,
     private val scope: CoroutineScope
 ) {
-    
+
     fun selectCollection(collection: VocabularyCollection) {
         scope.launch {
             state.value = state.value.copy(isDownloading = true, downloadProgress = "Downloading...")
-            
-            val downloadResult = collectionRemoteDataSource.downloadCollection(
+
+            val downloadResult = collectionRepository.downloadCollection(
                 collection.targetLanguage,
                 collection.originLanguage,
                 collection.fileName

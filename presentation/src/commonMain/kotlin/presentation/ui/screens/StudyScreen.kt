@@ -17,9 +17,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import events.OnEvents
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.study.StudyEvent
 import presentation.feature.study.StudyViewModel
+import presentation.model.UiState
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.CloseConfirmationDialogContent
@@ -40,12 +41,12 @@ import vokab.resources.generated.resources.review_due_cards
 import vokab.resources.generated.resources.stage_words_string
 
 @Composable
-fun StudyScreen(vocabularyViewModel: VocabularyViewModel) {
-    val viewModel = koinInject<StudyViewModel>()
+fun StudyScreen() {
+    val vocabularyViewModel = koinViewModel<VocabularyViewModel>()
+    val viewModel = koinViewModel<StudyViewModel>()
     val overlayHost = LocalOverlayHost.current
 
-    val state by viewModel.progressScreenState.collectAsStateWithLifecycle()
-    val progressStats = state.progressStats
+    val uiState by viewModel.progressScreenState.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -86,79 +87,87 @@ fun StudyScreen(vocabularyViewModel: VocabularyViewModel) {
         scrollable = true,
     ) {
         Column {
-            if (progressStats == null) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+            when (uiState) {
+                is UiState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            } else {
-                OnEvents(viewModel.events) { event ->
-                    when (event) {
-                        is StudyEvent.StartReview -> {
-                            vocabularyViewModel.startDueReview()
-                            overlayHost.showFullscreenBottomSheet(
-                                tag = "review-due",
-                                properties = BottomSheetProperties(
-                                    dismissOnTouchOutside = false,
-                                    dismissOnBackPress = false,
-                                    isNavigationBarsPaddingEnabled = true,
-                                    sheetGesturesEnabled = false,
-                                )
-                            ) { navigator ->
-                                ReviewBottomSheetContent(
-                                    title = stringResource(Res.string.review_due_cards),
-                                    reviewType = presentation.model.ReviewType.REVIEW,
-                                    vocabularyViewModel = vocabularyViewModel,
-                                    initialWord = event.firstWord,
-                                    onClose = {
-                                        overlayHost.showDialog(tag = "exit-confirmation") { nav ->
-                                            CloseConfirmationDialogContent(
-                                                onConfirm = {
-                                                    nav.dismiss()
-                                                    navigator.dismiss()
-                                                },
-                                                onDismiss = { nav.dismiss() }
-                                            )
+
+                is UiState.Error -> {
+                    // Error state handled by snackbar if needed
+                }
+
+                is UiState.Loaded -> {
+                    val progressStats = (uiState as UiState.Loaded).value.progressStats
+
+                    OnEvents(viewModel.events) { event ->
+                        when (event) {
+                            is StudyEvent.StartReview -> {
+                                vocabularyViewModel.startDueReview()
+                                overlayHost.showFullscreenBottomSheet(
+                                    tag = "review-due",
+                                    properties = BottomSheetProperties(
+                                        dismissOnTouchOutside = false,
+                                        dismissOnBackPress = false,
+                                        isNavigationBarsPaddingEnabled = true,
+                                        sheetGesturesEnabled = false,
+                                    )
+                                ) { navigator ->
+                                    ReviewBottomSheetContent(
+                                        title = stringResource(Res.string.review_due_cards),
+                                        reviewType = presentation.model.ReviewType.REVIEW,
+                                        initialWord = event.firstWord,
+                                        onClose = {
+                                            overlayHost.showDialog(tag = "exit-confirmation") { nav ->
+                                                CloseConfirmationDialogContent(
+                                                    onConfirm = {
+                                                        nav.dismiss()
+                                                        navigator.dismiss()
+                                                    },
+                                                    onDismiss = { nav.dismiss() }
+                                                )
+                                            }
+                                        },
+                                        onReviewComplete = {
+                                            vocabularyViewModel.onReviewSessionComplete()
+                                            navigator.dismiss()
                                         }
-                                    },
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    StatsSection(
+                        stats = progressStats,
+                        onStartReview = {
+                            viewModel.startReview()
+                        }
+                    )
+
+                    LearningStagesSection(
+                        stats = progressStats,
+                        onStageClick = { stage, stageName ->
+                            vocabularyViewModel.loadWordsByStage(stage)
+                            overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
+                                ReviewBottomSheetContent(
+                                    title = stringResource(Res.string.stage_words_string, stageName),
+                                    reviewType = presentation.model.ReviewType.BROWSE,
+                                    onClose = { navigator.dismiss() },
                                     onReviewComplete = {
                                         vocabularyViewModel.onReviewSessionComplete()
                                         navigator.dismiss()
                                     }
                                 )
                             }
+                            vocabularyViewModel.startStageReview(stage)
                         }
-                    }
+                    )
                 }
-
-                StatsSection(
-                    stats = progressStats,
-                    onStartReview = {
-                        viewModel.startReview()
-                    }
-                )
-
-                LearningStagesSection(
-                    stats = progressStats,
-                    onStageClick = { stage, stageName ->
-                        vocabularyViewModel.loadWordsByStage(stage)
-                        overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
-                            ReviewBottomSheetContent(
-                                title = stringResource(Res.string.stage_words_string, stageName),
-                                reviewType = presentation.model.ReviewType.BROWSE,
-                                vocabularyViewModel = vocabularyViewModel,
-                                onClose = { navigator.dismiss() },
-                                onReviewComplete = {
-                                    vocabularyViewModel.onReviewSessionComplete()
-                                    navigator.dismiss()
-                                }
-                            )
-                        }
-                        vocabularyViewModel.startStageReview(stage)
-                    }
-                )
             }
         }
     }

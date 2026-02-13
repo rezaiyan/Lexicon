@@ -1,6 +1,5 @@
 
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import java.util.Properties
 
 plugins {
@@ -11,8 +10,6 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.googleServices)
     alias(libs.plugins.firebaseCrashlytics)
-    alias(libs.plugins.androidxRoom)
-    alias(libs.plugins.ksp)
     id("vokab.compose-app")
 }
 
@@ -103,15 +100,13 @@ kotlin {
         }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
-        browser {
-            commonWebpackConfig {
-                outputFileName = "lexicon.js"
-            }
-        }
+        browser()
         binaries.executable()
     }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets.all {
         languageSettings {
@@ -120,6 +115,12 @@ kotlin {
     }
 
     sourceSets {
+        val mobileMain by creating {
+            dependsOn(commonMain.get())
+        }
+        androidMain.get().dependsOn(mobileMain)
+        iosMain.get().dependsOn(mobileMain)
+
         androidMain.dependencies {
             implementation(compose.preview)
         }
@@ -133,19 +134,16 @@ kotlin {
             implementation(project(":core"))
             implementation(project(":resources"))
 
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.purchases.kmp.core)
         }
 
         commonTest.dependencies {
             implementation(kotlin("test-common"))
             implementation(kotlin("test-annotations-common"))
-        }
-
-        val wasmJsMain by getting {
-            dependencies {
-                implementation(libs.ktor.client.js)
-            }
         }
     }
     jvmToolchain(11)
@@ -207,10 +205,6 @@ android {
     dependencies {
         debugImplementation(compose.uiTooling)
     }
-}
-
-room {
-    schemaDirectory("$projectDir/schemas")
 }
 
 val generateIosConfig by tasks.registering {
@@ -346,4 +340,9 @@ tasks.configureEach {
         (name.contains("link", ignoreCase = true) || name.contains("compile", ignoreCase = true))) {
         enabled = false
     }
+}
+
+// Allow custom index.html to override the auto-generated one for wasmJs
+tasks.named("wasmJsProcessResources", Copy::class) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

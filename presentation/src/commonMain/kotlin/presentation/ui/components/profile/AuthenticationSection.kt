@@ -1,9 +1,6 @@
 package presentation.ui.components.profile
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,13 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,21 +22,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.mmk.kmpauth.firebase.google.GoogleButtonUiContainerFirebase
-import com.mmk.kmpauth.uihelper.google.GoogleButtonMode
-import com.mmk.kmpauth.uihelper.google.GoogleSignInButton
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import presentation.feature.profile.ProfileViewModel
 import presentation.ui.components.AppleSignInButton
+import presentation.ui.components.GoogleSignInContainer
 import theme.Theme
 import vokab.resources.generated.resources.Res
 import vokab.resources.generated.resources.offline_usage_info
@@ -55,12 +44,12 @@ private enum class SignInProvider {
 
 @Composable
 fun AuthenticationSection(
-    profileViewModel: ProfileViewModel,
     isLoading: Boolean,
+    onLoginWithGoogle: suspend (String) -> Unit,
+    onLoginWithApple: (String, String?, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var activeProvider by remember { mutableStateOf<SignInProvider?>(null) }
-    val coroutineScope = rememberCoroutineScope()
 
     Column(
         modifier = modifier
@@ -96,71 +85,18 @@ fun AuthenticationSection(
 
         Spacer(modifier = Modifier.height(Theme.spacing.large))
 
-        val isDarkTheme = isSystemInDarkTheme()
-        val googleButtonStyle = if (isDarkTheme) GoogleButtonMode.Light else GoogleButtonMode.Dark
-
-        GoogleButtonUiContainerFirebase(
-            onResult = { result ->
+        GoogleSignInContainer(
+            onIdToken = { idToken ->
                 activeProvider = SignInProvider.GOOGLE
-                result.onSuccess { firebaseUser ->
-                    if (firebaseUser != null) {
-                        coroutineScope.launch {
-                            try {
-                                val idToken = firebaseUser.getIdToken(false)
-                                if (idToken != null) {
-                                    profileViewModel.loginWithGoogle(idToken)
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }
-                }
+                onLoginWithGoogle(idToken)
             },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                GoogleSignInButton(
-                    modifier = Modifier
-                        .height(50.dp)
-                        .fillMaxWidth(),
-                    fontSize = 18.sp,
-                    mode = googleButtonStyle
-                ) {
-                    activeProvider = SignInProvider.GOOGLE
-                    this@GoogleButtonUiContainerFirebase.onClick()
-                }
-
-                if (isLoading && activeProvider == SignInProvider.GOOGLE) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                color = MaterialTheme.colorScheme.surfaceDim.copy(alpha = 0.8f),
-                                shape = RoundedCornerShape(20.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            strokeWidth = 2.dp
-                        )
-                    }
-                }
-            }
-        }
+            isLoading = isLoading && activeProvider == SignInProvider.GOOGLE,
+        )
 
         AppleSignInButton(
             onSignInSuccess = { idToken, fullName, appleUserId ->
                 activeProvider = SignInProvider.APPLE
-                profileViewModel.loginWithApple(idToken, fullName, appleUserId)
+                onLoginWithApple(idToken, fullName, appleUserId)
             },
             onSignInFailure = {
                 activeProvider = null
@@ -200,4 +136,3 @@ fun AuthenticationSection(
         }
     }
 }
-

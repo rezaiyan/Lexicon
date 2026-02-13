@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import presentation.model.MessageState
 import presentation.model.ProgressScreenState
+import presentation.model.UiState
 import presentation.util.NotificationStringHelper
 import kotlin.time.ExperimentalTime
 
@@ -40,9 +41,9 @@ class StudyViewModel(
     private val notificationsEnabled = true
     private val systemNotificationsEnabled = true
 
-    // Consolidated Progress Screen State
-    private val _progressScreenState = MutableStateFlow(ProgressScreenState())
-    val progressScreenState: StateFlow<ProgressScreenState> = _progressScreenState.asStateFlow()
+    // Consolidated Progress Screen State wrapped in UiState
+    private val _progressScreenState = MutableStateFlow<UiState<ProgressScreenState>>(UiState.Loading)
+    val progressScreenState: StateFlow<UiState<ProgressScreenState>> = _progressScreenState.asStateFlow()
 
     private val _events = Channel<StudyEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
@@ -95,10 +96,14 @@ class StudyViewModel(
                 _progressStatistics,
                 _messageState
             ) { stats, message ->
-                ProgressScreenState(
-                    progressStats = stats,
-                    messageState = message
-                )
+                if (stats != null) {
+                    UiState.Loaded(ProgressScreenState(
+                        progressStats = stats,
+                        messageState = message
+                    ))
+                } else {
+                    UiState.Loading
+                }
             }.collect { _progressScreenState.value = it }
         }
     }

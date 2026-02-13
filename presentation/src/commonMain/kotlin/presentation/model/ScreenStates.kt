@@ -7,7 +7,7 @@ import utils.Language
 
 
 data class ProgressScreenState(
-    val progressStats: ProgressStats? = null,
+    val progressStats: ProgressStats,
     val messageState: MessageState? = null
 )
 

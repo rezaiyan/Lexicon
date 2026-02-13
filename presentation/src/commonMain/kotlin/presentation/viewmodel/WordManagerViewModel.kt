@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import presentation.model.WordManagerEvent
+import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
 import kotlin.time.ExperimentalTime
 
@@ -33,7 +33,7 @@ class WordManagerViewModel(
     private val _state = MutableStateFlow(WordManagerScreenState())
     val state = _state.asStateFlow()
 
-    private val _events = Channel<WordManagerEvent>(Channel.BUFFERED)
+    private val _events = Channel<WordManagerEffect>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
     private val deletionHandler = WordDeletionHandler(
@@ -178,9 +178,25 @@ class WordManagerViewModel(
             )
         } catch (e: Exception) {
             val errorMsg = e.message ?: ""
-            _events.trySend(WordManagerEvent.Error(errorMsg))
+            _events.trySend(WordManagerEffect.Error(errorMsg))
+        }
+    }
+
+    fun onEvent(event: WordManagerEvent) {
+        when (event) {
+            is WordManagerEvent.ResetState -> resetState()
+            is WordManagerEvent.ToggleWordSelection -> toggleWordSelection(event.wordId)
+            is WordManagerEvent.SelectAll -> selectAll()
+            is WordManagerEvent.DeselectAll -> deselectAll()
+            is WordManagerEvent.UpdateSearchQuery -> updateSearchQuery(event.query)
+            is WordManagerEvent.ClearSearch -> clearSearch()
+            is WordManagerEvent.StartEditingWord -> startEditingWord(event.word)
+            is WordManagerEvent.CancelEditing -> cancelEditing()
+            is WordManagerEvent.UpdateWord -> updateWord(event.word)
+            is WordManagerEvent.ShowDeleteConfirmation -> showDeleteConfirmation()
+            is WordManagerEvent.HideDeleteConfirmation -> hideDeleteConfirmation()
+            is WordManagerEvent.DeleteSelectedWords -> deleteSelectedWords()
+            is WordManagerEvent.ShareWords -> shareWords()
         }
     }
 }
-
-

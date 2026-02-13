@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
 
 /**
@@ -57,7 +56,7 @@ class AuthenticationStateManager(
     }
 
     override fun initialize(scope: CoroutineScope) {
-        scope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.Default) {
             val hasTokens = tokenManager.hasTokens()
             _isAuthenticatedState.value = hasTokens
         }

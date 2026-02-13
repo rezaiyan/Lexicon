@@ -5,7 +5,7 @@ package presentation.viewmodel
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import data.streak.remote.StreakRemoteDataSource
+import domain.streak.repository.IStreakRepository
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.usecase.DeleteWordUseCase
@@ -13,17 +13,15 @@ import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
-import events.VocabularyEvent
+import events.VocabularyEffect
 import expects.logNetwork
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import presentation.model.AppUiState
 import presentation.model.ReviewMode
 import presentation.model.ReviewScreenState
 import presentation.model.UiMessage
@@ -35,14 +33,11 @@ class VocabularyViewModel(
     private val reviewWordUseCase: ReviewWordUseCase,
     private val updateWordUseCase: UpdateWordUseCase,
     private val deleteWordUseCase: DeleteWordUseCase,
-    private val streakRemoteDataSource: StreakRemoteDataSource,
+    private val streakRepository: IStreakRepository,
     private val analyticsTracker: IAnalyticsTracker,
 ) : ViewModel() {
 
-    private val _appUiState = MutableStateFlow<AppUiState>(AppUiState.Splash)
-    val appUiState = _appUiState.asStateFlow()
-
-    private val _events = Channel<VocabularyEvent>(Channel.BUFFERED)
+    private val _events = Channel<VocabularyEffect>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
     private val _uiMessages = Channel<UiMessage>(Channel.BUFFERED)
@@ -104,7 +99,7 @@ class VocabularyViewModel(
 
     fun onReviewSessionComplete() {
         viewModelScope.launch {
-            _events.send(VocabularyEvent.ReviewSessionComplete)
+            _events.send(VocabularyEffect.ReviewSessionComplete)
             _uiMessages.send(UiMessage.ReviewComplete)
         }
     }
@@ -127,25 +122,13 @@ class VocabularyViewModel(
 
     fun onRecordActivity() {
         viewModelScope.launch {
-            streakRemoteDataSource.recordActivity()
+            streakRepository.recordActivity()
                 .onSuccess {
                     logNetwork("RecordActivity", "Success")
                 }.onFailure {
                     logNetwork("RecordActivity", "Failed")
                 }
         }
-    }
-
-    fun onSplashComplete() {
-        _appUiState.value = AppUiState.Ready
-    }
-
-    fun onNavigateToAuthGate() {
-        _appUiState.value = AppUiState.AuthGate
-    }
-
-    fun onNavigateToOnboarding() {
-        _appUiState.value = AppUiState.Onboarding
     }
 
     fun updateWord(word: Word) {
@@ -183,6 +166,20 @@ class VocabularyViewModel(
                     )
                 }
             )
+        }
+    }
+
+    fun onEvent(event: VocabularyEvent) {
+        when (event) {
+            is VocabularyEvent.LoadWords -> loadWords(event.reviewMode)
+            is VocabularyEvent.LoadWordsByStage -> loadWordsByStage(event.stage)
+            is VocabularyEvent.ReviewWord -> reviewWord(event.word, event.quality)
+            is VocabularyEvent.UpdateWord -> updateWord(event.word)
+            is VocabularyEvent.DeleteWord -> deleteWord(event.wordId, event.onDeleted)
+            is VocabularyEvent.StartDueReview -> startDueReview()
+            is VocabularyEvent.StartStageReview -> startStageReview(event.stage)
+            is VocabularyEvent.RecordActivity -> onRecordActivity()
+            is VocabularyEvent.ReviewSessionComplete -> onReviewSessionComplete()
         }
     }
 }

@@ -2,15 +2,15 @@ package presentation.feature.collection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import data.collection.remote.CollectionRemoteDataSource
-import data.collection.remote.model.VocabularyCollection
+import domain.collection.model.VocabularyCollection
+import domain.collection.repository.ICollectionRepository
 import domain.word.usecase.ImportVocabularyCollectionUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class VocabularyCollectionsViewModel(
-    private val collectionRemoteDataSource: CollectionRemoteDataSource,
+    private val collectionRepository: ICollectionRepository,
     private val importVocabularyCollectionUseCase: ImportVocabularyCollectionUseCase,
     private val importWordsUseCase: ImportWordsUseCase,
 ) : ViewModel() {
@@ -19,13 +19,13 @@ class VocabularyCollectionsViewModel(
     val uiState = _uiState.asStateFlow()
 
     private val loaderHandler = CollectionLoaderHandler(
-        collectionRemoteDataSource = collectionRemoteDataSource,
+        collectionRepository = collectionRepository,
         state = _uiState,
         scope = viewModelScope
     )
 
     private val importHandler = CollectionImportHandler(
-        collectionRemoteDataSource = collectionRemoteDataSource,
+        collectionRepository = collectionRepository,
         importVocabularyCollectionUseCase = importVocabularyCollectionUseCase,
         importWordsUseCase = importWordsUseCase,
         state = _uiState,

@@ -2,9 +2,10 @@ package presentation.feature.subscription
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.revenuecat.purchases.kmp.models.Offerings
-import com.revenuecat.purchases.kmp.models.Package
 import domain.subscription.ISubscriptionManager
+import domain.subscription.model.SubscriptionCustomerInfo
+import domain.subscription.model.SubscriptionOffering
+import domain.subscription.model.SubscriptionPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,6 @@ import kotlinx.datetime.toLocalDateTime
 import presentation.model.UiState
 import presentation.ui.screens.SubscriptionData
 import presentation.util.stateInWhileSubscribed
-import kotlin.time.Instant
 import kotlinx.datetime.Instant as DateTimeInstant
 
 data class SubscriptionUiState(
@@ -31,8 +31,8 @@ class SubscriptionViewModel(
     val customerInfo = subscriptionManager.customerInfo
     val isSubscribed = subscriptionManager.isSubscribed()
 
-    private val _offerings = MutableStateFlow<Offerings?>(null)
-    val offerings: StateFlow<Offerings?> = _offerings.asStateFlow()
+    private val _offerings = MutableStateFlow<SubscriptionOffering?>(null)
+    val offerings: StateFlow<SubscriptionOffering?> = _offerings.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -53,13 +53,13 @@ class SubscriptionViewModel(
             isLoading && offerings == null -> UiState.Loading
             loadError != null -> UiState.Error(loadError)
             else -> {
-                val activeEntitlement = customerInfo?.entitlements?.active?.values?.firstOrNull()
-                val expirationDate = activeEntitlement?.expirationDate
-                val formattedExpirationDate = expirationDate?.let { formatDate(it) }
+                val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
+                val expirationDateMillis = activeEntitlement?.expirationDateMillis
+                val formattedExpirationDate = expirationDateMillis?.let { formatDate(it) }
 
                 UiState.Loaded(
                     SubscriptionData(
-                        packages = offerings?.current?.availablePackages ?: emptyList(),
+                        packages = offerings?.availablePackages ?: emptyList(),
                         isSubscribed = isSubscribed,
                         customerInfo = customerInfo,
                         formattedExpirationDate = formattedExpirationDate
@@ -72,8 +72,8 @@ class SubscriptionViewModel(
         initialValue = UiState.Loading
     )
 
-    private fun formatDate(instant: Instant): String {
-        val dateTimeInstant = DateTimeInstant.fromEpochMilliseconds(instant.toEpochMilliseconds())
+    private fun formatDate(epochMillis: Long): String {
+        val dateTimeInstant = DateTimeInstant.fromEpochMilliseconds(epochMillis)
         val localDateTime = dateTimeInstant.toLocalDateTime(TimeZone.currentSystemDefault())
         val monthNames = listOf(
             "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -104,7 +104,7 @@ class SubscriptionViewModel(
         }
     }
 
-    fun purchasePackage(packageToPurchase: Package) {
+    fun purchasePackage(packageToPurchase: SubscriptionPackage) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isPurchasing = true, errorMessage = null)
             subscriptionManager.purchase(packageToPurchase)
@@ -128,7 +128,7 @@ class SubscriptionViewModel(
             subscriptionManager.restore()
                 .onSuccess { customerInfo ->
                     _isLoading.value = false
-                    val hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty()
+                    val hasActiveEntitlements = customerInfo.activeEntitlements.isNotEmpty()
                     if (hasActiveEntitlements) {
                         _uiState.value = _uiState.value.copy(successMessage = "PURCHASES_RESTORED_SUCCESS")
                     } else {

@@ -3,7 +3,9 @@ package di
 import data.ai.remote.AiRemoteDataSource
 import data.ai.repository.AiRepositoryImpl
 import data.collection.remote.CollectionRemoteDataSource
-import data.core.database.AppDatabase
+import data.collection.repository.CollectionRepositoryImpl
+import data.core.database.LexiconQueries
+import domain.collection.repository.ICollectionRepository
 import data.word.local.IWordLocalDataSource
 import data.word.local.WordLocalDataSource
 import data.word.remote.WordRemoteDataSource
@@ -37,11 +39,8 @@ import org.koin.dsl.module
 
 fun wordModule() = module {
 
-    // Database DAO
-    single { get<AppDatabase>().getDao() }
-
     // Word Data Components
-    single<IWordLocalDataSource> { WordLocalDataSource(dao = get()) }
+    single<IWordLocalDataSource> { WordLocalDataSource(queries = get()) }
     single<IWordRemoteSyncHandler> {
         WordRemoteSyncHandler(wordRemoteDataSource = get())
     }
@@ -51,6 +50,7 @@ fun wordModule() = module {
     single { WordRemoteDataSource(apiClient = get()) }
     single { AiRemoteDataSource(apiClient = get()) }
     single { CollectionRemoteDataSource(apiClient = get()) }
+    single<ICollectionRepository> { CollectionRepositoryImpl(collectionRemoteDataSource = get()) }
 
     // Repositories
     single<IWordRepository> {

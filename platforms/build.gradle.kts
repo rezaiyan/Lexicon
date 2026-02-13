@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
-
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
@@ -33,10 +31,8 @@ kotlin {
         }
     }
 
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs { browser() }
 
     sourceSets.all {
         languageSettings {
@@ -47,14 +43,11 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core"))
-            implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.sqlite.bundled)
             implementation(libs.koin.core)
         }
 
         androidMain.dependencies {
             implementation(project(":core"))
-            implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.security.crypto)
             implementation(libs.google.firebase.analytics)
             implementation(libs.google.firebase.crashlytics)
@@ -63,12 +56,6 @@ kotlin {
 
         iosMain.dependencies {
             implementation(project(":core"))
-        }
-
-        val wasmJsMain by getting {
-            dependencies {
-                implementation(project(":core"))
-            }
         }
     }
 }

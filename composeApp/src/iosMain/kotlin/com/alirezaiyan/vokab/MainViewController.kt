@@ -10,6 +10,7 @@ import com.revenuecat.purchases.kmp.PurchasesConfiguration
 import config.AppConfig
 import di.appModule
 import di.iosPlatformModule
+import di.mobileModule
 import domain.auth.repository.IAuthRepository
 import kotlinx.coroutines.runBlocking
 import notification.NotificationCategory
@@ -92,6 +93,7 @@ private fun startKoinIfNeeded() {
         val koinApplication = startKoin {
             modules(
                 iosPlatformModule(),
+                mobileModule(),
                 appModule(
                     backendUrl = AppConfig.VOKAB_BACKEND_URL,
                     platform = data.notification.remote.model.Platform.IOS

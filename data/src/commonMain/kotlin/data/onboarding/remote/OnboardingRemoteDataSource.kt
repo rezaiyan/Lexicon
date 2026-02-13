@@ -8,5 +8,5 @@ class OnboardingRemoteDataSource(
     private val apiClient: ApiClient
 ) {
     suspend fun submitPreferences(request: OnboardingPreferencesRequest): Result<SuggestedVocabularyResponseDto> =
-        apiClient.postNotNull("onboarding/preferences", request)
+        apiClient.postNotNull("/onboarding/preferences", request)
 }

@@ -1,21 +1,15 @@
 package data.auth.session
 
 import data.auth.state.IAuthenticationStateManager
+import domain.auth.session.ISessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-
-interface ISessionManager {
-    val isAuthenticatedFlow: StateFlow<Boolean>
-    suspend fun setAuthenticated(isAuthenticated: Boolean)
-    suspend fun isAuthenticated(): Boolean
-    fun initialize(scope: CoroutineScope)
-}
 
 class SessionManager(
     private val authenticationStateManager: IAuthenticationStateManager
 ) : ISessionManager {
 
-    override val isAuthenticatedFlow: StateFlow<Boolean> = 
+    override val isAuthenticatedFlow: StateFlow<Boolean> =
         authenticationStateManager.isAuthenticatedFlow
 
     override suspend fun setAuthenticated(isAuthenticated: Boolean) {
@@ -30,4 +24,3 @@ class SessionManager(
         authenticationStateManager.initialize(scope)
     }
 }
-

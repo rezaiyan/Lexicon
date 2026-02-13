@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.revenuecat.purchases.kmp.models.CustomerInfo
+import domain.subscription.model.SubscriptionCustomerInfo
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
@@ -43,7 +43,7 @@ import vokab.resources.generated.resources.subscription_active
 
 @Composable
 fun SubscriptionActiveContent(
-    customerInfo: CustomerInfo?,
+    customerInfo: SubscriptionCustomerInfo?,
     formattedExpirationDate: String?,
     onManageSubscription: () -> Unit,
     onCancelSubscription: (() -> Unit)? = null
@@ -75,11 +75,11 @@ fun SubscriptionActiveContent(
 
 @Composable
 private fun SubscriptionStatusCard(
-    customerInfo: CustomerInfo?,
+    customerInfo: SubscriptionCustomerInfo?,
     formattedExpirationDate: String?,
     onManageSubscription: () -> Unit
 ) {
-    val activeEntitlement = customerInfo?.entitlements?.active?.values?.firstOrNull()
+    val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
     val productIdentifier = activeEntitlement?.productIdentifier ?: ""
     val planName = getPlanNameFromProductIdentifier(productIdentifier)
 

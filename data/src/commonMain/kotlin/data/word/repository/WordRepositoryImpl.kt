@@ -12,7 +12,6 @@ import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
@@ -147,7 +146,7 @@ class WordRepositoryImpl(
         }
             .onStart { syncWithRemote() }
             .catch { emit(ProgressStats()) }
-            .flowOn(Dispatchers.IO)
+            .flowOn(Dispatchers.Default)
     }
 
     override suspend fun getTotalCount(): Int {

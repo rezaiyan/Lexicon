@@ -3,8 +3,9 @@ package presentation.ui.screens
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.revenuecat.purchases.kmp.models.Package
 import core.getPlatformName
+import domain.subscription.model.SubscriptionCustomerInfo
+import domain.subscription.model.SubscriptionPackage
 import org.jetbrains.compose.resources.stringResource
 import presentation.model.UiState
 import presentation.ui.LocalSnackbarHostState
@@ -36,7 +37,7 @@ fun SubscriptionScreen(
     onNavigateBack: () -> Unit
 ) {
     val snackbarHostState = LocalSnackbarHostState.current
-    
+
     val localizedErrorMessage = errorMessage?.let { getLocalizedErrorMessage(it) }
     val localizedSuccessMessage = successMessage?.let { getLocalizedSuccessMessage(it) }
 
@@ -103,14 +104,14 @@ fun SubscriptionScreen(
 
 
 data class SubscriptionData(
-    val packages: List<Package>,
+    val packages: List<SubscriptionPackage>,
     val isSubscribed: Boolean,
-    val customerInfo: com.revenuecat.purchases.kmp.models.CustomerInfo?,
+    val customerInfo: SubscriptionCustomerInfo?,
     val formattedExpirationDate: String? = null
 )
 
 data class SubscriptionScreenActions(
-    val onPurchaseClick: (Package) -> Unit,
+    val onPurchaseClick: (SubscriptionPackage) -> Unit,
     val onRestoreClick: () -> Unit,
     val onRetryClick: () -> Unit,
     val onDismissError: () -> Unit,

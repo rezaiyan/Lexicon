@@ -15,8 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextDecoration
-import com.revenuecat.purchases.kmp.models.Package
-import com.revenuecat.purchases.kmp.models.PackageType
+import domain.subscription.model.PackagePeriod
+import domain.subscription.model.SubscriptionPackage
 import expects.openUrl
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
@@ -30,9 +30,9 @@ import vokab.resources.generated.resources.terms_of_use
 
 @Composable
 fun SubscriptionNotSubscribedContent(
-    packages: List<Package>,
+    packages: List<SubscriptionPackage>,
     isPurchasing: Boolean,
-    onPurchaseClick: (Package) -> Unit,
+    onPurchaseClick: (SubscriptionPackage) -> Unit,
     onRestoreClick: () -> Unit,
     onPackagesSectionPositioned: (Float) -> Unit = {}
 ) {
@@ -59,12 +59,12 @@ fun SubscriptionNotSubscribedContent(
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
             ) {
                 packages.forEachIndexed { index, pkg ->
-                    val billingPeriod = when (pkg.packageType) {
-                        PackageType.MONTHLY -> stringResource(Res.string.billing_period_monthly)
-                        PackageType.ANNUAL -> stringResource(Res.string.billing_period_annual)
+                    val billingPeriod = when (pkg.packagePeriod) {
+                        PackagePeriod.MONTHLY -> stringResource(Res.string.billing_period_monthly)
+                        PackagePeriod.ANNUAL -> stringResource(Res.string.billing_period_annual)
                         else -> null
                     }
-                    val isRecommended = pkg.packageType == PackageType.ANNUAL
+                    val isRecommended = pkg.packagePeriod == PackagePeriod.ANNUAL
                     val accentColor = if (isRecommended) {
                         AppColors.subscriptionRecommended
                     } else {
@@ -73,10 +73,10 @@ fun SubscriptionNotSubscribedContent(
 
                     if (billingPeriod.isNullOrBlank().not()) {
                         val subscriptionPlan = SubscriptionPlan(
-                            title = pkg.storeProduct.title,
+                            title = pkg.product.title,
                             billingPeriod = billingPeriod,
-                            description = pkg.storeProduct.localizedDescription ?: "",
-                            price = pkg.storeProduct.price.formatted,
+                            description = pkg.product.description,
+                            price = pkg.product.priceFormatted,
                             accentColor = accentColor
                         )
 

@@ -5,7 +5,7 @@ import auth.IGoogleAuthStateProvider
 import data.auth.mapper.toDomain
 import data.auth.remote.AuthDataSource
 import data.auth.remote.FeatureAccessRemoteDataSource
-import data.auth.session.ISessionManager
+import domain.auth.session.ISessionManager
 import data.auth.token.ITokenManager
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
@@ -102,6 +102,10 @@ class AuthRepositoryImpl(
 
     override suspend fun getAccessToken(): String? {
         return tokenManager.getAccessToken()
+    }
+
+    override suspend fun getUserProfile(): Result<AuthUser> {
+        return authDataSource.getUserProfile().map { it.toDomain() }
     }
 
     override suspend fun isAuthenticated(): Boolean {

@@ -1,10 +1,8 @@
 package presentation.manager
 
-import data.auth.remote.AuthDataSource
-import data.auth.remote.model.UserDto
-import data.storage.SecureStorage
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthUser
+import domain.auth.repository.IAuthRepository
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
@@ -23,24 +21,22 @@ class UserManagerImpl(
     private val loginWithAppleUseCase: LoginWithAppleUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val deleteAccountUseCase: DeleteAccountUseCase,
-    private val authDataSource: AuthDataSource,
-    private val secureStorage: SecureStorage,
+    private val authRepository: IAuthRepository,
     private val subscriptionManager: ISubscriptionManager,
 ) : IUserManager {
 
     private val _currentUser = MutableStateFlow<AuthUser?>(null)
 
     override fun isLogin(): Boolean {
-        return secureStorage.getAccessToken().isNullOrBlank().not()
+        return false // Unused — callers should use suspend isAuthenticated() instead
     }
 
     override fun observeUser(): Flow<AuthUser?> {
         return flow {
-            val token = secureStorage.getAccessToken()
+            val token = authRepository.getAccessToken()
             if (token != null) {
-                authDataSource.getUserProfile().fold(
-                    onSuccess = { userDto ->
-                        val user = userDto.toDomain()
+                authRepository.getUserProfile().fold(
+                    onSuccess = { user ->
                         _currentUser.value = user
                         emit(user)
                     },
@@ -116,18 +112,5 @@ class UserManagerImpl(
                 )
             )
         }
-    }
-
-    private fun UserDto.toDomain(): AuthUser {
-        return AuthUser(
-            id = this.id,
-            email = this.email,
-            name = this.name,
-            profileImageUrl = this.profileImageUrl,
-            subscriptionStatus = domain.auth.model.SubscriptionStatus.valueOf(this.subscriptionStatus.uppercase()),
-            subscriptionExpiresAt = this.subscriptionExpiresAt,
-            currentStreak = this.currentStreak,
-            longestStreak = this.longestStreak
-        )
     }
 }

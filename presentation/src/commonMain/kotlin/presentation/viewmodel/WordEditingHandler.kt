@@ -7,14 +7,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import presentation.model.WordManagerEvent
+import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
 
 class WordEditingHandler(
     private val updateWordUseCase: UpdateWordUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val state: MutableStateFlow<WordManagerScreenState>,
-    private val events: SendChannel<WordManagerEvent>,
+    private val events: SendChannel<WordManagerEffect>,
     private val scope: CoroutineScope
 ) {
     
@@ -33,12 +33,12 @@ class WordEditingHandler(
             result.fold(
                 onSuccess = { updatedWord ->
                     state.value = state.value.copy(editingWord = null)
-                    events.send(WordManagerEvent.WordUpdated(updatedWord))
+                    events.send(WordManagerEffect.WordUpdated(updatedWord))
                     analyticsTracker.logEvent("word_manager_word_updated")
                 },
                 onFailure = { error ->
                     val errorMsg = error.message ?: ""
-                    events.send(WordManagerEvent.Error(errorMsg))
+                    events.send(WordManagerEffect.Error(errorMsg))
                     analyticsTracker.logNonFatalError(
                         message = "Word update failed",
                         additionalInfo = mapOf("error" to (errorMsg.ifEmpty { "unknown" }))

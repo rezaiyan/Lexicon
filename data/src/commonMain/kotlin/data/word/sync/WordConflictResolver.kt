@@ -3,6 +3,7 @@
 package data.word.sync
 
 import data.core.database.WordEntity
+import data.core.database.WordEntityData
 import data.word.remote.model.RemoteWord
 import kotlin.time.ExperimentalTime
 
@@ -10,7 +11,7 @@ interface IWordConflictResolver {
     fun resolveConflicts(
         localWords: List<WordEntity>,
         remoteWords: List<RemoteWord>
-    ): List<WordEntity>
+    ): List<WordEntityData>
 }
 
 class WordConflictResolver : IWordConflictResolver {
@@ -18,8 +19,8 @@ class WordConflictResolver : IWordConflictResolver {
     override fun resolveConflicts(
         localWords: List<WordEntity>,
         remoteWords: List<RemoteWord>
-    ): List<WordEntity> {
-        val localWordMapById = localWords.associateBy { it.id.toLong() }
+    ): List<WordEntityData> {
+        val localWordMapById = localWords.associateBy { it.id }
         val localWordMapByContent = localWords.associateBy { entity ->
             WordContentKey(
                 originalWord = entity.originalWord.trim().lowercase(),
@@ -28,7 +29,7 @@ class WordConflictResolver : IWordConflictResolver {
         }
 
         val validRemoteWords = remoteWords.filter { it.id != null && it.id > 0 }
-        val entitiesByContent = mutableMapOf<WordContentKey, WordEntity>()
+        val entitiesByContent = mutableMapOf<WordContentKey, WordEntityData>()
 
         for (remote in validRemoteWords) {
             val contentKey = WordContentKey(
@@ -40,9 +41,9 @@ class WordConflictResolver : IWordConflictResolver {
             val existingById = remote.id?.let { localWordMapById[it] }
             val existingEntity = existingByContent ?: existingById
 
-            val entityId = existingEntity?.id ?: (remote.id?.toInt() ?: 0)
+            val entityId = existingEntity?.id?.toInt() ?: (remote.id?.toInt() ?: 0)
 
-            val entity = WordEntity(
+            val entity = WordEntityData(
                 id = entityId,
                 originalWord = remote.originalWord,
                 translation = remote.translation,
@@ -68,4 +69,3 @@ class WordConflictResolver : IWordConflictResolver {
 
     private data class WordContentKey(val originalWord: String, val translation: String)
 }
-

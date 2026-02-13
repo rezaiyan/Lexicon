@@ -22,7 +22,7 @@ class AndroidNotificationManager(
 ) : INotificationManager {
     
     companion object {
-        private const val CHANNEL_ID = "vokab_notifications"
+        private const val CHANNEL_ID = "lexicon_notifications"
         private const val REVIEW_NOTIFICATION_ID = 1001
         private const val MOTIVATIONAL_NOTIFICATION_ID = 1002
     }

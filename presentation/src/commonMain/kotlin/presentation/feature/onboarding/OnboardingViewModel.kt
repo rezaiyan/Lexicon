@@ -41,6 +41,22 @@ class OnboardingViewModel(
         _state.update { it.copy(selectedLevel = level) }
     }
 
+    fun nextStep() {
+        _state.update { current ->
+            if (current.currentStep < current.totalSteps) {
+                current.copy(currentStep = current.currentStep + 1, error = null)
+            } else current
+        }
+    }
+
+    fun previousStep() {
+        _state.update { current ->
+            if (current.currentStep > 1) {
+                current.copy(currentStep = current.currentStep - 1, error = null)
+            } else current
+        }
+    }
+
     fun submit() {
         val currentState = _state.value
         val targetLang = currentState.selectedTargetLanguage ?: return

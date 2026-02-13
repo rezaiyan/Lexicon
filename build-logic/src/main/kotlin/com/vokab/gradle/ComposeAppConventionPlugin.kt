@@ -5,7 +5,6 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -21,10 +20,6 @@ class ComposeAppConventionPlugin : Plugin<Project> {
                 configureComposeAppSourceSets(versionCatalog)
             }
         }
-
-        plugins.withId("com.google.devtools.ksp") {
-            configureRoomCompilerKsp(versionCatalog)
-        }
     }
 
     private fun KotlinMultiplatformExtension.configureComposeAppSourceSets(
@@ -34,6 +29,12 @@ class ComposeAppConventionPlugin : Plugin<Project> {
             dependencies {
                 apiBundle(libs, "composeAppCommonMainApi")
                 implementationBundle(libs, "composeAppCommonMainImplementation")
+            }
+        }
+
+        sourceSets.matching { it.name == "mobileMain" }.all {
+            dependencies {
+                implementationBundle(libs, "composeAppMobileMainImplementation")
             }
         }
 
@@ -65,18 +66,6 @@ class ComposeAppConventionPlugin : Plugin<Project> {
             dependencies {
                 implementationBundle(libs, "composeAppAndroidInstrumentedTestImplementation")
             }
-        }
-    }
-
-    private fun Project.configureRoomCompilerKsp(libs: VersionCatalog) {
-        val roomCompiler = libs.findLibrary("androidx-room-compiler").orElseThrow()
-        val kspTargets = listOf(
-            "kspAndroid",
-            "kspIosSimulatorArm64",
-            "kspIosArm64"
-        )
-        configurations.matching { it.name in kspTargets }.all {
-            this@configureRoomCompilerKsp.dependencies.add(name, roomCompiler)
         }
     }
 }

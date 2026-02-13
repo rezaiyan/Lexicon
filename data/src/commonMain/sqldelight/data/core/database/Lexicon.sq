@@ -1,0 +1,186 @@
+-- WordEntity table
+CREATE TABLE WordEntity (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    originalWord TEXT NOT NULL,
+    translation TEXT NOT NULL,
+    description TEXT NOT NULL,
+    sourceLanguage TEXT NOT NULL,
+    targetLanguage TEXT NOT NULL,
+    level INTEGER NOT NULL DEFAULT 0,
+    easeFactor REAL NOT NULL DEFAULT 2.5,
+    interval INTEGER NOT NULL DEFAULT 0,
+    repetitions INTEGER NOT NULL DEFAULT 0,
+    lastReviewDate INTEGER NOT NULL DEFAULT 0,
+    nextReviewDate INTEGER NOT NULL,
+    dateAdded INTEGER NOT NULL
+);
+
+-- SettingsEntity table
+CREATE TABLE SettingsEntity (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    languageCode TEXT NOT NULL DEFAULT 'en',
+    themeMode TEXT NOT NULL DEFAULT 'AUTO',
+    lastInsightDate TEXT,
+    cachedInsight TEXT,
+    lastInsightDismissedTime INTEGER NOT NULL DEFAULT 0,
+    notificationsEnabled INTEGER NOT NULL DEFAULT 1,
+    reviewReminders INTEGER NOT NULL DEFAULT 1,
+    motivationalMessages INTEGER NOT NULL DEFAULT 1,
+    dailyReminderTime TEXT NOT NULL DEFAULT '18:00',
+    minimumDueCards INTEGER NOT NULL DEFAULT 5,
+    successesToAdvance INTEGER NOT NULL DEFAULT 1,
+    forgotPenalty INTEGER NOT NULL DEFAULT 2
+);
+
+-- DownloadedCollectionEntity table
+CREATE TABLE DownloadedCollectionEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    targetLanguage TEXT NOT NULL,
+    originLanguage TEXT NOT NULL,
+    title TEXT NOT NULL,
+    fileName TEXT NOT NULL,
+    path TEXT NOT NULL,
+    downloadedAt INTEGER NOT NULL
+);
+
+-- Word queries
+
+insertWord:
+INSERT INTO WordEntity(originalWord, translation, description, sourceLanguage, targetLanguage, level, easeFactor, interval, repetitions, lastReviewDate, nextReviewDate, dateAdded)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+upsertWord:
+INSERT OR REPLACE INTO WordEntity(id, originalWord, translation, description, sourceLanguage, targetLanguage, level, easeFactor, interval, repetitions, lastReviewDate, nextReviewDate, dateAdded)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getAllWords:
+SELECT * FROM WordEntity;
+
+getDueCards:
+SELECT * FROM WordEntity
+WHERE nextReviewDate <= ?
+ORDER BY
+    CASE WHEN lastReviewDate = 0 THEN 0 ELSE 1 END,
+    lastReviewDate ASC;
+
+getWordsByLevel:
+SELECT * FROM WordEntity
+WHERE level = ?
+ORDER BY
+    CASE WHEN nextReviewDate <= :currentTime THEN 0 ELSE 1 END,
+    CASE
+        WHEN nextReviewDate <= :currentTime THEN nextReviewDate
+        ELSE -lastReviewDate
+    END ASC;
+
+getWordsByLevelRange:
+SELECT * FROM WordEntity
+WHERE level >= :minLevel AND level <= :maxLevel
+ORDER BY
+    CASE WHEN nextReviewDate <= :currentTime THEN 0 ELSE 1 END,
+    CASE
+        WHEN nextReviewDate <= :currentTime THEN nextReviewDate
+        ELSE -lastReviewDate
+    END ASC;
+
+getWordById:
+SELECT * FROM WordEntity WHERE id = ?;
+
+findWordByContent:
+SELECT * FROM WordEntity
+WHERE LOWER(TRIM(originalWord)) = LOWER(TRIM(:originalWord))
+AND LOWER(TRIM(translation)) = LOWER(TRIM(:translation));
+
+deleteWord:
+DELETE FROM WordEntity WHERE id = ?;
+
+deleteWords:
+DELETE FROM WordEntity WHERE id IN ?;
+
+updateWordContent:
+UPDATE WordEntity SET originalWord = ?, translation = ?, description = ? WHERE id = ?;
+
+countWords:
+SELECT count(*) FROM WordEntity;
+
+countDueCards:
+SELECT count(*) FROM WordEntity WHERE nextReviewDate <= ?;
+
+countLevel0:
+SELECT count(*) FROM WordEntity WHERE level = 0;
+
+countLevel1:
+SELECT count(*) FROM WordEntity WHERE level = 1;
+
+countLevel2:
+SELECT count(*) FROM WordEntity WHERE level = 2;
+
+countLevel3:
+SELECT count(*) FROM WordEntity WHERE level = 3;
+
+countLevel4:
+SELECT count(*) FROM WordEntity WHERE level = 4;
+
+countLevel5:
+SELECT count(*) FROM WordEntity WHERE level = 5;
+
+countLevel6:
+SELECT count(*) FROM WordEntity WHERE level = 6;
+
+updateProgress:
+UPDATE WordEntity SET level = :level, easeFactor = :easeFactor, interval = :interval, repetitions = :repetitions, lastReviewDate = :lastReviewDate, nextReviewDate = :nextReviewDate WHERE id = :id;
+
+deleteAllWords:
+DELETE FROM WordEntity;
+
+-- Settings queries
+
+insertSettings:
+INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, lastInsightDate, cachedInsight, lastInsightDismissedTime, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, successesToAdvance, forgotPenalty)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getSettings:
+SELECT * FROM SettingsEntity WHERE id = 1;
+
+updateDailyInsight:
+UPDATE SettingsEntity SET lastInsightDate = ?, cachedInsight = ? WHERE id = 1;
+
+getLastInsightDate:
+SELECT lastInsightDate FROM SettingsEntity WHERE id = 1;
+
+getCachedInsight:
+SELECT cachedInsight FROM SettingsEntity WHERE id = 1;
+
+clearSettings:
+DELETE FROM SettingsEntity;
+
+-- DownloadedCollection queries
+
+insertDownloadedCollection:
+INSERT OR REPLACE INTO DownloadedCollectionEntity(id, targetLanguage, originLanguage, title, fileName, path, downloadedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+getAllDownloadedCollections:
+SELECT * FROM DownloadedCollectionEntity;
+
+getDownloadedCollection:
+SELECT * FROM DownloadedCollectionEntity
+WHERE targetLanguage = ? AND originLanguage = ? AND fileName = ?;
+
+clearAllDownloadedCollections:
+DELETE FROM DownloadedCollectionEntity;
+
+-- Progress stats aggregate query
+
+progressRow:
+SELECT
+    COALESCE(SUM(CASE WHEN level = 0 THEN 1 ELSE 0 END), 0) AS level0Count,
+    COALESCE(SUM(CASE WHEN level = 1 THEN 1 ELSE 0 END), 0) AS level1Count,
+    COALESCE(SUM(CASE WHEN level = 2 THEN 1 ELSE 0 END), 0) AS level2Count,
+    COALESCE(SUM(CASE WHEN level = 3 THEN 1 ELSE 0 END), 0) AS level3Count,
+    COALESCE(SUM(CASE WHEN level = 4 THEN 1 ELSE 0 END), 0) AS level4Count,
+    COALESCE(SUM(CASE WHEN level = 5 THEN 1 ELSE 0 END), 0) AS level5Count,
+    COALESCE(SUM(CASE WHEN level = 6 THEN 1 ELSE 0 END), 0) AS level6Count,
+    COUNT(*) AS totalWords,
+    COALESCE(SUM(CASE WHEN nextReviewDate <= :currentTime THEN 1 ELSE 0 END), 0) AS dueCards
+FROM WordEntity;

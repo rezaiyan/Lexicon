@@ -13,7 +13,7 @@ class AndroidNotificationDisplayService(
 ) : NotificationDisplayService {
     
     companion object {
-        private const val CHANNEL_ID = "vokab_notifications"
+        private const val CHANNEL_ID = "lexicon_notifications"
         private var NOTIFICATION_ID = 1000
     }
     

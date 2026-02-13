@@ -2,9 +2,13 @@
 
 package presentation.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,6 +35,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,23 +47,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import data.auth.session.ISessionManager
-import domain.onboarding.model.SuggestedVocabulary
+import domain.auth.session.ISessionManager
+import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.settings.repository.ISettingsRepository
 import events.OnEvents
-import events.VocabularyEvent
+import events.VocabularyEffect
 import expects.SetSystemBarsColor
 import expects.isSystemInDarkTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.auth.AuthViewModel
 import presentation.feature.onboarding.OnboardingViewModel
 import presentation.feature.onboarding.VocabularyPreviewViewModel
-import presentation.feature.profile.ProfileViewModel
 import presentation.feature.subscription.SubscriptionViewModel
 import presentation.model.AppUiState
 import presentation.model.ReviewType
@@ -78,6 +83,7 @@ import presentation.ui.screens.SubscriptionScreen
 import presentation.ui.screens.SubscriptionScreenActions
 import presentation.ui.screens.VocabularyPreviewScreen
 import presentation.ui.screens.settings.WordManagerScreen
+import presentation.viewmodel.AppNavigationViewModel
 import presentation.viewmodel.VocabularyViewModel
 import theme.AppColors
 import domain.settings.model.ThemeMode
@@ -99,13 +105,13 @@ val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {
 
 @Composable
 fun LexiconApp() {
-    val vocabularyViewModel = koinInject<VocabularyViewModel>()
-    val profileViewModel = koinInject<ProfileViewModel>()
-    val authViewModel = koinInject<AuthViewModel>()
+    val appNavigationViewModel = koinViewModel<AppNavigationViewModel>()
+    val vocabularyViewModel = koinViewModel<VocabularyViewModel>()
+    val authViewModel = koinViewModel<AuthViewModel>()
     val settingsRepository = koinInject<ISettingsRepository>()
 
     val reviewScreenState by vocabularyViewModel.reviewScreenState.collectAsStateWithLifecycle()
-    val appUiState by vocabularyViewModel.appUiState.collectAsStateWithLifecycle()
+    val appUiState by appNavigationViewModel.appUiState.collectAsStateWithLifecycle()
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
     val systemInDarkTheme = isSystemInDarkTheme()
@@ -130,12 +136,9 @@ fun LexiconApp() {
 
     val effectiveDarkMode = isPreviewModeOpen || darkMode
 
-    // Track suggested vocabulary for passing between onboarding and preview
-    var suggestedWords by remember { mutableStateOf<List<SuggestedVocabulary>>(emptyList()) }
-
     LexiconTheme(darkTheme = effectiveDarkMode) {
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
-            HandleVocabularyEvents(
+            HandleVocabularyEffects(
                 vocabularyViewModel = vocabularyViewModel,
             )
 
@@ -144,35 +147,33 @@ fun LexiconApp() {
             )
 
             OverlayHostContainer {
-                when (appUiState) {
+                AnimatedContent(
+                    targetState = appUiState,
+                    modifier = Modifier.fillMaxSize(),
+                    transitionSpec = {
+                        val initial = initialState
+                        val target = targetState
+                        val toPreview = target is AppUiState.VocabularyPreview && initial is AppUiState.Onboarding
+                        val fromPreview = initial is AppUiState.VocabularyPreview && target is AppUiState.AuthGate
+                        val slideForward = toPreview || fromPreview
+                        ContentTransform(
+                            targetContentEnter = slideInHorizontally(
+                                animationSpec = tween(350),
+                                initialOffsetX = { if (slideForward) it else -it }
+                            ) + fadeIn(animationSpec = tween(350)),
+                            initialContentExit = slideOutHorizontally(
+                                animationSpec = tween(350),
+                                targetOffsetX = { if (slideForward) -it else it }
+                            ) + fadeOut(animationSpec = tween(350))
+                        )
+                    },
+                    label = "onboarding_flow"
+                ) { state ->
+                when (state) {
                     is AppUiState.Splash -> {
                         SplashScreen(onEnd = {
-                            if (authState.isAuthenticated) {
-                                vocabularyViewModel.onSplashComplete()
-                            } else {
-                                vocabularyViewModel.onNavigateToAuthGate()
-                            }
+                            appNavigationViewModel.onSplashComplete(authState.isAuthenticated)
                         })
-                    }
-
-                    is AppUiState.AuthGate -> {
-                        AuthGateScreen(
-                            onGoogleSignIn = {
-                                // Google sign-in is triggered via KMPAuth in platform code
-                                // The idToken callback will call authViewModel.loginWithGoogle()
-                            },
-                            onAppleSignIn = {
-                                // Apple sign-in is triggered via platform code
-                            },
-                            isLoading = authState.isLoading
-                        )
-
-                        // When auth succeeds, navigate forward
-                        LaunchedEffect(authState.isAuthenticated) {
-                            if (authState.isAuthenticated) {
-                                vocabularyViewModel.onNavigateToOnboarding()
-                            }
-                        }
                     }
 
                     is AppUiState.Onboarding -> {
@@ -183,12 +184,12 @@ fun LexiconApp() {
                             onboardingViewModel.events.collect { event ->
                                 when (event) {
                                     is OnboardingViewModel.Event.NavigateToPreview -> {
-                                        suggestedWords = event.response.suggestedVocabulary
-                                        vocabularyViewModel.onSplashComplete()
-                                        // For now go straight to Ready; vocabulary preview can be added later
+                                        appNavigationViewModel.onNavigateToVocabularyPreview(
+                                            event.response.suggestedVocabulary
+                                        )
                                     }
                                     is OnboardingViewModel.Event.NavigateToMain -> {
-                                        vocabularyViewModel.onSplashComplete()
+                                        appNavigationViewModel.onNavigateToAuthGate()
                                     }
                                 }
                             }
@@ -199,19 +200,84 @@ fun LexiconApp() {
                             onTargetLanguageSelected = onboardingViewModel::selectTargetLanguage,
                             onNativeLanguageSelected = onboardingViewModel::selectNativeLanguage,
                             onLevelSelected = onboardingViewModel::selectLevel,
+                            onNextStep = onboardingViewModel::nextStep,
+                            onPreviousStep = onboardingViewModel::previousStep,
                             onSubmit = onboardingViewModel::submit,
                             onSkip = onboardingViewModel::skip
                         )
+                    }
+
+                    is AppUiState.VocabularyPreview -> {
+                        val vocabularyPreviewViewModel: VocabularyPreviewViewModel = koinViewModel()
+                        val previewWords = state.words
+                        LaunchedEffect(previewWords) {
+                            vocabularyPreviewViewModel.setWords(previewWords)
+                        }
+                        LaunchedEffect(Unit) {
+                            vocabularyPreviewViewModel.events.collect { event ->
+                                when (event) {
+                                    is VocabularyPreviewViewModel.Event.ProceedWithSelection -> {
+                                        appNavigationViewModel.onNavigateToAuthGate(event.words)
+                                    }
+                                    is VocabularyPreviewViewModel.Event.SkipVocabulary -> {
+                                        appNavigationViewModel.onNavigateToAuthGate()
+                                    }
+                                }
+                            }
+                        }
+                        val previewState by vocabularyPreviewViewModel.state.collectAsStateWithLifecycle()
+                        VocabularyPreviewScreen(
+                            state = previewState,
+                            onToggleWord = vocabularyPreviewViewModel::toggleWord,
+                            onSelectAll = vocabularyPreviewViewModel::selectAll,
+                            onDeselectAll = vocabularyPreviewViewModel::deselectAll,
+                            onProceed = vocabularyPreviewViewModel::proceedWithSelected,
+                            onSkip = vocabularyPreviewViewModel::skip
+                        )
+                    }
+
+                    is AppUiState.AuthGate -> {
+                        val pendingVocabulary = state.pendingVocabulary
+                        val importUseCase: ImportSuggestedVocabularyUseCase = koinInject()
+                        val scope = rememberCoroutineScope()
+
+                        AuthGateScreen(
+                            onLoginWithGoogle = { idToken ->
+                                authViewModel.loginWithGoogle(idToken)
+                            },
+                            onLoginWithApple = { idToken, fullName, appleUserId ->
+                                authViewModel.loginWithApple(idToken, fullName, appleUserId)
+                            },
+                            // TODO: Remove dev login after testing
+                            onDevLogin = {
+                                scope.launch {
+                                    if (pendingVocabulary.isNotEmpty()) {
+                                        importUseCase(pendingVocabulary)
+                                    }
+                                    appNavigationViewModel.onAuthComplete()
+                                }
+                            },
+                            isLoading = authState.isLoading
+                        )
+
+                        // When auth succeeds, import pending vocabulary and navigate to main
+                        LaunchedEffect(authState.isAuthenticated) {
+                            if (authState.isAuthenticated) {
+                                if (pendingVocabulary.isNotEmpty()) {
+                                    importUseCase(pendingVocabulary)
+                                }
+                                appNavigationViewModel.onAuthComplete()
+                            }
+                        }
                     }
 
                     is AppUiState.Ready -> {
                         AppContent(
                             navController = navController,
                             effectiveDarkMode = effectiveDarkMode,
-                            vocabularyViewModel = vocabularyViewModel,
-                            profileViewModel = profileViewModel,
                         )
                     }
+                }
                 }
             }
         }
@@ -220,8 +286,6 @@ fun LexiconApp() {
 
 @Composable
 private fun AppContent(
-    vocabularyViewModel: VocabularyViewModel,
-    profileViewModel: ProfileViewModel,
     navController: NavHostController,
     effectiveDarkMode: Boolean,
 ) {
@@ -263,8 +327,6 @@ private fun AppContent(
                 .consumeWindowInsets(WindowInsets.statusBars)
                 .padding(innerPadding),
             navController = navController,
-            vocabularyViewModel = vocabularyViewModel,
-            profileViewModel = profileViewModel,
         )
     }
 }
@@ -324,8 +386,6 @@ private fun BottomNavigationBar(navController: NavHostController) {
 private fun NavigationGraph(
     modifier: Modifier,
     navController: NavHostController,
-    vocabularyViewModel: VocabularyViewModel,
-    profileViewModel: ProfileViewModel
 ) {
     NavHost(
         navController = navController,
@@ -337,11 +397,11 @@ private fun NavigationGraph(
         popExitTransition = { fadeOut(animationSpec = tween(300)) }
     ) {
         composable<TabDestination.Profile> {
-            ProfileScreen(profileViewModel)
+            ProfileScreen()
         }
 
         composable<TabDestination.Study> {
-            StudyScreen(vocabularyViewModel = vocabularyViewModel)
+            StudyScreen()
         }
 
         composable<TabDestination.Settings> {
@@ -396,7 +456,7 @@ private fun NavigationGraph(
 }
 
 @Composable
-private fun HandleVocabularyEvents(
+private fun HandleVocabularyEffects(
     vocabularyViewModel: VocabularyViewModel,
 ) {
     val snackbarHostState = LocalSnackbarHostState.current
@@ -407,7 +467,7 @@ private fun HandleVocabularyEvents(
     LaunchedEffect(Unit) {
         vocabularyViewModel.events.collect { event ->
             when (event) {
-                is VocabularyEvent.ImportSuccess -> {
+                is VocabularyEffect.ImportSuccess -> {
                     val pattern = "%1" + '$' + "d"
                     val message =
                         successImportedWordsFormat.replace(pattern, event.count.toString())
@@ -417,7 +477,7 @@ private fun HandleVocabularyEvents(
                     )
                 }
 
-                is VocabularyEvent.ImportError -> {
+                is VocabularyEffect.ImportError -> {
                     val message = if (event.message.isNotEmpty()) {
                         "✗ ${event.message}"
                     } else {
@@ -429,25 +489,25 @@ private fun HandleVocabularyEvents(
                     )
                 }
 
-                is VocabularyEvent.ImageImportSuccess -> {
+                is VocabularyEffect.ImageImportSuccess -> {
 
                 }
 
-                is VocabularyEvent.ImageImportError -> {
+                is VocabularyEffect.ImageImportError -> {
                     snackbarHostState.showSnackbar(
                         message = "Something wrong happened!",
                         duration = SnackbarDuration.Short
                     )
                 }
 
-                is VocabularyEvent.ImageImportRequiresLogin -> {
+                is VocabularyEffect.ImageImportRequiresLogin -> {
                     snackbarHostState.showSnackbar(
                         message = pleaseLoginForAi,
                         duration = SnackbarDuration.Short
                     )
                 }
 
-                is VocabularyEvent.ReviewSessionComplete -> {
+                is VocabularyEffect.ReviewSessionComplete -> {
                     // Handled by UiMessages
                 }
             }

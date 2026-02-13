@@ -16,8 +16,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import platform.IAppVersionProvider
+import presentation.feature.settings.model.SettingsEffect
 import presentation.feature.settings.model.SettingsEvent
-import presentation.feature.settings.model.SettingsIntent
 import presentation.model.DialogState
 import presentation.model.SettingsScreenState
 import domain.settings.model.ThemeMode
@@ -35,8 +35,8 @@ class SettingsViewModel(
     private val _dialogState = MutableStateFlow<DialogState>(DialogState.None)
     val dialogState: StateFlow<DialogState> = _dialogState
 
-    private val intents = MutableSharedFlow<SettingsIntent>(extraBufferCapacity = 64)
-    private val _events = MutableSharedFlow<SettingsEvent>(extraBufferCapacity = 64)
+    private val intents = MutableSharedFlow<SettingsEvent>(extraBufferCapacity = 64)
+    private val _events = MutableSharedFlow<SettingsEffect>(extraBufferCapacity = 64)
     val events = _events.asSharedFlow()
 
     private val systemNotificationsEnabled: StateFlow<Boolean> =
@@ -86,41 +86,41 @@ class SettingsViewModel(
         }
     }
 
-    private suspend fun handleIntent(intent: SettingsIntent) {
+    private suspend fun handleIntent(intent: SettingsEvent) {
         when (intent) {
-            is SettingsIntent.SetLanguage -> {
+            is SettingsEvent.SetLanguage -> {
                 settingsRepository.setLanguage(intent.language)
                 analyticsTracker.logLanguageChanged(language = intent.language.name)
             }
-            is SettingsIntent.SetThemeMode -> {
+            is SettingsEvent.SetThemeMode -> {
                 settingsRepository.setThemeMode(intent.mode)
                 analyticsTracker.logThemeChanged(
                     themeMode = intent.mode.displayName,
                     isDark = intent.mode == ThemeMode.DARK
                 )
             }
-            is SettingsIntent.SetNotificationsEnabled -> {
+            is SettingsEvent.SetNotificationsEnabled -> {
                 settingsRepository.setNotificationsEnabled(intent.enabled)
                 if (intent.enabled && !systemNotificationsEnabled.value) {
                     _dialogState.value = DialogState.NotificationPermission
                 }
             }
-            SettingsIntent.RequestNotificationPermission -> {
+            SettingsEvent.RequestNotificationPermission -> {
                 val granted = notificationRepository.requestNotificationPermission()
-                _events.emit(SettingsEvent.NotificationPermissionGranted(granted))
+                _events.emit(SettingsEffect.NotificationPermissionGranted(granted))
                 _dialogState.value = DialogState.None
                 if (granted) {
                     settingsRepository.setNotificationsEnabled(true)
                 } else {
-                    _events.emit(SettingsEvent.OpenSystemNotificationSettings)
+                    _events.emit(SettingsEffect.OpenSystemNotificationSettings)
                     notificationRepository.openNotificationSettings()
                 }
                 notificationPermissionMonitor.refresh()
             }
-            SettingsIntent.RefreshNotificationPermissionStatus -> {
+            SettingsEvent.RefreshNotificationPermissionStatus -> {
                 notificationPermissionMonitor.refresh()
             }
-            is SettingsIntent.SetReviewSettings -> {
+            is SettingsEvent.SetReviewSettings -> {
                 settingsRepository.setSuccessesToAdvance(intent.successesToAdvance)
                 settingsRepository.setForgotPenalty(intent.forgotPenalty)
                 analyticsTracker.logNonFatalError(
@@ -131,61 +131,16 @@ class SettingsViewModel(
                     )
                 )
             }
-            is SettingsIntent.ShowDialog -> {
+            is SettingsEvent.ShowDialog -> {
                 _dialogState.value = intent.dialogState
             }
-            SettingsIntent.DismissDialog -> {
+            SettingsEvent.DismissDialog -> {
                 _dialogState.value = DialogState.None
             }
         }
     }
 
-    // Backwards-compatible API that emits intents
-    fun setLanguage(language: Language) {
-        viewModelScope.launch { intents.emit(SettingsIntent.SetLanguage(language)) }
-    }
-
-    fun setThemeMode(mode: ThemeMode) {
-        viewModelScope.launch { intents.emit(SettingsIntent.SetThemeMode(mode)) }
-    }
-
-    fun setNotificationsEnabled(enabled: Boolean) {
-        viewModelScope.launch { intents.emit(SettingsIntent.SetNotificationsEnabled(enabled)) }
-    }
-
-    fun requestNotificationPermission() {
-        viewModelScope.launch { intents.emit(SettingsIntent.RequestNotificationPermission) }
-    }
-
-    fun refreshNotificationPermissionStatus() {
-        viewModelScope.launch { intents.emit(SettingsIntent.RefreshNotificationPermissionStatus) }
-    }
-
-    fun showLanguageDialog() {
-        viewModelScope.launch { intents.emit(SettingsIntent.ShowDialog(DialogState.LanguageSelection)) }
-    }
-
-    fun showThemeDialog() {
-        viewModelScope.launch { intents.emit(SettingsIntent.ShowDialog(DialogState.ThemeSelection)) }
-    }
-
-    fun showNotificationPermissionDialog() {
-        viewModelScope.launch { intents.emit(SettingsIntent.ShowDialog(DialogState.NotificationPermission)) }
-    }
-
-    fun showNotificationSettingsDialog() {
-        viewModelScope.launch { intents.emit(SettingsIntent.ShowDialog(DialogState.NotificationSettings)) }
-    }
-
-    fun showReviewSettingsDialog() {
-        viewModelScope.launch { intents.emit(SettingsIntent.ShowDialog(DialogState.ReviewSettings)) }
-    }
-
-    fun dismissDialog() {
-        viewModelScope.launch { intents.emit(SettingsIntent.DismissDialog) }
-    }
-
-    fun setReviewSettings(successesToAdvance: Int, forgotPenalty: Int) {
-        viewModelScope.launch { intents.emit(SettingsIntent.SetReviewSettings(successesToAdvance, forgotPenalty)) }
+    fun onEvent(event: SettingsEvent) {
+        viewModelScope.launch { intents.emit(event) }
     }
 }

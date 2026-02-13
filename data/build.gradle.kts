@@ -2,8 +2,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.androidxRoom)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -34,6 +33,11 @@ kotlin {
         }
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs { browser() }
+
+    applyDefaultHierarchyTemplate()
+
     sourceSets.all {
         languageSettings {
             optIn("kotlin.time.ExperimentalTime")
@@ -41,13 +45,18 @@ kotlin {
     }
 
     sourceSets {
+        val mobileMain by creating {
+            dependsOn(commonMain.get())
+        }
+        androidMain.get().dependsOn(mobileMain)
+        iosMain.get().dependsOn(mobileMain)
+
         commonMain.dependencies {
             implementation(project(":domain"))
             api(project(":platforms"))
             implementation(project(":core"))
             implementation(project(":utils"))
-            implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.sqldelight.coroutines)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -56,16 +65,32 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.koin.core)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
+        }
+
+        mobileMain.dependencies {
             implementation(libs.purchases.kmp.core)
         }
 
         androidMain.dependencies {
             implementation(libs.ktor.client.android)
             implementation(libs.androidx.security.crypto)
+            implementation(libs.sqldelight.android.driver)
         }
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.sqldelight.native.driver)
+        }
+
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(libs.sqldelight.web.worker.driver)
+                implementation(libs.ktor.client.js)
+                implementation("org.jetbrains.kotlinx:kotlinx-browser:0.3")
+                implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.0.2"))
+                implementation(npm("sql.js", "1.8.0"))
+                implementation(devNpm("copy-webpack-plugin", "9.1.0"))
+            }
         }
     }
 }
@@ -79,16 +104,11 @@ android {
     }
 }
 
-room {
-    schemaDirectory("$projectDir/schemas")
-}
-
-dependencies {
-    listOf(
-        "kspAndroid",
-        "kspIosSimulatorArm64",
-        "kspIosArm64"
-    ).forEach {
-        add(it, libs.androidx.room.compiler)
+sqldelight {
+    databases {
+        create("LexiconDatabase") {
+            packageName.set("data.core.database")
+            generateAsync.set(true)
+        }
     }
 }

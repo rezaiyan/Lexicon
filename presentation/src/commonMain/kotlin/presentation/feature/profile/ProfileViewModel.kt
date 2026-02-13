@@ -99,23 +99,13 @@ class ProfileViewModel(
         scope = viewModelScope
     )
 
-    fun loginWithGoogle(idToken: String) {
-        authHandler.loginWithGoogle(idToken)
-    }
-
-    fun loginWithApple(idToken: String, fullName: String?, appleUserId: String) {
-        authHandler.loginWithApple(idToken, fullName, appleUserId)
-    }
-
-    fun logout() {
-        authHandler.logout()
-    }
-
-    fun deleteAccount() {
-        authHandler.deleteAccount()
-    }
-
-    fun clearError() {
-        _errorDismissed.value = true
+    fun onEvent(event: ProfileEvent) {
+        when (event) {
+            is ProfileEvent.LoginWithGoogle -> authHandler.loginWithGoogle(event.idToken)
+            is ProfileEvent.LoginWithApple -> authHandler.loginWithApple(event.idToken, event.fullName, event.appleUserId)
+            is ProfileEvent.Logout -> authHandler.logout()
+            is ProfileEvent.DeleteAccount -> authHandler.deleteAccount()
+            is ProfileEvent.ClearError -> { _errorDismissed.value = true }
+        }
     }
 }

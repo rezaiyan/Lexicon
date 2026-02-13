@@ -1,6 +1,6 @@
 package com.alirezaiyan.vokab.test
 
-import com.alirezaiyan.vokab.test.database.VokabDaoTest
+import com.alirezaiyan.vokab.test.database.LexiconDaoTest
 import com.alirezaiyan.vokab.test.integration.EndToEndReviewTest
 import com.alirezaiyan.vokab.test.usecase.ReviewWordUseCaseTest
 import org.junit.runner.RunWith
@@ -11,7 +11,7 @@ import org.junit.runners.Suite
  * 
  * This suite runs all tests related to the word review system, including:
  * 
- * 1. DATABASE TESTS (VokabDaoTest):
+ * 1. DATABASE TESTS (LexiconDaoTest):
  *    - CRUD operations
  *    - Query functions (getDueCards, getWordsByLevel, etc.)
  *    - Due cards filtering
@@ -95,7 +95,7 @@ import org.junit.runners.Suite
  */
 @RunWith(Suite::class)
 @Suite.SuiteClasses(
-    VokabDaoTest::class,
+    LexiconDaoTest::class,
     ReviewWordUseCaseTest::class,
     EndToEndReviewTest::class
 )

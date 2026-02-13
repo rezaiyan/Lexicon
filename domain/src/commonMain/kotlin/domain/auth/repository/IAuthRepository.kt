@@ -34,6 +34,11 @@ interface IAuthRepository {
     suspend fun getAccessToken(): String?
 
     /**
+     * Get the current user's profile
+     */
+    suspend fun getUserProfile(): Result<AuthUser>
+
+    /**
      * Check if user is authenticated
      */
     suspend fun isAuthenticated(): Boolean

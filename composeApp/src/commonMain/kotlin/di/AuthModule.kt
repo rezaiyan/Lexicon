@@ -5,8 +5,8 @@ import data.auth.refresh.TokenRefreshManager
 import data.auth.remote.AuthDataSource
 import data.auth.remote.FeatureAccessRemoteDataSource
 import data.auth.repository.AuthRepositoryImpl
-import data.auth.session.ISessionManager
 import data.auth.session.SessionManager
+import domain.auth.session.ISessionManager
 import data.auth.state.AuthenticationStateManager
 import data.auth.state.IAuthenticationStateManager
 import data.auth.token.ITokenManager
