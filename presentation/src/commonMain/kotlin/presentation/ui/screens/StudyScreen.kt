@@ -121,6 +121,7 @@ fun StudyScreen() {
                                         title = stringResource(Res.string.review_due_cards),
                                         reviewType = presentation.model.ReviewType.REVIEW,
                                         initialWord = event.firstWord,
+                                        vocabularyViewModel = vocabularyViewModel,
                                         onClose = {
                                             overlayHost.showDialog(tag = "exit-confirmation") { nav ->
                                                 CloseConfirmationDialogContent(
@@ -157,6 +158,7 @@ fun StudyScreen() {
                                 ReviewBottomSheetContent(
                                     title = stringResource(Res.string.stage_words_string, stageName),
                                     reviewType = presentation.model.ReviewType.BROWSE,
+                                    vocabularyViewModel = vocabularyViewModel,
                                     onClose = { navigator.dismiss() },
                                     onReviewComplete = {
                                         vocabularyViewModel.onReviewSessionComplete()

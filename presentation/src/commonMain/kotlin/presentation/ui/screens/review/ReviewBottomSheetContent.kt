@@ -16,9 +16,9 @@ fun ReviewBottomSheetContent(
     reviewType: ReviewType,
     onClose: () -> Unit,
     onReviewComplete: () -> Unit,
-    initialWord: Word? = null
+    initialWord: Word? = null,
+    vocabularyViewModel: VocabularyViewModel = koinViewModel()
 ) {
-    val vocabularyViewModel = koinViewModel<VocabularyViewModel>()
     val currentReviewScreenState by vocabularyViewModel.reviewScreenState.collectAsStateWithLifecycle()
 
     ReviewBottomSheet(

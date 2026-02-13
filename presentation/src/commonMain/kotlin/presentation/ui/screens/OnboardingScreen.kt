@@ -51,7 +51,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -334,20 +333,6 @@ private fun OnboardingStep1Content(
         ) {
             Text("Skip", style = MaterialTheme.typography.labelLarge)
         }
-        Spacer(modifier = Modifier.height(spacing.small))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Don't see your language?",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = {}) {
-                Text("Request it here", color = MaterialTheme.colorScheme.primary)
-            }
-        }
         Spacer(modifier = Modifier.height(spacing.medium))
     }
 }
@@ -618,106 +603,6 @@ private fun OnboardingStep3Content(
             }
         }
         Spacer(modifier = Modifier.height(spacing.medium))
-    }
-}
-
-@Composable
-private fun OnboardingStepActions(
-    primaryLabel: String,
-    onPrimary: () -> Unit,
-    onSkip: () -> Unit,
-    primaryEnabled: Boolean,
-    spacing: AppSpacing,
-    dimensions: AppDimensions
-) {
-    Button(
-        onClick = onPrimary,
-        modifier = Modifier.fillMaxWidth(),
-        enabled = primaryEnabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-        shape = RoundedCornerShape(dimensions.cardCornerRadius)
-    ) {
-        Text(primaryLabel, style = MaterialTheme.typography.labelLarge)
-    }
-    Spacer(modifier = Modifier.height(spacing.extraSmall2))
-    OutlinedButton(
-        onClick = onSkip,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = MaterialTheme.colorScheme.onSurface
-        ),
-        border = BorderStroke(
-            dimensions.borderWidth,
-            MaterialTheme.colorScheme.outline
-        ),
-        shape = RoundedCornerShape(dimensions.cardCornerRadius)
-    ) {
-        Text("Skip", style = MaterialTheme.typography.labelLarge)
-    }
-}
-
-@Composable
-private fun LanguageChipRow(
-    languages: List<String>,
-    selectedLanguage: String?,
-    onLanguageSelected: (String) -> Unit,
-    spacing: AppSpacing,
-    dimensions: AppDimensions
-) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2)
-    ) {
-        items(languages) { language ->
-            val selected = selectedLanguage == language
-            Card(
-                onClick = { onLanguageSelected(language) },
-                modifier = Modifier
-                    .clip(RoundedCornerShape(dimensions.cardCornerRadius))
-                    .then(
-                        if (selected) Modifier.border(
-                            dimensions.borderWidthThick,
-                            MaterialTheme.colorScheme.primary,
-                            RoundedCornerShape(dimensions.cardCornerRadius)
-                        ) else Modifier
-                    ),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (selected)
-                        MaterialTheme.colorScheme.primaryContainer
-                    else
-                        MaterialTheme.colorScheme.surfaceVariant
-                ),
-                shape = RoundedCornerShape(dimensions.cardCornerRadius)
-            ) {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = spacing.small,
-                        vertical = spacing.extraSmall2
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (selected) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(dimensions.iconSizeMedium),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.size(spacing.extraSmall3))
-                    }
-                    Text(
-                        text = language,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (selected)
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
     }
 }
 
