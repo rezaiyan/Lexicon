@@ -1,11 +1,15 @@
-name: Lexicon KMP Multi-Platform Build
+name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main]
   pull_request:
-    branches: [ main, master ]
+    branches: [main]
   workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
@@ -29,8 +33,8 @@ env:
   FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
 
 jobs:
-  common:
-    name: Compile Common Code
+  test:
+    name: Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -45,21 +49,34 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Compile common code
-        run: ./gradlew composeApp:compileKotlinMetadata --no-daemon --stacktrace
+      - name: Run all tests
+        run: ./gradlew composeApp:cleanAllTests composeApp:allTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
 
-      - name: Success
-        run: echo "Common code compilation completed successfully!"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            composeApp/build/reports/tests/
+            composeApp/build/test-results/
 
-  android:
+      - name: Test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: composeApp/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+
+  build-android:
     name: Build Android
     runs-on: ubuntu-latest
-    needs: [common]
+    needs: [test]
 
     steps:
       - name: Checkout code
@@ -73,21 +90,52 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Android target
-        run: ./gradlew composeApp:assembleDebug --no-daemon --stacktrace
+      - name: Build Android APK
+        run: ./gradlew composeApp:assembleDebug --stacktrace
 
-      - name: Success
-        run: echo "Android build completed successfully!"
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: composeApp/build/outputs/apk/debug/*.apk
 
-  ios:
+  build-web:
+    name: Build Web (wasmJs)
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build wasmJs distribution
+        run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
+
+      - name: Upload web distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: composeApp/build/dist/wasmJs/productionExecutable/
+
+  build-ios:
     name: Build iOS
     runs-on: macos-14
-    needs: [common]
 
     steps:
       - name: Checkout code
@@ -102,7 +150,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           architecture: 'aarch64'
-          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Set up Xcode
         run: |
@@ -110,43 +160,7 @@ jobs:
           xcodebuild -version
 
       - name: Clear Gradle cache for jansi
-        run: |
-          # Remove old jansi cache that might have wrong architecture
-          rm -rf ~/.gradle/native/jansi || true
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+        run: rm -rf ~/.gradle/native/jansi || true
 
       - name: Build iOS Framework
-        run: ./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64 --no-daemon --stacktrace
-
-      - name: Success
-        run: echo "iOS build completed successfully!"
-
-  web:
-    name: Build Web (wasmJs)
-    runs-on: ubuntu-latest
-    needs: [common]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Initialize configuration
-        uses: ./.github/actions/init-config
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: 'gradle'
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Build wasmJs browser distribution
-        run: ./gradlew composeApp:wasmJsBrowserDistribution --no-daemon --stacktrace
-
-      - name: Success
-        run: echo "Web (wasmJs) build completed successfully!"
+        run: ./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64 --stacktrace
