@@ -37,29 +37,5 @@ data class SettingsEntityData(
     val reviewReminders: Boolean = true,
     val motivationalMessages: Boolean = true,
     val dailyReminderTime: String = "18:00",
-    val minimumDueCards: Int = 5,
-    val successesToAdvance: Int = 1,
-    val forgotPenalty: Int = 2
-)
-
-data class DownloadedCollectionEntityData(
-    val id: String,
-    val targetLanguage: String,
-    val originLanguage: String,
-    val title: String,
-    val fileName: String,
-    val path: String,
-    val downloadedAt: Long = Clock.System.now().toEpochMilliseconds()
-)
-
-data class ProgressRowData(
-    val level0Count: Int = 0,
-    val level1Count: Int = 0,
-    val level2Count: Int = 0,
-    val level3Count: Int = 0,
-    val level4Count: Int = 0,
-    val level5Count: Int = 0,
-    val level6Count: Int = 0,
-    val totalWords: Int = 0,
-    val dueCards: Int = 0
+    val minimumDueCards: Int = 5
 )

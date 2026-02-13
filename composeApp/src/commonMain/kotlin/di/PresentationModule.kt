@@ -71,7 +71,6 @@ fun presentationModule() = module {
             setNotificationsEnabledUseCase = get(),
             requestNotificationPermissionUseCase = get(),
             openNotificationSettingsUseCase = get(),
-            updateReviewSettingsUseCase = get(),
             analyticsTracker = get(),
             authRepository = get(),
             notificationPermissionMonitor = get(),

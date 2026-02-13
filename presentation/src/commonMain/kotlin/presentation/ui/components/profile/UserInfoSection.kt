@@ -1,6 +1,5 @@
 package presentation.ui.components.profile
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,12 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.profile
 import org.jetbrains.compose.resources.stringResource
 import presentation.model.ProfileUserUiModel
 import theme.Theme
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.profile
-import lexicon.resources.generated.resources.profile_picture
 
 @Composable
 fun UserInfoSection(

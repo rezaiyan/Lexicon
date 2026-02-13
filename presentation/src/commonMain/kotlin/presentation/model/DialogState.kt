@@ -8,7 +8,6 @@ sealed class DialogState {
     data object ThemeSelection : DialogState()
     data object NotificationPermission : DialogState()
     data object NotificationSettings : DialogState()
-    data object ReviewSettings : DialogState()
 }
 
 

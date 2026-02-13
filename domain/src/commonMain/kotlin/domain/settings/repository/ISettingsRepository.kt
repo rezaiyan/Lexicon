@@ -31,11 +31,5 @@ interface ISettingsRepository {
     suspend fun setDailyReminderTime(time: String)
     suspend fun getMinimumDueCards(): Int
     suspend fun setMinimumDueCards(count: Int)
-    
-    // Review/Learning settings
-    fun getSuccessesToAdvance(): Flow<Int>
-    suspend fun setSuccessesToAdvance(count: Int)
-    fun getForgotPenalty(): Flow<Int>
-    suspend fun setForgotPenalty(levels: Int)
 }
 

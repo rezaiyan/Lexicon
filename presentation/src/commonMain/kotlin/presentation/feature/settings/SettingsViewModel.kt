@@ -11,7 +11,6 @@ import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
-import domain.settings.usecase.UpdateReviewSettingsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,20 +26,18 @@ import presentation.feature.settings.model.SettingsEvent
 import presentation.model.DialogState
 import presentation.model.SettingsScreenState
 import domain.settings.model.ThemeMode
-import utils.Language
 
 class SettingsViewModel(
-    private val settingsRepository: ISettingsRepository, // Keep for read-only state flows
     private val notificationRepository: INotificationRepository, // Keep for areNotificationsEnabled()
     private val setLanguageUseCase: SetLanguageUseCase,
     private val setThemeModeUseCase: SetThemeModeUseCase,
     private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase,
     private val requestNotificationPermissionUseCase: RequestNotificationPermissionUseCase,
     private val openNotificationSettingsUseCase: OpenNotificationSettingsUseCase,
-    private val updateReviewSettingsUseCase: UpdateReviewSettingsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
-    private val authRepository: IAuthRepository,
     private val notificationPermissionMonitor: NotificationPermissionMonitor,
+    settingsRepository: ISettingsRepository, // Keep for read-only state flows
+    authRepository: IAuthRepository,
     appVersionProvider: IAppVersionProvider,
 ) : ViewModel() {
 
@@ -64,8 +61,6 @@ class SettingsViewModel(
         themeMode = settingsRepository.getThemeMode(),
         notificationsEnabled = settingsRepository.getNotificationsEnabled(),
         systemNotificationsEnabled = systemNotificationsEnabled,
-        successesToAdvance = settingsRepository.getSuccessesToAdvance(),
-        forgotPenalty = settingsRepository.getForgotPenalty(),
         appVersion = flowOf(appVersionProvider.getVersion()),
         featureAccessFlow = authRepository.getFeatureAccessAsFlow()
     ).catch {
@@ -131,21 +126,6 @@ class SettingsViewModel(
             }
             SettingsEvent.RefreshNotificationPermissionStatus -> {
                 notificationPermissionMonitor.refresh()
-            }
-            is SettingsEvent.SetReviewSettings -> {
-                updateReviewSettingsUseCase(
-                    domain.settings.model.ReviewSettings(
-                        successesToAdvance = intent.successesToAdvance,
-                        forgotPenalty = intent.forgotPenalty
-                    )
-                )
-                analyticsTracker.logNonFatalError(
-                    "Review settings changed",
-                    mapOf(
-                        "successesToAdvance" to intent.successesToAdvance.toString(),
-                        "forgotPenalty" to intent.forgotPenalty.toString()
-                    )
-                )
             }
             is SettingsEvent.ShowDialog -> {
                 _dialogState.value = intent.dialogState

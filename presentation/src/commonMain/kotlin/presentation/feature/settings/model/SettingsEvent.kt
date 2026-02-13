@@ -10,7 +10,6 @@ sealed class SettingsEvent {
     data class SetNotificationsEnabled(val enabled: Boolean) : SettingsEvent()
     data object RequestNotificationPermission : SettingsEvent()
     data object RefreshNotificationPermissionStatus : SettingsEvent()
-    data class SetReviewSettings(val successesToAdvance: Int, val forgotPenalty: Int) : SettingsEvent()
     data class ShowDialog(val dialogState: DialogState) : SettingsEvent()
     data object DismissDialog : SettingsEvent()
 }

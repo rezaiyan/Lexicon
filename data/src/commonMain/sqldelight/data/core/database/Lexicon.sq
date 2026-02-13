@@ -27,9 +27,7 @@ CREATE TABLE SettingsEntity (
     reviewReminders INTEGER NOT NULL DEFAULT 1,
     motivationalMessages INTEGER NOT NULL DEFAULT 1,
     dailyReminderTime TEXT NOT NULL DEFAULT '18:00',
-    minimumDueCards INTEGER NOT NULL DEFAULT 5,
-    successesToAdvance INTEGER NOT NULL DEFAULT 1,
-    forgotPenalty INTEGER NOT NULL DEFAULT 2
+    minimumDueCards INTEGER NOT NULL DEFAULT 5
 );
 
 -- DownloadedCollectionEntity table
@@ -136,8 +134,8 @@ DELETE FROM WordEntity;
 -- Settings queries
 
 insertSettings:
-INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, lastInsightDate, cachedInsight, lastInsightDismissedTime, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, successesToAdvance, forgotPenalty)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, lastInsightDate, cachedInsight, lastInsightDismissedTime, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSettings:
 SELECT * FROM SettingsEntity WHERE id = 1;

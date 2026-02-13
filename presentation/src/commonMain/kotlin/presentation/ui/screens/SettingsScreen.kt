@@ -19,8 +19,6 @@ import presentation.ui.components.ThemeModeDialog
 import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.LanguageSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
-import presentation.ui.components.settings.ReviewSettingsCard
-import presentation.ui.components.settings.ReviewSettingsDialog
 import presentation.ui.components.settings.SubscriptionCard
 import presentation.ui.components.settings.ThemeSettingsCard
 import presentation.ui.components.settings.WordManagerCard
@@ -92,12 +90,6 @@ private fun SettingsScreenContent(
                 }
             )
 
-            ReviewSettingsCard(
-                successesToAdvance = state.successesToAdvance,
-                forgotPenalty = state.forgotPenalty,
-                onShowReviewSettingsDialog = { onEvent(SettingsEvent.ShowDialog(DialogState.ReviewSettings)) }
-            )
-
             WordManagerCard(onClick = onNavigateToWordManager)
 
             SubscriptionCard(onClick = onNavigateToSubscription)
@@ -161,18 +153,6 @@ private fun SettingsScreenContent(
             systemNotificationsEnabled = systemNotificationsEnabled,
             onNotificationsToggle = { onEvent(SettingsEvent.SetNotificationsEnabled(it)) },
             onDismiss = { onEvent(SettingsEvent.DismissDialog) }
-        )
-    }
-
-    if (dialogState is DialogState.ReviewSettings) {
-        ReviewSettingsDialog(
-            successesToAdvance = state.successesToAdvance,
-            forgotPenalty = state.forgotPenalty,
-            onDismiss = { onEvent(SettingsEvent.DismissDialog) },
-            onSettingsChanged = { successes, penalty ->
-                onEvent(SettingsEvent.SetReviewSettings(successes, penalty))
-                onEvent(SettingsEvent.DismissDialog)
-            }
         )
     }
 }

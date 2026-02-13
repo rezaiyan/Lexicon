@@ -22,8 +22,6 @@ internal object SettingsStateBuilder {
         themeMode: Flow<ThemeMode>,
         notificationsEnabled: Flow<Boolean>,
         systemNotificationsEnabled: Flow<Boolean>,
-        successesToAdvance: Flow<Int>,
-        forgotPenalty: Flow<Int>,
         appVersion: Flow<String>,
         featureAccessFlow: Flow<FeatureAccessResponse>,
     ): Flow<SettingsScreenState> {
@@ -32,8 +30,6 @@ internal object SettingsStateBuilder {
             themeMode.catch { emit(ThemeMode.AUTO) },
             notificationsEnabled.catch { emit(true) },
             systemNotificationsEnabled.catch { emit(true) },
-            successesToAdvance.catch { emit(1) },
-            forgotPenalty.catch { emit(2) },
             appVersion.catch { emit("Unknown") },
             featureAccessFlow.catch { emit(defaultFeatureAccess()) },
         ) { values: Array<Any?> ->
@@ -41,18 +37,14 @@ internal object SettingsStateBuilder {
             val mode = values[1] as ThemeMode
             val appNotifications = values[2] as Boolean
             val systemNotifications = values[3] as Boolean
-            val successes = values[4] as Int
-            val penalty = values[5] as Int
-            val version = values[6] as String
-            val featureAccess = values[7] as FeatureAccessResponse
+            val version = values[4] as String
+            val featureAccess = values[5] as FeatureAccessResponse
 
             SettingsScreenState(
                 currentLanguage = language,
                 themeMode = mode,
                 notificationsEnabled = appNotifications,
                 systemNotificationsEnabled = systemNotifications,
-                successesToAdvance = successes,
-                forgotPenalty = penalty,
                 appVersion = version,
                 isPremiumFeatureEnabled = featureAccess.userAccess.hasPremiumAccess,
             )

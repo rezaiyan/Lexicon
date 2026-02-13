@@ -21,8 +21,6 @@ data class SettingsScreenState(
     val notificationsEnabled: Boolean = true,
     val systemNotificationsEnabled: Boolean = true,
     val isPremiumFeatureEnabled: Boolean = false,
-    val successesToAdvance: Int = 1,
-    val forgotPenalty: Int = 2,
     val appVersion: String = "Loading.."
 )
 
