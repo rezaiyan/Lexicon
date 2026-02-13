@@ -86,7 +86,7 @@ kotlin {
             dependencies {
                 implementation(libs.sqldelight.web.worker.driver)
                 implementation(libs.ktor.client.js)
-                implementation("org.jetbrains.kotlinx:kotlinx-browser:0.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-browser:0.5.0")
                 implementation(npm("@cashapp/sqldelight-sqljs-worker", "2.0.2"))
                 implementation(npm("sql.js", "1.8.0"))
                 implementation(devNpm("copy-webpack-plugin", "9.1.0"))
