@@ -45,17 +45,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.consolidating
-import vokab.resources.generated.resources.edit
-import vokab.resources.generated.resources.familiar
-import vokab.resources.generated.resources.learning
-import vokab.resources.generated.resources.level_format
-import vokab.resources.generated.resources.mastered
-import vokab.resources.generated.resources.mature
-import vokab.resources.generated.resources.new
-import vokab.resources.generated.resources.unknown
-import vokab.resources.generated.resources.young
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.consolidating
+import lexicon.resources.generated.resources.edit
+import lexicon.resources.generated.resources.familiar
+import lexicon.resources.generated.resources.learning
+import lexicon.resources.generated.resources.level_format
+import lexicon.resources.generated.resources.mastered
+import lexicon.resources.generated.resources.mature
+import lexicon.resources.generated.resources.new
+import lexicon.resources.generated.resources.unknown
+import lexicon.resources.generated.resources.young
 
 @Composable
 fun FlashCard(

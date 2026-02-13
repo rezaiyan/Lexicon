@@ -40,10 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.most_popular_badge
-import vokab.resources.generated.resources.processing_ellipsis
-import vokab.resources.generated.resources.subscribe_now
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.most_popular_badge
+import lexicon.resources.generated.resources.processing_ellipsis
+import lexicon.resources.generated.resources.subscribe_now
 
 @Immutable
 data class SubscriptionPlan(

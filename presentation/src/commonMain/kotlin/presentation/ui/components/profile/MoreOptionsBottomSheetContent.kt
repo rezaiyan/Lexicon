@@ -33,11 +33,11 @@ import androidx.compose.ui.text.font.FontWeight
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.overlay.OverlayNavigator
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.delete_account
-import vokab.resources.generated.resources.logout
-import vokab.resources.generated.resources.more
-import vokab.resources.generated.resources.more_options
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.delete_account
+import lexicon.resources.generated.resources.logout
+import lexicon.resources.generated.resources.more
+import lexicon.resources.generated.resources.more_options
 
 @Composable
 fun MoreOptionsBottomSheetContent(

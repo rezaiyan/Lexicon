@@ -12,21 +12,21 @@ import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.LevelBucketCard
 import theme.AppColors
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.level_0_description
-import vokab.resources.generated.resources.level_0_fresh
-import vokab.resources.generated.resources.level_1_description
-import vokab.resources.generated.resources.level_1_learning
-import vokab.resources.generated.resources.level_2_description
-import vokab.resources.generated.resources.level_2_familiar
-import vokab.resources.generated.resources.level_3_building
-import vokab.resources.generated.resources.level_3_description
-import vokab.resources.generated.resources.level_4_almost
-import vokab.resources.generated.resources.level_4_description
-import vokab.resources.generated.resources.level_5_description
-import vokab.resources.generated.resources.level_5_strong
-import vokab.resources.generated.resources.level_6_description
-import vokab.resources.generated.resources.level_6_mastered
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.level_0_description
+import lexicon.resources.generated.resources.level_0_fresh
+import lexicon.resources.generated.resources.level_1_description
+import lexicon.resources.generated.resources.level_1_learning
+import lexicon.resources.generated.resources.level_2_description
+import lexicon.resources.generated.resources.level_2_familiar
+import lexicon.resources.generated.resources.level_3_building
+import lexicon.resources.generated.resources.level_3_description
+import lexicon.resources.generated.resources.level_4_almost
+import lexicon.resources.generated.resources.level_4_description
+import lexicon.resources.generated.resources.level_5_description
+import lexicon.resources.generated.resources.level_5_strong
+import lexicon.resources.generated.resources.level_6_description
+import lexicon.resources.generated.resources.level_6_mastered
 
 data class LevelBucketData(
     val stage: LearningStage,

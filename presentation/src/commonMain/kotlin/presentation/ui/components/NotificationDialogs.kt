@@ -22,18 +22,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.done
-import vokab.resources.generated.resources.notification_enable_notifications
-import vokab.resources.generated.resources.notification_gentle_reminders
-import vokab.resources.generated.resources.notification_maybe_later
-import vokab.resources.generated.resources.notification_missing_nudges
-import vokab.resources.generated.resources.notification_open_settings
-import vokab.resources.generated.resources.notification_permission_message
-import vokab.resources.generated.resources.notification_permission_title
-import vokab.resources.generated.resources.notification_settings_subtitle
-import vokab.resources.generated.resources.notification_settings_title
-import vokab.resources.generated.resources.notification_stay_motivated
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.done
+import lexicon.resources.generated.resources.notification_enable_notifications
+import lexicon.resources.generated.resources.notification_gentle_reminders
+import lexicon.resources.generated.resources.notification_maybe_later
+import lexicon.resources.generated.resources.notification_missing_nudges
+import lexicon.resources.generated.resources.notification_open_settings
+import lexicon.resources.generated.resources.notification_permission_message
+import lexicon.resources.generated.resources.notification_permission_title
+import lexicon.resources.generated.resources.notification_settings_subtitle
+import lexicon.resources.generated.resources.notification_settings_title
+import lexicon.resources.generated.resources.notification_stay_motivated
 
 @Composable
 fun NotificationPermissionDialog(

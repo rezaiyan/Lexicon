@@ -28,9 +28,9 @@ import expects.openUrl
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.about
-import vokab.resources.generated.resources.app_description
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.about
+import lexicon.resources.generated.resources.app_description
 
 @Composable
 fun AboutSettingsCard(appVersion: String) {

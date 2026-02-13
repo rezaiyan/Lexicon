@@ -31,18 +31,18 @@ import presentation.ui.components.LexiconColumn
 import presentation.util.shareContentAsFile
 import presentation.viewmodel.WordManagerViewModel
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.delete
-import vokab.resources.generated.resources.deleting_words_please_wait
-import vokab.resources.generated.resources.error_prefix
-import vokab.resources.generated.resources.failed_to_update_word
-import vokab.resources.generated.resources.no_words_selected
-import vokab.resources.generated.resources.no_words_to_share
-import vokab.resources.generated.resources.share_title_format
-import vokab.resources.generated.resources.word_deleted
-import vokab.resources.generated.resources.word_manager
-import vokab.resources.generated.resources.word_updated
-import vokab.resources.generated.resources.words_deleted
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.delete
+import lexicon.resources.generated.resources.deleting_words_please_wait
+import lexicon.resources.generated.resources.error_prefix
+import lexicon.resources.generated.resources.failed_to_update_word
+import lexicon.resources.generated.resources.no_words_selected
+import lexicon.resources.generated.resources.no_words_to_share
+import lexicon.resources.generated.resources.share_title_format
+import lexicon.resources.generated.resources.word_deleted
+import lexicon.resources.generated.resources.word_manager
+import lexicon.resources.generated.resources.word_updated
+import lexicon.resources.generated.resources.words_deleted
 
 @Composable
 fun WordManagerScreen(

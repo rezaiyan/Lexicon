@@ -8,10 +8,10 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.jetbrains.compose.resources.StringResource
 import presentation.model.ImportState
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.from_file
-import vokab.resources.generated.resources.from_image
-import vokab.resources.generated.resources.type_text
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.from_file
+import lexicon.resources.generated.resources.from_image
+import lexicon.resources.generated.resources.type_text
 
 @Stable
 sealed class ImportTabV2(open val title: StringResource, open val icon: ImageVector) {

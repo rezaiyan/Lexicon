@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.navigate_back
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.navigate_back
 
 /**
  * Reusable scaffold layout for Lexicon app screens

@@ -80,44 +80,44 @@ import utils.rememberCameraLauncher
 import utils.rememberImagePickerLauncher
 import utils.rememberTextFilePickerLauncher
 import utils.toImageBitmap
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.ai_powered_extraction
-import vokab.resources.generated.resources.camera
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.capture_vocab_from_image
-import vokab.resources.generated.resources.choose_file
-import vokab.resources.generated.resources.choose_from_library
-import vokab.resources.generated.resources.confirm_and_extract
-import vokab.resources.generated.resources.enter_words
-import vokab.resources.generated.resources.enter_words_manually_description
-import vokab.resources.generated.resources.extract_example_sentences
-import vokab.resources.generated.resources.extract_individual_words
-import vokab.resources.generated.resources.extraction_options
-import vokab.resources.generated.resources.failed_to_load_image
-import vokab.resources.generated.resources.format_example_1
-import vokab.resources.generated.resources.format_example_2
-import vokab.resources.generated.resources.format_example_3
-import vokab.resources.generated.resources.format_hint_comma_separated
-import vokab.resources.generated.resources.gallery
-import vokab.resources.generated.resources.import_failed_generic
-import vokab.resources.generated.resources.import_from_file
-import vokab.resources.generated.resources.import_text
-import vokab.resources.generated.resources.import_words
-import vokab.resources.generated.resources.individual_words_hint
-import vokab.resources.generated.resources.preview_selected_image
-import vokab.resources.generated.resources.processing_file
-import vokab.resources.generated.resources.processing_image_with_ai
-import vokab.resources.generated.resources.remaining_extractions
-import vokab.resources.generated.resources.review_before_processing
-import vokab.resources.generated.resources.select_at_least_one_option
-import vokab.resources.generated.resources.select_txt_file_description
-import vokab.resources.generated.resources.sentences_hint
-import vokab.resources.generated.resources.success_imported_words
-import vokab.resources.generated.resources.supported_format
-import vokab.resources.generated.resources.take_new_photo
-import vokab.resources.generated.resources.try_another_image
-import vokab.resources.generated.resources.txt_format
-import vokab.resources.generated.resources.type_or_paste_words
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.ai_powered_extraction
+import lexicon.resources.generated.resources.camera
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.capture_vocab_from_image
+import lexicon.resources.generated.resources.choose_file
+import lexicon.resources.generated.resources.choose_from_library
+import lexicon.resources.generated.resources.confirm_and_extract
+import lexicon.resources.generated.resources.enter_words
+import lexicon.resources.generated.resources.enter_words_manually_description
+import lexicon.resources.generated.resources.extract_example_sentences
+import lexicon.resources.generated.resources.extract_individual_words
+import lexicon.resources.generated.resources.extraction_options
+import lexicon.resources.generated.resources.failed_to_load_image
+import lexicon.resources.generated.resources.format_example_1
+import lexicon.resources.generated.resources.format_example_2
+import lexicon.resources.generated.resources.format_example_3
+import lexicon.resources.generated.resources.format_hint_comma_separated
+import lexicon.resources.generated.resources.gallery
+import lexicon.resources.generated.resources.import_failed_generic
+import lexicon.resources.generated.resources.import_from_file
+import lexicon.resources.generated.resources.import_text
+import lexicon.resources.generated.resources.import_words
+import lexicon.resources.generated.resources.individual_words_hint
+import lexicon.resources.generated.resources.preview_selected_image
+import lexicon.resources.generated.resources.processing_file
+import lexicon.resources.generated.resources.processing_image_with_ai
+import lexicon.resources.generated.resources.remaining_extractions
+import lexicon.resources.generated.resources.review_before_processing
+import lexicon.resources.generated.resources.select_at_least_one_option
+import lexicon.resources.generated.resources.select_txt_file_description
+import lexicon.resources.generated.resources.sentences_hint
+import lexicon.resources.generated.resources.success_imported_words
+import lexicon.resources.generated.resources.supported_format
+import lexicon.resources.generated.resources.take_new_photo
+import lexicon.resources.generated.resources.try_another_image
+import lexicon.resources.generated.resources.txt_format
+import lexicon.resources.generated.resources.type_or_paste_words
 
 @Composable
 fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
@@ -855,10 +855,6 @@ private fun AiExtractionInfoCard() {
                     }
                 }
             }
-
-        }
-    }
-}
 
 @Composable
 private fun ExtractionOptionsCard(

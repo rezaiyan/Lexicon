@@ -53,7 +53,7 @@ data class ButtonState(
 )
 
 @Composable
-fun VokabDialogContent(
+fun LexiconDialogContent(
     iconState: DialogIconState = DialogIconState.None,
     title: String? = null,
     message: String? = null,
@@ -214,7 +214,7 @@ fun VokabDialogContent(
 }
 
 @Composable
-fun VokabDialogContent(
+fun LexiconDialogContent(
     icon: ImageVector? = null,
     title: String? = null,
     message: String? = null,
@@ -226,7 +226,7 @@ fun VokabDialogContent(
     primaryButtonType: ButtonType = ButtonType.Default,
     iconTint: Color? = null
 ) {
-    VokabDialogContent(
+    LexiconDialogContent(
         iconState = when {
             icon != null -> DialogIconState.Icon(icon, iconTint)
             else -> DialogIconState.None

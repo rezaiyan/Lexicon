@@ -22,9 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import domain.streak.model.StreakData
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.best_streak
-import vokab.resources.generated.resources.day_streak
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.best_streak
+import lexicon.resources.generated.resources.day_streak
 
 @Composable
 fun StreakSection(

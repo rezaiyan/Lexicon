@@ -35,15 +35,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.feature_advanced_analytics
-import vokab.resources.generated.resources.feature_ai_image_extraction
-import vokab.resources.generated.resources.feature_basic_vocabulary_lists
-import vokab.resources.generated.resources.feature_export_backup
-import vokab.resources.generated.resources.feature_unlimited_words
-import vokab.resources.generated.resources.features
-import vokab.resources.generated.resources.free_label
-import vokab.resources.generated.resources.premium_label
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.feature_advanced_analytics
+import lexicon.resources.generated.resources.feature_ai_image_extraction
+import lexicon.resources.generated.resources.feature_basic_vocabulary_lists
+import lexicon.resources.generated.resources.feature_export_backup
+import lexicon.resources.generated.resources.feature_unlimited_words
+import lexicon.resources.generated.resources.features
+import lexicon.resources.generated.resources.free_label
+import lexicon.resources.generated.resources.premium_label
 
 @Composable
 fun ComparisonTable() {

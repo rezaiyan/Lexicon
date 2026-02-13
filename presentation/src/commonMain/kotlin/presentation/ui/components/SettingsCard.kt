@@ -23,8 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.open
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.open
 
 @Composable
 fun SettingsCard(

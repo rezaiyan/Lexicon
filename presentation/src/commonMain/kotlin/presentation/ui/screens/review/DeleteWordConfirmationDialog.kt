@@ -12,10 +12,10 @@ import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.BasicAlertDialog
 import presentation.ui.components.ButtonType
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.delete
-import vokab.resources.generated.resources.delete_words_title
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.delete
+import lexicon.resources.generated.resources.delete_words_title
 
 @Composable
 fun DeleteWordConfirmationDialog(

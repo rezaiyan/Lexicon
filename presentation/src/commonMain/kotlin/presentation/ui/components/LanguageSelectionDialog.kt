@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import utils.Language
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.translation_language
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.translation_language
 
 @Composable
 fun LanguageSelectionDialog(

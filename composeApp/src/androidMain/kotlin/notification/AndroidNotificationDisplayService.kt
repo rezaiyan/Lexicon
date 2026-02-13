@@ -59,7 +59,7 @@ class AndroidNotificationDisplayService(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Vokab Notifications",
+                "Lexicon Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Vocabulary learning reminders and updates"

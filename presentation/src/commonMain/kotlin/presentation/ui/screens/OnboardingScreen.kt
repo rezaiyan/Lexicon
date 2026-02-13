@@ -67,21 +67,21 @@ import presentation.model.OnboardingUiState
 import theme.AppDimensions
 import theme.AppSpacing
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.flag_gb
-import vokab.resources.generated.resources.flag_de
-import vokab.resources.generated.resources.flag_fr
-import vokab.resources.generated.resources.flag_es
-import vokab.resources.generated.resources.flag_it
-import vokab.resources.generated.resources.flag_pt
-import vokab.resources.generated.resources.flag_nl
-import vokab.resources.generated.resources.flag_ru
-import vokab.resources.generated.resources.flag_cn
-import vokab.resources.generated.resources.flag_jp
-import vokab.resources.generated.resources.flag_kr
-import vokab.resources.generated.resources.flag_sa
-import vokab.resources.generated.resources.flag_tr
-import vokab.resources.generated.resources.flag_ir
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.flag_gb
+import lexicon.resources.generated.resources.flag_de
+import lexicon.resources.generated.resources.flag_fr
+import lexicon.resources.generated.resources.flag_es
+import lexicon.resources.generated.resources.flag_it
+import lexicon.resources.generated.resources.flag_pt
+import lexicon.resources.generated.resources.flag_nl
+import lexicon.resources.generated.resources.flag_ru
+import lexicon.resources.generated.resources.flag_cn
+import lexicon.resources.generated.resources.flag_jp
+import lexicon.resources.generated.resources.flag_kr
+import lexicon.resources.generated.resources.flag_sa
+import lexicon.resources.generated.resources.flag_tr
+import lexicon.resources.generated.resources.flag_ir
 
 private const val OnboardingTransitionDuration = 300
 private const val OnboardingDisplayTotalSteps = 4

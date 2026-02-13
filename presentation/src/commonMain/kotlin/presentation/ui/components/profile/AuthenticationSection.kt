@@ -32,10 +32,10 @@ import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.AppleSignInButton
 import presentation.ui.components.GoogleSignInContainer
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.offline_usage_info
-import vokab.resources.generated.resources.sign_in_description
-import vokab.resources.generated.resources.sign_in_to_vokab
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.offline_usage_info
+import lexicon.resources.generated.resources.sign_in_description
+import lexicon.resources.generated.resources.sign_in_to_vokab
 
 private enum class SignInProvider {
     GOOGLE,

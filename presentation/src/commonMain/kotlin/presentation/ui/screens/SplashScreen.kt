@@ -36,9 +36,9 @@ import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.feature.auth.AuthViewModel
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.app_name
-import vokab.resources.generated.resources.app_tagline
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.app_name
+import lexicon.resources.generated.resources.app_tagline
 
 /**
  * Splash Screen - Self-contained

@@ -8,12 +8,12 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.greeting_afternoon
-import vokab.resources.generated.resources.greeting_evening
-import vokab.resources.generated.resources.greeting_midnight
-import vokab.resources.generated.resources.greeting_morning
-import vokab.resources.generated.resources.greeting_night
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.greeting_afternoon
+import lexicon.resources.generated.resources.greeting_evening
+import lexicon.resources.generated.resources.greeting_midnight
+import lexicon.resources.generated.resources.greeting_morning
+import lexicon.resources.generated.resources.greeting_night
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 

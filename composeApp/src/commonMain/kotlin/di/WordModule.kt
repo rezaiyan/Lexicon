@@ -2,10 +2,7 @@ package di
 
 import data.ai.remote.AiRemoteDataSource
 import data.ai.repository.AiRepositoryImpl
-import data.collection.remote.CollectionRemoteDataSource
-import data.collection.repository.CollectionRepositoryImpl
 import data.core.database.LexiconQueries
-import domain.collection.repository.ICollectionRepository
 import data.word.local.IWordLocalDataSource
 import data.word.local.WordLocalDataSource
 import data.word.remote.WordRemoteDataSource
@@ -28,7 +25,6 @@ import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ImportViaFileUseCase
-import domain.word.usecase.ImportVocabularyCollectionUseCase
 import domain.word.usecase.ImportWordsUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
@@ -49,8 +45,6 @@ fun wordModule() = module {
     // Remote Data Sources
     single { WordRemoteDataSource(apiClient = get()) }
     single { AiRemoteDataSource(apiClient = get()) }
-    single { CollectionRemoteDataSource(apiClient = get()) }
-    single<ICollectionRepository> { CollectionRepositoryImpl(collectionRemoteDataSource = get()) }
 
     // Repositories
     single<IWordRepository> {
@@ -87,5 +81,4 @@ fun wordModule() = module {
     singleOf(::DeleteWordsUseCase)
     singleOf(::UpdateWordUseCase)
     singleOf(::ExportWordsUseCase)
-    singleOf(::ImportVocabularyCollectionUseCase)
 }

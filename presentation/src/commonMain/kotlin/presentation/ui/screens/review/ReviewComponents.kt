@@ -46,18 +46,18 @@ import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.FlashCard
 import presentation.ui.components.ReviewButton
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.advance
-import vokab.resources.generated.resources.back
-import vokab.resources.generated.resources.browse_your_words
-import vokab.resources.generated.resources.close
-import vokab.resources.generated.resources.did_you_remember
-import vokab.resources.generated.resources.forgot
-import vokab.resources.generated.resources.next
-import vokab.resources.generated.resources.no_words_to_review
-import vokab.resources.generated.resources.remembered
-import vokab.resources.generated.resources.restart
-import vokab.resources.generated.resources.retry
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.advance
+import lexicon.resources.generated.resources.back
+import lexicon.resources.generated.resources.browse_your_words
+import lexicon.resources.generated.resources.close
+import lexicon.resources.generated.resources.did_you_remember
+import lexicon.resources.generated.resources.forgot
+import lexicon.resources.generated.resources.next
+import lexicon.resources.generated.resources.no_words_to_review
+import lexicon.resources.generated.resources.remembered
+import lexicon.resources.generated.resources.restart
+import lexicon.resources.generated.resources.retry
 
 /**
  * Header component for review screen

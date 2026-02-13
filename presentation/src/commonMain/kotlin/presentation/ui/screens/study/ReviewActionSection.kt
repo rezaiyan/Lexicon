@@ -14,8 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.start_review
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.start_review
 
 @Composable
 fun ReviewActionSection(

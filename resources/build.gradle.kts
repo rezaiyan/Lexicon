@@ -67,5 +67,5 @@ android {
 
 compose.resources {
     publicResClass = true
-    packageOfResClass = "vokab.resources.generated.resources"
+    packageOfResClass = "lexicon.resources.generated.resources"
 }

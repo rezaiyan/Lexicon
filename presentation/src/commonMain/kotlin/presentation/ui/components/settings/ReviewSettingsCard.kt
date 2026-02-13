@@ -5,9 +5,9 @@ import androidx.compose.material.icons.filled.Rule
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.SettingsCard
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.learning_mode
-import vokab.resources.generated.resources.learning_mode_settings
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.learning_mode
+import lexicon.resources.generated.resources.learning_mode_settings
 
 @Composable
 fun ReviewSettingsCard(

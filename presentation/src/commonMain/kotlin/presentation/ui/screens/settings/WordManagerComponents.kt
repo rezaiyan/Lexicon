@@ -51,18 +51,18 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import presentation.model.WordManagerScreenState
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.deselect_all
-import vokab.resources.generated.resources.edit
-import vokab.resources.generated.resources.empty_library
-import vokab.resources.generated.resources.error
-import vokab.resources.generated.resources.loading_words
-import vokab.resources.generated.resources.no_results_found
-import vokab.resources.generated.resources.search_words
-import vokab.resources.generated.resources.select_all
-import vokab.resources.generated.resources.share
-import vokab.resources.generated.resources.start_by_importing
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.deselect_all
+import lexicon.resources.generated.resources.edit
+import lexicon.resources.generated.resources.empty_library
+import lexicon.resources.generated.resources.error
+import lexicon.resources.generated.resources.loading_words
+import lexicon.resources.generated.resources.no_results_found
+import lexicon.resources.generated.resources.search_words
+import lexicon.resources.generated.resources.select_all
+import lexicon.resources.generated.resources.share
+import lexicon.resources.generated.resources.start_by_importing
 
 @Composable
 internal fun WordListContent(

@@ -5,19 +5,19 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.ButtonType
-import presentation.ui.components.VokabDialogContent
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.logout
-import vokab.resources.generated.resources.logout_message
-import vokab.resources.generated.resources.logout_title
+import presentation.ui.components.LexiconDialogContent
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.logout
+import lexicon.resources.generated.resources.logout_message
+import lexicon.resources.generated.resources.logout_title
 
 @Composable
 fun LogoutDialogContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    VokabDialogContent(
+    LexiconDialogContent(
         icon = Icons.AutoMirrored.Filled.Logout,
         title = stringResource(Res.string.logout_title),
         message = stringResource(Res.string.logout_message),

@@ -71,7 +71,6 @@ import presentation.model.UiState
 import presentation.ui.components.AnimatedNavIcon
 import presentation.ui.overlay.OverlayHostContainer
 import presentation.ui.screens.AuthGateScreen
-import presentation.ui.screens.CollectionsScreen
 import presentation.ui.screens.OnboardingScreen
 import presentation.ui.screens.ProfileScreen
 import presentation.ui.screens.SettingsScreen
@@ -85,16 +84,16 @@ import presentation.viewmodel.AppNavigationViewModel
 import presentation.viewmodel.VocabularyViewModel
 import theme.AppColors
 import theme.LexiconTheme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.import_failed_generic
-import vokab.resources.generated.resources.please_login_for_ai
-import vokab.resources.generated.resources.profile
-import vokab.resources.generated.resources.review_complete
-import vokab.resources.generated.resources.review_complete_message
-import vokab.resources.generated.resources.settings
-import vokab.resources.generated.resources.study
-import vokab.resources.generated.resources.success_imported_words
-import vokab.resources.generated.resources.word_deleted
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.import_failed_generic
+import lexicon.resources.generated.resources.please_login_for_ai
+import lexicon.resources.generated.resources.profile
+import lexicon.resources.generated.resources.review_complete
+import lexicon.resources.generated.resources.review_complete_message
+import lexicon.resources.generated.resources.settings
+import lexicon.resources.generated.resources.study
+import lexicon.resources.generated.resources.success_imported_words
+import lexicon.resources.generated.resources.word_deleted
 
 val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {
     error("No SnackbarHostState provided")
@@ -404,9 +403,6 @@ private fun NavigationGraph(
                 onNavigateToWordManager = {
                     navController.navigate(TabDestination.WordManager)
                 },
-                onNavigateToCollection = {
-                    navController.navigate(TabDestination.Collections)
-                },
                 onNavigateToSubscription = {
                     navController.navigate(TabDestination.Subscription)
                 }
@@ -415,12 +411,6 @@ private fun NavigationGraph(
 
         composable<TabDestination.WordManager> {
             WordManagerScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
-
-        composable<TabDestination.Collections> {
-            CollectionsScreen(
                 onNavigateBack = { navController.navigateUp() }
             )
         }

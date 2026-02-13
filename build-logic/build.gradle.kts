@@ -15,7 +15,7 @@ dependencies {
 gradlePlugin {
     plugins {
         register("composeAppConvention") {
-            id = "vokab.compose-app"
+            id = "lexicon.compose-app"
             implementationClass = "com.vokab.gradle.ComposeAppConventionPlugin"
         }
     }

@@ -31,19 +31,19 @@ import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.BasicAlertDialog
 import presentation.ui.components.ButtonType
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.delete
-import vokab.resources.generated.resources.delete_words_message
-import vokab.resources.generated.resources.delete_words_title
-import vokab.resources.generated.resources.deleting
-import vokab.resources.generated.resources.deleting_words
-import vokab.resources.generated.resources.description_optional
-import vokab.resources.generated.resources.edit_word
-import vokab.resources.generated.resources.original_word
-import vokab.resources.generated.resources.please_wait
-import vokab.resources.generated.resources.save
-import vokab.resources.generated.resources.translation_label
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.delete
+import lexicon.resources.generated.resources.delete_words_message
+import lexicon.resources.generated.resources.delete_words_title
+import lexicon.resources.generated.resources.deleting
+import lexicon.resources.generated.resources.deleting_words
+import lexicon.resources.generated.resources.description_optional
+import lexicon.resources.generated.resources.edit_word
+import lexicon.resources.generated.resources.original_word
+import lexicon.resources.generated.resources.please_wait
+import lexicon.resources.generated.resources.save
+import lexicon.resources.generated.resources.translation_label
 
 @Composable
 internal fun EditWordDialog(

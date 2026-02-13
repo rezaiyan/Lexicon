@@ -10,9 +10,9 @@ import domain.subscription.ISubscriptionManager
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.ui.components.SettingsCard
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.subscription
-import vokab.resources.generated.resources.upgrade_to_premium
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.subscription
+import lexicon.resources.generated.resources.upgrade_to_premium
 
 @Composable
 fun SubscriptionCard(

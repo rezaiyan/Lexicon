@@ -34,10 +34,10 @@ import presentation.ui.screens.review.ReviewBottomSheetContent
 import presentation.ui.screens.study.LearningStagesSection
 import presentation.ui.screens.study.StatsSection
 import presentation.utils.getTimeBasedGreeting
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.import_words
-import vokab.resources.generated.resources.review_due_cards
-import vokab.resources.generated.resources.stage_words_string
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.import_words
+import lexicon.resources.generated.resources.review_due_cards
+import lexicon.resources.generated.resources.stage_words_string
 
 @Composable
 fun StudyScreen() {

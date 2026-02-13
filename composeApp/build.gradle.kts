@@ -10,7 +10,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.googleServices)
     alias(libs.plugins.firebaseCrashlytics)
-    id("vokab.compose-app")
+    id("lexicon.compose-app")
 }
 
 val localProperties = Properties().apply {

@@ -31,17 +31,17 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.ai_book
-import vokab.resources.generated.resources.everything_you_get
-import vokab.resources.generated.resources.feature_ai_extraction
-import vokab.resources.generated.resources.feature_ai_extraction_desc
-import vokab.resources.generated.resources.feature_export_data
-import vokab.resources.generated.resources.feature_export_data_desc
-import vokab.resources.generated.resources.feature_priority_support
-import vokab.resources.generated.resources.feature_priority_support_desc
-import vokab.resources.generated.resources.feature_unlimited_words
-import vokab.resources.generated.resources.feature_unlimited_words_desc
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.ai_book
+import lexicon.resources.generated.resources.everything_you_get
+import lexicon.resources.generated.resources.feature_ai_extraction
+import lexicon.resources.generated.resources.feature_ai_extraction_desc
+import lexicon.resources.generated.resources.feature_export_data
+import lexicon.resources.generated.resources.feature_export_data_desc
+import lexicon.resources.generated.resources.feature_priority_support
+import lexicon.resources.generated.resources.feature_priority_support_desc
+import lexicon.resources.generated.resources.feature_unlimited_words
+import lexicon.resources.generated.resources.feature_unlimited_words_desc
 
 sealed class FeatureIcon {
     data class Vector(val imageVector: ImageVector) : FeatureIcon()

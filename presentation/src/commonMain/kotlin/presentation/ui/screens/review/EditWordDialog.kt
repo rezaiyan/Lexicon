@@ -23,14 +23,14 @@ import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.BasicAlertDialog
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.delete
-import vokab.resources.generated.resources.description_optional
-import vokab.resources.generated.resources.edit_word
-import vokab.resources.generated.resources.original_word
-import vokab.resources.generated.resources.save
-import vokab.resources.generated.resources.translation_label
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.delete
+import lexicon.resources.generated.resources.description_optional
+import lexicon.resources.generated.resources.edit_word
+import lexicon.resources.generated.resources.original_word
+import lexicon.resources.generated.resources.save
+import lexicon.resources.generated.resources.translation_label
 
 @Composable
 fun EditWordDialog(

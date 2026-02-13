@@ -30,10 +30,10 @@ import presentation.ui.screens.subscription.SubscriptionPlan
 import theme.AppColors
 import theme.Theme
 import theme.LexiconTheme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cancel_anytime_prices_in_usd
-import vokab.resources.generated.resources.restore_purchases
-import vokab.resources.generated.resources.subscription_terms
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel_anytime_prices_in_usd
+import lexicon.resources.generated.resources.restore_purchases
+import lexicon.resources.generated.resources.subscription_terms
 
 
 @Preview(showBackground = true)

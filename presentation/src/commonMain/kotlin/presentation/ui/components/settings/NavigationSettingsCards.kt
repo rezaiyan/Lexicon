@@ -6,11 +6,11 @@ import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.SettingsCard
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.collections
-import vokab.resources.generated.resources.collections_subtitle
-import vokab.resources.generated.resources.word_manager
-import vokab.resources.generated.resources.word_manager_subtitle
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.collections
+import lexicon.resources.generated.resources.collections_subtitle
+import lexicon.resources.generated.resources.word_manager
+import lexicon.resources.generated.resources.word_manager_subtitle
 
 @Composable
 fun WordManagerCard(onClick: () -> Unit) {

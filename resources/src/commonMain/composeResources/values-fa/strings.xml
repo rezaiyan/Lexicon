@@ -2,7 +2,7 @@
     <!-- App Info -->
     <string name="app_name">LEXICON</string>
     <string name="app_tagline">استاد واژگان خود شوید</string>
-    <string name="app_description">Vokab - برنامه یادگیری واژگان</string>
+    <string name="app_description">Lexicon - برنامه یادگیری واژگان</string>
     <string name="version">نسخه %1$d</string>
     
     <!-- Time-based Greetings -->
@@ -38,9 +38,9 @@
     <string name="delete_account_message">آیا مطمئنید که می‌خواهید حساب خود را حذف کنید؟ این عمل قابل بازگشت نیست. تمام اطلاعات شما به طور دائمی حذف خواهد شد.</string>
     <string name="delete_account_confirm">حذف</string>
     <string name="profile_picture">عکس پروفایل</string>
-    <string name="sign_in_to_vokab">ورود به Vokab</string>
+    <string name="sign_in_to_vokab">ورود به Lexicon</string>
     <string name="sign_in_description">وارد شوید تا ویژگی‌های مبتنی بر هوش مصنوعی را باز کنید:\n• استخراج واژگان از تصاویر\n• دریافت بینش‌های روزانه</string>
-    <string name="offline_usage_info">می‌توانید Vokab را بدون ورود به سیستم آفلاین استفاده کنید، اما ویژگی‌های هوش مصنوعی نیاز به حساب دارند.</string>
+    <string name="offline_usage_info">می‌توانید Lexicon را بدون ورود به سیستم آفلاین استفاده کنید، اما ویژگی‌های هوش مصنوعی نیاز به حساب دارند.</string>
     <string name="premium_member">عضو پریمیوم</string>
     <string name="trial_active">آزمایش فعال</string>
     <string name="free_plan">پلن رایگان</string>
@@ -280,7 +280,7 @@
     <string name="image_import_failed_generic">ورود تصویر ناموفق بود</string>
     
     <!-- Share/Export -->
-    <string name="vokab_export_filename">vokab_words_%1$d.txt</string>
+    <string name="vokab_export_filename">lexicon_words_%1$d.txt</string>
     
     <!-- Image Preview -->
     <string name="preview_selected_image">پیش‌نمایش تصویر انتخابی</string>
@@ -353,7 +353,7 @@
     <string name="feature_ad_free_desc">بدون حواس‌پرتی روی یادگیری تمرکز کنید!</string>
     <string name="feature_basic_vocabulary_lists">فهرست‌های واژگان پایه</string>
     <string name="features">ویژگی‌ها</string>
-    <string name="vokab_pro">Vokab Pro</string>
+    <string name="vokab_pro">Lexicon Pro</string>
     <string name="subscription_active">فعال</string>
     <string name="manage_subscription">مدیریت اشتراک</string>
     <string name="cancel_subscription">لغو اشتراک</string>

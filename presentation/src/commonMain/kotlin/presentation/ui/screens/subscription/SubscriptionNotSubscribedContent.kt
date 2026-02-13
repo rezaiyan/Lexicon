@@ -21,12 +21,12 @@ import expects.openUrl
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.billing_period_annual
-import vokab.resources.generated.resources.billing_period_monthly
-import vokab.resources.generated.resources.privacy_policy
-import vokab.resources.generated.resources.restore_purchases
-import vokab.resources.generated.resources.terms_of_use
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.billing_period_annual
+import lexicon.resources.generated.resources.billing_period_monthly
+import lexicon.resources.generated.resources.privacy_policy
+import lexicon.resources.generated.resources.restore_purchases
+import lexicon.resources.generated.resources.terms_of_use
 
 @Composable
 fun SubscriptionNotSubscribedContent(

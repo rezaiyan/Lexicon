@@ -24,20 +24,20 @@ import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.BasicAlertDialog
 import presentation.ui.components.ButtonState
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.apply_button
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.choose_learning_pace
-import vokab.resources.generated.resources.learning_mode
-import vokab.resources.generated.resources.mode_balanced
-import vokab.resources.generated.resources.mode_balanced_description
-import vokab.resources.generated.resources.mode_balanced_subtitle
-import vokab.resources.generated.resources.mode_easy
-import vokab.resources.generated.resources.mode_easy_description
-import vokab.resources.generated.resources.mode_easy_subtitle
-import vokab.resources.generated.resources.mode_rigorous
-import vokab.resources.generated.resources.mode_rigorous_description
-import vokab.resources.generated.resources.mode_rigorous_subtitle
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.apply_button
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.choose_learning_pace
+import lexicon.resources.generated.resources.learning_mode
+import lexicon.resources.generated.resources.mode_balanced
+import lexicon.resources.generated.resources.mode_balanced_description
+import lexicon.resources.generated.resources.mode_balanced_subtitle
+import lexicon.resources.generated.resources.mode_easy
+import lexicon.resources.generated.resources.mode_easy_description
+import lexicon.resources.generated.resources.mode_easy_subtitle
+import lexicon.resources.generated.resources.mode_rigorous
+import lexicon.resources.generated.resources.mode_rigorous_description
+import lexicon.resources.generated.resources.mode_rigorous_subtitle
 
 @Composable
 internal fun ReviewSettingsDialog(

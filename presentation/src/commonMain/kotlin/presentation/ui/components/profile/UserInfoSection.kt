@@ -25,9 +25,9 @@ import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 import presentation.model.ProfileUserUiModel
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.profile
-import vokab.resources.generated.resources.profile_picture
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.profile
+import lexicon.resources.generated.resources.profile_picture
 
 @Composable
 fun UserInfoSection(

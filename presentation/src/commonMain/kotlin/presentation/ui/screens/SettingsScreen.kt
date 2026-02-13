@@ -17,7 +17,6 @@ import presentation.ui.components.NotificationPermissionDialog
 import presentation.ui.components.NotificationSettingsDialog
 import presentation.ui.components.ThemeModeDialog
 import presentation.ui.components.settings.AboutSettingsCard
-import presentation.ui.components.settings.CollectionsCard
 import presentation.ui.components.settings.LanguageSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
 import presentation.ui.components.settings.ReviewSettingsCard
@@ -28,13 +27,12 @@ import presentation.ui.components.settings.WordManagerCard
 import presentation.ui.permissions.rememberNotificationPermissionRequester
 import presentation.ui.permissions.wasNotificationPermissionDenied
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.settings
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.settings
 
 @Composable
 fun SettingsScreen(
     onNavigateToWordManager: () -> Unit,
-    onNavigateToCollection: () -> Unit,
     onNavigateToSubscription: () -> Unit = {},
 ) {
     val settingsViewModel = koinViewModel<SettingsViewModel>()
@@ -46,7 +44,6 @@ fun SettingsScreen(
         dialogState = dialogState,
         onEvent = settingsViewModel::onEvent,
         onNavigateToWordManager = onNavigateToWordManager,
-        onNavigateToCollection = onNavigateToCollection,
         onNavigateToSubscription = onNavigateToSubscription,
     )
 }
@@ -57,7 +54,6 @@ private fun SettingsScreenContent(
     dialogState: DialogState,
     onEvent: (SettingsEvent) -> Unit,
     onNavigateToWordManager: () -> Unit,
-    onNavigateToCollection: () -> Unit,
     onNavigateToSubscription: () -> Unit,
 ) {
     val currentLanguage = state.currentLanguage
@@ -103,9 +99,6 @@ private fun SettingsScreenContent(
             )
 
             WordManagerCard(onClick = onNavigateToWordManager)
-            if (state.isPremiumFeatureEnabled) {
-                CollectionsCard(onClick = onNavigateToCollection)
-            }
 
             SubscriptionCard(onClick = onNavigateToSubscription)
 

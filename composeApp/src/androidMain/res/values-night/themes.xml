@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Splash screen theme for dark mode -->
-    <style name="Theme.Vokab.Starting" parent="Theme.SplashScreen">
+    <style name="Theme.Lexicon.Starting" parent="Theme.SplashScreen">
         <!-- Splash screen background color (dark) -->
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         
@@ -15,7 +15,7 @@
         <item name="windowSplashScreenAnimationDuration">0</item>
         
         <!-- Theme to use after splash screen -->
-        <item name="postSplashScreenTheme">@style/Theme.Vokab</item>
+        <item name="postSplashScreenTheme">@style/Theme.Lexicon</item>
     </style>
 </resources>
 

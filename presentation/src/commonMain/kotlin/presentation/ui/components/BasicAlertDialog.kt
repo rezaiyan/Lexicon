@@ -44,7 +44,7 @@ fun BasicAlertDialog(
             modifier = Modifier.clip(shape)
         ) {
             Column(Modifier.padding(24.dp)) {
-                VokabDialogContent(
+                LexiconDialogContent(
                     iconState = iconState,
                     title = title,
                     message = message,

@@ -11,8 +11,8 @@ import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.learning_stages
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.learning_stages
 
 @Composable
 fun LearningStagesSection(

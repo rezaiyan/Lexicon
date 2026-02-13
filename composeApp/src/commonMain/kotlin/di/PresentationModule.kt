@@ -7,7 +7,6 @@ import domain.streak.manager.IStreakManager
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import presentation.feature.auth.AuthViewModel
-import presentation.feature.collection.VocabularyCollectionsViewModel
 import presentation.feature.profile.ProfileViewModel
 import presentation.feature.settings.NotificationPermissionMonitor
 import presentation.feature.settings.SettingsViewModel
@@ -129,13 +128,6 @@ fun presentationModule() = module {
         )
     }
 
-    viewModel {
-        VocabularyCollectionsViewModel(
-            collectionRepository = get(),
-            importVocabularyCollectionUseCase = get(),
-            importWordsUseCase = get()
-        )
-    }
 
     viewModel {
         ProfileViewModel(

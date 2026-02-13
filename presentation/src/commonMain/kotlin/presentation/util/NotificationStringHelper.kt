@@ -4,17 +4,17 @@ package presentation.util
 
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.StringResource
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.notification_message_few_words
-import vokab.resources.generated.resources.notification_message_large_session
-import vokab.resources.generated.resources.notification_message_many_words
-import vokab.resources.generated.resources.notification_message_one_word
-import vokab.resources.generated.resources.notification_message_several_words
-import vokab.resources.generated.resources.notification_message_very_large
-import vokab.resources.generated.resources.notification_title_daily
-import vokab.resources.generated.resources.notification_title_few_words
-import vokab.resources.generated.resources.notification_title_many_words
-import vokab.resources.generated.resources.notification_title_one_word
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.notification_message_few_words
+import lexicon.resources.generated.resources.notification_message_large_session
+import lexicon.resources.generated.resources.notification_message_many_words
+import lexicon.resources.generated.resources.notification_message_one_word
+import lexicon.resources.generated.resources.notification_message_several_words
+import lexicon.resources.generated.resources.notification_message_very_large
+import lexicon.resources.generated.resources.notification_title_daily
+import lexicon.resources.generated.resources.notification_title_few_words
+import lexicon.resources.generated.resources.notification_title_many_words
+import lexicon.resources.generated.resources.notification_title_one_word
 
 /**
  * Helper object to select appropriate notification string resources

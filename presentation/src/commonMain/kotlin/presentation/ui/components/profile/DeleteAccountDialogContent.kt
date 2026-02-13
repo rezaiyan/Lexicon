@@ -16,24 +16,24 @@ import presentation.ui.components.ButtonState
 import presentation.ui.components.ButtonType
 import presentation.ui.components.DialogIconState
 import presentation.ui.components.DialogProgressState
-import presentation.ui.components.VokabDialogContent
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cancel
-import vokab.resources.generated.resources.delete_account_cooling_period_cancel
-import vokab.resources.generated.resources.delete_account_cooling_period_message
-import vokab.resources.generated.resources.delete_account_cooling_period_title
-import vokab.resources.generated.resources.delete_account_hidden_continue
-import vokab.resources.generated.resources.delete_account_hidden_message
-import vokab.resources.generated.resources.delete_account_hidden_title
-import vokab.resources.generated.resources.proceed_to_final_confirmation
-import vokab.resources.generated.resources.ready_to_proceed_deletion
+import presentation.ui.components.LexiconDialogContent
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.delete_account_cooling_period_cancel
+import lexicon.resources.generated.resources.delete_account_cooling_period_message
+import lexicon.resources.generated.resources.delete_account_cooling_period_title
+import lexicon.resources.generated.resources.delete_account_hidden_continue
+import lexicon.resources.generated.resources.delete_account_hidden_message
+import lexicon.resources.generated.resources.delete_account_hidden_title
+import lexicon.resources.generated.resources.proceed_to_final_confirmation
+import lexicon.resources.generated.resources.ready_to_proceed_deletion
 
 @Composable
 fun DeleteAccountHiddenDialogContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    VokabDialogContent(
+    LexiconDialogContent(
         icon = Icons.Default.Delete,
         iconTint = MaterialTheme.colorScheme.error,
         title = stringResource(Res.string.delete_account_hidden_title),
@@ -66,7 +66,7 @@ fun DeleteAccountCoolingDialogContent(
         stringResource(Res.string.ready_to_proceed_deletion)
     }
     
-    VokabDialogContent(
+    LexiconDialogContent(
         iconState = DialogIconState.Icon(Icons.Default.Timer),
         title = stringResource(Res.string.delete_account_cooling_period_title),
         message = coolingPeriodMessage,

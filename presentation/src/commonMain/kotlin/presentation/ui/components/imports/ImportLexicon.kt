@@ -1,11 +1,11 @@
 package presentation.ui.components.imports
 
-interface ImportVokab {
+interface ImportLexicon {
     fun onSuccess()
     fun onFailure()
 }
 
-class TextImport: ImportVokab{
+class TextImport: ImportLexicon{
     override fun onSuccess() {
         TODO("Not yet implemented")
     }
@@ -15,7 +15,7 @@ class TextImport: ImportVokab{
     }
 
 }
-class FileImport: ImportVokab {
+class FileImport: ImportLexicon {
     override fun onSuccess() {
         TODO("Not yet implemented")
     }
@@ -26,7 +26,7 @@ class FileImport: ImportVokab {
 
 }
 
-class ImageImport: ImportVokab {
+class ImageImport: ImportLexicon {
     override fun onSuccess() {
         TODO("Not yet implemented")
     }

@@ -6,11 +6,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.SettingsCard
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.notification_disabled
-import vokab.resources.generated.resources.notification_enabled
-import vokab.resources.generated.resources.notification_permission_required
-import vokab.resources.generated.resources.notifications
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.notification_disabled
+import lexicon.resources.generated.resources.notification_enabled
+import lexicon.resources.generated.resources.notification_permission_required
+import lexicon.resources.generated.resources.notifications
 
 @Composable
 fun NotificationSettingsCard(

@@ -20,8 +20,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.no_words_yet
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.no_words_yet
 
 @Composable
 fun LevelBucketCard(

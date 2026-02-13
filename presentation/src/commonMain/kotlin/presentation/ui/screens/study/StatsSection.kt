@@ -16,9 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import domain.word.model.ProgressStats
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.cards_due_for_review
-import vokab.resources.generated.resources.total_words
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cards_due_for_review
+import lexicon.resources.generated.resources.total_words
 
 @Composable
 fun StatsSection(

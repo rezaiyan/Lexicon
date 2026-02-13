@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Vokab is a Kotlin Multiplatform (KMP) vocabulary learning app targeting Android and iOS with a shared codebase. It uses Jetpack Compose Multiplatform for UI and follows Clean Architecture + MVVM.
+Lexicon is a Kotlin Multiplatform (KMP) vocabulary learning app targeting Android and iOS with a shared codebase. It uses Jetpack Compose Multiplatform for UI and follows Clean Architecture + MVVM.
 
 ## Build & Run Commands
 
@@ -47,7 +47,7 @@ design-system     → Reusable Compose components and theming
 resources         → Compose Multiplatform strings and assets
 utils             → Shared helper functions
 test              → Shared test utilities
-build-logic       → Custom Gradle convention plugin (vokab.compose-app)
+build-logic       → Custom Gradle convention plugin (lexicon.compose-app)
 iosApp            → Swift iOS entry point
 ```
 

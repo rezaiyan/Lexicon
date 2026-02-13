@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Base application theme -->
-    <style name="Theme.Vokab" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Lexicon" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
     
     <!-- Splash screen theme -->
-    <style name="Theme.Vokab.Starting" parent="Theme.SplashScreen">
+    <style name="Theme.Lexicon.Starting" parent="Theme.SplashScreen">
         <!-- Splash screen background color -->
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         
@@ -21,7 +21,7 @@
         <item name="windowSplashScreenAnimationDuration">0</item>
         
         <!-- Theme to use after splash screen -->
-        <item name="postSplashScreenTheme">@style/Theme.Vokab</item>
+        <item name="postSplashScreenTheme">@style/Theme.Lexicon</item>
     </style>
 </resources>
 

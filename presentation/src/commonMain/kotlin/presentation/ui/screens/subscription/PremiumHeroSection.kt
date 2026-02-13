@@ -30,9 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.premium_subtitle
-import vokab.resources.generated.resources.unlock_premium
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.premium_subtitle
+import lexicon.resources.generated.resources.unlock_premium
 
 @Composable
 fun PremiumHeroSection() {

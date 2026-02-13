@@ -228,7 +228,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
 
         // Extract notification title and body from userInfo or aps payload
-        var title = "Vokab"
+        var title = "Lexicon"
         var body = ""
         
         // Check for notification payload in aps

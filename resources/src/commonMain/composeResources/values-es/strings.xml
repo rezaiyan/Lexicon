@@ -2,7 +2,7 @@
     <!-- App Info -->
     <string name="app_name">LEXICON</string>
     <string name="app_tagline">Domina tu vocabulario</string>
-    <string name="app_description">Vokab - Aplicación de aprendizaje de vocabulario</string>
+    <string name="app_description">Lexicon - Aplicación de aprendizaje de vocabulario</string>
     <string name="version">Versión %1$d</string>
     
     <!-- Time-based Greetings -->
@@ -39,9 +39,9 @@
     <string name="delete_account_message">¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer. Todos tus datos serán eliminados permanentemente.</string>
     <string name="delete_account_confirm">Eliminar</string>
     <string name="profile_picture">Foto de perfil</string>
-    <string name="sign_in_to_vokab">Iniciar sesión en Vokab</string>
+    <string name="sign_in_to_vokab">Iniciar sesión en Lexicon</string>
     <string name="sign_in_description">Inicia sesión para desbloquear funciones impulsadas por IA:\n• Extraer vocabulario de imágenes\n• Obtener perspectivas diarias</string>
-    <string name="offline_usage_info">Puedes usar Vokab sin conexión sin iniciar sesión, pero las funciones de IA requieren una cuenta.</string>
+    <string name="offline_usage_info">Puedes usar Lexicon sin conexión sin iniciar sesión, pero las funciones de IA requieren una cuenta.</string>
     <string name="premium_member">Miembro Premium</string>
     <string name="trial_active">Prueba activa</string>
     <string name="free_plan">Plan gratuito</string>
@@ -281,7 +281,7 @@
     <string name="image_import_failed_generic">Importación de imagen fallida</string>
     
     <!-- Share/Export -->
-    <string name="vokab_export_filename">vokab_words_%1$d.txt</string>
+    <string name="vokab_export_filename">lexicon_words_%1$d.txt</string>
     
     <!-- Image Preview -->
     <string name="preview_selected_image">Vista previa de la imagen seleccionada</string>
@@ -354,7 +354,7 @@
     <string name="feature_ad_free_desc">¡Concéntrate en aprender sin distracciones!</string>
     <string name="feature_basic_vocabulary_lists">Listas básicas de vocabulario</string>
     <string name="features">Características</string>
-    <string name="vokab_pro">Vokab Pro</string>
+    <string name="vokab_pro">Lexicon Pro</string>
     <string name="subscription_active">Activo</string>
     <string name="manage_subscription">Gestionar suscripción</string>
     <string name="cancel_subscription">Cancelar suscripción</string>

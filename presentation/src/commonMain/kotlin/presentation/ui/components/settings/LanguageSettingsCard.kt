@@ -6,8 +6,8 @@ import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.SettingsCard
 import utils.Language
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.translation_language
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.translation_language
 
 @Composable
 fun LanguageSettingsCard(

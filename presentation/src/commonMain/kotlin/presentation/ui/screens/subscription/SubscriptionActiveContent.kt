@@ -31,15 +31,15 @@ import domain.subscription.model.SubscriptionCustomerInfo
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.billing_period_annual
-import vokab.resources.generated.resources.billing_period_monthly
-import vokab.resources.generated.resources.cancel_subscription
-import vokab.resources.generated.resources.expires
-import vokab.resources.generated.resources.manage_subscription
-import vokab.resources.generated.resources.premium_label
-import vokab.resources.generated.resources.premium_plan_name
-import vokab.resources.generated.resources.subscription_active
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.billing_period_annual
+import lexicon.resources.generated.resources.billing_period_monthly
+import lexicon.resources.generated.resources.cancel_subscription
+import lexicon.resources.generated.resources.expires
+import lexicon.resources.generated.resources.manage_subscription
+import lexicon.resources.generated.resources.premium_label
+import lexicon.resources.generated.resources.premium_plan_name
+import lexicon.resources.generated.resources.subscription_active
 
 @Composable
 fun SubscriptionActiveContent(

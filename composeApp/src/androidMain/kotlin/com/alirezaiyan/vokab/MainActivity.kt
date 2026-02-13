@@ -10,7 +10,7 @@ import com.google.firebase.analytics.analytics
 import presentation.ui.LexiconApp
 
 /**
- * Main Activity for Vokab
+ * Main Activity for Lexicon
  * Handles:
  * - Splash screen
  * - Activity lifecycle analytics

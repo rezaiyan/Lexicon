@@ -39,9 +39,9 @@ import presentation.ui.overlay.OverlayHost
 import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
 import presentation.ui.overlay.dialog.showDialog
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.more_options
-import vokab.resources.generated.resources.profile
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.more_options
+import lexicon.resources.generated.resources.profile
 
 /**
  * Profile Screen - Self-contained

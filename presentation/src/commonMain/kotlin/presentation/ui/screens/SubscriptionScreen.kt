@@ -14,18 +14,18 @@ import presentation.ui.screens.subscription.SubscriptionActiveContent
 import presentation.ui.screens.subscription.SubscriptionErrorContent
 import presentation.ui.screens.subscription.SubscriptionLoadingContent
 import presentation.ui.screens.subscription.SubscriptionNotSubscribedContent
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.manage_subscription_app_store
-import vokab.resources.generated.resources.manage_subscription_device_settings
-import vokab.resources.generated.resources.manage_subscription_google_play
-import vokab.resources.generated.resources.no_purchases_to_restore
-import vokab.resources.generated.resources.purchase_failed
-import vokab.resources.generated.resources.purchases_restored_success
-import vokab.resources.generated.resources.restore_purchases_failed
-import vokab.resources.generated.resources.subscription_cancelled
-import vokab.resources.generated.resources.subscription_info_unavailable
-import vokab.resources.generated.resources.subscription_load_failed
-import vokab.resources.generated.resources.subscription_screen_title
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.manage_subscription_app_store
+import lexicon.resources.generated.resources.manage_subscription_device_settings
+import lexicon.resources.generated.resources.manage_subscription_google_play
+import lexicon.resources.generated.resources.no_purchases_to_restore
+import lexicon.resources.generated.resources.purchase_failed
+import lexicon.resources.generated.resources.purchases_restored_success
+import lexicon.resources.generated.resources.restore_purchases_failed
+import lexicon.resources.generated.resources.subscription_cancelled
+import lexicon.resources.generated.resources.subscription_info_unavailable
+import lexicon.resources.generated.resources.subscription_load_failed
+import lexicon.resources.generated.resources.subscription_screen_title
 
 @Composable
 fun SubscriptionScreen(

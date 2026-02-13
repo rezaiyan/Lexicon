@@ -21,9 +21,9 @@ import androidx.compose.ui.text.style.TextAlign
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.screens.getLocalizedErrorMessage
 import theme.Theme
-import vokab.resources.generated.resources.Res
-import vokab.resources.generated.resources.retry
-import vokab.resources.generated.resources.subscription_unable_to_load
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.retry
+import lexicon.resources.generated.resources.subscription_unable_to_load
 
 @Composable
 fun SubscriptionErrorContent(
