@@ -1,6 +1,9 @@
 #!/bin/bash
 # Deploy the KMP WasmJs web app to the VPS.
 #
+# Builds locally and rsyncs the production dist to the server.
+# The VPS (1 CPU, 3.8GB RAM) is too small for Gradle builds.
+#
 # Usage:
 #   ./scripts/deploy-web.sh                  # Build production + deploy
 #   ./scripts/deploy-web.sh --build-only     # Build production without deploying
@@ -132,7 +135,7 @@ if [[ "$DEPLOY" == true ]]; then
 
   if [[ "$DRY_RUN" == false ]]; then
     echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
-    echo "  https://alirezaiyan.com/vokab/kmp/"
+    echo "  https://vokab.alirezaiyan.com/"
   else
     echo "✓ Dry run complete"
   fi
