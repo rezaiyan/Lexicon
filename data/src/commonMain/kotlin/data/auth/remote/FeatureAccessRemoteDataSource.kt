@@ -34,23 +34,8 @@ class FeatureAccessRemoteDataSource(private val apiClient: ApiClient) {
 
     private fun defaultFeatureAccess(): FeatureAccessResponse {
         return FeatureAccessResponse(
-            featureFlags = FeatureFlags(
-                premiumFeaturesEnabled = false,
-                aiImageExtractionEnabled = false,
-                aiDailyInsightEnabled = false,
-                pushNotificationsEnabled = true,
-                subscriptionsEnabled = false
-            ),
-            userAccess = UserFeatureAccess(
-                hasPremiumAccess = false,
-                canUseAiImageExtraction = false,
-                canUseAiDailyInsight = false,
-                subscriptionStatus = "FREE",
-                subscriptionExpiresAt = null,
-                aiExtractionUsageCount = 0,
-                aiExtractionUsageLimit = 10,
-                remainingAiExtractions = 10
-            )
+            featureFlags = FeatureFlags(pushNotificationsEnabled = true),
+            userAccess = UserFeatureAccess(hasPremiumAccess = false)
         )
     }
 }

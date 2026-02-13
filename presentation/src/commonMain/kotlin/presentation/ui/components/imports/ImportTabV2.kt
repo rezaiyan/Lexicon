@@ -35,10 +35,8 @@ sealed class ImportTabV2(open val title: StringResource, open val icon: ImageVec
     data class Image(
         override val title: StringResource = Res.string.from_image,
         override val icon: ImageVector = Icons.Filled.CameraAlt,
-        val remainingCredit: Int = 0,
-        val isSubscribed: Boolean = false,
         val extractionOption: List<ExtractionOption> = listOf(ExtractionOption.Word),
-        val selectedImage: ByteArray? = null, // TODO: proper image handling
+        val selectedImage: ByteArray? = null,
         val currentLanguage: String = "",
         val importState: ImportState = ImportState.Idle
     ) : ImportTabV2(title, icon) {
@@ -48,7 +46,6 @@ sealed class ImportTabV2(open val title: StringResource, open val icon: ImageVec
 
             other as Image
 
-            if (remainingCredit != other.remainingCredit) return false
             if (title != other.title) return false
             if (icon != other.icon) return false
             if (extractionOption != other.extractionOption) return false
@@ -64,8 +61,7 @@ sealed class ImportTabV2(open val title: StringResource, open val icon: ImageVec
         }
 
         override fun hashCode(): Int {
-            var result = remainingCredit
-            result = 31 * result + title.hashCode()
+            var result = title.hashCode()
             result = 31 * result + icon.hashCode()
             result = 31 * result + extractionOption.hashCode()
             result = 31 * result + (selectedImage?.contentHashCode() ?: 0)

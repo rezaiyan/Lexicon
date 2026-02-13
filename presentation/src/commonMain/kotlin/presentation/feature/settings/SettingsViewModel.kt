@@ -5,7 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.repository.IAuthRepository
 import domain.notifications.repository.INotificationRepository
+import domain.notifications.usecase.OpenNotificationSettingsUseCase
+import domain.notifications.usecase.RequestNotificationPermissionUseCase
 import domain.settings.repository.ISettingsRepository
+import domain.settings.usecase.SetLanguageUseCase
+import domain.settings.usecase.SetNotificationsEnabledUseCase
+import domain.settings.usecase.SetThemeModeUseCase
+import domain.settings.usecase.UpdateReviewSettingsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,8 +30,14 @@ import domain.settings.model.ThemeMode
 import utils.Language
 
 class SettingsViewModel(
-    private val settingsRepository: ISettingsRepository,
-    private val notificationRepository: INotificationRepository,
+    private val settingsRepository: ISettingsRepository, // Keep for read-only state flows
+    private val notificationRepository: INotificationRepository, // Keep for areNotificationsEnabled()
+    private val setLanguageUseCase: SetLanguageUseCase,
+    private val setThemeModeUseCase: SetThemeModeUseCase,
+    private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase,
+    private val requestNotificationPermissionUseCase: RequestNotificationPermissionUseCase,
+    private val openNotificationSettingsUseCase: OpenNotificationSettingsUseCase,
+    private val updateReviewSettingsUseCase: UpdateReviewSettingsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val authRepository: IAuthRepository,
     private val notificationPermissionMonitor: NotificationPermissionMonitor,
@@ -74,7 +86,7 @@ class SettingsViewModel(
         viewModelScope.launch {
             val systemEnabled = notificationRepository.areNotificationsEnabled()
             if (!systemEnabled) {
-                settingsRepository.setNotificationsEnabled(false)
+                setNotificationsEnabledUseCase(false)
             }
             notificationPermissionMonitor.refresh()
         }
@@ -89,31 +101,31 @@ class SettingsViewModel(
     private suspend fun handleIntent(intent: SettingsEvent) {
         when (intent) {
             is SettingsEvent.SetLanguage -> {
-                settingsRepository.setLanguage(intent.language)
+                setLanguageUseCase(intent.language)
                 analyticsTracker.logLanguageChanged(language = intent.language.name)
             }
             is SettingsEvent.SetThemeMode -> {
-                settingsRepository.setThemeMode(intent.mode)
+                setThemeModeUseCase(intent.mode)
                 analyticsTracker.logThemeChanged(
                     themeMode = intent.mode.displayName,
                     isDark = intent.mode == ThemeMode.DARK
                 )
             }
             is SettingsEvent.SetNotificationsEnabled -> {
-                settingsRepository.setNotificationsEnabled(intent.enabled)
+                setNotificationsEnabledUseCase(intent.enabled)
                 if (intent.enabled && !systemNotificationsEnabled.value) {
                     _dialogState.value = DialogState.NotificationPermission
                 }
             }
             SettingsEvent.RequestNotificationPermission -> {
-                val granted = notificationRepository.requestNotificationPermission()
+                val granted = requestNotificationPermissionUseCase()
                 _events.emit(SettingsEffect.NotificationPermissionGranted(granted))
                 _dialogState.value = DialogState.None
                 if (granted) {
-                    settingsRepository.setNotificationsEnabled(true)
+                    setNotificationsEnabledUseCase(true)
                 } else {
                     _events.emit(SettingsEffect.OpenSystemNotificationSettings)
-                    notificationRepository.openNotificationSettings()
+                    openNotificationSettingsUseCase()
                 }
                 notificationPermissionMonitor.refresh()
             }
@@ -121,8 +133,12 @@ class SettingsViewModel(
                 notificationPermissionMonitor.refresh()
             }
             is SettingsEvent.SetReviewSettings -> {
-                settingsRepository.setSuccessesToAdvance(intent.successesToAdvance)
-                settingsRepository.setForgotPenalty(intent.forgotPenalty)
+                updateReviewSettingsUseCase(
+                    domain.settings.model.ReviewSettings(
+                        successesToAdvance = intent.successesToAdvance,
+                        forgotPenalty = intent.forgotPenalty
+                    )
+                )
                 analyticsTracker.logNonFatalError(
                     "Review settings changed",
                     mapOf(

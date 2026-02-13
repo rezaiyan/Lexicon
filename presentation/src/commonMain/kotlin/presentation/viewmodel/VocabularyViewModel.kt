@@ -5,7 +5,7 @@ package presentation.viewmodel
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import domain.streak.repository.IStreakRepository
+import domain.streak.usecase.RecordStreakActivityUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.usecase.DeleteWordUseCase
@@ -36,7 +36,7 @@ class VocabularyViewModel(
     private val reviewWordUseCase: ReviewWordUseCase,
     private val updateWordUseCase: UpdateWordUseCase,
     private val deleteWordUseCase: DeleteWordUseCase,
-    private val streakRepository: IStreakRepository,
+    private val recordStreakActivityUseCase: RecordStreakActivityUseCase,
     private val analyticsTracker: IAnalyticsTracker,
 ) : ViewModel() {
 
@@ -125,7 +125,7 @@ class VocabularyViewModel(
 
     fun onRecordActivity() {
         viewModelScope.launch {
-            streakRepository.recordActivity()
+            recordStreakActivityUseCase()
                 .onSuccess {
                     logNetwork("RecordActivity", "Success")
                 }.onFailure {

@@ -1,0 +1,25 @@
+package domain.auth.usecase
+
+import domain.auth.session.ISessionManager
+import domain.auth.storage.ISecureStorage
+import domain.settings.repository.ISettingsRepository
+import domain.word.repository.IWordRepository
+
+/**
+ * Use case to clear all user data from the device.
+ * Used when user signs out or when account is deleted remotely.
+ */
+class ClearAllUserDataUseCase(
+    private val wordRepository: IWordRepository,
+    private val settingsRepository: ISettingsRepository,
+    private val secureStorage: ISecureStorage,
+    private val sessionManager: ISessionManager
+) {
+    suspend operator fun invoke() {
+        wordRepository.deleteAllWords()
+        settingsRepository.clearSettings()
+        secureStorage.clearTokens()
+        secureStorage.clearDailyInsightData()
+        sessionManager.setAuthenticated(false)
+    }
+}

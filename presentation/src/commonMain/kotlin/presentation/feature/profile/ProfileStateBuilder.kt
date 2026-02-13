@@ -46,18 +46,16 @@ internal object ProfileStateBuilder {
             is UiState.Loaded -> streak.value
             else -> null
         }
-        
-        val isSubscriptionsEnabled = featureAccess?.featureFlags?.subscriptionsEnabled == true
-        val shouldShowSubscriptionUI =
-            featureAccess?.featureFlags?.premiumFeaturesEnabled == true && isSubscriptionsEnabled
-        
+
+        val hasPremiumAccess = featureAccess?.userAccess?.hasPremiumAccess == true
+
         return UiState.Loaded(
             ProfileUiData(
                 userInfo = user.toProfileUserUiModel(),
                 streak = streakData,
                 featureAccess = featureAccess,
-                isSubscriptionsEnabled = isSubscriptionsEnabled,
-                shouldShowSubscriptionUI = shouldShowSubscriptionUI
+                isSubscriptionsEnabled = !hasPremiumAccess,
+                shouldShowSubscriptionUI = !hasPremiumAccess
             )
         )
     }

@@ -34,7 +34,6 @@ import presentation.ui.screens.review.ReviewBottomSheetContent
 import presentation.ui.screens.study.LearningStagesSection
 import presentation.ui.screens.study.StatsSection
 import presentation.utils.getTimeBasedGreeting
-import presentation.viewmodel.VocabularyViewModel
 import vokab.resources.generated.resources.Res
 import vokab.resources.generated.resources.import_words
 import vokab.resources.generated.resources.review_due_cards
@@ -42,11 +41,11 @@ import vokab.resources.generated.resources.stage_words_string
 
 @Composable
 fun StudyScreen() {
-    val vocabularyViewModel = koinViewModel<VocabularyViewModel>()
     val viewModel = koinViewModel<StudyViewModel>()
     val overlayHost = LocalOverlayHost.current
 
     val uiState by viewModel.progressScreenState.collectAsStateWithLifecycle()
+    val reviewState by viewModel.reviewScreenState.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -107,7 +106,7 @@ fun StudyScreen() {
                     OnEvents(viewModel.events) { event ->
                         when (event) {
                             is StudyEvent.StartReview -> {
-                                vocabularyViewModel.startDueReview()
+                                viewModel.startDueReview()
                                 overlayHost.showFullscreenBottomSheet(
                                     tag = "review-due",
                                     properties = BottomSheetProperties(
@@ -120,8 +119,8 @@ fun StudyScreen() {
                                     ReviewBottomSheetContent(
                                         title = stringResource(Res.string.review_due_cards),
                                         reviewType = presentation.model.ReviewType.REVIEW,
+                                        reviewState = reviewState,
                                         initialWord = event.firstWord,
-                                        vocabularyViewModel = vocabularyViewModel,
                                         onClose = {
                                             overlayHost.showDialog(tag = "exit-confirmation") { nav ->
                                                 CloseConfirmationDialogContent(
@@ -134,8 +133,15 @@ fun StudyScreen() {
                                             }
                                         },
                                         onReviewComplete = {
-                                            vocabularyViewModel.onReviewSessionComplete()
+                                            viewModel.onReviewSessionComplete()
                                             navigator.dismiss()
+                                        },
+                                        onReviewWord = viewModel::reviewWord,
+                                        onLoadWords = viewModel::loadWords,
+                                        onUpdateWord = viewModel::updateWord,
+                                        onDeleteWord = { wordId, onComplete ->
+                                            viewModel.deleteWord(wordId)
+                                            onComplete()
                                         }
                                     )
                                 }
@@ -153,20 +159,27 @@ fun StudyScreen() {
                     LearningStagesSection(
                         stats = progressStats,
                         onStageClick = { stage, stageName ->
-                            vocabularyViewModel.loadWordsByStage(stage)
+                            viewModel.loadWordsByStage(stage)
                             overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
                                 ReviewBottomSheetContent(
                                     title = stringResource(Res.string.stage_words_string, stageName),
                                     reviewType = presentation.model.ReviewType.BROWSE,
-                                    vocabularyViewModel = vocabularyViewModel,
+                                    reviewState = reviewState,
                                     onClose = { navigator.dismiss() },
                                     onReviewComplete = {
-                                        vocabularyViewModel.onReviewSessionComplete()
+                                        viewModel.onReviewSessionComplete()
                                         navigator.dismiss()
+                                    },
+                                    onReviewWord = viewModel::reviewWord,
+                                    onLoadWords = viewModel::loadWords,
+                                    onUpdateWord = viewModel::updateWord,
+                                    onDeleteWord = { wordId, onComplete ->
+                                        viewModel.deleteWord(wordId)
+                                        onComplete()
                                     }
                                 )
                             }
-                            vocabularyViewModel.startStageReview(stage)
+                            viewModel.startStageReview(stage)
                         }
                     )
                 }

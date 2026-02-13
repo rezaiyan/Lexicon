@@ -12,10 +12,13 @@ import data.auth.state.IAuthenticationStateManager
 import data.auth.token.ITokenManager
 import data.auth.token.TokenManager
 import data.session.repository.SessionRepositoryImpl
+import data.storage.SecureStorageAdapter
 import domain.auth.repository.IAuthRepository
 import domain.auth.repository.ISessionRepository
 import domain.auth.service.AuthenticationService
 import domain.auth.service.IAuthenticationService
+import domain.auth.storage.ISecureStorage
+import domain.auth.usecase.ClearAllUserDataUseCase
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.auth.usecase.IsAuthenticatedUseCase
@@ -28,6 +31,9 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 fun authModule(backendUrl: String) = module {
+
+    // Secure Storage - Domain abstraction
+    single<ISecureStorage> { SecureStorageAdapter(platformStorage = get()) }
 
     // Auth Components
     single<ITokenManager> { TokenManager(secureStorage = get()) }
@@ -79,4 +85,5 @@ fun authModule(backendUrl: String) = module {
     singleOf(::DeleteAccountUseCase)
     singleOf(::IsAuthenticatedUseCase)
     singleOf(::VerifySessionUseCase)
+    singleOf(::ClearAllUserDataUseCase)
 }

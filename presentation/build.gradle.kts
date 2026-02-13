@@ -58,7 +58,7 @@ kotlin {
             implementation(project(":utils"))
             implementation(project(":core"))
             implementation(project(":platforms"))
-            implementation(project(":data"))
+            // Removed: presentation should only depend on domain, not data
             implementation(project(":resources"))
             implementation(compose.runtime)
             implementation(compose.foundation)

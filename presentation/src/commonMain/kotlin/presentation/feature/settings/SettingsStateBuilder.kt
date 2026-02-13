@@ -54,30 +54,15 @@ internal object SettingsStateBuilder {
                 successesToAdvance = successes,
                 forgotPenalty = penalty,
                 appVersion = version,
-                isPremiumFeatureEnabled = featureAccess.featureFlags.premiumFeaturesEnabled,
+                isPremiumFeatureEnabled = featureAccess.userAccess.hasPremiumAccess,
             )
         }
     }
     
     private fun defaultFeatureAccess(): FeatureAccessResponse {
         return FeatureAccessResponse(
-            featureFlags = FeatureFlags(
-                premiumFeaturesEnabled = false,
-                subscriptionsEnabled = false,
-                aiImageExtractionEnabled = false,
-                aiDailyInsightEnabled = false,
-                pushNotificationsEnabled = true
-            ),
-            userAccess = UserFeatureAccess(
-                hasPremiumAccess = false,
-                canUseAiImageExtraction = false,
-                canUseAiDailyInsight = false,
-                subscriptionStatus = "FREE",
-                subscriptionExpiresAt = null,
-                aiExtractionUsageCount = 0,
-                aiExtractionUsageLimit = 10,
-                remainingAiExtractions = 10
-            )
+            featureFlags = FeatureFlags(pushNotificationsEnabled = true),
+            userAccess = UserFeatureAccess(hasPremiumAccess = false)
         )
     }
 }

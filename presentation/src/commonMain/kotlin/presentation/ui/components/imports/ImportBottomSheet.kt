@@ -369,8 +369,6 @@ private fun TabContainer(
                         onGalleryClick = imagePickerLauncher,
                         onDismiss = onDismiss,
                         isEnabled = isImageEnabled && !isLoading,
-                        remainingAiExtractions = selectedTab.remainingCredit,
-                        isSubscribed = selectedTab.isSubscribed,
                         selectedImageBytes = imageTab.selectedImage,
                         onConfirmImage = onImportImage,
                         onCancelImage = onClearSelectedImage
@@ -654,8 +652,6 @@ private fun FromImageTab(
     onGalleryClick: () -> Unit,
     onDismiss: () -> Unit,
     isEnabled: Boolean,
-    remainingAiExtractions: Int,
-    isSubscribed: Boolean,
     selectedImageBytes: ByteArray?,
     onConfirmImage: () -> Unit,
     onCancelImage: () -> Unit
@@ -710,10 +706,7 @@ private fun FromImageTab(
                         isEnabled = isEnabled
                     )
                 } else {
-                    AiExtractionInfoCard(
-                        remainingAiExtractions = remainingAiExtractions,
-                        isSubscribed = isSubscribed
-                    )
+                    AiExtractionInfoCard()
 
                     Spacer(modifier = Modifier.height(Theme.spacing.cardSpacingLarge))
 
@@ -824,10 +817,7 @@ private fun FromImageTab(
 }
 
 @Composable
-private fun AiExtractionInfoCard(
-    remainingAiExtractions: Int,
-    isSubscribed: Boolean,
-) {
+private fun AiExtractionInfoCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -835,88 +825,31 @@ private fun AiExtractionInfoCard(
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Theme.spacing.cardPadding)
+                .padding(Theme.spacing.cardPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)
-            ) {
-                Icon(
-                    Icons.Filled.AutoAwesome,
-                    contentDescription = null,
-                    modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary
+            Icon(
+                Icons.Filled.AutoAwesome,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    stringResource(Res.string.ai_powered_extraction),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        stringResource(Res.string.ai_powered_extraction),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Spacer(modifier = Modifier.height(Theme.spacing.extraSmall3))
-                    Text(
-                        stringResource(Res.string.capture_vocab_from_image),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
-                    )
-                }
-            }
-
-            if (remainingAiExtractions > 0 && isSubscribed) {
-                Spacer(modifier = Modifier.height(Theme.spacing.extraSmall))
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
-                )
-                Spacer(modifier = Modifier.height(Theme.spacing.extraSmall))
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            Icons.Filled.Info,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(Theme.spacing.extraSmall3),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                        )
-                        Text(
-                            text = stringResource(Res.string.remaining_extractions),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                        )
-                        Card(
-                            modifier = Modifier.padding(Theme.spacing.extraSmall3),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (remainingAiExtractions <= 2)
-                                    MaterialTheme.colorScheme.errorContainer
-                                else
-                                    MaterialTheme.colorScheme.primaryContainer
-                            ),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                        ) {
-                            Text(
-                                text = "$remainingAiExtractions",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                color = if (remainingAiExtractions <= 2)
-                                    MaterialTheme.colorScheme.onErrorContainer
-                                else
-                                    MaterialTheme.colorScheme.onPrimaryContainer
+                Spacer(modifier = Modifier.height(Theme.spacing.extraSmall3))
+                Text(
+                    stringResource(Res.string.capture_vocab_from_image),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                             )
                         }
                     }

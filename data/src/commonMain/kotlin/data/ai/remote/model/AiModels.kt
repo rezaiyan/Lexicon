@@ -13,9 +13,6 @@ data class ExtractVocabularyRequest(
 @Serializable
 data class VocabularyExtractionResponse(
     val extractedText: String,
-    val wordCount: Int,
-    val aiExtractionUsageCount: Int = 0,
-    val aiExtractionUsageLimit: Int = 10,
-    val remainingAiExtractions: Int = 10
+    val wordCount: Int
 )
 

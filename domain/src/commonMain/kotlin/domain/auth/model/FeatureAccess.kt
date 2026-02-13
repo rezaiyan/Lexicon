@@ -7,26 +7,16 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class FeatureFlags(
-    val premiumFeaturesEnabled: Boolean = false,
-    val aiImageExtractionEnabled: Boolean = false,
-    val aiDailyInsightEnabled: Boolean = false,
-    val pushNotificationsEnabled: Boolean = false,
-    val subscriptionsEnabled: Boolean = false
+    val pushNotificationsEnabled: Boolean = true
 )
 
 /**
  * User's personal feature access
+ * Simple binary premium/not-premium model
  */
 @Serializable
 data class UserFeatureAccess(
-    val hasPremiumAccess: Boolean = false,
-    val canUseAiImageExtraction: Boolean = false,
-    val canUseAiDailyInsight: Boolean = false,
-    val subscriptionStatus: String = "FREE", // FREE, TRIAL, ACTIVE, EXPIRED, CANCELLED
-    val subscriptionExpiresAt: String? = null,
-    val aiExtractionUsageCount: Int = 0,
-    val aiExtractionUsageLimit: Int = 0,
-    val remainingAiExtractions: Int = 0
+    val hasPremiumAccess: Boolean = false
 )
 
 /**

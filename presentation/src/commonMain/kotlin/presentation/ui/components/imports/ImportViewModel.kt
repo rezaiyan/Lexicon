@@ -56,20 +56,13 @@ class ImportViewModel(
             }
             getFeatureAccessUseCase.invoke()
                 .map { featureAccess ->
-                    val subscriptionsEnabled = featureAccess.featureFlags.subscriptionsEnabled
-                    val hasPremiumAccess = featureAccess.featureFlags.premiumFeaturesEnabled
-                    val remainingCredit = featureAccess.userAccess.remainingAiExtractions
-                    val hasCredit = remainingCredit > 0
-                    val shouldAddImageTab = hasCredit && hasPremiumAccess
+                    val hasPremiumAccess = featureAccess.userAccess.hasPremiumAccess
 
                     val currentImageTab = _state.tabs.firstOrNull { it is ImportTabV2.Image }
-                    if (shouldAddImageTab && currentImageTab == null) {
-                        currentTabs.add(
-                            ImportTabV2.Image(
-                                remainingCredit = remainingCredit,
-                                isSubscribed = subscriptionsEnabled
-                            )
-                        )
+                    if (hasPremiumAccess && currentImageTab == null) {
+                        currentTabs.add(ImportTabV2.Image())
+                    } else if (!hasPremiumAccess && currentImageTab != null) {
+                        currentTabs.remove(currentImageTab)
                     }
                     value = currentTabs
                 }.catch {

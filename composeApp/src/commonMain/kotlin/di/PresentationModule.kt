@@ -56,11 +56,10 @@ fun presentationModule() = module {
             deleteAccountUseCase = get(),
             isAuthenticatedUseCase = get(),
             verifySessionUseCase = get(),
-            registerPushTokenUseCase = get(),
             syncRemoteToLocalUseCase = get(),
-            streakRepository = get(),
+            initializePushNotificationsUseCase = get(),
+            registerPushTokenUseCase = get(),
             analyticsTracker = get(),
-            settingsRepository = get(),
         )
     }
 
@@ -68,6 +67,12 @@ fun presentationModule() = module {
         SettingsViewModel(
             settingsRepository = get(),
             notificationRepository = get(),
+            setLanguageUseCase = get(),
+            setThemeModeUseCase = get(),
+            setNotificationsEnabledUseCase = get(),
+            requestNotificationPermissionUseCase = get(),
+            openNotificationSettingsUseCase = get(),
+            updateReviewSettingsUseCase = get(),
             analyticsTracker = get(),
             authRepository = get(),
             notificationPermissionMonitor = get(),
@@ -83,6 +88,11 @@ fun presentationModule() = module {
             getProgressStatsUseCase = get(),
             scheduleNotificationsUseCase = get(),
             getDueWordsUseCase = get(),
+            getWordsByStageUseCase = get(),
+            reviewWordUseCase = get(),
+            updateWordUseCase = get(),
+            deleteWordUseCase = get(),
+            recordStreakActivityUseCase = get(),
             analyticsTracker = get()
         )
     }
@@ -104,8 +114,8 @@ fun presentationModule() = module {
             reviewWordUseCase = get(),
             updateWordUseCase = get(),
             deleteWordUseCase = get(),
+            recordStreakActivityUseCase = get(),
             analyticsTracker = get(),
-            streakRepository = get(),
         )
     }
     viewModel {

@@ -17,6 +17,7 @@ class LogoutUseCase(
         // Clear all user data first
         wordRepository.deleteAllWords()
         settingsRepository.clearSettings()
+        settingsRepository.clearInsightData()
 
         // Then perform logout (which clears tokens)
         authenticationService.logout().collect { result ->
