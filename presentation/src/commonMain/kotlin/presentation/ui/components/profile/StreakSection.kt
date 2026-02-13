@@ -43,28 +43,13 @@ fun StreakSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(Theme.spacing.cardPadding),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             StreakItem(
                 emoji = "🔥",
                 value = streak.currentStreak,
-                label = stringResource(Res.string.day_streak),
-                modifier = Modifier.weight(1f)
-            )
-
-            Box(
-                modifier = Modifier
-                    .width(Theme.dimensions.borderWidth)
-                    .height(Theme.dimensions.iconSizeMassive)
-                    .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.2f))
-            )
-
-            StreakItem(
-                emoji = "🏆",
-                value = streak.highestStreak,
-                label = stringResource(Res.string.best_streak),
-                modifier = Modifier.weight(1f)
+                label = stringResource(Res.string.day_streak)
             )
         }
     }

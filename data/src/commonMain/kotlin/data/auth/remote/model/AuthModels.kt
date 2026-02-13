@@ -34,10 +34,8 @@ data class UserDto(
     val id: Long,
     val email: String,
     val name: String,
-    val profileImageUrl: String?,
     val subscriptionStatus: String,
     val subscriptionExpiresAt: String?,
-    val currentStreak: Int = 0,
-    val longestStreak: Int = 0
+    val currentStreak: Int = 0
 )
 

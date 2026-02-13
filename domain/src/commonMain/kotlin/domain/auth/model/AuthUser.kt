@@ -7,11 +7,9 @@ data class AuthUser(
     val id: Long,
     val email: String,
     val name: String,
-    val profileImageUrl: String? = null,
     val subscriptionStatus: SubscriptionStatus = SubscriptionStatus.FREE,
     val subscriptionExpiresAt: String? = null,
-    val currentStreak: Int = 0,
-    val longestStreak: Int = 0
+    val currentStreak: Int = 0
 ) {
     /**
      * Check if user has a generic/auto-generated name that should be updated

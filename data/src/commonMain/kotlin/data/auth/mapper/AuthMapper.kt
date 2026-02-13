@@ -9,11 +9,9 @@ internal fun UserDto.toDomain(): AuthUser {
         id = this.id,
         email = this.email,
         name = this.name,
-        profileImageUrl = this.profileImageUrl,
         subscriptionStatus = SubscriptionStatus.valueOf(this.subscriptionStatus),
         subscriptionExpiresAt = this.subscriptionExpiresAt,
-        currentStreak = this.currentStreak,
-        longestStreak = this.longestStreak
+        currentStreak = this.currentStreak
     )
 }
 

@@ -63,8 +63,7 @@ internal object ProfileStateBuilder {
     private fun AuthUser.toProfileUserUiModel(): ProfileUserUiModel {
         return ProfileUserUiModel(
             name = this.name,
-            email = this.email,
-            profileImageUrl = this.profileImageUrl,
+            email = this.email
         )
     }
 }

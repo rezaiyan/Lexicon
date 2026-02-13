@@ -19,9 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import coil3.compose.AsyncImage
 import org.jetbrains.compose.resources.stringResource
 import presentation.model.ProfileUserUiModel
 import theme.Theme
@@ -40,7 +38,6 @@ fun UserInfoSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ProfilePicture(
-            profileImageUrl = userInfo.profileImageUrl,
             onLongPress = onProfilePictureLongPress
         )
 
@@ -65,49 +62,24 @@ fun UserInfoSection(
 
 @Composable
 private fun ProfilePicture(
-    profileImageUrl: String?,
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.size(Theme.dimensions.profilePictureSize),
+        modifier = modifier
+            .size(Theme.dimensions.profilePictureSize)
+            .clip(CircleShape)
+            .pointerInput(Unit) {
+                detectTapGestures(onLongPress = { onLongPress() })
+            },
         contentAlignment = Alignment.Center
     ) {
-        if (!profileImageUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = profileImageUrl,
-                contentDescription = stringResource(Res.string.profile_picture),
-                modifier = Modifier
-                    .size(Theme.dimensions.profilePictureSize)
-                    .clip(CircleShape)
-                    .border(
-                        Theme.dimensions.borderWidthThick,
-                        MaterialTheme.colorScheme.primary,
-                        CircleShape
-                    )
-                    .pointerInput(Unit) {
-                        detectTapGestures(onLongPress = { onLongPress() })
-                    },
-                contentScale = ContentScale.Crop,
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(Theme.dimensions.profilePictureSize)
-                    .clip(CircleShape)
-                    .pointerInput(Unit) {
-                        detectTapGestures(onLongPress = { onLongPress() })
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = stringResource(Res.string.profile),
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMassive),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
+        Icon(
+            Icons.Default.Person,
+            contentDescription = stringResource(Res.string.profile),
+            modifier = Modifier.size(Theme.dimensions.iconSizeMassive),
+            tint = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 

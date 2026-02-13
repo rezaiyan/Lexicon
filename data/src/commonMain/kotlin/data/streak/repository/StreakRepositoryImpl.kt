@@ -14,8 +14,7 @@ class StreakRepositoryImpl(
         return streakRemoteDataSource.getStreak().fold(
             onSuccess = { streakResponse ->
                 val streakData = StreakData(
-                    currentStreak = streakResponse.currentStreak,
-                    highestStreak = streakResponse.longestStreak
+                    currentStreak = streakResponse.currentStreak
                 )
                 Try.success(streakData)
             },
@@ -29,8 +28,7 @@ class StreakRepositoryImpl(
         return streakRemoteDataSource.recordActivity().fold(
             onSuccess = { streakResponse ->
                 val streakData = StreakData(
-                    currentStreak = streakResponse.currentStreak,
-                    highestStreak = streakResponse.longestStreak
+                    currentStreak = streakResponse.currentStreak
                 )
                 Try.success(streakData)
             },

@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class StreakResponse(
-    val currentStreak: Int,
-    val longestStreak: Int
+    val currentStreak: Int
 )
 
