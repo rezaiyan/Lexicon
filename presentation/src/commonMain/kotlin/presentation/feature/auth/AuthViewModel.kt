@@ -56,6 +56,23 @@ class AuthViewModel(
     init {
         startIntentProcessor()
         verifyAndRestoreSession { }
+        observeAuthenticationState()
+    }
+
+    private fun observeAuthenticationState() {
+        viewModelScope.launch {
+            isAuthenticatedUseCase.asFlow().collect { isAuthenticated ->
+                if (!isAuthenticated && _authState.value.isAuthenticated) {
+                    // User has been logged out (either manually or automatically)
+                    _authState.value = AuthState(
+                        isAuthenticated = false,
+                        isLoading = false,
+                        user = null,
+                        error = null
+                    )
+                }
+            }
+        }
     }
 
     private fun startIntentProcessor() {
@@ -81,12 +98,6 @@ class AuthViewModel(
 
     fun logout() {
         intents.tryEmit(AuthIntent.Logout)
-    }
-
-    fun recordActivityForStreak() {
-        viewModelScope.launch {
-            intents.emit(AuthIntent.RecordStreak)
-        }
     }
 
     private fun initializePushNotifications() {

@@ -31,12 +31,14 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
             notification.payload.AccountDeletionHandler(
                 wordRepository = get(),
                 settingsRepository = get(),
-                secureStorage = get()
+                secureStorage = get(),
+                sessionManager = get()
             ),
             notification.payload.SignOutHandler(
                 wordRepository = get(),
                 settingsRepository = get(),
-                secureStorage = get()
+                secureStorage = get(),
+                sessionManager = get()
             ),
             notification.payload.DailyInsightHandler(
                 secureStorage = get()

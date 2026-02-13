@@ -41,4 +41,8 @@ class AppNavigationViewModel(
             _appUiState.value = AppUiState.Ready
         }
     }
+
+    fun onLogout() {
+        _appUiState.value = AppUiState.AuthGate()
+    }
 }

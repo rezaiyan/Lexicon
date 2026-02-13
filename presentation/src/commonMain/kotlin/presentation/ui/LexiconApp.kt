@@ -33,9 +33,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -48,6 +46,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import domain.auth.session.ISessionManager
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
+import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import events.OnEvents
 import events.VocabularyEffect
@@ -56,8 +55,8 @@ import expects.isSystemInDarkTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.kodein.emoji.compose.EmojiService
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.auth.AuthViewModel
@@ -85,8 +84,6 @@ import presentation.ui.screens.settings.WordManagerScreen
 import presentation.viewmodel.AppNavigationViewModel
 import presentation.viewmodel.VocabularyViewModel
 import theme.AppColors
-import domain.settings.model.ThemeMode
-import org.kodein.emoji.compose.EmojiService
 import theme.LexiconTheme
 import vokab.resources.generated.resources.Res
 import vokab.resources.generated.resources.import_failed_generic
@@ -130,6 +127,13 @@ fun LexiconApp() {
     LaunchedEffect(Unit) {
         val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
         sessionManager.initialize(scope)
+    }
+
+    // Handle logout: navigate to AuthGate when user becomes unauthenticated
+    LaunchedEffect(authState.isAuthenticated, appUiState) {
+        if (!authState.isAuthenticated && appUiState is AppUiState.Ready) {
+            appNavigationViewModel.onLogout()
+        }
     }
 
     val isPreviewModeOpen = reviewScreenState.reviewType == ReviewType.BROWSE &&
