@@ -7,8 +7,8 @@
     
     <!-- Time-based Greetings -->
     <string name="greeting_midnight">¿Quemando el aceite de medianoche? 🌙</string>
-    <string name="greeting_morning">¡Buenos días! ☀️</string>
-    <string name="greeting_afternoon">¡Buenas tardes! 🌤️</string>
+    <string name="greeting_morning">¡Buenos días! ☀</string>
+    <string name="greeting_afternoon">¡Buenas tardes! ⛅</string>
     <string name="greeting_evening">¡Buenas tardes! 🌆</string>
     <string name="greeting_night">¡Buenas noches! 🌃</string>
     

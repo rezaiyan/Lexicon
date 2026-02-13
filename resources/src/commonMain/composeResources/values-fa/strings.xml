@@ -7,8 +7,8 @@
     
     <!-- Time-based Greetings -->
     <string name="greeting_midnight">شب زنده‌داری؟ 🌙</string>
-    <string name="greeting_morning">صبح بخیر! ☀️</string>
-    <string name="greeting_afternoon">عصر بخیر! 🌤️</string>
+    <string name="greeting_morning">صبح بخیر! ☀</string>
+    <string name="greeting_afternoon">عصر بخیر! ⛅</string>
     <string name="greeting_evening">غروب بخیر! 🌆</string>
     <string name="greeting_night">شب بخیر! 🌃</string>
     

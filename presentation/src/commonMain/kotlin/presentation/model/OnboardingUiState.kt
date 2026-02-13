@@ -1,7 +1,7 @@
 package presentation.model
 
 data class OnboardingUiState(
-    val currentStep: Int = 1,
+    val currentStep: Int = 0,
     val availableLanguages: List<String> = listOf(
         "English", "German", "French", "Spanish", "Italian",
         "Portuguese", "Dutch", "Russian", "Chinese", "Japanese",
@@ -15,11 +15,4 @@ data class OnboardingUiState(
     val error: String? = null
 ) {
     val totalSteps: Int get() = 3
-    val canGoNext: Boolean
-        get() = when (currentStep) {
-            1 -> selectedTargetLanguage != null
-            2 -> selectedNativeLanguage != null
-            3 -> selectedLevel != null
-            else -> false
-        }
 }

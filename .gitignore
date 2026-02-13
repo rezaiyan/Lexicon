@@ -22,3 +22,4 @@ keystore.jks
 .env.*
 *secret*
 *credential*
+*.bak

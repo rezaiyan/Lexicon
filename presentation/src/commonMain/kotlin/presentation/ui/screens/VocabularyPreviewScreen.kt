@@ -1,248 +1,154 @@
 package presentation.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import expects.SetSystemBarsColor
+import expects.isSystemInDarkTheme
 import presentation.model.VocabularyPreviewUiState
-import theme.AppDimensions
-import theme.AppSpacing
 import theme.Theme
 
 @Composable
 fun VocabularyPreviewScreen(
     state: VocabularyPreviewUiState,
-    onToggleWord: (Int) -> Unit,
-    onSelectAll: () -> Unit,
-    onDeselectAll: () -> Unit,
-    onProceed: () -> Unit,
-    onSkip: () -> Unit,
-    onBack: (() -> Unit)? = null
+    onAccept: () -> Unit,
+    onDeny: () -> Unit
 ) {
     val spacing = Theme.spacing
     val dimensions = Theme.dimensions
+    val isDarkMode = isSystemInDarkTheme()
+
+    // Set status bar appearance
+    SetSystemBarsColor(
+        statusBarColor = MaterialTheme.colorScheme.background,
+        navigationBarColor = MaterialTheme.colorScheme.background,
+        darkIcons = !isDarkMode
+    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = spacing.small)
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
-        Spacer(modifier = Modifier.height(spacing.small))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (onBack != null) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-            }
-        }
-
-        Text(
-            text = "PREVIEW MODE",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(spacing.extraSmall2))
-
-        Text(
-            text = "Vocabulary Preview",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Text(
-            text = "Review these ${state.words.size} words to get started. You can edit this set later.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        // Header
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = spacing.extraSmall4)
-        )
-
-        Spacer(modifier = Modifier.height(spacing.small))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = spacing.medium)
+                .padding(top = spacing.medium),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(dimensions.cardCornerRadius),
-                border = BorderStroke(
-                    dimensions.borderWidth,
-                    MaterialTheme.colorScheme.outline
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = spacing.extraSmall2,
-                        vertical = spacing.extraSmall3
-                    ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${state.words.size} WORDS FOUND",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = null,
-                    modifier = Modifier.size(dimensions.iconSizeMedium),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(spacing.extraSmall3))
-                Text(
-                    text = "Sort",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            Text(
+                text = "Starter Vocabulary",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(spacing.extraSmall2))
+            Text(
+                text = "${state.words.size} words",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
 
-        Spacer(modifier = Modifier.height(spacing.extraSmall2))
+        Spacer(modifier = Modifier.height(spacing.medium))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            TextButton(onClick = onSelectAll) {
-                Text("Select All", color = MaterialTheme.colorScheme.primary)
-            }
-            TextButton(onClick = onDeselectAll) {
-                Text("Deselect All", color = MaterialTheme.colorScheme.primary)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(spacing.extraSmall2))
-
+        // Word list
         LazyColumn(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = spacing.medium),
             verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2)
         ) {
-            itemsIndexed(state.words) { index, word ->
-                VocabularyWordCard(
+            items(state.words) { word ->
+                VocabularyWordItem(
                     word = word.originalWord,
                     translation = word.translation,
-                    categoryLabel = word.sourceLanguage.uppercase().take(12),
-                    isSelected = state.selectedIndices.contains(index),
-                    onClick = { onToggleWord(index) },
                     spacing = spacing,
                     dimensions = dimensions
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(spacing.small))
+        Spacer(modifier = Modifier.height(spacing.medium))
 
-        Button(
-            onClick = onProceed,
-            modifier = Modifier.fillMaxWidth(),
-            enabled = state.selectedCount > 0,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-            shape = RoundedCornerShape(dimensions.cardCornerRadius)
+        // Buttons
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = spacing.medium),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2)
         ) {
-            Icon(
-                imageVector = Icons.Default.AutoAwesome,
-                contentDescription = null,
-                modifier = Modifier.size(dimensions.iconSizeMedium)
-            )
-            Spacer(modifier = Modifier.width(spacing.extraSmall2))
-            Text("Get Started")
+            Button(
+                onClick = onAccept,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 500.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(dimensions.cardCornerRadius)
+            ) {
+                Text("Accept", style = MaterialTheme.typography.labelLarge)
+            }
+
+            OutlinedButton(
+                onClick = onDeny,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 500.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
+                shape = RoundedCornerShape(dimensions.cardCornerRadius)
+            ) {
+                Text("Deny", style = MaterialTheme.typography.labelLarge)
+            }
         }
 
-        Spacer(modifier = Modifier.height(spacing.extraSmall2))
-
-        OutlinedButton(
-            onClick = onSkip,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface
-            ),
-            border = BorderStroke(
-                dimensions.borderWidth,
-                MaterialTheme.colorScheme.primary
-            ),
-            shape = RoundedCornerShape(dimensions.cardCornerRadius)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Create,
-                contentDescription = null,
-                modifier = Modifier.size(dimensions.iconSizeMedium)
-            )
-            Spacer(modifier = Modifier.width(spacing.extraSmall2))
-            Text("Skip and Create My Own")
-        }
-
-        Spacer(modifier = Modifier.height(spacing.small))
+        Spacer(modifier = Modifier.height(spacing.medium))
     }
 }
 
 @Composable
-private fun VocabularyWordCard(
+private fun VocabularyWordItem(
     word: String,
     translation: String,
-    categoryLabel: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    spacing: AppSpacing,
-    dimensions: AppDimensions
+    spacing: theme.AppSpacing,
+    dimensions: theme.AppDimensions
 ) {
     Card(
-        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
@@ -252,50 +158,21 @@ private fun VocabularyWordCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(spacing.extraSmall2),
+                .padding(spacing.small),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(dimensions.cardCornerRadius / 2))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Book,
-                    contentDescription = null,
-                    modifier = Modifier.size(dimensions.iconSize),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-            Spacer(modifier = Modifier.width(spacing.small))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = word,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.height(spacing.extraSmall4))
                 Text(
                     text = translation,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                ),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = categoryLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.padding(
-                        horizontal = spacing.extraSmall2,
-                        vertical = spacing.extraSmall4
-                    )
                 )
             }
         }

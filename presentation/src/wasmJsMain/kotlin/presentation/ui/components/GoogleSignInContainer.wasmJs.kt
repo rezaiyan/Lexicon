@@ -1,6 +1,5 @@
 package presentation.ui.components
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -27,9 +26,7 @@ actual fun GoogleSignInContainer(
             }
         },
         enabled = !isLoading,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp)
+        modifier = modifier.height(50.dp)
     ) {
         Text(if (isLoading) "Signing in..." else "Sign in with Google")
     }

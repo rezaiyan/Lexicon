@@ -44,9 +44,7 @@ actual fun GoogleSignInContainer(
                 }
             }
         },
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
+        modifier = modifier.height(56.dp)
     ) {
         Box(
             modifier = Modifier
