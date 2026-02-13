@@ -70,9 +70,23 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+          # Add VPS to known hosts
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>&1 || {
+            echo "Warning: ssh-keyscan failed, trying alternative method..."
+            ssh-keyscan "$VPS_HOST" >> ~/.ssh/known_hosts 2>&1 || true
+          }
+
+          # Verify SSH key format
+          if ! ssh-keygen -l -f ~/.ssh/deploy_key &> /dev/null; then
+            echo "✗ Invalid SSH key format"
+            exit 1
+          fi
+
+          echo "✓ SSH setup complete"
 
       - name: Deploy to VPS
         env:
@@ -83,10 +97,19 @@ jobs:
 
           echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH}..."
 
+          # Test SSH connection
+          echo "▸ Testing SSH connection..."
+          if ! ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "root@${VPS_HOST}" "echo 'SSH connection successful'"; then
+            echo "✗ SSH connection failed"
+            exit 1
+          fi
+
           # Ensure target directory exists
+          echo "▸ Creating target directory..."
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
 
           # Deploy using rsync
+          echo "▸ Syncing files..."
           rsync -avz --delete --checksum \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
             "${DIST_DIR}/" \
