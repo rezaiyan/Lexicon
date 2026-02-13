@@ -221,9 +221,11 @@ fun LexiconApp() {
                             vocabularyPreviewViewModel.events.collect { event ->
                                 when (event) {
                                     is VocabularyPreviewViewModel.Event.ProceedWithSelection -> {
+                                        // Navigate to auth gate with selected words
                                         appNavigationViewModel.onNavigateToAuthGate(event.words)
                                     }
                                     is VocabularyPreviewViewModel.Event.SkipVocabulary -> {
+                                        // Navigate to auth gate without words
                                         appNavigationViewModel.onNavigateToAuthGate()
                                     }
                                 }
@@ -232,11 +234,8 @@ fun LexiconApp() {
                         val previewState by vocabularyPreviewViewModel.state.collectAsStateWithLifecycle()
                         VocabularyPreviewScreen(
                             state = previewState,
-                            onToggleWord = vocabularyPreviewViewModel::toggleWord,
-                            onSelectAll = vocabularyPreviewViewModel::selectAll,
-                            onDeselectAll = vocabularyPreviewViewModel::deselectAll,
-                            onProceed = vocabularyPreviewViewModel::proceedWithSelected,
-                            onSkip = vocabularyPreviewViewModel::skip
+                            onAccept = vocabularyPreviewViewModel::proceedWithSelected,
+                            onDeny = vocabularyPreviewViewModel::skip
                         )
                     }
 

@@ -1,7 +1,7 @@
 package presentation.model
 
 data class OnboardingUiState(
-    val currentStep: Int = 1,
+    val currentStep: Int = 0,
     val availableLanguages: List<String> = listOf(
         "English", "German", "French", "Spanish", "Italian",
         "Portuguese", "Dutch", "Russian", "Chinese", "Japanese",

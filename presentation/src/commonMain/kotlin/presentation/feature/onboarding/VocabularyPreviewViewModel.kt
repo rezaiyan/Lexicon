@@ -22,7 +22,7 @@ class VocabularyPreviewViewModel : ViewModel() {
         data object SkipVocabulary : Event
     }
 
-    private val _events = MutableSharedFlow<Event>()
+    private val _events = MutableSharedFlow<Event>(extraBufferCapacity = 64)
     val events = _events.asSharedFlow()
 
     fun setWords(words: List<SuggestedVocabulary>) {
@@ -44,16 +44,6 @@ class VocabularyPreviewViewModel : ViewModel() {
             }
             current.copy(selectedIndices = newIndices)
         }
-    }
-
-    fun selectAll() {
-        _state.update { current ->
-            current.copy(selectedIndices = current.words.indices.toSet())
-        }
-    }
-
-    fun deselectAll() {
-        _state.update { it.copy(selectedIndices = emptySet()) }
     }
 
     fun proceedWithSelected() {

@@ -27,9 +27,7 @@ actual fun GoogleSignInContainer(
             }
         },
         enabled = !isLoading,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(50.dp)
+        modifier = modifier.height(50.dp)
     ) {
         Text(if (isLoading) "Signing in..." else "Sign in with Google")
     }

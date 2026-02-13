@@ -16,7 +16,7 @@ class OnboardingRepositoryImpl(
 ) : IOnboardingRepository {
 
     // TODO: Remove fake response after testing
-    private val useFakeResponse = true
+    private val useFakeResponse = false
 
     override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> {
         if (useFakeResponse) return Try.success(createFakeResponse(preferences))
