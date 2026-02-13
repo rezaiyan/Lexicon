@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -77,7 +78,7 @@ fun PremiumHeroSection() {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = "🚀", style = MaterialTheme.typography.headlineMedium)
+            TextWithNotoImageEmoji(text = "🚀", style = MaterialTheme.typography.headlineMedium)
         }
 
         Text(

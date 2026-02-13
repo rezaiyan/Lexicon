@@ -2,7 +2,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import app.cash.sqldelight.async.coroutines.awaitCreate
 import app.cash.sqldelight.db.SqlDriver
+import auth.jsFirebaseInit
 import config.AppConfig
+import config.FirebaseWebConfig
 import data.core.database.LexiconDatabase
 import data.notification.remote.model.Platform
 import di.appModule
@@ -13,8 +15,14 @@ import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, kotlin.js.ExperimentalWasmJsInterop::class)
 fun main() {
+    jsFirebaseInit(
+        apiKey = FirebaseWebConfig.API_KEY,
+        authDomain = FirebaseWebConfig.AUTH_DOMAIN,
+        projectId = FirebaseWebConfig.PROJECT_ID
+    )
+
     startKoin {
         modules(
             appModule(

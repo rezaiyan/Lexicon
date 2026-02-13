@@ -37,6 +37,8 @@ private val backendHost: String = getConfigValue("vokab.backend.host")
 private val googleServerClientId: String = requireConfigValue("GOOGLE_SERVER_CLIENT_ID")
 private val revenuecatAndroidKey: String = requireConfigValue("REVENUECAT_ANDROID_KEY")
 private val revenuecatIosKey: String = requireConfigValue("REVENUECAT_IOS_KEY")
+private val firebaseWebApiKey: String = getConfigValue("FIREBASE_WEB_API_KEY") ?: ""
+private val firebaseProjectId: String = getConfigValue("FIREBASE_PROJECT_ID") ?: ""
 
 val generatedWasmConfigDir = layout.buildDirectory.dir("generated/wasmJsConfig")
 
@@ -59,6 +61,8 @@ val generateWasmJsBuildConfig by tasks.registering {
             |    const val GOOGLE_SERVER_CLIENT_ID: String = ${googleServerClientId.toQuotedLiteral()}
             |    const val REVENUECAT_ANDROID_KEY: String = ${revenuecatAndroidKey.toQuotedLiteral()}
             |    const val REVENUECAT_IOS_KEY: String = ${revenuecatIosKey.toQuotedLiteral()}
+            |    const val FIREBASE_WEB_API_KEY: String = ${firebaseWebApiKey.toQuotedLiteral()}
+            |    const val FIREBASE_PROJECT_ID: String = ${firebaseProjectId.toQuotedLiteral()}
             |}
             """.trimMargin()
         )

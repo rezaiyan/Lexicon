@@ -87,6 +87,7 @@ import presentation.viewmodel.AppNavigationViewModel
 import presentation.viewmodel.VocabularyViewModel
 import theme.AppColors
 import domain.settings.model.ThemeMode
+import org.kodein.emoji.compose.EmojiService
 import theme.LexiconTheme
 import vokab.resources.generated.resources.Res
 import vokab.resources.generated.resources.import_failed_generic
@@ -124,6 +125,7 @@ fun LexiconApp() {
 
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
+    remember { EmojiService.initialize() }
 
     val sessionManager = koinInject<ISessionManager>()
     LaunchedEffect(Unit) {

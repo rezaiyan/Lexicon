@@ -8,12 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import auth.awaitGoogleSignIn
 import kotlinx.coroutines.launch
 
-/**
- * Web stub for Google Sign-In.
- * TODO: Integrate Firebase JS SDK signInWithPopup for real Google auth on web.
- */
 @Composable
 actual fun GoogleSignInContainer(
     onIdToken: suspend (String) -> Unit,
@@ -25,11 +22,8 @@ actual fun GoogleSignInContainer(
     Button(
         onClick = {
             coroutineScope.launch {
-                // TODO: Implement Firebase JS SDK signInWithPopup
-                // val auth = getAuth(firebaseApp)
-                // val result = signInWithPopup(auth, GoogleAuthProvider())
-                // val idToken = result.user.getIdToken()
-                // onIdToken(idToken)
+                val token = awaitGoogleSignIn()
+                onIdToken(token)
             }
         },
         enabled = !isLoading,

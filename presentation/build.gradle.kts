@@ -75,6 +75,7 @@ kotlin {
             api(libs.koin.compose.viewmodel)
             implementation(libs.coil.compose)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.emoji.compose.m3)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
         }
 

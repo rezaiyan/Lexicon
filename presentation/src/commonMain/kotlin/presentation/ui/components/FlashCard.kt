@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -257,7 +258,7 @@ fun MasteryLevelBadge(level: Int, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
+                TextWithNotoImageEmoji(
                     text = masteryIcon,
                     style = MaterialTheme.typography.labelSmall
                 )

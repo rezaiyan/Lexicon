@@ -17,11 +17,70 @@
             height: 100%;
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <script>
-        window.APP_CONFIG = {
-            backendUrl: "https://api.lexicon.app/api/v1",
-            googleClientId: "",
-            revenuecatKey: ""
+        window._lexiconFirebase = {
+            _app: null,
+            _signInState: { pending: false, token: null, error: null },
+            _tokenState: { pending: false, token: null, error: null },
+            _signOutState: { pending: false, done: false, error: null },
+
+            init: function(apiKey, authDomain, projectId) {
+                if (this._app) return;
+                this._app = firebase.initializeApp({
+                    apiKey: apiKey,
+                    authDomain: authDomain,
+                    projectId: projectId
+                });
+            },
+
+            signInWithGoogle: function() {
+                var self = this;
+                self._signInState = { pending: true, token: null, error: null };
+                var provider = new firebase.auth.GoogleAuthProvider();
+                firebase.auth().signInWithPopup(provider)
+                    .then(function(result) { return result.user.getIdToken(); })
+                    .then(function(token) {
+                        self._signInState = { pending: false, token: token, error: null };
+                    })
+                    .catch(function(error) {
+                        self._signInState = { pending: false, token: null, error: error.message || "Sign in failed" };
+                    });
+            },
+
+            getCurrentUserIdToken: function(forceRefresh) {
+                var self = this;
+                self._tokenState = { pending: true, token: null, error: null };
+                var user = firebase.auth().currentUser;
+                if (!user) {
+                    self._tokenState = { pending: false, token: null, error: null };
+                    return;
+                }
+                user.getIdToken(forceRefresh)
+                    .then(function(token) {
+                        self._tokenState = { pending: false, token: token, error: null };
+                    })
+                    .catch(function(error) {
+                        self._tokenState = { pending: false, token: null, error: error.message || "Token error" };
+                    });
+            },
+
+            isSignedIn: function() {
+                return firebase.auth().currentUser != null;
+            },
+
+            signOut: function() {
+                var self = this;
+                self._signOutState = { pending: true, done: false, error: null };
+                firebase.auth().signOut()
+                    .then(function() {
+                        self._signOutState = { pending: false, done: true, error: null };
+                    })
+                    .catch(function(error) {
+                        self._signOutState = { pending: false, done: false, error: error.message || "Sign out failed" };
+                    });
+            }
         };
     </script>
 </head>

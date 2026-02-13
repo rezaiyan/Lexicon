@@ -9,6 +9,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +54,7 @@ fun LevelBucketCard(
                 modifier = Modifier.weight(1f, fill = false),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
+                TextWithNotoImageEmoji(
                     text = icon,
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(end = Theme.spacing.cardPadding),

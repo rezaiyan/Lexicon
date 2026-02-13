@@ -36,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -492,7 +493,7 @@ internal fun EmptyLibraryView() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
         ) {
-            Text(
+            TextWithNotoImageEmoji(
                 "📚",
                 style = MaterialTheme.typography.displayLarge
             )

@@ -44,6 +44,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":core"))
             implementation(libs.koin.core)
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
         }
 
         androidMain.dependencies {

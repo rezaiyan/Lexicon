@@ -26,6 +26,7 @@ env:
   IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
   REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
   REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
 
 jobs:
   common-tests:

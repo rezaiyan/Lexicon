@@ -11,6 +11,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -143,98 +144,116 @@ private val DarkColorScheme = darkColorScheme(
     outlineVariant = Color(0xFF2A2A2A),
 )
 
-private val AppTypography = Typography(
-    displayLarge = TextStyle(
-        fontSize = 57.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 64.sp,
-        letterSpacing = (-0.25).sp
-    ),
-    displayMedium = TextStyle(
-        fontSize = 45.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 52.sp,
-        letterSpacing = 0.sp
-    ),
-    displaySmall = TextStyle(
-        fontSize = 36.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 44.sp,
-        letterSpacing = 0.sp
-    ),
-    headlineLarge = TextStyle(
-        fontSize = 32.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 40.sp,
-        letterSpacing = 0.sp
-    ),
-    headlineMedium = TextStyle(
-        fontSize = 28.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 36.sp,
-        letterSpacing = 0.sp
-    ),
-    headlineSmall = TextStyle(
-        fontSize = 24.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 32.sp,
-        letterSpacing = 0.sp
-    ),
-    titleLarge = TextStyle(
-        fontSize = 22.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
-    ),
-    titleMedium = TextStyle(
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 24.sp,
-        letterSpacing = 0.15.sp
-    ),
-    titleSmall = TextStyle(
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
-    ),
-    bodyLarge = TextStyle(
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    ),
-    bodyMedium = TextStyle(
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 20.sp,
-        letterSpacing = 0.25.sp
-    ),
-    bodySmall = TextStyle(
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Normal,
-        lineHeight = 16.sp,
-        letterSpacing = 0.4.sp
-    ),
-    labelLarge = TextStyle(
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
-    ),
-    labelMedium = TextStyle(
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
-    ),
-    labelSmall = TextStyle(
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Medium,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+private fun appTypography(emojiFontFamily: FontFamily? = null): Typography {
+    val ff = emojiFontFamily
+    return Typography(
+        displayLarge = TextStyle(
+            fontFamily = ff,
+            fontSize = 57.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 64.sp,
+            letterSpacing = (-0.25).sp
+        ),
+        displayMedium = TextStyle(
+            fontFamily = ff,
+            fontSize = 45.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 52.sp,
+            letterSpacing = 0.sp
+        ),
+        displaySmall = TextStyle(
+            fontFamily = ff,
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 44.sp,
+            letterSpacing = 0.sp
+        ),
+        headlineLarge = TextStyle(
+            fontFamily = ff,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 40.sp,
+            letterSpacing = 0.sp
+        ),
+        headlineMedium = TextStyle(
+            fontFamily = ff,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 36.sp,
+            letterSpacing = 0.sp
+        ),
+        headlineSmall = TextStyle(
+            fontFamily = ff,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 32.sp,
+            letterSpacing = 0.sp
+        ),
+        titleLarge = TextStyle(
+            fontFamily = ff,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 28.sp,
+            letterSpacing = 0.sp
+        ),
+        titleMedium = TextStyle(
+            fontFamily = ff,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 24.sp,
+            letterSpacing = 0.15.sp
+        ),
+        titleSmall = TextStyle(
+            fontFamily = ff,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 20.sp,
+            letterSpacing = 0.1.sp
+        ),
+        bodyLarge = TextStyle(
+            fontFamily = ff,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 24.sp,
+            letterSpacing = 0.5.sp
+        ),
+        bodyMedium = TextStyle(
+            fontFamily = ff,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 20.sp,
+            letterSpacing = 0.25.sp
+        ),
+        bodySmall = TextStyle(
+            fontFamily = ff,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+            lineHeight = 16.sp,
+            letterSpacing = 0.4.sp
+        ),
+        labelLarge = TextStyle(
+            fontFamily = ff,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 20.sp,
+            letterSpacing = 0.1.sp
+        ),
+        labelMedium = TextStyle(
+            fontFamily = ff,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 16.sp,
+            letterSpacing = 0.5.sp
+        ),
+        labelSmall = TextStyle(
+            fontFamily = ff,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            lineHeight = 16.sp,
+            letterSpacing = 0.5.sp
+        )
     )
-)
+}
 
 @Composable
 fun LexiconTheme(
@@ -242,6 +261,8 @@ fun LexiconTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val emojiFontFamily = platformFontFamily()
+    val typography = appTypography(emojiFontFamily)
 
     CompositionLocalProvider(
         LocalSpacing provides AppSpacing(),
@@ -249,7 +270,7 @@ fun LexiconTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = AppTypography,
+            typography = typography,
             content = content
         )
     }
