@@ -23,3 +23,29 @@ Configuration/Config.secrets.xcconfig
 # macOS
 .DS_Store
 
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Environment files
+.env
+.env.local
+
+# Bundler
+.bundle/
+vendor/
+
+# Certificates and profiles
+*.p12
+*.cer
+*.mobileprovision
+*.certSigningRequest
+
+# Build archives
+*.xcarchive
+build/
+
+# App Store Connect API Key
+AuthKey_*.p8

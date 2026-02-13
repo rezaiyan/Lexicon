@@ -1,0 +1,126 @@
+# Fastfile for Lexicon iOS deployment automation
+# More documentation at https://docs.fastlane.tools
+
+default_platform(:ios)
+
+platform :ios do
+  before_all do
+    # Ensure we're in the iosApp directory
+    ensure_git_status_clean unless ENV['CI']
+  end
+
+  desc "Build the iOS app for release"
+  lane :build do
+    # Build the KMP framework first
+    sh("cd .. && ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace")
+
+    # Build and archive the iOS app
+    build_app(
+      scheme: "iosApp",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "Lexicon.ipa",
+      clean: true,
+      include_bitcode: false,
+      export_options: {
+        provisioningProfiles: {
+          ENV["IOS_BUNDLE_ID"] => "match AppStore " + ENV["IOS_BUNDLE_ID"]
+        }
+      }
+    )
+  end
+
+  desc "Upload a new build to TestFlight"
+  lane :beta do
+    # Increment build number
+    increment_build_number(xcodeproj: "iosApp.xcodeproj")
+
+    # Build the app
+    build
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      notify_external_testers: false,
+      changelog: "New beta build from CI"
+    )
+
+    # Commit the version bump if not in CI
+    unless ENV['CI']
+      commit_version_bump(
+        message: "chore(ios): Bump build number for TestFlight",
+        xcodeproj: "iosApp.xcodeproj"
+      )
+    end
+  end
+
+  desc "Upload a new version to the App Store"
+  lane :release do
+    # Build the app
+    build
+
+    # Upload to App Store
+    upload_to_app_store(
+      submit_for_review: false,
+      automatic_release: false,
+      force: true,
+      skip_metadata: false,
+      skip_screenshots: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+
+  desc "Download certificates and provisioning profiles"
+  lane :setup_certificates do
+    # Use match for certificate management (recommended for teams)
+    # Or use manual certificate import for simple setups
+
+    # Option 1: Using match (requires git repo for certs)
+    # match(
+    #   type: "appstore",
+    #   readonly: true
+    # )
+
+    # Option 2: Manual import (for CI with secrets)
+    if ENV['CI']
+      import_certificate(
+        certificate_path: "certificate.p12",
+        certificate_password: ENV["IOS_CERTIFICATES_PASSWORD"],
+        keychain_name: "build.keychain",
+        keychain_password: ""
+      )
+
+      install_provisioning_profile(
+        path: "profile.mobileprovision"
+      )
+    end
+  end
+
+  desc "Run tests"
+  lane :test do
+    run_tests(
+      scheme: "iosApp",
+      devices: ["iPhone 15 Pro"]
+    )
+  end
+
+  desc "Take screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      scheme: "iosApp",
+      devices: [
+        "iPhone 15 Pro Max",
+        "iPhone 15 Pro",
+        "iPhone SE (3rd generation)",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ]
+    )
+  end
+
+  error do |lane, exception|
+    # Handle errors
+    UI.error("Error in lane #{lane}: #{exception}")
+  end
+end
