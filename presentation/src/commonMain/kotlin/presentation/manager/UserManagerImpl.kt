@@ -30,10 +30,6 @@ class UserManagerImpl(
 
     private val _currentUser = MutableStateFlow<AuthUser?>(null)
 
-    override fun isLogin(): Boolean {
-        return false // Unused — callers should use suspend isAuthenticated() instead
-    }
-
     override fun observeUser(): Flow<AuthUser?> {
         return flow {
             val token = authRepository.getAccessToken()

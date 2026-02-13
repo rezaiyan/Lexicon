@@ -25,6 +25,7 @@ runs:
           IOS_APP_STORE_ID
           REVENUECAT_ANDROID_KEY
           REVENUECAT_IOS_KEY
+          FIREBASE_WEB_API_KEY
         )
 
         missing=()
