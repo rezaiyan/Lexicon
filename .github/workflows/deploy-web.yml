@@ -1,0 +1,108 @@
+name: Deploy Web App to VPS
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'      # Triggers on version tags like v1.0.0, v2.1.3
+      - 'web-v*.*.*'  # Triggers on web-specific tags like web-v1.0.0
+  workflow_dispatch:   # Allows manual deployment
+
+env:
+  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
+  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
+  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
+  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
+  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
+  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
+  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
+  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
+  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Web App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build wasmJs production distribution
+        run: ./gradlew composeApp:wasmJsBrowserDistribution --no-daemon --stacktrace
+
+      - name: Verify build output
+        run: |
+          DIST_DIR="composeApp/build/dist/wasmJs/productionExecutable"
+          if [[ ! -d "$DIST_DIR" ]]; then
+            echo "✗ Distribution directory not found: $DIST_DIR"
+            exit 1
+          fi
+          FILE_COUNT=$(find "$DIST_DIR" -type f | wc -l | tr -d ' ')
+          TOTAL_SIZE=$(du -sh "$DIST_DIR" | cut -f1)
+          echo "✓ Distribution: ${FILE_COUNT} files, ${TOTAL_SIZE}"
+
+      - name: Setup SSH for deployment
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PATH: ${{ secrets.VPS_WEB_PATH }}
+        run: |
+          DIST_DIR="composeApp/build/dist/wasmJs/productionExecutable"
+
+          echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH}..."
+
+          # Ensure target directory exists
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+
+          # Deploy using rsync
+          rsync -avz --delete --checksum \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            "${DIST_DIR}/" \
+            "root@${VPS_HOST}:${VPS_PATH}/"
+
+          echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
+          echo "  https://vokab.alirezaiyan.com/"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Deployment Summary
+        run: |
+          echo "### Deployment Successful! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://vokab.alirezaiyan.com/" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
