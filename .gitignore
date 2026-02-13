@@ -5,3 +5,20 @@ kotlin-js-store/
 .idea/
 .kotlin/
 local.properties
+
+# Firebase config files (contain OAuth client IDs)
+google-services.json
+GoogleService-Info.plist
+
+# Security - private keys and certificates
+*.key
+*.pem
+*.p12
+*.jks
+keystore.jks
+
+# Environment and secrets
+.env
+.env.*
+*secret*
+*credential*

@@ -4,8 +4,8 @@ How the KMP web app is hosted on `https://vokab.alirezaiyan.com` alongside the b
 
 ## VPS Overview
 
-- **IP**: `148.230.109.213`
-- **Access**: `ssh root@148.230.109.213`
+- **Domain**: `vokab.alirezaiyan.com`
+- **Access**: `ssh root@vokab.alirezaiyan.com`
 - **Specs**: 1 CPU, 3.8GB RAM, 48GB disk
 - **OS**: Ubuntu with systemd
 
