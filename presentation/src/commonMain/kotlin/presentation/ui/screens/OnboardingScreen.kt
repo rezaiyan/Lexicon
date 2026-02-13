@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
@@ -60,7 +59,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import presentation.model.OnboardingUiState
 import theme.AppDimensions
@@ -85,6 +83,23 @@ private val languageNativeNames = mapOf(
     "Arabic" to "العربية",
     "Turkish" to "TÜRKÇE",
     "Persian" to "فارسی"
+)
+
+private val languageFlags = mapOf(
+    "English" to "\uD83C\uDDEC\uD83C\uDDE7",
+    "German" to "\uD83C\uDDE9\uD83C\uDDEA",
+    "French" to "\uD83C\uDDEB\uD83C\uDDF7",
+    "Spanish" to "\uD83C\uDDEA\uD83C\uDDF8",
+    "Italian" to "\uD83C\uDDEE\uD83C\uDDF9",
+    "Portuguese" to "\uD83C\uDDF5\uD83C\uDDF9",
+    "Dutch" to "\uD83C\uDDF3\uD83C\uDDF1",
+    "Russian" to "\uD83C\uDDF7\uD83C\uDDFA",
+    "Chinese" to "\uD83C\uDDE8\uD83C\uDDF3",
+    "Japanese" to "\uD83C\uDDEF\uD83C\uDDF5",
+    "Korean" to "\uD83C\uDDF0\uD83C\uDDF7",
+    "Arabic" to "\uD83C\uDDF8\uD83C\uDDE6",
+    "Turkish" to "\uD83C\uDDF9\uD83C\uDDF7",
+    "Persian" to "\uD83C\uDDEE\uD83C\uDDF7"
 )
 
 @Composable
@@ -184,7 +199,6 @@ fun OnboardingScreen(
                     state = state,
                     onLevelSelected = onLevelSelected,
                     onSubmit = onSubmit,
-                    onSkip = onSkip,
                     onBack = onPreviousStep,
                     spacing = spacing,
                     dimensions = dimensions
@@ -264,6 +278,7 @@ private fun OnboardingStep1Content(
                 LanguageGridCard(
                     language = language,
                     nativeName = languageNativeNames[language] ?: language.uppercase(),
+                    flag = languageFlags[language] ?: "",
                     selected = state.selectedTargetLanguage == language,
                     onClick = { onTargetLanguageSelected(language) },
                     spacing = spacing,
@@ -322,6 +337,7 @@ private fun OnboardingStep1Content(
 private fun LanguageGridCard(
     language: String,
     nativeName: String,
+    flag: String,
     selected: Boolean,
     onClick: () -> Unit,
     spacing: AppSpacing,
@@ -357,8 +373,14 @@ private fun LanguageGridCard(
                         .fillMaxWidth()
                         .height(48.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                )
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = flag,
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                }
                 Spacer(modifier = Modifier.height(spacing.extraSmall2))
                 Text(
                     text = language,
@@ -445,6 +467,7 @@ private fun OnboardingStep2Content(
                 LanguageGridCard(
                     language = language,
                     nativeName = languageNativeNames[language] ?: language.uppercase(),
+                    flag = languageFlags[language] ?: "",
                     selected = state.selectedNativeLanguage == language,
                     onClick = { onNativeLanguageSelected(language) },
                     spacing = spacing,
@@ -481,20 +504,6 @@ private fun OnboardingStep2Content(
         ) {
             Text("Skip", style = MaterialTheme.typography.labelLarge)
         }
-        Spacer(modifier = Modifier.height(spacing.small))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "Don't see your language?",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = {}) {
-                Text("Request it here", color = MaterialTheme.colorScheme.primary)
-            }
-        }
         Spacer(modifier = Modifier.height(spacing.medium))
     }
 }
@@ -504,7 +513,6 @@ private fun OnboardingStep3Content(
     state: OnboardingUiState,
     onLevelSelected: (String) -> Unit,
     onSubmit: () -> Unit,
-    onSkip: () -> Unit,
     onBack: () -> Unit,
     spacing: AppSpacing,
     dimensions: AppDimensions

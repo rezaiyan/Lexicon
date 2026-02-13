@@ -16,12 +16,16 @@
             width: 100%;
             height: 100%;
         }
-        .loader {
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            height: 100%;
             background: linear-gradient(to bottom, #F0EDFF, #FAF9FF);
         }
         .loader-title {
@@ -36,7 +40,7 @@
             to { opacity: 1; }
         }
         @media (prefers-color-scheme: dark) {
-            .loader {
+            #loader-overlay {
                 background: linear-gradient(to bottom, #0F0F1E, #1A1A2E);
             }
             .loader-title {
@@ -44,6 +48,8 @@
             }
         }
     </style>
+    <link rel="preload" href="./composeResources/lexicon.design_system.generated.resources/font/noto_sans_regular.ttf" as="fetch" type="font/ttf" crossorigin/>
+    <link rel="preload" href="./composeResources/lexicon.design_system.generated.resources/font/noto_sans_medium.ttf" as="fetch" type="font/ttf" crossorigin/>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
     <script>
@@ -112,11 +118,26 @@
     </script>
 </head>
 <body>
-    <div id="root">
-        <div class="loader">
-            <div class="loader-title">Lexicon</div>
-        </div>
+    <div id="root"></div>
+    <div id="loader-overlay">
+        <div class="loader-title">Lexicon</div>
     </div>
+    <script>
+        window._hideLoader = function() {
+            document.fonts.ready.then(function() {
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        var el = document.getElementById('loader-overlay');
+                        if (el) {
+                            el.style.transition = 'opacity 0.3s ease-out';
+                            el.style.opacity = '0';
+                            setTimeout(function() { el.remove(); }, 300);
+                        }
+                    });
+                });
+            });
+        };
+    </script>
     <script src="composeApp.js"></script>
 </body>
 </html>

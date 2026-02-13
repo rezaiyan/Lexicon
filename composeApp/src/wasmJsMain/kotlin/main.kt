@@ -1,4 +1,7 @@
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.ComposeViewport
 import app.cash.sqldelight.async.coroutines.awaitCreate
 import app.cash.sqldelight.db.SqlDriver
@@ -12,10 +15,15 @@ import di.wasmJsPlatformModule
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import lexicon.design_system.generated.resources.Res
+import lexicon.design_system.generated.resources.noto_sans_medium
+import lexicon.design_system.generated.resources.noto_sans_regular
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.preloadFont
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 
-@OptIn(ExperimentalComposeUiApi::class, kotlin.js.ExperimentalWasmJsInterop::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class, kotlin.js.ExperimentalWasmJsInterop::class)
 fun main() {
     jsFirebaseInit(
         apiKey = FirebaseWebConfig.API_KEY,
@@ -39,7 +47,18 @@ fun main() {
 
         val root = document.getElementById("root") ?: return@launch
         ComposeViewport(root) {
-            presentation.ui.LexiconApp()
+            val fontRegular by preloadFont(Res.font.noto_sans_regular, FontWeight.Normal)
+            val fontMedium by preloadFont(Res.font.noto_sans_medium, FontWeight.Medium)
+            val fontsReady = fontRegular != null && fontMedium != null
+
+            if (fontsReady) {
+                presentation.ui.LexiconApp()
+                LaunchedEffect(Unit) { jsHideLoader() }
+            }
         }
     }
 }
+
+@OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
+private fun jsHideLoader(): JsAny? =
+    js("window._hideLoader && window._hideLoader()")
