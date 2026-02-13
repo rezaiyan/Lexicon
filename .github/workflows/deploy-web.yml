@@ -1,0 +1,72 @@
+name: Deploy Web
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+env:
+  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
+  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
+  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
+  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
+  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
+  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
+  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
+  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
+  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build wasmJs production distribution
+        run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 148.230.109.213 >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          rsync -avz --delete --checksum \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            composeApp/build/dist/wasmJs/productionExecutable/ \
+            root@148.230.109.213:/var/www/vokab/kmp/
