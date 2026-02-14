@@ -138,6 +138,9 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
 
+      - name: Build Kotlin Multiplatform Framework
+        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
+
       - name: Build and upload to TestFlight
         env:
           FASTLANE_USER: ${{ secrets.APPLE_ID }}
