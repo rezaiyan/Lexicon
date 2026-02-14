@@ -33,10 +33,7 @@ platform :ios do
 
   desc "Upload a new build to TestFlight"
   lane :beta do
-    # Increment build number
-    increment_build_number(xcodeproj: "iosApp.xcodeproj")
-
-    # Build the app
+    # Build the app (version is managed by versioning.properties)
     build
 
     # Upload to TestFlight
