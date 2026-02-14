@@ -84,3 +84,4 @@ Splash -> [authenticated?] -> Main App (tabs)
 ./scripts/bump-version.sh --minor    # minor bump
 ./scripts/bump-version.sh --major    # major bump
 ```
+
