@@ -5,7 +5,7 @@ package presentation.viewmodel
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import domain.subscription.ISubscriptionManager
+import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.word.model.Word
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
@@ -26,7 +26,7 @@ class WordManagerViewModel(
     private val deleteWordsUseCase: DeleteWordsUseCase,
     private val updateWordUseCase: UpdateWordUseCase,
     private val exportWordsUseCase: ExportWordsUseCase,
-    private val subscriptionManager: ISubscriptionManager,
+    private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val analyticsTracker: IAnalyticsTracker
 ) : ViewModel() {
 
@@ -62,12 +62,12 @@ class WordManagerViewModel(
     init {
         startObservingWords()
         viewModelScope.launch {
-            subscriptionManager.isSubscribed()
+            getFeatureAccessUseCase()
                 .catch {
                     it.printStackTrace()
                 }
-                .collect { isSubscribed ->
-                    _state.value = _state.value.copy(isUserSubscribed = isSubscribed)
+                .collect { featureAccess ->
+                    _state.value = _state.value.copy(isUserSubscribed = featureAccess.userAccess.hasPremiumAccess)
                 }
         }
     }
