@@ -4,6 +4,7 @@ kotlin-js-store/
 **/build/
 .idea/
 .kotlin/
+ios-deployment-files/
 local.properties
 
 # Firebase config files (contain OAuth client IDs)

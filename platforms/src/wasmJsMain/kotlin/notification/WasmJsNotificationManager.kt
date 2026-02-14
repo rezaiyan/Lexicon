@@ -1,7 +1,32 @@
+@file:OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
+
 package notification
 
-import kotlinx.coroutines.await
-import kotlin.js.Promise
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+
+// Helper functions that use js() as single expressions (required for Kotlin/Wasm)
+private fun isNotificationSupported(): Boolean =
+    js("typeof window !== 'undefined' && typeof window.Notification !== 'undefined'")
+
+private fun getNotificationPermission(): String =
+    js("window.Notification ? window.Notification.permission : 'denied'")
+
+private fun requestNotificationPermissionJs(onResult: (String) -> Unit): Unit =
+    js("window.Notification.requestPermission().then(result => onResult(result))")
+
+private fun createNotificationWithBody(title: String, body: String): Unit =
+    js("new window.Notification(title, { body: body })")
+
+private fun consoleLog(message: String): Unit =
+    js("console.log(message)")
+
+private suspend fun requestNotificationPermissionAsync(): String =
+    suspendCancellableCoroutine { continuation ->
+        requestNotificationPermissionJs { result ->
+            continuation.resume(result)
+        }
+    }
 
 /**
  * WasmJs implementation of INotificationManager
@@ -10,19 +35,16 @@ import kotlin.js.Promise
 class WasmJsNotificationManager : INotificationManager {
 
     override suspend fun areNotificationsEnabled(): Boolean {
-        val notification = js("window.Notification")
-        if (notification == undefined) return false
+        if (!isNotificationSupported()) return false
 
-        val permission = js("Notification.permission").toString()
-        return permission == "granted"
+        return getNotificationPermission() == "granted"
     }
 
     override suspend fun requestNotificationPermission(): Boolean {
-        val notification = js("window.Notification")
-        if (notification == undefined) return false
+        if (!isNotificationSupported()) return false
 
         return try {
-            val result = (js("Notification.requestPermission()") as Promise<String>).await()
+            val result = requestNotificationPermissionAsync()
             result == "granted"
         } catch (e: Exception) {
             false
@@ -30,11 +52,9 @@ class WasmJsNotificationManager : INotificationManager {
     }
 
     override suspend fun wasNotificationPermissionDenied(): Boolean {
-        val notification = js("window.Notification")
-        if (notification == undefined) return false
+        if (!isNotificationSupported()) return false
 
-        val permission = js("Notification.permission").toString()
-        return permission == "denied"
+        return getNotificationPermission() == "denied"
     }
 
     override suspend fun scheduleReviewReminder(
@@ -63,9 +83,9 @@ class WasmJsNotificationManager : INotificationManager {
     override suspend fun showImmediateNotification(title: String, message: String) {
         if (areNotificationsEnabled()) {
             try {
-                js("new Notification(title, { body: message })")
+                createNotificationWithBody(title, message)
             } catch (e: Exception) {
-                console.log("Failed to show notification: ${e.message}")
+                consoleLog("Failed to show notification: ${e.message}")
             }
         }
     }

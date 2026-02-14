@@ -1,18 +1,42 @@
+@file:OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
+
 package presentation.ui.permissions
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import kotlinx.browser.window
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+
+// Top-level helper functions for js() calls (required for Kotlin/Wasm)
+private fun isNotificationSupported(): Boolean =
+    js("typeof window !== 'undefined' && typeof window.Notification !== 'undefined'")
+
+private fun getNotificationPermission(): String =
+    js("window.Notification ? window.Notification.permission : 'denied'")
+
+private fun requestNotificationPermissionJs(onResult: (String) -> Unit): Unit =
+    js("window.Notification.requestPermission().then(result => onResult(result))")
+
+private suspend fun requestNotificationPermissionAsync(): String =
+    suspendCancellableCoroutine { continuation ->
+        requestNotificationPermissionJs { result ->
+            continuation.resume(result)
+        }
+    }
 
 @Composable
 actual fun rememberNotificationPermissionRequester(
     onResult: (Boolean) -> Unit
 ): () -> Unit {
+    val scope = rememberCoroutineScope()
     return remember {
         {
-            val notification = js("window.Notification")
-            if (notification != undefined) {
-                val permission = js("Notification.permission").toString()
+            if (!isNotificationSupported()) {
+                onResult(false)
+            } else {
+                val permission = getNotificationPermission()
                 when (permission) {
                     "granted" -> {
                         onResult(true)
@@ -22,19 +46,17 @@ actual fun rememberNotificationPermissionRequester(
                     }
                     else -> {
                         // "default" - request permission
-                        js("Notification.requestPermission()")
-                            .then { result: dynamic ->
-                                val granted = result.toString() == "granted"
+                        scope.launch {
+                            try {
+                                val result = requestNotificationPermissionAsync()
+                                val granted = result == "granted"
                                 onResult(granted)
-                            }
-                            .catch {
+                            } catch (e: Exception) {
                                 onResult(false)
                             }
+                        }
                     }
                 }
-            } else {
-                // Notifications not supported
-                onResult(false)
             }
         }
     }
@@ -42,9 +64,6 @@ actual fun rememberNotificationPermissionRequester(
 
 @Composable
 actual fun wasNotificationPermissionDenied(): Boolean {
-    val notification = js("window.Notification")
-    if (notification == undefined) return false
-
-    val permission = js("Notification.permission").toString()
-    return permission == "denied"
+    if (!isNotificationSupported()) return false
+    return getNotificationPermission() == "denied"
 }
