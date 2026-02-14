@@ -86,6 +86,9 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
 
+            // Set bundle ID explicitly for iOS framework
+            binaryOption("bundleId", applicationIdValue)
+
             linkerOpts.add("-lsqlite3")
 
             export(libs.lifecycle.viewmodel)
