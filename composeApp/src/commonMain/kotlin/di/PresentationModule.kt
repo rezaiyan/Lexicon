@@ -122,7 +122,7 @@ fun presentationModule() = module {
             deleteWordsUseCase = get(),
             updateWordUseCase = get(),
             exportWordsUseCase = get(),
-            subscriptionManager = get(),
+            getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
         )
     }
