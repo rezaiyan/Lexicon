@@ -136,7 +136,7 @@ jobs:
 
           # Install provisioning profile
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/c3bc595a-2779-4c1e-8973-82827759864a.mobileprovision
 
       - name: Build Kotlin Multiplatform Framework
         run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace

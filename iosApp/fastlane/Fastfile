@@ -12,6 +12,17 @@ platform :ios do
   desc "Build the iOS app for release"
   lane :build do
     # KMP framework is already built by GitHub Actions workflow
+
+    # Update Xcode project signing settings to use manual signing
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "iosApp.xcodeproj",
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "Apple Distribution",
+      profile_name: "Vokab App Store",
+      bundle_identifier: "com.alirezaiyan.vokab"
+    )
+
     # Build and archive the iOS app
     build_app(
       scheme: "iosApp",
@@ -22,8 +33,9 @@ platform :ios do
       clean: true,
       include_bitcode: false,
       export_options: {
+        signingStyle: "manual",
         provisioningProfiles: {
-          ENV["IOS_BUNDLE_ID"] => "match AppStore " + ENV["IOS_BUNDLE_ID"]
+          "com.alirezaiyan.vokab" => "Vokab App Store"
         }
       }
     )
