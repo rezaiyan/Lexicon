@@ -11,8 +11,10 @@ platform :ios do
 
   desc "Build the iOS app for release"
   lane :build do
-    # Build the KMP framework first
-    sh("cd .. && ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace")
+    # Build the KMP framework first (from project root)
+    Dir.chdir("..") do
+      sh("./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace")
+    end
 
     # Build and archive the iOS app
     build_app(
