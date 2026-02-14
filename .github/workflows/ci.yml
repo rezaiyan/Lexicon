@@ -135,7 +135,7 @@ jobs:
 
   build-ios:
     name: Build iOS
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - name: Checkout code
@@ -155,12 +155,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Set up Xcode
-        run: |
-          sudo xcode-select -switch /Applications/Xcode_15.2.app/Contents/Developer
-          xcodebuild -version
-
-      - name: Clear Gradle cache for jansi
-        run: rm -rf ~/.gradle/native/jansi || true
+        run: xcodebuild -version
 
       - name: Build iOS Framework
         run: ./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64 --stacktrace
