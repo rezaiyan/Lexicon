@@ -10,16 +10,6 @@
 		058557BB273AAA24004C7B11 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557BA273AAA24004C7B11 /* Assets.xcassets */; };
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
-		41423FA42EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FA62EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FA82EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FAA2EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FAC2EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FAE2EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FB02EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FB22EA03AEF00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FB52EA03B6B00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
-		41423FB72EA03B6B00F29680 /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		414C33092E9868EB0067B974 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 414C33082E9868EB0067B974 /* GoogleService-Info.plist */; };
 		414C330A2E9868EC0067B975 /* FirebaseAnalyticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 414C33092E9868EC0067B975 /* FirebaseAnalyticsHelper.swift */; };
 		41C529AE2ED8F18200D6C5F6 /* PurchasesHybridCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 41C529AD2ED8F18200D6C5F6 /* PurchasesHybridCommon */; };
@@ -54,17 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				41423FB02EA03AEF00F29680 /* (null) in Frameworks */,
 				41C529B02ED8F18200D6C5F6 /* PurchasesHybridCommonUI in Frameworks */,
-				41423FA82EA03AEF00F29680 /* (null) in Frameworks */,
-				41423FB22EA03AEF00F29680 /* (null) in Frameworks */,
-				41423FAA2EA03AEF00F29680 /* (null) in Frameworks */,
-				41423FA42EA03AEF00F29680 /* (null) in Frameworks */,
-				41423FB52EA03B6B00F29680 /* (null) in Frameworks */,
-				41423FAE2EA03AEF00F29680 /* (null) in Frameworks */,
-				41423FA62EA03AEF00F29680 /* (null) in Frameworks */,
-				41423FAC2EA03AEF00F29680 /* (null) in Frameworks */,
-				41423FB72EA03B6B00F29680 /* (null) in Frameworks */,
 				41C529AE2ED8F18200D6C5F6 /* PurchasesHybridCommon in Frameworks */,
 				FF0001 /* FirebaseAnalytics in Frameworks */,
 				FF0003 /* FirebaseAuth in Frameworks */,
@@ -404,7 +384,7 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\n$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vokab;
@@ -434,7 +414,7 @@
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\n$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
+					"$(SRCROOT)/../composeApp/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Vokab;
