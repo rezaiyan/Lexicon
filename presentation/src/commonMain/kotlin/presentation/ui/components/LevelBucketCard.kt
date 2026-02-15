@@ -9,7 +9,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,10 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.stringResource
+import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import theme.Theme
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.no_words_yet
 
 @Composable
 fun LevelBucketCard(
@@ -85,15 +82,6 @@ fun LevelBucketCard(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f, fill = false)
                         )
-                        if (isEmpty) {
-                            Text(
-                                text = stringResource(Res.string.no_words_yet),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
                     }
                 }
             }
