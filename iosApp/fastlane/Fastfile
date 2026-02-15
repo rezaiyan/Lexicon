@@ -7,6 +7,75 @@ platform :ios do
   before_all do
     # Ensure we're in the iosApp directory
     ensure_git_status_clean unless ENV['CI']
+
+    # Load App Store Connect API key from environment if available
+    # Supports both path-based (local) and content-based (CI) configurations
+    if ENV["APP_STORE_CONNECT_API_KEY_PATH"]
+      @api_key = app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+        key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
+        in_house: false
+      )
+    elsif ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
+      # CI mode: API key content is provided as base64 or direct content
+      # The key file should be created before running fastlane
+      api_key_path = "#{Dir.home}/.appstoreconnect/private_keys/AuthKey_#{ENV['APP_STORE_CONNECT_API_KEY_ID']}.p8"
+      if File.exist?(api_key_path)
+        @api_key = app_store_connect_api_key(
+          key_id: ENV["APP_STORE_CONNECT_API_KEY_ID"],
+          issuer_id: ENV["APP_STORE_CONNECT_API_ISSUER_ID"],
+          key_filepath: api_key_path,
+          in_house: false
+        )
+      else
+        UI.user_error!("API key file not found at #{api_key_path}. Please create it before running fastlane.")
+      end
+    end
+  end
+
+  desc "Run pre-flight checks before building"
+  lane :preflight do
+    UI.message("🔍 Running pre-flight checks...")
+
+    # Check for API key
+    if @api_key.nil?
+      UI.important("⚠️  No App Store Connect API key configured")
+      UI.important("Set APP_STORE_CONNECT_API_KEY_PATH or APP_STORE_CONNECT_API_KEY_CONTENT")
+    else
+      UI.success("✓ App Store Connect API key configured")
+    end
+
+    # Check for code signing identity
+    identities = sh("security find-identity -v -p codesigning | grep 'Apple Distribution' || true").strip
+    if identities.empty?
+      UI.user_error!("❌ No Apple Distribution certificate found. Please install it first.")
+    else
+      UI.success("✓ Apple Distribution certificate found")
+    end
+
+    # Check for provisioning profiles
+    profile_dir = File.expand_path("~/Library/MobileDevice/Provisioning Profiles")
+    if Dir.exist?(profile_dir) && !Dir.empty?(profile_dir)
+      profile_count = Dir.entries(profile_dir).count { |f| f.end_with?('.mobileprovision') }
+      UI.success("✓ Found #{profile_count} provisioning profile(s)")
+    else
+      UI.user_error!("❌ No provisioning profiles found. Please install the App Store profile.")
+    end
+
+    # Check bundle identifier
+    bundle_id = ENV["IOS_BUNDLE_ID"] || "com.alirezaiyan.vokab"
+    UI.success("✓ Bundle ID: #{bundle_id}")
+
+    # Check team ID
+    team_id = ENV["APPLE_TEAM_ID"]
+    if team_id.nil? || team_id.empty?
+      UI.user_error!("❌ APPLE_TEAM_ID not set")
+    else
+      UI.success("✓ Team ID: #{team_id}")
+    end
+
+    UI.success("🎉 All pre-flight checks passed!")
   end
 
   desc "Build the iOS app for release"
@@ -41,6 +110,28 @@ platform :ios do
     )
   end
 
+  desc "Validate the built IPA"
+  lane :validate do
+    UI.message("🔍 Validating IPA...")
+
+    ipa_path = File.expand_path("../build/Lexicon.ipa", __dir__)
+
+    unless File.exist?(ipa_path)
+      UI.user_error!("❌ IPA not found at #{ipa_path}. Please run 'fastlane build' first.")
+    end
+
+    # Validate the IPA using xcrun altool
+    if @api_key
+      UI.message("Validating with App Store Connect API key...")
+      sh("xcrun altool --validate-app -f \"#{ipa_path}\" -t ios --apiKey #{@api_key[:key_id]} --apiIssuer #{@api_key[:issuer_id]}")
+    else
+      UI.important("⚠️  No API key configured. Skipping App Store Connect validation.")
+      UI.important("The IPA file exists and can be uploaded manually.")
+    end
+
+    UI.success("✓ IPA validation successful!")
+  end
+
   desc "Upload a new build to TestFlight"
   lane :beta do
     # Build the app (version is managed by versioning.properties)
@@ -48,6 +139,7 @@ platform :ios do
 
     # Upload to TestFlight
     upload_to_testflight(
+      api_key: @api_key,
       skip_waiting_for_build_processing: true,
       distribute_external: false,
       notify_external_testers: false,
@@ -65,18 +157,44 @@ platform :ios do
 
   desc "Upload a new version to the App Store"
   lane :release do
+    # Run pre-flight checks
+    preflight
+
     # Build the app
     build
 
+    # Validate the build
+    validate
+
     # Upload to App Store
+    UI.message("📤 Uploading to App Store Connect...")
+
+    # Use the IPA path from the build lane
+    ipa_path = lane_context[SharedValues::IPA_OUTPUT_PATH]
+
     upload_to_app_store(
+      api_key: @api_key,
       submit_for_review: false,
       automatic_release: false,
       force: true,
       skip_metadata: false,
       skip_screenshots: true,
-      precheck_include_in_app_purchases: false
+      precheck_include_in_app_purchases: false,
+      ipa: ipa_path
     )
+
+    UI.success("🎉 Successfully uploaded to App Store Connect!")
+    UI.important("Next steps:")
+    UI.important("1. Go to https://appstoreconnect.apple.com")
+    UI.important("2. Select your app and the new version")
+    UI.important("3. Fill in 'What's New' and other required metadata")
+    UI.important("4. Submit for review when ready")
+  end
+
+  desc "Build, validate, and upload to App Store (full release pipeline)"
+  lane :deploy_appstore do
+    # This is an alias for release with clearer naming
+    release
   end
 
   desc "Download certificates and provisioning profiles"

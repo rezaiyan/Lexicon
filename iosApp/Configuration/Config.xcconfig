@@ -1,5 +1,5 @@
 // Version synced from versioning.properties via scripts/bump-version.sh
-TEAM_ID =
+TEAM_ID = VFCFJC7Y5J
 BUNDLE_ID = com.alirezaiyan.vokab
 APP_NAME = Lexicon
 MARKETING_VERSION = 1.2.1
