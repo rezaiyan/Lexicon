@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import domain.auth.usecase.GetFeatureAccessUseCase
 import events.OnEvents
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.study.StudyEvent
 import presentation.feature.study.StudyViewModel
@@ -25,10 +27,13 @@ import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.CloseConfirmationDialogContent
 import presentation.ui.components.LexiconColumn
+import presentation.ui.components.imports.AiWordImportBottomSheet
 import presentation.ui.components.imports.ImportBottomSheet
+import presentation.ui.components.imports.ImportMethodSelectorContent
 import presentation.ui.overlay.LocalOverlayHost
 import presentation.ui.overlay.bottomsheet.BottomSheetProperties
 import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
+import presentation.ui.overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.overlay.dialog.showDialog
 import presentation.ui.screens.review.ReviewBottomSheetContent
 import presentation.ui.screens.study.LearningStagesSection
@@ -43,11 +48,14 @@ import lexicon.resources.generated.resources.stage_words_string
 fun StudyScreen() {
     val viewModel = koinViewModel<StudyViewModel>()
     val overlayHost = LocalOverlayHost.current
+    val getFeatureAccessUseCase = koinInject<GetFeatureAccessUseCase>()
 
     val uiState by viewModel.progressScreenState.collectAsStateWithLifecycle()
     val reviewState by viewModel.reviewScreenState.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
+    val featureAccess by getFeatureAccessUseCase().collectAsStateWithLifecycle(null)
+    val hasPremiumAccess = featureAccess?.userAccess?.hasPremiumAccess == true
 
     LexiconColumn(
         title = getTimeBasedGreeting(),
@@ -56,29 +64,84 @@ fun StudyScreen() {
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),
             onClick = {
-                overlayHost.showFullscreenBottomSheet(
-                    tag = "import",
-                    properties = BottomSheetProperties(
-                        dismissOnTouchOutside = false,
-                        dismissOnBackPress = false,
-                        isNavigationBarsPaddingEnabled = true,
-                        sheetGesturesEnabled = false,
-                    )
-                ) { navigator ->
-                    ImportBottomSheet(
-                        onDismiss = {
-                            navigator.dismiss()
-                        },
-                        onShowSnackBar = { message ->
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    message = message,
-                                    duration = SnackbarDuration.Short
-                                )
+                if (hasPremiumAccess) {
+                    overlayHost.showSizeToFitBottomSheet(tag = "import-method") { selectorNav ->
+                        ImportMethodSelectorContent(
+                            onManual = {
+                                selectorNav.dismiss()
+                                overlayHost.showFullscreenBottomSheet(
+                                    tag = "import",
+                                    properties = BottomSheetProperties(
+                                        dismissOnTouchOutside = false,
+                                        dismissOnBackPress = false,
+                                        isNavigationBarsPaddingEnabled = true,
+                                        sheetGesturesEnabled = false,
+                                    )
+                                ) { importNav ->
+                                    ImportBottomSheet(
+                                        onDismiss = { importNav.dismiss() },
+                                        onShowSnackBar = { message ->
+                                            viewModel.refreshStats()
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = message,
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            },
+                            onAiAssistant = {
+                                selectorNav.dismiss()
+                                overlayHost.showFullscreenBottomSheet(
+                                    tag = "ai-import",
+                                    properties = BottomSheetProperties(
+                                        dismissOnTouchOutside = false,
+                                        dismissOnBackPress = false,
+                                        isNavigationBarsPaddingEnabled = true,
+                                        sheetGesturesEnabled = false,
+                                    )
+                                ) { aiNav ->
+                                    AiWordImportBottomSheet(
+                                        onDismiss = { aiNav.dismiss() },
+                                        onShowSnackBar = { message ->
+                                            viewModel.refreshStats()
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = message,
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
                             }
-
-                        }
-                    )
+                        )
+                    }
+                } else {
+                    overlayHost.showFullscreenBottomSheet(
+                        tag = "import",
+                        properties = BottomSheetProperties(
+                            dismissOnTouchOutside = false,
+                            dismissOnBackPress = false,
+                            isNavigationBarsPaddingEnabled = true,
+                            sheetGesturesEnabled = false,
+                        )
+                    ) { navigator ->
+                        ImportBottomSheet(
+                            onDismiss = { navigator.dismiss() },
+                            onShowSnackBar = { message ->
+                                viewModel.refreshStats()
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = message,
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
             },
             size = 24.dp

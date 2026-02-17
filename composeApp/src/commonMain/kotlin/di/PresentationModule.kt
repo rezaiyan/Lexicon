@@ -15,6 +15,7 @@ import presentation.feature.subscription.SubscriptionViewModel
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel
+import presentation.feature.aiimport.AiWordImportViewModel
 import presentation.feature.onboarding.OnboardingViewModel
 import presentation.feature.onboarding.VocabularyPreviewViewModel
 import presentation.viewmodel.AppNavigationViewModel
@@ -150,4 +151,12 @@ fun presentationModule() = module {
     }
 
     viewModel { VocabularyPreviewViewModel() }
+
+    // AI Word Import
+    viewModel {
+        AiWordImportViewModel(
+            submitPreferencesUseCase = get(),
+            importSuggestedVocabularyUseCase = get()
+        )
+    }
 }

@@ -19,6 +19,7 @@ import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
 import expects.logNetwork
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +50,7 @@ class StudyViewModel(
 ) : ViewModel() {
 
     private val _progressStatistics = MutableStateFlow<ProgressStats?>(null)
+    private var progressObservationJob: Job? = null
 
     // Notification settings (passed in for scheduling)
     private val notificationsEnabled = true
@@ -70,8 +72,13 @@ class StudyViewModel(
         startObservingProgress()
     }
 
+    fun refreshStats() {
+        progressObservationJob?.cancel()
+        startObservingProgress()
+    }
+
     private fun startObservingProgress() {
-        viewModelScope.launch {
+        progressObservationJob = viewModelScope.launch {
             getProgressStatsUseCase.invoke()
                 .collect { stats ->
                     _progressStatistics.value = stats

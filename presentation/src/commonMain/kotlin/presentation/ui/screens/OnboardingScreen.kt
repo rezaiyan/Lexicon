@@ -87,7 +87,7 @@ import theme.Theme
 private const val OnboardingTransitionDuration = 300
 private const val OnboardingDisplayTotalSteps = 4
 
-private val languageNativeNames = mapOf(
+internal val languageNativeNames = mapOf(
     "English" to "ENGLISH",
     "German" to "DEUTSCH",
     "French" to "FRANÇAIS",
@@ -104,7 +104,7 @@ private val languageNativeNames = mapOf(
     "Persian" to "فارسی"
 )
 
-private val languageFlags = mapOf(
+internal val languageFlags = mapOf(
     "English" to Res.drawable.flag_gb,
     "German" to Res.drawable.flag_de,
     "French" to Res.drawable.flag_fr,
@@ -509,7 +509,7 @@ internal fun OnboardingStep1Content(
 }
 
 @Composable
-private fun OnboardingButtons(
+internal fun OnboardingButtons(
     primaryText: String,
     secondaryText: String,
     primaryEnabled: Boolean = true,
@@ -563,7 +563,7 @@ private fun OnboardingButtons(
 }
 
 @Composable
-private fun LanguageGridCard(
+internal fun LanguageGridCard(
     language: String,
     nativeName: String,
     flag: DrawableResource?,
@@ -687,7 +687,7 @@ private fun LanguageGridCard(
 }
 
 @Composable
-private fun OnboardingStep2Content(
+internal fun OnboardingStep2Content(
     state: OnboardingUiState,
     onNativeLanguageSelected: (String) -> Unit,
     onNextStep: () -> Unit,
@@ -766,7 +766,7 @@ private fun OnboardingStep2Content(
 }
 
 @Composable
-private fun OnboardingStep3Content(
+internal fun OnboardingStep3Content(
     state: OnboardingUiState,
     onLevelSelected: (String) -> Unit,
     onSubmit: () -> Unit,
@@ -884,7 +884,7 @@ private fun OnboardingStep3Content(
 }
 
 @Composable
-private fun OnboardingLoadingCard(
+internal fun OnboardingLoadingCard(
     spacing: AppSpacing,
     dimensions: AppDimensions
 ) {
@@ -1031,14 +1031,14 @@ private fun OnboardingLoadingCard(
     }
 }
 
-private val levelIcons = mapOf(
+internal val levelIcons = mapOf(
     "beginner" to Icons.Default.School,
     "intermediate" to Icons.AutoMirrored.Filled.TrendingUp,
     "advanced" to Icons.Default.Settings
 )
 
 @Composable
-private fun LevelCards(
+internal fun LevelCards(
     selectedLevel: String?,
     onLevelSelected: (String) -> Unit,
     spacing: AppSpacing,
