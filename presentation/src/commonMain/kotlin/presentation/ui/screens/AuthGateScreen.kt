@@ -32,9 +32,13 @@ private enum class SignInProvider {
 fun AuthGateScreen(
     onLoginWithGoogle: suspend (String) -> Unit,
     onLoginWithApple: (String, String?, String) -> Unit,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    error: String? = null
 ) {
     var activeProvider by remember { mutableStateOf<SignInProvider?>(null) }
+    var firebaseSignInError by remember { mutableStateOf(false) }
+
+    val errorMessage = error ?: if (firebaseSignInError) "Sign-in failed. Please try again." else null
 
     Scaffold { paddingValues ->
         Column(
@@ -62,10 +66,26 @@ fun AuthGateScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             GoogleSignInContainer(
                 onIdToken = { idToken ->
                     activeProvider = SignInProvider.GOOGLE
+                    firebaseSignInError = false
                     onLoginWithGoogle(idToken)
+                },
+                onError = {
+                    activeProvider = null
+                    firebaseSignInError = true
                 },
                 isLoading = isLoading && activeProvider == SignInProvider.GOOGLE,
                 modifier = Modifier
@@ -76,6 +96,7 @@ fun AuthGateScreen(
             AppleSignInButton(
                 onSignInSuccess = { idToken, fullName, appleUserId ->
                     activeProvider = SignInProvider.APPLE
+                    firebaseSignInError = false
                     onLoginWithApple(idToken, fullName, appleUserId)
                 },
                 onSignInFailure = {

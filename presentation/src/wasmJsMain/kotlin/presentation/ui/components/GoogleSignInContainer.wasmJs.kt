@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 @Composable
 actual fun GoogleSignInContainer(
     onIdToken: suspend (String) -> Unit,
+    onError: () -> Unit,
     isLoading: Boolean,
     modifier: Modifier
 ) {

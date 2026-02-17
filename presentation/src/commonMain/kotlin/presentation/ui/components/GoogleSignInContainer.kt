@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 @Composable
 expect fun GoogleSignInContainer(
     onIdToken: suspend (String) -> Unit,
+    onError: () -> Unit = {},
     isLoading: Boolean,
     modifier: Modifier = Modifier
 )

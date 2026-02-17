@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 @Composable
 actual fun GoogleSignInContainer(
     onIdToken: suspend (String) -> Unit,
+    onError: () -> Unit,
     isLoading: Boolean,
     modifier: Modifier
 ) {
@@ -33,16 +34,23 @@ actual fun GoogleSignInContainer(
 
     GoogleButtonUiContainerFirebase(
         onResult = { result ->
-            result.onSuccess { firebaseUser ->
-                if (firebaseUser != null) {
-                    coroutineScope.launch {
-                        val idToken = firebaseUser.getIdToken(false)
-                        if (idToken != null) {
-                            onIdToken(idToken)
+            result.fold(
+                onSuccess = { firebaseUser ->
+                    if (firebaseUser != null) {
+                        coroutineScope.launch {
+                            val idToken = firebaseUser.getIdToken(false)
+                            if (idToken != null) {
+                                onIdToken(idToken)
+                            } else {
+                                onError()
+                            }
                         }
+                    } else {
+                        onError()
                     }
-                }
-            }
+                },
+                onFailure = { onError() }
+            )
         },
         modifier = modifier.height(56.dp)
     ) {

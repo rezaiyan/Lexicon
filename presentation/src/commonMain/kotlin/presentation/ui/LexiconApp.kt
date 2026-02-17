@@ -250,7 +250,8 @@ fun LexiconApp() {
                             onLoginWithApple = { idToken, fullName, appleUserId ->
                                 authViewModel.loginWithApple(idToken, fullName, appleUserId)
                             },
-                            isLoading = authState.isLoading
+                            isLoading = authState.isLoading,
+                            error = authState.error
                         )
 
                         // When auth succeeds, import pending vocabulary and navigate to main

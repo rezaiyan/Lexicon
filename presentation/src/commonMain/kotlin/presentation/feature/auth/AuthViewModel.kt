@@ -117,6 +117,7 @@ class AuthViewModel(
     }
 
     private suspend fun processLogin(idToken: String) {
+        _authState.value = _authState.value.copy(isLoading = true)
         authMutex.withLock {
             loginWithGoogleUseCase.invoke(idToken)
                 .catch { error ->
