@@ -16,10 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import analytics.IAnalyticsTracker
 import com.mmk.kmpauth.firebase.google.GoogleButtonUiContainerFirebase
 import com.mmk.kmpauth.uihelper.google.GoogleButtonMode
 import com.mmk.kmpauth.uihelper.google.GoogleSignInButton
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @Composable
 actual fun GoogleSignInContainer(
@@ -31,6 +33,7 @@ actual fun GoogleSignInContainer(
     val coroutineScope = rememberCoroutineScope()
     val isDarkTheme = isSystemInDarkTheme()
     val googleButtonStyle = if (isDarkTheme) GoogleButtonMode.Light else GoogleButtonMode.Dark
+    val analyticsTracker = koinInject<IAnalyticsTracker>()
 
     GoogleButtonUiContainerFirebase(
         onResult = { result ->
@@ -38,18 +41,54 @@ actual fun GoogleSignInContainer(
                 onSuccess = { firebaseUser ->
                     if (firebaseUser != null) {
                         coroutineScope.launch {
-                            val idToken = firebaseUser.getIdToken(false)
-                            if (idToken != null) {
-                                onIdToken(idToken)
-                            } else {
+                            try {
+                                // Try cached token first; fall back to force-refresh if null
+                                val idToken = firebaseUser.getIdToken(false)
+                                    ?: firebaseUser.getIdToken(true)
+                                if (idToken != null) {
+                                    onIdToken(idToken)
+                                } else {
+                                    analyticsTracker.logEvent(
+                                        "google_sign_in_error",
+                                        mapOf("stage" to "get_id_token_null")
+                                    )
+                                    onError()
+                                }
+                            } catch (e: Exception) {
+                                // getIdToken can throw FirebaseAuthException (e.g. network error,
+                                // expired credential). Without this catch the coroutine crashes
+                                // silently and neither onIdToken nor onError is ever called.
+                                analyticsTracker.logEvent(
+                                    "google_sign_in_error",
+                                    mapOf(
+                                        "stage" to "get_id_token_exception",
+                                        "error_type" to (e::class.simpleName ?: "unknown"),
+                                        "error_message" to (e.message ?: "no_message")
+                                    )
+                                )
+                                analyticsTracker.logError(e, "google_get_id_token_exception")
                                 onError()
                             }
                         }
                     } else {
+                        analyticsTracker.logEvent(
+                            "google_sign_in_error",
+                            mapOf("stage" to "firebase_user_null")
+                        )
                         onError()
                     }
                 },
-                onFailure = { onError() }
+                onFailure = { error ->
+                    analyticsTracker.logEvent(
+                        "google_sign_in_error",
+                        mapOf(
+                            "stage" to "kmpauth_failure",
+                            "error_type" to (error::class.simpleName ?: "unknown"),
+                            "error_message" to (error.message ?: "no_message")
+                        )
+                    )
+                    onError()
+                }
             )
         },
         modifier = modifier.height(56.dp)

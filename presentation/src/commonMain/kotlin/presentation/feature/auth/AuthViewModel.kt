@@ -117,11 +117,24 @@ class AuthViewModel(
     }
 
     private suspend fun processLogin(idToken: String) {
+        analyticsTracker.logEvent(
+            "google_login_token_received",
+            mapOf("token_length" to idToken.length.toString())
+        )
         _authState.value = _authState.value.copy(isLoading = true)
         authMutex.withLock {
             loginWithGoogleUseCase.invoke(idToken)
                 .catch { error ->
-                    analyticsTracker.logEvent("login_failed", mapOf("provider" to "google"))
+                    analyticsTracker.logEvent(
+                        "login_failed",
+                        mapOf(
+                            "provider" to "google",
+                            "stage" to "flow_exception",
+                            "error_type" to (error::class.simpleName ?: "unknown"),
+                            "error_message" to (error.message ?: "no_message")
+                        )
+                    )
+                    analyticsTracker.logError(error, "google_login_flow_exception")
                     _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
                 }
                 .collect { result ->
@@ -142,7 +155,16 @@ class AuthViewModel(
                             _authState.value = _authState.value.copy(isLoading = false)
                         },
                         onFailure = { error ->
-                            analyticsTracker.logEvent("login_failed", mapOf("provider" to "google"))
+                            analyticsTracker.logEvent(
+                                "login_failed",
+                                mapOf(
+                                    "provider" to "google",
+                                    "stage" to "backend_error",
+                                    "error_type" to (error::class.simpleName ?: "unknown"),
+                                    "error_message" to (error.message ?: "no_message")
+                                )
+                            )
+                            analyticsTracker.logError(error, "google_login_backend_error")
                             _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
                         }
                     )
