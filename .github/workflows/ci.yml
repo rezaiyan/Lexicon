@@ -51,7 +51,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Run all tests
         run: ./gradlew composeApp:cleanAllTests composeApp:allTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
@@ -92,7 +92,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build Android APK
         run: ./gradlew composeApp:assembleDebug --stacktrace
@@ -122,7 +122,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Build wasmJs distribution
         run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
@@ -152,7 +152,7 @@ jobs:
           architecture: 'aarch64'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Set up Xcode
         run: xcodebuild -version
