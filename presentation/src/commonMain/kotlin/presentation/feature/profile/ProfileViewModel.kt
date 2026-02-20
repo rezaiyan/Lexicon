@@ -12,7 +12,6 @@ import domain.common.fold
 import domain.streak.manager.IStreakManager
 import domain.streak.model.StreakData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +20,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import presentation.model.ProfileUiData
 import presentation.model.UiState
@@ -34,19 +32,12 @@ class ProfileViewModel(
     streakManager: IStreakManager
 ) : ViewModel() {
 
-    private val refreshTrigger = MutableStateFlow(0)
     private val streakRefreshTrigger = MutableStateFlow(0)
-    private val featureAccessRefreshTrigger = MutableStateFlow(0)
-    private val loginUserEvents = MutableSharedFlow<AuthUser?>(replay = 0, extraBufferCapacity = 1)
 
     private val _state = MutableStateFlow<UiState<ProfileUiData>>(UiState.Loading)
     val state: StateFlow<UiState<ProfileUiData>> = _state.asStateFlow()
 
-    private val userFlow: StateFlow<AuthUser?> = merge(
-        userManager.observeUser(),
-        loginUserEvents,
-        refreshTrigger.flatMapLatest { userManager.observeUser() }
-    )
+    private val userFlow: StateFlow<AuthUser?> = userManager.observeUser()
         .distinctUntilChanged()
         .catch { error ->
             error.printStackTrace()
@@ -100,8 +91,6 @@ class ProfileViewModel(
 
     fun onEvent(event: ProfileEvent) {
         when (event) {
-            is ProfileEvent.LoginWithGoogle -> loginWithGoogle(event.idToken)
-            is ProfileEvent.LoginWithApple -> loginWithApple(event.idToken, event.fullName, event.appleUserId)
             is ProfileEvent.Logout -> logout()
             is ProfileEvent.DeleteAccount -> deleteAccount()
             is ProfileEvent.ClearError -> clearError()
@@ -122,44 +111,15 @@ class ProfileViewModel(
         }
     }
 
-    private fun loginWithGoogle(idToken: String) {
-        viewModelScope.launch {
-            userManager.loginWithGoogle(idToken).fold(
-                onSuccess = { authUser ->
-                    loginUserEvents.emit(authUser)
-                    triggerAllRefreshes()
-                },
-                onFailure = { error ->
-                    error.printStackTrace()
-                }
-            )
-        }
-    }
-
-    private fun loginWithApple(idToken: String, fullName: String?, appleUserId: String) {
-        viewModelScope.launch {
-            userManager.loginWithApple(idToken, fullName, appleUserId).fold(
-                onSuccess = { authUser ->
-                    loginUserEvents.emit(authUser)
-                    triggerAllRefreshes()
-                },
-                onFailure = { error ->
-                    error.printStackTrace()
-                }
-            )
-        }
-    }
-
     private fun logout() {
         viewModelScope.launch {
-            loginUserEvents.emit(null)
             userManager.logout().fold(
                 onSuccess = {
-                    triggerAllRefreshes()
+                    streakRefreshTrigger.value++
                 },
                 onFailure = { error ->
                     error.printStackTrace()
-                    triggerAllRefreshes()
+                    streakRefreshTrigger.value++
                 }
             )
         }
@@ -167,22 +127,15 @@ class ProfileViewModel(
 
     private fun deleteAccount() {
         viewModelScope.launch {
-            loginUserEvents.emit(null)
             userManager.deleteAccount().fold(
                 onSuccess = {
-                    triggerAllRefreshes()
+                    streakRefreshTrigger.value++
                 },
                 onFailure = { error ->
                     error.printStackTrace()
-                    triggerAllRefreshes()
+                    streakRefreshTrigger.value++
                 }
             )
         }
-    }
-
-    private fun triggerAllRefreshes() {
-        refreshTrigger.value++
-        streakRefreshTrigger.value++
-        featureAccessRefreshTrigger.value++
     }
 }

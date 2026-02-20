@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -24,19 +25,21 @@ fun ReviewActionSection(
     modifier: Modifier = Modifier
 ) {
     if (hasDueCards) {
-        Spacer(modifier = Modifier.height(Theme.spacing.cardSpacingLarge))
+        val pulseScale = rememberPulseScale(stopAfterMs = 5_000)
+        Spacer(Modifier.height(Theme.spacing.cardSpacingLarge))
         Button(
             onClick = onStartReview,
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier
+                .fillMaxWidth()
+                .scale(pulseScale)
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = null,
                 modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
             )
-            Spacer(modifier = Modifier.width(Theme.spacing.extraSmall2))
+            Spacer(Modifier.width(Theme.spacing.extraSmall2))
             Text(stringResource(Res.string.start_review))
         }
     }
 }
-

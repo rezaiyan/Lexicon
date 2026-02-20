@@ -2,7 +2,6 @@
 
 package presentation.ui.screens.review
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -11,11 +10,9 @@ import androidx.compose.runtime.Composable
 import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.BasicAlertDialog
-import presentation.ui.components.ButtonType
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete
-import lexicon.resources.generated.resources.delete_words_title
 
 @Composable
 fun DeleteWordConfirmationDialog(
@@ -27,13 +24,13 @@ fun DeleteWordConfirmationDialog(
         onDismissRequest = onDismiss,
         icon = Icons.Default.Warning,
         iconTint = MaterialTheme.colorScheme.error,
-        title = stringResource(Res.string.delete_words_title),
-        message = "Are you sure you want to delete \"${word.originalWord}\"? This action cannot be undone.",
-        primaryButtonText = stringResource(Res.string.delete),
-        primaryButtonOnClick = onConfirm,
-        primaryButtonType = ButtonType.Error,
+        title = "Delete word?",
+        message = "\"${word.originalWord}\" will be permanently removed. This cannot be undone.",
+        // Cancel is the safe TextButton action (end-aligned)
         secondaryButtonText = stringResource(Res.string.cancel),
-        secondaryButtonOnClick = onDismiss
+        secondaryButtonOnClick = onDismiss,
+        // Delete is the destructive full-width outlined error button
+        negativeButtonText = stringResource(Res.string.delete),
+        negativeButtonOnClick = onConfirm
     )
 }
-

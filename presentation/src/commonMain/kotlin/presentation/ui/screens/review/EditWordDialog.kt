@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -64,7 +66,9 @@ fun EditWordDialog(
         negativeButtonOnClick = onDelete,
         content = {
             Column(
-                modifier = Modifier.padding(top = Theme.spacing.small),
+                modifier = Modifier
+                    .padding(top = Theme.spacing.small)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardPadding)
             ) {
                 OutlinedTextField(

@@ -2,9 +2,15 @@
 
 package presentation.ui.components
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -33,27 +39,38 @@ fun BasicAlertDialog(
     MaterialBasicAlertDialog(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
-        properties = DialogProperties(usePlatformDefaultWidth = true)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        val shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius)
+        BoxWithConstraints {
+            val maxDialogHeight = maxHeight * 0.85f
+            val shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius)
 
-        Surface(
-            shape = shape,
-            shadowElevation = 6.dp,
-            tonalElevation = 0.dp,
-            modifier = Modifier.clip(shape)
-        ) {
-            Column(Modifier.padding(24.dp)) {
-                LexiconDialogContent(
-                    iconState = iconState,
-                    title = title,
-                    message = message,
-                    progressState = progressState,
-                    content = content,
-                    primaryButton = primaryButton,
-                    secondaryButton = secondaryButton,
-                    negativeButton = negativeButton
-                )
+            Surface(
+                shape = shape,
+                shadowElevation = 8.dp,
+                tonalElevation = 2.dp,
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .widthIn(min = 280.dp, max = 480.dp)
+                    .heightIn(max = maxDialogHeight)
+                    .clip(shape)
+            ) {
+                Column(
+                    Modifier
+                        .padding(24.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    LexiconDialogContent(
+                        iconState = iconState,
+                        title = title,
+                        message = message,
+                        progressState = progressState,
+                        content = content,
+                        primaryButton = primaryButton,
+                        secondaryButton = secondaryButton,
+                        negativeButton = negativeButton
+                    )
+                }
             }
         }
     }
@@ -89,34 +106,18 @@ fun BasicAlertDialog(
         content = content,
         primaryButton = primaryButtonText?.let { text ->
             primaryButtonOnClick?.let { onClick ->
-                ButtonState(
-                    text = text,
-                    onClick = onClick,
-                    enabled = true,
-                    type = primaryButtonType
-                )
+                ButtonState(text = text, onClick = onClick, enabled = true, type = primaryButtonType)
             }
         },
         secondaryButton = secondaryButtonText?.let { text ->
             secondaryButtonOnClick?.let { onClick ->
-                ButtonState(
-                    text = text,
-                    onClick = onClick,
-                    enabled = true,
-                    type = ButtonType.Default
-                )
+                ButtonState(text = text, onClick = onClick, enabled = true, type = ButtonType.Default)
             }
         },
         negativeButton = negativeButtonText?.let { text ->
             negativeButtonOnClick?.let { onClick ->
-                ButtonState(
-                    text = text,
-                    onClick = onClick,
-                    enabled = true,
-                    type = ButtonType.Error
-                )
+                ButtonState(text = text, onClick = onClick, enabled = true, type = ButtonType.Error)
             }
         }
     )
 }
-

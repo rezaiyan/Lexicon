@@ -5,6 +5,7 @@ package presentation.ui.screens.study
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import org.jetbrains.compose.resources.InternalResourceApi
@@ -45,7 +46,6 @@ fun LearningStagesList(
     levelNames: List<String>? = null,
     levelDescriptions: List<String>? = null
 ) {
-    // Level texts for onClick callbacks
     val level0Text = levelTexts?.getOrNull(0) ?: stringResource(Res.string.level_0_fresh)
     val level1Text = levelTexts?.getOrNull(1) ?: stringResource(Res.string.level_1_learning)
     val level2Text = levelTexts?.getOrNull(2) ?: stringResource(Res.string.level_2_familiar)
@@ -113,25 +113,25 @@ fun LearningStagesList(
         )
     )
 
-    val levelTexts =
+    val clickTexts =
         listOf(level0Text, level1Text, level2Text, level3Text, level4Text, level5Text, level6Text)
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)) {
         levels.forEachIndexed { index, level ->
             LevelBucketCard(
+                modifier = Modifier.staggeredFadeSlide(index + 1),
                 level = levelNames?.getOrNull(index) ?: stringResource(level.nameResId),
                 description = levelDescriptions?.getOrNull(index) ?: stringResource(level.descriptionResId),
                 count = level.count,
                 color = level.color,
                 icon = level.icon,
+                totalWords = stats.totalWords,
                 onClick = {
                     if (level.count > 0) {
-                        onStageClick(level.stage, levelTexts[index])
+                        onStageClick(level.stage, clickTexts[index])
                     }
                 }
             )
         }
     }
 }
-
-

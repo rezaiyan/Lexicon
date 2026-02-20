@@ -25,13 +25,14 @@ fun LearningStagesSection(
             stringResource(Res.string.learning_stages),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = Theme.spacing.cardSpacingLarge)
+            modifier = Modifier
+                .staggeredFadeSlide(index = 0, baseDelayMs = 0)
+                .padding(bottom = Theme.spacing.cardSpacingLarge)
         )
-        
+
         LearningStagesList(
             stats = stats,
             onStageClick = onStageClick
         )
     }
 }
-

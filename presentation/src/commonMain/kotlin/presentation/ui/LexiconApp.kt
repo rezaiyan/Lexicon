@@ -159,17 +159,24 @@ fun LexiconApp() {
                         val target = targetState
                         val toPreview = target is AppUiState.VocabularyPreview && initial is AppUiState.Onboarding
                         val fromPreview = initial is AppUiState.VocabularyPreview && target is AppUiState.AuthGate
+                        val isLogout = initial is AppUiState.Ready && target is AppUiState.AuthGate
                         val slideForward = toPreview || fromPreview
-                        ContentTransform(
-                            targetContentEnter = slideInHorizontally(
-                                animationSpec = tween(350),
-                                initialOffsetX = { if (slideForward) it else -it }
-                            ) + fadeIn(animationSpec = tween(350)),
-                            initialContentExit = slideOutHorizontally(
-                                animationSpec = tween(350),
-                                targetOffsetX = { if (slideForward) -it else it }
-                            ) + fadeOut(animationSpec = tween(350))
-                        )
+                        when {
+                            isLogout -> ContentTransform(
+                                targetContentEnter = fadeIn(animationSpec = tween(400)),
+                                initialContentExit = fadeOut(animationSpec = tween(300))
+                            )
+                            else -> ContentTransform(
+                                targetContentEnter = slideInHorizontally(
+                                    animationSpec = tween(350),
+                                    initialOffsetX = { if (slideForward) it else -it }
+                                ) + fadeIn(animationSpec = tween(350)),
+                                initialContentExit = slideOutHorizontally(
+                                    animationSpec = tween(350),
+                                    targetOffsetX = { if (slideForward) -it else it }
+                                ) + fadeOut(animationSpec = tween(350))
+                            )
+                        }
                     },
                     label = "onboarding_flow"
                 ) { state ->

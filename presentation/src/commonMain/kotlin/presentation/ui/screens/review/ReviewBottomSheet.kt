@@ -37,14 +37,16 @@ fun ReviewBottomSheet(
     var isFlipped by remember { mutableStateOf(false) }
     var editingWord by remember { mutableStateOf<Word?>(null) }
     var wordToDelete by remember { mutableStateOf<Word?>(null) }
+    var initialIndexApplied by remember { mutableStateOf(false) }
 
     LaunchedEffect(initialWord, wordListState) {
-        if (initialWord != null && wordListState is UiState.Loaded) {
+        if (!initialIndexApplied && initialWord != null && wordListState is UiState.Loaded) {
             val words = wordListState.value
             val index = words.indexOfFirst { it.id == initialWord.id }
             if (index >= 0) {
                 currentIndex = index
             }
+            initialIndexApplied = true
         }
     }
 
@@ -84,13 +86,6 @@ fun ReviewBottomSheet(
             .fillMaxSize()
             .background(surfaceColor)
     ) {
-            // Header
-            ReviewHeader(
-                title = title,
-                onClose = onClose
-            )
-
-            // Content
             when (wordListState) {
                 is UiState.Loading -> LoadingState()
                 is UiState.Error -> ErrorState(
@@ -113,6 +108,8 @@ fun ReviewBottomSheet(
                                 currentIndex = safeIndex,
                                 isFlipped = isFlipped,
                                 reviewType = reviewType,
+                                title = title,
+                                onClose = onClose,
                                 onFlip = { isFlipped = !isFlipped },
                                 onNavigateBack = {
                                     if (currentIndex > 0) {

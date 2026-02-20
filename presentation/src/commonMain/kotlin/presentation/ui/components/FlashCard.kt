@@ -1,9 +1,17 @@
 package presentation.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,18 +22,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
@@ -34,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -45,12 +49,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
+import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.consolidating
-import lexicon.resources.generated.resources.edit
 import lexicon.resources.generated.resources.familiar
 import lexicon.resources.generated.resources.learning
-import lexicon.resources.generated.resources.level_format
 import lexicon.resources.generated.resources.mastered
 import lexicon.resources.generated.resources.mature
 import lexicon.resources.generated.resources.new
@@ -62,15 +65,39 @@ fun FlashCard(
     word: Word,
     isFlipped: Boolean,
     onFlip: () -> Unit,
-    modifier: Modifier = Modifier,
-    onEdit: (() -> Unit)? = null
+    modifier: Modifier = Modifier
 ) {
     val rotation by animateFloatAsState(
         targetValue = if (isFlipped) 180f else 0f,
-        animationSpec = tween(
-            durationMillis = 400,
-            easing = FastOutSlowInEasing
-        )
+        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing),
+        label = "cardFlip"
+    )
+
+    // Front face = neutral surface so the word is the hero.
+    // Back face = primaryContainer to signal "answer revealed".
+    val cardColor by animateColorAsState(
+        targetValue = if (rotation > 90f) MaterialTheme.colorScheme.primaryContainer
+                      else MaterialTheme.colorScheme.surface,
+        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+        label = "cardColor"
+    )
+    val mainTextColor by animateColorAsState(
+        targetValue = if (rotation > 90f) MaterialTheme.colorScheme.onPrimaryContainer
+                      else MaterialTheme.colorScheme.onSurface,
+        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+        label = "mainTextColor"
+    )
+
+    // Press-to-scale for tactile flip feedback.
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val cardScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioMediumBouncy
+        ),
+        label = "cardScale"
     )
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
@@ -81,6 +108,9 @@ fun FlashCard(
             isLandscape = isLandscape
         )
 
+        // Alpha for back-face elements: fades in as the card reveals its back.
+        val backFaceAlpha = ((rotation - 90f) / 90f).coerceIn(0f, 1f)
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -88,45 +118,31 @@ fun FlashCard(
                 .graphicsLayer {
                     rotationY = rotation
                     cameraDistance = sizes.cameraDistancePx
-                }
-                .clickable { onFlip() },
+                    scaleX = cardScale
+                    scaleY = cardScale
+                },
             shape = RoundedCornerShape(sizes.cardCornerRadius),
             elevation = CardDefaults.cardElevation(sizes.cardElevation),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            colors = CardDefaults.cardColors(containerColor = cardColor)
         ) {
-            Box(Modifier.fillMaxSize()) {
-                Row(
+            // clickable is placed here — inside the Card — so the ripple is clipped
+            // to the card's rounded shape by Card's own shape clip, not the outer rect.
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = LocalIndication.current
+                    ) { onFlip() }
+            ) {
+                // Level badge — top-end: always-visible context, never competes with the word
+                MasteryLevelBadge(
+                    level = word.level,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopStart),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    if (onEdit != null) {
-                        IconButton(
-                            onClick = onEdit,
-                            modifier = Modifier
-                                .padding(sizes.badgePadding)
-                                .graphicsLayer { rotationY = if (rotation > 90f) 180f else 0f }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = stringResource(Res.string.edit),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    } else {
-                        Spacer(Modifier.width(sizes.badgePadding))
-                    }
-
-                    MasteryLevelBadge(
-                        level = word.level,
-                        modifier = Modifier
-                            .padding(sizes.badgePadding)
-                            .graphicsLayer { rotationY = if (rotation > 90f) 180f else 0f }
-                    )
-                }
+                        .align(Alignment.TopEnd)
+                        .padding(sizes.badgePadding)
+                        .graphicsLayer { rotationY = if (rotation > 90f) 180f else 0f }
+                )
 
                 Column(
                     modifier = Modifier
@@ -141,11 +157,7 @@ fun FlashCard(
                             .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        val textToDisplay = if (rotation <= 90f) {
-                            word.originalWord
-                        } else {
-                            word.translation
-                        }
+                        val textToDisplay = if (rotation <= 90f) word.originalWord else word.translation
 
                         val dynamicMaxSize = sizes.titleSp * 1.5f
                         val minFontSizeForTwoLines = 11.sp
@@ -156,7 +168,7 @@ fun FlashCard(
                             text = textToDisplay,
                             fontSize = dynamicMaxSize,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            color = mainTextColor,
                             textAlign = TextAlign.Center,
                             maxLines = if (allowTwoLines) 2 else 1,
                             overflow = TextOverflow.Visible,
@@ -179,104 +191,77 @@ fun FlashCard(
                                     allowTwoLines = true
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(sizes.titleWidthFraction)
+                            modifier = Modifier
+                                .fillMaxWidth(sizes.titleWidthFraction)
                                 .graphicsLayer {
                                     rotationY = if (rotation > 90f) 180f else 0f
                                 }
                         )
                     }
 
+                    // Description fades in as the back face finishes revealing.
                     if (word.description.isNotBlank() && rotation > 90f) {
                         Spacer(Modifier.height(sizes.afterTitleSpacing))
                         Text(
                             text = word.description,
                             style = MaterialTheme.typography.bodyMedium,
                             textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                            color = mainTextColor.copy(alpha = 0.75f),
                             maxLines = sizes.descMaxLines,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .fillMaxWidth(sizes.descWidthFraction)
-                                .graphicsLayer { rotationY = 180f }
+                                .graphicsLayer {
+                                    rotationY = 180f
+                                    alpha = backFaceAlpha
+                                }
                         )
                     }
                 }
+
             }
         }
     }
-
 }
+
+// ── Mastery level badge — lightweight pill chip ───────────────────────────────
 
 @Composable
 fun MasteryLevelBadge(level: Int, modifier: Modifier = Modifier) {
-    // 7-Bucket System (Levels 0-6)
     val (masteryText, masteryColor, masteryIcon) = when (level) {
         0 -> Triple(stringResource(Res.string.new), MaterialTheme.colorScheme.secondary, "📝")
-        1 -> Triple(
-            stringResource(Res.string.learning),
-            MaterialTheme.colorScheme.tertiary,
-            "📚"
-        )
-
+        1 -> Triple(stringResource(Res.string.learning), MaterialTheme.colorScheme.tertiary, "📚")
         2 -> Triple(stringResource(Res.string.familiar), MaterialTheme.colorScheme.primary, "💡")
-        3 -> Triple(
-            stringResource(Res.string.consolidating),
-            MaterialTheme.colorScheme.primary,
-            "✨"
-        )
-
+        3 -> Triple(stringResource(Res.string.consolidating), MaterialTheme.colorScheme.primary, "✨")
         4 -> Triple(stringResource(Res.string.young), MaterialTheme.colorScheme.primary, "🌱")
         5 -> Triple(stringResource(Res.string.mature), MaterialTheme.colorScheme.tertiary, "🌟")
-        6 -> Triple(
-            stringResource(Res.string.mastered),
-            MaterialTheme.colorScheme.primaryContainer,
-            "👑"
-        )
-
-        else -> Triple(
-            stringResource(Res.string.unknown),
-            MaterialTheme.colorScheme.surfaceVariant,
-            "❓"
-        )
+        6 -> Triple(stringResource(Res.string.mastered), MaterialTheme.colorScheme.secondary, "👑")
+        else -> Triple(stringResource(Res.string.unknown), MaterialTheme.colorScheme.surfaceVariant, "❓")
     }
 
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = masteryColor
-        ),
-        shape = RoundedCornerShape(12.dp)
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .border(0.5.dp, masteryColor.copy(alpha = 0.3f), RoundedCornerShape(50))
+            .background(masteryColor.copy(alpha = 0.12f))
+            .padding(horizontal = 9.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(
-                horizontal = 10.dp,
-                vertical = 6.dp
-            ), // Compact tap hint padding
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                TextWithNotoImageEmoji(
-                    text = masteryIcon,
-                    style = MaterialTheme.typography.labelSmall
-                )
-                Text(
-                    text = masteryText,
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-            Text(
-                text = stringResource(Res.string.level_format, level + 1),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
-            )
-        }
+        TextWithNotoImageEmoji(
+            text = masteryIcon,
+            style = MaterialTheme.typography.labelSmall
+        )
+        Text(
+            text = masteryText,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = masteryColor
+        )
     }
 }
+
+// ── Review action buttons ─────────────────────────────────────────────────────
 
 @Composable
 fun ReviewButton(
@@ -284,6 +269,7 @@ fun ReviewButton(
     subText: String,
     color: androidx.compose.ui.graphics.Color,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     BoxWithConstraints(modifier = modifier) {
@@ -292,14 +278,15 @@ fun ReviewButton(
 
         androidx.compose.material3.Button(
             onClick = onClick,
+            enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (isVerySmall) 60.dp else 72.dp), // Dynamic height based on content
+                .height(if (isVerySmall) 60.dp else 72.dp),
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = color.copy(alpha = 0.15f),
+                containerColor = color.copy(alpha = 0.2f),
                 contentColor = color
             ),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(
                 horizontal = if (isVerySmall) 2.dp else if (isSmall) 4.dp else 8.dp,
                 vertical = 8.dp
@@ -324,7 +311,7 @@ fun ReviewButton(
                 Text(
                     text = subText,
                     style = MaterialTheme.typography.labelSmall,
-                    color = color.copy(alpha = 0.7f),
+                    color = color.copy(alpha = 0.65f),
                     maxLines = 1,
                     textAlign = TextAlign.Center
                 )
@@ -332,6 +319,8 @@ fun ReviewButton(
         }
     }
 }
+
+// ── Responsive sizing ─────────────────────────────────────────────────────────
 
 @Immutable
 private data class ResponsiveSizes(
@@ -459,11 +448,7 @@ private fun rememberResponsiveSizes(
 }
 
 private enum class SizeBucket {
-    CompactXS,
-    CompactS,
-    Compact,
-    Medium,
-    Expanded
+    CompactXS, CompactS, Compact, Medium, Expanded
 }
 
 @Immutable

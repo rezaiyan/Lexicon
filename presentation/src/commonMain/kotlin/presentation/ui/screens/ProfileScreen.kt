@@ -1,21 +1,35 @@
 package presentation.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
@@ -27,11 +41,9 @@ import presentation.model.UiState
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.LexiconColumn
-import presentation.ui.components.profile.AuthenticationSection
 import presentation.ui.components.profile.DeleteAccountCoolingDialogContent
 import presentation.ui.components.profile.DeleteAccountHiddenDialogContent
 import presentation.ui.components.profile.LogoutDialogContent
-import presentation.ui.components.profile.MoreOptionsBottomSheetContent
 import presentation.ui.components.profile.StreakSection
 import presentation.ui.components.profile.UserInfoSection
 import presentation.ui.overlay.LocalOverlayHost
@@ -40,13 +52,11 @@ import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
 import presentation.ui.overlay.dialog.showDialog
 import theme.Theme
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.delete_account
+import lexicon.resources.generated.resources.logout
 import lexicon.resources.generated.resources.more_options
 import lexicon.resources.generated.resources.profile
 
-/**
- * Profile Screen - Self-contained
- * Manages its own ViewModel and state internally
- */
 @Composable
 fun ProfileScreen() {
     val profileViewModel = koinViewModel<ProfileViewModel>()
@@ -66,7 +76,6 @@ fun ProfileScreen() {
     }
 
     val profileData = (uiState as? UiState.Loaded<ProfileUiData>)?.value
-
     val isLoggedIn = profileData?.userInfo != null
     val isLoading = uiState is UiState.Loading
 
@@ -78,25 +87,13 @@ fun ProfileScreen() {
                 contentDescription = stringResource(Res.string.more_options),
                 onClick = {
                     overlayHost.showFullscreenBottomSheet(tag = "more-options") { navigator ->
-                        MoreOptionsBottomSheetContent(
-                            onLogout = {
-                                navigator.dismiss()
-                                overlayHost.showDialog(tag = "logout") { nav ->
-                                    LogoutDialogContent(
-                                        onConfirm = {
-                                            nav.dismiss()
-                                            profileViewModel.onEvent(ProfileEvent.Logout)
-                                        },
-                                        onDismiss = { nav.dismiss() }
-                                    )
-                                }
-                            },
+                        ProfileMoreOptionsSheet(
                             onDeleteAccount = {
+                                navigator.dismiss()
                                 showDeleteAccountFlow(overlayHost) {
                                     profileViewModel.onEvent(ProfileEvent.DeleteAccount)
                                 }
-                            },
-                            navigator = navigator
+                            }
                         )
                     }
                 },
@@ -106,8 +103,8 @@ fun ProfileScreen() {
         scrollable = true
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            when (uiState) {
-                is UiState.Loading -> {
+            when {
+                isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -116,24 +113,20 @@ fun ProfileScreen() {
                     }
                 }
 
-                is UiState.Error -> {
-                    if (profileData == null) {
-                        AuthenticationSection(
-                            isLoading = isLoading,
-                            onLoginWithGoogle = { idToken -> profileViewModel.onEvent(ProfileEvent.LoginWithGoogle(idToken)) },
-                            onLoginWithApple = { idToken, fullName, appleUserId -> profileViewModel.onEvent(ProfileEvent.LoginWithApple(idToken, fullName, appleUserId)) }
-                        )
-                    }
-                }
-
-                is UiState.Loaded -> {
-                    val loadedData = (uiState as UiState.Loaded<ProfileUiData>).value
-                    ProfileLoadedContent(
-                        profileData = loadedData,
-                        isLoading = isLoading,
-                        onLoginWithGoogle = { idToken -> profileViewModel.onEvent(ProfileEvent.LoginWithGoogle(idToken)) },
-                        onLoginWithApple = { idToken, fullName, appleUserId -> profileViewModel.onEvent(ProfileEvent.LoginWithApple(idToken, fullName, appleUserId)) },
-                        onDeleteAccount = { profileViewModel.onEvent(ProfileEvent.DeleteAccount) },
+                isLoggedIn -> {
+                    ProfileContent(
+                        profileData = profileData,
+                        onLogout = {
+                            overlayHost.showDialog(tag = "logout") { nav ->
+                                LogoutDialogContent(
+                                    onConfirm = {
+                                        nav.dismiss()
+                                        profileViewModel.onEvent(ProfileEvent.Logout)
+                                    },
+                                    onDismiss = { nav.dismiss() }
+                                )
+                            }
+                        }
                     )
                 }
             }
@@ -153,40 +146,90 @@ fun ProfileScreen() {
 }
 
 @Composable
-private fun ProfileLoadedContent(
+private fun ProfileContent(
     profileData: ProfileUiData,
-    isLoading: Boolean,
-    onLoginWithGoogle: suspend (String) -> Unit,
-    onLoginWithApple: (String, String?, String) -> Unit,
-    onDeleteAccount: () -> Unit,
+    onLogout: () -> Unit,
 ) {
-    val overlayHost = LocalOverlayHost.current
-
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (profileData.userInfo != null) {
-            UserInfoSection(
-                userInfo = profileData.userInfo,
-                onProfilePictureLongPress = {
-                    showDeleteAccountFlow(overlayHost, onDeleteAccount)
-                },
-            )
+        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
 
+        UserInfoSection(
+            userInfo = profileData.userInfo!!
+        )
+
+        if (profileData.streak != null) {
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+            StreakSection(streak = profileData.streak)
+        }
 
-            if (profileData.streak != null) {
-                StreakSection(streak = profileData.streak)
-                Spacer(modifier = Modifier.height(Theme.spacing.cardSpacingLarge))
-            }
+        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing * 2))
 
-            Spacer(modifier = Modifier.height(Theme.spacing.large))
-        } else {
-            AuthenticationSection(
-                isLoading = isLoading,
-                onLoginWithGoogle = onLoginWithGoogle,
-                onLoginWithApple = onLoginWithApple,
+        OutlinedButton(
+            onClick = onLogout,
+            modifier = Modifier.fillMaxWidth(),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            )
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(stringResource(Res.string.logout))
+        }
+
+        Spacer(modifier = Modifier.height(Theme.spacing.cardPadding))
+    }
+}
+
+@Composable
+private fun ProfileMoreOptionsSheet(
+    onDeleteAccount: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = Theme.spacing.sectionSpacing)
+    ) {
+        Text(
+            text = stringResource(Res.string.more_options),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(Theme.spacing.sectionSpacing)
+        )
+
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onDeleteAccount)
+                .padding(
+                    horizontal = Theme.spacing.sectionSpacing,
+                    vertical = Theme.spacing.cardPadding
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = null,
+                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
+                tint = MaterialTheme.colorScheme.error
+            )
+            Spacer(modifier = Modifier.width(Theme.spacing.cardPadding))
+            Text(
+                text = stringResource(Res.string.delete_account),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }
