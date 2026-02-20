@@ -131,6 +131,11 @@ fun LexiconApp() {
     // Handle logout: navigate to AuthGate when user becomes unauthenticated
     LaunchedEffect(authState.isAuthenticated, appUiState) {
         if (!authState.isAuthenticated && appUiState is AppUiState.Ready) {
+            // Reset tab back stack to start destination so the next login lands on Study
+            navController.navigate(TabDestination.Study) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
             appNavigationViewModel.onLogout()
         }
     }

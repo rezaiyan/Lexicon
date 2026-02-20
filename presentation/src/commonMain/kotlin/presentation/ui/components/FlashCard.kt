@@ -73,11 +73,11 @@ fun FlashCard(
         label = "cardFlip"
     )
 
-    // Front face = neutral surface so the word is the hero.
+    // Front face = slightly elevated surface so it stands out from the background.
     // Back face = primaryContainer to signal "answer revealed".
     val cardColor by animateColorAsState(
         targetValue = if (rotation > 90f) MaterialTheme.colorScheme.primaryContainer
-                      else MaterialTheme.colorScheme.surface,
+                      else MaterialTheme.colorScheme.surfaceContainerHigh,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "cardColor"
     )
