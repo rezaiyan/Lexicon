@@ -17,6 +17,8 @@ platform :ios do
         key_filepath: ENV["APP_STORE_CONNECT_API_KEY_PATH"],
         in_house: false
       )
+      # Remove env var so Spaceship doesn't try to parse the raw .p8 file as JSON
+      ENV.delete("APP_STORE_CONNECT_API_KEY_PATH")
     elsif ENV["APP_STORE_CONNECT_API_KEY_CONTENT"]
       # CI mode: API key content is provided as base64 or direct content
       # The key file should be created before running fastlane
@@ -28,6 +30,8 @@ platform :ios do
           key_filepath: api_key_path,
           in_house: false
         )
+        # Remove env var so Spaceship doesn't try to parse the raw .p8 file as JSON
+        ENV.delete("APP_STORE_CONNECT_API_KEY_CONTENT")
       else
         UI.user_error!("API key file not found at #{api_key_path}. Please create it before running fastlane.")
       end
@@ -139,7 +143,6 @@ platform :ios do
 
     # Upload to TestFlight
     upload_to_testflight(
-      api_key: @api_key,
       skip_waiting_for_build_processing: true,
       distribute_external: false,
       notify_external_testers: false,
@@ -173,7 +176,6 @@ platform :ios do
     ipa_path = lane_context[SharedValues::IPA_OUTPUT_PATH]
 
     upload_to_app_store(
-      api_key: @api_key,
       submit_for_review: false,
       automatic_release: false,
       force: true,
