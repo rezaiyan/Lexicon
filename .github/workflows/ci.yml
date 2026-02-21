@@ -135,6 +135,77 @@ jobs:
           path: composeApp/build/dist/wasmJs/productionExecutable/
           retention-days: 7
 
+  deploy-web:
+    name: Deploy Web to VPS
+    runs-on: ubuntu-latest
+    needs: [build-web]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download web distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: composeApp/build/dist/wasmJs/productionExecutable/
+
+      - name: Setup SSH for deployment
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>&1 || {
+            echo "Warning: ssh-keyscan failed, trying alternative method..."
+            ssh-keyscan "$VPS_HOST" >> ~/.ssh/known_hosts 2>&1 || true
+          }
+
+          if ! ssh-keygen -l -f ~/.ssh/deploy_key &> /dev/null; then
+            echo "✗ Invalid SSH key format"
+            exit 1
+          fi
+
+          echo "✓ SSH setup complete"
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PATH: ${{ secrets.VPS_WEB_PATH }}
+        run: |
+          DIST_DIR="composeApp/build/dist/wasmJs/productionExecutable"
+
+          echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH}..."
+
+          if ! ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "root@${VPS_HOST}" "echo 'SSH connection successful'"; then
+            echo "✗ SSH connection failed"
+            exit 1
+          fi
+
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+
+          rsync -avz --delete --checksum \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            "${DIST_DIR}/" \
+            "root@${VPS_HOST}:${VPS_PATH}/"
+
+          echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Deployment Summary
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          echo "### Deployment Successful! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Host:** ${VPS_HOST}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
   build-ios:
     name: Build iOS
     runs-on: macos-15
