@@ -4,6 +4,7 @@ import data.auth.refresh.ITokenRefreshManager
 import data.core.network.interceptor.AuthInterceptor
 import data.core.network.interceptor.ErrorInterceptor
 import data.core.network.interceptor.RefreshAndRetryInterceptor
+import core.isDebugMode
 import expects.logNetwork
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -48,7 +49,7 @@ object HttpClientProvider {
                         logNetwork("HttpClient", message)
                     }
                 }
-                level = LogLevel.HEADERS
+                level = if (isDebugMode()) LogLevel.HEADERS else LogLevel.NONE
             }
 
             // Install interceptors if provided
