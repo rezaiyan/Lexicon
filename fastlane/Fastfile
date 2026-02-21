@@ -46,13 +46,11 @@ platform :android do
 
   desc "Build and deploy to closed testing locally (uses local service account JSON key file)"
   lane :deploy do
-    local_props_file = File.expand_path("../local.properties", Dir.pwd)
-    UI.message("Looking for local.properties at: #{local_props_file} (exists: #{File.exist?(local_props_file)})")
-
     json_key_file = ENV["GOOGLE_PLAY_JSON_KEY_FILE"]
     unless json_key_file
+      local_props_file = File.expand_path("../local.properties", Dir.pwd)
       if File.exist?(local_props_file)
-        File.each_line(local_props_file) do |line|
+        File.readlines(local_props_file).each do |line|
           if line.strip.start_with?("GOOGLE_PLAY_JSON_KEY_FILE=")
             json_key_file = line.strip.split("=", 2).last.strip
             break
@@ -61,8 +59,6 @@ platform :android do
       end
     end
     json_key_file ||= Dir.glob("vokab-*.json").first
-
-    UI.message("Resolved json_key_file: #{json_key_file.inspect} (exists: #{json_key_file ? File.exist?(json_key_file) : false})")
     UI.user_error!("No service account JSON key file found. Add GOOGLE_PLAY_JSON_KEY_FILE=<path> to local.properties.") unless json_key_file && File.exist?(json_key_file.to_s)
 
     build
