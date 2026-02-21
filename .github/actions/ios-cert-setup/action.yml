@@ -1,0 +1,55 @@
+name: "iOS Certificate Setup"
+description: "Imports code-signing certificate and provisioning profile into the build environment"
+
+inputs:
+  certificate_base64:
+    description: "Base64-encoded .p12 certificate"
+    required: true
+  certificate_password:
+    description: "Certificate password"
+    required: true
+  provisioning_profile_base64:
+    description: "Base64-encoded provisioning profile"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Import certificate and provisioning profile
+      shell: bash
+      env:
+        CERT_BASE64: ${{ inputs.certificate_base64 }}
+        CERT_PASSWORD: ${{ inputs.certificate_password }}
+        PROFILE_BASE64: ${{ inputs.provisioning_profile_base64 }}
+      run: |
+        # Decode certificate to a temp file
+        echo "$CERT_BASE64" | base64 -d > /tmp/certificate.p12
+
+        # Create and configure a dedicated build keychain
+        security create-keychain -p "" build.keychain
+        security list-keychains -s build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security set-keychain-settings build.keychain
+
+        # Import certificate
+        security import /tmp/certificate.p12 \
+          -k build.keychain \
+          -P "$CERT_PASSWORD" \
+          -T /usr/bin/codesign \
+          -T /usr/bin/security
+
+        # Allow codesign to access the keychain without prompts
+        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+
+        # Decode provisioning profile and extract its UUID dynamically
+        echo "$PROFILE_BASE64" | base64 -d > /tmp/profile.mobileprovision
+        PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision | plutil -extract UUID raw -)
+        echo "Installing provisioning profile: $PROFILE_UUID"
+
+        mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+        cp /tmp/profile.mobileprovision \
+          ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+
+        # Clean up temp files
+        rm -f /tmp/certificate.p12 /tmp/profile.mobileprovision

@@ -54,7 +54,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run all tests
-        run: ./gradlew composeApp:cleanAllTests composeApp:allTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
+        run: ./gradlew composeApp:cleanAllTests composeApp:allTests composeApp:wasmJsBrowserTest --stacktrace
 
       - name: Upload test results
         if: always()
@@ -102,6 +102,7 @@ jobs:
         with:
           name: debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
+          retention-days: 7
 
   build-web:
     name: Build Web (wasmJs)
@@ -132,10 +133,12 @@ jobs:
         with:
           name: web-dist
           path: composeApp/build/dist/wasmJs/productionExecutable/
+          retention-days: 7
 
   build-ios:
     name: Build iOS
     runs-on: macos-15
+    needs: [test]
 
     steps:
       - name: Checkout code

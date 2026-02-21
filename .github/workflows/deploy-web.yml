@@ -2,6 +2,7 @@ name: Deploy Web App to VPS
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:   # Allows manual deployment
 
 env:
@@ -42,13 +43,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Build wasmJs production distribution
-        run: ./gradlew composeApp:wasmJsBrowserDistribution --no-daemon --stacktrace
+        run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
 
       - name: Verify build output
         run: |
@@ -113,15 +113,16 @@ jobs:
             "root@${VPS_HOST}:${VPS_PATH}/"
 
           echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
-          echo "  https://vokab.alirezaiyan.com/"
 
       - name: Cleanup SSH key
         if: always()
         run: rm -f ~/.ssh/deploy_key
 
       - name: Deployment Summary
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           echo "### Deployment Successful! 🚀" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** https://vokab.alirezaiyan.com/" >> $GITHUB_STEP_SUMMARY
+          echo "**Host:** ${VPS_HOST}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
