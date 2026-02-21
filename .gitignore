@@ -16,6 +16,7 @@ GoogleService-Info.plist
 *.pem
 *.p12
 *.jks
+*.keystore
 keystore.jks
 *-service-account*.json
 vokab-*.json
