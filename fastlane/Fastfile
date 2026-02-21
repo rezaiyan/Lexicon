@@ -1,0 +1,70 @@
+# Fastfile for Lexicon Android deployment automation
+# More documentation at https://docs.fastlane.tools
+
+default_platform(:android)
+
+platform :android do
+  before_all do
+    ensure_git_status_clean unless ENV['CI']
+
+    # Write Google Play service account JSON from env var
+    if ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"]
+      json_path = "/tmp/google-play-service-account.json"
+      File.write(json_path, ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"])
+      ENV["GOOGLE_PLAY_JSON_KEY_PATH"] = json_path
+    end
+  end
+
+  desc "Build the release AAB"
+  lane :build do
+    # Decode keystore from base64 secret
+    keystore_path = "composeApp/release.keystore"
+    sh("echo \"$RELEASE_KEYSTORE_BASE64\" | base64 -d > ../#{keystore_path}")
+
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: ".",
+      properties: {
+        "RELEASE_STORE_FILE" => "release.keystore",
+        "RELEASE_STORE_PASSWORD" => ENV["RELEASE_STORE_PASSWORD"],
+        "RELEASE_KEY_ALIAS" => ENV["RELEASE_KEY_ALIAS"],
+        "RELEASE_KEY_PASSWORD" => ENV["RELEASE_KEY_PASSWORD"],
+      }
+    )
+  end
+
+  desc "Upload a new build to closed testing (alpha track)"
+  lane :beta do
+    build
+
+    upload_to_play_store(
+      track: "alpha",
+      aab: "composeApp/build/outputs/bundle/release/composeApp-release.aab",
+      release_status: "completed",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Promote closed testing build to production"
+  lane :release do
+    upload_to_play_store(
+      track: "alpha",
+      track_promote_to: "production",
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  error do |lane, exception|
+    UI.error("Error in lane #{lane}: #{exception}")
+  end
+end

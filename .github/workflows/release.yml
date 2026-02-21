@@ -48,13 +48,29 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Decode keystore
-        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > composeApp/release.keystore
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Fastlane
+        run: bundle install
+
+      - name: Build and upload to Google Play (closed testing)
+        run: bundle exec fastlane android beta
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
 
       - name: Build release APK
-        run: ./gradlew composeApp:assembleRelease --stacktrace
+        run: ./gradlew composeApp:assembleRelease
         env:
-          RELEASE_STORE_FILE: release.keystore
+          RELEASE_STORE_FILE: composeApp/release.keystore
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
@@ -63,9 +79,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: |
-            composeApp/build/outputs/apk/release/*.apk
-            composeApp/build/outputs/apk/debug/*.apk
+          path: composeApp/build/outputs/apk/release/*.apk
 
   release-ios:
     name: Build & Release iOS
