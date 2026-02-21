@@ -118,7 +118,7 @@ class AuthViewModel(
 
     private suspend fun processLogin(idToken: String) {
         analyticsTracker.logEvent(
-            "google_login_token_received",
+            "login_google_token_received",
             mapOf("token_length" to idToken.length.toString())
         )
         _authState.value = _authState.value.copy(isLoading = true)

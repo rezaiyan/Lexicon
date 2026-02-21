@@ -36,6 +36,8 @@ actual fun GoogleSignInContainer(
     val analyticsTracker = koinInject<IAnalyticsTracker>()
 
     GoogleButtonUiContainerFirebase(
+        linkAccount = false,
+        filterByAuthorizedAccounts = false,
         onResult = { result ->
             result.fold(
                 onSuccess = { firebaseUser ->
@@ -49,7 +51,7 @@ actual fun GoogleSignInContainer(
                                     onIdToken(idToken)
                                 } else {
                                     analyticsTracker.logEvent(
-                                        "google_sign_in_error",
+                                        "sign_in_google_error",
                                         mapOf("stage" to "get_id_token_null")
                                     )
                                     onError()
@@ -59,7 +61,7 @@ actual fun GoogleSignInContainer(
                                 // expired credential). Without this catch the coroutine crashes
                                 // silently and neither onIdToken nor onError is ever called.
                                 analyticsTracker.logEvent(
-                                    "google_sign_in_error",
+                                    "sign_in_google_error",
                                     mapOf(
                                         "stage" to "get_id_token_exception",
                                         "error_type" to (e::class.simpleName ?: "unknown"),
@@ -72,7 +74,7 @@ actual fun GoogleSignInContainer(
                         }
                     } else {
                         analyticsTracker.logEvent(
-                            "google_sign_in_error",
+                            "sign_in_google_error",
                             mapOf("stage" to "firebase_user_null")
                         )
                         onError()
@@ -80,7 +82,7 @@ actual fun GoogleSignInContainer(
                 },
                 onFailure = { error ->
                     analyticsTracker.logEvent(
-                        "google_sign_in_error",
+                        "sign_in_google_error",
                         mapOf(
                             "stage" to "kmpauth_failure",
                             "error_type" to (error::class.simpleName ?: "unknown"),
