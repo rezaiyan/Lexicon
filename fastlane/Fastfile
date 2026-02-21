@@ -3,6 +3,18 @@
 
 default_platform(:android)
 
+def read_local_prop(key)
+  project_root = File.expand_path("..", Dir.pwd)
+  local_props_file = File.join(project_root, "local.properties")
+  return nil unless File.exist?(local_props_file)
+  File.readlines(local_props_file).each do |line|
+    if line.strip.start_with?("#{key}=")
+      return line.strip.split("=", 2).last.strip
+    end
+  end
+  nil
+end
+
 platform :android do
   before_all do
     ensure_git_status_clean unless ENV['CI']
@@ -47,25 +59,19 @@ platform :android do
   desc "Build and deploy to closed testing locally (uses local service account JSON key file)"
   lane :deploy do
     project_root = File.expand_path("..", Dir.pwd)
-    json_key_file = ENV["GOOGLE_PLAY_JSON_KEY_FILE"]
-    unless json_key_file
-      local_props_file = File.join(project_root, "local.properties")
-      if File.exist?(local_props_file)
-        File.readlines(local_props_file).each do |line|
-          if line.strip.start_with?("GOOGLE_PLAY_JSON_KEY_FILE=")
-            json_key_file = File.expand_path(line.strip.split("=", 2).last.strip, project_root)
-            break
-          end
-        end
-      end
-    end
-    json_key_file ||= Dir.glob(File.join(project_root, "vokab-*.json")).first
+
+    raw_key_path = ENV["GOOGLE_PLAY_JSON_KEY_FILE"] || read_local_prop("GOOGLE_PLAY_JSON_KEY_FILE")
+    json_key_file = raw_key_path ? File.expand_path(raw_key_path, project_root) : Dir.glob(File.join(project_root, "vokab-*.json")).first
     UI.user_error!("No service account JSON key file found. Add GOOGLE_PLAY_JSON_KEY_FILE=<path> to local.properties.") unless json_key_file && File.exist?(json_key_file.to_s)
+
+    package_name = ENV["ANDROID_PACKAGE_NAME"] || read_local_prop("ANDROID_PACKAGE_NAME")
+    UI.user_error!("No package name found. Add ANDROID_PACKAGE_NAME=<name> to local.properties.") unless package_name
 
     build
 
     upload_to_play_store(
       json_key: json_key_file,
+      package_name: package_name,
       track: "alpha",
       aab: "composeApp/build/outputs/bundle/release/composeApp-release.aab",
       release_status: "completed",
