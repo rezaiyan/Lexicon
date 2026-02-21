@@ -196,21 +196,21 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>&1 || {
-            echo "Warning: ssh-keyscan failed, trying alternative method..."
-            ssh-keyscan "$VPS_HOST" >> ~/.ssh/known_hosts 2>&1 || true
-          }
-
           if ! ssh-keygen -l -f ~/.ssh/deploy_key &> /dev/null; then
             echo "✗ Invalid SSH key format"
             exit 1
           fi
+
+          ssh-keyscan -p "$VPS_SSH_PORT" -T 30 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
+            ssh-keyscan -p "$VPS_SSH_PORT" -T 30 "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
+            echo "Warning: ssh-keyscan failed — host key will not be pre-verified"
 
           echo "✓ SSH setup complete"
 
@@ -218,20 +218,30 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PATH: ${{ secrets.VPS_WEB_PATH }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
         run: |
           DIST_DIR="composeApp/build/dist/wasmJs/productionExecutable"
+          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=30 -p ${VPS_SSH_PORT}"
 
-          echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH}..."
+          echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH} (port ${VPS_SSH_PORT})..."
 
-          if ! ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 "root@${VPS_HOST}" "echo 'SSH connection successful'"; then
-            echo "✗ SSH connection failed"
-            exit 1
-          fi
+          for attempt in 1 2 3; do
+            if ssh $SSH_OPTS "root@${VPS_HOST}" "echo 'SSH connection successful'"; then
+              echo "✓ SSH connection established (attempt ${attempt})"
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "✗ SSH connection failed after 3 attempts"
+              exit 1
+            fi
+            echo "⚠ Attempt ${attempt} failed — retrying in 15s..."
+            sleep 15
+          done
 
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+          ssh $SSH_OPTS "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
 
           rsync -avz --delete --checksum \
-            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            -e "ssh $SSH_OPTS" \
             "${DIST_DIR}/" \
             "root@${VPS_HOST}:${VPS_PATH}/"
 

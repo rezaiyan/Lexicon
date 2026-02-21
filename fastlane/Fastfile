@@ -6,13 +6,6 @@ default_platform(:android)
 platform :android do
   before_all do
     ensure_git_status_clean unless ENV['CI']
-
-    # Write Google Play service account JSON from env var
-    if ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"]
-      json_path = "/tmp/google-play-service-account.json"
-      File.write(json_path, ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"])
-      ENV["GOOGLE_PLAY_JSON_KEY_PATH"] = json_path
-    end
   end
 
   desc "Build the release AAB"
@@ -39,6 +32,7 @@ platform :android do
     build
 
     upload_to_play_store(
+      json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
       track: "alpha",
       aab: "composeApp/build/outputs/bundle/release/composeApp-release.aab",
       release_status: "completed",
@@ -53,6 +47,7 @@ platform :android do
   desc "Promote closed testing build to production"
   lane :release do
     upload_to_play_store(
+      json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
       track: "alpha",
       track_promote_to: "production",
       skip_upload_apk: true,
