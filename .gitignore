@@ -19,6 +19,7 @@ GoogleService-Info.plist
 keystore.jks
 *-service-account*.json
 vokab-*.json
+fastlane/*.xml
 
 # Environment and secrets
 .env
