@@ -17,6 +17,8 @@ GoogleService-Info.plist
 *.p12
 *.jks
 keystore.jks
+*-service-account*.json
+vokab-*.json
 
 # Environment and secrets
 .env
