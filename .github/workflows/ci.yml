@@ -333,6 +333,11 @@ jobs:
           certificate_password: ${{ secrets.IOS_CERTIFICATES_PASSWORD }}
           provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
 
+      - name: Write GoogleService-Info.plist
+        run: echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+
       - name: Build Kotlin Multiplatform Framework
         run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
 

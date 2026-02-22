@@ -56,8 +56,8 @@ platform :android do
     )
   end
 
-  desc "Build and deploy to closed testing locally (uses local service account JSON key file)"
-  lane :deploy do
+  desc "Build and deploy to a closed testing track locally. Use `track` param to specify the track name (default: alpha)."
+  lane :deploy do |options|
     project_root = File.expand_path("..", Dir.pwd)
 
     raw_key_path = ENV["GOOGLE_PLAY_JSON_KEY_FILE"] || read_local_prop("GOOGLE_PLAY_JSON_KEY_FILE")
@@ -67,12 +67,14 @@ platform :android do
     package_name = ENV["ANDROID_PACKAGE_NAME"] || read_local_prop("ANDROID_PACKAGE_NAME")
     UI.user_error!("No package name found. Add ANDROID_PACKAGE_NAME=<name> to local.properties.") unless package_name
 
+    track = options[:track] || ENV["GOOGLE_PLAY_TRACK"] || read_local_prop("GOOGLE_PLAY_TRACK") || "alpha"
+
     build
 
     upload_to_play_store(
       json_key: json_key_file,
       package_name: package_name,
-      track: "alpha",
+      track: track,
       aab: "composeApp/build/outputs/bundle/release/composeApp-release.aab",
       release_status: "completed",
       skip_upload_apk: true,

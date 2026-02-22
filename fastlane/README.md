@@ -37,7 +37,7 @@ Upload a new build to closed testing (alpha track)
 [bundle exec] fastlane android deploy
 ```
 
-Build and deploy to closed testing locally (uses local service account JSON key file)
+Build and deploy to a closed testing track locally. Use `track` param to specify the track name (default: alpha).
 
 ### android release
 
