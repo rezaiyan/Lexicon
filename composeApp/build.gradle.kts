@@ -22,6 +22,7 @@ val localProperties = Properties().apply {
 
 fun getConfigValue(key: String): String? =
     System.getenv(key.uppercase().replace('.', '_'))?.takeIf { it.isNotBlank() }
+        ?: (findProperty(key) as? String)?.takeIf { it.isNotBlank() }
         ?: localProperties.getProperty(key)
 
 fun formattedKeyName(key: String): String = "$key (env ${key.uppercase().replace('.', '_')})"
