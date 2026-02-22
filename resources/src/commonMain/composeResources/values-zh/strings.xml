@@ -292,32 +292,6 @@
     <string name="confirm_and_extract">确认并提取</string>
     <string name="confirm_image_help_text">确保文字清晰可见以获得最佳识别效果</string>
     
-    <!-- Collections Feature -->
-    <string name="collections">收藏</string>
-    <string name="collections_loading">正在加载收藏...</string>
-    <string name="collections_empty">暂无收藏可用</string>
-    <string name="collections_empty_message">稍后再来看新的词汇收藏。</string>
-    <string name="collections_error">加载收藏失败</string>
-    <string name="collections_dismiss">关闭</string>
-    <string name="learn_language">学习 %1$s</string>
-    <string name="from_language">来自 %1$s</string>
-    <string name="collections_import">导入</string>
-    <string name="collections_downloading">正在下载收藏</string>
-    <string name="collections_downloading_progress">正在下载...</string>
-    <string name="collections_parsing_progress">正在解析...</string>
-    <string name="collections_importing">正在导入收藏</string>
-    <string name="collections_checking_duplicates">正在检查重复项...</string>
-    <string name="collections_importing_progress">正在导入... %1$d/%2$d</string>
-    <string name="collections_import_confirm_title">导入收藏？</string>
-    <string name="collections_import_confirm_word_count">此收藏包含 %1$d 个单词，将添加到您的词汇列表中。</string>
-    <string name="collections_import_confirm_proceed">要继续吗？</string>
-    <string name="collections_import_success">成功从 %2$s 导入 %1$d 个单词！</string>
-    <string name="collections_import_failed">导入收藏失败</string>
-    <string name="collections_download_failed">下载收藏失败</string>
-    <string name="collections_parse_failed">解析收藏失败</string>
-    <string name="collections_downloading_message">%1$s</string>
-    <string name="collections_importing_message">%1$s</string>
-    
     <!-- Subscription -->
     <string name="subscription">订阅</string>
     <string name="subscription_screen_title">升级高级版</string>

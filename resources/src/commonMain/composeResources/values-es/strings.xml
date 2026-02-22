@@ -292,32 +292,6 @@
     <string name="confirm_and_extract">Confirmar y extraer</string>
     <string name="confirm_image_help_text">Asegúrese de que el texto sea claramente visible para un reconocimiento óptimo</string>
     
-    <!-- Collections Feature -->
-    <string name="collections">Colecciones</string>
-    <string name="collections_loading">Cargando colecciones...</string>
-    <string name="collections_empty">No hay colecciones disponibles</string>
-    <string name="collections_empty_message">Vuelva más tarde para ver nuevas colecciones de vocabulario.</string>
-    <string name="collections_error">Error al cargar colecciones</string>
-    <string name="collections_dismiss">Descartar</string>
-    <string name="learn_language">Aprende %1$s</string>
-    <string name="from_language">desde %1$s</string>
-    <string name="collections_import">Importar</string>
-    <string name="collections_downloading">Descargando colección</string>
-    <string name="collections_downloading_progress">Descargando...</string>
-    <string name="collections_parsing_progress">Analizando...</string>
-    <string name="collections_importing">Importando colección</string>
-    <string name="collections_checking_duplicates">Verificando duplicados...</string>
-    <string name="collections_importing_progress">Importando... %1$d/%2$d</string>
-    <string name="collections_import_confirm_title">¿Importar colección?</string>
-    <string name="collections_import_confirm_word_count">Esta colección contiene %1$d palabras que se agregarán a tu lista de vocabulario.</string>
-    <string name="collections_import_confirm_proceed">¿Quieres continuar?</string>
-    <string name="collections_import_success">¡%1$d palabras de %2$s importadas correctamente!</string>
-    <string name="collections_import_failed">Error al importar colección</string>
-    <string name="collections_download_failed">Error al descargar colección</string>
-    <string name="collections_parse_failed">Error al analizar colección</string>
-    <string name="collections_downloading_message">%1$s</string>
-    <string name="collections_importing_message">%1$s</string>
-    
     <!-- Subscription -->
     <string name="subscription">Suscripción</string>
     <string name="subscription_screen_title">Hazte Premium</string>

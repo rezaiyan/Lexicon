@@ -34,11 +34,6 @@ class IOSAccountDeletionHandler(
             println("[IOSAccountDeletionHandler] Cleared settings")
             NSLog("[IOSAccountDeletionHandler] Cleared settings")
 
-            // Clear downloaded collections
-            queries.clearAllDownloadedCollections()
-            println("[IOSAccountDeletionHandler] Cleared downloaded collections")
-            NSLog("[IOSAccountDeletionHandler] Cleared downloaded collections")
-
             // Clear auth tokens
             secureStorage.clearTokens()
             println("[IOSAccountDeletionHandler] Cleared auth tokens")

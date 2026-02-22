@@ -333,33 +333,6 @@
     <string name="navigate_back">Navigate back</string>
     <string name="open">Open</string>
     
-    <!-- Collections Feature -->
-    <string name="collections">Collections</string>
-    <string name="collections_subtitle">Find the language you're looking for</string>
-    <string name="collections_loading">Loading collections...</string>
-    <string name="collections_empty">No Collections Available</string>
-    <string name="collections_empty_message">Check back later for new vocabulary collections.</string>
-    <string name="collections_error">Failed to Load Collections</string>
-    <string name="collections_dismiss">Dismiss</string>
-    <string name="learn_language">Learn %1$s</string>
-    <string name="from_language">from %1$s</string>
-    <string name="collections_import">Import</string>
-    <string name="collections_downloading">Downloading Collection</string>
-    <string name="collections_downloading_progress">Downloading...</string>
-    <string name="collections_parsing_progress">Parsing...</string>
-    <string name="collections_importing">Importing Collection</string>
-    <string name="collections_checking_duplicates">Checking for duplicates...</string>
-    <string name="collections_importing_progress">Importing... %1$d/%2$d</string>
-    <string name="collections_import_confirm_title">Import Collection?</string>
-    <string name="collections_import_confirm_word_count">This collection contains %1$d words that will be added to your vocabulary list.</string>
-    <string name="collections_import_confirm_proceed">Do you want to proceed?</string>
-    <string name="collections_import_success">Successfully imported %1$d words from %2$s!</string>
-    <string name="collections_import_failed">Failed to import collection</string>
-    <string name="collections_download_failed">Failed to download collection</string>
-    <string name="collections_parse_failed">Failed to parse collection</string>
-    <string name="collections_downloading_message">%1$s</string>
-    <string name="collections_importing_message">%1$s</string>
-    
     <!-- Subscription -->
     <string name="subscription">Subscription</string>
     <string name="subscription_screen_title">Go Premium</string>

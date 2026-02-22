@@ -292,32 +292,6 @@
     <string name="confirm_and_extract">Bestätigen und extrahieren</string>
     <string name="confirm_image_help_text">Stellen Sie sicher, dass der Text für optimale Erkennung deutlich sichtbar ist</string>
     
-    <!-- Collections Feature -->
-    <string name="collections">Sammlungen</string>
-    <string name="collections_loading">Sammlungen werden geladen...</string>
-    <string name="collections_empty">Keine Sammlungen verfügbar</string>
-    <string name="collections_empty_message">Kommen Sie später für neue Vokabularsammlungen zurück.</string>
-    <string name="collections_error">Sammlungen konnten nicht geladen werden</string>
-    <string name="collections_dismiss">Abbrechen</string>
-    <string name="learn_language">Lernen Sie %1$s</string>
-    <string name="from_language">aus %1$s</string>
-    <string name="collections_import">Importieren</string>
-    <string name="collections_downloading">Sammlung wird heruntergeladen</string>
-    <string name="collections_downloading_progress">Wird heruntergeladen...</string>
-    <string name="collections_parsing_progress">Wird analysiert...</string>
-    <string name="collections_importing">Sammlung wird importiert</string>
-    <string name="collections_checking_duplicates">Auf Duplikate wird geprüft...</string>
-    <string name="collections_importing_progress">Wird importiert... %1$d/%2$d</string>
-    <string name="collections_import_confirm_title">Sammlung importieren?</string>
-    <string name="collections_import_confirm_word_count">Diese Sammlung enthält %1$d Wörter, die zu Ihrer Vokabelliste hinzugefügt werden.</string>
-    <string name="collections_import_confirm_proceed">Möchten Sie fortfahren?</string>
-    <string name="collections_import_success">%1$d Wörter aus %2$s erfolgreich importiert!</string>
-    <string name="collections_import_failed">Sammlung konnte nicht importiert werden</string>
-    <string name="collections_download_failed">Sammlung konnte nicht heruntergeladen werden</string>
-    <string name="collections_parse_failed">Sammlung konnte nicht analysiert werden</string>
-    <string name="collections_downloading_message">%1$s</string>
-    <string name="collections_importing_message">%1$s</string>
-    
     <!-- Subscription -->
     <string name="subscription">Abonnement</string>
     <string name="subscription_screen_title">Premium werden</string>

@@ -5,23 +5,12 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
-    
+
     <!-- Splash screen theme -->
     <style name="Theme.Lexicon.Starting" parent="Theme.SplashScreen">
-        <!-- Splash screen background color -->
         <item name="windowSplashScreenBackground">@color/splash_background</item>
-        
-        <!-- Center icon drawable -->
-        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
-        
-        <!-- No icon background for cleaner look -->
-        <!-- <item name="windowSplashScreenIconBackgroundColor">@color/splash_icon_background</item> -->
-        
-        <!-- Minimal animation duration - custom splash will handle animations -->
-        <item name="windowSplashScreenAnimationDuration">0</item>
-        
-        <!-- Theme to use after splash screen -->
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/Theme.Lexicon</item>
     </style>
 </resources>
-

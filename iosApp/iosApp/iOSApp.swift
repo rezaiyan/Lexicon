@@ -130,6 +130,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
+        // Pre-warm Kotlin/Native runtime and Koin DI graph so they are ready
+        // before ContentView renders, eliminating the first-frame stall.
+        MainViewControllerKt.warmup()
+
         // Configure Firebase
         FirebaseApp.configure()
         

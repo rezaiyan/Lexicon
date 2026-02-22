@@ -30,17 +30,6 @@ CREATE TABLE SettingsEntity (
     minimumDueCards INTEGER NOT NULL DEFAULT 5
 );
 
--- DownloadedCollectionEntity table
-CREATE TABLE DownloadedCollectionEntity (
-    id TEXT NOT NULL PRIMARY KEY,
-    targetLanguage TEXT NOT NULL,
-    originLanguage TEXT NOT NULL,
-    title TEXT NOT NULL,
-    fileName TEXT NOT NULL,
-    path TEXT NOT NULL,
-    downloadedAt INTEGER NOT NULL
-);
-
 -- Word queries
 
 insertWord:
@@ -151,22 +140,6 @@ SELECT cachedInsight FROM SettingsEntity WHERE id = 1;
 
 clearSettings:
 DELETE FROM SettingsEntity;
-
--- DownloadedCollection queries
-
-insertDownloadedCollection:
-INSERT OR REPLACE INTO DownloadedCollectionEntity(id, targetLanguage, originLanguage, title, fileName, path, downloadedAt)
-VALUES (?, ?, ?, ?, ?, ?, ?);
-
-getAllDownloadedCollections:
-SELECT * FROM DownloadedCollectionEntity;
-
-getDownloadedCollection:
-SELECT * FROM DownloadedCollectionEntity
-WHERE targetLanguage = ? AND originLanguage = ? AND fileName = ?;
-
-clearAllDownloadedCollections:
-DELETE FROM DownloadedCollectionEntity;
 
 -- Progress stats aggregate query
 

@@ -86,7 +86,7 @@ jobs:
 
   release-ios:
     name: Build & Release iOS
-    runs-on: macos-15
+    runs-on: macos-26
     if: github.ref == 'refs/heads/main'
 
     steps:
