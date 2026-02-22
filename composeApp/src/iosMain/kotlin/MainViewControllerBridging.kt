@@ -10,3 +10,5 @@ fun notifyPushTokenReceived(token: String) = com.alirezaiyan.vokab.notifyPushTok
 fun shouldShowNotification(categoryValue: String?): Boolean =
     com.alirezaiyan.vokab.shouldShowNotification(categoryValue)
 
+fun warmup() = com.alirezaiyan.vokab.warmup()
+

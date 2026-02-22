@@ -292,32 +292,6 @@
     <string name="confirm_and_extract">Confirmer et extraire</string>
     <string name="confirm_image_help_text">Assurez-vous que le texte est clairement visible pour une reconnaissance optimale</string>
     
-    <!-- Collections Feature -->
-    <string name="collections">Collections</string>
-    <string name="collections_loading">Chargement des collections...</string>
-    <string name="collections_empty">Aucune collection disponible</string>
-    <string name="collections_empty_message">Revenez plus tard pour de nouvelles collections de vocabulaire.</string>
-    <string name="collections_error">Échec du chargement des collections</string>
-    <string name="collections_dismiss">Ignorer</string>
-    <string name="learn_language">Apprenez le %1$s</string>
-    <string name="from_language">depuis le %1$s</string>
-    <string name="collections_import">Importer</string>
-    <string name="collections_downloading">Téléchargement de la collection</string>
-    <string name="collections_downloading_progress">Téléchargement...</string>
-    <string name="collections_parsing_progress">Analyse en cours...</string>
-    <string name="collections_importing">Importation de la collection</string>
-    <string name="collections_checking_duplicates">Vérification des doublons...</string>
-    <string name="collections_importing_progress">Importation... %1$d/%2$d</string>
-    <string name="collections_import_confirm_title">Importer la collection ?</string>
-    <string name="collections_import_confirm_word_count">Cette collection contient %1$d mots qui seront ajoutés à votre liste de vocabulaire.</string>
-    <string name="collections_import_confirm_proceed">Voulez-vous continuer ?</string>
-    <string name="collections_import_success">%1$d mots de %2$s importés avec succès !</string>
-    <string name="collections_import_failed">Échec de l'importation de la collection</string>
-    <string name="collections_download_failed">Échec du téléchargement de la collection</string>
-    <string name="collections_parse_failed">Échec de l'analyse de la collection</string>
-    <string name="collections_downloading_message">%1$s</string>
-    <string name="collections_importing_message">%1$s</string>
-    
     <!-- Subscription -->
     <string name="subscription">Abonnement</string>
     <string name="subscription_screen_title">Passez Premium</string>

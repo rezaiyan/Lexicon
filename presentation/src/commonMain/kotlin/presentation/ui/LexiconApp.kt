@@ -73,7 +73,6 @@ import presentation.ui.screens.AuthGateScreen
 import presentation.ui.screens.OnboardingScreen
 import presentation.ui.screens.ProfileScreen
 import presentation.ui.screens.SettingsScreen
-import presentation.ui.screens.SplashScreen
 import presentation.ui.screens.StudyScreen
 import presentation.ui.screens.SubscriptionScreen
 import presentation.ui.screens.SubscriptionScreenActions
@@ -200,7 +199,7 @@ fun LexiconApp() {
                 ) { state ->
                 when (state) {
                     is AppUiState.Splash -> {
-                        SplashScreen(onEnd = {
+                        SplashHost(onEnd = {
                             appNavigationViewModel.onSplashComplete(authState.isAuthenticated)
                         })
                     }

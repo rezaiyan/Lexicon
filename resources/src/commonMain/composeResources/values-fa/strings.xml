@@ -291,32 +291,6 @@
     <string name="confirm_and_extract">تأیید و استخراج</string>
     <string name="confirm_image_help_text">مطمئن شوید متن برای تشخیص بهینه به وضوح قابل مشاهده است</string>
     
-    <!-- Collections Feature -->
-    <string name="collections">مجموعه‌ها</string>
-    <string name="collections_loading">در حال بارگذاری مجموعه‌ها...</string>
-    <string name="collections_empty">مجموعه‌ای موجود نیست</string>
-    <string name="collections_empty_message">بعداً برای مجموعه‌های واژگان جدید بررسی کنید.</string>
-    <string name="collections_error">بارگذاری مجموعه‌ها ناموفق بود</string>
-    <string name="collections_dismiss">رد</string>
-    <string name="learn_language">یادگیری %1$s</string>
-    <string name="from_language">از %1$s</string>
-    <string name="collections_import">وارد کردن</string>
-    <string name="collections_downloading">در حال دانلود مجموعه</string>
-    <string name="collections_downloading_progress">در حال دانلود...</string>
-    <string name="collections_parsing_progress">در حال تجزیه...</string>
-    <string name="collections_importing">در حال وارد کردن مجموعه</string>
-    <string name="collections_checking_duplicates">در حال بررسی تکراری‌ها...</string>
-    <string name="collections_importing_progress">در حال وارد کردن... %1$d/%2$d</string>
-    <string name="collections_import_confirm_title">مجموعه را وارد کنید؟</string>
-    <string name="collections_import_confirm_word_count">این مجموعه شامل %1$d کلمه است که به لیست واژگان شما اضافه خواهد شد.</string>
-    <string name="collections_import_confirm_proceed">آیا می‌خواهید ادامه دهید؟</string>
-    <string name="collections_import_success">با موفقیت %1$d کلمه از %2$s وارد شد!</string>
-    <string name="collections_import_failed">وارد کردن مجموعه ناموفق بود</string>
-    <string name="collections_download_failed">دانلود مجموعه ناموفق بود</string>
-    <string name="collections_parse_failed">تجزیه مجموعه ناموفق بود</string>
-    <string name="collections_downloading_message">%1$s</string>
-    <string name="collections_importing_message">%1$s</string>
-    
     <!-- Subscription -->
     <string name="subscription">اشتراک</string>
     <string name="subscription_screen_title">پرمیوم شوید</string>

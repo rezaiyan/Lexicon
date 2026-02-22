@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-VPS_HOST="root@vokab.alirezaiyan.com"
+VPS_HOST="root@lexicon.alirezaiyan.com"
 VPS_PATH="/var/www/vokab/kmp"
 
 PROD_DIST="${PROJECT_ROOT}/composeApp/build/dist/wasmJs/productionExecutable"
@@ -135,7 +135,7 @@ if [[ "$DEPLOY" == true ]]; then
 
   if [[ "$DRY_RUN" == false ]]; then
     echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
-    echo "  https://vokab.alirezaiyan.com/"
+    echo "  https://lexicon.alirezaiyan.com/"
   else
     echo "✓ Dry run complete"
   fi

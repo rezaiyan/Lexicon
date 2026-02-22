@@ -5,43 +5,24 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.Firebase
-import com.google.firebase.analytics.analytics
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import presentation.model.AppUiState
 import presentation.ui.LexiconApp
+import presentation.viewmodel.AppNavigationViewModel
 
-/**
- * Main Activity for Lexicon
- * Handles:
- * - Splash screen
- * - Activity lifecycle analytics
- * - Compose UI setup
- */
 class MainActivity : ComponentActivity() {
-    
-    private lateinit var analytics: FirebaseAnalytics
-    
+
+    private val appNavigationViewModel: AppNavigationViewModel by viewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        installSplashScreen().setKeepOnScreenCondition {
+            appNavigationViewModel.appUiState.value is AppUiState.Splash
+        }
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        
-        analytics = Firebase.analytics
-        
-        // Log screen view
-        analytics.logEvent("main_activity_opened", null)
-
         setContent {
             LexiconApp()
         }
     }
     
-    override fun onDestroy() {
-        super.onDestroy()
-        analytics.logEvent("main_activity_closed", null)
-    }
-    
-    companion object {
-        private const val TAG = "MainActivity"
-    }
 }

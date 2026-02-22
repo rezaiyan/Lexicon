@@ -17,8 +17,5 @@ sealed interface TabDestination {
     data object WordManager : TabDestination
     
     @Serializable
-    data object Collections : TabDestination
-    
-    @Serializable
     data object Subscription : TabDestination
 }

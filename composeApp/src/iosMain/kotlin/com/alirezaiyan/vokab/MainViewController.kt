@@ -67,6 +67,10 @@ fun MainViewController() = ComposeUIViewController {
     LexiconApp()
 }
 
+fun warmup() {
+    initializeDependencies()
+}
+
 private fun initializeDependencies() {
     if (!googleAuthInitialized) {
         GoogleAuthProvider.create(
