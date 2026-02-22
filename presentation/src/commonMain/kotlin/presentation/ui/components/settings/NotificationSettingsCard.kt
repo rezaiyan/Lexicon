@@ -31,6 +31,3 @@ fun NotificationSettingsCard(
         subtitleColor = if (!systemNotificationsEnabled) MaterialTheme.colorScheme.error else null
     )
 }
-
-
-

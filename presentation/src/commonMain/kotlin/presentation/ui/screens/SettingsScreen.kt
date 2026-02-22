@@ -156,4 +156,3 @@ private fun SettingsScreenContent(
         )
     }
 }
-

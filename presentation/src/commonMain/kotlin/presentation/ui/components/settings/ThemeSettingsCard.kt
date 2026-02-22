@@ -21,6 +21,3 @@ fun ThemeSettingsCard(
         onClick = onShowThemeDialog
     )
 }
-
-
-

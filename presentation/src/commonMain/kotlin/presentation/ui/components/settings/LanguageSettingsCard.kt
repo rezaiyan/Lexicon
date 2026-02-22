@@ -21,6 +21,3 @@ fun LanguageSettingsCard(
         onClick = onShowLanguageDialog
     )
 }
-
-
-

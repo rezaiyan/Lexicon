@@ -45,7 +45,7 @@ fun AboutSettingsCard(appVersion: String) {
     val handleClick = {
         clickCount++
         if (clickCount >= 3) {
-            openUrl("https://alirezaiyan.com/vokab/")
+            openUrl("https://alirezaiyan.com/lexicon/")
             clickCount = 0
         }
     }
@@ -93,6 +93,3 @@ fun AboutSettingsCard(appVersion: String) {
         }
     }
 }
-
-
-
