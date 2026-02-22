@@ -11,7 +11,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import expects.SetSystemBarsColor
 import domain.word.model.Word
 import presentation.model.ReviewScreenState
 import presentation.model.UiState
@@ -68,21 +67,10 @@ fun ReviewBottomSheet(
         isFlipped = false
     }
 
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    
-    val surfaceLuminance = surfaceColor.red * 0.299f + surfaceColor.green * 0.587f + surfaceColor.blue * 0.114f
-    val darkIcons = surfaceLuminance > 0.5f
-    
-    SetSystemBarsColor(
-        statusBarColor = surfaceColor,
-        navigationBarColor = surfaceColor,
-        darkIcons = darkIcons
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(surfaceColor)
+            .background(MaterialTheme.colorScheme.surface)
             .then(modifier)
     ) {
             when (wordListState) {

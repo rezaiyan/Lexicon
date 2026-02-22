@@ -27,8 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import expects.SetSystemBarsColor
-import expects.isSystemInDarkTheme
 import presentation.model.VocabularyPreviewUiState
 import theme.Theme
 
@@ -40,14 +38,6 @@ fun VocabularyPreviewScreen(
 ) {
     val spacing = Theme.spacing
     val dimensions = Theme.dimensions
-    val isDarkMode = isSystemInDarkTheme()
-
-    // Set status bar appearance
-    SetSystemBarsColor(
-        statusBarColor = MaterialTheme.colorScheme.background,
-        navigationBarColor = MaterialTheme.colorScheme.background,
-        darkIcons = !isDarkMode
-    )
 
     Column(
         modifier = Modifier

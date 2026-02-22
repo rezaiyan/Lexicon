@@ -110,10 +110,8 @@ fun presentationModule() = module {
         VocabularyViewModel(
             getDueWordsUseCase = get(),
             getWordsByStageUseCase = get(),
-            reviewWordUseCase = get(),
             updateWordUseCase = get(),
             deleteWordUseCase = get(),
-            recordStreakActivityUseCase = get(),
             analyticsTracker = get(),
         )
     }

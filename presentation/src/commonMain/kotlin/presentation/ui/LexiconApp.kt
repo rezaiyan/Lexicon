@@ -105,7 +105,6 @@ fun LexiconApp() {
     val authViewModel = koinViewModel<AuthViewModel>()
     val settingsRepository = koinInject<ISettingsRepository>()
 
-    val reviewScreenState by vocabularyViewModel.reviewScreenState.collectAsStateWithLifecycle()
     val appUiState by appNavigationViewModel.appUiState.collectAsStateWithLifecycle()
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
@@ -139,13 +138,23 @@ fun LexiconApp() {
         }
     }
 
-    val isPreviewModeOpen = reviewScreenState.reviewType == ReviewType.BROWSE &&
-            reviewScreenState.wordListState is UiState.Loaded
-
-    val effectiveDarkMode = isPreviewModeOpen || darkMode
-
-    LexiconTheme(darkTheme = effectiveDarkMode) {
+    LexiconTheme(darkTheme = darkMode) {
         Surface(modifier = Modifier.fillMaxSize()) {
+
+            if (appUiState !is AppUiState.Ready) {
+                SetSystemBarsColor(
+                    statusBarColor = MaterialTheme.colorScheme.background,
+                    navigationBarColor = MaterialTheme.colorScheme.background,
+                    darkIcons = !darkMode
+                )
+            } else {
+                SetSystemBarsColor(
+                    statusBarColor = MaterialTheme.colorScheme.background,
+                    navigationBarColor = MaterialTheme.colorScheme.surfaceContainer,
+                    darkIcons = !darkMode
+                )
+            }
+
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
             HandleVocabularyEffects(
                 vocabularyViewModel = vocabularyViewModel,
@@ -278,10 +287,7 @@ fun LexiconApp() {
                     }
 
                     is AppUiState.Ready -> {
-                        AppContent(
-                            navController = navController,
-                            effectiveDarkMode = effectiveDarkMode,
-                        )
+                        AppContent(navController = navController)
                     }
                 }
                 }
@@ -294,16 +300,8 @@ fun LexiconApp() {
 @Composable
 private fun AppContent(
     navController: NavHostController,
-    effectiveDarkMode: Boolean,
 ) {
     val snackbarHostState = LocalSnackbarHostState.current
-
-    // System Bars
-    SetSystemBarsColor(
-        statusBarColor = if (effectiveDarkMode) Color(0xFF1A1A2E) else AppColors.normalBackground,
-        navigationBarColor = if (effectiveDarkMode) Color(0xFF1A1A2E) else AppColors.normalSurface,
-        darkIcons = !effectiveDarkMode
-    )
 
     Scaffold(
         bottomBar = {

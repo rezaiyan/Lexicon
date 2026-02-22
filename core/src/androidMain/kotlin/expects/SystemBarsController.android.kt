@@ -1,11 +1,13 @@
 package expects
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 
 @Composable
 actual fun SetSystemBarsColor(
@@ -16,11 +18,19 @@ actual fun SetSystemBarsColor(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as? Activity)?.window ?: return@SideEffect
-            WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = darkIcons
-                isAppearanceLightNavigationBars = darkIcons
-            }
+            val activity = (view.context as? ComponentActivity) ?: return@SideEffect
+            activity.enableEdgeToEdge(
+                statusBarStyle = if (darkIcons) {
+                    SystemBarStyle.light(statusBarColor.toArgb(), statusBarColor.toArgb())
+                } else {
+                    SystemBarStyle.dark(statusBarColor.toArgb())
+                },
+                navigationBarStyle = if (darkIcons) {
+                    SystemBarStyle.light(navigationBarColor.toArgb(), navigationBarColor.toArgb())
+                } else {
+                    SystemBarStyle.dark(navigationBarColor.toArgb())
+                }
+            )
         }
     }
 }
