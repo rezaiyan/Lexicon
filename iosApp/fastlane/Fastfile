@@ -92,8 +92,8 @@ platform :ios do
       path: "iosApp.xcodeproj",
       team_id: ENV["APPLE_TEAM_ID"],
       code_sign_identity: "Apple Distribution",
-      profile_name: "Vokab App Store",
-      bundle_identifier: "com.alirezaiyan.vokab"
+      profile_name: ENV["IOS_PROVISIONING_PROFILE_NAME"] || "Vokab App Store",
+      bundle_identifier: ENV["IOS_BUNDLE_ID"] || "com.alirezaiyan.vokab"
     )
 
     # Build and archive the iOS app
@@ -108,7 +108,7 @@ platform :ios do
       export_options: {
         signingStyle: "manual",
         provisioningProfiles: {
-          "com.alirezaiyan.vokab" => "Vokab App Store"
+          (ENV["IOS_BUNDLE_ID"] || "com.alirezaiyan.vokab") => (ENV["IOS_PROVISIONING_PROFILE_NAME"] || "Vokab App Store")
         }
       }
     )
