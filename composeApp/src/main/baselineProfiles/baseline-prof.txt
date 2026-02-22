@@ -1,0 +1,71 @@
+# =============================================================
+# Lexicon – Android Baseline Profile (Static Rules)
+# Date: 2026-02-22
+# AGP: 8.12.3 | profileinstaller: 1.4.1
+#
+# Critical user journeys covered:
+#   1. Cold start  → MainActivity → Splash
+#   2. New user    → Onboarding → VocabularyPreview → AuthGate
+#   3. Return user → Study screen (start destination)
+#
+# Rule format:
+#   L<class>;                              – type-profile (class only, NO flags allowed)
+#   [H][S][P]L<class>;->method(params)R;  – method rule (flags required with ->)
+#     H = Hot        – AOT compile (frequently called)
+#     S = Startup    – AOT compile (on the startup critical path)
+#     P = Post-start – AOT compile (executed just after start)
+# =============================================================
+
+# ── App Entry Point ──────────────────────────────────────────
+Lcom/alirezaiyan/vokab/MainActivity;
+HSPLcom/alirezaiyan/vokab/MainActivity;->onCreate(Landroid/os/Bundle;)V
+HSPLcom/alirezaiyan/vokab/MainActivity;->onResume()V
+
+# ── Root Compose UI ──────────────────────────────────────────
+Lpresentation/ui/LexiconAppKt;
+HSPLpresentation/ui/LexiconAppKt;->LexiconApp(Landroidx/compose/runtime/Composer;I)V
+
+# ── App UI State Machine ─────────────────────────────────────
+# Evaluated immediately on cold start to pick the first screen.
+Lpresentation/ui/AppUiState;
+Lpresentation/ui/AppUiState$Splash;
+Lpresentation/ui/AppUiState$Onboarding;
+Lpresentation/ui/AppUiState$VocabularyPreview;
+Lpresentation/ui/AppUiState$AuthGate;
+Lpresentation/ui/AppUiState$Ready;
+
+# ── Main ViewModel ───────────────────────────────────────────
+Lpresentation/ui/MainViewModel;
+
+# ── Navigation Destinations ──────────────────────────────────
+# Typed navigation deserialises these sealed objects at startup.
+Lpresentation/model/TabDestination;
+Lpresentation/model/TabDestination$Study;
+Lpresentation/model/TabDestination$Profile;
+Lpresentation/model/TabDestination$Settings;
+Lpresentation/model/TabDestination$Collections;
+Lpresentation/model/TabDestination$WordManager;
+Lpresentation/model/TabDestination$Subscription;
+
+# ── Startup Screen: Splash ───────────────────────────────────
+Lpresentation/ui/screens/SplashScreenKt;
+
+# ── Early Screens: Onboarding + Auth ─────────────────────────
+# New-user flow shown before the main nav host is ready.
+Lpresentation/ui/screens/OnboardingScreenKt;
+Lpresentation/ui/screens/VocabularyPreviewScreenKt;
+Lpresentation/ui/screens/AuthGateScreenKt;
+
+# Auth ViewModel (intent-based; initialised alongside AuthGate)
+Lpresentation/ui/AuthViewModel;
+
+# ── Primary Tab – Study (start destination) ──────────────────
+Lpresentation/ui/screens/StudyScreenKt;
+
+# ── Secondary Tabs (loaded on first tab switch) ───────────────
+Lpresentation/ui/screens/ProfileScreenKt;
+Lpresentation/ui/screens/SettingsScreenKt;
+
+# ── Settings Sub-screens ─────────────────────────────────────
+Lpresentation/ui/screens/SubscriptionScreenKt;
+Lpresentation/ui/screens/settings/WordManagerScreenKt;

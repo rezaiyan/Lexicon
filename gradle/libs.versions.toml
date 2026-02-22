@@ -37,6 +37,7 @@ kmpauth = "2.4.0-alpha05"
 gitliveFirebase = "2.3.0"
 revenuecat-kmp = "2.2.10+17.19.1"
 emoji-kt = "2.3.0"
+profileinstaller = "1.4.1"
 
 [libraries]
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
@@ -109,6 +110,7 @@ purchases-kmp-core = { module = "com.revenuecat.purchases:purchases-kmp-core", v
 purchases-kmp-ui = { module = "com.revenuecat.purchases:purchases-kmp-ui", version.ref = "revenuecat-kmp" }
 purchases-kmp-either = { module = "com.revenuecat.purchases:purchases-kmp-either", version.ref = "revenuecat-kmp" }
 purchases-kmp-result = { module = "com.revenuecat.purchases:purchases-kmp-result", version.ref = "revenuecat-kmp" }
+androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 
 
 [bundles]
