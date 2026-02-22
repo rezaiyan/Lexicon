@@ -37,6 +37,7 @@ jobs:
   release-appstore:
     name: Build & Release iOS to App Store
     runs-on: macos-15
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code

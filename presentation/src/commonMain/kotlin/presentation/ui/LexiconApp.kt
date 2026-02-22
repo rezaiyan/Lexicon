@@ -21,10 +21,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
@@ -67,10 +65,8 @@ import presentation.feature.onboarding.OnboardingViewModel
 import presentation.feature.onboarding.VocabularyPreviewViewModel
 import presentation.feature.subscription.SubscriptionViewModel
 import presentation.model.AppUiState
-import presentation.model.ReviewType
 import presentation.model.TabDestination
 import presentation.model.UiMessage
-import presentation.model.UiState
 import presentation.ui.components.AnimatedNavIcon
 import presentation.ui.overlay.OverlayHostContainer
 import presentation.ui.screens.AuthGateScreen
@@ -85,7 +81,6 @@ import presentation.ui.screens.VocabularyPreviewScreen
 import presentation.ui.screens.settings.WordManagerScreen
 import presentation.viewmodel.AppNavigationViewModel
 import presentation.viewmodel.VocabularyViewModel
-import theme.AppColors
 import theme.LexiconTheme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_failed_generic
@@ -123,8 +118,7 @@ fun LexiconApp() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     remember { EmojiService.initialize() }
-    val adaptiveInfo = currentWindowAdaptiveInfo()
-    val isBottomNavLayout = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo) == NavigationSuiteType.NavigationBar
+    val isBottomNavLayout = currentNavigationSuiteType() == NavigationSuiteType.NavigationBar
 
     val sessionManager = koinInject<ISessionManager>()
     LaunchedEffect(Unit) {
@@ -314,8 +308,7 @@ private fun AppContent(
     val snackbarHostState = LocalSnackbarHostState.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
-    val adaptiveInfo = currentWindowAdaptiveInfo()
-    val layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo)
+    val layoutType = currentNavigationSuiteType()
 
     NavigationSuiteScaffold(
         layoutType = layoutType,
