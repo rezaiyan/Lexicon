@@ -21,6 +21,7 @@ keystore.jks
 *-service-account*.json
 vokab-*.json
 fastlane/*.xml
+fastlane/report.xml
 
 # Environment and secrets
 .env
