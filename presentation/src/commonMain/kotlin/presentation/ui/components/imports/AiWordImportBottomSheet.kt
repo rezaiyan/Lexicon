@@ -982,7 +982,7 @@ private fun AiTopicsStep(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.isLoading) {
-                    OnboardingLoadingCard(spacing = spacing, dimensions = dimensions)
+                    OnboardingLoadingCard(spacing = spacing)
                 } else {
                     Button(
                         onClick = onGenerate,

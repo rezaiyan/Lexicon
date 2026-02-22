@@ -25,6 +25,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -144,6 +145,7 @@ fun LexiconApp() {
     val effectiveDarkMode = isPreviewModeOpen || darkMode
 
     LexiconTheme(darkTheme = effectiveDarkMode) {
+        Surface(modifier = Modifier.fillMaxSize()) {
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
             HandleVocabularyEffects(
                 vocabularyViewModel = vocabularyViewModel,
@@ -284,6 +286,7 @@ fun LexiconApp() {
                 }
                 }
             }
+        }
         }
     }
 }

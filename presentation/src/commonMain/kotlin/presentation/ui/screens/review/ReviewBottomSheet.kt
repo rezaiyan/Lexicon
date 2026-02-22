@@ -15,7 +15,6 @@ import expects.SetSystemBarsColor
 import domain.word.model.Word
 import presentation.model.ReviewScreenState
 import presentation.model.UiState
-import theme.AppColors
 
 @Composable
 fun ReviewBottomSheet(
@@ -80,11 +79,11 @@ fun ReviewBottomSheet(
         darkIcons = darkIcons
     )
 
-    // Use the app's theme setting (inherited from parent LexiconTheme in LexiconApp)
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(surfaceColor)
+            .then(modifier)
     ) {
             when (wordListState) {
                 is UiState.Loading -> LoadingState()

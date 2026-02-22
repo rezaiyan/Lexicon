@@ -158,9 +158,9 @@ fun OnboardingScreen(
 
     Column(
         modifier = Modifier
-            .statusBarsPadding()
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
     ) {
         // Segmented step progress — only shown for actual steps (not intro)
         if (state.currentStep > 0) {
@@ -823,7 +823,6 @@ internal fun OnboardingStep3Content(
                     selectedLevel = state.selectedLevel,
                     onLevelSelected = onLevelSelected,
                     spacing = spacing,
-                    dimensions = dimensions,
                     enabled = !state.isLoading
                 )
                 Spacer(modifier = Modifier.height(spacing.small))
@@ -844,7 +843,7 @@ internal fun OnboardingStep3Content(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.isLoading) {
-                    OnboardingLoadingCard(spacing = spacing, dimensions = dimensions)
+                    OnboardingLoadingCard(spacing = spacing)
                 } else {
                     Row(
                         modifier = Modifier
@@ -900,8 +899,7 @@ internal fun OnboardingStep3Content(
 
 @Composable
 internal fun OnboardingLoadingCard(
-    spacing: AppSpacing,
-    dimensions: AppDimensions
+    spacing: AppSpacing
 ) {
     var currentTipIndex by remember { mutableStateOf(0) }
     val loadingTips = listOf(
@@ -1046,7 +1044,6 @@ internal fun LevelCards(
     selectedLevel: String?,
     onLevelSelected: (String) -> Unit,
     spacing: AppSpacing,
-    dimensions: AppDimensions,
     enabled: Boolean = true
 ) {
     val levels = listOf(

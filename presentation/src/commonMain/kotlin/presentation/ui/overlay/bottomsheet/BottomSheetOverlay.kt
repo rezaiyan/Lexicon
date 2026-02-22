@@ -74,7 +74,7 @@ class BottomSheetOverlay(
             },
             dragHandle = null, // Full screen mode doesn't need drag handle
             sheetState = sheetState,
-            sheetGesturesEnabled = scopeImpl.properties.sheetGesturesEnabled
+            sheetGesturesEnabled = scopeImpl.properties.sheetGesturesEnabled,
         ) {
             Box(
                 modifier = Modifier
