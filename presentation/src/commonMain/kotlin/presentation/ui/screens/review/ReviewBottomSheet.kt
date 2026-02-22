@@ -11,9 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import expects.SetSystemBarsColor
 import domain.word.model.Word
+import expects.BackHandler
 import presentation.model.ReviewScreenState
+import presentation.model.ReviewType
 import presentation.model.UiState
 
 @Composable
@@ -37,6 +38,10 @@ fun ReviewBottomSheet(
     var editingWord by remember { mutableStateOf<Word?>(null) }
     var wordToDelete by remember { mutableStateOf<Word?>(null) }
     var initialIndexApplied by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = reviewType == ReviewType.REVIEW) {
+        onClose()
+    }
 
     LaunchedEffect(initialWord, wordListState) {
         if (!initialIndexApplied && initialWord != null && wordListState is UiState.Loaded) {
@@ -68,130 +73,120 @@ fun ReviewBottomSheet(
         isFlipped = false
     }
 
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    
-    val surfaceLuminance = surfaceColor.red * 0.299f + surfaceColor.green * 0.587f + surfaceColor.blue * 0.114f
-    val darkIcons = surfaceLuminance > 0.5f
-    
-    SetSystemBarsColor(
-        statusBarColor = surfaceColor,
-        navigationBarColor = surfaceColor,
-        darkIcons = darkIcons
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(surfaceColor)
+            .background(MaterialTheme.colorScheme.surface)
             .then(modifier)
     ) {
-            when (wordListState) {
-                is UiState.Loading -> LoadingState()
-                is UiState.Error -> ErrorState(
-                    message = wordListState.message,
-                    onRetry = onLoadWords
-                )
+        when (wordListState) {
+            is UiState.Loading -> LoadingState()
+            is UiState.Error -> ErrorState(
+                message = wordListState.message,
+                onRetry = onLoadWords
+            )
 
-                is UiState.Loaded -> {
-                    val words = wordListState.value
+            is UiState.Loaded -> {
+                val words = wordListState.value
 
-                    if (words.isEmpty()) {
-                        EmptyState()
-                    } else {
-                        // Validate index before rendering (only if list is not empty)
-                        val safeIndex = currentIndex.coerceIn(0, words.size - 1)
+                if (words.isEmpty()) {
+                    EmptyState()
+                } else {
+                    // Validate index before rendering (only if list is not empty)
+                    val safeIndex = currentIndex.coerceIn(0, words.size - 1)
 
-                        if (safeIndex < words.size) {
-                            ReviewContent(
-                                words = words,
-                                currentIndex = safeIndex,
-                                isFlipped = isFlipped,
-                                reviewType = reviewType,
-                                title = title,
-                                onClose = onClose,
-                                onFlip = { isFlipped = !isFlipped },
-                                onNavigateBack = {
-                                    if (currentIndex > 0) {
-                                        currentIndex--
-                                        isFlipped = false
-                                    }
-                                },
-                                onNavigateForward = {
-                                    if (currentIndex < words.size - 1) {
+                    if (safeIndex < words.size) {
+                        ReviewContent(
+                            words = words,
+                            currentIndex = safeIndex,
+                            isFlipped = isFlipped,
+                            reviewType = reviewType,
+                            title = title,
+                            onClose = onClose,
+                            onFlip = { isFlipped = !isFlipped },
+                            onNavigateBack = {
+                                if (currentIndex > 0) {
+                                    currentIndex--
+                                    isFlipped = false
+                                }
+                            },
+                            onNavigateForward = {
+                                if (currentIndex < words.size - 1) {
+                                    currentIndex++
+                                    isFlipped = false
+                                }
+                                // In browse mode, don't auto-close at end
+                                // User can navigate freely and close manually
+                            },
+                            onReview = { rating ->
+                                handleReview(
+                                    words = words,
+                                    currentIndex = safeIndex,
+                                    rating = rating,
+                                    onReviewWord = onReviewWord,
+                                    onNext = {
                                         currentIndex++
                                         isFlipped = false
-                                    }
-                                    // In browse mode, don't auto-close at end
-                                    // User can navigate freely and close manually
+                                    },
+                                    onComplete = onReviewComplete
+                                )
+                            },
+                            onEdit = {
+                                editingWord = words[safeIndex]
+                            }
+                        )
+
+                        // Edit Dialog
+                        editingWord?.let { word ->
+                            EditWordDialog(
+                                word = word,
+                                onDismiss = { editingWord = null },
+                                onSave = { updatedWord ->
+                                    onUpdateWord(updatedWord)
+                                    editingWord = null
                                 },
-                                onReview = { rating ->
-                                    handleReview(
-                                        words = words,
-                                        currentIndex = safeIndex,
-                                        rating = rating,
-                                        onReviewWord = onReviewWord,
-                                        onNext = {
-                                            currentIndex++
-                                            isFlipped = false
-                                        },
-                                        onComplete = onReviewComplete
-                                    )
-                                },
-                                onEdit = {
-                                    editingWord = words[safeIndex]
+                                onDelete = {
+                                    editingWord = null
+                                    wordToDelete = word
                                 }
                             )
-                            
-                            // Edit Dialog
-                            editingWord?.let { word ->
-                                EditWordDialog(
-                                    word = word,
-                                    onDismiss = { editingWord = null },
-                                    onSave = { updatedWord ->
-                                        onUpdateWord(updatedWord)
-                                        editingWord = null
-                                    },
-                                    onDelete = {
-                                        editingWord = null
-                                        wordToDelete = word
-                                    }
-                                )
-                            }
-                            
-                            // Delete Confirmation Dialog
-                            wordToDelete?.let { word ->
-                                DeleteWordConfirmationDialog(
-                                    word = word,
-                                    onConfirm = {
-                                        val deletedIndex = currentIndex
-                                        val wasLastWord = deletedIndex == words.size - 1
-                                        val wasOnlyWord = words.size == 1
-                                        
-                                        onDeleteWord(word.id) {
-                                            wordToDelete = null
-                                            
-                                            // Auto-advance logic
-                                            if (wasOnlyWord) {
-                                                onReviewComplete()
-                                            } else if (wasLastWord) {
-                                                // If it was the last word, go back one
-                                                currentIndex = (words.size - 2).coerceAtLeast(0)
-                                                isFlipped = false
-                                            } else {
-                                                // If it wasn't the last word, advance
-                                                // Note: currentIndex will be adjusted by LaunchedEffect when word list updates
-                                                isFlipped = false
-                                            }
+                        }
+
+                        // Delete Confirmation Dialog
+                        wordToDelete?.let { word ->
+                            DeleteWordConfirmationDialog(
+                                word = word,
+                                onConfirm = {
+                                    val deletedIndex = currentIndex
+                                    val wasLastWord = deletedIndex == words.size - 1
+                                    val wasOnlyWord = words.size == 1
+
+                                    onDeleteWord(word.id) {
+                                        wordToDelete = null
+
+                                        // Auto-advance logic
+                                        if (wasOnlyWord) {
+                                            onReviewComplete()
+                                        } else if (wasLastWord) {
+                                            // If it was the last word, go back one
+                                            currentIndex = (words.size - 2).coerceAtLeast(0)
+                                            isFlipped = false
+                                        } else {
+                                            // If it wasn't the last word, advance
+                                            // Note: currentIndex will be adjusted by LaunchedEffect when word list updates
+                                            isFlipped = false
                                         }
-                                    },
-                                    onDismiss = { wordToDelete = null }
-                                )
-                            }
+                                    }
+                                },
+                                onDismiss = { wordToDelete = null }
+                            )
                         }
                     }
                 }
             }
         }
+    }
+
 }
 
 

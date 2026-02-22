@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
 
 package presentation.ui
 
@@ -9,8 +9,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
@@ -18,9 +20,12 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -34,7 +39,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -105,7 +109,6 @@ fun LexiconApp() {
     val authViewModel = koinViewModel<AuthViewModel>()
     val settingsRepository = koinInject<ISettingsRepository>()
 
-    val reviewScreenState by vocabularyViewModel.reviewScreenState.collectAsStateWithLifecycle()
     val appUiState by appNavigationViewModel.appUiState.collectAsStateWithLifecycle()
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
@@ -120,6 +123,8 @@ fun LexiconApp() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     remember { EmojiService.initialize() }
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val isBottomNavLayout = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo) == NavigationSuiteType.NavigationBar
 
     val sessionManager = koinInject<ISessionManager>()
     LaunchedEffect(Unit) {
@@ -139,13 +144,27 @@ fun LexiconApp() {
         }
     }
 
-    val isPreviewModeOpen = reviewScreenState.reviewType == ReviewType.BROWSE &&
-            reviewScreenState.wordListState is UiState.Loaded
-
-    val effectiveDarkMode = isPreviewModeOpen || darkMode
-
-    LexiconTheme(darkTheme = effectiveDarkMode) {
+    LexiconTheme(darkTheme = darkMode) {
         Surface(modifier = Modifier.fillMaxSize()) {
+
+            if (appUiState !is AppUiState.Ready) {
+                SetSystemBarsColor(
+                    statusBarColor = MaterialTheme.colorScheme.background,
+                    navigationBarColor = MaterialTheme.colorScheme.background,
+                    darkIcons = !darkMode
+                )
+            } else {
+                SetSystemBarsColor(
+                    statusBarColor = MaterialTheme.colorScheme.background,
+                    navigationBarColor = if (isBottomNavLayout) {
+                        MaterialTheme.colorScheme.surfaceContainer
+                    } else {
+                        MaterialTheme.colorScheme.background
+                    },
+                    darkIcons = !darkMode
+                )
+            }
+
         CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
             HandleVocabularyEffects(
                 vocabularyViewModel = vocabularyViewModel,
@@ -278,10 +297,7 @@ fun LexiconApp() {
                     }
 
                     is AppUiState.Ready -> {
-                        AppContent(
-                            navController = navController,
-                            effectiveDarkMode = effectiveDarkMode,
-                        )
+                        AppContent(navController = navController)
                     }
                 }
                 }
@@ -294,98 +310,92 @@ fun LexiconApp() {
 @Composable
 private fun AppContent(
     navController: NavHostController,
-    effectiveDarkMode: Boolean,
 ) {
     val snackbarHostState = LocalSnackbarHostState.current
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDestination = navBackStackEntry?.destination?.route
+    val adaptiveInfo = currentWindowAdaptiveInfo()
+    val layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(adaptiveInfo)
 
-    // System Bars
-    SetSystemBarsColor(
-        statusBarColor = if (effectiveDarkMode) Color(0xFF1A1A2E) else AppColors.normalBackground,
-        navigationBarColor = if (effectiveDarkMode) Color(0xFF1A1A2E) else AppColors.normalSurface,
-        darkIcons = !effectiveDarkMode
-    )
+    NavigationSuiteScaffold(
+        layoutType = layoutType,
+        navigationSuiteItems = {
+            val profileSelected = currentDestination?.let { LexiconRoute.Profile.isEqualTo(it) } ?: false
+            val studySelected = currentDestination?.let { LexiconRoute.Study.isEqualTo(it) } ?: false
+            val settingsSelected = currentDestination?.let { LexiconRoute.Settings.isEqualTo(it) } ?: false
 
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBar(navController = navController)
-        },
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                snackbar = { snackbarData ->
-                    Snackbar(
-                        snackbarData = snackbarData,
-                        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                        containerColor = if (snackbarData.visuals.message.startsWith("✗"))
-                            MaterialTheme.colorScheme.errorContainer
-                        else
-                            MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = if (snackbarData.visuals.message.startsWith("✗"))
-                            MaterialTheme.colorScheme.onErrorContainer
-                        else
-                            MaterialTheme.colorScheme.onPrimaryContainer
+            item(
+                selected = profileSelected,
+                onClick = { navController.navigateToTab(TabDestination.Profile) },
+                icon = {
+                    AnimatedNavIcon(
+                        icon = Icons.Filled.Person,
+                        contentDescription = stringResource(Res.string.profile),
+                        selected = profileSelected
                     )
-                }
+                },
+                label = { Text(stringResource(Res.string.profile)) }
+            )
+            item(
+                selected = studySelected,
+                onClick = { navController.navigateToTab(TabDestination.Study) },
+                icon = {
+                    AnimatedNavIcon(
+                        icon = Icons.Filled.Book,
+                        contentDescription = stringResource(Res.string.study),
+                        selected = studySelected
+                    )
+                },
+                label = { Text(stringResource(Res.string.study)) }
+            )
+            item(
+                selected = settingsSelected,
+                onClick = { navController.navigateToTab(TabDestination.Settings) },
+                icon = {
+                    AnimatedNavIcon(
+                        icon = Icons.Filled.Settings,
+                        contentDescription = stringResource(Res.string.settings),
+                        selected = settingsSelected
+                    )
+                },
+                label = { Text(stringResource(Res.string.settings)) }
             )
         }
-    ) { innerPadding ->
-        NavigationGraph(
-            modifier = Modifier
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding),
-            navController = navController,
-        )
-    }
-}
-
-@Composable
-private fun BottomNavigationBar(navController: NavHostController) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination?.route ?: return
-
-    NavigationBar {
-        NavigationBarItem(
-            icon = {
-                AnimatedNavIcon(
-                    icon = Icons.Filled.Person,
-                    contentDescription = stringResource(Res.string.profile),
-                    selected = LexiconRoute.Profile.isEqualTo(currentDestination)
+    ) {
+        Scaffold(
+            contentWindowInsets = WindowInsets(0),
+            snackbarHost = {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = if (layoutType != NavigationSuiteType.NavigationBar) {
+                        Modifier.navigationBarsPadding()
+                    } else {
+                        Modifier
+                    },
+                    snackbar = { snackbarData ->
+                        Snackbar(
+                            snackbarData = snackbarData,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                            containerColor = if (snackbarData.visuals.message.startsWith("✗"))
+                                MaterialTheme.colorScheme.errorContainer
+                            else
+                                MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = if (snackbarData.visuals.message.startsWith("✗"))
+                                MaterialTheme.colorScheme.onErrorContainer
+                            else
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 )
-            },
-            label = { Text(stringResource(Res.string.profile)) },
-            selected = LexiconRoute.Profile.isEqualTo(currentDestination),
-            onClick = {
-                navController.navigateToTab(TabDestination.Profile)
             }
-        )
-        NavigationBarItem(
-            icon = {
-                AnimatedNavIcon(
-                    icon = Icons.Filled.Book,
-                    contentDescription = stringResource(Res.string.study),
-                    selected = LexiconRoute.Study.isEqualTo(currentDestination)
-                )
-            },
-            label = { Text(stringResource(Res.string.study)) },
-            selected = LexiconRoute.Study.isEqualTo(currentDestination),
-            onClick = {
-                navController.navigateToTab(TabDestination.Study)
-            }
-        )
-        NavigationBarItem(
-            icon = {
-                AnimatedNavIcon(
-                    icon = Icons.Filled.Settings,
-                    contentDescription = stringResource(Res.string.settings),
-                    selected = LexiconRoute.Settings.isEqualTo(currentDestination)
-                )
-            },
-            label = { Text(stringResource(Res.string.settings)) },
-            selected = LexiconRoute.Settings.isEqualTo(currentDestination),
-            onClick = {
-                navController.navigateToTab(TabDestination.Settings)
-            }
-        )
+        ) { innerPadding ->
+            NavigationGraph(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
+                navController = navController,
+            )
+        }
     }
 }
 
@@ -400,8 +410,14 @@ private fun NavigationGraph(
         modifier = modifier.fillMaxSize(),
         enterTransition = { fadeIn(animationSpec = tween(300)) },
         exitTransition = { fadeOut(animationSpec = tween(300)) },
-        popEnterTransition = { fadeIn(animationSpec = tween(300)) },
-        popExitTransition = { fadeOut(animationSpec = tween(300)) }
+        popEnterTransition = {
+            slideInHorizontally(animationSpec = tween(300), initialOffsetX = { -it }) +
+                fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutHorizontally(animationSpec = tween(300), targetOffsetX = { it }) +
+                fadeOut(animationSpec = tween(300))
+        }
     ) {
         composable<TabDestination.Profile> {
             ProfileScreen()

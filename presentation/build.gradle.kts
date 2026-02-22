@@ -76,6 +76,7 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.kotlinx.datetime)
             implementation(libs.emoji.compose.m3)
+            implementation(compose.material3AdaptiveNavigationSuite)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
         }
 

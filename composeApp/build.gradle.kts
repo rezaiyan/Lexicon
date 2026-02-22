@@ -13,6 +13,10 @@ plugins {
     id("lexicon.compose-app")
 }
 
+configurations.all {
+    exclude(group = "com.amazon.device", module = "amazon-appstore-sdk")
+}
+
 val localProperties = Properties().apply {
     val localPropertiesFile = rootProject.file("local.properties")
     if (localPropertiesFile.exists()) {

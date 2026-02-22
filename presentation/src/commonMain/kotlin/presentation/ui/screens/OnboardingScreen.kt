@@ -34,6 +34,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -73,8 +75,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import expects.SetSystemBarsColor
-import expects.isSystemInDarkTheme
 import kotlinx.coroutines.delay
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.flag_cn
@@ -148,19 +148,13 @@ fun OnboardingScreen(
 ) {
     val spacing = Theme.spacing
     val dimensions = Theme.dimensions
-    val isDarkMode = isSystemInDarkTheme()
 
-    SetSystemBarsColor(
-        statusBarColor = MaterialTheme.colorScheme.background,
-        navigationBarColor = MaterialTheme.colorScheme.background,
-        darkIcons = !isDarkMode
-    )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
+            .safeDrawingPadding()
     ) {
         // Segmented step progress — only shown for actual steps (not intro)
         if (state.currentStep > 0) {
@@ -577,7 +571,6 @@ internal fun OnboardingButtons(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .navigationBarsPadding()
             .padding(horizontal = spacing.medium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
