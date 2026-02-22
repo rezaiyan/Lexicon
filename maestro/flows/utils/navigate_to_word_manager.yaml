@@ -1,0 +1,22 @@
+# Utility flow: navigate from the main app to the Word Manager screen.
+#
+# Called by word manager test flows via:
+#   - runFlow: ../utils/navigate_to_word_manager.yaml
+#
+# Assumes:
+#   - The app is already running (launched by the calling flow).
+#   - The user is authenticated and the main app is visible (Study/Settings/Profile tabs).
+#   - The device is not in a dialog or overlay state.
+
+appId: com.alirezaiyan.vokab
+---
+# Navigate to the Settings tab via the bottom navigation bar.
+- tapOn:
+    text: "Settings"
+
+# Tap the Word Manager card on the Settings screen.
+- tapOn:
+    text: "Word Manager"
+
+# Verify Word Manager screen is open by checking the top bar title.
+- assertVisible: "Word Manager"

@@ -7,7 +7,6 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -52,12 +53,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,9 +65,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -140,7 +139,7 @@ fun ImportMethodSelectorContent(
                 horizontal = spacing.medium,
                 vertical = spacing.small
             ),
-            verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2)
+            verticalArrangement = Arrangement.spacedBy(spacing.extraSmall3)
         ) {
             Text(
                 text = "Add Words",
@@ -197,7 +196,7 @@ fun ImportMethodSelectorContent(
                     Box(
                         modifier = Modifier
                             .size(52.dp)
-                            .clip(RoundedCornerShape(spacing.extraSmall))
+                            .clip(RoundedCornerShape(14.dp))
                             .background(Color.White.copy(alpha = 0.2f)),
                         contentAlignment = Alignment.Center
                     ) {
@@ -209,17 +208,12 @@ fun ImportMethodSelectorContent(
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2)
-                        ) {
-                            Text(
-                                text = "AI Assistant",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
+                        Text(
+                            text = "AI Assistant",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                         Text(
                             text = "Get personalized vocabulary tailored to your level and interests",
                             style = MaterialTheme.typography.bodySmall,
@@ -279,7 +273,7 @@ fun ImportMethodSelectorContent(
                 Box(
                     modifier = Modifier
                         .size(52.dp)
-                        .clip(RoundedCornerShape(spacing.extraSmall))
+                        .clip(RoundedCornerShape(14.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
@@ -356,29 +350,7 @@ fun AiWordImportBottomSheet(
         val stepIndex = state.step.ordinal
         val isPreview = state.step == AiWordImportStep.PREVIEW
 
-        val progressTarget = if (isPreview) 1f else (stepIndex + 1).toFloat() / AiWizardTotalSteps
-        val animatedProgress by animateFloatAsState(
-            targetValue = progressTarget,
-            animationSpec = tween(durationMillis = AiWizardTransitionDuration),
-            label = "wizard_progress"
-        )
-        val progressColor by animateColorAsState(
-            targetValue = if (isPreview) MaterialTheme.colorScheme.secondary
-            else MaterialTheme.colorScheme.primary,
-            animationSpec = tween(durationMillis = AiWizardTransitionDuration),
-            label = "progress_color"
-        )
-
-        LinearProgressIndicator(
-            progress = { animatedProgress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(dimensions.progressBarHeight),
-            color = progressColor,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        )
-
-        // Nav bar
+        // Nav row: back | pill segments (or AI Suggestions label) | close
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -399,24 +371,35 @@ fun AiWordImportBottomSheet(
             }
 
             if (!isPreview) {
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                // Animated pill segments
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = spacing.extraSmall2),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall3)
                 ) {
-                    Text(
-                        text = "Step ${stepIndex + 1} of $AiWizardTotalSteps",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(
-                            horizontal = spacing.extraSmall,
-                            vertical = spacing.extraSmall3
+                    repeat(AiWizardTotalSteps) { index ->
+                        val filled = index <= stepIndex
+                        val segmentColor by animateColorAsState(
+                            targetValue = if (filled) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceVariant,
+                            animationSpec = tween(300),
+                            label = "segment_$index"
                         )
-                    )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(segmentColor)
+                        )
+                    }
                 }
             } else {
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall3)
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
@@ -424,6 +407,7 @@ fun AiWordImportBottomSheet(
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
+                    Spacer(modifier = Modifier.size(spacing.extraSmall3))
                     Text(
                         text = "AI Suggestions",
                         style = MaterialTheme.typography.labelMedium,
@@ -440,11 +424,10 @@ fun AiWordImportBottomSheet(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close",
-                    tint = if (state.isLoading) {
+                    tint = if (state.isLoading)
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                    } else {
+                    else
                         MaterialTheme.colorScheme.onSurface
-                    }
                 )
             }
         }
@@ -549,7 +532,8 @@ fun AiWordImportBottomSheet(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
-                    )
+                    ),
+                    shape = RoundedCornerShape(50)
                 ) {
                     Text("Discard")
                 }
@@ -582,14 +566,14 @@ private fun AiStepHeader(
     )
     Text(
         text = highlight,
-        style = MaterialTheme.typography.headlineMedium,
+        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
         color = MaterialTheme.colorScheme.primary
     )
+    Spacer(modifier = Modifier.height(spacing.extraSmall3))
     Text(
         text = subtitle,
         style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = spacing.extraSmall2)
+        color = MaterialTheme.colorScheme.onSurfaceVariant
     )
     Spacer(modifier = Modifier.height(spacing.medium))
 }
@@ -650,7 +634,6 @@ private fun AiLanguageStep(
             }
         }
 
-        // Bottom bar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -663,11 +646,12 @@ private fun AiLanguageStep(
                     .fillMaxWidth()
                     .widthIn(max = 500.dp),
                 enabled = selectedLanguage != null,
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(dimensions.cardCornerRadius)
+                shape = RoundedCornerShape(50)
             ) {
                 Text("Continue", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.size(spacing.extraSmall2))
@@ -679,7 +663,9 @@ private fun AiLanguageStep(
             }
             TextButton(
                 onClick = onCancel,
-                modifier = Modifier.fillMaxWidth().widthIn(max = 500.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 500.dp)
             ) {
                 Text(
                     "Cancel",
@@ -707,9 +693,9 @@ private fun AiLevelStep(
 ) {
     val scrollState = rememberScrollState()
     val levels = listOf(
-        "beginner" to "I'm just starting out. I want to learn basic phrases and common everyday words.",
-        "intermediate" to "I can hold basic conversations and want to expand my vocabulary.",
-        "advanced" to "I'm fluent and looking to master nuances, idioms, and specialized topics."
+        "beginner" to "Just starting out. Learn basic phrases and everyday words.",
+        "intermediate" to "Hold basic conversations. Expand vocabulary and grammar patterns.",
+        "advanced" to "Fluent speaker. Master nuances, idioms, and specialized topics."
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -732,26 +718,28 @@ private fun AiLevelStep(
                 levels.forEach { (level, description) ->
                     val selected = selectedLevel == level
                     val icon = levelIcons[level]
+                    val levelColor = when (level) {
+                        "beginner" -> MaterialTheme.colorScheme.secondary
+                        "intermediate" -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.primary
+                    }
 
                     val bgColor by animateColorAsState(
-                        if (selected) MaterialTheme.colorScheme.primaryContainer
+                        targetValue = if (selected) levelColor.copy(alpha = 0.10f)
                         else MaterialTheme.colorScheme.surface,
-                        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                        label = "level_bg"
+                        animationSpec = tween(200),
+                        label = "level_bg_$level"
                     )
 
                     Card(
                         onClick = { onLevelSelected(level) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = bgColor),
-                        shape = RoundedCornerShape(dimensions.cardCornerRadius),
+                        shape = RoundedCornerShape(16.dp),
                         border = BorderStroke(
                             width = if (selected) 2.dp else 1.dp,
-                            color = if (selected) MaterialTheme.colorScheme.primary
+                            color = if (selected) levelColor
                             else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                        ),
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = if (selected) 2.dp else 0.dp
                         )
                     ) {
                         Row(
@@ -760,53 +748,47 @@ private fun AiLevelStep(
                                 .padding(spacing.small),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            icon?.let {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (selected) MaterialTheme.colorScheme.primary.copy(
-                                                alpha = 0.15f
-                                            )
-                                            else MaterialTheme.colorScheme.surfaceVariant
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .background(levelColor.copy(alpha = if (selected) 0.18f else 0.10f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                icon?.let {
                                     Icon(
                                         imageVector = it,
                                         contentDescription = null,
-                                        modifier = Modifier.size(20.dp),
-                                        tint = if (selected) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.onSurfaceVariant
+                                        modifier = Modifier.size(24.dp),
+                                        tint = levelColor
                                     )
                                 }
-                                Spacer(modifier = Modifier.size(spacing.small))
                             }
+
+                            Spacer(modifier = Modifier.size(spacing.small))
+
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = level.replaceFirstChar { it.uppercase() },
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSurface
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = if (selected) levelColor else MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = description,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                        alpha = 0.75f
-                                    )
-                                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 2.dp)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = spacing.extraSmall4)
                                 )
                             }
+
+                            Spacer(modifier = Modifier.size(spacing.extraSmall2))
+
                             Box(
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(22.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        if (selected) MaterialTheme.colorScheme.primary
+                                        if (selected) levelColor
                                         else MaterialTheme.colorScheme.surfaceVariant
                                     ),
                                 contentAlignment = Alignment.Center
@@ -815,8 +797,8 @@ private fun AiLevelStep(
                                     Icon(
                                         imageVector = Icons.Default.Check,
                                         contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = MaterialTheme.colorScheme.onPrimary
+                                        modifier = Modifier.size(12.dp),
+                                        tint = Color.White
                                     )
                                 }
                             }
@@ -835,7 +817,6 @@ private fun AiLevelStep(
             }
         }
 
-        // Bottom bar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -848,11 +829,12 @@ private fun AiLevelStep(
                     .fillMaxWidth()
                     .widthIn(max = 500.dp),
                 enabled = selectedLevel != null,
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(dimensions.cardCornerRadius)
+                shape = RoundedCornerShape(50)
             ) {
                 Text("Continue", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.size(spacing.extraSmall2))
@@ -909,23 +891,23 @@ private fun AiTopicsStep(
                         val emoji = topicEmojis[topic] ?: "📖"
 
                         val bgColor by animateColorAsState(
-                            if (selected) MaterialTheme.colorScheme.primaryContainer
+                            targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
                             else MaterialTheme.colorScheme.surface,
                             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                            label = "chip_bg"
+                            label = "chip_bg_$topic"
                         )
                         val borderColor by animateColorAsState(
-                            if (selected) MaterialTheme.colorScheme.primary
+                            targetValue = if (selected) MaterialTheme.colorScheme.primary
                             else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                             animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                            label = "chip_border"
+                            label = "chip_border_$topic"
                         )
 
                         Card(
                             onClick = { onToggleTopic(topic) },
                             enabled = !state.isLoading,
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(dimensions.cardCornerRadius),
+                            shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(containerColor = bgColor),
                             border = BorderStroke(
                                 width = if (selected) 2.dp else 1.dp,
@@ -993,7 +975,6 @@ private fun AiTopicsStep(
                 }
             }
 
-            // Bottom CTA
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1008,11 +989,12 @@ private fun AiTopicsStep(
                         modifier = Modifier
                             .fillMaxWidth()
                             .widthIn(max = 500.dp),
+                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        shape = RoundedCornerShape(dimensions.cardCornerRadius)
+                        shape = RoundedCornerShape(50)
                     ) {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
@@ -1031,7 +1013,9 @@ private fun AiTopicsStep(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) { awaitPointerEventScope { while (true) { awaitPointerEvent() } } }
+                    .pointerInput(Unit) {
+                        awaitPointerEventScope { while (true) { awaitPointerEvent() } }
+                    }
             )
         }
     }
@@ -1079,7 +1063,7 @@ private fun AiWordPreviewStep(
                     )
                     Text(
                         text = "vocabulary",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -1137,10 +1121,10 @@ private fun AiWordPreviewStep(
                 val isSelected = state.selectedWordIndices.contains(index)
 
                 val bgColor by animateColorAsState(
-                    if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                    targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer
                     else MaterialTheme.colorScheme.surface,
                     animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                    label = "word_card_bg"
+                    label = "word_card_bg_$index"
                 )
 
                 Card(
@@ -1148,7 +1132,7 @@ private fun AiWordPreviewStep(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = spacing.extraSmall2),
-                    shape = RoundedCornerShape(dimensions.cardCornerRadius),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = bgColor),
                     border = BorderStroke(
                         width = if (isSelected) 2.dp else 1.dp,
@@ -1168,7 +1152,7 @@ private fun AiWordPreviewStep(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(28.dp)
+                                .size(26.dp)
                                 .clip(CircleShape)
                                 .background(
                                     if (isSelected) MaterialTheme.colorScheme.primary
@@ -1180,8 +1164,8 @@ private fun AiWordPreviewStep(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimary
+                                    modifier = Modifier.size(14.dp),
+                                    tint = Color.White
                                 )
                             }
                         }
@@ -1196,18 +1180,14 @@ private fun AiWordPreviewStep(
                             Text(
                                 text = word.translation,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                    alpha = 0.8f
-                                )
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                 else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             if (word.description.isNotBlank()) {
                                 Text(
                                     text = word.description,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                        alpha = 0.6f
-                                    )
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                     modifier = Modifier.padding(top = 2.dp)
                                 )
@@ -1265,11 +1245,12 @@ private fun AiWordPreviewStep(
                             .fillMaxWidth()
                             .widthIn(max = 500.dp),
                         enabled = selectedCount > 0,
+                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
                         ),
-                        shape = RoundedCornerShape(dimensions.cardCornerRadius)
+                        shape = RoundedCornerShape(50)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,

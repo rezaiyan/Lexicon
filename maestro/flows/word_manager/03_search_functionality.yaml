@@ -1,0 +1,38 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - search
+---
+# Test: Search bar filters words and can be cleared.
+#
+# Requires: At least one word exists in the library so that WordListContent is rendered.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Verify the search field is visible (confirms word list state, not empty state).
+- assertVisible: "Search words..."
+
+# Tap the search field to focus it.
+- tapOn: "Search words..."
+
+# Type a query that is unlikely to match any word to trigger the "No results found" state.
+- inputText: "zzz_no_match_query_xyz"
+
+# The "No results found" message must appear.
+- assertVisible: "No results found"
+
+# The word list items must be hidden (filtered out).
+- assertNotVisible: "Search words..."
+
+# Clear the search using the Clear icon (content description: "Cancel").
+# Plain string matches content description in Maestro.
+- tapOn: "Cancel"
+
+# After clearing, the search field placeholder returns.
+- assertVisible: "Search words..."
+
+# "No results found" must disappear after clearing.
+- assertNotVisible: "No results found"

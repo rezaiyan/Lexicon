@@ -1,0 +1,33 @@
+# Maestro Workspace Configuration — CLI 2.2.0+
+# Docs: https://docs.maestro.dev
+#
+# Run all word manager flows:
+#   maestro test maestro/
+#
+# Run a single flow:
+#   maestro test maestro/flows/word_manager/01_screen_loads.yaml
+#
+# Prerequisites:
+#   1. Install Maestro CLI:
+#      curl -fsSL "https://get.maestro.mobile.dev" | bash
+#   2. Start an Android emulator or connect a device with USB debugging enabled.
+#   3. Install the debug APK:
+#      ./gradlew composeApp:assembleDebug
+#      adb install composeApp/build/outputs/apk/debug/*.apk
+#   4. Pre-authenticate the app on the device (sign in with Google/Apple once manually),
+#      since the app requires authentication and OAuth cannot be automated here.
+#   5. Ensure the device is not locked / screen is on.
+
+flows:
+  - "flows/word_manager/*.yaml"
+
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - flows/word_manager/01_screen_loads.yaml
+    - flows/word_manager/02_empty_state.yaml
+    - flows/word_manager/03_search_functionality.yaml
+    - flows/word_manager/04_select_deselect.yaml
+    - flows/word_manager/05_edit_word_dialog.yaml
+    - flows/word_manager/06_delete_flow.yaml
+    - flows/word_manager/07_back_navigation.yaml

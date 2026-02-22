@@ -1,0 +1,38 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - smoke
+---
+# Test: Word Manager screen loads with core UI elements visible.
+#
+# Verifies that navigating to the Word Manager screen from the Settings tab
+# successfully renders the top bar — regardless of whether the word library
+# is empty or populated. The search bar and selection bar are only present
+# when words exist (see 02_empty_state.yaml and 03_search_functionality.yaml
+# for state-specific coverage).
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# The top bar title must be visible.
+- assertVisible: "Word Manager"
+
+# The Navigate Back icon must be present (content description "Navigate back").
+- assertVisible: "Navigate back"
+
+# The Delete icon button must be present in the top bar (content description "Delete").
+# Maestro plain strings match both visible text and accessibility content descriptions.
+- assertVisible: "Delete"
+
+# Either the empty state or the word list must be shown — assert a landmark
+# from each via optional checks. At least one must be true.
+# Empty state:
+- assertVisible:
+    text: "Your word library is empty"
+    optional: true
+# Populated state:
+- assertVisible:
+    text: "Search words..."
+    optional: true

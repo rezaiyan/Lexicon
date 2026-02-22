@@ -1,0 +1,50 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - delete
+---
+# Test: The delete confirmation dialog appears when words are selected and the
+# Delete icon is tapped. Cancelling the dialog discards the action.
+#
+# Requires: At least one word exists in the library.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Verify we are in the word list state.
+- assertVisible: "Search words..."
+
+# Tapping Delete with no words selected must show a snackbar, NOT the dialog.
+- tapOn: "Delete"
+
+# The delete confirmation dialog must NOT appear (nothing was selected).
+- assertNotVisible: "Delete Words?"
+
+# Select all words.
+- tapOn: "Select All"
+
+# At least one word should now be selected (counter contains "selected").
+- assertVisible: "selected"
+
+# Tap the Delete icon in the top bar.
+- tapOn: "Delete"
+
+# The delete confirmation dialog must appear.
+- assertVisible: "Delete Words?"
+
+# The dialog must contain the destructive Delete button.
+- assertVisible: "Delete"
+
+# The Cancel button must be present to dismiss without deleting.
+- assertVisible: "Cancel"
+
+# Dismiss — do NOT actually delete words.
+- tapOn: "Cancel"
+
+# The dialog must be dismissed.
+- assertNotVisible: "Delete Words?"
+
+# The word list must still be intact (selection bar still visible).
+- assertVisible: "Search words..."

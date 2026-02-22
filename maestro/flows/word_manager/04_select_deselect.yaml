@@ -1,0 +1,40 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - selection
+---
+# Test: Multi-select — Select All and Deselect All work correctly.
+#
+# Requires: At least one word exists in the library so that WordListContent is rendered.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Verify we are in the word list (not empty state).
+- assertVisible: "Search words..."
+
+# Initially no words are selected; the count shows "X items" (no selection indicator).
+- assertNotVisible: "selected"
+
+# The "Select All" button must be present in the selection bar.
+- assertVisible: "Select All"
+
+# Tap "Select All" to select every word.
+- tapOn: "Select All"
+
+# After selecting all, the button label switches to "Deselect All".
+- assertVisible: "Deselect All"
+
+# The selection counter must show "X / X selected" format. Plain string = substring match.
+- assertVisible: "selected"
+
+# Tap "Deselect All" to clear all selections.
+- tapOn: "Deselect All"
+
+# After deselecting, "Select All" must be visible again.
+- assertVisible: "Select All"
+
+# No word should remain selected.
+- assertNotVisible: "selected"

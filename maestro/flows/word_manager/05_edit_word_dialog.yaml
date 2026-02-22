@@ -1,0 +1,49 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - edit
+---
+# Test: Tapping the Edit button opens the Edit Word dialog with correct fields,
+# and the Cancel button dismisses the dialog without changes.
+#
+# Requires: At least one word exists in the library.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Verify we are in the word list state.
+- assertVisible: "Search words..."
+
+# Tap the Edit icon on the first visible word card.
+# Each card exposes an IconButton with content description "Edit".
+# Plain string in Maestro matches content descriptions; index selects the first one.
+- tapOn:
+    text: "Edit"
+    index: 0
+
+# The Edit Word dialog must appear with its title.
+- assertVisible: "Edit Word"
+
+# The Original Word input field must be visible.
+- assertVisible: "Original Word"
+
+# The Translation input field must be visible.
+- assertVisible: "Translation"
+
+# The Description input field must be visible.
+- assertVisible: "Description (Optional)"
+
+# The Save action button must be present.
+- assertVisible: "Save"
+
+# The Cancel action button must be present.
+- assertVisible: "Cancel"
+
+# Dismiss the dialog without saving.
+- tapOn: "Cancel"
+
+# The dialog must be gone; the word list is visible again.
+- assertNotVisible: "Edit Word"
+- assertVisible: "Search words..."

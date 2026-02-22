@@ -1,0 +1,25 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - navigation
+---
+# Test: The back navigation icon returns the user to the Settings screen.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Verify we are on the Word Manager screen.
+- assertVisible: "Word Manager"
+
+# Tap the navigation back icon (content description provided by LexiconColumn).
+- tapOn: "Navigate back"
+
+# After navigating back, the Settings screen must be visible.
+# The "Word Manager" card title is still visible here (in the settings list),
+# but the Word Manager screen top bar title is gone.
+- assertVisible: "Manage your vocabulary"
+
+# The Word Manager screen-specific search bar must no longer be present.
+- assertNotVisible: "Search words..."

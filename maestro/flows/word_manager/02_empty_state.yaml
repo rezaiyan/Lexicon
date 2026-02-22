@@ -1,0 +1,28 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - empty-state
+---
+# Test: Word Manager empty state is rendered correctly when the library has no words.
+#
+# NOTE: This flow is only meaningful when the user has zero words in their library.
+# If words exist, the empty state will not be shown and the assertions below will fail.
+# Use this flow on a freshly created test account with no imported words.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# The empty library illustration headline must be visible.
+- assertVisible: "Your word library is empty"
+
+# The call-to-action subtitle must be visible.
+- assertVisible: "Start by importing some words to build your vocabulary"
+
+# The search bar should NOT be visible in the empty state
+# (the Crossfade renders EmptyLibraryView, not WordListContent).
+- assertNotVisible: "Search words..."
+
+# The selection bar count must NOT be visible in the empty state.
+- assertNotVisible: "0 items"

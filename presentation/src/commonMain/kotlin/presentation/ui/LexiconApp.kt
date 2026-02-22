@@ -9,11 +9,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Person
@@ -330,8 +328,8 @@ private fun AppContent(
     ) { innerPadding ->
         NavigationGraph(
             modifier = Modifier
-                .consumeWindowInsets(WindowInsets.statusBars)
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
             navController = navController,
         )
     }
