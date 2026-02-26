@@ -7,7 +7,9 @@ import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.common.onFailure
 import domain.common.onSuccess
 import domain.onboarding.usecase.SubmitPreferencesUseCase
+import domain.settings.usecase.SetLanguageUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
+import utils.Language
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,7 +19,8 @@ import kotlinx.coroutines.launch
 import presentation.model.OnboardingUiState
 
 class OnboardingViewModel(
-    private val submitPreferencesUseCase: SubmitPreferencesUseCase
+    private val submitPreferencesUseCase: SubmitPreferencesUseCase,
+    private val setLanguageUseCase: SetLanguageUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingUiState())
@@ -75,6 +78,10 @@ class OnboardingViewModel(
             )
             submitPreferencesUseCase(preferences)
                 .onSuccess { response ->
+                    // Persist target language so TTS and other features can use it
+                    val targetLanguage = Language.fromCode(Language.toCode(targetLang))
+                    setLanguageUseCase(targetLanguage)
+
                     _state.update { it.copy(isLoading = false) }
                     _events.emit(Event.NavigateToPreview(response))
                 }

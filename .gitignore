@@ -29,3 +29,7 @@ fastlane/report.xml
 *secret*
 *credential*
 *.bak
+
+# TTS native binaries (downloaded via scripts/download-tts-libs.sh)
+*.a
+*.aar

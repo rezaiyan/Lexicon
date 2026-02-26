@@ -7,11 +7,15 @@ import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.repository.IWordRepository
 import domain.word.repository.DeleteWordsProgress
+import domain.settings.model.ThemeMode
+import domain.settings.repository.ISettingsRepository
+import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.service.ImportValidationService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -29,7 +33,9 @@ class ImportWordsUseCaseTest {
     
     private val fakeRepository = FakeWordRepositoryForImport()
     private val validationService = ImportValidationService()
-    private val useCase = ImportWordsUseCase(fakeRepository, validationService)
+    private val fakeSettingsRepository = FakeSettingsRepositoryForImport()
+    private val getCurrentLanguageUseCase = GetCurrentLanguageUseCase(fakeSettingsRepository)
+    private val useCase = ImportWordsUseCase(fakeRepository, validationService, getCurrentLanguageUseCase)
     
     private suspend fun executeImport(input: String): Try<Int> =
         useCase(input).first()
@@ -302,15 +308,48 @@ class ImportWordsUseCaseTest {
     fun `newlines and extra whitespace should be handled`() = runTest {
         val input = """
             hello  ,  hola  ;
-            
-            goodbye,  adiós  
+
+            goodbye,  adiós
         """.trimIndent()
-        
+
         val result = executeImportSuccess(input)
         assertEquals(2, result)
-        
+
         assertEquals("hello", fakeRepository.insertedWords[0].originalWord)
         assertEquals("hola", fakeRepository.insertedWords[0].translation)
+    }
+
+    @Test
+    fun `explicit language params should be used when provided`() = runTest {
+        val input = "bonjour,hola"
+        val result = useCase.execute(
+            text = input,
+            sourceLanguage = Language.FRENCH,
+            targetLanguage = Language.SPANISH
+        )
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, fakeRepository.insertedWords.size)
+
+        val word = fakeRepository.insertedWords[0]
+        assertEquals("bonjour", word.originalWord)
+        assertEquals("hola", word.translation)
+        assertEquals(Language.FRENCH, word.sourceLanguage)
+        assertEquals(Language.SPANISH, word.targetLanguage)
+    }
+
+    @Test
+    fun `default languages should be used when params are null`() = runTest {
+        val input = "hello,hola"
+        val result = useCase.execute(text = input)
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, fakeRepository.insertedWords.size)
+
+        val word = fakeRepository.insertedWords[0]
+        assertEquals(Language.ENGLISH, word.sourceLanguage)
+        // targetLanguage falls back to GetCurrentLanguageUseCase which returns ENGLISH
+        assertEquals(Language.ENGLISH, word.targetLanguage)
     }
 }
 
@@ -367,7 +406,31 @@ internal class FakeWordRepositoryForImport : IWordRepository {
     ))
     
     override suspend fun getTotalCount(): Int = insertedWords.size
-    
+
     override suspend fun getDueCount(): Int = 0
+}
+
+internal class FakeSettingsRepositoryForImport : ISettingsRepository {
+    override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
+    override suspend fun setLanguage(language: Language) {}
+    override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
+    override suspend fun setThemeMode(mode: ThemeMode) {}
+    override suspend fun getLastInsightDate(): String? = null
+    override suspend fun getCachedInsight(): String? = null
+    override suspend fun updateDailyInsight(date: String, insight: String) {}
+    override suspend fun getLastInsightDismissedTime(): Long = 0L
+    override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
+    override suspend fun clearInsightData() {}
+    override suspend fun clearSettings() {}
+    override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
+    override suspend fun setNotificationsEnabled(enabled: Boolean) {}
+    override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
+    override suspend fun setReviewRemindersEnabled(enabled: Boolean) {}
+    override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
+    override suspend fun setMotivationalMessagesEnabled(enabled: Boolean) {}
+    override suspend fun getDailyReminderTime(): String = "18:00"
+    override suspend fun setDailyReminderTime(time: String) {}
+    override suspend fun getMinimumDueCards(): Int = 5
+    override suspend fun setMinimumDueCards(count: Int) {}
 }
 

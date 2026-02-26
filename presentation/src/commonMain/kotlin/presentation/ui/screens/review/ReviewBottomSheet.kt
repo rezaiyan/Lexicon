@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import domain.tts.model.TtsState
 import domain.word.model.Word
 import expects.BackHandler
 import presentation.model.ReviewScreenState
@@ -28,7 +29,9 @@ fun ReviewBottomSheet(
     onLoadWords: () -> Unit,
     onUpdateWord: (Word) -> Unit,
     onDeleteWord: (Int, () -> Unit) -> Unit,
-    initialWord: Word? = null
+    initialWord: Word? = null,
+    ttsState: TtsState = TtsState.Idle,
+    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> }
 ) {
     val wordListState = state.wordListState
     val reviewType = state.reviewType
@@ -92,7 +95,6 @@ fun ReviewBottomSheet(
                 if (words.isEmpty()) {
                     EmptyState()
                 } else {
-                    // Validate index before rendering (only if list is not empty)
                     val safeIndex = currentIndex.coerceIn(0, words.size - 1)
 
                     if (safeIndex < words.size) {
@@ -115,8 +117,6 @@ fun ReviewBottomSheet(
                                     currentIndex++
                                     isFlipped = false
                                 }
-                                // In browse mode, don't auto-close at end
-                                // User can navigate freely and close manually
                             },
                             onReview = { rating ->
                                 handleReview(
@@ -133,10 +133,11 @@ fun ReviewBottomSheet(
                             },
                             onEdit = {
                                 editingWord = words[safeIndex]
-                            }
+                            },
+                            ttsState = ttsState,
+                            onSpeakClick = onSpeakClick,
                         )
 
-                        // Edit Dialog
                         editingWord?.let { word ->
                             EditWordDialog(
                                 word = word,
@@ -152,7 +153,6 @@ fun ReviewBottomSheet(
                             )
                         }
 
-                        // Delete Confirmation Dialog
                         wordToDelete?.let { word ->
                             DeleteWordConfirmationDialog(
                                 word = word,
@@ -164,16 +164,12 @@ fun ReviewBottomSheet(
                                     onDeleteWord(word.id) {
                                         wordToDelete = null
 
-                                        // Auto-advance logic
                                         if (wasOnlyWord) {
                                             onReviewComplete()
                                         } else if (wasLastWord) {
-                                            // If it was the last word, go back one
                                             currentIndex = (words.size - 2).coerceAtLeast(0)
                                             isFlipped = false
                                         } else {
-                                            // If it wasn't the last word, advance
-                                            // Note: currentIndex will be adjusted by LaunchedEffect when word list updates
                                             isFlipped = false
                                         }
                                     }

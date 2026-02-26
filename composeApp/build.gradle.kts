@@ -96,6 +96,23 @@ kotlin {
 
             linkerOpts.add("-lsqlite3")
 
+            // Sherpa ONNX TTS + onnxruntime static libraries for iOS
+            val platformsDir = project(":platforms").projectDir
+            val archDir = when (iosTarget.name) {
+                "iosArm64" -> "ios-arm64"
+                else -> "ios-arm64_x86_64-simulator"
+            }
+            val sherpaRoot = platformsDir.resolve("libs/build-ios/sherpa-onnx.xcframework/$archDir")
+            val onnxruntimeRoot = platformsDir.resolve("libs/build-ios/ios-onnxruntime/onnxruntime.xcframework/$archDir")
+            linkerOpts(
+                "-L${sherpaRoot.absolutePath}", "-lsherpa-onnx",
+                "-L${onnxruntimeRoot.absolutePath}", "-lonnxruntime",
+                "-framework", "Accelerate",
+                "-framework", "CoreML",
+                "-lbz2",
+                "-lc++",
+            )
+
             export(libs.lifecycle.viewmodel)
             export(libs.lifecycle.runtime.compose)
             export(libs.lifecycle.viewmodel.compose)

@@ -22,10 +22,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +52,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import domain.tts.model.TtsState
 import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
@@ -65,7 +71,9 @@ fun FlashCard(
     word: Word,
     isFlipped: Boolean,
     onFlip: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    ttsState: TtsState = TtsState.Idle,
+    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> }
 ) {
     val rotation by animateFloatAsState(
         targetValue = if (isFlipped) 180f else 0f,
@@ -77,13 +85,13 @@ fun FlashCard(
     // Back face = primaryContainer to signal "answer revealed".
     val cardColor by animateColorAsState(
         targetValue = if (rotation > 90f) MaterialTheme.colorScheme.primaryContainer
-                      else MaterialTheme.colorScheme.surfaceContainerHigh,
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "cardColor"
     )
     val mainTextColor by animateColorAsState(
         targetValue = if (rotation > 90f) MaterialTheme.colorScheme.onPrimaryContainer
-                      else MaterialTheme.colorScheme.onSurface,
+        else MaterialTheme.colorScheme.onSurface,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "mainTextColor"
     )
@@ -144,6 +152,19 @@ fun FlashCard(
                         .graphicsLayer { rotationY = if (rotation > 90f) 180f else 0f }
                 )
 
+                // Speaker button — bottom-start
+                if (!isFlipped) {
+                    SpeakerButton(
+                        ttsState = ttsState,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(sizes.badgePadding),
+                        onClick = {
+                            onSpeakClick(word.originalWord, word.targetLanguage.code)
+                        }
+                    )
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -157,7 +178,8 @@ fun FlashCard(
                             .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-                        val textToDisplay = if (rotation <= 90f) word.originalWord else word.translation
+                        val textToDisplay =
+                            if (rotation <= 90f) word.originalWord else word.translation
 
                         val dynamicMaxSize = sizes.titleSp * 1.5f
                         val minFontSizeForTwoLines = 11.sp
@@ -232,11 +254,20 @@ fun MasteryLevelBadge(level: Int, modifier: Modifier = Modifier) {
         0 -> Triple(stringResource(Res.string.new), MaterialTheme.colorScheme.secondary, "📝")
         1 -> Triple(stringResource(Res.string.learning), MaterialTheme.colorScheme.tertiary, "📚")
         2 -> Triple(stringResource(Res.string.familiar), MaterialTheme.colorScheme.primary, "💡")
-        3 -> Triple(stringResource(Res.string.consolidating), MaterialTheme.colorScheme.primary, "✨")
+        3 -> Triple(
+            stringResource(Res.string.consolidating),
+            MaterialTheme.colorScheme.primary,
+            "✨"
+        )
+
         4 -> Triple(stringResource(Res.string.young), MaterialTheme.colorScheme.primary, "🌱")
         5 -> Triple(stringResource(Res.string.mature), MaterialTheme.colorScheme.tertiary, "🌟")
         6 -> Triple(stringResource(Res.string.mastered), MaterialTheme.colorScheme.secondary, "👑")
-        else -> Triple(stringResource(Res.string.unknown), MaterialTheme.colorScheme.surfaceVariant, "❓")
+        else -> Triple(
+            stringResource(Res.string.unknown),
+            MaterialTheme.colorScheme.surfaceVariant,
+            "❓"
+        )
     }
 
     Row(
@@ -258,6 +289,59 @@ fun MasteryLevelBadge(level: Int, modifier: Modifier = Modifier) {
             fontWeight = FontWeight.SemiBold,
             color = masteryColor
         )
+    }
+}
+
+// ── Speaker button ────────────────────────────────────────────────────────────
+
+@Composable
+private fun SpeakerButton(
+    ttsState: TtsState,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val isActive =
+        ttsState is TtsState.Speaking || ttsState is TtsState.Downloading || ttsState is TtsState.Loading
+
+    Box(
+        modifier = modifier
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(
+                if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        when (ttsState) {
+            is TtsState.Downloading -> {
+                CircularProgressIndicator(
+                    progress = { ttsState.progress },
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            is TtsState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            else -> {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                    contentDescription = "Speak",
+                    modifier = Modifier.size(20.dp),
+                    tint = if (ttsState is TtsState.Speaking) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 

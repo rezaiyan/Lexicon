@@ -52,6 +52,7 @@ fun StudyScreen() {
 
     val uiState by viewModel.progressScreenState.collectAsStateWithLifecycle()
     val reviewState by viewModel.reviewScreenState.collectAsStateWithLifecycle()
+    val ttsState by viewModel.ttsState.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
     val featureAccess by getFeatureAccessUseCase().collectAsStateWithLifecycle(null)
@@ -205,7 +206,9 @@ fun StudyScreen() {
                                         onDeleteWord = { wordId, onComplete ->
                                             viewModel.deleteWord(wordId)
                                             onComplete()
-                                        }
+                                        },
+                                        ttsState = ttsState,
+                                        onSpeakClick = viewModel::speakWord
                                     )
                                 }
                             }
@@ -239,7 +242,9 @@ fun StudyScreen() {
                                     onDeleteWord = { wordId, onComplete ->
                                         viewModel.deleteWord(wordId)
                                         onComplete()
-                                    }
+                                    },
+                                    ttsState = ttsState,
+                                    onSpeakClick = viewModel::speakWord
                                 )
                             }
                             viewModel.startStageReview(stage)

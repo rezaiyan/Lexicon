@@ -13,6 +13,7 @@ fun appModule(
         authModule(backendUrl),
         wordModule(),
         notificationModule(backendUrl, platform),
+        ttsModule(),
         settingsModule(),
         onboardingModule(),
         presentationModule(),

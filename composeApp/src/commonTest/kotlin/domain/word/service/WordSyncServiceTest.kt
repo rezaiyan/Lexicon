@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -76,8 +77,8 @@ class WordSyncServiceTest {
         originalWord = original,
         translation = translation,
         description = description,
-        sourceLanguage = "en",
-        targetLanguage = "es",
+        sourceLanguage = Language.ENGLISH,
+        targetLanguage = Language.SPANISH,
         level = level,
         easeFactor = easeFactor,
         interval = interval,

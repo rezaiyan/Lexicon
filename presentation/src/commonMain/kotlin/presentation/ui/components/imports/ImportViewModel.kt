@@ -16,6 +16,7 @@ import domain.ai.usecase.ImportImageResult
 import domain.auth.manager.IUserManager
 import domain.common.fold
 import domain.auth.model.AuthUser
+import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import presentation.model.ImageImportState
+import utils.Language
 
 class ImportViewModel(
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
@@ -35,12 +37,20 @@ class ImportViewModel(
     private val importViaFileUseCase: ImportViaFileUseCase,
     private val importFromImageUseCase: ImportFromImageUseCase,
     private val userManager: IUserManager,
+    private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
 ) : ViewModel() {
 
     private var _state by mutableStateOf(ImportUiState())
 
     private val _events = Channel<ImportEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            val targetLanguage = getCurrentLanguageUseCase()
+            _state = _state.copy(targetLanguage = targetLanguage)
+        }
+    }
 
     @Composable
     private fun featureAccessState(user: AuthUser?): State<List<ImportTabV2>> {
@@ -131,19 +141,10 @@ class ImportViewModel(
     fun importText() {
         val text = _state.textInputState.text
         if (text.isNotBlank()) {
-            viewModelScope.launch {
-                withContext(Dispatchers.Default) {
-                    importWordsUseCase.execute(text).fold(
-                        onSuccess = { count ->
-                            updateTextEntry("")
-                            _events.send(ImportEvent.TextImportSuccessful(count))
-                        },
-                        onFailure = { error ->
-                            _events.send(ImportEvent.Error(error.message ?: "Import failed"))
-                        }
-                    )
-                }
-            }
+            _state = _state.copy(
+                showLanguageConfirmation = true,
+                pendingImportAction = PendingImportAction.Text(text)
+            )
         }
     }
 
@@ -193,31 +194,87 @@ class ImportViewModel(
     }
 
     fun importFile(fileContent: String, fileName: String? = null) {
-        viewModelScope.launch {
-            _state = _state.copy(
-                fileImportState = ImportFileState.Loading
-            )
+        _state = _state.copy(
+            showLanguageConfirmation = true,
+            pendingImportAction = PendingImportAction.File(fileContent, fileName)
+        )
+    }
 
-            delay(1500)
+    fun selectSourceLanguage(language: Language) {
+        _state = _state.copy(sourceLanguage = language)
+    }
 
-            withContext(Dispatchers.Default) {
-                importViaFileUseCase(fileContent, fileName).fold(
-                    onSuccess = { count ->
-                        _state = _state.copy(
-                            fileImportState = ImportFileState.Success(count)
+    fun selectTargetLanguage(language: Language) {
+        _state = _state.copy(targetLanguage = language)
+    }
+
+    fun confirmImport() {
+        val pendingAction = _state.pendingImportAction ?: return
+        val sourceLanguage = _state.sourceLanguage
+        val targetLanguage = _state.targetLanguage
+
+        _state = _state.copy(
+            showLanguageConfirmation = false,
+            pendingImportAction = null
+        )
+
+        when (pendingAction) {
+            is PendingImportAction.Text -> {
+                viewModelScope.launch {
+                    withContext(Dispatchers.Default) {
+                        importWordsUseCase.execute(
+                            pendingAction.text,
+                            sourceLanguage,
+                            targetLanguage
+                        ).fold(
+                            onSuccess = { count ->
+                                updateTextEntry("")
+                                _events.send(ImportEvent.TextImportSuccessful(count))
+                            },
+                            onFailure = { error ->
+                                _events.send(ImportEvent.Error(error.message ?: "Import failed"))
+                            }
                         )
-                        _events.send(ImportEvent.FileImportSuccessful(count))
-                    },
-                    onFailure = { error ->
-                        val message = error.message ?: "Import failed"
-                        _state = _state.copy(
-                            fileImportState = ImportFileState.Error(message)
-                        )
-                        _events.send(ImportEvent.Error(message))
                     }
-                )
+                }
+            }
+
+            is PendingImportAction.File -> {
+                viewModelScope.launch {
+                    _state = _state.copy(fileImportState = ImportFileState.Loading)
+                    delay(1500)
+                    withContext(Dispatchers.Default) {
+                        importViaFileUseCase(
+                            pendingAction.content,
+                            pendingAction.fileName,
+                            sourceLanguage,
+                            targetLanguage
+                        ).fold(
+                            onSuccess = { count ->
+                                _state = _state.copy(
+                                    fileImportState = ImportFileState.Success(count)
+                                )
+                                _events.send(ImportEvent.FileImportSuccessful(count))
+                            },
+                            onFailure = { error ->
+                                val message = error.message ?: "Import failed"
+                                _state = _state.copy(
+                                    fileImportState = ImportFileState.Error(message)
+                                )
+                                _events.send(ImportEvent.Error(message))
+                            }
+                        )
+                    }
+                }
             }
         }
+    }
+
+    fun dismissLanguageConfirmation() {
+        _state = _state.copy(
+            showLanguageConfirmation = false,
+            pendingImportAction = null
+        )
     }
 
     fun clearSelectedImage() {

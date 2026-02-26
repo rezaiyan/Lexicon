@@ -3,6 +3,7 @@ package presentation.ui.screens.review
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import domain.tts.model.TtsState
 import domain.word.model.Word
 import presentation.model.ReviewScreenState
 import presentation.model.ReviewType
@@ -22,7 +23,9 @@ fun ReviewBottomSheetContent(
     onLoadWords: () -> Unit,
     onUpdateWord: (Word) -> Unit,
     onDeleteWord: (Int, () -> Unit) -> Unit,
-    initialWord: Word? = null
+    initialWord: Word? = null,
+    ttsState: TtsState = TtsState.Idle,
+    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> }
 ) {
     ReviewBottomSheet(
         modifier = Modifier.safeDrawingPadding(),
@@ -34,7 +37,9 @@ fun ReviewBottomSheetContent(
         onLoadWords = onLoadWords,
         onUpdateWord = onUpdateWord,
         onDeleteWord = onDeleteWord,
-        initialWord = initialWord
+        initialWord = initialWord,
+        ttsState = ttsState,
+        onSpeakClick = onSpeakClick
     )
 }
 

@@ -1,5 +1,6 @@
 package domain.word.model
 
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -55,8 +56,8 @@ class WordTest {
         originalWord = original,
         translation = translation,
         description = "",
-        sourceLanguage = "en",
-        targetLanguage = "es",
+        sourceLanguage = Language.ENGLISH,
+        targetLanguage = Language.SPANISH,
         level = 0,
         easeFactor = 2.5f,
         interval = 0,

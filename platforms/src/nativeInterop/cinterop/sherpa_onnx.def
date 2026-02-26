@@ -1,0 +1,4 @@
+package = sherpa_onnx
+headers = sherpa-onnx/c-api/c-api.h
+headerFilter = sherpa-onnx/c-api/**
+compilerOpts = -DSHERPA_ONNX_API=

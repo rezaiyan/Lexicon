@@ -10,7 +10,6 @@ import data.auth.token.ITokenManager
 import domain.auth.model.AuthUser
 import domain.common.Try
 import domain.common.fold
-import domain.common.map
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
@@ -105,10 +104,6 @@ class AuthRepositoryImpl(
 
     override suspend fun getAccessToken(): String? {
         return tokenManager.getAccessToken()
-    }
-
-    override suspend fun getUserProfile(): Try<AuthUser> {
-        return authDataSource.getUserProfile().map { it.toDomain() }
     }
 
     override suspend fun isAuthenticated(): Boolean {

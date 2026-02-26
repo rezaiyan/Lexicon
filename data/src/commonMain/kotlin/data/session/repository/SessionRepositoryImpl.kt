@@ -1,13 +1,11 @@
 package data.session.repository
 
+import data.auth.mapper.toDomain
 import data.auth.remote.AuthDataSource
-import data.auth.remote.model.UserDto
 import data.core.network.error.AuthenticationException
 import data.core.network.error.NetworkException
 import data.core.network.error.ServerException
 import data.storage.SecureStorage
-import domain.auth.model.AuthUser
-import domain.auth.model.SubscriptionStatus
 import domain.auth.repository.ISessionRepository
 import domain.auth.repository.SessionVerificationResult
 import domain.common.fold
@@ -55,15 +53,5 @@ class SessionRepositoryImpl(
         )
     }
 
-    private fun UserDto.toDomain(): AuthUser {
-        return AuthUser(
-            id = this.id,
-            email = this.email,
-            name = this.name,
-            subscriptionStatus = SubscriptionStatus.valueOf(this.subscriptionStatus),
-            subscriptionExpiresAt = this.subscriptionExpiresAt,
-            currentStreak = this.currentStreak
-        )
-    }
 }
 

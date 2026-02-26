@@ -6,6 +6,7 @@ import domain.common.Try
 import domain.onboarding.model.SuggestedVocabulary
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
+import utils.Language
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -20,8 +21,8 @@ class ImportSuggestedVocabularyUseCase(
                 originalWord = suggestion.originalWord,
                 translation = suggestion.translation,
                 description = suggestion.description,
-                sourceLanguage = suggestion.sourceLanguage,
-                targetLanguage = suggestion.targetLanguage,
+                sourceLanguage = Language.fromCode(Language.toCode(suggestion.sourceLanguage)),
+                targetLanguage = Language.fromCode(Language.toCode(suggestion.targetLanguage)),
                 level = 0,
                 easeFactor = 2.5f,
                 interval = 0,

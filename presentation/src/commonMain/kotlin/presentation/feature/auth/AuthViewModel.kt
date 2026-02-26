@@ -3,6 +3,7 @@ package presentation.feature.auth
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import domain.auth.manager.IUserManager
 import domain.auth.model.AuthState
 import domain.auth.repository.SessionVerificationResult
 import domain.auth.usecase.DeleteAccountUseCase
@@ -14,6 +15,7 @@ import domain.auth.usecase.VerifySessionUseCase
 import domain.common.fold
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
+import domain.subscription.ISubscriptionManager
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +43,8 @@ class AuthViewModel(
     private val initializePushNotificationsUseCase: InitializePushNotificationsUseCase,
     private val registerPushTokenUseCase: RegisterPushTokenUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val userManager: IUserManager,
+    private val subscriptionManager: ISubscriptionManager,
 ) : ViewModel() {
 
     private val intents = MutableSharedFlow<AuthIntent>(extraBufferCapacity = 64)
@@ -60,6 +64,7 @@ class AuthViewModel(
             isAuthenticatedUseCase.asFlow().collect { isAuthenticated ->
                 if (!isAuthenticated && _authState.value.isAuthenticated) {
                     // User has been logged out (either manually or automatically)
+                    userManager.setUser(null)
                     _authState.value = AuthState(
                         isAuthenticated = false,
                         isLoading = false,
@@ -98,6 +103,8 @@ class AuthViewModel(
                     user = result.user,
                     error = null
                 )
+                userManager.setUser(result.user)
+                subscriptionManager.logIn(result.user.id.toString())
                 initializePushNotifications()
                 onComplete()
             }
@@ -150,6 +157,8 @@ class AuthViewModel(
                                 user = user,
                                 error = null
                             )
+                            userManager.setUser(user)
+                            subscriptionManager.logIn(user.id.toString())
                             syncRemoteToLocalUseCase(clearFirst = false)
                             initializePushNotifications()
                             _authState.value = _authState.value.copy(isLoading = false)
@@ -192,6 +201,8 @@ class AuthViewModel(
                                 user = user,
                                 error = null
                             )
+                            userManager.setUser(user)
+                            subscriptionManager.logIn(user.id.toString())
                             syncRemoteToLocalUseCase(clearFirst = false)
                             initializePushNotifications()
                             _authState.value = _authState.value.copy(isLoading = false)
@@ -208,6 +219,7 @@ class AuthViewModel(
     private suspend fun processLogout() {
         analyticsTracker.logEvent("logout")
         registerPushTokenUseCase.deactivateAllTokens()
+        userManager.setUser(null)
         logoutUseCase.invoke()
             .catch { error ->
                 _authState.value = AuthState(isAuthenticated = false, isLoading = false)
