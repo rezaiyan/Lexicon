@@ -14,6 +14,7 @@ import com.alirezaiyan.vokab.test.utils.TestConstants.DEFAULT_TRANSLATION
 import data.word.repository.WordRepositoryImpl
 import domain.settings.model.ReviewSettings
 import domain.word.model.Word
+import utils.Language
 import kotlin.time.Clock
 
 /**
@@ -72,8 +73,8 @@ object TestUtils {
         originalWord: String = DEFAULT_ORIGINAL_WORD,
         translation: String = DEFAULT_TRANSLATION,
         description: String = DEFAULT_DESCRIPTION,
-        sourceLanguage: String = DEFAULT_SOURCE_LANGUAGE,
-        targetLanguage: String = DEFAULT_TARGET_LANGUAGE,
+        sourceLanguage: Language = Language.fromCode(DEFAULT_SOURCE_LANGUAGE),
+        targetLanguage: Language = Language.fromCode(DEFAULT_TARGET_LANGUAGE),
         level: Int = DEFAULT_LEVEL,
         easeFactor: Float = DEFAULT_EASE_FACTOR,
         interval: Int = DEFAULT_INTERVAL,

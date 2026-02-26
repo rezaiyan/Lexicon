@@ -4,16 +4,25 @@ package domain.word.service
 
 import domain.common.Try
 import domain.word.model.Word
+import utils.Language
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 interface IImportValidationService {
-    fun validateAndParse(text: String): Try<List<Word>>
+    fun validateAndParse(
+        text: String,
+        sourceLanguage: Language = Language.ENGLISH,
+        targetLanguage: Language = Language.ENGLISH
+    ): Try<List<Word>>
 }
 
 class ImportValidationService : IImportValidationService {
 
-    override fun validateAndParse(text: String): Try<List<Word>> {
+    override fun validateAndParse(
+        text: String,
+        sourceLanguage: Language,
+        targetLanguage: Language
+    ): Try<List<Word>> {
         val trimmed = text.trim()
 
         return when {
@@ -26,7 +35,7 @@ class ImportValidationService : IImportValidationService {
                 )
 
             else -> {
-                val parsed = parseImportText(trimmed)
+                val parsed = parseImportText(trimmed, sourceLanguage, targetLanguage)
 
                 if (parsed.isEmpty()) {
                     Try.failure(
@@ -50,7 +59,11 @@ class ImportValidationService : IImportValidationService {
         }
     }
 
-    private fun parseImportText(text: String): List<Word> {
+    private fun parseImportText(
+        text: String,
+        sourceLanguage: Language = Language.ENGLISH,
+        targetLanguage: Language = Language.ENGLISH
+    ): List<Word> {
         val words = mutableListOf<Word>()
         val entries = text.trim()
             .split(Regex("[;\n]+"))
@@ -76,8 +89,8 @@ class ImportValidationService : IImportValidationService {
                         originalWord = originalWord,
                         translation = translation,
                         description = description,
-                        sourceLanguage = "",
-                        targetLanguage = "",
+                        sourceLanguage = sourceLanguage,
+                        targetLanguage = targetLanguage,
                         level = 0,
                         easeFactor = 2.5f,
                         interval = 0,

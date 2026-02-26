@@ -40,6 +40,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import domain.tts.model.TtsState
 import domain.word.model.Word
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.stringResource
@@ -256,7 +260,9 @@ fun ReviewContent(
     onNavigateBack: () -> Unit,
     onNavigateForward: () -> Unit,
     onReview: (Int) -> Unit,
-    onEdit: (() -> Unit)? = null
+    onEdit: (() -> Unit)? = null,
+    ttsState: TtsState = TtsState.Idle,
+    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> },
 ) {
     // Animate the "tap to reveal" hint alpha outside the nested Box lambda to
     // avoid Kotlin's implicit-receiver overload resolution picking ColumnScope.AnimatedVisibility.
@@ -308,7 +314,9 @@ fun ReviewContent(
                     FlashCard(
                         word = word,
                         isFlipped = isFlipped,
-                        onFlip = onFlip
+                        onFlip = onFlip,
+                        ttsState = ttsState,
+                        onSpeakClick = onSpeakClick
                     )
                 }
             }

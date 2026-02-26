@@ -146,6 +146,8 @@
     <string name="review_complete_message">Great job! Keep practicing to master your vocabulary.</string>
     
     <!-- Import Dialog -->
+    <string name="confirm_languages">Confirm Languages</string>
+    <string name="original_language">Original Language</string>
     <string name="translation">Translation: %1$d</string>
     <string name="processing_image_with_ai">Processing image with AI...</string>
     <string name="processing_file">Processing file...</string>

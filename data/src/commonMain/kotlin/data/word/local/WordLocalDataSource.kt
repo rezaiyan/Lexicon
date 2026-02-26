@@ -13,11 +13,14 @@ import data.core.database.ProgressRow
 import data.core.database.WordEntity
 import data.core.database.WordEntityData
 import data.word.mapper.WordMapper
+import domain.settings.repository.ISettingsRepository
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -40,34 +43,49 @@ interface IWordLocalDataSource {
 }
 
 class WordLocalDataSource(
-    private val queries: LexiconQueries
+    private val queries: LexiconQueries,
+    private val settingsRepository: ISettingsRepository
 ) : IWordLocalDataSource {
 
     override suspend fun getAllWordsAsync(): List<Word> {
-        return WordMapper.toDomainList(queries.getAllWords().awaitAsList())
+        val fallback = settingsRepository.getLanguage().first()
+        return WordMapper.toDomainList(queries.getAllWords().awaitAsList(), fallback)
     }
 
     override fun getAllWords(): Flow<List<Word>> {
-        return queries.getAllWords().asFlow().mapToList(Dispatchers.Default)
-            .map { WordMapper.toDomainList(it) }
+        return combine(
+            queries.getAllWords().asFlow().mapToList(Dispatchers.Default),
+            settingsRepository.getLanguage()
+        ) { entities, language ->
+            WordMapper.toDomainList(entities, language)
+        }
     }
 
     override fun getDueCards(): Flow<List<Word>> {
         val currentTime = Clock.System.now().toEpochMilliseconds()
-        return queries.getDueCards(currentTime).asFlow().mapToList(Dispatchers.Default)
-            .map { WordMapper.toDomainList(it) }
+        return combine(
+            queries.getDueCards(currentTime).asFlow().mapToList(Dispatchers.Default),
+            settingsRepository.getLanguage()
+        ) { entities, language ->
+            WordMapper.toDomainList(entities, language)
+        }
     }
 
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> {
         val currentTime = Clock.System.now().toEpochMilliseconds()
-        return queries.getWordsByLevel(stage.level.toLong(), currentTime)
-            .asFlow().mapToList(Dispatchers.Default)
-            .map { WordMapper.toDomainList(it) }
+        return combine(
+            queries.getWordsByLevel(stage.level.toLong(), currentTime)
+                .asFlow().mapToList(Dispatchers.Default),
+            settingsRepository.getLanguage()
+        ) { entities, language ->
+            WordMapper.toDomainList(entities, language)
+        }
     }
 
     override suspend fun getWordById(id: Int): Word? {
+        val fallback = settingsRepository.getLanguage().first()
         return queries.getWordById(id.toLong()).awaitAsOneOrNull()
-            ?.let { WordMapper.toDomain(it) }
+            ?.let { WordMapper.toDomain(it, fallback) }
     }
 
     override suspend fun insertWords(words: List<Word>) {

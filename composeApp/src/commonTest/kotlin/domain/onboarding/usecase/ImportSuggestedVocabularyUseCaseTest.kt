@@ -11,6 +11,7 @@ import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -67,8 +68,8 @@ class ImportSuggestedVocabularyUseCaseTest {
         assertEquals("Cat", word.originalWord)
         assertEquals("Gato", word.translation)
         assertEquals("A domestic animal", word.description)
-        assertEquals("en", word.sourceLanguage)
-        assertEquals("es", word.targetLanguage)
+        assertEquals(Language.ENGLISH, word.sourceLanguage)
+        assertEquals(Language.SPANISH, word.targetLanguage)
         assertEquals(0, word.level)
         assertEquals(2.5f, word.easeFactor)
         assertEquals(0, word.interval)

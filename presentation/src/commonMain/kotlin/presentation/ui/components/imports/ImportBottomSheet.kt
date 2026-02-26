@@ -14,6 +14,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,8 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Upload
@@ -71,11 +74,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import events.OnEvents
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.model.ImageImportState
+import presentation.ui.components.BasicAlertDialog
+import presentation.ui.components.LanguageSelectionDialog
 import theme.Theme
+import utils.Language
 import utils.rememberCameraLauncher
 import utils.rememberImagePickerLauncher
 import utils.rememberTextFilePickerLauncher
@@ -88,6 +97,7 @@ import lexicon.resources.generated.resources.capture_vocab_from_image
 import lexicon.resources.generated.resources.choose_file
 import lexicon.resources.generated.resources.choose_from_library
 import lexicon.resources.generated.resources.confirm_and_extract
+import lexicon.resources.generated.resources.confirm_languages
 import lexicon.resources.generated.resources.enter_words
 import lexicon.resources.generated.resources.enter_words_manually_description
 import lexicon.resources.generated.resources.extract_example_sentences
@@ -104,6 +114,7 @@ import lexicon.resources.generated.resources.import_from_file
 import lexicon.resources.generated.resources.import_text
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.individual_words_hint
+import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.preview_selected_image
 import lexicon.resources.generated.resources.processing_file
 import lexicon.resources.generated.resources.processing_image_with_ai
@@ -115,6 +126,7 @@ import lexicon.resources.generated.resources.sentences_hint
 import lexicon.resources.generated.resources.success_imported_words
 import lexicon.resources.generated.resources.supported_format
 import lexicon.resources.generated.resources.take_new_photo
+import lexicon.resources.generated.resources.translation_language
 import lexicon.resources.generated.resources.try_another_image
 import lexicon.resources.generated.resources.txt_format
 import lexicon.resources.generated.resources.type_or_paste_words
@@ -199,7 +211,17 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
                 onDismiss = onDismiss,
             )
         }
+    }
 
+    if (state.showLanguageConfirmation) {
+        ImportLanguageConfirmationDialog(
+            sourceLanguage = state.sourceLanguage,
+            targetLanguage = state.targetLanguage,
+            onSourceLanguageSelected = viewModel::selectSourceLanguage,
+            onTargetLanguageSelected = viewModel::selectTargetLanguage,
+            onConfirm = viewModel::confirmImport,
+            onDismiss = viewModel::dismissLanguageConfirmation
+        )
     }
 }
 
@@ -1190,6 +1212,107 @@ private fun InfoCard(
                     color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ImportLanguageConfirmationDialog(
+    sourceLanguage: Language,
+    targetLanguage: Language,
+    onSourceLanguageSelected: (Language) -> Unit,
+    onTargetLanguageSelected: (Language) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var showSourceLanguagePicker by remember { mutableStateOf(false) }
+    var showTargetLanguagePicker by remember { mutableStateOf(false) }
+
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        icon = Icons.Default.Language,
+        title = stringResource(Res.string.confirm_languages),
+        content = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.small)
+            ) {
+                LanguageRow(
+                    label = stringResource(Res.string.original_language),
+                    language = sourceLanguage,
+                    onClick = { showSourceLanguagePicker = true }
+                )
+                LanguageRow(
+                    label = stringResource(Res.string.translation_language),
+                    language = targetLanguage,
+                    onClick = { showTargetLanguagePicker = true }
+                )
+            }
+        },
+        primaryButtonText = stringResource(Res.string.import_text),
+        primaryButtonOnClick = onConfirm,
+        secondaryButtonText = stringResource(Res.string.cancel),
+        secondaryButtonOnClick = onDismiss,
+    )
+
+    if (showSourceLanguagePicker) {
+        LanguageSelectionDialog(
+            currentLanguage = sourceLanguage,
+            onDismiss = { showSourceLanguagePicker = false },
+            onLanguageSelected = { language ->
+                onSourceLanguageSelected(language)
+                showSourceLanguagePicker = false
+            }
+        )
+    }
+
+    if (showTargetLanguagePicker) {
+        LanguageSelectionDialog(
+            currentLanguage = targetLanguage,
+            onDismiss = { showTargetLanguagePicker = false },
+            onLanguageSelected = { language ->
+                onTargetLanguageSelected(language)
+                showTargetLanguagePicker = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun LanguageRow(
+    label: String,
+    language: Language,
+    onClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = Theme.spacing.extraSmall, horizontal = Theme.spacing.small)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall)
+        ) {
+            Text(
+                text = "${language.nativeName} (${language.displayName})",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

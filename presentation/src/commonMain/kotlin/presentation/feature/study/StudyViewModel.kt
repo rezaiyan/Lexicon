@@ -9,6 +9,10 @@ import domain.common.onFailure
 import domain.common.onSuccess
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
+import domain.tts.model.TtsState
+import domain.tts.repository.ITtsRepository
+import domain.tts.usecase.SpeakWordUseCase
+import domain.tts.usecase.StopSpeakingUseCase
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -46,6 +50,9 @@ class StudyViewModel(
     private val updateWordUseCase: UpdateWordUseCase,
     private val deleteWordUseCase: DeleteWordUseCase,
     private val recordStreakActivityUseCase: RecordStreakActivityUseCase,
+    private val speakWordUseCase: SpeakWordUseCase,
+    private val stopSpeakingUseCase: StopSpeakingUseCase,
+    private val ttsRepository: ITtsRepository,
     private val analyticsTracker: IAnalyticsTracker
 ) : ViewModel() {
 
@@ -268,5 +275,48 @@ class StudyViewModel(
         }
     }
 
+    // === TTS Functionality ===
+
+    val ttsState: StateFlow<TtsState> = ttsRepository.ttsState
+
+    fun speakWord(text: String, languageCode: String) {
+        viewModelScope.launch {
+            val resolvedCode = resolveLanguageCode(text, languageCode)
+            logNetwork("TTS", "speakWord: text='$text' wordLang='$languageCode' resolved='$resolvedCode'")
+            speakWordUseCase(text, resolvedCode)
+        }.invokeOnCompletion { error ->
+            if (error != null) {
+                logNetwork("TTS", "Error: ${error.message}")
+            }
+        }
+    }
+
+    private fun resolveLanguageCode(text: String, languageCode: String): String {
+        if (languageCode.isNotBlank()) return languageCode
+
+        val words = (_reviewScreenState.value.wordListState as? UiState.Loaded<List<Word>>)?.value
+            ?: return languageCode
+
+        // Determine if text is on the target side (originalWord) or source side (translation)
+        val isTargetSide = words.any { it.originalWord == text }
+
+        // Derive the most common language code from words
+        val languageCodes = words.map { word ->
+            if (isTargetSide) word.targetLanguage.code else word.sourceLanguage.code
+        }
+
+        return languageCodes
+            .groupingBy { it }
+            .eachCount()
+            .maxByOrNull { it.value }
+            ?.key
+            ?: languageCode
+    }
+
+    fun stopSpeaking() {
+        viewModelScope.launch {
+            stopSpeakingUseCase()
+        }
+    }
 }
 

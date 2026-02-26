@@ -36,7 +36,7 @@ import org.koin.dsl.module
 fun wordModule() = module {
 
     // Word Data Components
-    single<IWordLocalDataSource> { WordLocalDataSource(queries = get()) }
+    single<IWordLocalDataSource> { WordLocalDataSource(queries = get(), settingsRepository = get()) }
     single<IWordRemoteSyncHandler> {
         WordRemoteSyncHandler(wordRemoteDataSource = get())
     }

@@ -1,6 +1,7 @@
 package domain.word.usecase
 
 import domain.word.model.Word
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -29,8 +30,8 @@ class ExportWordsUseCaseTest {
         originalWord: String,
         translation: String,
         description: String = "",
-        sourceLanguage: String = "en",
-        targetLanguage: String = "es"
+        sourceLanguage: Language = Language.ENGLISH,
+        targetLanguage: Language = Language.SPANISH
     ) = Word(
         id = id,
         originalWord = originalWord,

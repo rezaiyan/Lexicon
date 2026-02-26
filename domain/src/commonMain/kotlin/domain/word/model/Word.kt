@@ -2,6 +2,7 @@
 
 package domain.word.model
 
+import utils.Language
 import kotlin.time.ExperimentalTime
 
 /**
@@ -13,8 +14,8 @@ data class Word(
     val originalWord: String,
     val translation: String,
     val description: String,
-    val sourceLanguage: String,
-    val targetLanguage: String,
+    val sourceLanguage: Language,
+    val targetLanguage: Language,
     val level: Int = 0,
     val easeFactor: Float = 2.5f,
     val interval: Int = 0,

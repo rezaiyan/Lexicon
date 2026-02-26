@@ -9,4 +9,12 @@ GID_SERVER_CLIENT_ID =
 GID_URL_SCHEME =
 VOKAB_BACKEND_HOST =
 
+// Sherpa ONNX TTS static libraries (SDK-conditional paths for xcframework slices)
+SHERPA_ONNX_LIBS[sdk=iphoneos*] = $(SRCROOT)/../platforms/libs/build-ios/sherpa-onnx.xcframework/ios-arm64
+SHERPA_ONNX_LIBS[sdk=iphonesimulator*] = $(SRCROOT)/../platforms/libs/build-ios/sherpa-onnx.xcframework/ios-arm64_x86_64-simulator
+ONNXRUNTIME_LIBS[sdk=iphoneos*] = $(SRCROOT)/../platforms/libs/build-ios/ios-onnxruntime/onnxruntime.xcframework/ios-arm64
+ONNXRUNTIME_LIBS[sdk=iphonesimulator*] = $(SRCROOT)/../platforms/libs/build-ios/ios-onnxruntime/onnxruntime.xcframework/ios-arm64_x86_64-simulator
+LIBRARY_SEARCH_PATHS = $(inherited) $(SHERPA_ONNX_LIBS) $(ONNXRUNTIME_LIBS)
+OTHER_LDFLAGS = $(inherited) -lsherpa-onnx -lonnxruntime -lbz2 -lc++ -framework Accelerate -framework CoreML
+
 #include? "Config.private.xcconfig"

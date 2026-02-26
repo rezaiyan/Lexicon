@@ -10,6 +10,7 @@ import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -113,8 +114,8 @@ class ReviewWordUseCaseTest {
         originalWord = "hello",
         translation = "hola",
         description = "greeting",
-        sourceLanguage = "en",
-        targetLanguage = "es",
+        sourceLanguage = Language.ENGLISH,
+        targetLanguage = Language.SPANISH,
         level = level,
         easeFactor = easeFactor,
         interval = interval,

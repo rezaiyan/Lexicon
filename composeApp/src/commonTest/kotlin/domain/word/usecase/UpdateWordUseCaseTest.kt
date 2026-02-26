@@ -6,6 +6,7 @@ import domain.common.getOrThrow
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
 import kotlinx.coroutines.test.runTest
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -254,8 +255,8 @@ class UpdateWordUseCaseTest {
         originalWord: String,
         translation: String,
         description: String = "",
-        sourceLanguage: String = "en",
-        targetLanguage: String = "es",
+        sourceLanguage: Language = Language.ENGLISH,
+        targetLanguage: Language = Language.SPANISH,
         level: Int = 0,
         easeFactor: Float = 2.5f,
         interval: Int = 0,

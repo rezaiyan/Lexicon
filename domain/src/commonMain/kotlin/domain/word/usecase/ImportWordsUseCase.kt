@@ -2,40 +2,52 @@ package domain.word.usecase
 
 import domain.common.Try
 import domain.common.fold
+import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import utils.Language
 
 class ImportWordsUseCase(
     private val wordRepository: IWordRepository,
-    private val validationService: IImportValidationService
+    private val validationService: IImportValidationService,
+    private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase
 ) {
 
-    suspend fun execute(text: String): Try<Int> =
-        validationService.validateAndParse(text)
-            .fold(
-                onSuccess = { parsedWords ->
-                    val importWords = parsedWords.distinctBy {
-                        Pair(
-                            it.originalWord.trim().lowercase(),
-                            it.translation.trim().lowercase()
-                        )
-                    }
-
-                    val importedWords = wordRepository.insertWords(importWords)
-                    if (importedWords > 0) {
-                        Try.success(importWords.size)
-                    } else {
-                        Try.failure(Exception("All ${importWords.size} word(s) already exist in your collection."))
-                    }
-                },
-                onFailure = { throwable ->
-                    Try.failure(throwable)
+    suspend fun execute(
+        text: String,
+        sourceLanguage: Language? = null,
+        targetLanguage: Language? = null,
+    ): Try<Int> {
+        val resolvedSourceLanguage = sourceLanguage ?: Language.ENGLISH
+        val resolvedTargetLanguage = targetLanguage ?: getCurrentLanguageUseCase()
+        return validationService.validateAndParse(
+            text = text,
+            sourceLanguage = resolvedSourceLanguage,
+            targetLanguage = resolvedTargetLanguage
+        ).fold(
+            onSuccess = { parsedWords ->
+                val importWords = parsedWords.distinctBy {
+                    Pair(
+                        it.originalWord.trim().lowercase(),
+                        it.translation.trim().lowercase()
+                    )
                 }
-            )
 
+                val importedWords = wordRepository.insertWords(importWords)
+                if (importedWords > 0) {
+                    Try.success(importWords.size)
+                } else {
+                    Try.failure(Exception("All ${importWords.size} word(s) already exist in your collection."))
+                }
+            },
+            onFailure = { throwable ->
+                Try.failure(throwable)
+            }
+        )
+    }
 
     operator fun invoke(text: String): Flow<Try<Int>> =
         validationService.validateAndParse(text)

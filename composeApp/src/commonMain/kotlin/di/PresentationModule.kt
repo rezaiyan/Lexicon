@@ -30,11 +30,8 @@ fun presentationModule() = module {
     // User Manager
     single<IUserManager> {
         UserManagerImpl(
-            loginWithGoogleUseCase = get(),
-            loginWithAppleUseCase = get(),
             logoutUseCase = get(),
             deleteAccountUseCase = get(),
-            authRepository = get(),
             subscriptionManager = get(),
         )
     }
@@ -60,6 +57,8 @@ fun presentationModule() = module {
             initializePushNotificationsUseCase = get(),
             registerPushTokenUseCase = get(),
             analyticsTracker = get(),
+            userManager = get(),
+            subscriptionManager = get(),
         )
     }
 
@@ -92,6 +91,9 @@ fun presentationModule() = module {
             updateWordUseCase = get(),
             deleteWordUseCase = get(),
             recordStreakActivityUseCase = get(),
+            speakWordUseCase = get(),
+            stopSpeakingUseCase = get(),
+            ttsRepository = get(),
             analyticsTracker = get()
         )
     }
@@ -103,6 +105,7 @@ fun presentationModule() = module {
             importViaFileUseCase = get(),
             importFromImageUseCase = get(),
             userManager = get(),
+            getCurrentLanguageUseCase = get(),
         )
     }
 
@@ -144,7 +147,8 @@ fun presentationModule() = module {
     // Onboarding ViewModels
     viewModel {
         OnboardingViewModel(
-            submitPreferencesUseCase = get()
+            submitPreferencesUseCase = get(),
+            setLanguageUseCase = get()
         )
     }
 

@@ -38,6 +38,7 @@ gitliveFirebase = "2.3.0"
 revenuecat-kmp = "2.2.10+17.19.1"
 emoji-kt = "2.3.0"
 profileinstaller = "1.4.1"
+commonsCompress = "1.27.1"
 
 [libraries]
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
@@ -111,6 +112,8 @@ purchases-kmp-ui = { module = "com.revenuecat.purchases:purchases-kmp-ui", versi
 purchases-kmp-either = { module = "com.revenuecat.purchases:purchases-kmp-either", version.ref = "revenuecat-kmp" }
 purchases-kmp-result = { module = "com.revenuecat.purchases:purchases-kmp-result", version.ref = "revenuecat-kmp" }
 androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
+
 
 
 [bundles]
