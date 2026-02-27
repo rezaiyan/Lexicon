@@ -61,7 +61,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: |
@@ -101,7 +101,7 @@ jobs:
         run: ./gradlew composeApp:assembleDebug --stacktrace
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
@@ -173,7 +173,7 @@ jobs:
         run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
 
       - name: Upload web distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-dist
           path: composeApp/build/dist/wasmJs/productionExecutable/
