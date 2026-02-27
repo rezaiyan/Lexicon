@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
+@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalTime::class)
 
 package presentation.feature.profile
 
@@ -9,6 +9,10 @@ import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
 import domain.common.fold
+import domain.common.getOrNull
+import domain.profile.model.DayActivity
+import domain.profile.model.ProfileStats
+import domain.profile.usecase.GetProfileStatsUseCase
 import domain.streak.manager.IStreakManager
 import domain.streak.model.StreakData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,8 +23,16 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import presentation.model.DayActivityUiModel
+import presentation.model.LanguagePairUiModel
+import presentation.model.ProfileStatsUiModel
 import presentation.model.ProfileUiData
 import presentation.model.UiState
 import presentation.util.stateInEagerly
@@ -29,10 +41,12 @@ import presentation.util.stateInWhileSubscribed
 class ProfileViewModel(
     private val userManager: IUserManager,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
-    streakManager: IStreakManager
+    streakManager: IStreakManager,
+    private val getProfileStatsUseCase: GetProfileStatsUseCase
 ) : ViewModel() {
 
     private val streakRefreshTrigger = MutableStateFlow(0)
+    private val profileStatsRefreshTrigger = MutableStateFlow(0)
 
     private val _state = MutableStateFlow<UiState<ProfileUiData>>(UiState.Loading)
     val state: StateFlow<UiState<ProfileUiData>> = _state.asStateFlow()
@@ -67,6 +81,20 @@ class ProfileViewModel(
             }
             .stateInEagerly(viewModelScope, UiState.Loaded(null))
 
+    private val profileStatsFlow: StateFlow<ProfileStatsUiModel?> = profileStatsRefreshTrigger
+        .flatMapLatest {
+            flow {
+                emit(null)
+                val result = getProfileStatsUseCase()
+                emit(result.getOrNull()?.toUiModel())
+            }
+        }
+        .catch { error ->
+            error.printStackTrace()
+            emit(null)
+        }
+        .stateInWhileSubscribed(viewModelScope, initialValue = null)
+
     init {
         observeAndCombineState()
     }
@@ -76,9 +104,12 @@ class ProfileViewModel(
             combine(
                 userFlow,
                 streakFlow,
-                featureAccessFlow
-            ) { user, streak, featureAccessState ->
-                ProfileStateBuilder.createUiState(user, streak, featureAccessState)
+                featureAccessFlow,
+                profileStatsFlow
+            ) { user, streak, featureAccessState, profileStats ->
+                ProfileStateBuilder.createUiState(
+                    user, streak, featureAccessState, profileStats
+                )
             }
                 .catch { error ->
                     emit(UiState.Error(error.message ?: "An error occurred"))
@@ -116,10 +147,12 @@ class ProfileViewModel(
             userManager.logout().fold(
                 onSuccess = {
                     streakRefreshTrigger.value++
+                    profileStatsRefreshTrigger.value++
                 },
                 onFailure = { error ->
                     error.printStackTrace()
                     streakRefreshTrigger.value++
+                    profileStatsRefreshTrigger.value++
                 }
             )
         }
@@ -130,12 +163,44 @@ class ProfileViewModel(
             userManager.deleteAccount().fold(
                 onSuccess = {
                     streakRefreshTrigger.value++
+                    profileStatsRefreshTrigger.value++
                 },
                 onFailure = { error ->
                     error.printStackTrace()
                     streakRefreshTrigger.value++
+                    profileStatsRefreshTrigger.value++
                 }
             )
         }
     }
+}
+
+private fun ProfileStats.toUiModel(): ProfileStatsUiModel {
+    val todayStr = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+        .date.toString()
+
+    return ProfileStatsUiModel(
+        currentStreak = currentStreak,
+        longestStreak = longestStreak,
+        memberSince = memberSince,
+        weeklyActivity = weeklyActivity.map { it.toUiModel(todayStr) },
+        languages = languages.map { lang ->
+            LanguagePairUiModel(
+                sourceLanguage = lang.sourceLanguage,
+                targetLanguage = lang.targetLanguage,
+                wordCount = lang.wordCount
+            )
+        }
+    )
+}
+
+private fun DayActivity.toUiModel(todayStr: String): DayActivityUiModel {
+    val dayOfMonth = date.substringAfterLast("-").toIntOrNull() ?: 0
+    return DayActivityUiModel(
+        date = date,
+        dayOfMonth = dayOfMonth,
+        reviewCount = reviewCount,
+        isToday = date == todayStr
+    )
 }

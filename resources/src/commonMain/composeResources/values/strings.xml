@@ -86,6 +86,11 @@
     <string name="ready_to_proceed_deletion">Ready to proceed with account deletion. Please confirm below.</string>
     <string name="day_streak">Day Streak</string>
     <string name="best_streak">Best Streak</string>
+    <string name="words">%1$d words</string>
+    <string name="weekly_activity">Weekly Activity</string>
+    <string name="total_reviews_format">%1$d reviews</string>
+    <string name="languages">Languages</string>
+    <string name="member_since">Member since %1$s</string>
     
     <!-- Progress Screen -->
     <string name="total_words">Total Words</string>
@@ -94,6 +99,11 @@
     <string name="learning_stages">Learning Stages</string>
     <string name="import_words">Import Words</string>
     <string name="generating_daily_insight">Generating your daily insight...</string>
+    <string name="cards_waiting">%1$d cards waiting for you</string>
+    <string name="all_caught_up">All caught up! Well done.</string>
+    <string name="add_words_to_start">Add words to start your journey</string>
+    <string name="session_complete">Session Complete!</string>
+    <string name="you_reviewed_cards">You reviewed %1$d cards</string>
     
     <!-- Learning Stages (7 Levels) -->
     <string name="level_0_fresh">First Encounter</string>
@@ -292,7 +302,34 @@
     <string name="no_words_to_share">No words to share</string>
     <string name="failed_to_share_words">Failed to share words</string>
     <string name="share_title_format">Lexicon - %1$d Words</string>
-    
+
+    <!-- Word Manager Sort & Filter -->
+    <string name="sort_newest">Newest</string>
+    <string name="sort_oldest">Oldest</string>
+    <string name="sort_newest_first">Newest first</string>
+    <string name="sort_oldest_first">Oldest first</string>
+    <string name="sort_a_to_z">A → Z</string>
+    <string name="sort_z_to_a">Z → A</string>
+    <string name="sort_level_low_high">Level (low → high)</string>
+    <string name="sort_level_high_low">Level (high → low)</string>
+    <string name="sort_level_asc">Level ↑</string>
+    <string name="sort_level_desc">Level ↓</string>
+    <string name="filter_language">Language</string>
+    <string name="filter_all_languages">All languages</string>
+    <string name="filter_level">Level</string>
+    <string name="filter_all_levels">All levels</string>
+    <string name="word_count_format">%1$d words</string>
+    <string name="word_count_filtered_format">%1$d of %2$d words</string>
+    <string name="selected_format">%1$d selected</string>
+
+    <!-- Word Detail Sheet -->
+    <string name="learning_progress">Learning Progress</string>
+    <string name="detail_languages">Languages</string>
+    <string name="detail_added">Added</string>
+    <string name="detail_next_review">Next review</string>
+    <string name="detail_reviews">Reviews</string>
+    <string name="delete_word">Delete Word</string>
+
     <!-- Learning Mode Settings -->
     <string name="learning_mode">Learning Mode</string>
     <string name="learning_mode_settings">Successes: %1$d | Penalty: %2$d levels</string>

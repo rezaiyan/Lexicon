@@ -20,12 +20,12 @@ class WordEditingHandler(
 ) {
     
     fun startEditing(word: Word) {
-        state.value = state.value.copy(editingWord = word)
+        state.value = state.value.copy(detailWord = word)
         analyticsTracker.logEvent("word_manager_edit_started")
     }
     
     fun cancelEditing() {
-        state.value = state.value.copy(editingWord = null)
+        state.value = state.value.copy(detailWord = null)
     }
     
     fun updateWord(word: Word) {
@@ -33,7 +33,7 @@ class WordEditingHandler(
             val result = updateWordUseCase(word)
             result.fold(
                 onSuccess = { updatedWord ->
-                    state.value = state.value.copy(editingWord = null)
+                    state.value = state.value.copy(detailWord = null)
                     events.send(WordManagerEffect.WordUpdated(updatedWord))
                     analyticsTracker.logEvent("word_manager_word_updated")
                 },

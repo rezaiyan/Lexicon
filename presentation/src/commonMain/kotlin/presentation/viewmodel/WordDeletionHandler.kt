@@ -40,7 +40,7 @@ class WordDeletionHandler(
                     is DeleteWordsResult.Success -> {
                         state.value = state.value.copy(
                             isDeletingWords = false,
-                            isMultiSelectMode = false,
+                            isSelectionMode = false,
                             selectedWordIds = emptySet(),
                             showDeleteConfirmation = false,
                             errorMessage = null

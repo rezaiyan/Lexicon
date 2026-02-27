@@ -6,6 +6,7 @@ import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
+import presentation.model.WordSortOption
 import utils.Language
 import kotlin.time.ExperimentalTime
 
@@ -83,23 +85,18 @@ class WordManagerViewModel(
         }
     }
 
-    /**
-     * Reset state when screen is opened
-     * Clears selections, search query, editing state, and dialogs
-     */
     fun resetState() {
         _state.value = _state.value.copy(
             selectedWordIds = emptySet(),
+            isSelectionMode = false,
             searchQuery = "",
-            editingWord = null,
+            detailWord = null,
             showDeleteConfirmation = false,
             showBatchEditLanguages = false,
             isDeletingWords = false,
             isBatchUpdatingLanguages = false,
-            errorMessage = null,
-            snackbarMessage = null
+            errorMessage = null
         )
-        println("🔄 [WordManager] State reset - fresh screen")
     }
 
     private fun startObservingWords() {
@@ -115,10 +112,7 @@ class WordManagerViewModel(
                 }
                 .collect { words ->
                     _state.value = _state.value.copy(
-                        words = words.sortedWith(
-                            compareByDescending<Word> { it.dateAdded }
-                                .thenBy { it.level }
-                        ),
+                        words = words,
                         isLoading = false,
                         errorMessage = null
                     )
@@ -133,16 +127,25 @@ class WordManagerViewModel(
         } else {
             currentSelection + wordId
         }
-        _state.value = _state.value.copy(selectedWordIds = newSelection)
+        _state.value = _state.value.copy(
+            selectedWordIds = newSelection,
+            isSelectionMode = newSelection.isNotEmpty()
+        )
     }
 
     fun selectAll() {
         val allWordIds: Set<Int> = _state.value.filteredWords.map { it.id }.toSet()
-        _state.value = _state.value.copy(selectedWordIds = allWordIds)
+        _state.value = _state.value.copy(
+            selectedWordIds = allWordIds,
+            isSelectionMode = allWordIds.isNotEmpty()
+        )
     }
 
     fun deselectAll() {
-        _state.value = _state.value.copy(selectedWordIds = emptySet())
+        _state.value = _state.value.copy(
+            selectedWordIds = emptySet(),
+            isSelectionMode = false
+        )
     }
 
     fun updateSearchQuery(query: String) {
@@ -153,19 +156,40 @@ class WordManagerViewModel(
         _state.value = _state.value.copy(searchQuery = "")
     }
 
+    fun setSortOption(option: WordSortOption) {
+        _state.value = _state.value.copy(sortOption = option)
+    }
 
-    fun startEditingWord(word: Word) {
+    fun setFilterLanguage(language: Language?) {
+        _state.value = _state.value.copy(filterLanguage = language)
+    }
+
+    fun setFilterLearningStage(stage: LearningStage?) {
+        _state.value = _state.value.copy(filterLearningStage = stage)
+    }
+
+    fun enterSelectionMode() {
+        _state.value = _state.value.copy(isSelectionMode = true)
+    }
+
+    fun exitSelectionMode() {
+        _state.value = _state.value.copy(
+            isSelectionMode = false,
+            selectedWordIds = emptySet()
+        )
+    }
+
+    fun openWordDetail(word: Word) {
         editingHandler.startEditing(word)
     }
 
-    fun cancelEditing() {
+    fun closeWordDetail() {
         editingHandler.cancelEditing()
     }
 
     fun updateWord(word: Word) {
         editingHandler.updateWord(word)
     }
-
 
     fun showDeleteConfirmation() {
         _state.value = _state.value.copy(showDeleteConfirmation = true)
@@ -196,15 +220,10 @@ class WordManagerViewModel(
     }
 
     fun shareWords() {
-        try {
-            exportHandler.shareWords(
-                words = _state.value.words,
-                selectedWordIds = _state.value.selectedWordIds
-            )
-        } catch (e: Exception) {
-            val errorMsg = e.message ?: ""
-            _events.trySend(WordManagerEffect.Error(errorMsg))
-        }
+        exportHandler.shareWords(
+            words = _state.value.words,
+            selectedWordIds = _state.value.selectedWordIds
+        )
     }
 
     fun onEvent(event: WordManagerEvent) {
@@ -215,8 +234,13 @@ class WordManagerViewModel(
             is WordManagerEvent.DeselectAll -> deselectAll()
             is WordManagerEvent.UpdateSearchQuery -> updateSearchQuery(event.query)
             is WordManagerEvent.ClearSearch -> clearSearch()
-            is WordManagerEvent.StartEditingWord -> startEditingWord(event.word)
-            is WordManagerEvent.CancelEditing -> cancelEditing()
+            is WordManagerEvent.SetSortOption -> setSortOption(event.option)
+            is WordManagerEvent.SetFilterLanguage -> setFilterLanguage(event.language)
+            is WordManagerEvent.SetFilterLearningStage -> setFilterLearningStage(event.stage)
+            is WordManagerEvent.EnterSelectionMode -> enterSelectionMode()
+            is WordManagerEvent.ExitSelectionMode -> exitSelectionMode()
+            is WordManagerEvent.OpenWordDetail -> openWordDetail(event.word)
+            is WordManagerEvent.CloseWordDetail -> closeWordDetail()
             is WordManagerEvent.UpdateWord -> updateWord(event.word)
             is WordManagerEvent.ShowDeleteConfirmation -> showDeleteConfirmation()
             is WordManagerEvent.HideDeleteConfirmation -> hideDeleteConfirmation()

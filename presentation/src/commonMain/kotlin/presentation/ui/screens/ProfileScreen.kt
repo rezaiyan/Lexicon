@@ -43,13 +43,17 @@ import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.LexiconColumn
 import presentation.ui.components.profile.DeleteAccountCoolingDialogContent
 import presentation.ui.components.profile.DeleteAccountHiddenDialogContent
+import presentation.ui.components.profile.LanguagesSection
 import presentation.ui.components.profile.LogoutDialogContent
+import presentation.ui.components.profile.MemberSinceSection
 import presentation.ui.components.profile.StreakSection
 import presentation.ui.components.profile.UserInfoSection
+import presentation.ui.components.profile.WeeklyActivitySection
 import presentation.ui.overlay.LocalOverlayHost
 import presentation.ui.overlay.OverlayHost
 import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
 import presentation.ui.overlay.dialog.showDialog
+import presentation.ui.screens.study.staggeredFadeSlide
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.delete_account
@@ -150,26 +154,77 @@ private fun ProfileContent(
     profileData: ProfileUiData,
     onLogout: () -> Unit,
 ) {
+    val userInfo = profileData.userInfo ?: return
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        var sectionIndex = 0
+
         Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
 
+        // 1. User Info
         UserInfoSection(
-            userInfo = profileData.userInfo!!
+            userInfo = userInfo,
+            modifier = Modifier.staggeredFadeSlide(sectionIndex++)
         )
 
+        // 2. Streak Section (with optional longest streak from server)
         if (profileData.streak != null) {
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
-            StreakSection(streak = profileData.streak)
+            StreakSection(
+                streak = profileData.streak,
+                longestStreak = profileData.profileStats?.longestStreak,
+                modifier = Modifier.staggeredFadeSlide(sectionIndex++)
+            )
         }
 
-        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing * 2))
+        // 3. Weekly Activity (server data — loads async)
+        val weeklyActivity = profileData.profileStats?.weeklyActivity
+        if (weeklyActivity != null && weeklyActivity.any { it.reviewCount > 0 }) {
+            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+            WeeklyActivitySection(
+                weeklyActivity = weeklyActivity,
+                modifier = Modifier
+                    .padding(horizontal = Theme.spacing.cardPadding)
+                    .staggeredFadeSlide(sectionIndex++)
+            )
+        }
+
+        // 4. Languages (server data — loads async)
+        val languages = profileData.profileStats?.languages
+        if (languages != null && languages.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+            LanguagesSection(
+                languages = languages,
+                modifier = Modifier
+                    .padding(horizontal = Theme.spacing.cardPadding)
+                    .staggeredFadeSlide(sectionIndex++)
+            )
+        }
+
+        // 5. Member Since (server data — loads async)
+        val memberSince = profileData.profileStats?.memberSince
+        if (memberSince != null) {
+            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+            MemberSinceSection(
+                memberSince = memberSince,
+                modifier = Modifier
+                    .padding(horizontal = Theme.spacing.cardPadding)
+                    .staggeredFadeSlide(sectionIndex++)
+            )
+        }
+
+        // 6. Logout Button
+        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
 
         OutlinedButton(
             onClick = onLogout,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Theme.spacing.cardPadding)
+                .staggeredFadeSlide(sectionIndex),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error

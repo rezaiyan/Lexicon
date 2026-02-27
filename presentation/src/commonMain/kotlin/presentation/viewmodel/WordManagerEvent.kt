@@ -1,6 +1,8 @@
 package presentation.viewmodel
 
+import domain.word.model.LearningStage
 import domain.word.model.Word
+import presentation.model.WordSortOption
 import utils.Language
 
 sealed interface WordManagerEvent {
@@ -10,8 +12,13 @@ sealed interface WordManagerEvent {
     data object DeselectAll : WordManagerEvent
     data class UpdateSearchQuery(val query: String) : WordManagerEvent
     data object ClearSearch : WordManagerEvent
-    data class StartEditingWord(val word: Word) : WordManagerEvent
-    data object CancelEditing : WordManagerEvent
+    data class SetSortOption(val option: WordSortOption) : WordManagerEvent
+    data class SetFilterLanguage(val language: Language?) : WordManagerEvent
+    data class SetFilterLearningStage(val stage: LearningStage?) : WordManagerEvent
+    data object EnterSelectionMode : WordManagerEvent
+    data object ExitSelectionMode : WordManagerEvent
+    data class OpenWordDetail(val word: Word) : WordManagerEvent
+    data object CloseWordDetail : WordManagerEvent
     data class UpdateWord(val word: Word) : WordManagerEvent
     data object ShowDeleteConfirmation : WordManagerEvent
     data object HideDeleteConfirmation : WordManagerEvent

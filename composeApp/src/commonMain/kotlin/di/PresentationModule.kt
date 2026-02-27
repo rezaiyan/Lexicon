@@ -135,7 +135,8 @@ fun presentationModule() = module {
         ProfileViewModel(
             userManager = get(),
             getFeatureAccessUseCase = get(),
-            streakManager = get()
+            streakManager = get(),
+            getProfileStatsUseCase = get()
         )
     }
 

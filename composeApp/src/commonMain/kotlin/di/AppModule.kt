@@ -16,6 +16,7 @@ fun appModule(
         ttsModule(),
         settingsModule(),
         onboardingModule(),
+        profileModule(),
         presentationModule(),
     )
 }

@@ -8,20 +8,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.model.WordManagerEffect
@@ -29,16 +26,15 @@ import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.TopBarColor
 import presentation.ui.components.LexiconColumn
+import presentation.ui.overlay.LocalOverlayHost
 import presentation.util.shareContentAsFile
 import presentation.viewmodel.WordManagerViewModel
 import theme.Theme
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.delete
-import lexicon.resources.generated.resources.batch_edit_languages
+import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.deleting_words_please_wait
 import lexicon.resources.generated.resources.error_prefix
 import lexicon.resources.generated.resources.failed_to_update_word
-import lexicon.resources.generated.resources.no_words_selected
 import lexicon.resources.generated.resources.no_words_to_share
 import lexicon.resources.generated.resources.share_title_format
 import lexicon.resources.generated.resources.updating_words_please_wait
@@ -55,15 +51,14 @@ fun WordManagerScreen(
     val viewModel = koinViewModel<WordManagerViewModel>()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = LocalSnackbarHostState.current
-    val noWordsSelectedMessage = stringResource(Res.string.no_words_selected)
-    val coroutineScope = rememberCoroutineScope()
+    val overlayHost = LocalOverlayHost.current
 
     // Reset state when screen opens
     LaunchedEffect(Unit) {
         viewModel.resetState()
     }
 
-    // Handle Word Manager events (file sharing)
+    // Handle Word Manager events
     val shareTitleFormat = stringResource(Res.string.share_title_format)
     val noWordsToShare = stringResource(Res.string.no_words_to_share)
     val wordDeleted = stringResource(Res.string.word_deleted)
@@ -119,32 +114,30 @@ fun WordManagerScreen(
         }
     }
 
+    // Selection mode: show close icon in top bar; otherwise no action icons
+    val selectionModeCloseAction = if (state.isSelectionMode) {
+        ActionIconConfig(
+            icon = Icons.Default.Close,
+            contentDescription = stringResource(Res.string.cancel),
+            onClick = { viewModel.exitSelectionMode() },
+            tint = MaterialTheme.colorScheme.onSurface,
+            size = 28.dp
+        )
+    } else {
+        null
+    }
+
     LexiconColumn(
         title = stringResource(Res.string.word_manager),
         showNavigationIcon = true,
-        onNavigationClick = onNavigateBack,
-        actionIcon1 = ActionIconConfig(
-            icon = Icons.Default.Delete,
-            contentDescription = stringResource(Res.string.delete),
-            onClick = {
-                if (state.selectedCount > 0) {
-                    viewModel.showDeleteConfirmation()
-                } else {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(noWordsSelectedMessage)
-                    }
-                }
-            },
-            tint = MaterialTheme.colorScheme.error,
-            size = 28.dp
-        ),
-        actionIcon2 = if (state.selectedCount > 0) ActionIconConfig(
-            icon = Icons.Default.Language,
-            contentDescription = stringResource(Res.string.batch_edit_languages),
-            onClick = { viewModel.showBatchEditLanguages() },
-            tint = MaterialTheme.colorScheme.primary,
-            size = 28.dp
-        ) else null,
+        onNavigationClick = {
+            if (state.isSelectionMode) {
+                viewModel.exitSelectionMode()
+            } else {
+                onNavigateBack()
+            }
+        },
+        actionIcon1 = selectionModeCloseAction,
         scrollable = false,
         topBarColor = TopBarColor.Background
     ) {
@@ -164,10 +157,39 @@ fun WordManagerScreen(
                         onSearchQueryChange = viewModel::updateSearchQuery,
                         onClearSearch = viewModel::clearSearch,
                         onToggleSelection = viewModel::toggleWordSelection,
-                        onEdit = viewModel::startEditingWord,
+                        onOpenDetail = { word ->
+                            overlayHost.showWordDetailSheet(
+                                word = word,
+                                onEdit = { w ->
+                                    viewModel.openWordDetail(w)
+                                },
+                                onDelete = { w ->
+                                    viewModel.toggleWordSelection(w.id)
+                                    viewModel.showDeleteConfirmation()
+                                }
+                            )
+                        },
+                        onEnterSelectionMode = { wordId ->
+                            viewModel.enterSelectionMode()
+                            viewModel.toggleWordSelection(wordId)
+                        },
                         onSelectAll = viewModel::selectAll,
                         onDeselectAll = viewModel::deselectAll,
-                        onShareWords = viewModel::shareWords
+                        onShareWords = viewModel::shareWords,
+                        onSortOptionChange = viewModel::setSortOption,
+                        onFilterLanguageChange = viewModel::setFilterLanguage,
+                        onFilterLearningStageChange = viewModel::setFilterLearningStage,
+                        onDeleteSelected = {
+                            if (state.selectedCount > 0) {
+                                viewModel.showDeleteConfirmation()
+                            }
+                        },
+                        onBatchEditLanguages = {
+                            if (state.selectedCount > 0) {
+                                viewModel.showBatchEditLanguages()
+                            }
+                        },
+                        onExitSelectionMode = viewModel::exitSelectionMode
                     )
                 }
             }
@@ -197,7 +219,7 @@ fun WordManagerScreen(
                 }
             }
 
-            // Deletion overlay - prevents interaction and hides list updates
+            // Deletion overlay
             if (state.isDeletingWords) {
                 Box(
                     modifier = Modifier
@@ -223,11 +245,12 @@ fun WordManagerScreen(
             }
         }
     }
-    // Edit Word Dialog
-    if (state.editingWord != null) {
+
+    // Edit Word Dialog (triggered from detail sheet)
+    state.detailWord?.let { word ->
         EditWordDialog(
-            word = state.editingWord!!,
-            onDismiss = viewModel::cancelEditing,
+            word = word,
+            onDismiss = viewModel::closeWordDetail,
             onSave = viewModel::updateWord
         )
     }

@@ -8,5 +8,6 @@ data class ProfileUiData(
     val streak: StreakData?,
     val featureAccess: FeatureAccessResponse?,
     val isSubscriptionsEnabled: Boolean,
-    val shouldShowSubscriptionUI: Boolean
+    val shouldShowSubscriptionUI: Boolean,
+    val profileStats: ProfileStatsUiModel? = null
 )

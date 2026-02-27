@@ -37,7 +37,9 @@ import presentation.ui.overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.overlay.dialog.showDialog
 import presentation.ui.screens.review.ReviewBottomSheetContent
 import presentation.ui.screens.study.LearningStagesSection
+import presentation.ui.screens.study.ReviewActionSection
 import presentation.ui.screens.study.StatsSection
+import presentation.ui.screens.study.WordDistributionBar
 import presentation.utils.getTimeBasedGreeting
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
@@ -216,11 +218,18 @@ fun StudyScreen() {
                     }
 
                     StatsSection(
-                        stats = progressStats,
+                        stats = progressStats
+                    )
+
+                    ReviewActionSection(
+                        dueCards = progressStats.dueCards,
+                        totalWords = progressStats.totalWords,
                         onStartReview = {
                             viewModel.startReview()
                         }
                     )
+
+                    WordDistributionBar(stats = progressStats)
 
                     LearningStagesSection(
                         stats = progressStats,

@@ -1,6 +1,12 @@
 package presentation.ui.components.profile
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,11 +20,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import presentation.model.ProfileUserUiModel
 import theme.Theme
 
@@ -62,28 +73,88 @@ private fun ProfileAvatar(
     modifier: Modifier = Modifier
 ) {
     val initials = remember(name, email) { extractInitials(name, email) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+
+    // Breathing scale animation on the glow
+    val infiniteTransition = rememberInfiniteTransition(label = "avatarGlow")
+    val glowScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.06f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowScale"
+    )
 
     Box(
-        modifier = modifier
-            .size(Theme.dimensions.profilePictureSize)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer),
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        if (initials != null) {
-            Text(
-                text = initials,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSizeMassive),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+        // Radial glow behind avatar
+        Box(
+            modifier = Modifier
+                .size(160.dp)
+                .scale(glowScale)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            primaryColor.copy(alpha = 0.12f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                )
+        )
+
+        // Gradient border ring
+        Box(
+            modifier = Modifier
+                .size(126.dp)
+                .border(
+                    width = 2.dp,
+                    brush = Brush.linearGradient(
+                        listOf(
+                            primaryColor.copy(alpha = 0.4f),
+                            tertiaryColor.copy(alpha = 0.3f)
+                        )
+                    ),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            // Avatar circle with gradient background
+            Box(
+                modifier = Modifier
+                    .size(Theme.dimensions.profilePictureSize)
+                    .clip(CircleShape)
+                    .background(
+                        brush = Brush.linearGradient(
+                            listOf(
+                                primaryColor.copy(alpha = 0.15f),
+                                tertiaryColor.copy(alpha = 0.10f)
+                            )
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (initials != null) {
+                    Text(
+                        text = initials,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeMassive),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
         }
     }
 }

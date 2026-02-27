@@ -20,37 +20,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import domain.word.model.ProgressStats
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cards_waiting
+import lexicon.resources.generated.resources.total_words
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cards_due_for_review
-import lexicon.resources.generated.resources.total_words
 
 @Composable
 fun StatsSection(
     modifier: Modifier = Modifier,
-    stats: ProgressStats,
-    onStartReview: () -> Unit
+    stats: ProgressStats
 ) {
     val animatedTotal = rememberAnimatedCounter(target = stats.totalWords)
 
     // Weighted progress: each level contributes proportionally (Level N = N/6 of full mastery).
-    // This means every review session moves the needle — even early-stage words show progress.
-    // Formula: Σ(count_at_levelN × N) / (totalWords × 6)
     val progressFraction = if (stats.totalWords > 0) {
         val weightedScore = (
-            stats.level1Count * 1 +
-            stats.level2Count * 2 +
-            stats.level3Count * 3 +
-            stats.level4Count * 4 +
-            stats.level5Count * 5 +
-            stats.level6Count * 6
-        ).toFloat()
+                stats.level1Count * 1 +
+                        stats.level2Count * 2 +
+                        stats.level3Count * 3 +
+                        stats.level4Count * 4 +
+                        stats.level5Count * 5 +
+                        stats.level6Count * 6
+                ).toFloat()
         weightedScore / (stats.totalWords * 6f)
     } else 0f
 
@@ -61,22 +59,23 @@ fun StatsSection(
     )
 
     val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
     val trackColor = MaterialTheme.colorScheme.outlineVariant
 
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = Theme.spacing.sectionSpacing)
+            .padding(bottom = Theme.spacing.small)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Theme.spacing.medium),
+                .padding(Theme.spacing.small),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Circular arc progress ring with animated word count in the centre
+            // Circular arc progress ring with gradient brush
             Box(contentAlignment = Alignment.Center) {
-                Canvas(modifier = Modifier.size(168.dp)) {
+                Canvas(modifier = Modifier.size(152.dp)) {
                     val strokeWidth = 14.dp.toPx()
                     val diameter = size.minDimension - strokeWidth
                     val topLeft = Offset(
@@ -96,10 +95,12 @@ fun StatsSection(
                         style = Stroke(strokeWidth, cap = StrokeCap.Round)
                     )
 
-                    // Mastery progress
+                    // Gradient mastery progress
                     if (animatedMastery > 0f) {
                         drawArc(
-                            color = primaryColor,
+                            brush = Brush.sweepGradient(
+                                colors = listOf(primaryColor, tertiaryColor, primaryColor)
+                            ),
                             startAngle = 135f,
                             sweepAngle = 270f * animatedMastery,
                             useCenter = false,
@@ -125,7 +126,7 @@ fun StatsSection(
                 }
             }
 
-            // Weighted progress label — visible from the very first study session
+            // Weighted progress label
             if (stats.totalWords > 0) {
                 val progressPercent = (progressFraction * 100).toInt()
                 Spacer(Modifier.height(Theme.spacing.extraSmall3))
@@ -136,20 +137,17 @@ fun StatsSection(
                 )
             }
 
-            // Due cards info
-            if (stats.dueCards > 0) {
-                Spacer(Modifier.height(Theme.spacing.extraSmall2))
-                Text(
-                    text = stringResource(Res.string.cards_due_for_review, stats.dueCards),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Spacer(Modifier.height(Theme.spacing.extraSmall2))
+            when {
+                stats.dueCards > 0 -> {
+                    Text(
+                        text = stringResource(Res.string.cards_waiting, stats.dueCards),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-
-            ReviewActionSection(
-                hasDueCards = stats.dueCards > 0,
-                onStartReview = onStartReview
-            )
         }
     }
 }
