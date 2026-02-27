@@ -215,10 +215,10 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
 
     if (state.showLanguageConfirmation) {
         ImportLanguageConfirmationDialog(
-            sourceLanguage = state.sourceLanguage,
-            targetLanguage = state.targetLanguage,
-            onSourceLanguageSelected = viewModel::selectSourceLanguage,
-            onTargetLanguageSelected = viewModel::selectTargetLanguage,
+            sourceLanguage = state.targetLanguage,
+            targetLanguage = state.sourceLanguage,
+            onSourceLanguageSelected = viewModel::selectTargetLanguage,
+            onTargetLanguageSelected = viewModel::selectSourceLanguage,
             onConfirm = viewModel::confirmImport,
             onDismiss = viewModel::dismissLanguageConfirmation
         )

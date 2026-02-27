@@ -12,15 +12,21 @@ import org.koin.dsl.module
 fun networkModule(backendUrl: String) = module {
 
     // HTTP Interceptors
-    single<AuthInterceptor> { AuthInterceptor(tokenManager = get()) }
     single<ErrorInterceptor> { ErrorInterceptor() }
 
     // HttpClient Singleton with interceptors
     single<HttpClient> {
         val scope = this
+        val tokenRefreshManagerProvider: () -> ITokenRefreshManager = { scope.get() }
+
+        val authInterceptor = AuthInterceptor(
+            tokenManager = get(),
+            tokenRefreshManagerProvider = tokenRefreshManagerProvider
+        )
+
         HttpClientProvider.createHttpClient(
-            authInterceptor = get(),
-            tokenRefreshManagerProvider = { scope.get<ITokenRefreshManager>() },
+            authInterceptor = authInterceptor,
+            tokenRefreshManagerProvider = tokenRefreshManagerProvider,
             errorInterceptor = get()
         )
     }

@@ -43,10 +43,19 @@ class AndroidSecureStorage(context: Context) : SecureStorage {
         sharedPreferences.edit {
             remove(KEY_ACCESS_TOKEN)
                 .remove(KEY_REFRESH_TOKEN)
+                .remove(KEY_TOKEN_EXPIRES_AT)
                 .remove(KEY_DAILY_INSIGHT_ID)
                 .remove(KEY_DAILY_INSIGHT_DATE)
                 .remove(KEY_DAILY_INSIGHT_TIMESTAMP)
         }
+    }
+
+    override suspend fun saveTokenExpiresAt(expiresAtMs: Long) {
+        sharedPreferences.edit { putLong(KEY_TOKEN_EXPIRES_AT, expiresAtMs) }
+    }
+
+    override fun getTokenExpiresAt(): Long {
+        return sharedPreferences.getLong(KEY_TOKEN_EXPIRES_AT, 0L)
     }
     
     override suspend fun storeDailyInsightData(insightId: String, date: String, timestamp: Long) {
@@ -88,6 +97,7 @@ class AndroidSecureStorage(context: Context) : SecureStorage {
     companion object {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
+        private const val KEY_TOKEN_EXPIRES_AT = "token_expires_at"
         private const val KEY_DAILY_INSIGHT_ID = "daily_insight_id"
         private const val KEY_DAILY_INSIGHT_DATE = "daily_insight_date"
         private const val KEY_DAILY_INSIGHT_TIMESTAMP = "daily_insight_timestamp"

@@ -85,9 +85,18 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
     override suspend fun clearTokens() {
         keychainHelper.delete(KEY_ACCESS_TOKEN)
         keychainHelper.delete(KEY_REFRESH_TOKEN)
+        preferencesHelper.remove(KEY_TOKEN_EXPIRES_AT)
         preferencesHelper.remove(KEY_DAILY_INSIGHT_ID)
         preferencesHelper.remove(KEY_DAILY_INSIGHT_DATE)
         preferencesHelper.remove(KEY_DAILY_INSIGHT_TIMESTAMP)
+    }
+
+    override suspend fun saveTokenExpiresAt(expiresAtMs: Long) {
+        preferencesHelper.putLong(KEY_TOKEN_EXPIRES_AT, expiresAtMs)
+    }
+
+    override fun getTokenExpiresAt(): Long {
+        return preferencesHelper.getLong(KEY_TOKEN_EXPIRES_AT)
     }
     
     override suspend fun storeDailyInsightData(
@@ -141,6 +150,7 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
 
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
+        private const val KEY_TOKEN_EXPIRES_AT = "token_expires_at"
         private const val KEY_DAILY_INSIGHT_ID = "daily_insight_id"
         private const val KEY_DAILY_INSIGHT_DATE = "daily_insight_date"
         private const val KEY_DAILY_INSIGHT_TIMESTAMP = "daily_insight_timestamp"
