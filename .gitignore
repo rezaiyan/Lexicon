@@ -17,7 +17,7 @@ GoogleService-Info.plist
 *.p12
 *.jks
 *.keystore
-keystore.jks
+composeApp/keystore.jks
 *-service-account*.json
 vokab-*.json
 fastlane/*.xml
