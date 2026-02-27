@@ -155,6 +155,10 @@
     <string name="processing_file">正在处理文件...</string>
     <string name="enter_words">输入单词</string>
     <string name="import_from_image">从图像导入 (AI)</string>
+    <string name="add_a_word">添加单词</string>
+    <string name="add_word_description">逐个添加词汇，包含翻译和可选描述</string>
+    <string name="add_word">添加</string>
+    <string name="words_added_count">已添加 %1$d 个单词</string>
     <string name="show_format_info">显示格式信息</string>
     <string name="hide_format_info">隐藏格式信息</string>
     <string name="import_text">导入文本</string>

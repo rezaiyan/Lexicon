@@ -155,6 +155,10 @@
     <string name="processing_file">Datei wird verarbeitet...</string>
     <string name="enter_words">Wörter eingeben</string>
     <string name="import_from_image">Aus Bild importieren (KI)</string>
+    <string name="add_a_word">Wort hinzufügen</string>
+    <string name="add_word_description">Vokabeln einzeln mit Übersetzung und optionaler Beschreibung hinzufügen</string>
+    <string name="add_word">Hinzufügen</string>
+    <string name="words_added_count">%1$d Wörter hinzugefügt</string>
     <string name="show_format_info">Formatinformationen anzeigen</string>
     <string name="hide_format_info">Formatinformationen ausblenden</string>
     <string name="import_text">Text importieren</string>

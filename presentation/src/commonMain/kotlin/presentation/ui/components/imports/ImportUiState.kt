@@ -18,17 +18,21 @@ data class ImportUiState(
 )
 
 sealed class PendingImportAction {
-    data class Text(val text: String) : PendingImportAction()
     data class File(val content: String, val fileName: String?) : PendingImportAction()
 }
 
 @Stable
 data class TextInputState(
-    val text: String = "",
+    val word: String = "",
+    val translation: String = "",
+    val description: String = "",
     val isEnabled: Boolean = true,
+    val wordsAddedCount: Int = 0,
+    val showSuccessIndicator: Boolean = false,
+    val errorMessage: String? = null,
 ) {
-    val isImportEnabled: Boolean
-        get() = text.isNotBlank() && isEnabled
+    val isAddEnabled: Boolean
+        get() = word.isNotBlank() && translation.isNotBlank() && isEnabled
 }
 
 enum class ExtractionOption { Word, Sentence }

@@ -154,6 +154,10 @@
     <string name="processing_file">در حال پردازش فایل...</string>
     <string name="enter_words">کلمات را وارد کنید</string>
     <string name="import_from_image">وارد کردن از تصویر (هوش مصنوعی)</string>
+    <string name="add_a_word">افزودن کلمه</string>
+    <string name="add_word_description">کلمات واژگان را یکی یکی با ترجمه و توضیحات اختیاری اضافه کنید</string>
+    <string name="add_word">افزودن</string>
+    <string name="words_added_count">%1$d کلمه اضافه شد</string>
     <string name="show_format_info">نمایش اطلاعات فرمت</string>
     <string name="hide_format_info">مخفی کردن اطلاعات فرمت</string>
     <string name="import_text">وارد کردن متن</string>

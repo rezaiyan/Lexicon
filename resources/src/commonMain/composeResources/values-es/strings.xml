@@ -155,6 +155,10 @@
     <string name="processing_file">Procesando archivo...</string>
     <string name="enter_words">Ingrese palabras</string>
     <string name="import_from_image">Importar desde imagen (IA)</string>
+    <string name="add_a_word">Agregar una Palabra</string>
+    <string name="add_word_description">Agrega palabras de vocabulario una a la vez con traducción y descripción opcional</string>
+    <string name="add_word">Agregar Palabra</string>
+    <string name="words_added_count">%1$d palabras agregadas</string>
     <string name="show_format_info">Mostrar información de formato</string>
     <string name="hide_format_info">Ocultar información de formato</string>
     <string name="import_text">Importar texto</string>

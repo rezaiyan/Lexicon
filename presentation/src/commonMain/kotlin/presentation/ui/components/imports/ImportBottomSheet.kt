@@ -62,6 +62,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -130,6 +131,21 @@ import lexicon.resources.generated.resources.translation_language
 import lexicon.resources.generated.resources.try_another_image
 import lexicon.resources.generated.resources.txt_format
 import lexicon.resources.generated.resources.type_or_paste_words
+import lexicon.resources.generated.resources.add_a_word
+import lexicon.resources.generated.resources.add_word_description
+import lexicon.resources.generated.resources.add_word
+import lexicon.resources.generated.resources.words_added_count
+import lexicon.resources.generated.resources.original_word
+import lexicon.resources.generated.resources.translation_label
+import lexicon.resources.generated.resources.description_optional
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 
 @Composable
 fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
@@ -142,11 +158,8 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
 
     OnEvents(viewModel.events) { event ->
         when (event) {
-            is ImportEvent.TextImportSuccessful -> {
-                val pattern = "%1" + '$' + "d"
-                val message = latestSuccessFormat.value.replace(pattern, event.count.toString())
-                onShowSnackBar(message)
-                onDismiss()
+            is ImportEvent.WordAddedSuccessfully -> {
+                // Do NOT dismiss — sheet stays open for adding more words
             }
 
             is ImportEvent.FileImportSuccessful -> {
@@ -201,8 +214,14 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
                 textInputState = state.textInputState,
                 fileImportState = state.fileImportState,
                 imageImportState = state.imageImportState,
-                onTextChange = viewModel::updateTextEntry,
-                onImport = viewModel::importText,
+                sourceLanguage = state.sourceLanguage,
+                targetLanguage = state.targetLanguage,
+                onWordChange = viewModel::updateWord,
+                onTranslationChange = viewModel::updateTranslation,
+                onDescriptionChange = viewModel::updateDescription,
+                onAddWord = viewModel::addWord,
+                onSourceLanguageSelected = viewModel::selectSourceLanguage,
+                onTargetLanguageSelected = viewModel::selectTargetLanguage,
                 importFile = viewModel::importFile,
                 onSelectImage = viewModel::selectImage,
                 onClearSelectedImage = viewModel::clearSelectedImage,
@@ -317,15 +336,21 @@ private fun TabContainer(
     textInputState: TextInputState,
     fileImportState: ImportFileState,
     imageImportState: ImageImportState,
+    sourceLanguage: Language,
+    targetLanguage: Language,
     modifier: Modifier,
-    onTextChange: (String) -> Unit,
+    onWordChange: (String) -> Unit,
+    onTranslationChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onAddWord: () -> Unit,
+    onSourceLanguageSelected: (Language) -> Unit,
+    onTargetLanguageSelected: (Language) -> Unit,
     importFile: (String, String?) -> Unit,
     onSelectImage: (ByteArray) -> Unit,
     onClearSelectedImage: () -> Unit,
     onUpdateExtractionOptions: (List<ExtractionOption>) -> Unit,
     onImportImage: () -> Unit,
     onDismiss: () -> Unit,
-    onImport: () -> Unit,
 ) {
     val isLoading = fileImportState is ImportFileState.Loading
     val isEnabled = fileImportState !is ImportFileState.Loading
@@ -345,9 +370,14 @@ private fun TabContainer(
             when (selectedTab) {
                 is ImportTabV2.Text -> TextTab(
                     textInputState = textInputState,
-                    onTextChange = onTextChange,
-                    onDismiss = onDismiss,
-                    onImport = onImport,
+                    sourceLanguage = sourceLanguage,
+                    targetLanguage = targetLanguage,
+                    onWordChange = onWordChange,
+                    onTranslationChange = onTranslationChange,
+                    onDescriptionChange = onDescriptionChange,
+                    onAddWord = onAddWord,
+                    onSourceLanguageSelected = onSourceLanguageSelected,
+                    onTargetLanguageSelected = onTargetLanguageSelected,
                 )
 
                 is ImportTabV2.File -> FileTab(
@@ -443,11 +473,30 @@ private fun TabContainer(
 @Composable
 private fun TextTab(
     textInputState: TextInputState,
-    onTextChange: (String) -> Unit,
-    onImport: () -> Unit,
-    onDismiss: () -> Unit,
+    sourceLanguage: Language,
+    targetLanguage: Language,
+    onWordChange: (String) -> Unit,
+    onTranslationChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onAddWord: () -> Unit,
+    onSourceLanguageSelected: (Language) -> Unit,
+    onTargetLanguageSelected: (Language) -> Unit,
 ) {
-    val isImportEnabled by derivedStateOf { textInputState.isImportEnabled }
+    val isAddEnabled by derivedStateOf { textInputState.isAddEnabled }
+    val wordFocusRequester = remember { FocusRequester() }
+    val translationFocusRequester = remember { FocusRequester() }
+    val descriptionFocusRequester = remember { FocusRequester() }
+    var showSourceLanguagePicker by remember { mutableStateOf(false) }
+    var showTargetLanguagePicker by remember { mutableStateOf(false) }
+    var previousWordsAdded by remember { mutableStateOf(textInputState.wordsAddedCount) }
+
+    // Auto-focus word field after successful add
+    LaunchedEffect(textInputState.wordsAddedCount) {
+        if (textInputState.wordsAddedCount > previousWordsAdded) {
+            wordFocusRequester.requestFocus()
+        }
+        previousWordsAdded = textInputState.wordsAddedCount
+    }
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -459,65 +508,218 @@ private fun TextTab(
                 .verticalScroll(rememberScrollState())
         ) {
             InfoCard(
-                title = stringResource(Res.string.type_or_paste_words),
-                description = stringResource(Res.string.enter_words_manually_description),
+                title = stringResource(Res.string.add_a_word),
+                description = stringResource(Res.string.add_word_description),
                 icon = Icons.Filled.Edit
             )
 
             Spacer(modifier = Modifier.height(Theme.spacing.cardSpacing))
 
+            // Inline language selectors
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)
+            ) {
+                CompactLanguageSelector(
+                    label = stringResource(Res.string.original_language),
+                    language = sourceLanguage,
+                    onClick = { showSourceLanguagePicker = true },
+                    modifier = Modifier.weight(1f)
+                )
+                CompactLanguageSelector(
+                    label = stringResource(Res.string.translation_language),
+                    language = targetLanguage,
+                    onClick = { showTargetLanguagePicker = true },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(Theme.spacing.cardSpacing))
+
             OutlinedTextField(
-                value = textInputState.text,
-                onValueChange = onTextChange,
-                label = { Text(stringResource(Res.string.enter_words)) },
-                placeholder = {
-                    Text(
-                        "hello,hola\ngoodbye,adiós\nthanks,gracias",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
+                value = textInputState.word,
+                onValueChange = onWordChange,
+                label = { Text(stringResource(Res.string.original_word)) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 200.dp, max = 350.dp),
-                minLines = 8,
+                    .focusRequester(wordFocusRequester),
+                singleLine = true,
                 enabled = textInputState.isEnabled,
-                supportingText = {
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = { translationFocusRequester.requestFocus() }
+                )
+            )
+
+            Spacer(modifier = Modifier.height(Theme.spacing.extraSmall2))
+
+            OutlinedTextField(
+                value = textInputState.translation,
+                onValueChange = onTranslationChange,
+                label = { Text(stringResource(Res.string.translation_label)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(translationFocusRequester),
+                singleLine = true,
+                enabled = textInputState.isEnabled,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(
+                    onNext = { descriptionFocusRequester.requestFocus() }
+                )
+            )
+
+            Spacer(modifier = Modifier.height(Theme.spacing.extraSmall2))
+
+            OutlinedTextField(
+                value = textInputState.description,
+                onValueChange = onDescriptionChange,
+                label = { Text(stringResource(Res.string.description_optional)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(descriptionFocusRequester),
+                singleLine = true,
+                enabled = textInputState.isEnabled,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = { if (isAddEnabled) onAddWord() }
+                )
+            )
+
+            // Session counter with animated checkmark
+            AnimatedVisibility(
+                visible = textInputState.wordsAddedCount > 0,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = Theme.spacing.cardSpacing),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    AnimatedVisibility(
+                        visible = textInputState.showSuccessIndicator,
+                        enter = fadeIn() + scaleIn(initialScale = 0.5f),
+                        exit = fadeOut()
+                    ) {
+                        Icon(
+                            Icons.Filled.Check,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .padding(end = 4.dp)
+                        )
+                    }
+                    val countText = stringResource(Res.string.words_added_count)
+                    val pattern = "%1" + '$' + "d"
                     Text(
-                        stringResource(Res.string.format_hint_comma_separated),
-                        style = MaterialTheme.typography.bodySmall
+                        text = countText.replace(pattern, textInputState.wordsAddedCount.toString()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
                     )
                 }
-            )
+            }
+
+            // Inline error message
+            AnimatedVisibility(
+                visible = textInputState.errorMessage != null,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Text(
+                    text = textInputState.errorMessage.orEmpty(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = Theme.spacing.extraSmall2)
+                )
+            }
 
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
         }
 
-        Row(
+        Button(
+            onClick = onAddWord,
+            enabled = isAddEnabled,
             modifier = Modifier
                 .fillMaxWidth()
-                .imePadding(),
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)
+                .imePadding()
         ) {
-            OutlinedButton(
-                onClick = onDismiss,
-                modifier = Modifier.weight(1f),
-                enabled = textInputState.isEnabled
-            ) {
-                Text(stringResource(Res.string.cancel))
+            Icon(
+                Icons.Filled.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(Theme.spacing.extraSmall3))
+            Text(stringResource(Res.string.add_word))
+        }
+    }
+
+    if (showSourceLanguagePicker) {
+        LanguageSelectionDialog(
+            currentLanguage = sourceLanguage,
+            onDismiss = { showSourceLanguagePicker = false },
+            onLanguageSelected = { language ->
+                onSourceLanguageSelected(language)
+                showSourceLanguagePicker = false
             }
-            Button(
-                onClick = onImport,
-                enabled = isImportEnabled,
-                modifier = Modifier.weight(1f)
+        )
+    }
+
+    if (showTargetLanguagePicker) {
+        LanguageSelectionDialog(
+            currentLanguage = targetLanguage,
+            onDismiss = { showTargetLanguagePicker = false },
+            onLanguageSelected = { language ->
+                onTargetLanguageSelected(language)
+                showTargetLanguagePicker = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun CompactLanguageSelector(
+    label: String,
+    language: Language,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Theme.spacing.cardSpacing, vertical = Theme.spacing.extraSmall2)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    Icons.Filled.Upload,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                Text(
+                    text = language.nativeName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(Theme.spacing.extraSmall3))
-                Text(stringResource(Res.string.import_text))
+                Icon(
+                    Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

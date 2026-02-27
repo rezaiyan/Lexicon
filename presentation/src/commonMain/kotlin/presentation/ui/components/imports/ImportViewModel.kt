@@ -105,11 +105,85 @@ class ImportViewModel(
         }
     }
 
-
-    fun updateTextEntry(text: String) {
+    fun updateWord(word: String) {
         _state = _state.copy(
-            textInputState = _state.textInputState.copy(text = text)
+            textInputState = _state.textInputState.copy(
+                word = word,
+                errorMessage = null
+            )
         )
+    }
+
+    fun updateTranslation(translation: String) {
+        _state = _state.copy(
+            textInputState = _state.textInputState.copy(
+                translation = translation,
+                errorMessage = null
+            )
+        )
+    }
+
+    fun updateDescription(description: String) {
+        _state = _state.copy(
+            textInputState = _state.textInputState.copy(
+                description = description,
+                errorMessage = null
+            )
+        )
+    }
+
+    fun addWord() {
+        val textState = _state.textInputState
+        val word = textState.word.trim().replace(",", " ")
+        val translation = textState.translation.trim().replace(",", " ")
+        val description = textState.description.trim().replace(",", " ")
+
+        if (word.isBlank() || translation.isBlank()) return
+
+        val csvLine = if (description.isNotBlank()) {
+            "$word,$translation,$description"
+        } else {
+            "$word,$translation"
+        }
+
+        _state = _state.copy(
+            textInputState = textState.copy(isEnabled = false, errorMessage = null)
+        )
+
+        viewModelScope.launch {
+            withContext(Dispatchers.Default) {
+                importWordsUseCase.execute(
+                    csvLine,
+                    _state.sourceLanguage,
+                    _state.targetLanguage
+                ).fold(
+                    onSuccess = { count ->
+                        val newCount = _state.textInputState.wordsAddedCount + count
+                        _state = _state.copy(
+                            textInputState = TextInputState(
+                                wordsAddedCount = newCount,
+                                showSuccessIndicator = true,
+                            )
+                        )
+                        _events.send(ImportEvent.WordAddedSuccessfully(count))
+                        delay(1500)
+                        _state = _state.copy(
+                            textInputState = _state.textInputState.copy(
+                                showSuccessIndicator = false
+                            )
+                        )
+                    },
+                    onFailure = { error ->
+                        _state = _state.copy(
+                            textInputState = _state.textInputState.copy(
+                                isEnabled = true,
+                                errorMessage = error.message ?: "Failed to add word"
+                            )
+                        )
+                    }
+                )
+            }
+        }
     }
 
     fun selectImage(imageBytes: ByteArray) {
@@ -136,16 +210,6 @@ class ImportViewModel(
             else -> _state.tabs.filterIsInstance<ImportTabV2.Image>().firstOrNull() ?: selected
         }
         _state = _state.copy(tabs = updatedTabs, selectedTab = updatedSelected)
-    }
-
-    fun importText() {
-        val text = _state.textInputState.text
-        if (text.isNotBlank()) {
-            _state = _state.copy(
-                showLanguageConfirmation = true,
-                pendingImportAction = PendingImportAction.Text(text)
-            )
-        }
     }
 
     fun importImage() {
@@ -219,26 +283,6 @@ class ImportViewModel(
         )
 
         when (pendingAction) {
-            is PendingImportAction.Text -> {
-                viewModelScope.launch {
-                    withContext(Dispatchers.Default) {
-                        importWordsUseCase.execute(
-                            pendingAction.text,
-                            sourceLanguage,
-                            targetLanguage
-                        ).fold(
-                            onSuccess = { count ->
-                                updateTextEntry("")
-                                _events.send(ImportEvent.TextImportSuccessful(count))
-                            },
-                            onFailure = { error ->
-                                _events.send(ImportEvent.Error(error.message ?: "Import failed"))
-                            }
-                        )
-                    }
-                }
-            }
-
             is PendingImportAction.File -> {
                 viewModelScope.launch {
                     _state = _state.copy(fileImportState = ImportFileState.Loading)
