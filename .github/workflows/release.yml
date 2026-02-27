@@ -192,13 +192,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download Android APK
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-apk
           path: ./android
 
       - name: Download iOS IPA
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa
           path: ./ios
