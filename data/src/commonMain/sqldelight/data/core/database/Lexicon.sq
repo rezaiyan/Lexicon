@@ -84,6 +84,9 @@ DELETE FROM WordEntity WHERE id = ?;
 deleteWords:
 DELETE FROM WordEntity WHERE id IN ?;
 
+updateWordLanguages:
+UPDATE WordEntity SET sourceLanguage = ?, targetLanguage = ? WHERE id IN ?;
+
 updateWordContent:
 UPDATE WordEntity SET originalWord = ?, translation = ?, description = ? WHERE id = ?;
 

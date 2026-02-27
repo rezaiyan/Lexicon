@@ -35,6 +35,7 @@ interface IWordLocalDataSource {
     suspend fun updateWord(word: Word)
     suspend fun deleteWord(id: Int)
     suspend fun deleteWords(ids: List<Int>): Int
+    suspend fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Int
     suspend fun getAllWordsOnce(): List<WordEntity>
     fun getProgressStats(currentTime: Long): Flow<ProgressStats>
     suspend fun getTotalCount(): Int
@@ -135,15 +136,21 @@ class WordLocalDataSource(
     }
 
     override suspend fun deleteWords(ids: List<Int>): Int {
+        if (ids.isEmpty()) return 0
         val longIds = ids.map { it.toLong() }
-        var deletedCount = 0
-        queries.transaction {
-            longIds.forEach { id ->
-                queries.deleteWord(id)
-                deletedCount++
-            }
-        }
-        return deletedCount
+        queries.deleteWords(longIds)
+        return ids.size
+    }
+
+    override suspend fun updateWordsLanguages(
+        ids: List<Int>,
+        sourceLanguage: String,
+        targetLanguage: String
+    ): Int {
+        if (ids.isEmpty()) return 0
+        val longIds = ids.map { it.toLong() }
+        queries.updateWordLanguages(sourceLanguage, targetLanguage, longIds)
+        return ids.size
     }
 
     override suspend fun getAllWordsOnce(): List<WordEntity> {

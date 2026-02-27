@@ -18,6 +18,7 @@ import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
 import domain.word.service.ImportValidationService
 import domain.word.usecase.DeleteWordUseCase
+import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
 import domain.word.usecase.GetAllWordsUseCase
@@ -78,6 +79,7 @@ fun wordModule() = module {
     // Use Cases - Word Management
     singleOf(::GetAllWordsUseCase)
     singleOf(::DeleteWordUseCase)
+    singleOf(::BatchUpdateLanguagesUseCase)
     singleOf(::DeleteWordsUseCase)
     singleOf(::UpdateWordUseCase)
     singleOf(::ExportWordsUseCase)

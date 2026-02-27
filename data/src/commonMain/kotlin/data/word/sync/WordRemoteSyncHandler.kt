@@ -3,12 +3,12 @@ package data.word.sync
 import data.core.network.error.AuthenticationException
 import data.core.network.error.NetworkErrorHandler
 import data.word.remote.WordRemoteDataSource
+import data.word.remote.model.BatchUpdateLanguagesRequest
 import data.word.remote.model.RemoteWord
 import domain.auth.repository.IAuthRepository
 import domain.common.Try
 import domain.common.map
 import domain.word.model.Word
-import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -17,6 +17,11 @@ interface IWordRemoteSyncHandler {
     suspend fun syncWordUpdateToRemote(id: Long, word: Word): Try<Unit>
     suspend fun syncWordDeletionToRemote(id: Long): Try<Unit>
     suspend fun syncWordsDeletionToRemote(ids: List<Long>): Try<Unit>
+    suspend fun syncBatchLanguageUpdateToRemote(
+        ids: List<Long>,
+        sourceLanguage: String?,
+        targetLanguage: String?
+    ): Try<Unit>
     suspend fun syncFromRemote(): Try<List<RemoteWord>>
 }
 
@@ -72,7 +77,31 @@ class WordRemoteSyncHandler(
     override suspend fun syncWordsDeletionToRemote(ids: List<Long>): Try<Unit> {
         if (ids.isEmpty()) return Try.success(Unit)
 
-        val result = wordRemoteDataSource.deleteWords(ids).first()
+        val result = wordRemoteDataSource.deleteWords(ids)
+
+        return NetworkErrorHandler.handleResult(
+            result = result,
+            authRepository = authRepository,
+            onError = { error ->
+                if (error !is AuthenticationException) {
+                }
+            }
+        )
+    }
+
+    override suspend fun syncBatchLanguageUpdateToRemote(
+        ids: List<Long>,
+        sourceLanguage: String?,
+        targetLanguage: String?
+    ): Try<Unit> {
+        if (ids.isEmpty()) return Try.success(Unit)
+
+        val request = BatchUpdateLanguagesRequest(
+            ids = ids,
+            sourceLanguage = sourceLanguage,
+            targetLanguage = targetLanguage
+        )
+        val result = wordRemoteDataSource.batchUpdateLanguages(request)
 
         return NetworkErrorHandler.handleResult(
             result = result,

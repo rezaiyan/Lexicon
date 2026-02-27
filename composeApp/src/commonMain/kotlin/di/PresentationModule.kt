@@ -122,6 +122,7 @@ fun presentationModule() = module {
         WordManagerViewModel(
             getAllWordsUseCase = get(),
             deleteWordsUseCase = get(),
+            batchUpdateLanguagesUseCase = get(),
             updateWordUseCase = get(),
             exportWordsUseCase = get(),
             getFeatureAccessUseCase = get(),

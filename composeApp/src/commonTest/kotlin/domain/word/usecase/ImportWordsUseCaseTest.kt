@@ -7,12 +7,14 @@ import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.repository.IWordRepository
 import domain.word.repository.DeleteWordsProgress
+import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.service.ImportValidationService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import utils.Language
@@ -408,6 +410,8 @@ internal class FakeWordRepositoryForImport : IWordRepository {
     override suspend fun getTotalCount(): Int = insertedWords.size
 
     override suspend fun getDueCount(): Int = 0
+
+    override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
 }
 
 internal class FakeSettingsRepositoryForImport : ISettingsRepository {

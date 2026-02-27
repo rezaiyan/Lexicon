@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,16 +34,19 @@ import presentation.viewmodel.WordManagerViewModel
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.delete
+import lexicon.resources.generated.resources.batch_edit_languages
 import lexicon.resources.generated.resources.deleting_words_please_wait
 import lexicon.resources.generated.resources.error_prefix
 import lexicon.resources.generated.resources.failed_to_update_word
 import lexicon.resources.generated.resources.no_words_selected
 import lexicon.resources.generated.resources.no_words_to_share
 import lexicon.resources.generated.resources.share_title_format
+import lexicon.resources.generated.resources.updating_words_please_wait
 import lexicon.resources.generated.resources.word_deleted
 import lexicon.resources.generated.resources.word_manager
 import lexicon.resources.generated.resources.word_updated
 import lexicon.resources.generated.resources.words_deleted
+import lexicon.resources.generated.resources.words_language_updated
 
 @Composable
 fun WordManagerScreen(
@@ -65,6 +69,7 @@ fun WordManagerScreen(
     val wordDeleted = stringResource(Res.string.word_deleted)
     val wordsDeletedFormat = stringResource(Res.string.words_deleted)
     val wordUpdated = stringResource(Res.string.word_updated)
+    val wordsLanguageUpdatedFormat = stringResource(Res.string.words_language_updated)
     val failedToUpdateWord = stringResource(Res.string.failed_to_update_word)
     val errorPrefix = stringResource(Res.string.error_prefix)
 
@@ -96,6 +101,14 @@ fun WordManagerScreen(
                     snackbarHostState.showSnackbar(wordUpdated)
                 }
 
+                is WordManagerEffect.WordsLanguageUpdated -> {
+                    val pattern = "%1" + '$' + "d"
+                    val message = wordsLanguageUpdatedFormat.replace(
+                        pattern, event.count.toString()
+                    )
+                    snackbarHostState.showSnackbar(message)
+                }
+
                 is WordManagerEffect.Error -> {
                     val errorMsg = event.message.ifEmpty {
                         failedToUpdateWord
@@ -125,6 +138,13 @@ fun WordManagerScreen(
             tint = MaterialTheme.colorScheme.error,
             size = 28.dp
         ),
+        actionIcon2 = if (state.selectedCount > 0) ActionIconConfig(
+            icon = Icons.Default.Language,
+            contentDescription = stringResource(Res.string.batch_edit_languages),
+            onClick = { viewModel.showBatchEditLanguages() },
+            tint = MaterialTheme.colorScheme.primary,
+            size = 28.dp
+        ) else null,
         scrollable = false,
         topBarColor = TopBarColor.Background
     ) {
@@ -149,6 +169,31 @@ fun WordManagerScreen(
                         onDeselectAll = viewModel::deselectAll,
                         onShareWords = viewModel::shareWords
                     )
+                }
+            }
+
+            // Batch language update overlay
+            if (state.isBatchUpdatingLanguages) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp),
+                            strokeWidth = 4.dp
+                        )
+                        Text(
+                            text = stringResource(Res.string.updating_words_please_wait),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
 
@@ -194,6 +239,30 @@ fun WordManagerScreen(
             count = state.selectedWordIds.size,
             onConfirm = viewModel::deleteSelectedWords,
             onDismiss = viewModel::hideDeleteConfirmation
+        )
+    }
+
+    // Batch Edit Languages Dialog
+    if (state.showBatchEditLanguages) {
+        val selectedWords = state.words.filter { state.selectedWordIds.contains(it.id) }
+        val mostCommonSource = selectedWords
+            .groupingBy { it.sourceLanguage }
+            .eachCount()
+            .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
+        val mostCommonTarget = selectedWords
+            .groupingBy { it.targetLanguage }
+            .eachCount()
+            .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
+
+        BatchEditLanguagesDialog(
+            isUpdating = state.isBatchUpdatingLanguages,
+            count = state.selectedWordIds.size,
+            initialSourceLanguage = mostCommonSource,
+            initialTargetLanguage = mostCommonTarget,
+            onConfirm = { source, target ->
+                viewModel.batchUpdateLanguages(source, target)
+            },
+            onDismiss = viewModel::hideBatchEditLanguages
         )
     }
 }

@@ -10,6 +10,8 @@ data class WordManagerScreenState(
     val isUserSubscribed: Boolean = false,
     val isLoading: Boolean = false,
     val isDeletingWords: Boolean = false,
+    val isBatchUpdatingLanguages: Boolean = false,
+    val showBatchEditLanguages: Boolean = false,
     val searchQuery: String = "",
     val isMultiSelectMode: Boolean = false,
     val selectedWordIds: Set<Int> = emptySet(),
@@ -55,6 +57,7 @@ data class WordManagerScreenState(
 sealed class WordManagerEffect {
     data class WordDeleted(val count: Int) : WordManagerEffect()
     data class WordUpdated(val word: Word) : WordManagerEffect()
+    data class WordsLanguageUpdated(val count: Int) : WordManagerEffect()
     data class WordsShared(val count: Int, val text: String, val timestamp: Long) : WordManagerEffect()
     data object ShareFailed : WordManagerEffect()
     data class Error(val message: String) : WordManagerEffect()

@@ -1,12 +1,11 @@
 package data.word.remote
 
 import data.core.network.client.ApiClient
+import data.word.remote.model.BatchUpdateLanguagesRequest
 import data.word.remote.model.RemoteWord
 import data.word.remote.model.UpsertWordsPayload
 import domain.common.Try
 import domain.common.map
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 /**
  * Remote data source for word operations
@@ -35,17 +34,19 @@ class WordRemoteDataSource(
     suspend fun deleteWord(id: Long): Try<Unit> =
         apiClient.delete("/words/$id")
 
-    fun deleteWords(ids: List<Long>): Flow<Try<Unit>> =
+    suspend fun deleteWords(ids: List<Long>): Try<Unit> =
         if (ids.isEmpty()) {
-            flow { emit(Try.success(Unit)) }
+            Try.success(Unit)
         } else {
-            flow {
-                emit(
-                    apiClient.postUnit(
-                        path = "/words/batch-delete",
-                        body = mapOf("ids" to ids)
-                    )
-                )
-            }
+            apiClient.postUnit(
+                path = "/words/batch-delete",
+                body = mapOf("ids" to ids)
+            )
         }
+
+    suspend fun batchUpdateLanguages(request: BatchUpdateLanguagesRequest): Try<Unit> =
+        apiClient.postUnit(
+            path = "/words/batch-update",
+            body = request
+        )
 }

@@ -1,6 +1,7 @@
 package presentation.viewmodel
 
 import domain.word.model.Word
+import utils.Language
 
 sealed interface WordManagerEvent {
     data object ResetState : WordManagerEvent
@@ -15,5 +16,11 @@ sealed interface WordManagerEvent {
     data object ShowDeleteConfirmation : WordManagerEvent
     data object HideDeleteConfirmation : WordManagerEvent
     data object DeleteSelectedWords : WordManagerEvent
+    data object ShowBatchEditLanguages : WordManagerEvent
+    data object HideBatchEditLanguages : WordManagerEvent
+    data class BatchUpdateLanguages(
+        val sourceLanguage: Language,
+        val targetLanguage: Language
+    ) : WordManagerEvent
     data object ShareWords : WordManagerEvent
 }

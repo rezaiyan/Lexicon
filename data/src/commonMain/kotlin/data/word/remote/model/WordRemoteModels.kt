@@ -24,3 +24,10 @@ data class UpsertWordsPayload(
     val words: List<RemoteWord>
 )
 
+@Serializable
+data class BatchUpdateLanguagesRequest(
+    val ids: List<Long>,
+    val sourceLanguage: String? = null,
+    val targetLanguage: String? = null
+)
+
