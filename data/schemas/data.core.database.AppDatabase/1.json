@@ -182,6 +182,7 @@
           ]
         }
       },
+
       {
         "tableName": "DownloadedCollectionEntity",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `targetLanguage` TEXT NOT NULL, `originLanguage` TEXT NOT NULL, `title` TEXT NOT NULL, `fileName` TEXT NOT NULL, `path` TEXT NOT NULL, `downloadedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",

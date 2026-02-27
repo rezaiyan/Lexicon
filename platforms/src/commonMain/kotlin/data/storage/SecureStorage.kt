@@ -13,7 +13,11 @@ interface SecureStorage {
     fun getAccessToken(): String?
     suspend fun getRefreshToken(): String?
     suspend fun clearTokens()
-    
+
+    // Token expiry tracking for proactive refresh
+    suspend fun saveTokenExpiresAt(expiresAtMs: Long)
+    fun getTokenExpiresAt(): Long
+
     // Daily insight push notification data
     suspend fun storeDailyInsightData(insightId: String, date: String, timestamp: Long)
     suspend fun getDailyInsightData(): DailyInsightData?

@@ -13,6 +13,7 @@ class WasmJsSecureStorage : SecureStorage {
         const val PREFIX = "lexicon_"
         const val KEY_ACCESS_TOKEN = "lexicon_access_token"
         const val KEY_REFRESH_TOKEN = "lexicon_refresh_token"
+        const val KEY_TOKEN_EXPIRES_AT = "lexicon_token_expires_at"
         const val KEY_INSIGHT_ID = "lexicon_insight_id"
         const val KEY_INSIGHT_DATE = "lexicon_insight_date"
         const val KEY_INSIGHT_TIMESTAMP = "lexicon_insight_timestamp"
@@ -38,6 +39,15 @@ class WasmJsSecureStorage : SecureStorage {
     override suspend fun clearTokens() {
         removeItem(KEY_ACCESS_TOKEN)
         removeItem(KEY_REFRESH_TOKEN)
+        removeItem(KEY_TOKEN_EXPIRES_AT)
+    }
+
+    override suspend fun saveTokenExpiresAt(expiresAtMs: Long) {
+        setItem(KEY_TOKEN_EXPIRES_AT, expiresAtMs.toString())
+    }
+
+    override fun getTokenExpiresAt(): Long {
+        return getItem(KEY_TOKEN_EXPIRES_AT)?.toLongOrNull() ?: 0L
     }
 
     override suspend fun storeDailyInsightData(insightId: String, date: String, timestamp: Long) {

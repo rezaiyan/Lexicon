@@ -58,7 +58,8 @@ class TokenRefreshManager(
                     logNetwork("TokenRefresh", "Token refresh successful")
                     tokenManager.saveTokens(
                         accessToken = authResponse.accessToken,
-                        refreshToken = authResponse.refreshToken
+                        refreshToken = authResponse.refreshToken,
+                        expiresInMs = authResponse.expiresIn
                     )
                     authenticationStateManager.setAuthenticated(true)
                     Try.success(authResponse.accessToken)

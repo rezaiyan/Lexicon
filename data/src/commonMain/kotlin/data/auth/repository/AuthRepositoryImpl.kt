@@ -52,8 +52,9 @@ class AuthRepositoryImpl(
         return authResult.fold(
             onSuccess = { authResponse ->
                 tokenManager.saveTokens(
-                    authResponse.accessToken,
-                    authResponse.refreshToken
+                    accessToken = authResponse.accessToken,
+                    refreshToken = authResponse.refreshToken,
+                    expiresInMs = authResponse.expiresIn
                 )
                 sessionManager.setAuthenticated(true)
                 val user = authResponse.user.toDomain()
