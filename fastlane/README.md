@@ -29,7 +29,7 @@ Build the release AAB
 [bundle exec] fastlane android beta
 ```
 
-Upload a new build to closed testing (alpha track)
+Upload a new build to closed testing (4.12.2025 track)
 
 ### android deploy
 
