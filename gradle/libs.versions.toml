@@ -38,7 +38,7 @@ gitliveFirebase = "2.3.0"
 revenuecat-kmp = "2.2.10+17.19.1"
 emoji-kt = "2.3.0"
 profileinstaller = "1.4.1"
-commonsCompress = "1.27.1"
+commonsCompress = "1.28.0"
 
 [libraries]
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
