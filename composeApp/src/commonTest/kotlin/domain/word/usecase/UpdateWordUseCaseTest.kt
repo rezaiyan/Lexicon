@@ -5,6 +5,7 @@ import domain.common.exceptionOrNull
 import domain.common.getOrThrow
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
+import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.test.runTest
 import utils.Language
 import kotlin.test.Test
@@ -311,4 +312,5 @@ internal class FakeWordRepositoryForUpdate : IWordRepository {
     override fun getProgressStats() = kotlinx.coroutines.flow.flowOf(domain.word.model.ProgressStats())
     override suspend fun getTotalCount() = 0
     override suspend fun getDueCount() = 0
+    override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): kotlinx.coroutines.flow.Flow<UpdateWordsLanguagesProgress> = kotlinx.coroutines.flow.flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
 }

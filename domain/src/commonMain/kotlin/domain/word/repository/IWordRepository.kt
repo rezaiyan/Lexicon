@@ -20,6 +20,11 @@ interface IWordRepository {
     suspend fun updateWord(word: Word)
     suspend fun deleteWord(id: Int)
     fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress>
+    fun updateWordsLanguages(
+        ids: List<Int>,
+        sourceLanguage: String,
+        targetLanguage: String
+    ): Flow<UpdateWordsLanguagesProgress>
     suspend fun deleteAllWords(): Try<Unit>
     suspend fun syncWithRemote(): Try<Unit>
     suspend fun syncRemoteToLocal(clearFirst: Boolean = false): Try<Unit>
@@ -36,5 +41,15 @@ sealed class DeleteWordsProgress {
     data class DeletingFromLocal(val count: Int) : DeleteWordsProgress()
     data class Completed(val count: Int) : DeleteWordsProgress()
     data class Failed(val error: String) : DeleteWordsProgress()
+}
+
+/**
+ * Progress states for batch language update operation
+ */
+sealed class UpdateWordsLanguagesProgress {
+    data class UpdatingBackend(val count: Int) : UpdateWordsLanguagesProgress()
+    data class UpdatingLocal(val count: Int) : UpdateWordsLanguagesProgress()
+    data class Completed(val count: Int) : UpdateWordsLanguagesProgress()
+    data class Failed(val error: String) : UpdateWordsLanguagesProgress()
 }
 

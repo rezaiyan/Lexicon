@@ -7,8 +7,10 @@ import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
+import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -117,6 +119,7 @@ class WordSyncServiceTest {
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
         override suspend fun getTotalCount(): Int = existingFlow.value.size
         override suspend fun getDueCount(): Int = 0
+        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     }
 }
 

@@ -3,6 +3,7 @@ package domain.word.usecase
 import domain.common.Try
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
+import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
@@ -273,4 +274,5 @@ internal class FakeWordRepositoryForDelete : IWordRepository {
     override fun getProgressStats() = kotlinx.coroutines.flow.flowOf(domain.word.model.ProgressStats())
     override suspend fun getTotalCount() = 0
     override suspend fun getDueCount() = 0
+    override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): kotlinx.coroutines.flow.Flow<UpdateWordsLanguagesProgress> = kotlinx.coroutines.flow.flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
 }

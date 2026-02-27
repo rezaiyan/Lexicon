@@ -14,6 +14,7 @@ import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
+import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -107,6 +108,60 @@ class WordRepositoryImpl(
                     emit(DeleteWordsProgress.Completed(deletedCount))
                 }.onFailure {
                     emit(DeleteWordsProgress.Failed(error.message ?: "Failed to delete words"))
+                }
+            }
+    }
+
+    override fun updateWordsLanguages(
+        ids: List<Int>,
+        sourceLanguage: String,
+        targetLanguage: String
+    ): Flow<UpdateWordsLanguagesProgress> {
+        if (ids.isEmpty()) {
+            return flow { emit(UpdateWordsLanguagesProgress.Failed("No words to update")) }
+        }
+
+        return flow {
+            emit(UpdateWordsLanguagesProgress.UpdatingBackend(ids.size))
+        }
+            .flatMapConcat {
+                flow {
+                    val result = remoteSyncHandler.syncBatchLanguageUpdateToRemote(
+                        ids = ids.map { it.toLong() },
+                        sourceLanguage = sourceLanguage,
+                        targetLanguage = targetLanguage
+                    )
+                    result.fold(
+                        onSuccess = { emit(UpdateWordsLanguagesProgress.UpdatingLocal(ids.size)) },
+                        onFailure = { emit(UpdateWordsLanguagesProgress.UpdatingLocal(ids.size)) }
+                    )
+                }
+            }
+            .flatMapConcat { updatingLocalState ->
+                flow {
+                    emit(updatingLocalState)
+                    val updatedCount = localDataSource.updateWordsLanguages(
+                        ids = ids,
+                        sourceLanguage = sourceLanguage,
+                        targetLanguage = targetLanguage
+                    )
+                    emit(UpdateWordsLanguagesProgress.Completed(updatedCount))
+                }
+            }
+            .catch { error ->
+                Try {
+                    val updatedCount = localDataSource.updateWordsLanguages(
+                        ids = ids,
+                        sourceLanguage = sourceLanguage,
+                        targetLanguage = targetLanguage
+                    )
+                    emit(UpdateWordsLanguagesProgress.Completed(updatedCount))
+                }.onFailure {
+                    emit(
+                        UpdateWordsLanguagesProgress.Failed(
+                            error.message ?: "Failed to update languages"
+                        )
+                    )
                 }
             }
     }

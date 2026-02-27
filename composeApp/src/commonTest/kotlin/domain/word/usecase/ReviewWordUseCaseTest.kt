@@ -7,7 +7,9 @@ import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
+import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import utils.Language
@@ -148,5 +150,6 @@ class ReviewWordUseCaseTest {
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
+        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     }
 }

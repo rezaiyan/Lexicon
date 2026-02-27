@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.word.model.Word
+import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
 import domain.word.usecase.GetAllWordsUseCase
@@ -19,11 +20,13 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
+import utils.Language
 import kotlin.time.ExperimentalTime
 
 class WordManagerViewModel(
     private val getAllWordsUseCase: GetAllWordsUseCase,
     private val deleteWordsUseCase: DeleteWordsUseCase,
+    private val batchUpdateLanguagesUseCase: BatchUpdateLanguagesUseCase,
     private val updateWordUseCase: UpdateWordUseCase,
     private val exportWordsUseCase: ExportWordsUseCase,
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
@@ -38,6 +41,14 @@ class WordManagerViewModel(
 
     private val deletionHandler = WordDeletionHandler(
         deleteWordsUseCase = deleteWordsUseCase,
+        analyticsTracker = analyticsTracker,
+        state = _state,
+        events = _events,
+        scope = viewModelScope
+    )
+
+    private val batchEditHandler = WordBatchEditHandler(
+        batchUpdateLanguagesUseCase = batchUpdateLanguagesUseCase,
         analyticsTracker = analyticsTracker,
         state = _state,
         events = _events,
@@ -82,7 +93,9 @@ class WordManagerViewModel(
             searchQuery = "",
             editingWord = null,
             showDeleteConfirmation = false,
+            showBatchEditLanguages = false,
             isDeletingWords = false,
+            isBatchUpdatingLanguages = false,
             errorMessage = null,
             snackbarMessage = null
         )
@@ -169,6 +182,18 @@ class WordManagerViewModel(
         }
     }
 
+    fun showBatchEditLanguages() {
+        _state.value = _state.value.copy(showBatchEditLanguages = true)
+    }
+
+    fun hideBatchEditLanguages() {
+        _state.value = _state.value.copy(showBatchEditLanguages = false)
+    }
+
+    fun batchUpdateLanguages(sourceLanguage: Language, targetLanguage: Language) {
+        val selectedIds = _state.value.selectedWordIds.toList()
+        batchEditHandler.batchUpdateLanguages(selectedIds, sourceLanguage, targetLanguage)
+    }
 
     fun shareWords() {
         try {
@@ -196,6 +221,11 @@ class WordManagerViewModel(
             is WordManagerEvent.ShowDeleteConfirmation -> showDeleteConfirmation()
             is WordManagerEvent.HideDeleteConfirmation -> hideDeleteConfirmation()
             is WordManagerEvent.DeleteSelectedWords -> deleteSelectedWords()
+            is WordManagerEvent.ShowBatchEditLanguages -> showBatchEditLanguages()
+            is WordManagerEvent.HideBatchEditLanguages -> hideBatchEditLanguages()
+            is WordManagerEvent.BatchUpdateLanguages -> batchUpdateLanguages(
+                event.sourceLanguage, event.targetLanguage
+            )
             is WordManagerEvent.ShareWords -> shareWords()
         }
     }

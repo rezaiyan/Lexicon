@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -399,14 +400,33 @@ internal fun WordCard(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    if (word.dateAdded > 0L) {
-                        Text(
-                            text = formatDateAdded(word.dateAdded),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = contentColor.copy(alpha = 0.5f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                    // Language badges
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        LanguagePill(
+                            text = word.sourceLanguage.code.uppercase(),
+                            color = contentColor.copy(alpha = 0.6f)
                         )
+                        Text(
+                            text = "\u2192",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = contentColor.copy(alpha = 0.4f)
+                        )
+                        LanguagePill(
+                            text = word.targetLanguage.code.uppercase(),
+                            color = contentColor.copy(alpha = 0.6f)
+                        )
+                        if (word.dateAdded > 0L) {
+                            Text(
+                                text = " \u00b7 ${formatDateAdded(word.dateAdded)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = contentColor.copy(alpha = 0.4f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }
@@ -508,6 +528,31 @@ internal fun EmptyLibraryView() {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun LanguagePill(
+    text: String,
+    color: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.height(20.dp),
+        shape = RoundedCornerShape(4.dp),
+        color = color.copy(alpha = 0.12f)
+    ) {
+        Box(
+            modifier = Modifier.padding(horizontal = 6.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = color
             )
         }
     }

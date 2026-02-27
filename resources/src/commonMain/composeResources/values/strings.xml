@@ -275,6 +275,15 @@
     <string name="export_all">Export All</string>
     <string name="export_selected">Export Selected</string>
     
+    <!-- Batch Language Edit -->
+    <string name="batch_edit_languages">Edit Languages</string>
+    <string name="update_languages">Update Languages</string>
+    <string name="updating_languages">Updating Languages…</string>
+    <string name="words_language_updated">Languages updated for %1$d word(s)</string>
+    <string name="source_language">Source Language</string>
+    <string name="target_language">Target Language</string>
+    <string name="updating_words_please_wait">Updating words, please wait…</string>
+
     <!-- Word Manager Messages -->
     <string name="failed_to_update_word">Failed to update word</string>
     <string name="failed_to_delete_word">Failed to delete word</string>
