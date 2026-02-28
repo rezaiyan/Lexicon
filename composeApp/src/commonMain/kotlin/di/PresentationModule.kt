@@ -84,6 +84,8 @@ fun presentationModule() = module {
     viewModel {
         StudyViewModel(
             getProgressStatsUseCase = get(),
+            evaluateProgressUseCase = get(),
+            getFeatureAccessUseCase = get(),
             scheduleNotificationsUseCase = get(),
             getDueWordsUseCase = get(),
             getWordsByStageUseCase = get(),
@@ -94,7 +96,8 @@ fun presentationModule() = module {
             speakWordUseCase = get(),
             stopSpeakingUseCase = get(),
             ttsRepository = get(),
-            analyticsTracker = get()
+            analyticsTracker = get(),
+            userManager = get()
         )
     }
 

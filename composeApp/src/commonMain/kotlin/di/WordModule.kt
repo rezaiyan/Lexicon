@@ -18,6 +18,7 @@ import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
 import domain.word.service.ImportValidationService
 import domain.word.usecase.DeleteWordUseCase
+import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
@@ -71,6 +72,7 @@ fun wordModule() = module {
         ImportViaFileUseCase(importWordsUseCase = get())
     }
     singleOf(::GetProgressStatsUseCase)
+    singleOf(::EvaluateProgressUseCase)
     singleOf(::GetWordsByStageUseCase)
     singleOf(::GetDueWordsUseCase)
     singleOf(::IsAiAvailableUseCase)

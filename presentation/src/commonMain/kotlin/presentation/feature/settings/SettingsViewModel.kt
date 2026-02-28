@@ -63,8 +63,11 @@ class SettingsViewModel(
         systemNotificationsEnabled = systemNotificationsEnabled,
         appVersion = flowOf(appVersionProvider.getVersion()),
         featureAccessFlow = authRepository.getFeatureAccessAsFlow()
-    ).catch {
-
+    ).catch { e ->
+        analyticsTracker.logNonFatalError(
+            message = "Settings state build failed",
+            additionalInfo = mapOf("error" to (e.message ?: "unknown"))
+        )
     }
         .stateIn(
             scope = viewModelScope,

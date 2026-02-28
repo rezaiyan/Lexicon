@@ -119,7 +119,7 @@ class NotificationCategoryManager {
         }
         
         UNUserNotificationCenter.current().setNotificationCategories(Set(categories))
-        print("✅ Registered \(categories.count) notification categories")
+        print(" Registered \(categories.count) notification categories")
     }
 }
 
@@ -141,18 +141,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         if let clientID = FirebaseApp.app()?.options.clientID {
             let config = GIDConfiguration(clientID: clientID)
             GIDSignIn.sharedInstance.configuration = config
-            print("🔐 Google Sign-In configured with client ID: \(clientID)")
+            print(" Google Sign-In configured with client ID: \(clientID)")
         } else {
-            print("⚠️ Firebase client ID not found")
+            print(" Firebase client ID not found")
         }
         
         // Enable Analytics
         Analytics.setAnalyticsCollectionEnabled(true)
-        print("📊 Firebase Analytics initialized")
+        print(" Firebase Analytics initialized")
         
         // Enable Crashlytics
         Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
-        print("🔥 Firebase Crashlytics initialized")
+        print(" Firebase Crashlytics initialized")
         
         // Set up notification delegate (but don't request permission yet)
         UNUserNotificationCenter.current().delegate = self
@@ -170,7 +170,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Clear the app icon badge on startup
         application.applicationIconBadgeNumber = 0
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
-        print("✅ Badge cleared on app launch")
+        print(" Badge cleared on app launch")
         
         // Log app start event
         Analytics.logEvent("app_start", parameters: nil)
@@ -179,7 +179,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         DispatchQueue.main.async {
             if #available(iOS 13.0, *) {
                 _ = AppleSignInNotificationHandler.shared
-                print("🍎 Apple Sign In handler initialized")
+                print(" Apple Sign In handler initialized")
             }
         }
         
@@ -190,7 +190,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         // Clear badge when app comes to foreground
         application.applicationIconBadgeNumber = 0
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
-        print("✅ Badge cleared on foreground")
+        print(" Badge cleared on foreground")
     }
     
     func application(
@@ -202,14 +202,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
         let token = tokenParts.joined()
-        print("📱 Device Token: \(token)")
+        print(" Device Token: \(token)")
     }
     
     func application(
         _ application: UIApplication,
         didFailToRegisterForRemoteNotificationsWithError error: Error
     ) {
-        print("❌ Failed to register for remote notifications: \(error)")
+        print(" Failed to register for remote notifications: \(error)")
     }
     
     // Handle remote notifications when app is in background or terminated
@@ -226,7 +226,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         // Check if notification should be shown based on category
         if !MainViewControllerKt.shouldShowNotification(categoryValue: categoryString) {
-            print("⏭️ Skipping background notification - user not authenticated. Category: \(category.identifier)")
+            print(" Skipping background notification - user not authenticated. Category: \(category.identifier)")
             completionHandler(.newData)
             return
         }
@@ -268,16 +268,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             
             UNUserNotificationCenter.current().add(request) { error in
                 if let error = error {
-                    print("❌ Failed to display notification: \(error.localizedDescription)")
+                    print(" Failed to display notification: \(error.localizedDescription)")
                 } else {
-                    print("✅ Notification displayed: \(title) - \(body)")
+                    print(" Notification displayed: \(title) - \(body)")
                 }
             }
         }
 
         // Handle account deletion notification
         if category == .accountDeleted {
-            print("🗑️ Account deletion notification received in background - clearing local data")
+            print(" Account deletion notification received in background - clearing local data")
             handleAccountDeletion()
         }
         
@@ -291,7 +291,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey : Any] = [:]
     ) -> Bool {
-        print("🔗 [AppDelegate] Handling URL: \(url)")
+        print(" [AppDelegate] Handling URL: \(url)")
         return GIDSignIn.sharedInstance.handle(url)
     }
 }
@@ -305,7 +305,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         let userInfo = notification.request.content.userInfo
-        print("📬 Notification received (foreground): \(userInfo)")
+        print(" Notification received (foreground): \(userInfo)")
         
         let category = NotificationCategory.from(userInfo: userInfo)
         var categoryString = userInfo["category"] as? String
@@ -313,18 +313,18 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // If category is nil, treat as SYSTEM (should be displayed)
         if categoryString == nil {
             categoryString = "SYSTEM"
-            print("🔍 Category is nil, defaulting to SYSTEM")
+            print(" Category is nil, defaulting to SYSTEM")
         }
         
-        print("🔍 Checking notification - Category: \(category.identifier), categoryString: \(categoryString ?? "nil")")
+        print(" Checking notification - Category: \(category.identifier), categoryString: \(categoryString ?? "nil")")
         
         // Check if notification should be shown based on category
         // If categoryString is nil, we already set it to SYSTEM above
         let shouldShow = MainViewControllerKt.shouldShowNotification(categoryValue: categoryString)
-        print("🔍 shouldShowNotification result: \(shouldShow)")
+        print(" shouldShowNotification result: \(shouldShow)")
         
         if !shouldShow {
-            print("⏭️ Skipping foreground notification - user not authenticated. Category: \(category.identifier)")
+            print(" Skipping foreground notification - user not authenticated. Category: \(category.identifier)")
             // Don't show notification if user is not authenticated
             completionHandler([])
             return
@@ -332,18 +332,18 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         // Handle account deletion notification even when app is in foreground
         if category == .accountDeleted {
-            print("🗑️ Account deletion notification received in foreground - clearing local data")
+            print(" Account deletion notification received in foreground - clearing local data")
             handleAccountDeletion()
         }
         
         // Check notification authorization status
         center.getNotificationSettings { settings in
-            print("🔔 Notification authorization status: \(settings.authorizationStatus.rawValue)")
+            print(" Notification authorization status: \(settings.authorizationStatus.rawValue)")
             
             // Only display notification if authorized
             // Permission must be granted manually elsewhere
             if settings.authorizationStatus == .authorized {
-                print("✅ Requesting foreground notification display - Category: \(category.identifier)")
+                print(" Requesting foreground notification display - Category: \(category.identifier)")
                 let options: UNNotificationPresentationOptions
                 if #available(iOS 14.0, *) {
                     options = [.banner, .list, .badge, .sound]
@@ -352,7 +352,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
                 }
                 completionHandler(options)
             } else {
-                print("⚠️ Notifications not authorized (status: \(settings.authorizationStatus.rawValue)) - skipping display")
+                print(" Notifications not authorized (status: \(settings.authorizationStatus.rawValue)) - skipping display")
                 completionHandler([])
             }
         }
@@ -368,7 +368,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         let category = NotificationCategory.from(userInfo: userInfo)
         let actionIdentifier = response.actionIdentifier
         
-        print("🔔 Notification tapped - Category: \(category.identifier), Action: \(actionIdentifier)")
+        print(" Notification tapped - Category: \(category.identifier), Action: \(actionIdentifier)")
         
         // Handle action buttons
         if actionIdentifier != UNNotificationDefaultActionIdentifier && actionIdentifier != UNNotificationDismissActionIdentifier {
@@ -386,21 +386,21 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     private func handleNotificationTap(category: NotificationCategory, userInfo: [AnyHashable: Any]) {
         switch category {
         case .accountDeleted:
-            print("🗑️ Account deletion notification tapped - clearing local data")
+            print(" Account deletion notification tapped - clearing local data")
             handleAccountDeletion()
         case .streakReminder:
-            print("📅 Streak reminder tapped")
+            print(" Streak reminder tapped")
             postNotification(name: "NavigateToProgress", userInfo: userInfo)
         case .reviewReminder:
-            print("📚 Review reminder tapped")
+            print(" Review reminder tapped")
             postNotification(name: "StartReviewSession", userInfo: userInfo)
         case .achievementUnlocked:
-            print("🏆 Achievement tapped")
+            print(" Achievement tapped")
             if let achievementId = userInfo["achievement_id"] as? String {
                 postNotification(name: "ShowAchievementDetails", userInfo: ["achievement_id": achievementId])
             }
         case .generic:
-            print("ℹ️ Generic notification tapped")
+            print("ℹ Generic notification tapped")
         }
     }
     
@@ -413,33 +413,33 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         case .streakReminder:
             switch actionIdentifier {
             case "VIEW_PROGRESS":
-                print("📅 View Progress action tapped")
+                print(" View Progress action tapped")
                 postNotification(name: "NavigateToProgress", userInfo: userInfo)
             case "DISMISS":
-                print("📅 Dismiss action tapped")
+                print(" Dismiss action tapped")
             default:
                 break
             }
         case .reviewReminder:
             switch actionIdentifier {
             case "START_REVIEW":
-                print("📚 Start Review action tapped")
+                print(" Start Review action tapped")
                 postNotification(name: "StartReviewSession", userInfo: userInfo)
             case "REMIND_LATER":
-                print("📚 Remind Later action tapped")
+                print(" Remind Later action tapped")
                 postNotification(name: "ScheduleReviewReminder", userInfo: ["delay_minutes": 60])
             default:
                 break
             }
         case .achievementUnlocked:
             if actionIdentifier == "VIEW_ACHIEVEMENT" {
-                print("🏆 View Achievement action tapped")
+                print(" View Achievement action tapped")
                 if let achievementId = userInfo["achievement_id"] as? String {
                     postNotification(name: "ShowAchievementDetails", userInfo: ["achievement_id": achievementId])
                 }
             }
         default:
-            print("ℹ️ Action \(actionIdentifier) for category \(category.identifier)")
+            print("ℹ Action \(actionIdentifier) for category \(category.identifier)")
         }
     }
     
@@ -454,7 +454,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     // MARK: - Account Deletion Handling
     
     private func handleAccountDeletion() {
-        print("🗑️ [iOS] Account deletion notification received")
+        print(" [iOS] Account deletion notification received")
         
         // CRITICAL FIX: Clear local data immediately when account deletion notification is received
         // This provides immediate protection against data persistence after account deletion
@@ -462,7 +462,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         // Call Kotlin function to clear all user data
         MainViewControllerKt.clearUserData()
         
-        print("✅ [iOS] Account deletion notification handled - local data cleared immediately")
+        print(" [iOS] Account deletion notification handled - local data cleared immediately")
     }
 }
 
@@ -473,7 +473,7 @@ extension AppDelegate: MessagingDelegate {
         didReceiveRegistrationToken fcmToken: String?
     ) {
         guard let fcmToken = fcmToken else { return }
-        print("🔑 [iOS] FCM Token received: \(fcmToken)")
+        print(" [iOS] FCM Token received: \(fcmToken)")
         
         // Send token to Kotlin push token manager
         // This will trigger the token registration with the backend
@@ -523,11 +523,11 @@ class AppleSignInNotificationHandler: NSObject {
             name: NSNotification.Name("StartAppleSignIn"),
             object: nil
         )
-        print("🍎 [AppleSignInHandler] Initialized and listening")
+        print(" [AppleSignInHandler] Initialized and listening")
     }
     
     @objc private func handleSignInRequest() {
-        print("🍎 [AppleSignInHandler] Sign in request received")
+        print(" [AppleSignInHandler] Sign in request received")
         
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
@@ -575,7 +575,7 @@ extension AppleSignInNotificationHandler: ASAuthorizationControllerDelegate {
             userInfo["email"] = email
         }
         
-        print("✅ [AppleSignInHandler] Success - posting notification to Kotlin")
+        print(" [AppleSignInHandler] Success - posting notification to Kotlin")
         NotificationCenter.default.post(
             name: NSNotification.Name("AppleSignInSuccess"),
             object: nil,
@@ -584,7 +584,7 @@ extension AppleSignInNotificationHandler: ASAuthorizationControllerDelegate {
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        print("❌ [AppleSignInHandler] Error: \(error.localizedDescription)")
+        print(" [AppleSignInHandler] Error: \(error.localizedDescription)")
         NotificationCenter.default.post(
             name: NSNotification.Name("AppleSignInFailure"),
             object: nil,

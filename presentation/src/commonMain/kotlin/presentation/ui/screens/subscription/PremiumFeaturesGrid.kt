@@ -122,13 +122,13 @@ fun FeatureCard(
 
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(Theme.shapes.large),
         color = cardColor,
-        shadowElevation = 0.dp
+        shadowElevation = Theme.elevation.none
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = Theme.spacing.md),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -151,7 +151,7 @@ fun FeatureCard(
                             imageVector = icon.imageVector,
                             contentDescription = null,
                             tint = accent,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(Theme.dimensions.iconSizeLarge)
                         )
                     }
                     is FeatureIcon.Drawable -> {
@@ -159,13 +159,13 @@ fun FeatureCard(
                             painter = icon.painter,
                             contentDescription = null,
                             tint = accent,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(Theme.dimensions.iconSizeLarge)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(Theme.spacing.md))
 
             Column {
                 Text(
@@ -175,7 +175,7 @@ fun FeatureCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(Theme.spacing.xxs))
 
                 Text(
                     text = feature.description,

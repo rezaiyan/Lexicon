@@ -6,11 +6,11 @@
     <string name="version">Version %1$d</string>
     
     <!-- Time-based Greetings -->
-    <string name="greeting_midnight">Burning the midnight oil? 🌙</string>
-    <string name="greeting_morning">Good morning! ☀</string>
-    <string name="greeting_afternoon">Good afternoon! ⛅</string>
-    <string name="greeting_evening">Good evening! 🌆</string>
-    <string name="greeting_night">Good night! 🌃</string>
+    <string name="greeting_midnight">Burning the midnight oil?</string>
+    <string name="greeting_morning">Good morning!</string>
+    <string name="greeting_afternoon">Good afternoon!</string>
+    <string name="greeting_evening">Good evening!</string>
+    <string name="greeting_night">Good night!</string>
     
     <!-- Common -->
     <string name="cancel">Cancel</string>
@@ -30,18 +30,22 @@
     <string name="translation_language">Translation Language</string>
     <string name="notifications">Notifications</string>
     <string name="about">About</string>
+    <string name="customize_appearance">Customize appearance</string>
+    <string name="notification_on_alerts_enabled">On - Alerts enabled</string>
+    <string name="upgrade">UPGRADE</string>
+    <string name="version_format">Version %1$s</string>
     
     <!-- Notifications -->
     <string name="notification_enabled">Enabled</string>
     <string name="notification_disabled">Disabled</string>
     <string name="notification_disabled_system">Disabled in system settings</string>
-    <string name="notification_permission_required">Permission not granted - you won't receive notifications</string>
-    <string name="notification_permission_title">Stay Connected with Your Words! 🎯</string>
+    <string name="notification_permission_required">Permission not granted</string>
+    <string name="notification_permission_title">Stay Connected with Your Words!</string>
     <string name="notification_permission_message">Let us be your learning buddy and send you friendly reminders when it's time to practice!</string>
     <string name="notification_features_title">You'll get:</string>
-    <string name="notification_feature_reminders">📚 Gentle review reminders</string>
-    <string name="notification_feature_motivation">💪 Motivational boosts</string>
-    <string name="notification_feature_timing">🎯 Smart timing - only when helpful</string>
+    <string name="notification_feature_reminders">Gentle review reminders</string>
+    <string name="notification_feature_motivation">Motivational boosts</string>
+    <string name="notification_feature_timing">Smart timing - only when helpful</string>
     <string name="notification_no_spam_message">No spam, just friendly nudges! Tap the button below to enable notifications in your device settings.</string>
     <string name="notification_open_settings">Enable</string>
     <string name="notification_enable_button">Let's Do This!</string>
@@ -49,8 +53,8 @@
     <string name="notification_settings_title">Notification Settings</string>
     <string name="notification_settings_subtitle">Customize your learning reminders</string>
     <string name="notification_enable_notifications">Enable Notifications</string>
-    <string name="notification_stay_motivated">Stay motivated with friendly reminders 🌟</string>
-    <string name="notification_missing_nudges">Missing out on learning nudges 😢</string>
+    <string name="notification_stay_motivated">Stay motivated with friendly reminders</string>
+    <string name="notification_missing_nudges">Missing out on learning nudges</string>
     <string name="notification_gentle_reminders">We'll send you gentle reminders when you have words ready to review. Perfect timing, no spam!</string>
     
     <!-- Profile Screen -->
@@ -75,10 +79,10 @@
     <string name="delete_account_hidden_title">Account Deletion</string>
     <string name="delete_account_hidden_message">You are about to permanently delete your account. This action cannot be undone and will remove all your data.</string>
     <string name="delete_account_hidden_continue">Continue to Deletion Process</string>
-    <string name="delete_account_cooling_period_title">⏰ Cooling Off Period</string>
+    <string name="delete_account_cooling_period_title">Cooling Off Period</string>
     <string name="delete_account_cooling_period_message">Please wait %1$d seconds before proceeding. This gives you time to reconsider.</string>
     <string name="delete_account_cooling_period_cancel">Cancel Deletion</string>
-    <string name="delete_account_final_title">🚨 Final Confirmation</string>
+    <string name="delete_account_final_title">Final Confirmation</string>
     <string name="delete_account_final_message">This will permanently delete:\n\n• All your vocabulary words\n• Learning progress and streaks\n• AI-generated insights\n• Account settings\n\nThis action CANNOT be undone!</string>
     <string name="delete_account_final_confirm">Yes, Delete My Account</string>
     <string name="delete_account_long_press_hint">Long press profile picture to access account deletion</string>
@@ -101,6 +105,29 @@
     <string name="generating_daily_insight">Generating your daily insight...</string>
     <string name="cards_waiting">%1$d cards waiting for you</string>
     <string name="all_caught_up">All caught up! Well done.</string>
+    <string name="greeting_subtitle">Ready to master more words?</string>
+    <string name="making_great_progress">On a Roll!</string>
+    <string name="progress_subtitle">Your vocabulary is growing stronger every session.</string>
+    <string name="view_stats">View Stats</string>
+    <string name="ready_to_learn">Ready to Learn?</string>
+    <string name="ready_to_learn_subtitle">Import your first words and start building your vocabulary.</string>
+    <string name="lets_go">Let\'s Go!</string>
+    <string name="almost_a_master">So Close!</string>
+    <string name="almost_a_master_subtitle">Just a few more words to unlock full mastery!</string>
+    <string name="getting_started">Off to a Great Start!</string>
+    <string name="getting_started_subtitle">The hardest part is starting — and you\'ve done it!</string>
+    <string name="building_foundation">Gaining Momentum!</string>
+    <string name="building_foundation_subtitle">Your practice is paying off. Words are starting to stick!</string>
+    <string name="over_halfway">Halfway There!</string>
+    <string name="over_halfway_subtitle">More than half mastered. The best is yet to come!</string>
+    <string name="strong_knowledge">Crushing It!</string>
+    <string name="strong_knowledge_subtitle">You\'re in the home stretch — mastery is within reach!</string>
+    <string name="fully_mastered">Word Master!</string>
+    <string name="fully_mastered_subtitle">Every single word mastered. You\'ve earned this!</string>
+    <string name="queue_is_empty">Queue is Empty</string>
+    <string name="everything_reviewed">Everything is reviewed!</string>
+    <string name="refresh">Refresh</string>
+    <string name="queue_ready_subtitle">Ready for review</string>
     <string name="add_words_to_start">Add words to start your journey</string>
     <string name="session_complete">Session Complete!</string>
     <string name="you_reviewed_cards">You reviewed %1$d cards</string>
@@ -131,8 +158,8 @@
     <string name="hard">Hard</string>
     <string name="good">Good</string>
     <string name="easy">Easy</string>
-    <string name="forgot">Nope 😅</string>
-    <string name="remembered">Got it! ✓</string>
+    <string name="forgot">Nope</string>
+    <string name="remembered">Got it!</string>
     <string name="did_you_remember">Did you get it?</string>
     <string name="restart">Start over</string>
     <string name="advance">Keep going</string>
@@ -152,7 +179,7 @@
     <string name="exit_review_message">Are you sure you want to stop reviewing? Your progress will be saved.</string>
     <string name="yes_exit">Yes, Exit</string>
     <string name="continue_reviewing">Continue Reviewing</string>
-    <string name="review_complete">🎉 Review Complete!</string>
+    <string name="review_complete">Review Complete!</string>
     <string name="review_complete_message">Great job! Keep practicing to master your vocabulary.</string>
     
     <!-- Import Dialog -->
@@ -212,10 +239,10 @@
     <string name="ai_image_extraction_description">Extract vocabulary from images with AI-powered recognition</string>
     
     <!-- Success/Error Messages -->
-    <string name="success_imported_words">✓ Successfully imported %1$d words</string>
-    <string name="success_imported_from_image">✓ Successfully imported %1$d words from image</string>
-    <string name="error_message">✗ %1$d</string>
-    <string name="error_prefix">✗</string>
+    <string name="success_imported_words">Successfully imported %1$d words</string>
+    <string name="success_imported_from_image">Successfully imported %1$d words from image</string>
+    <string name="error_message">[Error] %1$d</string>
+    <string name="error_prefix">[Error]</string>
     <string name="error">Error</string>
     <string name="error_with_message">Error: %1$d</string>
     
@@ -223,12 +250,12 @@
     <string name="no_words_yet">• No words yet</string>
     
     <!-- AI Daily Insights -->
-    <string name="welcome_insight">Welcome! Start your vocabulary journey by adding your first words! 🚀✨</string>
-    <string name="fallback_many_due">You've got %1$d cards ready! Time to power up your skills! 💪⚡</string>
-    <string name="fallback_mostly_mastered">Impressive! Over half your vocabulary is mastered! You're a legend! 👑🎯</string>
-    <string name="fallback_learning">Keep grinding! %1$d words in training. Every review makes you stronger! 🎮🔥</string>
-    <string name="fallback_some_due">Perfect timing! %1$d cards waiting. Let's crush this session! 💥✨</string>
-    <string name="fallback_all_caught_up">You're all caught up! Time to add more words and level up! 🌟🎯</string>
+    <string name="welcome_insight">Welcome! Start your vocabulary journey by adding your first words!</string>
+    <string name="fallback_many_due">You've got %1$d cards ready! Time to power up your skills!</string>
+    <string name="fallback_mostly_mastered">Impressive! Over half your vocabulary is mastered! You're a legend!</string>
+    <string name="fallback_learning">Keep grinding! %1$d words in training. Every review makes you stronger!</string>
+    <string name="fallback_some_due">Perfect timing! %1$d cards waiting. Let's crush this session!</string>
+    <string name="fallback_all_caught_up">You're all caught up! Time to add more words and level up!</string>
     <string name="subscriptions_coming_soon_message">Subscriptions will be available soon to unlock full access. Stay tuned! You can temporarily use features with limited credits.</string>
     
     <!-- Mastery Levels (for badge) -->
@@ -281,7 +308,7 @@
     <string name="words_deleted">%1$d words deleted</string>
     <string name="word_updated">Word updated successfully</string>
     <string name="export_words">Export</string>
-    <string name="words_exported">✓ Exported %1$d words to clipboard</string>
+    <string name="words_exported">Exported %1$d words to clipboard</string>
     <string name="export_all">Export All</string>
     <string name="export_selected">Export Selected</string>
     
@@ -329,6 +356,9 @@
     <string name="detail_next_review">Next review</string>
     <string name="detail_reviews">Reviews</string>
     <string name="delete_word">Delete Word</string>
+    <string name="delete_word_title">Delete word?</string>
+    <string name="delete_word_message">"%1$s" will be permanently removed. This cannot be undone.</string>
+    <string name="update_words_count">Update %1$d word(s)</string>
 
     <!-- Learning Mode Settings -->
     <string name="learning_mode">Learning Mode</string>
@@ -350,17 +380,17 @@
     <string name="mode_rigorous_description">2 successes to advance · Drop 3 levels when forgotten</string>
     
     <!-- Notification Reminder Messages -->
-    <string name="notification_title_one_word">Ready for a quick review? 📖</string>
-    <string name="notification_title_few_words">Time for your daily practice ⚡</string>
-    <string name="notification_title_many_words">Your %1$d words are ready 📚</string>
-    <string name="notification_title_daily">Daily review time 🎯</string>
+    <string name="notification_title_one_word">Ready for a quick review?</string>
+    <string name="notification_title_few_words">Time for your daily practice</string>
+    <string name="notification_title_many_words">Your %1$d words are ready</string>
+    <string name="notification_title_daily">Daily review time</string>
     
     <string name="notification_message_one_word">Just 1 word to review today. Takes less than a minute!</string>
-    <string name="notification_message_few_words">%1$d words waiting for you. Quick %1$d-minute session 😊</string>
+    <string name="notification_message_few_words">%1$d words waiting for you. Quick %1$d-minute session</string>
     <string name="notification_message_several_words">%1$d words are ready for review. Perfect time for a quick practice!</string>
-    <string name="notification_message_many_words">%1$d words to review today. You've got this! 💪</string>
+    <string name="notification_message_many_words">%1$d words to review today. You've got this!</string>
     <string name="notification_message_large_session">%1$d words ready. Great session ahead!</string>
-    <string name="notification_message_very_large">%1$d words to review. Take your time and enjoy the practice! 🌟</string>
+    <string name="notification_message_very_large">%1$d words to review. Take your time and enjoy the practice!</string>
     
     <!-- Vocabulary Import/Review Messages -->
     <string name="please_login_for_ai">Please login to extract vocabulary from images</string>
@@ -389,8 +419,8 @@
     <string name="subscription">Subscription</string>
     <string name="subscription_screen_title">Go Premium</string>
     <string name="restore_purchases">Restore My Purchases</string>
-    <string name="cancel_anytime_prices_in_usd">Cancel anytime, no questions asked! 💙 Prices shown in USD.</string>
-    <string name="premium_unlocked">🎉 You're All Set!</string>
+    <string name="cancel_anytime_prices_in_usd">Cancel anytime, no questions asked! Prices shown in USD.</string>
+    <string name="premium_unlocked">You're All Set!</string>
     <string name="premium_unlocked_message">Welcome to Premium! Enjoy unlimited access to all amazing features and supercharge your learning journey!</string>
     <string name="unlock_premium">Unlock Premium</string>
     <string name="premium_subtitle">Supercharge your vocabulary learning journey with powerful features!</string>
@@ -403,7 +433,7 @@
     <string name="unlock_now">Unlock Now</string>
     <string name="subscribe_now">Subscribe Now</string>
     <string name="subscribe">Subscribe</string>
-    <string name="subscription_unable_to_load">Oops! We couldn't load subscriptions 😅</string>
+    <string name="subscription_unable_to_load">Oops! We couldn't load subscriptions</string>
     <string name="subscription_terms">Payment will be charged to your account. Your subscription will automatically renew unless you cancel at least 24 hours before the end of the current period. You can manage your subscription anytime in your account settings.</string>
     <string name="subscription_active">Active</string>
     <string name="manage_subscription">Manage Subscription</string>
@@ -482,5 +512,10 @@
     <string name="login_required_subtitle">Sign in to start learning vocabulary</string>
     <string name="sign_in_google">Sign in with Google</string>
     <string name="sign_in_apple">Sign in with Apple</string>
+    <string name="sign_in_failed">Sign-in failed. Please try again.</string>
+    <string name="tap_card_to_reveal">Tap card to reveal</string>
+    <string name="starter_vocabulary">Starter Vocabulary</string>
+    <string name="accept">Accept</string>
+    <string name="deny">Deny</string>
 </resources>
 

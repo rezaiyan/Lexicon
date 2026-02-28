@@ -19,9 +19,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.AppleSignInButton
 import presentation.ui.components.GoogleSignInContainer
+import theme.Theme
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.login_required_title
+import lexicon.resources.generated.resources.login_required_subtitle
+import lexicon.resources.generated.resources.sign_in_failed
 
 private enum class SignInProvider {
     GOOGLE,
@@ -38,33 +43,34 @@ fun AuthGateScreen(
     var activeProvider by remember { mutableStateOf<SignInProvider?>(null) }
     var firebaseSignInError by remember { mutableStateOf(false) }
 
-    val errorMessage = error ?: if (firebaseSignInError) "Sign-in failed. Please try again." else null
+    val signInFailedText = stringResource(Res.string.sign_in_failed)
+    val errorMessage = error ?: if (firebaseSignInError) signInFailedText else null
 
     Scaffold { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = Theme.spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Welcome to Lexicon",
+                text = stringResource(Res.string.login_required_title),
                 style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Theme.spacing.xs))
 
             Text(
-                text = "Sign in to start learning vocabulary",
+                text = stringResource(Res.string.login_required_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(Theme.spacing.xxxl))
 
             if (errorMessage != null) {
                 Text(
@@ -74,7 +80,7 @@ fun AuthGateScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Theme.spacing.sm))
             }
 
             GoogleSignInContainer(
@@ -90,7 +96,7 @@ fun AuthGateScreen(
                 isLoading = isLoading && activeProvider == SignInProvider.GOOGLE,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp)
+                    .widthIn(max = Theme.dimensions.contentMaxWidth)
             )
 
             AppleSignInButton(
@@ -105,8 +111,8 @@ fun AuthGateScreen(
                 isLoading = isLoading && activeProvider == SignInProvider.APPLE,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp)
-                    .padding(top = 12.dp)
+                    .widthIn(max = Theme.dimensions.contentMaxWidth)
+                    .padding(top = Theme.spacing.sm)
             )
         }
     }

@@ -138,7 +138,7 @@ fun PlanCard(
                             text = plan.title,
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(end = 8.dp),
+                                .padding(end = Theme.spacing.xs),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
@@ -217,7 +217,7 @@ fun PlanCard(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .offset(x = 2.dp, y = (-2).dp)
-                    .size(32.dp)
+                    .size(Theme.dimensions.iconSizeXLarge)
                     .background(plan.accentColor, CircleShape),
                 contentAlignment = Alignment.Center
             ) {

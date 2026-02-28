@@ -17,7 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -121,7 +120,7 @@ fun WordManagerScreen(
             contentDescription = stringResource(Res.string.cancel),
             onClick = { viewModel.exitSelectionMode() },
             tint = MaterialTheme.colorScheme.onSurface,
-            size = 28.dp
+            size = Theme.dimensions.iconSizeLarge
         )
     } else {
         null
@@ -174,7 +173,6 @@ fun WordManagerScreen(
                             viewModel.toggleWordSelection(wordId)
                         },
                         onSelectAll = viewModel::selectAll,
-                        onDeselectAll = viewModel::deselectAll,
                         onShareWords = viewModel::shareWords,
                         onSortOptionChange = viewModel::setSortOption,
                         onFilterLanguageChange = viewModel::setFilterLanguage,
@@ -207,8 +205,8 @@ fun WordManagerScreen(
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
                     ) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(48.dp),
-                            strokeWidth = 4.dp
+                            modifier = Modifier.size(Theme.dimensions.touchTarget),
+                            strokeWidth = Theme.dimensions.borderWidthThick
                         )
                         Text(
                             text = stringResource(Res.string.updating_words_please_wait),
@@ -232,8 +230,8 @@ fun WordManagerScreen(
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
                     ) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(48.dp),
-                            strokeWidth = 4.dp
+                            modifier = Modifier.size(Theme.dimensions.touchTarget),
+                            strokeWidth = Theme.dimensions.borderWidthThick
                         )
                         Text(
                             text = stringResource(Res.string.deleting_words_please_wait),

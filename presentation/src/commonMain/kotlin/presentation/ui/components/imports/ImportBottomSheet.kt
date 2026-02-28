@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,11 +31,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
@@ -44,7 +47,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.Preview
-import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,20 +67,67 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import events.OnEvents
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.add_a_word
+import lexicon.resources.generated.resources.add_word
+import lexicon.resources.generated.resources.add_word_description
+import lexicon.resources.generated.resources.ai_powered_extraction
+import lexicon.resources.generated.resources.camera
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.capture_vocab_from_image
+import lexicon.resources.generated.resources.choose_file
+import lexicon.resources.generated.resources.choose_from_library
+import lexicon.resources.generated.resources.confirm_and_extract
+import lexicon.resources.generated.resources.confirm_languages
+import lexicon.resources.generated.resources.description_optional
+import lexicon.resources.generated.resources.extract_example_sentences
+import lexicon.resources.generated.resources.extract_individual_words
+import lexicon.resources.generated.resources.extraction_options
+import lexicon.resources.generated.resources.failed_to_load_image
+import lexicon.resources.generated.resources.format_example_1
+import lexicon.resources.generated.resources.format_example_2
+import lexicon.resources.generated.resources.format_example_3
+import lexicon.resources.generated.resources.gallery
+import lexicon.resources.generated.resources.import_failed_generic
+import lexicon.resources.generated.resources.import_from_file
+import lexicon.resources.generated.resources.import_text
+import lexicon.resources.generated.resources.import_words
+import lexicon.resources.generated.resources.individual_words_hint
+import lexicon.resources.generated.resources.original_language
+import lexicon.resources.generated.resources.original_word
+import lexicon.resources.generated.resources.preview_selected_image
+import lexicon.resources.generated.resources.processing_file
+import lexicon.resources.generated.resources.processing_image_with_ai
+import lexicon.resources.generated.resources.review_before_processing
+import lexicon.resources.generated.resources.select_at_least_one_option
+import lexicon.resources.generated.resources.select_txt_file_description
+import lexicon.resources.generated.resources.sentences_hint
+import lexicon.resources.generated.resources.success_imported_words
+import lexicon.resources.generated.resources.supported_format
+import lexicon.resources.generated.resources.take_new_photo
+import lexicon.resources.generated.resources.translation_label
+import lexicon.resources.generated.resources.translation_language
+import lexicon.resources.generated.resources.try_another_image
+import lexicon.resources.generated.resources.txt_format
+import lexicon.resources.generated.resources.words_added_count
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.model.ImageImportState
@@ -90,67 +139,11 @@ import utils.rememberCameraLauncher
 import utils.rememberImagePickerLauncher
 import utils.rememberTextFilePickerLauncher
 import utils.toImageBitmap
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.ai_powered_extraction
-import lexicon.resources.generated.resources.camera
-import lexicon.resources.generated.resources.cancel
-import lexicon.resources.generated.resources.capture_vocab_from_image
-import lexicon.resources.generated.resources.choose_file
-import lexicon.resources.generated.resources.choose_from_library
-import lexicon.resources.generated.resources.confirm_and_extract
-import lexicon.resources.generated.resources.confirm_languages
-import lexicon.resources.generated.resources.enter_words
-import lexicon.resources.generated.resources.enter_words_manually_description
-import lexicon.resources.generated.resources.extract_example_sentences
-import lexicon.resources.generated.resources.extract_individual_words
-import lexicon.resources.generated.resources.extraction_options
-import lexicon.resources.generated.resources.failed_to_load_image
-import lexicon.resources.generated.resources.format_example_1
-import lexicon.resources.generated.resources.format_example_2
-import lexicon.resources.generated.resources.format_example_3
-import lexicon.resources.generated.resources.format_hint_comma_separated
-import lexicon.resources.generated.resources.gallery
-import lexicon.resources.generated.resources.import_failed_generic
-import lexicon.resources.generated.resources.import_from_file
-import lexicon.resources.generated.resources.import_text
-import lexicon.resources.generated.resources.import_words
-import lexicon.resources.generated.resources.individual_words_hint
-import lexicon.resources.generated.resources.original_language
-import lexicon.resources.generated.resources.preview_selected_image
-import lexicon.resources.generated.resources.processing_file
-import lexicon.resources.generated.resources.processing_image_with_ai
-import lexicon.resources.generated.resources.remaining_extractions
-import lexicon.resources.generated.resources.review_before_processing
-import lexicon.resources.generated.resources.select_at_least_one_option
-import lexicon.resources.generated.resources.select_txt_file_description
-import lexicon.resources.generated.resources.sentences_hint
-import lexicon.resources.generated.resources.success_imported_words
-import lexicon.resources.generated.resources.supported_format
-import lexicon.resources.generated.resources.take_new_photo
-import lexicon.resources.generated.resources.translation_language
-import lexicon.resources.generated.resources.try_another_image
-import lexicon.resources.generated.resources.txt_format
-import lexicon.resources.generated.resources.type_or_paste_words
-import lexicon.resources.generated.resources.add_a_word
-import lexicon.resources.generated.resources.add_word_description
-import lexicon.resources.generated.resources.add_word
-import lexicon.resources.generated.resources.words_added_count
-import lexicon.resources.generated.resources.original_word
-import lexicon.resources.generated.resources.translation_label
-import lexicon.resources.generated.resources.description_optional
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.ImeAction
 
 @Composable
 fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
     val viewModel = koinInject<ImportViewModel>()
-    val state = viewModel.state()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val errorMessage = stringResource(Res.string.import_failed_generic)
     val successImportedWordsFormat = stringResource(Res.string.success_imported_words)
     val latestErrorMessage = rememberUpdatedState(errorMessage)
@@ -178,7 +171,7 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
 
             is ImportEvent.Error -> {
                 val message = if (event.message.isNotEmpty()) {
-                    "✗ ${event.message}"
+                    "[Error] ${event.message}"
                 } else {
                     latestErrorMessage.value
                 }
@@ -295,7 +288,7 @@ private fun ImportTabSelector(
         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(Theme.shapes.medium)),
         tabs = {
             tabs.forEach { tab ->
                 val isSelected = when (selectedTab) {
@@ -307,7 +300,7 @@ private fun ImportTabSelector(
                 Tab(
                     selected = isSelected,
                     onClick = { onTabSelected(tab) },
-                    modifier = Modifier.height(56.dp)
+                    modifier = Modifier.height(Theme.dimensions.buttonHeight)
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3),
@@ -316,12 +309,13 @@ private fun ImportTabSelector(
                         Icon(
                             imageVector = tab.icon,
                             contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
                         )
                         Text(
                             stringResource(tab.title),
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 1
                         )
                     }
                 }
@@ -440,7 +434,7 @@ private fun TabContainer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
-                        .clip(RoundedCornerShape(16.dp)),
+                        .clip(RoundedCornerShape(Theme.shapes.large)),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
@@ -453,7 +447,7 @@ private fun TabContainer(
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
                     ) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(Theme.dimensions.touchTarget),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
@@ -608,8 +602,8 @@ private fun TextTab(
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
-                                .size(20.dp)
-                                .padding(end = 4.dp)
+                                .size(Theme.dimensions.iconSizeMedium)
+                                .padding(end = Theme.spacing.xxs)
                         )
                     }
                     val countText = stringResource(Res.string.words_added_count)
@@ -692,7 +686,7 @@ private fun CompactLanguageSelector(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(Theme.shapes.medium)
     ) {
         Column(
             modifier = Modifier
@@ -764,7 +758,7 @@ private fun FileTab(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(Theme.shapes.large),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -776,7 +770,7 @@ private fun FileTab(
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
                     ) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(Theme.dimensions.touchTarget),
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
@@ -793,7 +787,7 @@ private fun FileTab(
                         Icon(
                             Icons.Filled.UploadFile,
                             contentDescription = null,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(Theme.dimensions.touchTarget)
                         )
                         Text(
                             stringResource(Res.string.choose_file),
@@ -834,7 +828,7 @@ private fun SupportedFormatsCard() {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(Theme.shapes.medium)
     ) {
         Column(
             modifier = Modifier.padding(Theme.spacing.cardPadding)
@@ -954,7 +948,7 @@ private fun FromImageTab(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(140.dp),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(Theme.shapes.large),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -967,7 +961,7 @@ private fun FromImageTab(
                                 Icon(
                                     Icons.Filled.CameraAlt,
                                     contentDescription = null,
-                                    modifier = Modifier.size(48.dp)
+                                    modifier = Modifier.size(Theme.dimensions.touchTarget)
                                 )
                                 Text(
                                     stringResource(Res.string.camera),
@@ -990,7 +984,7 @@ private fun FromImageTab(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(140.dp),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(Theme.shapes.large),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer
@@ -1003,7 +997,7 @@ private fun FromImageTab(
                                 Icon(
                                     Icons.Filled.Photo,
                                     contentDescription = null,
-                                    modifier = Modifier.size(48.dp)
+                                    modifier = Modifier.size(Theme.dimensions.touchTarget)
                                 )
                                 Text(
                                     stringResource(Res.string.gallery),
@@ -1047,7 +1041,7 @@ private fun AiExtractionInfoCard() {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(Theme.shapes.medium)
     ) {
         Row(
             modifier = Modifier
@@ -1059,7 +1053,7 @@ private fun AiExtractionInfoCard() {
             Icon(
                 Icons.Filled.AutoAwesome,
                 contentDescription = null,
-                modifier = Modifier.size(32.dp),
+                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
                 tint = MaterialTheme.colorScheme.primary
             )
             Column(modifier = Modifier.weight(1f)) {
@@ -1093,7 +1087,7 @@ private fun ExtractionOptionsCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(Theme.shapes.medium),
         border = CardDefaults.outlinedCardBorder()
     ) {
         Column(
@@ -1111,7 +1105,7 @@ private fun ExtractionOptionsCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(Theme.shapes.small))
                     .padding(Theme.spacing.extraSmall2),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -1139,7 +1133,7 @@ private fun ExtractionOptionsCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(Theme.shapes.small))
                     .padding(Theme.spacing.extraSmall2),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -1175,7 +1169,7 @@ private fun ExtractionOptionsCard(
                 Icons.Filled.Info,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(Theme.dimensions.iconSizeSmall)
             )
             Text(
                 stringResource(Res.string.select_at_least_one_option),
@@ -1232,7 +1226,7 @@ private fun ImagePreviewCard(
                         Icons.Filled.Preview,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(Theme.dimensions.iconSizeLarge)
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -1266,7 +1260,7 @@ private fun ImagePreviewCard(
                         .fillMaxWidth()
                         .height(240.dp),
                     shape = RoundedCornerShape(20.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.extraHigh),
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     ),
@@ -1285,8 +1279,8 @@ private fun ImagePreviewCard(
                             Card(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(12.dp),
-                                shape = RoundedCornerShape(16.dp),
+                                    .padding(Theme.spacing.sm),
+                                shape = RoundedCornerShape(Theme.shapes.large),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
                                         alpha = 0.3f
@@ -1298,8 +1292,8 @@ private fun ImagePreviewCard(
                                     contentDescription = stringResource(Res.string.preview_selected_image),
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(8.dp)
-                                        .clip(RoundedCornerShape(12.dp)),
+                                        .padding(Theme.spacing.xs)
+                                        .clip(RoundedCornerShape(Theme.shapes.medium)),
                                     contentScale = ContentScale.Fit
                                 )
                             }
@@ -1385,7 +1379,7 @@ private fun InfoCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(Theme.shapes.medium)
     ) {
         Row(
             modifier = Modifier
@@ -1398,7 +1392,7 @@ private fun InfoCard(
                 icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(Theme.dimensions.iconSize)
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -1407,7 +1401,7 @@ private fun InfoCard(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(Theme.spacing.xxs))
                 Text(
                     description,
                     style = MaterialTheme.typography.bodySmall,
@@ -1489,7 +1483,7 @@ private fun LanguageRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(Theme.shapes.small))
             .clickable(onClick = onClick)
             .padding(vertical = Theme.spacing.extraSmall, horizontal = Theme.spacing.small)
     ) {
@@ -1498,7 +1492,7 @@ private fun LanguageRow(
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall)
@@ -1512,7 +1506,7 @@ private fun LanguageRow(
             Icon(
                 Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

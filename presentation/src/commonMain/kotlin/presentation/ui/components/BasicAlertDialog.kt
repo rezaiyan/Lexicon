@@ -42,22 +42,22 @@ fun BasicAlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         BoxWithConstraints {
-            val maxDialogHeight = if (constraints.hasBoundedHeight) maxHeight * 0.85f else 560.dp
+            val maxDialogHeight = if (constraints.hasBoundedHeight) maxHeight * 0.85f else maxHeight
             val shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius)
 
             Surface(
                 shape = shape,
-                shadowElevation = 8.dp,
-                tonalElevation = 2.dp,
+                shadowElevation = Theme.elevation.overlay,
+                tonalElevation = Theme.elevation.medium,
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .widthIn(min = 280.dp, max = 480.dp)
+                    .widthIn(min = Theme.dimensions.dialogMinWidth, max = Theme.dimensions.dialogMaxWidth)
                     .heightIn(max = maxDialogHeight)
                     .clip(shape)
             ) {
                 Column(
                     Modifier
-                        .padding(24.dp)
+                        .padding(Theme.spacing.lg)
                         .verticalScroll(rememberScrollState())
                 ) {
                     LexiconDialogContent(

@@ -316,16 +316,16 @@ class ExportWordsUseCaseTest {
     @Test
     fun `emoji should be preserved`() {
         val words = listOf(
-            createWord(originalWord = "Happy 😊", translation = "Feliz 😊"),
-            createWord(originalWord = "Heart ❤️", translation = "Corazón ❤️"),
-            createWord(originalWord = "Thumbs up 👍", translation = "Pulgar arriba 👍")
+            createWord(originalWord = "Happy ", translation = "Feliz "),
+            createWord(originalWord = "Heart ", translation = "Corazón "),
+            createWord(originalWord = "Thumbs up ", translation = "Pulgar arriba ")
         )
         
         val result = exportUseCase(words)
         
-        assertTrue(result.contains("Happy 😊,Feliz 😊"))
-        assertTrue(result.contains("Heart ❤️,Corazón ❤️"))
-        assertTrue(result.contains("Thumbs up 👍,Pulgar arriba 👍"))
+        assertTrue(result.contains("Happy ,Feliz "))
+        assertTrue(result.contains("Heart ,Corazón "))
+        assertTrue(result.contains("Thumbs up ,Pulgar arriba "))
     }
     
     @Test

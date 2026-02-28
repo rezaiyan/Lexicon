@@ -107,6 +107,7 @@ fun ComparisonTable() {
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
                 modifier = Modifier.weight(1f)
             )
 
@@ -187,6 +188,7 @@ fun ComparisonTable() {
                     text = row.label,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
 

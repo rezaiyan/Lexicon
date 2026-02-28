@@ -4,8 +4,18 @@ package presentation.ui.screens.study
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material.icons.rounded.Lightbulb
+import androidx.compose.material.icons.rounded.MenuBook
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import org.jetbrains.compose.resources.InternalResourceApi
@@ -33,8 +43,8 @@ data class LevelBucketData(
     val stage: LearningStage,
     val nameResId: org.jetbrains.compose.resources.StringResource,
     val descriptionResId: org.jetbrains.compose.resources.StringResource,
-    val icon: String,
-    val color: androidx.compose.ui.graphics.Color,
+    val icon: ImageVector,
+    val color: Color,
     val count: Int
 )
 
@@ -59,7 +69,7 @@ fun LearningStagesList(
             LearningStage.LEVEL_0_FRESH,
             Res.string.level_0_fresh,
             Res.string.level_0_description,
-            "📝",
+            Icons.Rounded.Lightbulb,
             AppColors.novice,
             stats.level0Count
         ),
@@ -67,7 +77,7 @@ fun LearningStagesList(
             LearningStage.LEVEL_1_LEARNING,
             Res.string.level_1_learning,
             Res.string.level_1_description,
-            "📚",
+            Icons.Rounded.MenuBook,
             AppColors.apprentice,
             stats.level1Count
         ),
@@ -75,7 +85,7 @@ fun LearningStagesList(
             LearningStage.LEVEL_2_FAMILIAR,
             Res.string.level_2_familiar,
             Res.string.level_2_description,
-            "💡",
+            Icons.Rounded.AutoAwesome,
             AppColors.apprentice,
             stats.level2Count
         ),
@@ -83,7 +93,7 @@ fun LearningStagesList(
             LearningStage.LEVEL_3_BUILDING,
             Res.string.level_3_building,
             Res.string.level_3_description,
-            "✨",
+            Icons.Rounded.TrendingUp,
             AppColors.adept,
             stats.level3Count
         ),
@@ -91,7 +101,7 @@ fun LearningStagesList(
             LearningStage.LEVEL_4_ALMOST,
             Res.string.level_4_almost,
             Res.string.level_4_description,
-            "🌱",
+            Icons.Rounded.Verified,
             AppColors.adept,
             stats.level4Count
         ),
@@ -99,7 +109,7 @@ fun LearningStagesList(
             LearningStage.LEVEL_5_STRONG,
             Res.string.level_5_strong,
             Res.string.level_5_description,
-            "🌟",
+            Icons.Rounded.Star,
             AppColors.master,
             stats.level5Count
         ),
@@ -107,7 +117,7 @@ fun LearningStagesList(
             LearningStage.LEVEL_6_MASTERED,
             Res.string.level_6_mastered,
             Res.string.level_6_description,
-            "👑",
+            Icons.Rounded.EmojiEvents,
             AppColors.master,
             stats.level6Count
         )
@@ -125,7 +135,6 @@ fun LearningStagesList(
                 count = level.count,
                 color = level.color,
                 icon = level.icon,
-                totalWords = stats.totalWords,
                 onClick = {
                     if (level.count > 0) {
                         onStageClick(level.stage, clickTexts[index])

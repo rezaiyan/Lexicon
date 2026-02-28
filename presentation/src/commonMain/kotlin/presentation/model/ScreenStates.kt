@@ -1,5 +1,6 @@
 package presentation.model
 
+import domain.word.model.ProgressEvaluation
 import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.settings.model.ThemeMode
@@ -8,6 +9,7 @@ import utils.Language
 
 data class ProgressScreenState(
     val progressStats: ProgressStats,
+    val progressEvaluation: ProgressEvaluation,
     val messageState: MessageState? = null
 )
 

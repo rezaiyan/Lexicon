@@ -17,7 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import domain.word.model.ProgressStats
 import theme.AppColors
 import theme.Theme
@@ -54,9 +53,9 @@ fun WordDistributionBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .height(8.dp)
+            .height(Theme.spacing.xs)
             .padding(bottom = Theme.spacing.small)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(Theme.shapes.extraSmall))
     ) {
         segments.forEach { segment ->
             val fraction = if (segment.count > 0) {
@@ -77,7 +76,7 @@ fun WordDistributionBar(
                 // Thin minimum-width placeholder for empty levels
                 Box(
                     modifier = Modifier
-                        .width(2.dp)
+                        .width(Theme.spacing.xxxs)
                         .fillMaxHeight()
                         .background(segment.color.copy(alpha = 0.15f))
                 )

@@ -37,7 +37,6 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -91,6 +90,7 @@ import lexicon.resources.generated.resources.settings
 import lexicon.resources.generated.resources.study
 import lexicon.resources.generated.resources.success_imported_words
 import lexicon.resources.generated.resources.word_deleted
+import theme.Theme
 
 val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {
     error("No SnackbarHostState provided")
@@ -367,12 +367,12 @@ private fun AppContent(
                     snackbar = { snackbarData ->
                         Snackbar(
                             snackbarData = snackbarData,
-                            modifier = Modifier.padding(start = 16.dp, end = 16.dp),
-                            containerColor = if (snackbarData.visuals.message.startsWith("✗"))
+                            modifier = Modifier.padding(start = Theme.spacing.md, end = Theme.spacing.md),
+                            containerColor = if (snackbarData.visuals.message.startsWith("[Error]"))
                                 MaterialTheme.colorScheme.errorContainer
                             else
                                 MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = if (snackbarData.visuals.message.startsWith("✗"))
+                            contentColor = if (snackbarData.visuals.message.startsWith("[Error]"))
                                 MaterialTheme.colorScheme.onErrorContainer
                             else
                                 MaterialTheme.colorScheme.onPrimaryContainer
@@ -485,7 +485,7 @@ private fun HandleVocabularyEffects(
 
                 is VocabularyEffect.ImportError -> {
                     val message = if (event.message.isNotEmpty()) {
-                        "✗ ${event.message}"
+                        "[Error] ${event.message}"
                     } else {
                         importFailedGeneric
                     }

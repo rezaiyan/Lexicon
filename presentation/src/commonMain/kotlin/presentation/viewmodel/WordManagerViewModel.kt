@@ -135,16 +135,20 @@ class WordManagerViewModel(
 
     fun selectAll() {
         val allWordIds: Set<Int> = _state.value.filteredWords.map { it.id }.toSet()
-        _state.value = _state.value.copy(
-            selectedWordIds = allWordIds,
-            isSelectionMode = allWordIds.isNotEmpty()
-        )
+        if (_state.value.selectedWordIds.containsAll(allWordIds)) {
+            deselectAll()
+        } else {
+            _state.value = _state.value.copy(
+                selectedWordIds = allWordIds,
+                isSelectionMode = allWordIds.isNotEmpty()
+            )
+        }
     }
 
-    fun deselectAll() {
+    private fun deselectAll() {
         _state.value = _state.value.copy(
             selectedWordIds = emptySet(),
-            isSelectionMode = false
+            isSelectionMode = true
         )
     }
 
@@ -226,31 +230,4 @@ class WordManagerViewModel(
         )
     }
 
-    fun onEvent(event: WordManagerEvent) {
-        when (event) {
-            is WordManagerEvent.ResetState -> resetState()
-            is WordManagerEvent.ToggleWordSelection -> toggleWordSelection(event.wordId)
-            is WordManagerEvent.SelectAll -> selectAll()
-            is WordManagerEvent.DeselectAll -> deselectAll()
-            is WordManagerEvent.UpdateSearchQuery -> updateSearchQuery(event.query)
-            is WordManagerEvent.ClearSearch -> clearSearch()
-            is WordManagerEvent.SetSortOption -> setSortOption(event.option)
-            is WordManagerEvent.SetFilterLanguage -> setFilterLanguage(event.language)
-            is WordManagerEvent.SetFilterLearningStage -> setFilterLearningStage(event.stage)
-            is WordManagerEvent.EnterSelectionMode -> enterSelectionMode()
-            is WordManagerEvent.ExitSelectionMode -> exitSelectionMode()
-            is WordManagerEvent.OpenWordDetail -> openWordDetail(event.word)
-            is WordManagerEvent.CloseWordDetail -> closeWordDetail()
-            is WordManagerEvent.UpdateWord -> updateWord(event.word)
-            is WordManagerEvent.ShowDeleteConfirmation -> showDeleteConfirmation()
-            is WordManagerEvent.HideDeleteConfirmation -> hideDeleteConfirmation()
-            is WordManagerEvent.DeleteSelectedWords -> deleteSelectedWords()
-            is WordManagerEvent.ShowBatchEditLanguages -> showBatchEditLanguages()
-            is WordManagerEvent.HideBatchEditLanguages -> hideBatchEditLanguages()
-            is WordManagerEvent.BatchUpdateLanguages -> batchUpdateLanguages(
-                event.sourceLanguage, event.targetLanguage
-            )
-            is WordManagerEvent.ShareWords -> shareWords()
-        }
-    }
 }

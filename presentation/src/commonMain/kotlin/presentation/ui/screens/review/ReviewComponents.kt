@@ -12,7 +12,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,10 +28,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,18 +39,18 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import components.CounterPill
+import components.EmptyScreen
+import components.ErrorScreen
+import components.GradientProgressBar
+import components.LoadingScreen
 import domain.tts.model.TtsState
 import domain.word.model.Word
 import org.jetbrains.compose.resources.InternalResourceApi
@@ -73,76 +72,38 @@ import lexicon.resources.generated.resources.no_words_to_review
 import lexicon.resources.generated.resources.remembered
 import lexicon.resources.generated.resources.restart
 import lexicon.resources.generated.resources.retry
+import lexicon.resources.generated.resources.tap_card_to_reveal
 
-/**
- * Full-screen loading state.
- */
 @Composable
 fun LoadingState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        CircularProgressIndicator(modifier = Modifier.size(30.dp))
-    }
+    LoadingScreen()
 }
 
-/**
- * Full-screen error state with retry action.
- */
 @Composable
 fun ErrorState(
     message: String,
     onRetry: () -> Unit
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
-        ) {
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center
-            )
-            Button(onClick = onRetry) {
-                Text(stringResource(Res.string.retry))
-            }
-        }
-    }
+    ErrorScreen(
+        message = message,
+        retryLabel = stringResource(Res.string.retry),
+        onRetry = onRetry
+    )
 }
 
-/**
- * Empty state shown when no words are available to review.
- */
 @Composable
 fun EmptyState() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = Theme.spacing.extraLarge),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
-        ) {
-            Text(
-                text = "✅",
-                style = MaterialTheme.typography.displayMedium
-            )
-            Text(
-                text = stringResource(Res.string.no_words_to_review),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
+    EmptyScreen(
+        title = stringResource(Res.string.no_words_to_review),
+        icon = {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
         }
-    }
+    )
 }
 
 /**
@@ -158,11 +119,6 @@ private fun ReviewTopBar(
     onClose: () -> Unit
 ) {
     val progress = (currentIndex + 1).toFloat() / totalCount.toFloat()
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
-        label = "reviewProgress"
-    )
 
     Column {
         Row(
@@ -195,48 +151,21 @@ private fun ReviewTopBar(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = Theme.spacing.extraSmall2),
-                textAlign = TextAlign.Center
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
-            // Counter pill chip — shows "3 / 12" so users always know where they are
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "${currentIndex + 1} / $totalCount",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            CounterPill(text = "${currentIndex + 1} / $totalCount")
         }
 
-        // Full-bleed progress strip (no horizontal padding — edge-to-edge)
-        Box(modifier = Modifier.fillMaxWidth().height(3.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(animatedProgress)
-                    .height(3.dp)
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        )
-                    )
-            )
-        }
+        GradientProgressBar(
+            progress = progress,
+            gradientColors = listOf(
+                MaterialTheme.colorScheme.primary,
+                MaterialTheme.colorScheme.tertiary
+            ),
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            animationDurationMs = 350
+        )
     }
 }
 
@@ -325,7 +254,7 @@ fun ReviewContent(
             // Uses graphicsLayer alpha so it never affects layout or triggers
             // scoped-overload resolution issues.
             Text(
-                text = "Tap card to reveal",
+                text = stringResource(Res.string.tap_card_to_reveal),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
                 modifier = Modifier
@@ -342,9 +271,9 @@ fun ReviewContent(
                     .padding(vertical = Theme.spacing.extraSmall3)
                     .clip(RoundedCornerShape(50))
                     .clickable(onClick = onEdit)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = Theme.spacing.sm, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
@@ -473,7 +402,7 @@ fun NavigationButtons(
             OutlinedButton(
                 onClick = onNavigateBack,
                 enabled = currentIndex > 0,
-                modifier = Modifier.weight(1f).height(56.dp)
+                modifier = Modifier.weight(1f).height(Theme.dimensions.buttonHeight)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -493,7 +422,7 @@ fun NavigationButtons(
             Button(
                 onClick = onNavigateForward,
                 enabled = currentIndex < totalCount - 1,
-                modifier = Modifier.weight(1f).height(56.dp)
+                modifier = Modifier.weight(1f).height(Theme.dimensions.buttonHeight)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,

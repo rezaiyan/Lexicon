@@ -1,5 +1,7 @@
 package presentation.ui.components
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,15 +53,19 @@ fun LexiconColumn(
     actionIcon1: ActionIconConfig? = null,
     actionIcon2: ActionIconConfig? = null,
     scrollable: Boolean = true,
+    scrollState: ScrollState? = null,
     topBarColor: TopBarColor = TopBarColor.Background,
+    collapsedContent: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
+    val hasTopBar =
+        title != null || showNavigationIcon || actionIcon1 != null || actionIcon2 != null
 
     if (scrollable) {
-        Column {
-            val hasTopBar =
-                title != null || showNavigationIcon || actionIcon1 != null || actionIcon2 != null
-
+        val resolvedScrollState = scrollState ?: rememberScrollState()
+        Column(
+            Modifier.background(Theme.colors.background)
+        ) {
             if (hasTopBar) {
                 FlexibleTopBar(
                     title = title,
@@ -67,22 +73,20 @@ fun LexiconColumn(
                     onNavigationClick = onNavigationClick,
                     actionIcon1 = actionIcon1,
                     actionIcon2 = actionIcon2,
-                    topBarColor = topBarColor
+                    topBarColor = topBarColor,
+                    collapsedContent = collapsedContent,
                 )
             }
             Column(
                 modifier = Modifier
                     .fillMaxWidth().padding(horizontal = Theme.spacing.medium)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(resolvedScrollState)
             ) {
                 content()
             }
         }
     } else {
         Column {
-            val hasTopBar =
-                title != null || showNavigationIcon || actionIcon1 != null || actionIcon2 != null
-
             if (hasTopBar) {
                 FlexibleTopBar(
                     title = title,
@@ -90,7 +94,8 @@ fun LexiconColumn(
                     onNavigationClick = onNavigationClick,
                     actionIcon1 = actionIcon1,
                     actionIcon2 = actionIcon2,
-                    topBarColor = topBarColor
+                    topBarColor = topBarColor,
+                    collapsedContent = collapsedContent,
                 )
             }
             Box(
@@ -112,7 +117,8 @@ private fun FlexibleTopBar(
     onNavigationClick: () -> Unit,
     actionIcon1: ActionIconConfig?,
     actionIcon2: ActionIconConfig?,
-    topBarColor: TopBarColor
+    topBarColor: TopBarColor,
+    collapsedContent: (@Composable () -> Unit)? = null,
 ) {
     TopAppBar(
         modifier = Modifier.padding(horizontal = Theme.spacing.extraSmall),
@@ -126,6 +132,7 @@ private fun FlexibleTopBar(
                     fontWeight = FontWeight.Bold
                 )
             }
+            collapsedContent?.invoke()
         },
         navigationIcon = {
             if (showNavigationIcon) {
@@ -184,7 +191,7 @@ data class ActionIconConfig(
     val contentDescription: String,
     val onClick: () -> Unit,
     val tint: Color? = null,
-    val size: Dp = 24.dp  // Theme.spacing.xxl
+    val size: Dp = 24.dp
 )
 
 sealed class TopBarColor {

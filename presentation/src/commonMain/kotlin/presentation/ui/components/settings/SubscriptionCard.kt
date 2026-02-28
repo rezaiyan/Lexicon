@@ -1,10 +1,12 @@
 package presentation.ui.components.settings
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
+import components.icons.LexiconIcons
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import components.Pill
 import domain.auth.manager.IUserManager
 import domain.subscription.ISubscriptionManager
 import org.jetbrains.compose.resources.stringResource
@@ -12,7 +14,10 @@ import org.koin.compose.koinInject
 import presentation.ui.components.SettingsCard
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.subscription
+import lexicon.resources.generated.resources.upgrade
 import lexicon.resources.generated.resources.upgrade_to_premium
+
+private val SubscriptionIconColor = Color(0xFFE91E63)
 
 @Composable
 fun SubscriptionCard(
@@ -25,14 +30,26 @@ fun SubscriptionCard(
 
     if (currentUser != null) {
         SettingsCard(
-            icon = Icons.Default.Star,
+            icon = LexiconIcons.Diamond,
             title = stringResource(Res.string.subscription),
             subtitle = if (isSubscribed.not()) {
                 stringResource(Res.string.upgrade_to_premium)
             } else {
                 null
             },
-            onClick = onClick
+            iconBackgroundColor = SubscriptionIconColor,
+            solidIconBackground = true,
+            onClick = onClick,
+            trailingContent = if (isSubscribed.not()) {
+                {
+                    Pill(
+                        text = stringResource(Res.string.upgrade),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            } else {
+                null
+            }
         )
     }
 }

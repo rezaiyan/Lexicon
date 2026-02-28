@@ -5,8 +5,13 @@ package presentation.ui.screens.review
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,7 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.BasicAlertDialog
@@ -42,6 +49,7 @@ fun EditWordDialog(
     var originalWord by remember { mutableStateOf(word.originalWord) }
     var translation by remember { mutableStateOf(word.translation) }
     var description by remember { mutableStateOf(word.description) }
+    val focusManager = LocalFocusManager.current
 
     BasicAlertDialog(
         onDismissRequest = onDismiss,
@@ -64,8 +72,11 @@ fun EditWordDialog(
         negativeButtonOnClick = onDelete,
         content = {
             Column(
-                modifier = Modifier.padding(top = Theme.spacing.small),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardPadding)
+                modifier = Modifier
+                    .padding(top = Theme.spacing.sm)
+                    .imePadding()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
             ) {
                 OutlinedTextField(
                     value = originalWord,
@@ -73,7 +84,11 @@ fun EditWordDialog(
                     label = { Text(stringResource(Res.string.original_word)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(Theme.shapes.medium),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    )
                 )
 
                 OutlinedTextField(
@@ -82,7 +97,11 @@ fun EditWordDialog(
                     label = { Text(stringResource(Res.string.translation_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(Theme.shapes.medium),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                    )
                 )
 
                 OutlinedTextField(
@@ -92,10 +111,13 @@ fun EditWordDialog(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                     maxLines = 3,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(Theme.shapes.medium),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    )
                 )
             }
         }
     )
 }
-

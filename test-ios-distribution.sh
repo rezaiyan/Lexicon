@@ -18,32 +18,32 @@ echo -e "${YELLOW}Checking prerequisites...${NC}"
 
 # 1. Check Ruby
 if ! command -v ruby &> /dev/null; then
-    echo -e "${RED}❌ Ruby not found. Please install Ruby 3.0+${NC}"
+    echo -e "${RED} Ruby not found. Please install Ruby 3.0+${NC}"
     exit 1
 fi
-echo -e "${GREEN}✓ Ruby $(ruby --version | cut -d' ' -f2) found${NC}"
+echo -e "${GREEN} Ruby $(ruby --version | cut -d' ' -f2) found${NC}"
 
 # 2. Check Bundler
 if ! command -v bundle &> /dev/null; then
-    echo -e "${RED}❌ Bundler not found. Installing...${NC}"
+    echo -e "${RED} Bundler not found. Installing...${NC}"
     gem install bundler
 fi
-echo -e "${GREEN}✓ Bundler $(bundle --version | cut -d' ' -f3) found${NC}"
+echo -e "${GREEN} Bundler $(bundle --version | cut -d' ' -f3) found${NC}"
 
 # 3. Check .env file
 if [ ! -f "iosApp/.env" ]; then
-    echo -e "${RED}❌ .env file not found in iosApp directory${NC}"
+    echo -e "${RED} .env file not found in iosApp directory${NC}"
     echo -e "${YELLOW}A template has been created at iosApp/.env${NC}"
     echo -e "${YELLOW}Please review and update it with your credentials${NC}"
     exit 1
 fi
-echo -e "${GREEN}✓ .env file found${NC}"
+echo -e "${GREEN} .env file found${NC}"
 
 # 4. Check App Store Connect API key
 source iosApp/.env
 API_KEY_PATH="${APP_STORE_CONNECT_API_KEY_PATH/#\~/$HOME}"
 if [ ! -f "$API_KEY_PATH" ]; then
-    echo -e "${RED}❌ App Store Connect API key not found at: $API_KEY_PATH${NC}"
+    echo -e "${RED} App Store Connect API key not found at: $API_KEY_PATH${NC}"
     echo -e "${YELLOW}Download it from:${NC}"
     echo -e "${YELLOW}https://appstoreconnect.apple.com/access/integrations/api${NC}"
     echo -e "${YELLOW}Then save it to: $API_KEY_PATH${NC}"
@@ -53,28 +53,28 @@ if [ ! -f "$API_KEY_PATH" ]; then
     echo -e "${YELLOW}Created directory: $(dirname "$API_KEY_PATH")${NC}"
     exit 1
 fi
-echo -e "${GREEN}✓ App Store Connect API key found${NC}"
+echo -e "${GREEN} App Store Connect API key found${NC}"
 
 # 5. Check provisioning profile
 PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
 if [ ! -d "$PROFILE_DIR" ] || [ -z "$(ls -A "$PROFILE_DIR" 2>/dev/null)" ]; then
-    echo -e "${YELLOW}⚠️  No provisioning profiles found${NC}"
+    echo -e "${YELLOW}  No provisioning profiles found${NC}"
     echo -e "${YELLOW}Download the App Store provisioning profile from:${NC}"
     echo -e "${YELLOW}https://developer.apple.com/account/resources/profiles/list${NC}"
     echo -e "${YELLOW}Then double-click to install it${NC}"
 else
     PROFILE_COUNT=$(ls -1 "$PROFILE_DIR" | wc -l | tr -d ' ')
-    echo -e "${GREEN}✓ Found $PROFILE_COUNT provisioning profile(s)${NC}"
+    echo -e "${GREEN} Found $PROFILE_COUNT provisioning profile(s)${NC}"
 fi
 
 # 6. Check code signing identity
 if ! security find-identity -v -p codesigning | grep -q "Apple Distribution"; then
-    echo -e "${RED}❌ No Apple Distribution certificate found${NC}"
+    echo -e "${RED} No Apple Distribution certificate found${NC}"
     echo -e "${YELLOW}Download and install it from:${NC}"
     echo -e "${YELLOW}https://developer.apple.com/account/resources/certificates/list${NC}"
     exit 1
 fi
-echo -e "${GREEN}✓ Apple Distribution certificate found${NC}"
+echo -e "${GREEN} Apple Distribution certificate found${NC}"
 
 echo ""
 echo -e "${GREEN}All prerequisites met!${NC}"
@@ -85,20 +85,20 @@ echo -e "${YELLOW}Installing Ruby dependencies...${NC}"
 cd iosApp
 bundle install
 cd ..
-echo -e "${GREEN}✓ Dependencies installed${NC}"
+echo -e "${GREEN} Dependencies installed${NC}"
 echo ""
 
 # Build KMP framework
 echo -e "${YELLOW}Building Kotlin Multiplatform framework...${NC}"
 ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
-echo -e "${GREEN}✓ KMP framework built${NC}"
+echo -e "${GREEN} KMP framework built${NC}"
 echo ""
 
 # Clean Xcode derived data
 echo -e "${YELLOW}Cleaning Xcode derived data...${NC}"
 find ~/Library/Developer/Xcode/DerivedData -mindepth 1 -delete 2>/dev/null || true
 find ~/Library/Caches/org.swift.swiftpm -mindepth 1 -delete 2>/dev/null || true
-echo -e "${GREEN}✓ Xcode cache cleaned${NC}"
+echo -e "${GREEN} Xcode cache cleaned${NC}"
 echo ""
 
 # Ask user what to do
@@ -118,14 +118,14 @@ case $choice in
         cd iosApp
         CI=true bundle exec fastlane preflight
         echo ""
-        echo -e "${GREEN}✓ Pre-flight checks complete!${NC}"
+        echo -e "${GREEN} Pre-flight checks complete!${NC}"
         ;;
     2)
         echo -e "${YELLOW}Building iOS app for App Store...${NC}"
         cd iosApp
         CI=true bundle exec fastlane build
         echo ""
-        echo -e "${GREEN}✓ Build complete!${NC}"
+        echo -e "${GREEN} Build complete!${NC}"
         echo -e "${GREEN}IPA file location: iosApp/build/Lexicon.ipa${NC}"
         ;;
     3)
@@ -134,7 +134,7 @@ case $choice in
         CI=true bundle exec fastlane build
         CI=true bundle exec fastlane validate
         echo ""
-        echo -e "${GREEN}✓ Build and validation complete!${NC}"
+        echo -e "${GREEN} Build and validation complete!${NC}"
         echo -e "${GREEN}IPA file location: iosApp/build/Lexicon.ipa${NC}"
         ;;
     4)
@@ -142,7 +142,7 @@ case $choice in
         cd iosApp
         CI=true bundle exec fastlane beta
         echo ""
-        echo -e "${GREEN}✓ Build uploaded to TestFlight!${NC}"
+        echo -e "${GREEN} Build uploaded to TestFlight!${NC}"
         echo -e "${YELLOW}Check App Store Connect for processing status${NC}"
         ;;
     5)
@@ -150,7 +150,7 @@ case $choice in
         cd iosApp
         CI=true bundle exec fastlane release
         echo ""
-        echo -e "${GREEN}✓ Build uploaded to App Store!${NC}"
+        echo -e "${GREEN} Build uploaded to App Store!${NC}"
         echo -e "${YELLOW}Log in to App Store Connect to submit for review${NC}"
         ;;
     6)

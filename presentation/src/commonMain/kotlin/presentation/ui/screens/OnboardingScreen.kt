@@ -32,11 +32,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -169,7 +166,7 @@ fun OnboardingScreen(
                     IconButton(
                         onClick = onPreviousStep,
                         enabled = !state.isLoading,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(dimensions.touchTargetSmall)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -181,7 +178,7 @@ fun OnboardingScreen(
                         )
                     }
                 } else {
-                    Spacer(modifier = Modifier.size(40.dp))
+                    Spacer(modifier = Modifier.size(dimensions.touchTargetSmall))
                 }
 
                 // Animated pill segments
@@ -200,14 +197,14 @@ fun OnboardingScreen(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(4.dp)
-                                .clip(RoundedCornerShape(2.dp))
+                                .height(Theme.spacing.xxs)
+                                .clip(RoundedCornerShape(Theme.spacing.xxxs))
                                 .background(segmentColor)
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.size(40.dp))
+                Spacer(modifier = Modifier.size(dimensions.touchTargetSmall))
             }
         }
 
@@ -393,7 +390,7 @@ private fun OnboardingIntroContent(
                 onClick = onContinue,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp),
+                    .widthIn(max = Theme.dimensions.contentMaxWidth),
                 contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
@@ -414,7 +411,7 @@ private fun OnboardingIntroContent(
                 onClick = onSkip,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp)
+                    .widthIn(max = Theme.dimensions.contentMaxWidth)
             ) {
                 Text(
                     "Start with Blank App",
@@ -443,7 +440,7 @@ private fun IntroFeatureItem(
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(Theme.dimensions.touchTarget)
                 .clip(RoundedCornerShape(14.dp))
                 .background(iconBackground),
             contentAlignment = Alignment.Center
@@ -451,7 +448,7 @@ private fun IntroFeatureItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(Theme.dimensions.iconSize),
                 tint = iconTint
             )
         }
@@ -578,7 +575,7 @@ internal fun OnboardingButtons(
             onClick = onPrimaryClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 500.dp),
+                .widthIn(max = Theme.dimensions.contentMaxWidth),
             enabled = primaryEnabled,
             contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
             colors = ButtonDefaults.buttonColors(
@@ -600,7 +597,7 @@ internal fun OnboardingButtons(
             onClick = onSecondaryClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 500.dp)
+                .widthIn(max = Theme.dimensions.contentMaxWidth)
         ) {
             Text(
                 secondaryText,
@@ -638,14 +635,14 @@ internal fun LanguageGridCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(Theme.shapes.large),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (selected) 4.dp else 0.dp,
-            pressedElevation = 6.dp
+            defaultElevation = if (selected) Theme.elevation.high else Theme.elevation.none,
+            pressedElevation = Theme.elevation.extraHigh
         ),
         border = BorderStroke(
-            width = if (selected) 2.dp else 1.dp,
+            width = if (selected) 2.dp else Theme.dimensions.borderWidth,
             color = borderColor
         )
     ) {
@@ -680,7 +677,7 @@ internal fun LanguageGridCard(
                     Box(
                         modifier = Modifier
                             .size(64.dp)
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(Theme.shapes.medium))
                             .background(
                                 if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
                                 else MaterialTheme.colorScheme.surfaceVariant
@@ -692,7 +689,7 @@ internal fun LanguageGridCard(
                             contentDescription = "$language flag",
                             modifier = Modifier
                                 .size(52.dp)
-                                .clip(RoundedCornerShape(8.dp)),
+                                .clip(RoundedCornerShape(Theme.shapes.small)),
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -841,7 +838,7 @@ internal fun OnboardingStep3Content(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .widthIn(max = 500.dp),
+                            .widthIn(max = Theme.dimensions.contentMaxWidth),
                         horizontalArrangement = Arrangement.spacedBy(spacing.small)
                     ) {
                         TextButton(
@@ -936,8 +933,8 @@ internal fun OnboardingLoadingCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
-        shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(Theme.shapes.extraLarge),
+        elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.medium)
     ) {
         Column(
             modifier = Modifier
@@ -1016,7 +1013,7 @@ internal fun OnboardingLoadingCard(
                     )
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(Theme.spacing.xs)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = alpha))
                     )
@@ -1068,11 +1065,11 @@ internal fun LevelCards(
                     .graphicsLayer { alpha = if (enabled) 1f else 0.5f },
                 enabled = enabled,
                 colors = CardDefaults.cardColors(containerColor = bgColor),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(Theme.shapes.large),
                 border = if (selected)
                     BorderStroke(2.dp, levelColor)
                 else
-                    BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             ) {
                 Row(
                     modifier = Modifier
@@ -1082,7 +1079,7 @@ internal fun LevelCards(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(Theme.dimensions.touchTarget)
                             .clip(RoundedCornerShape(14.dp))
                             .background(levelColor.copy(alpha = if (selected) 0.18f else 0.10f)),
                         contentAlignment = Alignment.Center
@@ -1091,7 +1088,7 @@ internal fun LevelCards(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(Theme.dimensions.iconSize),
                                 tint = levelColor
                             )
                         }

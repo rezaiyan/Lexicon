@@ -49,9 +49,9 @@ fun ReviewActionSection(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(vertical = Theme.spacing.extraSmall2)
-                    .height(56.dp)
+                    .height(Theme.dimensions.buttonHeight)
                     .scale(pulseScale),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(Theme.shapes.large),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
@@ -59,7 +59,7 @@ fun ReviewActionSection(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(Theme.dimensions.buttonHeight),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
@@ -85,9 +85,9 @@ fun ReviewActionSection(
                             modifier = Modifier
                                 .background(
                                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
-                                    shape = RoundedCornerShape(12.dp)
+                                    shape = RoundedCornerShape(Theme.shapes.medium)
                                 )
-                                .padding(horizontal = 10.dp, vertical = 2.dp),
+                                .padding(horizontal = 10.dp, vertical = Theme.spacing.xxxs),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -109,19 +109,19 @@ fun ReviewActionSection(
                     .padding(vertical = Theme.spacing.extraSmall2)
                     .background(
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(Theme.shapes.large)
                     )
                     .border(
-                        width = 1.dp,
+                        width = Theme.dimensions.borderWidth,
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(Theme.shapes.large)
                     )
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(Theme.dimensions.iconSizeXLarge)
                         .background(
                             color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f),
                             shape = CircleShape
@@ -135,7 +135,7 @@ fun ReviewActionSection(
                         tint = MaterialTheme.colorScheme.secondary
                     )
                 }
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(Theme.spacing.sm))
                 Text(
                     text = stringResource(Res.string.all_caught_up),
                     style = MaterialTheme.typography.titleSmall,

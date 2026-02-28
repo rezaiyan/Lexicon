@@ -14,7 +14,7 @@ actual fun openUrl(url: String) {
             )
         }
     } catch (e: Exception) {
-        println("❌ Failed to open URL: ${e.message}")
+        println(" Failed to open URL: ${e.message}")
     }
 }
 

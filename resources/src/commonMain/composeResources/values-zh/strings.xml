@@ -6,11 +6,11 @@
     <string name="version">版本 %1$d</string>
     
     <!-- Time-based Greetings -->
-    <string name="greeting_midnight">熬夜了？🌙</string>
-    <string name="greeting_morning">早上好！☀</string>
-    <string name="greeting_afternoon">下午好！⛅</string>
-    <string name="greeting_evening">晚上好！🌆</string>
-    <string name="greeting_night">晚安！🌃</string>
+    <string name="greeting_midnight">熬夜了？</string>
+    <string name="greeting_morning">早上好！</string>
+    <string name="greeting_afternoon">下午好！</string>
+    <string name="greeting_evening">晚上好！</string>
+    <string name="greeting_night">晚安！</string>
     
     <!-- Common -->
     <string name="cancel">取消</string>
@@ -53,10 +53,10 @@
     <string name="delete_account_hidden_title">账户删除</string>
     <string name="delete_account_hidden_message">您即将永久删除您的账户。此操作无法撤销，将删除您的所有数据。</string>
     <string name="delete_account_hidden_continue">继续删除流程</string>
-    <string name="delete_account_cooling_period_title">⏰ 冷静期</string>
+    <string name="delete_account_cooling_period_title">冷静期</string>
     <string name="delete_account_cooling_period_message">请等待 %1$d 秒后再继续。这给您时间重新考虑。</string>
     <string name="delete_account_cooling_period_cancel">取消删除</string>
-    <string name="delete_account_final_title">🚨 最终确认</string>
+    <string name="delete_account_final_title">最终确认</string>
     <string name="delete_account_final_message">这将永久删除：\n\n• 您的所有词汇\n• 学习进度和连续记录\n• AI生成的洞察\n• 账户设置\n\n此操作无法撤销！</string>
     <string name="delete_account_final_confirm">是的，删除我的账户</string>
     <string name="delete_account_long_press_hint">长按头像以访问账户删除</string>
@@ -70,21 +70,21 @@
     <string name="notification_disabled">已禁用</string>
     <string name="notification_disabled_system">在系统设置中已禁用</string>
     <string name="notification_permission_required">未授予权限 - 你不会收到通知</string>
-    <string name="notification_permission_title">与你的单词保持联系！🎯</string>
+    <string name="notification_permission_title">与你的单词保持联系！</string>
     <string name="notification_permission_message">让我们成为你的学习伙伴，在该练习时给你发送友好的提醒！</string>
     <string name="notification_features_title">你将获得：</string>
-    <string name="notification_feature_reminders">📚 温和的复习提醒</string>
-    <string name="notification_feature_motivation">💪 动力提升</string>
-    <string name="notification_feature_timing">🎯 智能时机 - 仅在有用时</string>
+    <string name="notification_feature_reminders">温和的复习提醒</string>
+    <string name="notification_feature_motivation">动力提升</string>
+    <string name="notification_feature_timing">智能时机 - 仅在有用时</string>
     <string name="notification_no_spam_message">没有垃圾信息，只有友好的提醒！点击按钮在设备设置中启用通知。</string>
     <string name="notification_open_settings">启用</string>
-    <string name="notification_enable_button">开始吧！✨</string>
+    <string name="notification_enable_button">开始吧！</string>
     <string name="notification_maybe_later">以后再说</string>
     <string name="notification_settings_title">通知设置</string>
     <string name="notification_settings_subtitle">自定义你的学习提醒</string>
     <string name="notification_enable_notifications">启用通知</string>
-    <string name="notification_stay_motivated">通过友好的提醒保持动力 🌟</string>
-    <string name="notification_missing_nudges">错过学习提醒 😢</string>
+    <string name="notification_stay_motivated">通过友好的提醒保持动力</string>
+    <string name="notification_missing_nudges">错过学习提醒</string>
     <string name="notification_gentle_reminders">当你有单词准备好复习时，我们会发送温和的提醒。完美的时机，没有垃圾信息！</string>
     
     <!-- Progress Screen -->
@@ -119,8 +119,8 @@
     <string name="hard">困难</string>
     <string name="good">好</string>
     <string name="easy">简单</string>
-    <string name="forgot">不记得 😅</string>
-    <string name="remembered">记住了! ✓</string>
+    <string name="forgot">不记得</string>
+    <string name="remembered">记住了!</string>
     <string name="did_you_remember">你知道吗？</string>
     <string name="restart">再来一次</string>
     <string name="advance">继续加油!</string>
@@ -146,7 +146,7 @@
     <string name="exit_review_message">确定要停止复习吗？您的进度将被保存。</string>
     <string name="yes_exit">是的，退出</string>
     <string name="continue_reviewing">继续复习</string>
-    <string name="review_complete">🎉 复习完成！</string>
+    <string name="review_complete">复习完成！</string>
     <string name="review_complete_message">干得好！继续练习以掌握你的词汇。</string>
     
     <!-- Import Dialog -->
@@ -200,21 +200,22 @@
     <string name="go_to_profile">前往个人资料</string>
     
     <!-- Success/Error Messages -->
-    <string name="success_imported_words">✓ 成功导入 %1$d 个单词</string>
-    <string name="success_imported_from_image">✓ 从图像成功导入 %1$d 个单词</string>
-    <string name="error_message">✗ %1$d</string>
+    <string name="success_imported_words">成功导入 %1$d 个单词</string>
+    <string name="success_imported_from_image">从图像成功导入 %1$d 个单词</string>
+    <string name="error_message">[Error] %1$d</string>
+    <string name="error_prefix">[Error]</string>
     <string name="error">错误: %1$d</string>
     
     <!-- Progress Screen -->
     <string name="no_words_yet">• 还没有单词</string>
     
     <!-- AI Daily Insights -->
-    <string name="welcome_insight">欢迎！通过添加您的第一批单词开始词汇之旅！🚀✨</string>
-    <string name="fallback_many_due">你有%1$d张卡片准备好了！是时候提升你的技能了！💪⚡</string>
-    <string name="fallback_mostly_mastered">令人印象深刻！超过一半的词汇已掌握！你是传奇！👑🎯</string>
-    <string name="fallback_learning">继续努力！%1$d个单词正在训练中。每次复习都让你更强！🎮🔥</string>
-    <string name="fallback_some_due">完美时机！%1$d张卡片等待中。让我们粉碎这次会话！💥✨</string>
-    <string name="fallback_all_caught_up">你已经全部完成了！是时候添加更多单词并升级了！🌟🎯</string>
+    <string name="welcome_insight">欢迎！通过添加您的第一批单词开始词汇之旅！</string>
+    <string name="fallback_many_due">你有%1$d张卡片准备好了！是时候提升你的技能了！</string>
+    <string name="fallback_mostly_mastered">令人印象深刻！超过一半的词汇已掌握！你是传奇！</string>
+    <string name="fallback_learning">继续努力！%1$d个单词正在训练中。每次复习都让你更强！</string>
+    <string name="fallback_some_due">完美时机！%1$d张卡片等待中。让我们粉碎这次会话！</string>
+    <string name="fallback_all_caught_up">你已经全部完成了！是时候添加更多单词并升级了！</string>
     <string name="subscriptions_coming_soon_message">订阅功能即将上线，解锁完整访问。敬请期待！目前你可以使用有限额度临时体验功能。</string>
     
     <!-- Mastery Levels (for badge) -->
@@ -266,7 +267,7 @@
     <string name="words_deleted">已删除 %1$d 个单词</string>
     <string name="word_updated">单词更新成功</string>
     <string name="export_words">导出</string>
-    <string name="words_exported">✓ 已导出 %1$d 个单词到剪贴板</string>
+    <string name="words_exported">已导出 %1$d 个单词到剪贴板</string>
     <string name="export_all">导出全部</string>
     <string name="export_selected">导出所选</string>
     
@@ -300,9 +301,9 @@
     <string name="subscription">订阅</string>
     <string name="subscription_screen_title">升级高级版</string>
     <string name="restore_purchases">恢复我的购买</string>
-    <string name="cancel_anytime_prices_in_usd">随时可取消，无需理由！💙 价格为美元。</string>
-    <string name="premium_unlocked">🎉 一切就绪！</string>
-    <string name="premium_unlocked_message">欢迎使用高级版！尽享所有精彩功能的无限访问，加速你的学习之旅！🚀</string>
+    <string name="cancel_anytime_prices_in_usd">随时可取消，无需理由！价格为美元。</string>
+    <string name="premium_unlocked">一切就绪！</string>
+    <string name="premium_unlocked_message">欢迎使用高级版！尽享所有精彩功能的无限访问，加速你的学习之旅！</string>
     <string name="unlock_premium">解锁高级版</string>
     <string name="premium_subtitle">用强大的功能加速你的词汇学习之旅！</string>
     <string name="compare_plans">免费 vs 高级版</string>
@@ -314,7 +315,7 @@
     <string name="unlock_now">立即解锁</string>
     <string name="subscribe_now">立即订阅</string>
     <string name="subscribe">订阅</string>
-    <string name="subscription_unable_to_load">哎呀！我们无法加载订阅 😅</string>
+    <string name="subscription_unable_to_load">哎呀！我们无法加载订阅</string>
     <string name="subscription_terms">费用将从你的账户扣除。除非你在当前周期结束前至少24小时取消，否则你的订阅将自动续订。你可以随时在账户设置中管理你的订阅。</string>
     <string name="feature_unlimited_words">无限单词</string>
     <string name="feature_unlimited_words_desc">想加多少就加多少 - 没有限制！</string>

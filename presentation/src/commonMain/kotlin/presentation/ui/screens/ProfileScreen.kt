@@ -101,7 +101,7 @@ fun ProfileScreen() {
                         )
                     }
                 },
-                size = 24.dp
+                size = Theme.dimensions.iconSize
             )
         } else null,
         scrollable = true
@@ -187,19 +187,17 @@ private fun ProfileContent(
             WeeklyActivitySection(
                 weeklyActivity = weeklyActivity,
                 modifier = Modifier
-                    .padding(horizontal = Theme.spacing.cardPadding)
                     .staggeredFadeSlide(sectionIndex++)
             )
         }
 
         // 4. Languages (server data — loads async)
         val languages = profileData.profileStats?.languages
-        if (languages != null && languages.isNotEmpty()) {
+        if (!languages.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
             LanguagesSection(
                 languages = languages,
                 modifier = Modifier
-                    .padding(horizontal = Theme.spacing.cardPadding)
                     .staggeredFadeSlide(sectionIndex++)
             )
         }
@@ -211,7 +209,6 @@ private fun ProfileContent(
             MemberSinceSection(
                 memberSince = memberSince,
                 modifier = Modifier
-                    .padding(horizontal = Theme.spacing.cardPadding)
                     .staggeredFadeSlide(sectionIndex++)
             )
         }
@@ -223,9 +220,8 @@ private fun ProfileContent(
             onClick = onLogout,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.cardPadding)
                 .staggeredFadeSlide(sectionIndex),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+            border = BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.error),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.error
             )
@@ -235,7 +231,7 @@ private fun ProfileContent(
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(Theme.spacing.xs))
             Text(stringResource(Res.string.logout))
         }
 

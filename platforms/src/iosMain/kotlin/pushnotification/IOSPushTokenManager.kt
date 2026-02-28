@@ -14,21 +14,21 @@ class IOSPushTokenManager : IPushTokenManager {
     private var onTokenReceivedCallback: ((String) -> Unit)? = null
     
     override fun initialize(onTokenReceived: (String) -> Unit) {
-        NSLog("📱 [IOSPushToken] Initializing push token manager")
+        NSLog(" [IOSPushToken] Initializing push token manager")
         this.onTokenReceivedCallback = onTokenReceived
         tokenReceivedCallback = onTokenReceived
         
         // If token was already received before initialization, trigger callback immediately
         currentToken?.let { token ->
-            NSLog("📱 [IOSPushToken] Token already available, triggering callback immediately")
+            NSLog(" [IOSPushToken] Token already available, triggering callback immediately")
             onTokenReceived(token)
         } ?: run {
-            NSLog("📱 [IOSPushToken] Waiting for FCM token from Swift side...")
+            NSLog(" [IOSPushToken] Waiting for FCM token from Swift side...")
         }
     }
     
     override suspend fun getCurrentToken(): String? {
-        NSLog("📱 [IOSPushToken] getCurrentToken() - returning cached token")
+        NSLog(" [IOSPushToken] getCurrentToken() - returning cached token")
         // Return the last received token
         return currentToken
     }
@@ -43,7 +43,7 @@ class IOSPushTokenManager : IPushTokenManager {
          * This is the bridge function that Swift code will invoke
          */
         fun notifyTokenReceived(token: String) {
-            NSLog("📱 [IOSPushToken] ✅ Token received from Swift: $token")
+            NSLog(" [IOSPushToken]  Token received from Swift: $token")
             currentToken = token
             tokenReceivedCallback?.invoke(token)
         }

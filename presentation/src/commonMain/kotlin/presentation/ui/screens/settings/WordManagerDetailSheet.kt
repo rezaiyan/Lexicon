@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import domain.word.model.LearningStage
 import domain.word.model.Word
@@ -93,13 +94,17 @@ private fun WordDetailSheetContent(
                     text = word.originalWord,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(Theme.spacing.extraSmall3))
                 Text(
                     text = word.translation,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
@@ -121,7 +126,9 @@ private fun WordDetailSheetContent(
             Text(
                 text = word.description,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
@@ -147,8 +154,8 @@ private fun WordDetailSheetContent(
                 progress = { word.level / 6f },
                 modifier = Modifier
                     .weight(1f)
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
+                    .height(Theme.spacing.xs)
+                    .clip(RoundedCornerShape(Theme.shapes.extraSmall)),
                 color = color,
                 trackColor = color.copy(alpha = 0.15f),
                 strokeCap = StrokeCap.Round
@@ -169,8 +176,8 @@ private fun WordDetailSheetContent(
         ) {
             Box(
                 modifier = Modifier
-                    .size(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
+                    .size(Theme.spacing.xs)
+                    .clip(RoundedCornerShape(Theme.shapes.extraSmall))
                     .background(color)
             )
             Text(
@@ -272,7 +279,9 @@ private fun DetailRow(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

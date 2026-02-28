@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -85,7 +84,7 @@ fun LexiconDialogContent(
                         val iconColor = iconState.tint ?: MaterialTheme.colorScheme.primary
                         Box(
                             modifier = Modifier
-                                .size(56.dp)
+                                .size(Theme.dimensions.buttonHeight)
                                 .clip(CircleShape)
                                 .background(iconColor.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
@@ -94,16 +93,25 @@ fun LexiconDialogContent(
                                 imageVector = iconState.imageVector,
                                 contentDescription = null,
                                 tint = iconColor,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(Theme.dimensions.iconSizeLarge)
                             )
                         }
                     }
 
                     is DialogIconState.CircularProgress -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(Theme.dimensions.iconSizeLarge),
-                            color = iconState.tint ?: MaterialTheme.colorScheme.primary
-                        )
+                        val progressColor = iconState.tint ?: MaterialTheme.colorScheme.primary
+                        Box(
+                            modifier = Modifier
+                                .size(Theme.dimensions.buttonHeight)
+                                .clip(CircleShape)
+                                .background(progressColor.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(Theme.dimensions.iconSizeLarge),
+                                color = progressColor
+                            )
+                        }
                     }
 
                     is DialogIconState.None -> {}
@@ -154,8 +162,8 @@ fun LexiconDialogContent(
                         progress = progressState.progress,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
+                            .height(Theme.dimensions.progressBarHeight)
+                            .clip(RoundedCornerShape(Theme.shapes.extraSmall)),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                     )
@@ -163,8 +171,8 @@ fun LexiconDialogContent(
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
+                            .height(Theme.dimensions.progressBarHeight)
+                            .clip(RoundedCornerShape(Theme.shapes.extraSmall)),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                     )
@@ -204,10 +212,10 @@ fun LexiconDialogContent(
                                     onClick = secondaryButton.onClick,
                                     enabled = secondaryButton.enabled
                                 ) {
-                                    Text(secondaryButton.text)
+                                    Text(secondaryButton.text, maxLines = 1)
                                 }
                                 if (primaryButton != null) {
-                                    Spacer(Modifier.width(Theme.spacing.extraSmall2))
+                                    Spacer(Modifier.width(Theme.spacing.xs))
                                 }
                             }
                             if (primaryButton != null) {
@@ -223,7 +231,7 @@ fun LexiconDialogContent(
                                     enabled = primaryButton.enabled,
                                     colors = colors
                                 ) {
-                                    Text(primaryButton.text)
+                                    Text(primaryButton.text, maxLines = 1)
                                 }
                             }
                         }
@@ -239,31 +247,19 @@ fun LexiconDialogContent(
                             contentColor = MaterialTheme.colorScheme.error
                         ),
                         border = BorderStroke(
-                            width = 1.dp,
+                            width = Theme.dimensions.borderWidth,
                             color = MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
                         )
                     ) {
-                        Text(negativeButton.text, fontWeight = FontWeight.Medium)
+                        Text(negativeButton.text, fontWeight = FontWeight.Medium, maxLines = 1)
                     }
                 }
             } else {
-                // 2-button layout — end-aligned row
-                Row(
+                // 2-button layout — stacked vertically for reliable sizing
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
                 ) {
-                    if (secondaryButton != null) {
-                        TextButton(
-                            onClick = secondaryButton.onClick,
-                            enabled = secondaryButton.enabled
-                        ) {
-                            Text(secondaryButton.text)
-                        }
-                        if (primaryButton != null) {
-                            Spacer(Modifier.width(Theme.spacing.extraSmall2))
-                        }
-                    }
                     if (primaryButton != null) {
                         val colors = when (primaryButton.type) {
                             ButtonType.Default -> ButtonDefaults.buttonColors()
@@ -275,9 +271,19 @@ fun LexiconDialogContent(
                         Button(
                             onClick = primaryButton.onClick,
                             enabled = primaryButton.enabled,
-                            colors = colors
+                            colors = colors,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(primaryButton.text)
+                            Text(primaryButton.text, maxLines = 1)
+                        }
+                    }
+                    if (secondaryButton != null) {
+                        TextButton(
+                            onClick = secondaryButton.onClick,
+                            enabled = secondaryButton.enabled,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(secondaryButton.text, maxLines = 1)
                         }
                     }
                 }

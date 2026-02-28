@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,6 +30,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -78,7 +81,12 @@ fun PremiumHeroSection() {
                 ),
             contentAlignment = Alignment.Center
         ) {
-            TextWithNotoImageEmoji(text = "🚀", style = MaterialTheme.typography.headlineMedium)
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
         }
 
         Text(

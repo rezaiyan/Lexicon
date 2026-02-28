@@ -20,17 +20,17 @@ class PushTokenRepositoryImpl(
 ) : IPushTokenRepository {
 
     override fun initializeAndRegister() {
-        logNetwork("RegisterPushToken", "📱 Initializing push notification manager")
+        logNetwork("RegisterPushToken", " Initializing push notification manager")
 
         CoroutineScope(Dispatchers.Default).launch {
             pushTokenManager.getCurrentToken()?.let { token ->
-                logNetwork("RegisterPushToken", "✅ Current token available: $token")
+                logNetwork("RegisterPushToken", " Current token available: $token")
                 registerToken(token)
             }
         }
 
         pushTokenManager.initialize { token ->
-            logNetwork("RegisterPushToken", "✅ Token received, registering with backend...")
+            logNetwork("RegisterPushToken", " Token received, registering with backend...")
 
             CoroutineScope(Dispatchers.Default).launch {
                 registerToken(token)
@@ -39,7 +39,7 @@ class PushTokenRepositoryImpl(
     }
 
     override suspend fun registerToken(token: String): Try<Unit> {
-        logNetwork("RegisterPushToken", "📤 Sending token to backend...")
+        logNetwork("RegisterPushToken", " Sending token to backend...")
 
         val request = RegisterPushTokenRequest(
             token = token,
@@ -49,15 +49,15 @@ class PushTokenRepositoryImpl(
 
         return pushNotificationDataSource.registerPushToken(request).also { result ->
             result.onSuccess {
-                logNetwork("RegisterPushToken", "✅ Push token registered successfully")
+                logNetwork("RegisterPushToken", " Push token registered successfully")
             }.onFailure { error ->
-                logNetwork("RegisterPushToken", "❌ Failed to register push token: ${error.message}")
+                logNetwork("RegisterPushToken", " Failed to register push token: ${error.message}")
             }
         }
     }
 
     override suspend fun deactivateAllTokens(): Try<Unit> {
-        logNetwork("RegisterPushToken", "🔕 Deactivating all push tokens...")
+        logNetwork("RegisterPushToken", " Deactivating all push tokens...")
         return pushNotificationDataSource.deactivateAllTokens()
     }
 }

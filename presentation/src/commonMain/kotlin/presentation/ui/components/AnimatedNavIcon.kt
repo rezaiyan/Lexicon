@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+import theme.Theme
 
 @Composable
 fun AnimatedNavIcon(
@@ -51,7 +51,7 @@ fun AnimatedNavIcon(
         imageVector = icon,
         contentDescription = contentDescription,
         modifier = Modifier
-            .size(24.dp)
+            .size(Theme.dimensions.iconSize)
             .scale(scale)
             .offset { IntOffset(x = 0, y = lift.roundToInt()) },
         tint = tint

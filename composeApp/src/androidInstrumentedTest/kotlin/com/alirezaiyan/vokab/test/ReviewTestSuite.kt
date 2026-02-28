@@ -71,16 +71,16 @@ import org.junit.runners.Suite
  * 
  * WHAT IS TESTED:
  * 
- * ✅ Bucket Progression: All transitions from Level 0 → 1 → 2 → 3 → 4 → 5 → 6
- * ✅ Resting Times: Verified for each level (minutes for 0-1, days for 2-6)
- * ✅ FORGOT Response: 2-level drops, repetition reset, ease factor decrease
- * ✅ REMEMBERED Response: Progression after 2 successes, ease factor increase
- * ✅ Edge Cases: Invalid quality, minimum/maximum ease factors, interval caps
- * ✅ Database Operations: All CRUD and query functions
- * ✅ Due Cards: Filtering, counting, and review flow
- * ✅ Progress Stats: Updates after each review
- * ✅ Real-World Scenarios: Daily sessions, struggles, mastery, mixed results
- * ✅ Data Persistence: Survives database reopen
+ *  Bucket Progression: All transitions from Level 0 → 1 → 2 → 3 → 4 → 5 → 6
+ *  Resting Times: Verified for each level (minutes for 0-1, days for 2-6)
+ *  FORGOT Response: 2-level drops, repetition reset, ease factor decrease
+ *  REMEMBERED Response: Progression after 2 successes, ease factor increase
+ *  Edge Cases: Invalid quality, minimum/maximum ease factors, interval caps
+ *  Database Operations: All CRUD and query functions
+ *  Due Cards: Filtering, counting, and review flow
+ *  Progress Stats: Updates after each review
+ *  Real-World Scenarios: Daily sessions, struggles, mastery, mixed results
+ *  Data Persistence: Survives database reopen
  * 
  * TOTAL TESTS: 50+ comprehensive test cases
  * 

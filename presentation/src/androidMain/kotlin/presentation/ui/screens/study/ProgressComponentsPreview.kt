@@ -81,28 +81,17 @@ private fun LearningStagesListPreviewWithStats() {
     LexiconTheme {
         LearningStagesList(
             stats = ProgressStats(
-                level0Count = 234234,
+                level0Count = 234,
                 level1Count = 5,
                 level2Count = 8,
                 level3Count = 12,
                 level4Count = 15,
                 level5Count = 20,
                 level6Count = 30,
-                totalWords = 100,
+                totalWords = 324,
                 dueCards = 5
             ),
             onStageClick = { _: LearningStage, _: String -> },
-            levelTexts = listOf("Fresh Fresh Fresh Fresh Fresh", "Learning", "Familiar", "Building", "Almost", "Strong", "Mastered"),
-            levelNames = listOf("Fresh", "Learning", "Familiar", "Building", "Almost", "Strong", "Mastered"),
-            levelDescriptions = listOf(
-                "Brand new words words words words words",
-                "First learning phase",
-                "Getting familiar",
-                "Building confidence",
-                "Almost there",
-                "Strong grasp",
-                "Fully mastered"
-            )
         )
     }
 }
@@ -124,17 +113,6 @@ private fun LearningStagesListPreviewEmpty() {
                 dueCards = 0
             ),
             onStageClick = { _: LearningStage, _: String -> },
-            levelTexts = listOf("Fresh", "Learning", "Familiar", "Building", "Almost", "Strong", "Mastered"),
-            levelNames = listOf("Fresh", "Learning", "Familiar", "Building", "Almost", "Strong", "Mastered"),
-            levelDescriptions = listOf(
-                "Brand new words",
-                "First learning phase",
-                "Getting familiar",
-                "Building confidence",
-                "Almost there",
-                "Strong grasp",
-                "Fully mastered"
-            )
         )
     }
 }
@@ -146,23 +124,11 @@ private fun LearningStagesListPreviewWithParams(
     previewParam: LearningStagesListPreviewParam
 ) {
     LexiconTheme {
-        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)){
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             LearningStagesList(
                 stats = previewParam.stats,
                 onStageClick = { _: LearningStage, _: String -> },
-                levelTexts = listOf("Fresh", "Learning", "Familiar", "Building", "Almost", "Strong", "Mastered"),
-                levelNames = listOf("Fresh", "Learning", "Familiar", "Building", "Almost", "Strong", "Mastered"),
-                levelDescriptions = listOf(
-                    "Brand new words",
-                    "First learning phase",
-                    "Getting familiar",
-                    "Building confidence",
-                    "Almost there",
-                    "Strong grasp",
-                    "Fully mastered"
-                )
             )
         }
     }
 }
-

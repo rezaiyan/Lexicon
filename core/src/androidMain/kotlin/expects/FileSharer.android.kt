@@ -44,7 +44,7 @@ actual fun shareTextAsFile(
             }
         )
     } catch (e: Exception) {
-        println("❌ Failed to share file: ${e.message}")
+        println(" Failed to share file: ${e.message}")
     }
 }
 

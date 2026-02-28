@@ -78,16 +78,16 @@ done
 if [[ "$DEV_MODE" == true ]]; then
   DIST_DIR="$DEV_DIST"
   BUILD_TASK="composeApp:wasmJsBrowserDevelopmentExecutableDistribution"
-  echo "▸ Mode: development"
+  echo " Mode: development"
 else
   DIST_DIR="$PROD_DIST"
   BUILD_TASK="composeApp:wasmJsBrowserDistribution"
-  echo "▸ Mode: production"
+  echo " Mode: production"
 fi
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 if [[ "$BUILD" == true ]]; then
-  echo "▸ Building wasmJs distribution..."
+  echo " Building wasmJs distribution..."
 
   if [[ "$CLEAN" == true ]]; then
     echo "  Cleaning previous build..."
@@ -96,23 +96,23 @@ if [[ "$BUILD" == true ]]; then
 
   "${PROJECT_ROOT}/gradlew" -p "$PROJECT_ROOT" "$BUILD_TASK"
 
-  echo "✓ Build complete"
+  echo " Build complete"
 fi
 
 # ── Verify dist exists ─────────────────────────────────────────────────────────
 if [[ ! -d "$DIST_DIR" ]]; then
-  echo "✗ Distribution directory not found: $DIST_DIR"
+  echo " Distribution directory not found: $DIST_DIR"
   echo "  Run the build first (without --deploy-only)."
   exit 1
 fi
 
 FILE_COUNT=$(find "$DIST_DIR" -type f | wc -l | tr -d ' ')
 TOTAL_SIZE=$(du -sh "$DIST_DIR" | cut -f1)
-echo "▸ Distribution: ${FILE_COUNT} files, ${TOTAL_SIZE}"
+echo " Distribution: ${FILE_COUNT} files, ${TOTAL_SIZE}"
 
 # ── Deploy ─────────────────────────────────────────────────────────────────────
 if [[ "$DEPLOY" == true ]]; then
-  echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH}..."
+  echo " Deploying to ${VPS_HOST}:${VPS_PATH}..."
 
   RSYNC_OPTS=(
     -avz
@@ -134,11 +134,11 @@ if [[ "$DEPLOY" == true ]]; then
   rsync "${RSYNC_OPTS[@]}" "${DIST_DIR}/" "${VPS_HOST}:${VPS_PATH}/"
 
   if [[ "$DRY_RUN" == false ]]; then
-    echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
+    echo " Deployed to ${VPS_HOST}:${VPS_PATH}"
     echo "  https://lexicon.alirezaiyan.com/"
   else
-    echo "✓ Dry run complete"
+    echo " Dry run complete"
   fi
 else
-  echo "▸ Skipping deploy (--build-only)"
+  echo " Skipping deploy (--build-only)"
 fi

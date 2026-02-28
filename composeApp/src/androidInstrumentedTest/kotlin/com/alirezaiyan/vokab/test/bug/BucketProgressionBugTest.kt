@@ -95,8 +95,8 @@ class BucketProgressionBugTest {
             "Level should have changed from 0 to 1"
         )
         
-        println("✅ Database updates correctly!")
-        println("✅ Word advances after just 1 REMEMBERED response")
+        println(" Database updates correctly!")
+        println(" Word advances after just 1 REMEMBERED response")
     }
     
     @Test
@@ -129,7 +129,7 @@ class BucketProgressionBugTest {
         assertEquals(1, updatedWords[2].level, "word3 should advance to level 1")
         assertEquals(0, updatedWords[2].repetitions, "word3 reps reset")
         
-        println("✅ All words advanced after 1 REMEMBERED - correct behavior!")
+        println(" All words advanced after 1 REMEMBERED - correct behavior!")
     }
     
     @Test
@@ -157,8 +157,8 @@ class BucketProgressionBugTest {
         assertEquals(6, finalLevel, "Should reach level 6 after 6 successful reviews")
         assertTrue(finalLevel > startLevel, "Level should have increased from $startLevel to $finalLevel")
         
-        println("✅ Word correctly progressed through all buckets (0→6)")
-        println("✅ Only 6 reviews needed (1 success per level)")
+        println(" Word correctly progressed through all buckets (0→6)")
+        println(" Only 6 reviews needed (1 success per level)")
     }
     
     @Test
@@ -178,7 +178,7 @@ class BucketProgressionBugTest {
         assertEquals(2, afterForgetting.level, "Should drop from level 4 to level 2")
         assertEquals(0, afterForgetting.repetitions, "Repetitions should reset")
         
-        println("✅ FORGOT correctly drops word 2 levels")
+        println(" FORGOT correctly drops word 2 levels")
     }
 }
 

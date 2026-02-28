@@ -30,7 +30,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -41,19 +40,16 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,23 +59,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import components.EmptyScreen
+import components.ErrorScreen
+import components.LoadingScreen
+import components.Pill
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.compose.resources.stringResource
-import presentation.model.WordManagerScreenState
-import presentation.model.WordSortOption
-import theme.AppColors
-import theme.Theme
-import utils.Language
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.batch_edit_languages
 import lexicon.resources.generated.resources.cancel
-import lexicon.resources.generated.resources.deselect_all
+import lexicon.resources.generated.resources.delete
 import lexicon.resources.generated.resources.empty_library
 import lexicon.resources.generated.resources.error
 import lexicon.resources.generated.resources.filter_all_languages
@@ -96,8 +90,9 @@ import lexicon.resources.generated.resources.level_6_mastered
 import lexicon.resources.generated.resources.loading_words
 import lexicon.resources.generated.resources.no_results_found
 import lexicon.resources.generated.resources.search_words
-import lexicon.resources.generated.resources.selected_format
 import lexicon.resources.generated.resources.select_all
+import lexicon.resources.generated.resources.selected_format
+import lexicon.resources.generated.resources.share
 import lexicon.resources.generated.resources.sort_a_to_z
 import lexicon.resources.generated.resources.sort_level_asc
 import lexicon.resources.generated.resources.sort_level_desc
@@ -111,9 +106,13 @@ import lexicon.resources.generated.resources.sort_z_to_a
 import lexicon.resources.generated.resources.start_by_importing
 import lexicon.resources.generated.resources.word_count_filtered_format
 import lexicon.resources.generated.resources.word_count_format
-import lexicon.resources.generated.resources.delete
-import lexicon.resources.generated.resources.batch_edit_languages
-import lexicon.resources.generated.resources.share
+import org.jetbrains.compose.resources.stringResource
+
+import presentation.model.WordManagerScreenState
+import presentation.model.WordSortOption
+import theme.AppColors
+import theme.Theme
+import utils.Language
 
 @Composable
 internal fun WordListContent(
@@ -124,7 +123,6 @@ internal fun WordListContent(
     onOpenDetail: (Word) -> Unit,
     onEnterSelectionMode: (Int) -> Unit,
     onSelectAll: () -> Unit,
-    onDeselectAll: () -> Unit,
     onShareWords: () -> Unit,
     onSortOptionChange: (WordSortOption) -> Unit,
     onFilterLanguageChange: (Language?) -> Unit,
@@ -166,9 +164,7 @@ internal fun WordListContent(
                     .fillMaxSize()
                     .weight(1f),
                 contentPadding = PaddingValues(
-                    start = Theme.spacing.small,
-                    end = Theme.spacing.small,
-                    bottom = if (state.isSelectionMode) 80.dp else Theme.spacing.small
+                    bottom = if (state.isSelectionMode) Theme.dimensions.bottomBarHeight else Theme.spacing.small
                 ),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
             ) {
@@ -235,7 +231,6 @@ internal fun SearchBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = Theme.spacing.small,
                     vertical = Theme.spacing.extraSmall
                 ),
             placeholder = {
@@ -280,7 +275,6 @@ private fun FilterChipsRow(
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = Theme.spacing.small),
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
     ) {
         // Sort chip
@@ -457,8 +451,8 @@ private fun LevelFilterChip(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(RoundedCornerShape(4.dp))
+                                    .size(Theme.spacing.xs)
+                                    .clip(RoundedCornerShape(Theme.shapes.extraSmall))
                                     .background(levelColor(stage))
                             )
                             Text(
@@ -499,7 +493,6 @@ private fun WordCountSummary(
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(
-            horizontal = Theme.spacing.small,
             vertical = Theme.spacing.extraSmall3
         )
     )
@@ -539,7 +532,7 @@ internal fun WordCard(
             ),
         shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius),
         color = backgroundColor,
-        tonalElevation = if (isSelected) 2.dp else 0.dp
+        tonalElevation = if (isSelected) Theme.elevation.medium else Theme.elevation.none
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             // Level color strip
@@ -593,7 +586,7 @@ internal fun WordCard(
                     }
                     // Meta row: languages + level pill + date
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         LanguagePill(
@@ -656,23 +649,12 @@ private fun LevelPill(
     stage: LearningStage,
     color: androidx.compose.ui.graphics.Color
 ) {
-    Surface(
-        modifier = Modifier.height(20.dp),
-        shape = RoundedCornerShape(10.dp),
-        color = color.copy(alpha = 0.15f)
-    ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 6.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stageName(stage),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium,
-                color = color
-            )
-        }
-    }
+    Pill(
+        text = stageName(stage),
+        color = color,
+        backgroundAlpha = 0.15f,
+        fontWeight = FontWeight.Medium
+    )
 }
 
 // endregion
@@ -700,8 +682,8 @@ internal fun SelectionActionBar(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surfaceContainer,
-            shadowElevation = 8.dp,
-            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            shadowElevation = Theme.elevation.overlay,
+            shape = RoundedCornerShape(topStart = Theme.shapes.large, topEnd = Theme.shapes.large)
         ) {
             Row(
                 modifier = Modifier
@@ -727,7 +709,8 @@ internal fun SelectionActionBar(
                     text = stringResource(Res.string.selected_format).replace(countPattern, selectedCount.toString()),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -780,115 +763,47 @@ internal fun SelectionActionBar(
 
 @Composable
 internal fun LoadingView() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
-        ) {
-            CircularProgressIndicator()
-            Text(
-                stringResource(Res.string.loading_words),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
+    LoadingScreen(message = stringResource(Res.string.loading_words))
 }
 
 @Composable
 internal fun ErrorView(message: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(Theme.spacing.large),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
-        ) {
-            Icon(
-                Icons.Default.Error,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-            Text(
-                stringResource(Res.string.error),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error
-            )
-            Text(
-                message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
+    ErrorScreen(
+        message = message,
+        title = stringResource(Res.string.error),
+        icon = Icons.Default.Error
+    )
 }
 
 @Composable
 internal fun EmptyLibraryView() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(Theme.spacing.large),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
-        ) {
-            TextWithNotoImageEmoji(
-                "\uD83D\uDCDA",
-                style = MaterialTheme.typography.displayLarge
-            )
-            Text(
-                stringResource(Res.string.empty_library),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                stringResource(Res.string.start_by_importing),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+    EmptyScreen(
+        title = stringResource(Res.string.empty_library),
+        subtitle = stringResource(Res.string.start_by_importing),
+        icon = {
+            Icon(
+                imageVector = Icons.Default.FileUpload,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
         }
-    }
+    )
 }
 
 @Composable
 private fun EmptySearchView() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(Theme.spacing.large),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.small)
-        ) {
+    EmptyScreen(
+        title = stringResource(Res.string.no_results_found),
+        icon = {
             Icon(
                 Icons.Default.Search,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(Theme.dimensions.touchTarget),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                stringResource(Res.string.no_results_found),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
         }
-    }
+    )
 }
 
 @Composable
@@ -897,23 +812,12 @@ private fun LanguagePill(
     color: androidx.compose.ui.graphics.Color,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier.height(20.dp),
-        shape = RoundedCornerShape(4.dp),
-        color = color.copy(alpha = 0.12f)
-    ) {
-        Box(
-            modifier = Modifier.padding(horizontal = 6.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-        }
-    }
+    Pill(
+        text = text,
+        color = color,
+        modifier = modifier,
+        cornerRadius = Theme.shapes.extraSmall
+    )
 }
 
 // endregion

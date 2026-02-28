@@ -223,7 +223,7 @@ class AndroidNotificationManager(
             // On Android, badge count is typically managed by active notifications
             // Clear all notifications to clear the badge
             NotificationManagerCompat.from(context).cancelAll()
-            println("✅ Badge cleared (Android)")
+            println(" Badge cleared (Android)")
         } catch (e: SecurityException) {
             // Silently fail - don't crash the app
         }
@@ -245,9 +245,9 @@ class AndroidNotificationManager(
                 addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
-            println("🔧 Opened notification settings")
+            println(" Opened notification settings")
         } catch (e: Exception) {
-            println("⚠️ Failed to open notification settings: ${e.message}")
+            println(" Failed to open notification settings: ${e.message}")
         }
     }
 }

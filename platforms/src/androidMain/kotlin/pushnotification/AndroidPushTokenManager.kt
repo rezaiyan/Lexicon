@@ -18,10 +18,10 @@ class AndroidPushTokenManager : IPushTokenManager {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
-                Log.d(TAG, "✅ FCM Token received: ${token.take(20)}...")
+                Log.d(TAG, " FCM Token received: ${token.take(20)}...")
                 onTokenReceived(token)
             } else {
-                Log.e(TAG, "❌ Failed to get FCM token", task.exception)
+                Log.e(TAG, " Failed to get FCM token", task.exception)
             }
         }
     }
@@ -29,10 +29,10 @@ class AndroidPushTokenManager : IPushTokenManager {
     override suspend fun getCurrentToken(): String? {
         return try {
             val token = FirebaseMessaging.getInstance().token.await()
-            Log.d(TAG, "✅ Current FCM Token: ${token.take(20)}...")
+            Log.d(TAG, " Current FCM Token: ${token.take(20)}...")
             token
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to get current FCM token", e)
+            Log.e(TAG, " Failed to get current FCM token", e)
             null
         }
     }
@@ -56,7 +56,7 @@ class AndroidPushTokenManager : IPushTokenManager {
          * Called from LexiconFirebaseMessagingService.onNewToken()
          */
         fun onTokenRefreshed(token: String) {
-            Log.d(TAG, "🔄 Token refreshed: ${token.take(20)}...")
+            Log.d(TAG, " Token refreshed: ${token.take(20)}...")
             tokenReceivedCallback?.invoke(token)
         }
     }

@@ -11,8 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
 import com.mmk.kmpauth.firebase.apple.AppleButtonUiContainer
+import theme.Theme
 import com.mmk.kmpauth.firebase.apple.AppleSignInRequestScope
 import com.mmk.kmpauth.uihelper.apple.AppleSignInButton
 import expects.AppleSignInHelper
@@ -29,7 +29,7 @@ actual fun AppleSignInButton(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(Theme.dimensions.buttonHeight),
         contentAlignment = Alignment.Center
     ) {
         AppleButtonUiContainer(
@@ -38,21 +38,21 @@ actual fun AppleSignInButton(
             linkAccount = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(Theme.dimensions.buttonHeight)
         ) {
             AppleSignInButton(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .height(Theme.dimensions.buttonHeight)
+                    .clip(RoundedCornerShape(Theme.shapes.medium))
             ) {
                 appleSignInHelper.signIn(
                     onSuccess = { idToken, fullName, appleUserId ->
-                        println("🍎 [AppleSignInButton] Success - token obtained")
+                        println(" [AppleSignInButton] Success - token obtained")
                         onSignInSuccess(idToken, fullName, appleUserId)
                     },
                     onFailure = { error ->
-                        println("❌ [AppleSignInButton] Failure: $error")
+                        println(" [AppleSignInButton] Failure: $error")
                         onSignInFailure(error)
                     }
                 )

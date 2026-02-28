@@ -6,11 +6,11 @@
     <string name="version">Version %1$d</string>
     
     <!-- Time-based Greetings -->
-    <string name="greeting_midnight">Brûler l'huile de minuit? 🌙</string>
-    <string name="greeting_morning">Bonjour! ☀</string>
-    <string name="greeting_afternoon">Bon après-midi! ⛅</string>
-    <string name="greeting_evening">Bonsoir! 🌆</string>
-    <string name="greeting_night">Bonne nuit! 🌃</string>
+    <string name="greeting_midnight">Brûler l'huile de minuit?</string>
+    <string name="greeting_morning">Bonjour!</string>
+    <string name="greeting_afternoon">Bon après-midi!</string>
+    <string name="greeting_evening">Bonsoir!</string>
+    <string name="greeting_night">Bonne nuit!</string>
     
     <!-- Common -->
     <string name="cancel">Annuler</string>
@@ -53,10 +53,10 @@
     <string name="delete_account_hidden_title">Suppression de Compte</string>
     <string name="delete_account_hidden_message">Vous êtes sur le point de supprimer définitivement votre compte. Cette action est irréversible et supprimera toutes vos données.</string>
     <string name="delete_account_hidden_continue">Continuer le processus de suppression</string>
-    <string name="delete_account_cooling_period_title">⏰ Période de Réflexion</string>
+    <string name="delete_account_cooling_period_title">Période de Réflexion</string>
     <string name="delete_account_cooling_period_message">Veuillez attendre %1$d secondes avant de continuer. Cela vous donne le temps de réfléchir.</string>
     <string name="delete_account_cooling_period_cancel">Annuler la suppression</string>
-    <string name="delete_account_final_title">🚨 Confirmation Finale</string>
+    <string name="delete_account_final_title">Confirmation Finale</string>
     <string name="delete_account_final_message">Cela supprimera définitivement :\n\n• Tous vos mots de vocabulaire\n• Progrès d'apprentissage et séries\n• Insights générés par IA\n• Paramètres du compte\n\nCette action NE peut PAS être annulée !</string>
     <string name="delete_account_final_confirm">Oui, supprimer mon compte</string>
     <string name="delete_account_long_press_hint">Appuyez longuement sur la photo de profil pour accéder à la suppression de compte</string>
@@ -70,12 +70,12 @@
     <string name="notification_disabled">Désactivé</string>
     <string name="notification_disabled_system">Désactivé dans les paramètres système</string>
     <string name="notification_permission_required">Permission non accordée - tu ne recevras pas de notifications</string>
-    <string name="notification_permission_title">Reste Connecté avec tes Mots! 🎯</string>
+    <string name="notification_permission_title">Reste Connecté avec tes Mots!</string>
     <string name="notification_permission_message">Laisse-nous être ton partenaire d'apprentissage et t'envoyer des rappels amicaux quand il est temps de pratiquer!</string>
     <string name="notification_features_title">Tu recevras :</string>
-    <string name="notification_feature_reminders">📚 Rappels de révision doux</string>
-    <string name="notification_feature_motivation">💪 Boosts de motivation</string>
-    <string name="notification_feature_timing">🎯 Timing intelligent - seulement quand utile</string>
+    <string name="notification_feature_reminders">Rappels de révision doux</string>
+    <string name="notification_feature_motivation">Boosts de motivation</string>
+    <string name="notification_feature_timing">Timing intelligent - seulement quand utile</string>
     <string name="notification_no_spam_message">Pas de spam, juste des rappels amicaux ! Touche le bouton pour activer les notifications dans les paramètres de ton appareil.</string>
     <string name="notification_open_settings">Activer</string>
     <string name="notification_enable_button">Allons-y!</string>
@@ -83,8 +83,8 @@
     <string name="notification_settings_title">Paramètres de Notifications</string>
     <string name="notification_settings_subtitle">Personnalise tes rappels d'apprentissage</string>
     <string name="notification_enable_notifications">Activer les Notifications</string>
-    <string name="notification_stay_motivated">Reste motivé avec des rappels amicaux 🌟</string>
-    <string name="notification_missing_nudges">Manquer les rappels d'apprentissage 😢</string>
+    <string name="notification_stay_motivated">Reste motivé avec des rappels amicaux</string>
+    <string name="notification_missing_nudges">Manquer les rappels d'apprentissage</string>
     <string name="notification_gentle_reminders">Nous t'enverrons des rappels doux quand tu as des mots prêts à réviser. Timing parfait, pas de spam!</string>
     
     <!-- Progress Screen -->
@@ -119,8 +119,8 @@
     <string name="hard">Difficile</string>
     <string name="good">Bien</string>
     <string name="easy">Facile</string>
-    <string name="forgot">Raté 😅</string>
-    <string name="remembered">Je l'ai! ✓</string>
+    <string name="forgot">Raté</string>
+    <string name="remembered">Je l'ai!</string>
     <string name="did_you_remember">Tu le savais?</string>
     <string name="restart">Recommencer</string>
     <string name="advance">Continue!</string>
@@ -146,7 +146,7 @@
     <string name="exit_review_message">Êtes-vous sûr de vouloir arrêter de réviser ? Votre progression sera sauvegardée.</string>
     <string name="yes_exit">Oui, quitter</string>
     <string name="continue_reviewing">Continuer à réviser</string>
-    <string name="review_complete">🎉 Révision terminée !</string>
+    <string name="review_complete">Révision terminée !</string>
     <string name="review_complete_message">Excellent travail ! Continuez à pratiquer pour maîtriser votre vocabulaire.</string>
     
     <!-- Import Dialog -->
@@ -200,21 +200,22 @@
     <string name="go_to_profile">Aller au profil</string>
     
     <!-- Success/Error Messages -->
-    <string name="success_imported_words">✓ %1$d mots importés avec succès</string>
-    <string name="success_imported_from_image">✓ %1$d mots importés avec succès depuis l'image</string>
-    <string name="error_message">✗ %1$d</string>
+    <string name="success_imported_words">%1$d mots importés avec succès</string>
+    <string name="success_imported_from_image">%1$d mots importés avec succès depuis l'image</string>
+    <string name="error_message">[Error] %1$d</string>
+    <string name="error_prefix">[Error]</string>
     <string name="error">Erreur: %1$d</string>
     
     <!-- Progress Screen -->
     <string name="no_words_yet">• Aucun mot pour l'instant</string>
     
     <!-- AI Daily Insights -->
-    <string name="welcome_insight">Bienvenue ! Commencez votre voyage de vocabulaire en ajoutant vos premiers mots ! 🚀✨</string>
-    <string name="fallback_many_due">Vous avez %1$d cartes prêtes ! Il est temps de booster vos compétences ! 💪⚡</string>
-    <string name="fallback_mostly_mastered">Impressionnant ! Plus de la moitié de votre vocabulaire est maîtrisé ! Vous êtes une légende ! 👑🎯</string>
-    <string name="fallback_learning">Continuez ! %1$d mots en formation. Chaque révision vous rend plus fort ! 🎮🔥</string>
-    <string name="fallback_some_due">Timing parfait ! %1$d cartes en attente. Écrasons cette session ! 💥✨</string>
-    <string name="fallback_all_caught_up">Vous êtes à jour ! Il est temps d'ajouter plus de mots et de monter de niveau ! 🌟🎯</string>
+    <string name="welcome_insight">Bienvenue ! Commencez votre voyage de vocabulaire en ajoutant vos premiers mots !</string>
+    <string name="fallback_many_due">Vous avez %1$d cartes prêtes ! Il est temps de booster vos compétences !</string>
+    <string name="fallback_mostly_mastered">Impressionnant ! Plus de la moitié de votre vocabulaire est maîtrisé ! Vous êtes une légende !</string>
+    <string name="fallback_learning">Continuez ! %1$d mots en formation. Chaque révision vous rend plus fort !</string>
+    <string name="fallback_some_due">Timing parfait ! %1$d cartes en attente. Écrasons cette session !</string>
+    <string name="fallback_all_caught_up">Vous êtes à jour ! Il est temps d'ajouter plus de mots et de monter de niveau !</string>
     <string name="subscriptions_coming_soon_message">Les abonnements seront bientôt disponibles pour débloquer l'accès complet. Restez à l'écoute ! Vous pouvez temporairement utiliser les fonctionnalités avec des crédits limités.</string>
     
     <!-- Mastery Levels (for badge) -->
@@ -266,7 +267,7 @@
     <string name="words_deleted">%1$d mots supprimés</string>
     <string name="word_updated">Mot mis à jour avec succès</string>
     <string name="export_words">Exporter</string>
-    <string name="words_exported">✓ %1$d mots exportés dans le presse-papiers</string>
+    <string name="words_exported">%1$d mots exportés dans le presse-papiers</string>
     <string name="export_all">Tout exporter</string>
     <string name="export_selected">Exporter la sélection</string>
     
@@ -300,8 +301,8 @@
     <string name="subscription">Abonnement</string>
     <string name="subscription_screen_title">Passez Premium</string>
     <string name="restore_purchases">Restaurer mes achats</string>
-    <string name="cancel_anytime_prices_in_usd">Résiliable à tout moment, sans questions ! 💙 Prix en USD.</string>
-    <string name="premium_unlocked">🎉 Tout est prêt !</string>
+    <string name="cancel_anytime_prices_in_usd">Résiliable à tout moment, sans questions ! Prix en USD.</string>
+    <string name="premium_unlocked">Tout est prêt !</string>
     <string name="premium_unlocked_message">Bienvenue dans Premium ! Profitez d'un accès illimité à toutes les fonctionnalités incroyables et boostez votre parcours d'apprentissage !</string>
     <string name="unlock_premium">Débloquer Premium</string>
     <string name="premium_subtitle">Boostez votre parcours d'apprentissage du vocabulaire avec des fonctionnalités puissantes !</string>
@@ -314,7 +315,7 @@
     <string name="unlock_now">Débloquer maintenant</string>
     <string name="subscribe_now">S'abonner maintenant</string>
     <string name="subscribe">S'abonner</string>
-    <string name="subscription_unable_to_load">Oups ! Nous n'avons pas pu charger les abonnements 😅</string>
+    <string name="subscription_unable_to_load">Oups ! Nous n'avons pas pu charger les abonnements</string>
     <string name="subscription_terms">Le paiement sera facturé à votre compte. Votre abonnement se renouvellera automatiquement sauf si vous l'annulez au moins 24 heures avant la fin de la période en cours. Vous pouvez gérer votre abonnement à tout moment dans les paramètres de votre compte.</string>
     <string name="feature_unlimited_words">Mots illimités</string>
     <string name="feature_unlimited_words_desc">Ajoutez autant de mots que votre cœur désire - aucune limite !</string>

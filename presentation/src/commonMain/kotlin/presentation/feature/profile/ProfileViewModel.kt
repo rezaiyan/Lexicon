@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
+import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import presentation.model.DayActivityUiModel
@@ -184,7 +186,7 @@ private fun ProfileStats.toUiModel(): ProfileStatsUiModel {
         currentStreak = currentStreak,
         longestStreak = longestStreak,
         memberSince = memberSince,
-        weeklyActivity = weeklyActivity.map { it.toUiModel(todayStr) },
+        weeklyActivity = weeklyActivity.map { it.toUiModel(todayStr) }.sortedBy { it.date },
         languages = languages.map { lang ->
             LanguagePairUiModel(
                 sourceLanguage = lang.sourceLanguage,
@@ -196,10 +198,21 @@ private fun ProfileStats.toUiModel(): ProfileStatsUiModel {
 }
 
 private fun DayActivity.toUiModel(todayStr: String): DayActivityUiModel {
-    val dayOfMonth = date.substringAfterLast("-").toIntOrNull() ?: 0
+    val localDate = LocalDate.parse(date)
+    val dayOfWeekLabel = when (localDate.dayOfWeek) {
+        DayOfWeek.MONDAY -> "MON"
+        DayOfWeek.TUESDAY -> "TUE"
+        DayOfWeek.WEDNESDAY -> "WED"
+        DayOfWeek.THURSDAY -> "THU"
+        DayOfWeek.FRIDAY -> "FRI"
+        DayOfWeek.SATURDAY -> "SAT"
+        DayOfWeek.SUNDAY -> "SUN"
+        else -> ""
+    }
     return DayActivityUiModel(
         date = date,
-        dayOfMonth = dayOfMonth,
+        dayOfMonth = localDate.dayOfMonth,
+        dayOfWeekLabel = dayOfWeekLabel,
         reviewCount = reviewCount,
         isToday = date == todayStr
     )

@@ -63,7 +63,7 @@ class FirstSuccessStaysInBucketTest {
         println("═".repeat(70))
         
         // GIVEN: NEW word at Level 0 (First Bucket)
-        println("\n1️⃣  SETUP: New word in First Bucket (Level 0)")
+        println("\n1  SETUP: New word in First Bucket (Level 0)")
         val word = TestUtils.createWord(
             id = 0,
             originalWord = "apple",
@@ -81,15 +81,15 @@ class FirstSuccessStaysInBucketTest {
         // Verify word is in Level 0 bucket
         val level0Before = getWordsByStageUseCase(LearningStage.LEVEL_0_FRESH).first()
         assertEquals(1, level0Before.size)
-        println("   ✓ Word IS in First Bucket (Level 0)")
+        println("    Word IS in First Bucket (Level 0)")
         
         // WHEN: User reviews and responds "REMEMBERED"
-        println("\n2️⃣  ACTION: User reviews word - responds REMEMBERED")
+        println("\n2  ACTION: User reviews word - responds REMEMBERED")
         reviewUseCase(initialWord, quality = 1)
-        println("   ✓ Review completed with quality = 1 (REMEMBERED)")
+        println("    Review completed with quality = 1 (REMEMBERED)")
         
         // THEN: Word advances to Level 1 immediately
-        println("\n3️⃣  RESULT: Word advances to Second Bucket immediately")
+        println("\n3  RESULT: Word advances to Second Bucket immediately")
         val afterReview = repository.getWordById(initialWord.id)!!
         assertEquals(1, afterReview.level, "Word should advance to Level 1")
         assertEquals(0, afterReview.repetitions, "Repetitions reset for new level")
@@ -102,13 +102,13 @@ class FirstSuccessStaysInBucketTest {
         val level0After = getWordsByStageUseCase(LearningStage.LEVEL_0_FRESH).first()
         assertEquals(0, level0After.size)
         
-        println("   ✅ Word NOW in Second Bucket (Level 1)")
-        println("   ✓ Level: 0 → ${afterReview.level} (advanced!)")
-        println("   ✓ Repetitions: ${afterReview.repetitions} (reset)")
-        println("   ✓ Removed from First Bucket")
+        println("    Word NOW in Second Bucket (Level 1)")
+        println("    Level: 0 → ${afterReview.level} (advanced!)")
+        println("    Repetitions: ${afterReview.repetitions} (reset)")
+        println("    Removed from First Bucket")
         
         println("\n" + "═".repeat(70))
-        println("✅ BEHAVIOR: Word advances after 1 REMEMBERED response")
+        println(" BEHAVIOR: Word advances after 1 REMEMBERED response")
         println("   REMEMBERED → Advance to next level immediately")
         println("   FORGOT → Drop 2 levels")
         println("═".repeat(70) + "\n")
@@ -121,7 +121,7 @@ class FirstSuccessStaysInBucketTest {
         println("═".repeat(70))
         
         // GIVEN: Word at Level 1 (already advanced once)
-        println("\n1️⃣  SETUP: Word at Level 1")
+        println("\n1  SETUP: Word at Level 1")
         val word = TestUtils.createWord(
             id = 0,
             originalWord = "difficult",
@@ -135,24 +135,24 @@ class FirstSuccessStaysInBucketTest {
         println("   Level: ${word.level} (Second Bucket)")
         
         // WHEN: User forgets the word
-        println("\n2️⃣  ACTION: User forgets the word")
+        println("\n2  ACTION: User forgets the word")
         val currentWord = repository.getAllWords().first().first()
         reviewUseCase(currentWord, quality = 0)
         
         // THEN: Word drops 2 levels (1 - 2 = -1, min 0)
-        println("\n3️⃣  RESULT: Word drops back to Level 0")
+        println("\n3  RESULT: Word drops back to Level 0")
         val afterForgetting = repository.getWordById(currentWord.id)!!
         assertEquals(0, afterForgetting.level, "Word drops from Level 1 to Level 0")
         assertEquals(0, afterForgetting.repetitions, "Repetitions reset to 0")
         
-        println("   ⚠️  Word back in First Bucket (Level 0)")
-        println("   ✓ Level: ${word.level} → ${afterForgetting.level} (dropped 2 levels)")
-        println("   ✓ Repetitions: ${afterForgetting.repetitions} (reset)")
-        println("\n   📖 WHY? Forgetting drops 2 levels and resets progress")
-        println("   💡 User must review again to advance")
+        println("     Word back in First Bucket (Level 0)")
+        println("    Level: ${word.level} → ${afterForgetting.level} (dropped 2 levels)")
+        println("    Repetitions: ${afterForgetting.repetitions} (reset)")
+        println("\n    WHY? Forgetting drops 2 levels and resets progress")
+        println("    User must review again to advance")
         
         println("\n" + "═".repeat(70))
-        println("✅ BEHAVIOR: FORGOT drops 2 levels, resets repetitions")
+        println(" BEHAVIOR: FORGOT drops 2 levels, resets repetitions")
         println("═".repeat(70) + "\n")
     }
     
@@ -191,7 +191,7 @@ class FirstSuccessStaysInBucketTest {
         }
         
         println("\n" + "═".repeat(70))
-        println("✅ VERIFIED: All levels 0-5 advance after 1 success")
+        println(" VERIFIED: All levels 0-5 advance after 1 success")
         println("═".repeat(70) + "\n")
     }
 }

@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.member_since
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import theme.Theme
 
 @Composable
@@ -44,9 +46,10 @@ fun MemberSinceSection(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            TextWithNotoImageEmoji(
-                text = "\uD83D\uDCC5",
-                style = MaterialTheme.typography.labelMedium
+            Icon(
+                imageVector = Icons.Default.DateRange,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.width(Theme.spacing.extraSmall3))

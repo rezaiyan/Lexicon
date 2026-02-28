@@ -223,7 +223,7 @@ class IosNotificationManager : INotificationManager {
             UIApplication.sharedApplication.setApplicationIconBadgeNumber(0)
             // Also clear delivered notifications
             center.removeAllDeliveredNotifications()
-            println("✅ Badge cleared")
+            println(" Badge cleared")
         } catch (e: Exception) {
             println("Exception clearing badge: ${e.message}")
         }
@@ -235,12 +235,12 @@ class IosNotificationManager : INotificationManager {
             val settingsUrl = NSURL.URLWithString("app-settings:")
             if (settingsUrl != null && UIApplication.sharedApplication.canOpenURL(settingsUrl)) {
                 UIApplication.sharedApplication.openURL(settingsUrl)
-                println("🔧 Opened notification settings")
+                println(" Opened notification settings")
             } else {
-                println("⚠️ Cannot open settings URL")
+                println(" Cannot open settings URL")
             }
         } catch (e: Exception) {
-            println("⚠️ Failed to open notification settings: ${e.message}")
+            println(" Failed to open notification settings: ${e.message}")
         }
     }
 }

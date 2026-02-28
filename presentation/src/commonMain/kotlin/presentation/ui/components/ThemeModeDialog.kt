@@ -47,10 +47,7 @@ fun ThemeModeDialog(
         title = stringResource(Res.string.theme),
         content = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 300.dp)
-                    .verticalScroll(rememberScrollState())
+                modifier = Modifier.fillMaxWidth()
             ) {
                 ThemeMode.entries.forEach { mode ->
                     ThemeOptionCard(
@@ -103,12 +100,14 @@ private fun ThemeOptionCard(
             Text(
                 text = themeMode.displayName,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                maxLines = 1
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
             )
         }
         RadioButton(

@@ -6,11 +6,11 @@
     <string name="version">Versión %1$d</string>
     
     <!-- Time-based Greetings -->
-    <string name="greeting_midnight">¿Quemando el aceite de medianoche? 🌙</string>
-    <string name="greeting_morning">¡Buenos días! ☀</string>
-    <string name="greeting_afternoon">¡Buenas tardes! ⛅</string>
-    <string name="greeting_evening">¡Buenas tardes! 🌆</string>
-    <string name="greeting_night">¡Buenas noches! 🌃</string>
+    <string name="greeting_midnight">¿Quemando el aceite de medianoche?</string>
+    <string name="greeting_morning">¡Buenos días!</string>
+    <string name="greeting_afternoon">¡Buenas tardes!</string>
+    <string name="greeting_evening">¡Buenas tardes!</string>
+    <string name="greeting_night">¡Buenas noches!</string>
     
     <!-- Common -->
     <string name="cancel">Cancelar</string>
@@ -53,10 +53,10 @@
     <string name="delete_account_hidden_title">Eliminación de Cuenta</string>
     <string name="delete_account_hidden_message">Estás a punto de eliminar permanentemente tu cuenta. Esta acción no se puede deshacer y eliminará todos tus datos.</string>
     <string name="delete_account_hidden_continue">Continuar con el proceso de eliminación</string>
-    <string name="delete_account_cooling_period_title">⏰ Período de Reflexión</string>
+    <string name="delete_account_cooling_period_title">Período de Reflexión</string>
     <string name="delete_account_cooling_period_message">Por favor espera %1$d segundos antes de proceder. Esto te da tiempo para reconsiderar.</string>
     <string name="delete_account_cooling_period_cancel">Cancelar eliminación</string>
-    <string name="delete_account_final_title">🚨 Confirmación Final</string>
+    <string name="delete_account_final_title">Confirmación Final</string>
     <string name="delete_account_final_message">Esto eliminará permanentemente:\n\n• Todas tus palabras de vocabulario\n• Progreso de aprendizaje y rachas\n• Perspectivas generadas por IA\n• Configuración de cuenta\n\n¡Esta acción NO se puede deshacer!</string>
     <string name="delete_account_final_confirm">Sí, eliminar mi cuenta</string>
     <string name="delete_account_long_press_hint">Mantén presionada la foto de perfil para acceder a la eliminación de cuenta</string>
@@ -70,12 +70,12 @@
     <string name="notification_disabled">Desactivado</string>
     <string name="notification_disabled_system">Desactivado en configuración del sistema</string>
     <string name="notification_permission_required">Permiso no concedido - no recibirás notificaciones</string>
-    <string name="notification_permission_title">¡Mantente Conectado con tus Palabras! 🎯</string>
+    <string name="notification_permission_title">¡Mantente Conectado con tus Palabras!</string>
     <string name="notification_permission_message">¡Permítenos ser tu compañero de aprendizaje y enviarte recordatorios amistosos cuando sea hora de practicar!</string>
     <string name="notification_features_title">Obtendrás:</string>
-    <string name="notification_feature_reminders">📚 Recordatorios suaves de revisión</string>
-    <string name="notification_feature_motivation">💪 Impulsos motivacionales</string>
-    <string name="notification_feature_timing">🎯 Timing inteligente - solo cuando es útil</string>
+    <string name="notification_feature_reminders">Recordatorios suaves de revisión</string>
+    <string name="notification_feature_motivation">Impulsos motivacionales</string>
+    <string name="notification_feature_timing">Timing inteligente - solo cuando es útil</string>
     <string name="notification_no_spam_message">¡Sin spam, solo recordatorios amistosos! Toca el botón para habilitar notificaciones en la configuración de tu dispositivo.</string>
     <string name="notification_open_settings">Activar</string>
     <string name="notification_enable_button">¡Vamos a Hacerlo!</string>
@@ -83,8 +83,8 @@
     <string name="notification_settings_title">Configuración de Notificaciones</string>
     <string name="notification_settings_subtitle">Personaliza tus recordatorios de aprendizaje</string>
     <string name="notification_enable_notifications">Activar Notificaciones</string>
-    <string name="notification_stay_motivated">Mantente motivado con recordatorios amistosos 🌟</string>
-    <string name="notification_missing_nudges">Perdiendo recordatorios de aprendizaje 😢</string>
+    <string name="notification_stay_motivated">Mantente motivado con recordatorios amistosos</string>
+    <string name="notification_missing_nudges">Perdiendo recordatorios de aprendizaje</string>
     <string name="notification_gentle_reminders">Te enviaremos recordatorios suaves cuando tengas palabras listas para repasar. ¡Timing perfecto, sin spam!</string>
     
     <!-- Progress Screen -->
@@ -119,8 +119,8 @@
     <string name="hard">Difícil</string>
     <string name="good">Bien</string>
     <string name="easy">Fácil</string>
-    <string name="forgot">Nop 😅</string>
-    <string name="remembered">¡Lo tengo! ✓</string>
+    <string name="forgot">Nop</string>
+    <string name="remembered">¡Lo tengo!</string>
     <string name="did_you_remember">¿La sabías?</string>
     <string name="restart">Otra vez</string>
     <string name="advance">¡Sigue así!</string>
@@ -146,7 +146,7 @@
     <string name="exit_review_message">¿Estás seguro de que quieres dejar de revisar? Tu progreso se guardará.</string>
     <string name="yes_exit">Sí, salir</string>
     <string name="continue_reviewing">Continuar revisando</string>
-    <string name="review_complete">🎉 ¡Revisión completa!</string>
+    <string name="review_complete">¡Revisión completa!</string>
     <string name="review_complete_message">¡Buen trabajo! Sigue practicando para dominar tu vocabulario.</string>
     
     <!-- Import Dialog -->
@@ -200,21 +200,22 @@
     <string name="go_to_profile">Ir al perfil</string>
     
     <!-- Success/Error Messages -->
-    <string name="success_imported_words">✓ %1$d palabras importadas con éxito</string>
-    <string name="success_imported_from_image">✓ %1$d palabras importadas con éxito desde la imagen</string>
-    <string name="error_message">✗ %1$d</string>
+    <string name="success_imported_words">%1$d palabras importadas con éxito</string>
+    <string name="success_imported_from_image">%1$d palabras importadas con éxito desde la imagen</string>
+    <string name="error_message">[Error] %1$d</string>
+    <string name="error_prefix">[Error]</string>
     <string name="error">Error: %1$d</string>
     
     <!-- Progress Screen -->
     <string name="no_words_yet">• Aún no hay palabras</string>
     
     <!-- AI Daily Insights -->
-    <string name="welcome_insight">¡Bienvenido! ¡Comienza tu viaje de vocabulario agregando tus primeras palabras! 🚀✨</string>
-    <string name="fallback_many_due">¡Tienes %1$d tarjetas listas! ¡Es hora de potenciar tus habilidades! 💪⚡</string>
-    <string name="fallback_mostly_mastered">¡Impresionante! ¡Más de la mitad de tu vocabulario está dominado! ¡Eres una leyenda! 👑🎯</string>
-    <string name="fallback_learning">¡Sigue adelante! %1$d palabras en entrenamiento. ¡Cada repaso te hace más fuerte! 🎮🔥</string>
-    <string name="fallback_some_due">¡Momento perfecto! %1$d tarjetas esperando. ¡Vamos a arrasar con esta sesión! 💥✨</string>
-    <string name="fallback_all_caught_up">¡Estás al día! ¡Es hora de agregar más palabras y subir de nivel! 🌟🎯</string>
+    <string name="welcome_insight">¡Bienvenido! ¡Comienza tu viaje de vocabulario agregando tus primeras palabras!</string>
+    <string name="fallback_many_due">¡Tienes %1$d tarjetas listas! ¡Es hora de potenciar tus habilidades!</string>
+    <string name="fallback_mostly_mastered">¡Impresionante! ¡Más de la mitad de tu vocabulario está dominado! ¡Eres una leyenda!</string>
+    <string name="fallback_learning">¡Sigue adelante! %1$d palabras en entrenamiento. ¡Cada repaso te hace más fuerte!</string>
+    <string name="fallback_some_due">¡Momento perfecto! %1$d tarjetas esperando. ¡Vamos a arrasar con esta sesión!</string>
+    <string name="fallback_all_caught_up">¡Estás al día! ¡Es hora de agregar más palabras y subir de nivel!</string>
     <string name="subscriptions_coming_soon_message">Las suscripciones estarán disponibles pronto para desbloquear el acceso completo. ¡Mantente atento! Puedes usar temporalmente las funciones con créditos limitados.</string>
     
     <!-- Mastery Levels (for badge) -->
@@ -266,7 +267,7 @@
     <string name="words_deleted">%1$d palabras eliminadas</string>
     <string name="word_updated">Palabra actualizada correctamente</string>
     <string name="export_words">Exportar</string>
-    <string name="words_exported">✓ %1$d palabras exportadas al portapapeles</string>
+    <string name="words_exported">%1$d palabras exportadas al portapapeles</string>
     <string name="export_all">Exportar todo</string>
     <string name="export_selected">Exportar seleccionadas</string>
     
@@ -300,8 +301,8 @@
     <string name="subscription">Suscripción</string>
     <string name="subscription_screen_title">Hazte Premium</string>
     <string name="restore_purchases">Restaurar mis compras</string>
-    <string name="cancel_anytime_prices_in_usd">Cancela cuando quieras, sin preguntas! 💙 Precios en USD.</string>
-    <string name="premium_unlocked">🎉 ¡Todo listo!</string>
+    <string name="cancel_anytime_prices_in_usd">Cancela cuando quieras, sin preguntas! Precios en USD.</string>
+    <string name="premium_unlocked">¡Todo listo!</string>
     <string name="premium_unlocked_message">¡Bienvenido a Premium! Disfruta acceso ilimitado a todas las funciones increíbles y potencia tu viaje de aprendizaje!</string>
     <string name="unlock_premium">Desbloquear Premium</string>
     <string name="premium_subtitle">¡Potencia tu viaje de aprendizaje de vocabulario con funciones poderosas!</string>
@@ -314,7 +315,7 @@
     <string name="unlock_now">Desbloquear ahora</string>
     <string name="subscribe_now">Suscribirse ahora</string>
     <string name="subscribe">Suscribirse</string>
-    <string name="subscription_unable_to_load">¡Ups! No pudimos cargar las suscripciones 😅</string>
+    <string name="subscription_unable_to_load">¡Ups! No pudimos cargar las suscripciones</string>
     <string name="subscription_terms">El pago se cargará a tu cuenta. Tu suscripción se renovará automáticamente a menos que la canceles al menos 24 horas antes del final del período actual. Puedes gestionar tu suscripción en cualquier momento en la configuración de tu cuenta.</string>
     <string name="feature_unlimited_words">Palabras ilimitadas</string>
     <string name="feature_unlimited_words_desc">¡Agrega tantas palabras como desees - sin límites!</string>

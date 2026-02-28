@@ -6,11 +6,11 @@
     <string name="version">نسخه %1$d</string>
     
     <!-- Time-based Greetings -->
-    <string name="greeting_midnight">شب زنده‌داری؟ 🌙</string>
-    <string name="greeting_morning">صبح بخیر! ☀</string>
-    <string name="greeting_afternoon">عصر بخیر! ⛅</string>
-    <string name="greeting_evening">غروب بخیر! 🌆</string>
-    <string name="greeting_night">شب بخیر! 🌃</string>
+    <string name="greeting_midnight">شب زنده‌داری؟</string>
+    <string name="greeting_morning">صبح بخیر!</string>
+    <string name="greeting_afternoon">عصر بخیر!</string>
+    <string name="greeting_evening">غروب بخیر!</string>
+    <string name="greeting_night">شب بخیر!</string>
     
     <!-- Common -->
     <string name="cancel">لغو</string>
@@ -52,10 +52,10 @@
     <string name="delete_account_hidden_title">حذف حساب</string>
     <string name="delete_account_hidden_message">شما در حال حذف دائمی حساب خود هستید. این عمل قابل بازگشت نیست و تمام اطلاعات شما را حذف خواهد کرد.</string>
     <string name="delete_account_hidden_continue">ادامه فرآیند حذف</string>
-    <string name="delete_account_cooling_period_title">⏰ دوره تامل</string>
+    <string name="delete_account_cooling_period_title">دوره تامل</string>
     <string name="delete_account_cooling_period_message">لطفاً %1$d ثانیه صبر کنید قبل از ادامه. این به شما زمان می‌دهد تا دوباره فکر کنید.</string>
     <string name="delete_account_cooling_period_cancel">لغو حذف</string>
-    <string name="delete_account_final_title">🚨 تایید نهایی</string>
+    <string name="delete_account_final_title">تایید نهایی</string>
     <string name="delete_account_final_message">این موارد را به طور دائمی حذف خواهد کرد:\n\n• تمام کلمات واژگان شما\n• پیشرفت یادگیری و رکوردها\n• بینش‌های تولید شده توسط هوش مصنوعی\n• تنظیمات حساب\n\nاین عمل قابل بازگشت نیست!</string>
     <string name="delete_account_final_confirm">بله، حساب من را حذف کن</string>
     <string name="delete_account_long_press_hint">برای دسترسی به حذف حساب، عکس پروفایل را نگه دارید</string>
@@ -69,12 +69,12 @@
     <string name="notification_disabled">غیرفعال</string>
     <string name="notification_disabled_system">در تنظیمات سیستم غیرفعال شده</string>
     <string name="notification_permission_required">مجوز داده نشده - اعلان دریافت نخواهید کرد</string>
-    <string name="notification_permission_title">با کلماتت در ارتباط بمان! 🎯</string>
+    <string name="notification_permission_title">با کلماتت در ارتباط بمان!</string>
     <string name="notification_permission_message">بذار یادآور دوستانه‌ات باشیم و وقتی زمان تمرین است، بهت یادآوری کنیم!</string>
     <string name="notification_features_title">دریافت می‌کنی:</string>
-    <string name="notification_feature_reminders">📚 یادآوری‌های ملایم مرور</string>
-    <string name="notification_feature_motivation">💪 تقویت انگیزه</string>
-    <string name="notification_feature_timing">🎯 زمان‌بندی هوشمند - فقط وقتی کمک‌کننده است</string>
+    <string name="notification_feature_reminders">یادآوری‌های ملایم مرور</string>
+    <string name="notification_feature_motivation">تقویت انگیزه</string>
+    <string name="notification_feature_timing">زمان‌بندی هوشمند - فقط وقتی کمک‌کننده است</string>
     <string name="notification_no_spam_message">بدون اسپم، فقط یادآورهای دوستانه! دکمه را بزن تا اعلان‌ها را در تنظیمات دستگاه فعال کنی.</string>
     <string name="notification_open_settings">فعال‌سازی</string>
     <string name="notification_enable_button">بزن بریم!</string>
@@ -82,8 +82,8 @@
     <string name="notification_settings_title">تنظیمات اعلان‌ها</string>
     <string name="notification_settings_subtitle">یادآورهای یادگیری را سفارشی کن</string>
     <string name="notification_enable_notifications">فعال‌سازی اعلان‌ها</string>
-    <string name="notification_stay_motivated">با یادآورهای دوستانه انگیزه‌دار بمان 🌟</string>
-    <string name="notification_missing_nudges">از دست دادن یادآورهای یادگیری 😢</string>
+    <string name="notification_stay_motivated">با یادآورهای دوستانه انگیزه‌دار بمان</string>
+    <string name="notification_missing_nudges">از دست دادن یادآورهای یادگیری</string>
     <string name="notification_gentle_reminders">وقتی کلمات آماده مرور هستند، یادآوری‌های ملایم ارسال می‌کنیم. زمان‌بندی عالی، بدون اسپم!</string>
     
     <!-- Progress Screen -->
@@ -118,8 +118,8 @@
     <string name="hard">سخت</string>
     <string name="good">خوب</string>
     <string name="easy">آسان</string>
-    <string name="forgot">نه 😅</string>
-    <string name="remembered">بله! ✓</string>
+    <string name="forgot">نه</string>
+    <string name="remembered">بله!</string>
     <string name="did_you_remember">یادت بود؟</string>
     <string name="restart">دوباره امتحان</string>
     <string name="advance">ادامه بده!</string>
@@ -145,7 +145,7 @@
     <string name="exit_review_message">آیا مطمئن هستید که می‌خواهید مرور را متوقف کنید؟ پیشرفت شما ذخیره خواهد شد.</string>
     <string name="yes_exit">بله، خروج</string>
     <string name="continue_reviewing">ادامه مرور</string>
-    <string name="review_complete">🎉 مرور کامل شد!</string>
+    <string name="review_complete">مرور کامل شد!</string>
     <string name="review_complete_message">عالی است! برای تسلط بر واژگان خود به تمرین ادامه دهید.</string>
     
     <!-- Import Dialog -->
@@ -199,21 +199,22 @@
     <string name="go_to_profile">رفتن به پروفایل</string>
     
     <!-- Success/Error Messages -->
-    <string name="success_imported_words">✓ %1$d کلمه با موفقیت وارد شد</string>
-    <string name="success_imported_from_image">✓ %1$d کلمه از تصویر با موفقیت وارد شد</string>
-    <string name="error_message">✗ %1$d</string>
+    <string name="success_imported_words">%1$d کلمه با موفقیت وارد شد</string>
+    <string name="success_imported_from_image">%1$d کلمه از تصویر با موفقیت وارد شد</string>
+    <string name="error_message">[Error] %1$d</string>
+    <string name="error_prefix">[Error]</string>
     <string name="error">خطا: %1$d</string>
     
     <!-- Progress Screen -->
     <string name="no_words_yet">• هنوز کلمه‌ای نیست</string>
     
     <!-- AI Daily Insights -->
-    <string name="welcome_insight">خوش آمدید! سفر یادگیری واژگان خود را با افزودن اولین کلمات آغاز کنید! 🚀✨</string>
-    <string name="fallback_many_due">شما %1$d کارت آماده دارید! وقت تقویت مهارت‌هاست! 💪⚡</string>
-    <string name="fallback_mostly_mastered">عالی! بیش از نیمی از واژگان شما تسلط یافته! شما افسانه‌ای هستید! 👑🎯</string>
-    <string name="fallback_learning">ادامه بده! %1$d کلمه در حال تمرین. هر مرور شما را قوی‌تر می‌کند! 🎮🔥</string>
-    <string name="fallback_some_due">زمان مناسب! %1$d کارت در انتظار. بیایید این جلسه را بشکنیم! 💥✨</string>
-    <string name="fallback_all_caught_up">همه چیز به روز است! وقت افزودن کلمات بیشتر و ارتقا! 🌟🎯</string>
+    <string name="welcome_insight">خوش آمدید! سفر یادگیری واژگان خود را با افزودن اولین کلمات آغاز کنید!</string>
+    <string name="fallback_many_due">شما %1$d کارت آماده دارید! وقت تقویت مهارت‌هاست!</string>
+    <string name="fallback_mostly_mastered">عالی! بیش از نیمی از واژگان شما تسلط یافته! شما افسانه‌ای هستید!</string>
+    <string name="fallback_learning">ادامه بده! %1$d کلمه در حال تمرین. هر مرور شما را قوی‌تر می‌کند!</string>
+    <string name="fallback_some_due">زمان مناسب! %1$d کارت در انتظار. بیایید این جلسه را بشکنیم!</string>
+    <string name="fallback_all_caught_up">همه چیز به روز است! وقت افزودن کلمات بیشتر و ارتقا!</string>
     <string name="subscriptions_coming_soon_message">به‌زودی اشتراک‌ها برای دسترسی کامل فعال می‌شوند. همراه ما باشید! فعلاً می‌توانید از قابلیت‌ها با اعتبار محدود استفاده کنید.</string>
     
     <!-- Mastery Levels (for badge) -->
@@ -265,7 +266,7 @@
     <string name="words_deleted">%1$d کلمه حذف شد</string>
     <string name="word_updated">کلمه با موفقیت به‌روزرسانی شد</string>
     <string name="export_words">خروجی</string>
-    <string name="words_exported">✓ %1$d کلمه در کلیپ‌بورد کپی شد</string>
+    <string name="words_exported">%1$d کلمه در کلیپ‌بورد کپی شد</string>
     <string name="export_all">خروجی همه</string>
     <string name="export_selected">خروجی انتخاب‌شده‌ها</string>
     
@@ -299,8 +300,8 @@
     <string name="subscription">اشتراک</string>
     <string name="subscription_screen_title">پرمیوم شوید</string>
     <string name="restore_purchases">بازیابی خریدهای من</string>
-    <string name="cancel_anytime_prices_in_usd">هر زمان قابل لغو، بدون سوال! 💙 قیمت‌ها به دلار است.</string>
-    <string name="premium_unlocked">🎉 همه چیز آماده است!</string>
+    <string name="cancel_anytime_prices_in_usd">هر زمان قابل لغو، بدون سوال! قیمت‌ها به دلار است.</string>
+    <string name="premium_unlocked">همه چیز آماده است!</string>
     <string name="premium_unlocked_message">به پرمیوم خوش آمدید! از دسترسی نامحدود به همه قابلیت‌های فوق‌العاده لذت ببرید و سفر یادگیری خود را تقویت کنید!</string>
     <string name="unlock_premium">فعال‌سازی پرمیوم</string>
     <string name="premium_subtitle">سفر یادگیری واژگان خود را با قابلیت‌های قدرتمند تقویت کنید!</string>
@@ -313,7 +314,7 @@
     <string name="unlock_now">هم‌اکنون فعال کن</string>
     <string name="subscribe_now">هم‌اکنون اشتراک</string>
     <string name="subscribe">اشتراک</string>
-    <string name="subscription_unable_to_load">اوه! نتوانستیم اشتراک‌ها را بارگذاری کنیم 😅</string>
+    <string name="subscription_unable_to_load">اوه! نتوانستیم اشتراک‌ها را بارگذاری کنیم</string>
     <string name="subscription_terms">هزینه از حساب شما کسر می‌شود. اشتراک شما به‌صورت خودکار تمدید می‌شود مگر اینکه حداقل ۲۴ ساعت قبل از پایان دوره لغو شود. می‌توانید اشتراک خود را در هر زمان در تنظیمات حساب مدیریت کنید.</string>
     <string name="feature_unlimited_words">کلمات نامحدود</string>
     <string name="feature_unlimited_words_desc">هر تعداد کلمه که دلتان می‌خواهد اضافه کنید - بدون محدودیت!</string>

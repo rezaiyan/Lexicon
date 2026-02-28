@@ -3,25 +3,31 @@ package presentation.ui.screens
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import domain.auth.usecase.GetFeatureAccessUseCase
 import events.OnEvents
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.study.StudyEvent
 import presentation.feature.study.StudyViewModel
+import presentation.model.ReviewType
 import presentation.model.UiState
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
@@ -36,122 +42,113 @@ import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
 import presentation.ui.overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.overlay.dialog.showDialog
 import presentation.ui.screens.review.ReviewBottomSheetContent
+import presentation.ui.screens.study.CollapsedStatsBar
 import presentation.ui.screens.study.LearningStagesSection
-import presentation.ui.screens.study.ReviewActionSection
 import presentation.ui.screens.study.StatsSection
 import presentation.ui.screens.study.WordDistributionBar
-import presentation.utils.getTimeBasedGreeting
+import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.review_due_cards
 import lexicon.resources.generated.resources.stage_words_string
 
+/** Non-dismissable sheet configuration reused for import and review flows. */
+private val LockedSheetProperties = BottomSheetProperties(
+    dismissOnTouchOutside = false,
+    dismissOnBackPress = false,
+    isNavigationBarsPaddingEnabled = true,
+    sheetGesturesEnabled = false,
+)
+
 @Composable
 fun StudyScreen() {
     val viewModel = koinViewModel<StudyViewModel>()
     val overlayHost = LocalOverlayHost.current
-    val getFeatureAccessUseCase = koinInject<GetFeatureAccessUseCase>()
+    val snackbarHostState = LocalSnackbarHostState.current
+    val coroutineScope = rememberCoroutineScope()
 
     val uiState by viewModel.progressScreenState.collectAsStateWithLifecycle()
     val reviewState by viewModel.reviewScreenState.collectAsStateWithLifecycle()
     val ttsState by viewModel.ttsState.collectAsStateWithLifecycle()
-    val snackbarHostState = LocalSnackbarHostState.current
-    val coroutineScope = rememberCoroutineScope()
-    val featureAccess by getFeatureAccessUseCase().collectAsStateWithLifecycle(null)
-    val hasPremiumAccess = featureAccess?.userAccess?.hasPremiumAccess == true
+    val hasPremiumAccess by viewModel.hasPremiumAccess.collectAsStateWithLifecycle(false)
+
+    val scrollState = rememberScrollState()
+    var statsSectionBottom by remember { mutableIntStateOf(0) }
+    val isStatsSectionScrolledAway by remember {
+        derivedStateOf { scrollState.value > statsSectionBottom && statsSectionBottom > 0 }
+    }
+
+    val progressStats = (uiState as? UiState.Loaded)?.value?.progressStats
+
+    val onImportSuccess: (String) -> Unit = { message ->
+        viewModel.refreshStats()
+        coroutineScope.launch {
+            snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Short)
+        }
+    }
+
+    val openImportSheet: () -> Unit = {
+        if (hasPremiumAccess) {
+            overlayHost.showSizeToFitBottomSheet(tag = "import-method") { selectorNav ->
+                ImportMethodSelectorContent(
+                    onManual = {
+                        selectorNav.dismiss()
+                        overlayHost.showFullscreenBottomSheet(
+                            tag = "import",
+                            properties = LockedSheetProperties
+                        ) { nav ->
+                            ImportBottomSheet(
+                                onDismiss = { nav.dismiss() },
+                                onShowSnackBar = onImportSuccess
+                            )
+                        }
+                    },
+                    onAiAssistant = {
+                        selectorNav.dismiss()
+                        overlayHost.showFullscreenBottomSheet(
+                            tag = "ai-import",
+                            properties = LockedSheetProperties
+                        ) { nav ->
+                            AiWordImportBottomSheet(
+                                onDismiss = { nav.dismiss() },
+                                onShowSnackBar = onImportSuccess
+                            )
+                        }
+                    }
+                )
+            }
+        } else {
+            overlayHost.showFullscreenBottomSheet(
+                tag = "import",
+                properties = LockedSheetProperties
+            ) { nav ->
+                ImportBottomSheet(
+                    onDismiss = { nav.dismiss() },
+                    onShowSnackBar = onImportSuccess
+                )
+            }
+        }
+    }
 
     LexiconColumn(
-        title = getTimeBasedGreeting(),
+        title = null,
         showNavigationIcon = false,
+        scrollState = scrollState,
+        collapsedContent = {
+            CollapsedStatsBar(
+                visible = isStatsSectionScrolledAway && progressStats != null,
+                stats = progressStats ?: return@LexiconColumn,
+            )
+        },
         actionIcon1 = ActionIconConfig(
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),
-            onClick = {
-                if (hasPremiumAccess) {
-                    overlayHost.showSizeToFitBottomSheet(tag = "import-method") { selectorNav ->
-                        ImportMethodSelectorContent(
-                            onManual = {
-                                selectorNav.dismiss()
-                                overlayHost.showFullscreenBottomSheet(
-                                    tag = "import",
-                                    properties = BottomSheetProperties(
-                                        dismissOnTouchOutside = false,
-                                        dismissOnBackPress = false,
-                                        isNavigationBarsPaddingEnabled = true,
-                                        sheetGesturesEnabled = false,
-                                    )
-                                ) { importNav ->
-                                    ImportBottomSheet(
-                                        onDismiss = { importNav.dismiss() },
-                                        onShowSnackBar = { message ->
-                                            viewModel.refreshStats()
-                                            coroutineScope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = message,
-                                                    duration = SnackbarDuration.Short
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-                            },
-                            onAiAssistant = {
-                                selectorNav.dismiss()
-                                overlayHost.showFullscreenBottomSheet(
-                                    tag = "ai-import",
-                                    properties = BottomSheetProperties(
-                                        dismissOnTouchOutside = false,
-                                        dismissOnBackPress = false,
-                                        isNavigationBarsPaddingEnabled = true,
-                                        sheetGesturesEnabled = false,
-                                    )
-                                ) { aiNav ->
-                                    AiWordImportBottomSheet(
-                                        onDismiss = { aiNav.dismiss() },
-                                        onShowSnackBar = { message ->
-                                            viewModel.refreshStats()
-                                            coroutineScope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = message,
-                                                    duration = SnackbarDuration.Short
-                                                )
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                        )
-                    }
-                } else {
-                    overlayHost.showFullscreenBottomSheet(
-                        tag = "import",
-                        properties = BottomSheetProperties(
-                            dismissOnTouchOutside = false,
-                            dismissOnBackPress = false,
-                            isNavigationBarsPaddingEnabled = true,
-                            sheetGesturesEnabled = false,
-                        )
-                    ) { navigator ->
-                        ImportBottomSheet(
-                            onDismiss = { navigator.dismiss() },
-                            onShowSnackBar = { message ->
-                                viewModel.refreshStats()
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = message,
-                                        duration = SnackbarDuration.Short
-                                    )
-                                }
-                            }
-                        )
-                    }
-                }
-            },
-            size = 24.dp
+            onClick = openImportSheet,
+            size = Theme.dimensions.iconSize
         ),
         scrollable = true,
     ) {
-        Column {
+        Column(Modifier.padding(bottom = Theme.spacing.xs)) {
             when (uiState) {
                 is UiState.Loading -> {
                     Box(
@@ -167,7 +164,9 @@ fun StudyScreen() {
                 }
 
                 is UiState.Loaded -> {
-                    val progressStats = (uiState as UiState.Loaded).value.progressStats
+                    val loadedState = (uiState as UiState.Loaded).value
+                    val loadedStats = loadedState.progressStats
+                    val evaluation = loadedState.progressEvaluation
 
                     OnEvents(viewModel.events) { event ->
                         when (event) {
@@ -175,16 +174,11 @@ fun StudyScreen() {
                                 viewModel.startDueReview()
                                 overlayHost.showFullscreenBottomSheet(
                                     tag = "review-due",
-                                    properties = BottomSheetProperties(
-                                        dismissOnTouchOutside = false,
-                                        dismissOnBackPress = false,
-                                        isNavigationBarsPaddingEnabled = true,
-                                        sheetGesturesEnabled = false,
-                                    )
+                                    properties = LockedSheetProperties
                                 ) { navigator ->
                                     ReviewBottomSheetContent(
                                         title = stringResource(Res.string.review_due_cards),
-                                        reviewType = presentation.model.ReviewType.REVIEW,
+                                        reviewType = ReviewType.REVIEW,
                                         reviewState = reviewState,
                                         initialWord = event.firstWord,
                                         onClose = {
@@ -218,27 +212,26 @@ fun StudyScreen() {
                     }
 
                     StatsSection(
-                        stats = progressStats
+                        modifier = Modifier.onGloballyPositioned { coordinates ->
+                            statsSectionBottom =
+                                (coordinates.positionInParent().y + coordinates.size.height).toInt()
+                        },
+                        evaluation = evaluation,
+                        dueCards = loadedStats.dueCards,
+                        onImportWords = openImportSheet,
+                        onStartReview = { viewModel.startReview() }
                     )
 
-                    ReviewActionSection(
-                        dueCards = progressStats.dueCards,
-                        totalWords = progressStats.totalWords,
-                        onStartReview = {
-                            viewModel.startReview()
-                        }
-                    )
-
-                    WordDistributionBar(stats = progressStats)
+                    WordDistributionBar(stats = loadedStats)
 
                     LearningStagesSection(
-                        stats = progressStats,
+                        stats = loadedStats,
                         onStageClick = { stage, stageName ->
                             viewModel.loadWordsByStage(stage)
                             overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
                                 ReviewBottomSheetContent(
                                     title = stringResource(Res.string.stage_words_string, stageName),
-                                    reviewType = presentation.model.ReviewType.BROWSE,
+                                    reviewType = ReviewType.BROWSE,
                                     reviewState = reviewState,
                                     onClose = { navigator.dismiss() },
                                     onReviewComplete = {
@@ -264,4 +257,3 @@ fun StudyScreen() {
         }
     }
 }
-

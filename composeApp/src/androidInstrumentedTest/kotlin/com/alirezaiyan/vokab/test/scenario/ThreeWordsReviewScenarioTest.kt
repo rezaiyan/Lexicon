@@ -69,23 +69,23 @@ class ThreeWordsReviewScenarioTest {
         println("═".repeat(70))
         
         // STEP 1: Import 3 words
-        println("\n1️⃣  IMPORT: 3 new words")
+        println("\n1  IMPORT: 3 new words")
         val words = listOf(
             TestUtils.createWord(id = 0, originalWord = "word1", translation = "palabra1", level = 0, repetitions = 0),
             TestUtils.createWord(id = 0, originalWord = "word2", translation = "palabra2", level = 0, repetitions = 0),
             TestUtils.createWord(id = 0, originalWord = "word3", translation = "palabra3", level = 0, repetitions = 0)
         )
         repository.insertWords(words)
-        println("   ✓ word1, word2, word3 imported")
-        println("   ✓ All at Level 0 (First Bucket)")
+        println("    word1, word2, word3 imported")
+        println("    All at Level 0 (First Bucket)")
         
         // Verify all in first bucket
         val firstBucketBefore = getWordsByStageUseCase(LearningStage.LEVEL_0_FRESH).first()
         assertEquals(3, firstBucketBefore.size)
-        println("   ✓ First bucket: 3 words")
+        println("    First bucket: 3 words")
         
         // STEP 2: Start review session
-        println("\n2️⃣  START REVIEW SESSION")
+        println("\n2  START REVIEW SESSION")
         val allWords = repository.getAllWords().first().sortedBy { it.originalWord }
         val word1 = allWords[0]
         val word2 = allWords[1]
@@ -96,7 +96,7 @@ class ThreeWordsReviewScenarioTest {
         println("   Reviewing word3...")
         
         // STEP 3: Review each word
-        println("\n3️⃣  REVIEW RESULTS:")
+        println("\n3  REVIEW RESULTS:")
         
         // word1: REMEMBERED
         reviewUseCase(word1, quality = 1)
@@ -111,7 +111,7 @@ class ThreeWordsReviewScenarioTest {
         println("   word3: FORGOT (quality = 0)")
         
         // STEP 4: Check word states after review
-        println("\n4️⃣  WORD STATES AFTER REVIEW:")
+        println("\n4  WORD STATES AFTER REVIEW:")
         val word1After = repository.getWordById(word1.id)!!
         val word2After = repository.getWordById(word2.id)!!
         val word3After = repository.getWordById(word3.id)!!
@@ -121,33 +121,33 @@ class ThreeWordsReviewScenarioTest {
         println("   word3: Level ${word3After.level}, Reps ${word3After.repetitions}")
         
         // STEP 5: Verify bucket distribution
-        println("\n5️⃣  VERIFY BUCKET DISTRIBUTION:")
+        println("\n5  VERIFY BUCKET DISTRIBUTION:")
         
         val firstBucketAfter = getWordsByStageUseCase(LearningStage.LEVEL_0_FRESH).first()
         val secondBucketAfter = getWordsByStageUseCase(LearningStage.LEVEL_1_LEARNING).first()
         
-        println("\n   📊 ACTUAL RESULT:")
+        println("\n    ACTUAL RESULT:")
         println("   First Bucket (Level 0): ${firstBucketAfter.map { it.originalWord }}")
         println("   Second Bucket (Level 1): ${secondBucketAfter.map { it.originalWord }}")
         
-        println("\n   📋 USER EXPECTED:")
+        println("\n    USER EXPECTED:")
         println("   First Bucket (Level 0): [word2, word3]")
         println("   Second Bucket (Level 1): [word1]")
         
         // ANALYZE THE RESULTS
-        println("\n6️⃣  ANALYSIS:")
+        println("\n6  ANALYSIS:")
         
         // word1 REMEMBERED: Level 0, rep 0 -> Level 0, rep 1
         // Needs 2 successes to advance, so STAYS at Level 0
         if (word1After.level == 0) {
-            println("\n   ⚠️  CURRENT BEHAVIOR:")
+            println("\n     CURRENT BEHAVIOR:")
             println("   word1 (REMEMBERED) STAYS in First Bucket")
             println("   Reason: Needs 2 consecutive successes to advance")
             println("   Current state: 1 success, needs 1 more")
-            println("\n   🐛 POTENTIAL BUG: User expects word1 in Second Bucket")
+            println("\n    POTENTIAL BUG: User expects word1 in Second Bucket")
             println("   Should words advance after FIRST success?")
         } else {
-            println("\n   ✅ word1 advanced to Level ${word1After.level}")
+            println("\n    word1 advanced to Level ${word1After.level}")
         }
         
         // Verify actual state
@@ -165,10 +165,10 @@ class ThreeWordsReviewScenarioTest {
         assertEquals(1, secondBucketAfter.size, "Second Bucket should have word1")
         
         println("\n" + "═".repeat(70))
-        println("✅ USER EXPECTATION MET:")
-        println("   Expected: word1 in Second Bucket ✓")
-        println("   Expected: word2, word3 in First Bucket ✓")
-        println("\n✅ FIX APPLIED: Words now advance after FIRST success")
+        println(" USER EXPECTATION MET:")
+        println("   Expected: word1 in Second Bucket ")
+        println("   Expected: word2, word3 in First Bucket ")
+        println("\n FIX APPLIED: Words now advance after FIRST success")
         println("   REMEMBERED once → Advance to next level")
         println("   FORGOT → Drop 2 levels and reset")
         println("═".repeat(70) + "\n")

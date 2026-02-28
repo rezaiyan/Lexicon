@@ -71,12 +71,7 @@ fun ReviewCompletionContent(
             LottieMotionIcon(
                 url = CELEBRATION_LOTTIE_URL,
                 modifier = Modifier.size(180.dp)
-            ) {
-                Text(
-                    text = "\uD83C\uDF89",
-                    style = MaterialTheme.typography.displayLarge
-                )
-            }
+            )
         }
 
         Spacer(Modifier.height(Theme.spacing.small))
@@ -114,7 +109,7 @@ fun ReviewCompletionContent(
 
         Button(
             onClick = onDismiss,
-            shape = RoundedCornerShape(16.dp)
+            shape = RoundedCornerShape(Theme.shapes.large)
         ) {
             Text(
                 text = stringResource(Res.string.done),

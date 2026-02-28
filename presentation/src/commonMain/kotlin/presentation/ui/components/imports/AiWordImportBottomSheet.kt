@@ -89,17 +89,17 @@ import theme.Theme
 private const val AiWizardTransitionDuration = 300
 private const val AiWizardTotalSteps = 4
 
-private val topicEmojis = mapOf(
-    "Daily Life" to "🏠",
-    "Travel" to "✈️",
-    "Business" to "💼",
-    "Food" to "🍽️",
-    "Technology" to "💻",
-    "Sports" to "⚽",
-    "Health" to "❤️",
-    "Arts" to "🎨",
-    "Nature" to "🌿",
-    "Academic" to "📚"
+private val topicIcons = mapOf(
+    "Daily Life" to "DL",
+    "Travel" to "Tv",
+    "Business" to "Bz",
+    "Food" to "Fd",
+    "Technology" to "Tc",
+    "Sports" to "Sp",
+    "Health" to "Hl",
+    "Arts" to "Ar",
+    "Nature" to "Na",
+    "Academic" to "Ac"
 )
 
 // ──────────────────────────────────────────────
@@ -128,7 +128,7 @@ fun ImportMethodSelectorContent(
         ) {
             Box(
                 modifier = Modifier
-                    .size(width = 40.dp, height = 4.dp)
+                    .size(width = Theme.spacing.xxl, height = Theme.spacing.xxs)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
             )
@@ -184,7 +184,7 @@ fun ImportMethodSelectorContent(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(dimensions.cardCornerRadius),
                 colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.none)
             ) {
                 Row(
                     modifier = Modifier
@@ -204,7 +204,7 @@ fun ImportMethodSelectorContent(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(28.dp)
+                            modifier = Modifier.size(Theme.dimensions.iconSizeLarge)
                         )
                     }
                     Column(modifier = Modifier.weight(1f)) {
@@ -224,7 +224,7 @@ fun ImportMethodSelectorContent(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
                         tint = Color.White.copy(alpha = 0.8f),
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
                     )
                 }
             }
@@ -261,7 +261,7 @@ fun ImportMethodSelectorContent(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+            border = BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
         ) {
             Row(
                 modifier = Modifier
@@ -281,7 +281,7 @@ fun ImportMethodSelectorContent(
                         imageVector = Icons.Default.Edit,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(Theme.dimensions.iconSize)
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
@@ -301,7 +301,7 @@ fun ImportMethodSelectorContent(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
                 )
             }
         }
@@ -367,7 +367,7 @@ fun AiWordImportBottomSheet(
                     )
                 }
             } else {
-                Spacer(modifier = Modifier.size(48.dp))
+                Spacer(modifier = Modifier.size(Theme.dimensions.touchTarget))
             }
 
             if (!isPreview) {
@@ -389,7 +389,7 @@ fun AiWordImportBottomSheet(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(4.dp)
+                                .height(Theme.spacing.xxs)
                                 .clip(RoundedCornerShape(2.dp))
                                 .background(segmentColor)
                         )
@@ -405,7 +405,7 @@ fun AiWordImportBottomSheet(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(Theme.dimensions.iconSizeSmall)
                     )
                     Spacer(modifier = Modifier.size(spacing.extraSmall3))
                     Text(
@@ -644,9 +644,9 @@ private fun AiLanguageStep(
                 onClick = onContinue,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp),
+                    .widthIn(max = Theme.dimensions.contentMaxWidth),
                 enabled = selectedLanguage != null,
-                contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = Theme.spacing.lg),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -665,7 +665,7 @@ private fun AiLanguageStep(
                 onClick = onCancel,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp)
+                    .widthIn(max = Theme.dimensions.contentMaxWidth)
             ) {
                 Text(
                     "Cancel",
@@ -735,7 +735,7 @@ private fun AiLevelStep(
                         onClick = { onLevelSelected(level) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = bgColor),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(Theme.shapes.large),
                         border = BorderStroke(
                             width = if (selected) 2.dp else 1.dp,
                             color = if (selected) levelColor
@@ -750,7 +750,7 @@ private fun AiLevelStep(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(48.dp)
+                                    .size(Theme.dimensions.touchTarget)
                                     .clip(RoundedCornerShape(14.dp))
                                     .background(levelColor.copy(alpha = if (selected) 0.18f else 0.10f)),
                                 contentAlignment = Alignment.Center
@@ -759,7 +759,7 @@ private fun AiLevelStep(
                                     Icon(
                                         imageVector = it,
                                         contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(Theme.dimensions.iconSize),
                                         tint = levelColor
                                     )
                                 }
@@ -827,9 +827,9 @@ private fun AiLevelStep(
                 onClick = onContinue,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp),
+                    .widthIn(max = Theme.dimensions.contentMaxWidth),
                 enabled = selectedLevel != null,
-                contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = Theme.spacing.lg),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -888,7 +888,7 @@ private fun AiTopicsStep(
                 ) {
                     state.availableTopics.forEach { topic ->
                         val selected = state.selectedTopics.contains(topic)
-                        val emoji = topicEmojis[topic] ?: "📖"
+                        val icon = topicIcons[topic] ?: ""
 
                         val bgColor by animateColorAsState(
                             targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
@@ -907,14 +907,14 @@ private fun AiTopicsStep(
                             onClick = { onToggleTopic(topic) },
                             enabled = !state.isLoading,
                             modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(Theme.shapes.large),
                             colors = CardDefaults.cardColors(containerColor = bgColor),
                             border = BorderStroke(
                                 width = if (selected) 2.dp else 1.dp,
                                 color = borderColor
                             ),
                             elevation = CardDefaults.cardElevation(
-                                defaultElevation = if (selected) 2.dp else 0.dp
+                                defaultElevation = if (selected) Theme.elevation.medium else Theme.elevation.none
                             )
                         ) {
                             Row(
@@ -928,8 +928,11 @@ private fun AiTopicsStep(
                                 horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall3)
                             ) {
                                 Text(
-                                    text = emoji,
-                                    style = MaterialTheme.typography.titleMedium
+                                    text = icon,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = topic,
@@ -947,7 +950,7 @@ private fun AiTopicsStep(
                                 if (selected) {
                                     Box(
                                         modifier = Modifier
-                                            .size(20.dp)
+                                            .size(Theme.dimensions.iconSizeMedium)
                                             .clip(CircleShape)
                                             .background(MaterialTheme.colorScheme.primary),
                                         contentAlignment = Alignment.Center
@@ -988,8 +991,8 @@ private fun AiTopicsStep(
                         onClick = onGenerate,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .widthIn(max = 500.dp),
-                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
+                            .widthIn(max = Theme.dimensions.contentMaxWidth),
+                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = Theme.spacing.lg),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -1132,7 +1135,7 @@ private fun AiWordPreviewStep(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = spacing.extraSmall2),
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(Theme.shapes.large),
                     colors = CardDefaults.cardColors(containerColor = bgColor),
                     border = BorderStroke(
                         width = if (isSelected) 2.dp else 1.dp,
@@ -1140,7 +1143,7 @@ private fun AiWordPreviewStep(
                         else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                     ),
                     elevation = CardDefaults.cardElevation(
-                        defaultElevation = if (isSelected) 2.dp else 0.dp
+                        defaultElevation = if (isSelected) Theme.elevation.medium else Theme.elevation.none
                     )
                 ) {
                     Row(
@@ -1189,7 +1192,7 @@ private fun AiWordPreviewStep(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                    modifier = Modifier.padding(top = 2.dp)
+                                    modifier = Modifier.padding(top = Theme.spacing.xxxs)
                                 )
                             }
                         }
@@ -1210,7 +1213,7 @@ private fun AiWordPreviewStep(
         // Bottom action bar
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 8.dp,
+            shadowElevation = Theme.elevation.overlay,
             color = MaterialTheme.colorScheme.surface
         ) {
             Column(
@@ -1228,7 +1231,7 @@ private fun AiWordPreviewStep(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(spacing.extraSmall2))
@@ -1243,9 +1246,9 @@ private fun AiWordPreviewStep(
                         onClick = onImport,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .widthIn(max = 500.dp),
+                            .widthIn(max = Theme.dimensions.contentMaxWidth),
                         enabled = selectedCount > 0,
-                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
+                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = Theme.spacing.lg),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary

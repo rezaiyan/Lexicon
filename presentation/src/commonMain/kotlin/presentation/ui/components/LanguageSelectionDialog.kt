@@ -40,10 +40,7 @@ fun LanguageSelectionDialog(
         title = stringResource(Res.string.translation_language),
         content = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 400.dp)
-                    .verticalScroll(rememberScrollState())
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Language.entries.forEach { language ->
                     LanguageOption(
@@ -78,12 +75,14 @@ private fun LanguageOption(
             Text(
                 text = language.nativeName,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                maxLines = 1
             )
             Text(
                 text = language.displayName,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
             )
         }
         RadioButton(

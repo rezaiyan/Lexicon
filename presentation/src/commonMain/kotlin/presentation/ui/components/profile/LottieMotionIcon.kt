@@ -16,8 +16,7 @@ fun LottieMotionIcon(
     url: String,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
-    iterations: Int = Compottie.IterateForever,
-    fallback: @Composable () -> Unit
+    iterations: Int = Compottie.IterateForever
 ) {
     val composition by rememberLottieComposition {
         LottieCompositionSpec.Url(url)
@@ -33,7 +32,5 @@ fun LottieMotionIcon(
             modifier = modifier,
             contentScale = contentScale
         )
-    } else {
-        fallback()
     }
 }

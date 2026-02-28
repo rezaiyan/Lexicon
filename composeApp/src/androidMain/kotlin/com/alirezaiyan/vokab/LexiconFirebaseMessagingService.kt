@@ -31,7 +31,7 @@ class LexiconFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d(TAG, "🔄 New FCM token received: ${token.take(20)}...")
+        Log.d(TAG, " New FCM token received: ${token.take(20)}...")
         
         // Notify the token manager that a new token is available
         // The token manager will then send it to the backend

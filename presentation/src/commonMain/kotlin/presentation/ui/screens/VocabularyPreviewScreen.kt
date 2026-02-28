@@ -26,9 +26,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
+import org.jetbrains.compose.resources.stringResource
 import presentation.model.VocabularyPreviewUiState
 import theme.Theme
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.accept
+import lexicon.resources.generated.resources.deny
+import lexicon.resources.generated.resources.starter_vocabulary
+import lexicon.resources.generated.resources.words
 
 @Composable
 fun VocabularyPreviewScreen(
@@ -55,14 +61,14 @@ fun VocabularyPreviewScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Starter Vocabulary",
+                text = stringResource(Res.string.starter_vocabulary),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(spacing.extraSmall2))
             Text(
-                text = "${state.words.size} words",
+                text = stringResource(Res.string.words, state.words.size),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -103,27 +109,27 @@ fun VocabularyPreviewScreen(
                 onClick = onAccept,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp),
+                    .widthIn(max = dimensions.contentMaxWidth),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 shape = RoundedCornerShape(dimensions.cardCornerRadius)
             ) {
-                Text("Accept", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(Res.string.accept), style = MaterialTheme.typography.labelLarge)
             }
 
             OutlinedButton(
                 onClick = onDeny,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(max = 500.dp),
+                    .widthIn(max = dimensions.contentMaxWidth),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 shape = RoundedCornerShape(dimensions.cardCornerRadius)
             ) {
-                Text("Deny", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(Res.string.deny), style = MaterialTheme.typography.labelLarge)
             }
         }
 
@@ -156,13 +162,17 @@ private fun VocabularyWordItem(
                 Text(
                     text = word,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(spacing.extraSmall4))
                 Text(
                     text = translation,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

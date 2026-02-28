@@ -30,13 +30,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.feature.auth.AuthViewModel
+import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.app_name
 import lexicon.resources.generated.resources.app_tagline
@@ -136,7 +136,7 @@ fun SplashScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Theme.spacing.xs))
 
             Text(
                 text = stringResource(Res.string.app_tagline),

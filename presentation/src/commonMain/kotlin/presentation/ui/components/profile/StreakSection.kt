@@ -30,7 +30,6 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.best_streak
 import lexicon.resources.generated.resources.day_streak
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
 import presentation.ui.screens.study.rememberAnimatedCounter
 import theme.Theme
 
@@ -47,9 +46,8 @@ fun StreakSection(
 
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.small),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
     ) {
         StreakCard(
             first = streak.currentStreak,
@@ -57,7 +55,6 @@ fun StreakSection(
             second = longestStreak,
             secondLabel = stringResource(Res.string.best_streak),
             accentColor = primaryColor,
-            emoji = "\uD83D\uDD25",
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -70,7 +67,6 @@ private fun StreakCard(
     second: Int? = null,
     secondLabel: String? = null,
     accentColor: Color,
-    emoji: String,
     modifier: Modifier = Modifier
 ) {
     val animatedFirst = rememberAnimatedCounter(target = first)
@@ -96,7 +92,7 @@ private fun StreakCard(
                     style = Stroke(width = 1.dp.toPx())
                 )
             }
-            .padding(start = 4.dp, end = 14.dp),
+            .padding(start = Theme.spacing.xxs, end = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
@@ -110,12 +106,7 @@ private fun StreakCard(
             LottieMotionIcon(
                 url = FIRE_LOTTIE_URL,
                 modifier = Modifier.size(64.dp)
-            ) {
-                TextWithNotoImageEmoji(
-                    text = emoji,
-                    style = MaterialTheme.typography.headlineMedium
-                )
-            }
+            )
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -126,7 +117,7 @@ private fun StreakCard(
                 color = accentColor,
                 lineHeight = 30.sp
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
             Text(
                 text = firstLabel,
                 style = MaterialTheme.typography.labelSmall,
@@ -145,7 +136,7 @@ private fun StreakCard(
                     color = secondaryColor,
                     lineHeight = 30.sp
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
                 Text(
                     text = secondLabel,
                     style = MaterialTheme.typography.labelSmall,

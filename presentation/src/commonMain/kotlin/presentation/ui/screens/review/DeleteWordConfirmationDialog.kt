@@ -13,6 +13,8 @@ import presentation.ui.components.BasicAlertDialog
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete
+import lexicon.resources.generated.resources.delete_word_title
+import lexicon.resources.generated.resources.delete_word_message
 
 @Composable
 fun DeleteWordConfirmationDialog(
@@ -24,12 +26,10 @@ fun DeleteWordConfirmationDialog(
         onDismissRequest = onDismiss,
         icon = Icons.Default.Warning,
         iconTint = MaterialTheme.colorScheme.error,
-        title = "Delete word?",
-        message = "\"${word.originalWord}\" will be permanently removed. This cannot be undone.",
-        // Cancel is the safe TextButton action (end-aligned)
+        title = stringResource(Res.string.delete_word_title),
+        message = stringResource(Res.string.delete_word_message, word.originalWord),
         secondaryButtonText = stringResource(Res.string.cancel),
         secondaryButtonOnClick = onDismiss,
-        // Delete is the destructive full-width outlined error button
         negativeButtonText = stringResource(Res.string.delete),
         negativeButtonOnClick = onConfirm
     )

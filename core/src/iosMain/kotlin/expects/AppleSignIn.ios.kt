@@ -14,8 +14,8 @@ actual class AppleSignInHelper {
         onSuccess: (idToken: String, fullName: String?, appleUserId: String) -> Unit,
         onFailure: (error: String) -> Unit
     ) {
-        println("🍎 [AppleSignIn.kt] Initiating Apple Sign In")
-        NSLog("🍎 [AppleSignIn.kt] Initiating Apple Sign In")
+        println(" [AppleSignIn.kt] Initiating Apple Sign In")
+        NSLog(" [AppleSignIn.kt] Initiating Apple Sign In")
         
         successObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
         failureObserver?.let { NSNotificationCenter.defaultCenter.removeObserver(it) }
@@ -25,8 +25,8 @@ actual class AppleSignInHelper {
             `object` = null,
             queue = null
         ) { notification: NSNotification? ->
-            println("✅ [AppleSignIn.kt] Success notification received")
-            NSLog("✅ [AppleSignIn.kt] Success notification received")
+            println(" [AppleSignIn.kt] Success notification received")
+            NSLog(" [AppleSignIn.kt] Success notification received")
             
             notification?.userInfo?.let { userInfo ->
                 val idToken = userInfo["idToken"] as? String
@@ -48,8 +48,8 @@ actual class AppleSignInHelper {
             `object` = null,
             queue = null
         ) { notification: NSNotification? ->
-            println("❌ [AppleSignIn.kt] Failure notification received")
-            NSLog("❌ [AppleSignIn.kt] Failure notification received")
+            println(" [AppleSignIn.kt] Failure notification received")
+            NSLog(" [AppleSignIn.kt] Failure notification received")
             
             val error = notification?.userInfo?.get("error") as? String ?: "Unknown error"
             onFailure(error)
@@ -62,7 +62,7 @@ actual class AppleSignInHelper {
             `object` = null
         )
         
-        println("🍎 [AppleSignIn.kt] Posted StartAppleSignIn notification")
+        println(" [AppleSignIn.kt] Posted StartAppleSignIn notification")
     }
     
     private fun cleanup() {

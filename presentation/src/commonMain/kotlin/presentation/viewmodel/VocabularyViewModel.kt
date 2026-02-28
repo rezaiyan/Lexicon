@@ -14,7 +14,7 @@ import domain.common.fold
 import events.VocabularyEffect
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import presentation.model.ReviewMode
@@ -40,19 +40,16 @@ class VocabularyViewModel(
     private var currentReviewMode: ReviewMode = ReviewMode.DuoCards
 
     fun loadWords(reviewMode: ReviewMode = ReviewMode.DuoCards) {
-        viewModelScope.launch {
-            currentReviewMode = reviewMode
-            _wordListState.value = UiState.Loading
+        currentReviewMode = reviewMode
+        _wordListState.value = UiState.Loading
 
-            try {
-                val words = when (reviewMode) {
-                    is ReviewMode.DuoCards -> getDueWordsUseCase()
-                    is ReviewMode.ByStage -> getWordsByStageUseCase(reviewMode.stage)
-                }.first()
-                _wordListState.value = UiState.Loaded(words)
-            } catch (e: Exception) {
-                _wordListState.value = UiState.Error(e.message ?: "Unknown error")
+        viewModelScope.launch {
+            when (reviewMode) {
+                is ReviewMode.DuoCards -> getDueWordsUseCase()
+                is ReviewMode.ByStage -> getWordsByStageUseCase(reviewMode.stage)
             }
+                .catch { e -> _wordListState.value = UiState.Error(e.message ?: "Unknown error") }
+                .collect { words -> _wordListState.value = UiState.Loaded(words) }
         }
     }
 

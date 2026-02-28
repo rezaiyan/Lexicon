@@ -92,13 +92,15 @@ fun NotificationSettingsDialog(
                             Text(
                                 stringResource(Res.string.notification_enable_notifications),
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
                             )
                             Text(
                                 if (notificationsEnabled) stringResource(Res.string.notification_stay_motivated)
                                 else stringResource(Res.string.notification_missing_nudges),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2
                             )
                         }
                         Switch(

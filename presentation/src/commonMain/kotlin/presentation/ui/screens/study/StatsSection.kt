@@ -1,153 +1,201 @@
 package presentation.ui.screens.study
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import domain.word.model.ProgressStats
+import androidx.compose.ui.unit.sp
+import domain.word.model.ProgressEvaluation
+import domain.word.model.ProgressTier
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cards_waiting
-import lexicon.resources.generated.resources.total_words
+import lexicon.resources.generated.resources.almost_a_master
+import lexicon.resources.generated.resources.almost_a_master_subtitle
+import lexicon.resources.generated.resources.building_foundation
+import lexicon.resources.generated.resources.building_foundation_subtitle
+import lexicon.resources.generated.resources.fully_mastered
+import lexicon.resources.generated.resources.fully_mastered_subtitle
+import lexicon.resources.generated.resources.getting_started
+import lexicon.resources.generated.resources.getting_started_subtitle
+import lexicon.resources.generated.resources.import_words
+import lexicon.resources.generated.resources.lets_go
+import lexicon.resources.generated.resources.making_great_progress
+import lexicon.resources.generated.resources.over_halfway
+import lexicon.resources.generated.resources.over_halfway_subtitle
+import lexicon.resources.generated.resources.progress_subtitle
+import lexicon.resources.generated.resources.ready_to_learn
+import lexicon.resources.generated.resources.ready_to_learn_subtitle
+import lexicon.resources.generated.resources.start_review
+import lexicon.resources.generated.resources.strong_knowledge
+import lexicon.resources.generated.resources.strong_knowledge_subtitle
 import org.jetbrains.compose.resources.stringResource
+import theme.AppColors
 import theme.Theme
 
 @Composable
 fun StatsSection(
-    modifier: Modifier = Modifier,
-    stats: ProgressStats
+    evaluation: ProgressEvaluation,
+    dueCards: Int,
+    onImportWords: () -> Unit,
+    onStartReview: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val animatedTotal = rememberAnimatedCounter(target = stats.totalWords)
+    val accentColor = when (evaluation.tier) {
+        ProgressTier.EMPTY,
+        ProgressTier.ALMOST_MASTER,
+        ProgressTier.MASTERED -> AppColors.master
 
-    // Weighted progress: each level contributes proportionally (Level N = N/6 of full mastery).
-    val progressFraction = if (stats.totalWords > 0) {
-        val weightedScore = (
-                stats.level1Count * 1 +
-                        stats.level2Count * 2 +
-                        stats.level3Count * 3 +
-                        stats.level4Count * 4 +
-                        stats.level5Count * 5 +
-                        stats.level6Count * 6
-                ).toFloat()
-        weightedScore / (stats.totalWords * 6f)
-    } else 0f
+        else -> AppColors.secondary
+    }
 
-    val animatedMastery by animateFloatAsState(
-        targetValue = progressFraction,
-        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
-        label = "mastery"
-    )
-
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
     val trackColor = MaterialTheme.colorScheme.outlineVariant
 
-    ElevatedCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = Theme.spacing.small)
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.shapes.large),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.primary.copy(alpha = 0.06f)
+        )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Theme.spacing.small),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Circular arc progress ring with gradient brush
-            Box(contentAlignment = Alignment.Center) {
-                Canvas(modifier = Modifier.size(152.dp)) {
-                    val strokeWidth = 14.dp.toPx()
-                    val diameter = size.minDimension - strokeWidth
-                    val topLeft = Offset(
-                        x = (size.width - diameter) / 2,
-                        y = (size.height - diameter) / 2
+        Box {
+            // Decorative blob in top-right corner
+            Canvas(modifier = Modifier.matchParentSize()) {
+                drawCircle(
+                    color = AppColors.primary.copy(alpha = 0.06f),
+                    radius = 100.dp.toPx(),
+                    center = Offset(
+                        x = size.width - 30.dp.toPx(),
+                        y = 10.dp.toPx()
                     )
-                    val arcSize = Size(diameter, diameter)
-
-                    // Background track
-                    drawArc(
-                        color = trackColor,
-                        startAngle = 135f,
-                        sweepAngle = 270f,
-                        useCenter = false,
-                        topLeft = topLeft,
-                        size = arcSize,
-                        style = Stroke(strokeWidth, cap = StrokeCap.Round)
-                    )
-
-                    // Gradient mastery progress
-                    if (animatedMastery > 0f) {
-                        drawArc(
-                            brush = Brush.sweepGradient(
-                                colors = listOf(primaryColor, tertiaryColor, primaryColor)
-                            ),
-                            startAngle = 135f,
-                            sweepAngle = 270f * animatedMastery,
-                            useCenter = false,
-                            topLeft = topLeft,
-                            size = arcSize,
-                            style = Stroke(strokeWidth, cap = StrokeCap.Round)
-                        )
-                    }
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = animatedTotal.toString(),
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(Res.string.total_words),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // Weighted progress label
-            if (stats.totalWords > 0) {
-                val progressPercent = (progressFraction * 100).toInt()
-                Spacer(Modifier.height(Theme.spacing.extraSmall3))
-                Text(
-                    text = "Progress $progressPercent%",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = primaryColor
                 )
             }
 
-            Spacer(Modifier.height(Theme.spacing.extraSmall2))
-            when {
-                stats.dueCards > 0 -> {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Theme.spacing.md),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Progress ring
+                ProgressRing(
+                    progress = evaluation.progressFraction,
+                    progressColor = accentColor,
+                    modifier = Modifier.size(110.dp),
+                    trackColor = trackColor,
+                ) {
                     Text(
-                        text = stringResource(Res.string.cards_waiting, stats.dueCards),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
+                        text = if (evaluation.tier == ProgressTier.EMPTY) {
+                            stringResource(Res.string.lets_go)
+                        } else {
+                            "${evaluation.progressPercent}%"
+                        },
+                        style = if (evaluation.tier == ProgressTier.EMPTY) {
+                            MaterialTheme.typography.titleMedium
+                        } else {
+                            MaterialTheme.typography.headlineSmall
+                        },
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Spacer(Modifier.width(Theme.spacing.md))
+
+                // Text + button column
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = tierTitle(evaluation.tier),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = accentColor
+                    )
+
+                    Spacer(Modifier.height(Theme.spacing.xxs))
+
+                    Text(
+                        text = tierSubtitle(evaluation.tier),
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    val isEmpty = evaluation.tier == ProgressTier.EMPTY
+                    val hasDueCards = dueCards > 0
+
+                    if (isEmpty || hasDueCards) {
+                        Spacer(Modifier.height(Theme.spacing.sm))
+
+                        Button(
+                            onClick = if (isEmpty) onImportWords else onStartReview,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(Theme.shapes.pill),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = AppColors.primary,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                text = if (isEmpty) {
+                                    stringResource(Res.string.import_words)
+                                } else {
+                                    stringResource(Res.string.start_review)
+                                },
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            autoSize = TextAutoSize.StepBased(
+                                minFontSize = 10.sp,
+                                maxFontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                stepSize = 1.sp
+                            )
+                        )
+                        }
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+private fun tierTitle(tier: ProgressTier): String = when (tier) {
+    ProgressTier.EMPTY -> stringResource(Res.string.ready_to_learn)
+    ProgressTier.GETTING_STARTED -> stringResource(Res.string.getting_started)
+    ProgressTier.BUILDING -> stringResource(Res.string.building_foundation)
+    ProgressTier.PROGRESSING -> stringResource(Res.string.making_great_progress)
+    ProgressTier.HALFWAY -> stringResource(Res.string.over_halfway)
+    ProgressTier.STRONG -> stringResource(Res.string.strong_knowledge)
+    ProgressTier.ALMOST_MASTER -> stringResource(Res.string.almost_a_master)
+    ProgressTier.MASTERED -> stringResource(Res.string.fully_mastered)
+}
+
+@Composable
+private fun tierSubtitle(tier: ProgressTier): String = when (tier) {
+    ProgressTier.EMPTY -> stringResource(Res.string.ready_to_learn_subtitle)
+    ProgressTier.GETTING_STARTED -> stringResource(Res.string.getting_started_subtitle)
+    ProgressTier.BUILDING -> stringResource(Res.string.building_foundation_subtitle)
+    ProgressTier.PROGRESSING -> stringResource(Res.string.progress_subtitle)
+    ProgressTier.HALFWAY -> stringResource(Res.string.over_halfway_subtitle)
+    ProgressTier.STRONG -> stringResource(Res.string.strong_knowledge_subtitle)
+    ProgressTier.ALMOST_MASTER -> stringResource(Res.string.almost_a_master_subtitle)
+    ProgressTier.MASTERED -> stringResource(Res.string.fully_mastered_subtitle)
 }

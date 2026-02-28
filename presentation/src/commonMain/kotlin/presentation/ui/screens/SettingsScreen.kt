@@ -1,9 +1,11 @@
 package presentation.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -64,7 +66,7 @@ private fun SettingsScreenContent(
         scrollable = true,
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
         ) {
             if (state.isPremiumFeatureEnabled) {
                 LanguageSettingsCard(

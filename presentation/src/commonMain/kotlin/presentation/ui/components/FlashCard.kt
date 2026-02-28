@@ -54,8 +54,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import domain.tts.model.TtsState
 import domain.word.model.Word
+import theme.Theme
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.emoji.compose.m3.TextWithNotoImageEmoji
+
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.consolidating
 import lexicon.resources.generated.resources.familiar
@@ -250,39 +251,25 @@ fun FlashCard(
 
 @Composable
 fun MasteryLevelBadge(level: Int, modifier: Modifier = Modifier) {
-    val (masteryText, masteryColor, masteryIcon) = when (level) {
-        0 -> Triple(stringResource(Res.string.new), MaterialTheme.colorScheme.secondary, "📝")
-        1 -> Triple(stringResource(Res.string.learning), MaterialTheme.colorScheme.tertiary, "📚")
-        2 -> Triple(stringResource(Res.string.familiar), MaterialTheme.colorScheme.primary, "💡")
-        3 -> Triple(
-            stringResource(Res.string.consolidating),
-            MaterialTheme.colorScheme.primary,
-            "✨"
-        )
-
-        4 -> Triple(stringResource(Res.string.young), MaterialTheme.colorScheme.primary, "🌱")
-        5 -> Triple(stringResource(Res.string.mature), MaterialTheme.colorScheme.tertiary, "🌟")
-        6 -> Triple(stringResource(Res.string.mastered), MaterialTheme.colorScheme.secondary, "👑")
-        else -> Triple(
-            stringResource(Res.string.unknown),
-            MaterialTheme.colorScheme.surfaceVariant,
-            "❓"
-        )
+    val (masteryText, masteryColor) = when (level) {
+        0 -> Pair(stringResource(Res.string.new), MaterialTheme.colorScheme.secondary)
+        1 -> Pair(stringResource(Res.string.learning), MaterialTheme.colorScheme.tertiary)
+        2 -> Pair(stringResource(Res.string.familiar), MaterialTheme.colorScheme.primary)
+        3 -> Pair(stringResource(Res.string.consolidating), MaterialTheme.colorScheme.primary)
+        4 -> Pair(stringResource(Res.string.young), MaterialTheme.colorScheme.primary)
+        5 -> Pair(stringResource(Res.string.mature), MaterialTheme.colorScheme.tertiary)
+        6 -> Pair(stringResource(Res.string.mastered), MaterialTheme.colorScheme.secondary)
+        else -> Pair(stringResource(Res.string.unknown), MaterialTheme.colorScheme.surfaceVariant)
     }
 
-    Row(
+    Box(
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .border(0.5.dp, masteryColor.copy(alpha = 0.3f), RoundedCornerShape(50))
+            .border(Theme.dimensions.hairlineThickness, masteryColor.copy(alpha = 0.3f), RoundedCornerShape(50))
             .background(masteryColor.copy(alpha = 0.12f))
             .padding(horizontal = 9.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        contentAlignment = Alignment.Center
     ) {
-        TextWithNotoImageEmoji(
-            text = masteryIcon,
-            style = MaterialTheme.typography.labelSmall
-        )
         Text(
             text = masteryText,
             style = MaterialTheme.typography.labelSmall,
@@ -318,7 +305,7 @@ private fun SpeakerButton(
             is TtsState.Downloading -> {
                 CircularProgressIndicator(
                     progress = { ttsState.progress },
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                     strokeWidth = 2.dp,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -326,7 +313,7 @@ private fun SpeakerButton(
 
             is TtsState.Loading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                     strokeWidth = 2.dp,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -336,7 +323,7 @@ private fun SpeakerButton(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                     contentDescription = "Speak",
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                     tint = if (ttsState is TtsState.Speaking) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurfaceVariant
                 )

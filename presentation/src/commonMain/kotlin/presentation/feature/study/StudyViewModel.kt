@@ -5,6 +5,8 @@ package presentation.feature.study
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import domain.auth.manager.IUserManager
+import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.common.onFailure
 import domain.common.onSuccess
 import domain.notifications.usecase.ScheduleNotificationsUseCase
@@ -14,9 +16,9 @@ import domain.tts.repository.ITtsRepository
 import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
 import domain.word.model.LearningStage
-import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.word.usecase.DeleteWordUseCase
+import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
@@ -26,10 +28,15 @@ import expects.logNetwork
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import presentation.model.MessageState
@@ -41,6 +48,8 @@ import kotlin.time.ExperimentalTime
 
 class StudyViewModel(
     private val getProgressStatsUseCase: GetProgressStatsUseCase,
+    private val evaluateProgressUseCase: EvaluateProgressUseCase,
+    private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase,
     private val getDueWordsUseCase: GetDueWordsUseCase,
     private val getWordsByStageUseCase: GetWordsByStageUseCase,
@@ -51,15 +60,12 @@ class StudyViewModel(
     private val speakWordUseCase: SpeakWordUseCase,
     private val stopSpeakingUseCase: StopSpeakingUseCase,
     private val ttsRepository: ITtsRepository,
-    private val analyticsTracker: IAnalyticsTracker
+    private val analyticsTracker: IAnalyticsTracker,
+    private val userManager: IUserManager
 ) : ViewModel() {
 
-    private val _progressStatistics = MutableStateFlow<ProgressStats?>(null)
+    private val _progressStatistics = MutableStateFlow<ProgressScreenState?>(null)
     private var progressObservationJob: Job? = null
-
-    // Notification settings (passed in for scheduling)
-    private val notificationsEnabled = true
-    private val systemNotificationsEnabled = true
 
     // Consolidated Progress Screen State wrapped in UiState
     private val _progressScreenState = MutableStateFlow<UiState<ProgressScreenState>>(UiState.Loading)
@@ -68,6 +74,14 @@ class StudyViewModel(
     // Review Screen State for review bottom sheet
     private val _reviewScreenState = MutableStateFlow(ReviewScreenState())
     val reviewScreenState: StateFlow<ReviewScreenState> = _reviewScreenState.asStateFlow()
+
+    val hasPremiumAccess: StateFlow<Boolean> = getFeatureAccessUseCase()
+        .map { it.userAccess?.hasPremiumAccess == true }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val userName: StateFlow<String> = userManager.observeUser()
+        .map { it?.name.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     private val _events = Channel<StudyEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
@@ -86,7 +100,12 @@ class StudyViewModel(
         progressObservationJob = viewModelScope.launch {
             getProgressStatsUseCase.invoke()
                 .collect { stats ->
-                    _progressStatistics.value = stats
+                    val screenState = ProgressScreenState(
+                        progressStats = stats,
+                        progressEvaluation = evaluateProgressUseCase(stats),
+                        messageState = null
+                    )
+                    _progressStatistics.value = screenState
 
                     // Update analytics when stats change
                     analyticsTracker.updateUserProgress(
@@ -96,41 +115,32 @@ class StudyViewModel(
                     )
 
                     // Reschedule notifications when stats change
-                    if (notificationsEnabled && systemNotificationsEnabled) {
-                        val notifStrings =
-                            NotificationStringHelper.getNotificationResources(
-                                stats.dueCards
-                            )
-                        val title = getString(
-                            notifStrings.titleRes,
-                            *notifStrings.titleParams.toTypedArray()
-                        )
-                        val message = getString(
-                            notifStrings.messageRes,
-                            *notifStrings.messageParams.toTypedArray()
-                        )
-                        scheduleNotificationsUseCase(
-                            stats = stats,
-                            titleProvider = { title },
-                            messageProvider = { message }
-                        )
-                    }
+                    val notifStrings =
+                        NotificationStringHelper.getNotificationResources(stats.dueCards)
+                    val title = getString(
+                        notifStrings.titleRes,
+                        *notifStrings.titleParams.toTypedArray()
+                    )
+                    val message = getString(
+                        notifStrings.messageRes,
+                        *notifStrings.messageParams.toTypedArray()
+                    )
+                    scheduleNotificationsUseCase(
+                        stats = stats,
+                        titleProvider = { title },
+                        messageProvider = { message }
+                    )
                 }
         }
     }
 
     private fun observeAndCombineStates() {
         viewModelScope.launch {
-            _progressStatistics.collect { stats ->
-                if (stats != null) {
-                    _progressScreenState.value = UiState.Loaded(
-                        ProgressScreenState(
-                            progressStats = stats,
-                            messageState = null
-                        )
-                    )
+            _progressStatistics.collect { state ->
+                _progressScreenState.value = if (state != null) {
+                    UiState.Loaded(state)
                 } else {
-                    _progressScreenState.value = UiState.Loading
+                    UiState.Loading
                 }
             }
         }
@@ -138,55 +148,45 @@ class StudyViewModel(
 
     fun startReview() {
         viewModelScope.launch {
-            try {
-                val words = getDueWordsUseCase().first()
-                val firstWord = words.firstOrNull()
-                if (firstWord != null) {
-                    _events.send(StudyEvent.StartReview(firstWord))
-                }
-            } catch (_: Exception) {
-                // Error loading due words for review
-            }
+            getDueWordsUseCase()
+                .catch { /* review unavailable */ }
+                .firstOrNull()
+                ?.firstOrNull()
+                ?.let { _events.send(StudyEvent.StartReview(it)) }
         }
     }
 
-    // === Review Functionality (merged from VocabularyViewModel) ===
+    // === Review Functionality ===
 
     fun startDueReview() {
         viewModelScope.launch {
             _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = UiState.Loading)
-            try {
-                val words = getDueWordsUseCase().first()
-                _reviewScreenState.value = _reviewScreenState.value.copy(
-                    wordListState = UiState.Loaded(words)
-                )
-            } catch (e: Exception) {
-                _reviewScreenState.value = _reviewScreenState.value.copy(
-                    wordListState = UiState.Error(e.message ?: "Failed to load words")
-                )
-            }
+            getDueWordsUseCase()
+                .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
+                .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
+                .first()
+                .let { state ->
+                    _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = state)
+                }
         }
     }
 
     fun loadWordsByStage(stage: LearningStage) {
         viewModelScope.launch {
             _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = UiState.Loading)
-            try {
-                val words = getWordsByStageUseCase(stage).first()
-                _reviewScreenState.value = _reviewScreenState.value.copy(
-                    wordListState = UiState.Loaded(words)
-                )
-            } catch (e: Exception) {
-                _reviewScreenState.value = _reviewScreenState.value.copy(
-                    wordListState = UiState.Error(e.message ?: "Failed to load words")
-                )
-            }
+            getWordsByStageUseCase(stage)
+                .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
+                .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
+                .first()
+                .let { state ->
+                    _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = state)
+                }
         }
     }
 
     fun startStageReview(stage: LearningStage) {
         loadWordsByStage(stage)
-        onRecordActivity()
+        viewModelScope.launch { recordActivity() }
         val currentState = _reviewScreenState.value.wordListState
         val cardCount = if (currentState is UiState.Loaded) currentState.value.size else 0
         analyticsTracker.logReviewSessionStart(cardCount = cardCount)
@@ -246,31 +246,20 @@ class StudyViewModel(
     }
 
     fun loadWords() {
-        // Refresh current review state by reloading due words
         startDueReview()
     }
 
     fun onReviewSessionComplete() {
         viewModelScope.launch {
-            recordStreakActivityUseCase()
-                .onSuccess {
-                    logNetwork("RecordActivity", "Success")
-                }.onFailure {
-                    logNetwork("RecordActivity", "Failed")
-                }
-            _reviewScreenState.value = ReviewScreenState() // Reset
+            recordActivity()
+            _reviewScreenState.value = ReviewScreenState()
         }
     }
 
-    private fun onRecordActivity() {
-        viewModelScope.launch {
-            recordStreakActivityUseCase()
-                .onSuccess {
-                    logNetwork("RecordActivity", "Success")
-                }.onFailure {
-                    logNetwork("RecordActivity", "Failed")
-                }
-        }
+    private suspend fun recordActivity() {
+        recordStreakActivityUseCase()
+            .onSuccess { logNetwork("RecordActivity", "Success") }
+            .onFailure { logNetwork("RecordActivity", "Failed") }
     }
 
     // === TTS Functionality ===
@@ -295,10 +284,8 @@ class StudyViewModel(
         val words = (_reviewScreenState.value.wordListState as? UiState.Loaded<List<Word>>)?.value
             ?: return languageCode
 
-        // Determine if text is on the target side (originalWord) or source side (translation)
         val isTargetSide = words.any { it.originalWord == text }
 
-        // Derive the most common language code from words
         val languageCodes = words.map { word ->
             if (isTargetSide) word.targetLanguage.code else word.sourceLanguage.code
         }
@@ -317,4 +304,3 @@ class StudyViewModel(
         }
     }
 }
-
