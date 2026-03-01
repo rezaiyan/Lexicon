@@ -74,32 +74,15 @@ import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.aiimport.AiWordImportViewModel
 import presentation.model.AiWordImportStep
 import presentation.model.AiWordImportUiState
-import presentation.ui.screens.LanguageGrid
-import presentation.ui.screens.LevelCards
-import presentation.ui.screens.OnboardingLoadingCard
+import presentation.ui.screens.onboarding.LanguageGrid
+import presentation.ui.screens.onboarding.LevelCards
+import presentation.ui.screens.onboarding.OnboardingLoadingCard
 import theme.AppDimensions
 import theme.AppSpacing
 import theme.Theme
 
 private const val AiWizardTransitionDuration = 300
 private const val AiWizardTotalSteps = 4
-
-private val topicEmojis = mapOf(
-    "Daily Life" to "\uD83C\uDFE0",
-    "Travel" to "\u2708\uFE0F",
-    "Business" to "\uD83D\uDCBC",
-    "Food" to "\uD83C\uDF72",
-    "Technology" to "\uD83D\uDCBB",
-    "Sports" to "\u26BD",
-    "Health" to "\uD83D\uDC9A",
-    "Arts" to "\uD83C\uDFA8",
-    "Nature" to "\uD83C\uDF3F",
-    "Academic" to "\uD83C\uDF93"
-)
-
-// ──────────────────────────────────────────────
-// Import Method Selector
-// ──────────────────────────────────────────────
 
 @Composable
 fun ImportMethodSelectorContent(
@@ -611,8 +594,7 @@ private fun AiLanguageStep(
             LanguageGrid(
                 languages = languages,
                 selectedLanguage = selectedLanguage,
-                onLanguageSelected = onLanguageSelected,
-                spacing = spacing
+                onLanguageSelected = onLanguageSelected
             )
         }
 
@@ -693,8 +675,7 @@ private fun AiLevelStep(
 
             LevelCards(
                 selectedLevel = selectedLevel,
-                onLevelSelected = onLevelSelected,
-                spacing = spacing
+                onLevelSelected = onLevelSelected
             )
 
             error?.let {
@@ -784,7 +765,7 @@ private fun AiTopicsStep(
                             val firstIndex = rowIndex * 2
                             TopicTile(
                                 topic = topics[firstIndex],
-                                emoji = topicEmojis[topics[firstIndex]] ?: "",
+                                emoji = "",
                                 selected = state.selectedTopics.contains(topics[firstIndex]),
                                 enabled = !state.isLoading,
                                 onClick = { onToggleTopic(topics[firstIndex]) },
@@ -794,7 +775,7 @@ private fun AiTopicsStep(
                             if (secondIndex < topics.size) {
                                 TopicTile(
                                     topic = topics[secondIndex],
-                                    emoji = topicEmojis[topics[secondIndex]] ?: "",
+                                    emoji = "",
                                     selected = state.selectedTopics.contains(topics[secondIndex]),
                                     enabled = !state.isLoading,
                                     onClick = { onToggleTopic(topics[secondIndex]) },
@@ -824,7 +805,7 @@ private fun AiTopicsStep(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.isLoading) {
-                    OnboardingLoadingCard(spacing = spacing)
+                    OnboardingLoadingCard()
                 } else {
                     Button(
                         onClick = onGenerate,

@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import domain.word.model.ProgressEvaluation
@@ -103,20 +104,37 @@ fun StatsSection(
                     modifier = Modifier.size(110.dp),
                     trackColor = trackColor,
                 ) {
-                    Text(
-                        text = if (evaluation.tier == ProgressTier.EMPTY) {
-                            stringResource(Res.string.lets_go)
-                        } else {
-                            "${evaluation.progressPercent}%"
-                        },
-                        style = if (evaluation.tier == ProgressTier.EMPTY) {
-                            MaterialTheme.typography.titleMedium
-                        } else {
-                            MaterialTheme.typography.headlineSmall
-                        },
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    Box(
+                        modifier = Modifier.padding(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = if (evaluation.tier == ProgressTier.EMPTY) {
+                                stringResource(Res.string.lets_go)
+                            } else {
+                                "${evaluation.progressPercent}%"
+                            },
+                            style = if (evaluation.tier == ProgressTier.EMPTY) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.headlineSmall
+                            },
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            lineHeight = 12.sp,
+                            autoSize = TextAutoSize.StepBased(
+                                minFontSize = 10.sp,
+                                maxFontSize = if (evaluation.tier == ProgressTier.EMPTY) {
+                                    MaterialTheme.typography.titleMedium.fontSize
+                                } else {
+                                    MaterialTheme.typography.headlineSmall.fontSize
+                                },
+                                stepSize = 1.sp
+                            )
+                        )
+                    }
                 }
 
                 Spacer(Modifier.width(Theme.spacing.md))

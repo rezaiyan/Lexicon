@@ -8,8 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import presentation.model.OnboardingUiState
-import theme.AppDimensions
-import theme.AppSpacing
+import presentation.ui.screens.onboarding.OnboardingStep1Content
 import theme.LexiconTheme
 
 @Preview(showBackground = true, name = "Onboarding Step 1 - German Selected")
@@ -28,9 +27,7 @@ private fun OnboardingStep1GermanPreview() {
                 ),
                 onTargetLanguageSelected = {},
                 onNextStep = {},
-                onSkip = {},
-                spacing = AppSpacing(),
-                dimensions = AppDimensions()
+                onSkip = {}
             )
         }
     }
