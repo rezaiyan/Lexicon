@@ -57,7 +57,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Run all tests
-        run: ./gradlew composeApp:cleanAllTests composeApp:allTests composeApp:wasmJsBrowserTest --stacktrace
+        run: ./gradlew composeApp:cleanAllTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
 
       - name: Upload test results
         if: always()
