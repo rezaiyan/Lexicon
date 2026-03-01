@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalAnimationApi::class, ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalAnimationApi::class)
 
 package presentation.ui.components.imports
 
@@ -18,8 +18,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,7 +33,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -69,19 +66,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import events.OnEvents
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.aiimport.AiWordImportViewModel
 import presentation.model.AiWordImportStep
 import presentation.model.AiWordImportUiState
-import presentation.ui.screens.LanguageGridCard
+import presentation.ui.screens.LanguageGrid
+import presentation.ui.screens.LevelCards
 import presentation.ui.screens.OnboardingLoadingCard
-import presentation.ui.screens.languageFlags
-import presentation.ui.screens.languageNativeNames
-import presentation.ui.screens.levelIcons
 import theme.AppDimensions
 import theme.AppSpacing
 import theme.Theme
@@ -89,17 +84,17 @@ import theme.Theme
 private const val AiWizardTransitionDuration = 300
 private const val AiWizardTotalSteps = 4
 
-private val topicIcons = mapOf(
-    "Daily Life" to "DL",
-    "Travel" to "Tv",
-    "Business" to "Bz",
-    "Food" to "Fd",
-    "Technology" to "Tc",
-    "Sports" to "Sp",
-    "Health" to "Hl",
-    "Arts" to "Ar",
-    "Nature" to "Na",
-    "Academic" to "Ac"
+private val topicEmojis = mapOf(
+    "Daily Life" to "\uD83C\uDFE0",
+    "Travel" to "\u2708\uFE0F",
+    "Business" to "\uD83D\uDCBC",
+    "Food" to "\uD83C\uDF72",
+    "Technology" to "\uD83D\uDCBB",
+    "Sports" to "\u26BD",
+    "Health" to "\uD83D\uDC9A",
+    "Arts" to "\uD83C\uDFA8",
+    "Nature" to "\uD83C\uDF3F",
+    "Academic" to "\uD83C\uDF93"
 )
 
 // ──────────────────────────────────────────────
@@ -603,8 +598,8 @@ private fun AiLanguageStep(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.medium)
-                .padding(bottom = spacing.extraSmall2)
+                .padding(horizontal = spacing.md)
+                .padding(bottom = spacing.xs)
         ) {
             AiStepHeader(
                 title = title,
@@ -613,31 +608,18 @@ private fun AiLanguageStep(
                 spacing = spacing
             )
 
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                maxItemsInEachRow = 2
-            ) {
-                languages.forEach { language ->
-                    Box(modifier = Modifier.weight(1f)) {
-                        LanguageGridCard(
-                            language = language,
-                            nativeName = languageNativeNames[language] ?: language.uppercase(),
-                            flag = languageFlags[language],
-                            selected = selectedLanguage == language,
-                            onClick = { onLanguageSelected(language) },
-                            spacing = spacing
-                        )
-                    }
-                }
-            }
+            LanguageGrid(
+                languages = languages,
+                selectedLanguage = selectedLanguage,
+                onLanguageSelected = onLanguageSelected,
+                spacing = spacing
+            )
         }
 
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = spacing.medium),
+                .padding(horizontal = spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
@@ -646,7 +628,7 @@ private fun AiLanguageStep(
                     .fillMaxWidth()
                     .widthIn(max = Theme.dimensions.contentMaxWidth),
                 enabled = selectedLanguage != null,
-                contentPadding = PaddingValues(vertical = 14.dp, horizontal = Theme.spacing.lg),
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -654,7 +636,7 @@ private fun AiLanguageStep(
                 shape = RoundedCornerShape(50)
             ) {
                 Text("Continue", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.size(spacing.extraSmall2))
+                Spacer(modifier = Modifier.size(spacing.xs))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
@@ -673,7 +655,7 @@ private fun AiLanguageStep(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.height(spacing.extraSmall2))
+            Spacer(modifier = Modifier.height(spacing.xs))
         }
     }
 }
@@ -692,11 +674,6 @@ private fun AiLevelStep(
     dimensions: AppDimensions
 ) {
     val scrollState = rememberScrollState()
-    val levels = listOf(
-        "beginner" to "Just starting out. Learn basic phrases and everyday words.",
-        "intermediate" to "Hold basic conversations. Expand vocabulary and grammar patterns.",
-        "advanced" to "Fluent speaker. Master nuances, idioms, and specialized topics."
-    )
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -704,8 +681,8 @@ private fun AiLevelStep(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.medium)
-                .padding(bottom = spacing.extraSmall2)
+                .padding(horizontal = spacing.md)
+                .padding(bottom = spacing.xs)
         ) {
             AiStepHeader(
                 title = "What's your",
@@ -714,101 +691,14 @@ private fun AiLevelStep(
                 spacing = spacing
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2)) {
-                levels.forEach { (level, description) ->
-                    val selected = selectedLevel == level
-                    val icon = levelIcons[level]
-                    val levelColor = when (level) {
-                        "beginner" -> MaterialTheme.colorScheme.secondary
-                        "intermediate" -> MaterialTheme.colorScheme.tertiary
-                        else -> MaterialTheme.colorScheme.primary
-                    }
-
-                    val bgColor by animateColorAsState(
-                        targetValue = if (selected) levelColor.copy(alpha = 0.10f)
-                        else MaterialTheme.colorScheme.surface,
-                        animationSpec = tween(200),
-                        label = "level_bg_$level"
-                    )
-
-                    Card(
-                        onClick = { onLevelSelected(level) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = bgColor),
-                        shape = RoundedCornerShape(Theme.shapes.large),
-                        border = BorderStroke(
-                            width = if (selected) 2.dp else 1.dp,
-                            color = if (selected) levelColor
-                            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(spacing.small),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(Theme.dimensions.touchTarget)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(levelColor.copy(alpha = if (selected) 0.18f else 0.10f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                icon?.let {
-                                    Icon(
-                                        imageVector = it,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(Theme.dimensions.iconSize),
-                                        tint = levelColor
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.size(spacing.small))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = level.replaceFirstChar { it.uppercase() },
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                    color = if (selected) levelColor else MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = description,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = spacing.extraSmall4)
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.size(spacing.extraSmall2))
-
-                            Box(
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (selected) levelColor
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (selected) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(12.dp),
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            LevelCards(
+                selectedLevel = selectedLevel,
+                onLevelSelected = onLevelSelected,
+                spacing = spacing
+            )
 
             error?.let {
-                Spacer(modifier = Modifier.height(spacing.extraSmall2))
+                Spacer(modifier = Modifier.height(spacing.xs))
                 Text(
                     text = it,
                     color = MaterialTheme.colorScheme.error,
@@ -820,7 +710,7 @@ private fun AiLevelStep(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = spacing.medium),
+                .padding(horizontal = spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
@@ -829,7 +719,7 @@ private fun AiLevelStep(
                     .fillMaxWidth()
                     .widthIn(max = Theme.dimensions.contentMaxWidth),
                 enabled = selectedLevel != null,
-                contentPadding = PaddingValues(vertical = 14.dp, horizontal = Theme.spacing.lg),
+                contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
@@ -837,14 +727,14 @@ private fun AiLevelStep(
                 shape = RoundedCornerShape(50)
             ) {
                 Text("Continue", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.size(spacing.extraSmall2))
+                Spacer(modifier = Modifier.size(spacing.xs))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
                     modifier = Modifier.size(dimensions.iconSizeMedium)
                 )
             }
-            Spacer(modifier = Modifier.height(spacing.medium))
+            Spacer(modifier = Modifier.height(spacing.md))
         }
     }
 }
@@ -870,8 +760,8 @@ private fun AiTopicsStep(
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = spacing.medium)
-                    .padding(bottom = spacing.extraSmall2)
+                    .padding(horizontal = spacing.md)
+                    .padding(bottom = spacing.xs)
             ) {
                 AiStepHeader(
                     title = "What topics",
@@ -880,96 +770,45 @@ private fun AiTopicsStep(
                     spacing = spacing
                 )
 
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                    verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                    maxItemsInEachRow = 2
+                // 2-column grid of topic tiles
+                val topics = state.availableTopics
+                val rows = (topics.size + 1) / 2
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(spacing.sm)
                 ) {
-                    state.availableTopics.forEach { topic ->
-                        val selected = state.selectedTopics.contains(topic)
-                        val icon = topicIcons[topic] ?: ""
-
-                        val bgColor by animateColorAsState(
-                            targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.surface,
-                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                            label = "chip_bg_$topic"
-                        )
-                        val borderColor by animateColorAsState(
-                            targetValue = if (selected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
-                            label = "chip_border_$topic"
-                        )
-
-                        Card(
-                            onClick = { onToggleTopic(topic) },
-                            enabled = !state.isLoading,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(Theme.shapes.large),
-                            colors = CardDefaults.cardColors(containerColor = bgColor),
-                            border = BorderStroke(
-                                width = if (selected) 2.dp else 1.dp,
-                                color = borderColor
-                            ),
-                            elevation = CardDefaults.cardElevation(
-                                defaultElevation = if (selected) Theme.elevation.medium else Theme.elevation.none
-                            )
+                    repeat(rows) { rowIndex ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.sm)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        horizontal = spacing.extraSmall,
-                                        vertical = spacing.extraSmall
-                                    ),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall3)
-                            ) {
-                                Text(
-                                    text = icon,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                            val firstIndex = rowIndex * 2
+                            TopicTile(
+                                topic = topics[firstIndex],
+                                emoji = topicEmojis[topics[firstIndex]] ?: "",
+                                selected = state.selectedTopics.contains(topics[firstIndex]),
+                                enabled = !state.isLoading,
+                                onClick = { onToggleTopic(topics[firstIndex]) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            val secondIndex = firstIndex + 1
+                            if (secondIndex < topics.size) {
+                                TopicTile(
+                                    topic = topics[secondIndex],
+                                    emoji = topicEmojis[topics[secondIndex]] ?: "",
+                                    selected = state.selectedTopics.contains(topics[secondIndex]),
+                                    enabled = !state.isLoading,
+                                    onClick = { onToggleTopic(topics[secondIndex]) },
+                                    modifier = Modifier.weight(1f)
                                 )
-                                Text(
-                                    text = topic,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.weight(1f),
-                                    maxLines = 1,
-                                    autoSize = TextAutoSize.StepBased(
-                                        maxFontSize = 14.sp,
-                                        minFontSize = 12.sp
-                                    )
-                                )
-                                if (selected) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(Theme.dimensions.iconSizeMedium)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primary),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(12.dp),
-                                            tint = MaterialTheme.colorScheme.onPrimary
-                                        )
-                                    }
-                                }
+                            } else {
+                                Spacer(modifier = Modifier.weight(1f))
                             }
                         }
                     }
                 }
 
                 state.error?.let {
-                    Spacer(modifier = Modifier.height(spacing.extraSmall2))
+                    Spacer(modifier = Modifier.height(spacing.xs))
                     Text(
                         text = it,
                         color = MaterialTheme.colorScheme.error,
@@ -981,7 +820,7 @@ private fun AiTopicsStep(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = spacing.medium),
+                    .padding(horizontal = spacing.md),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.isLoading) {
@@ -992,7 +831,7 @@ private fun AiTopicsStep(
                         modifier = Modifier
                             .fillMaxWidth()
                             .widthIn(max = Theme.dimensions.contentMaxWidth),
-                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = Theme.spacing.lg),
+                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
                             contentColor = MaterialTheme.colorScheme.onPrimary
@@ -1004,11 +843,11 @@ private fun AiTopicsStep(
                             contentDescription = null,
                             modifier = Modifier.size(dimensions.iconSizeMedium)
                         )
-                        Spacer(modifier = Modifier.size(spacing.extraSmall2))
+                        Spacer(modifier = Modifier.size(spacing.xs))
                         Text("Generate Words", style = MaterialTheme.typography.labelLarge)
                     }
                 }
-                Spacer(modifier = Modifier.height(spacing.medium))
+                Spacer(modifier = Modifier.height(spacing.md))
             }
         }
 
@@ -1020,6 +859,88 @@ private fun AiTopicsStep(
                         awaitPointerEventScope { while (true) { awaitPointerEvent() } }
                     }
             )
+        }
+    }
+}
+
+@Composable
+private fun TopicTile(
+    topic: String,
+    emoji: String,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val bgColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+        else MaterialTheme.colorScheme.surface,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "tile_bg_$topic"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "tile_border_$topic"
+    )
+
+    Card(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier,
+        shape = RoundedCornerShape(Theme.shapes.large),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = borderColor
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (selected) Theme.elevation.medium else Theme.elevation.none
+        )
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            // Check badge in top-right corner
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(Theme.spacing.xs)
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = Theme.spacing.md, horizontal = Theme.spacing.sm),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
+            ) {
+                Text(
+                    text = emoji,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Text(
+                    text = topic,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (selected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
+            }
         }
     }
 }

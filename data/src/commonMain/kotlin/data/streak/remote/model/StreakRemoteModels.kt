@@ -7,3 +7,8 @@ data class StreakResponse(
     val currentStreak: Int
 )
 
+@Serializable
+data class RecordActivityRequest(
+    val count: Int
+)
+

@@ -32,9 +32,13 @@ class StreakManagerImpl(
         )
     }
 
-    override suspend fun recordActivity(): Try<StreakData> {
-        return streakRepository.recordActivity().onSuccess { streakData ->
+    override suspend fun recordActivity(count: Int): Try<StreakData> {
+        return streakRepository.recordActivity(count).onSuccess { streakData ->
             _cachedStreak.value = streakData
         }
+    }
+
+    override fun clearCache() {
+        _cachedStreak.value = null
     }
 }

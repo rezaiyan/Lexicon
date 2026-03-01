@@ -11,7 +11,7 @@ import domain.streak.repository.IStreakRepository
 class RecordStreakActivityUseCase(
     private val streakRepository: IStreakRepository
 ) {
-    suspend operator fun invoke(): Try<StreakData> {
-        return streakRepository.recordActivity()
+    suspend operator fun invoke(count: Int): Try<StreakData> {
+        return streakRepository.recordActivity(count)
     }
 }

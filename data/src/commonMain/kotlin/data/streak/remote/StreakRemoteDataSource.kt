@@ -1,6 +1,7 @@
 package data.streak.remote
 
 import data.core.network.client.ApiClient
+import data.streak.remote.model.RecordActivityRequest
 import data.streak.remote.model.StreakResponse
 import domain.common.Try
 import domain.common.doOnFailure
@@ -21,8 +22,8 @@ class StreakRemoteDataSource(
                 logNetwork("StreakRemoteDataSource", "Streak retrieved: ${response.currentStreak}")
             }
 
-    suspend fun recordActivity(): Try<StreakResponse> =
-        apiClient.postNotNull<StreakResponse>("/streak/record")
+    suspend fun recordActivity(count: Int): Try<StreakResponse> =
+        apiClient.postNotNull<StreakResponse>("/streak/record", body = RecordActivityRequest(count))
             .doOnSuccess { response ->
                 logNetwork("StreakRemoteDataSource", "Activity recorded: streak=${response.currentStreak}")
             }

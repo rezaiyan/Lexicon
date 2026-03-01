@@ -7,6 +7,7 @@ import domain.streak.manager.IStreakManager
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import presentation.feature.auth.AuthViewModel
+import presentation.feature.profile.EditProfileViewModel
 import presentation.feature.profile.ProfileViewModel
 import presentation.feature.settings.NotificationPermissionMonitor
 import presentation.feature.settings.SettingsViewModel
@@ -16,6 +17,7 @@ import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel
 import presentation.feature.aiimport.AiWordImportViewModel
+import presentation.feature.leaderboard.LeaderboardViewModel
 import presentation.feature.onboarding.OnboardingViewModel
 import presentation.feature.onboarding.VocabularyPreviewViewModel
 import presentation.viewmodel.AppNavigationViewModel
@@ -33,6 +35,8 @@ fun presentationModule() = module {
             logoutUseCase = get(),
             deleteAccountUseCase = get(),
             subscriptionManager = get(),
+            streakManager = get(),
+            registerPushTokenUseCase = get(),
         )
     }
 
@@ -97,7 +101,6 @@ fun presentationModule() = module {
             stopSpeakingUseCase = get(),
             ttsRepository = get(),
             analyticsTracker = get(),
-            userManager = get()
         )
     }
 
@@ -144,8 +147,23 @@ fun presentationModule() = module {
     }
 
     viewModel {
+        EditProfileViewModel(
+            userManager = get(),
+            updateProfileUseCase = get(),
+            uploadAvatarUseCase = get(),
+            deleteAvatarUseCase = get()
+        )
+    }
+
+    viewModel {
         SubscriptionViewModel(
             subscriptionManager = get()
+        )
+    }
+
+    viewModel {
+        LeaderboardViewModel(
+            getLeaderboardUseCase = get()
         )
     }
 

@@ -10,6 +10,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -28,10 +29,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import presentation.model.ProfileUserUiModel
 import theme.Theme
 
@@ -40,19 +43,22 @@ fun UserInfoSection(
     userInfo: ProfileUserUiModel,
     modifier: Modifier = Modifier
 ) {
+    val displayName = userInfo.displayAlias ?: userInfo.name.ifBlank { userInfo.email }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ProfileAvatar(
             name = userInfo.name,
-            email = userInfo.email
+            email = userInfo.email,
+            profileImageUrl = userInfo.profileImageUrl
         )
 
         Spacer(modifier = Modifier.height(Theme.spacing.cardSpacingLarge))
 
         Text(
-            text = userInfo.name.ifBlank { userInfo.email },
+            text = displayName,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onBackground,
@@ -77,9 +83,10 @@ fun UserInfoSection(
 }
 
 @Composable
-private fun ProfileAvatar(
+internal fun ProfileAvatar(
     name: String,
     email: String,
+    profileImageUrl: String? = null,
     modifier: Modifier = Modifier
 ) {
     val initials = remember(name, email) { extractInitials(name, email) }
@@ -149,7 +156,14 @@ private fun ProfileAvatar(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                if (initials != null) {
+                if (profileImageUrl != null) {
+                    AsyncImage(
+                        model = profileImageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else if (initials != null) {
                     Text(
                         text = initials,
                         style = MaterialTheme.typography.headlineLarge,

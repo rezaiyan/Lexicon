@@ -15,12 +15,18 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -159,12 +165,17 @@ internal fun WordListContent(
             )
 
             // Words list
+            val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .weight(1f),
                 contentPadding = PaddingValues(
-                    bottom = if (state.isSelectionMode) Theme.dimensions.bottomBarHeight else Theme.spacing.small
+                    bottom = if (state.isSelectionMode) {
+                        Theme.dimensions.bottomBarHeight + navBarBottom
+                    } else {
+                        Theme.spacing.small + navBarBottom
+                    }
                 ),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
             ) {
@@ -534,12 +545,16 @@ internal fun WordCard(
         color = backgroundColor,
         tonalElevation = if (isSelected) Theme.elevation.medium else Theme.elevation.none
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)
+        ) {
             // Level color strip
             Box(
                 modifier = Modifier
                     .width(3.dp)
-                    .height(if (word.description.isNotBlank()) 96.dp else 80.dp)
+                    .fillMaxHeight()
                     .background(color)
             )
 
@@ -688,6 +703,7 @@ internal fun SelectionActionBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .padding(
                         horizontal = Theme.spacing.extraSmall,
                         vertical = Theme.spacing.extraSmall

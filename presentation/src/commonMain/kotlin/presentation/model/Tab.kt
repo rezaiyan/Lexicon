@@ -18,4 +18,10 @@ sealed interface TabDestination {
     
     @Serializable
     data object Subscription : TabDestination
+
+    @Serializable
+    data object Leaderboard : TabDestination
+
+    @Serializable
+    data object EditProfile : TabDestination
 }

@@ -9,9 +9,11 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,7 +26,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -96,7 +97,6 @@ import theme.AppSpacing
 import theme.Theme
 
 private const val OnboardingTransitionDuration = 300
-private const val OnboardingDisplayTotalSteps = 4
 
 internal val languageNativeNames = mapOf(
     "English" to "ENGLISH",
@@ -485,12 +485,53 @@ private fun StepHeadline(
         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
         color = MaterialTheme.colorScheme.primary
     )
-    Spacer(modifier = Modifier.height(spacing.extraSmall3))
+    Spacer(modifier = Modifier.height(spacing.xxs))
     Text(
         text = subtitle,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
+}
+
+@Composable
+internal fun LanguageGrid(
+    languages: List<String>,
+    selectedLanguage: String?,
+    onLanguageSelected: (String) -> Unit,
+    spacing: AppSpacing
+) {
+    val rows = (languages.size + 1) / 2
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+        repeat(rows) { rowIndex ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm)
+            ) {
+                val firstIndex = rowIndex * 2
+                LanguageGridCard(
+                    language = languages[firstIndex],
+                    nativeName = languageNativeNames[languages[firstIndex]] ?: languages[firstIndex].uppercase(),
+                    flag = languageFlags[languages[firstIndex]],
+                    selected = selectedLanguage == languages[firstIndex],
+                    onClick = { onLanguageSelected(languages[firstIndex]) },
+                    modifier = Modifier.weight(1f)
+                )
+                val secondIndex = firstIndex + 1
+                if (secondIndex < languages.size) {
+                    LanguageGridCard(
+                        language = languages[secondIndex],
+                        nativeName = languageNativeNames[languages[secondIndex]] ?: languages[secondIndex].uppercase(),
+                        flag = languageFlags[languages[secondIndex]],
+                        selected = selectedLanguage == languages[secondIndex],
+                        onClick = { onLanguageSelected(languages[secondIndex]) },
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -509,38 +550,24 @@ internal fun OnboardingStep1Content(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.medium)
-                .padding(bottom = spacing.extraSmall2)
+                .padding(horizontal = spacing.md)
+                .padding(bottom = spacing.xs)
         ) {
-            Spacer(modifier = Modifier.height(spacing.small))
+            Spacer(modifier = Modifier.height(spacing.sm))
             StepHeadline(
                 line1 = "Which language",
                 line2 = "are you learning?",
                 subtitle = "We'll tailor your vocabulary sets based on your choice. You can change this later.",
                 spacing = spacing
             )
-            Spacer(modifier = Modifier.height(spacing.medium))
-            FlowRow(
-                modifier = Modifier
-                    .padding(vertical = Theme.spacing.extraSmall2)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                maxItemsInEachRow = 2
-            ) {
-                state.availableLanguages.forEach { language ->
-                    Box(modifier = Modifier.weight(1f)) {
-                        LanguageGridCard(
-                            language = language,
-                            nativeName = languageNativeNames[language] ?: language.uppercase(),
-                            flag = languageFlags[language],
-                            selected = state.selectedTargetLanguage == language,
-                            onClick = { onTargetLanguageSelected(language) },
-                            spacing = spacing
-                        )
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(spacing.md))
+
+            LanguageGrid(
+                languages = state.availableLanguages,
+                selectedLanguage = state.selectedTargetLanguage,
+                onLanguageSelected = onTargetLanguageSelected,
+                spacing = spacing
+            )
         }
 
         OnboardingButtons(
@@ -617,41 +644,40 @@ internal fun LanguageGridCard(
     flag: DrawableResource?,
     selected: Boolean,
     onClick: () -> Unit,
-    spacing: AppSpacing
+    modifier: Modifier = Modifier
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer
+        targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
         else MaterialTheme.colorScheme.surface,
-        animationSpec = tween(200),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "bg_$language"
     )
     val borderColor by animateColorAsState(
         targetValue = if (selected) MaterialTheme.colorScheme.primary
         else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-        animationSpec = tween(200),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "border_$language"
     )
 
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         shape = RoundedCornerShape(Theme.shapes.large),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (selected) Theme.elevation.high else Theme.elevation.none,
-            pressedElevation = Theme.elevation.extraHigh
+            defaultElevation = if (selected) Theme.elevation.medium else Theme.elevation.none
         ),
         border = BorderStroke(
-            width = if (selected) 2.dp else Theme.dimensions.borderWidth,
+            width = if (selected) 2.dp else 1.dp,
             color = borderColor
         )
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             if (selected) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(spacing.extraSmall2)
+                        .padding(Theme.spacing.xs)
                         .size(22.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary),
@@ -660,7 +686,7 @@ internal fun LanguageGridCard(
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Selected",
-                        modifier = Modifier.size(12.dp),
+                        modifier = Modifier.size(14.dp),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -668,15 +694,15 @@ internal fun LanguageGridCard(
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(spacing.small),
+                    .fillMaxWidth()
+                    .padding(vertical = Theme.spacing.md, horizontal = Theme.spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
             ) {
                 if (flag != null) {
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
+                            .size(56.dp)
                             .clip(RoundedCornerShape(Theme.shapes.medium))
                             .background(
                                 if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
@@ -688,20 +714,20 @@ internal fun LanguageGridCard(
                             painter = painterResource(flag),
                             contentDescription = "$language flag",
                             modifier = Modifier
-                                .size(52.dp)
+                                .size(44.dp)
                                 .clip(RoundedCornerShape(Theme.shapes.small)),
                             contentScale = ContentScale.Crop
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(spacing.extraSmall2))
-
                 Text(
                     text = language,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                     color = if (selected) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
                     maxLines = 1
                 )
                 Text(
@@ -709,6 +735,7 @@ internal fun LanguageGridCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
                     else MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
                     maxLines = 1
                 )
             }
@@ -732,40 +759,24 @@ internal fun OnboardingStep2Content(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.medium)
-                .padding(bottom = spacing.extraSmall2)
+                .padding(horizontal = spacing.md)
+                .padding(bottom = spacing.xs)
         ) {
-            Spacer(modifier = Modifier.height(spacing.small))
+            Spacer(modifier = Modifier.height(spacing.sm))
             StepHeadline(
                 line1 = "What's your",
                 line2 = "native language?",
                 subtitle = "We'll use this as the base for translations and hints.",
                 spacing = spacing
             )
-            Spacer(modifier = Modifier.height(spacing.medium))
-            FlowRow(
-                modifier = Modifier
-                    .padding(vertical = Theme.spacing.extraSmall2)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2),
-                maxItemsInEachRow = 2
-            ) {
-                state.availableLanguages
-                    .filter { it != state.selectedTargetLanguage }
-                    .forEach { language ->
-                        Box(modifier = Modifier.weight(1f)) {
-                            LanguageGridCard(
-                                language = language,
-                                nativeName = languageNativeNames[language] ?: language.uppercase(),
-                                flag = languageFlags[language],
-                                selected = state.selectedNativeLanguage == language,
-                                onClick = { onNativeLanguageSelected(language) },
-                                spacing = spacing
-                            )
-                        }
-                    }
-            }
+            Spacer(modifier = Modifier.height(spacing.md))
+
+            LanguageGrid(
+                languages = state.availableLanguages.filter { it != state.selectedTargetLanguage },
+                selectedLanguage = state.selectedNativeLanguage,
+                onLanguageSelected = onNativeLanguageSelected,
+                spacing = spacing
+            )
         }
 
         OnboardingButtons(
@@ -798,38 +809,37 @@ internal fun OnboardingStep3Content(
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = spacing.medium)
-                    .padding(bottom = spacing.extraSmall2)
+                    .padding(horizontal = spacing.md)
+                    .padding(bottom = spacing.xs)
             ) {
-                Spacer(modifier = Modifier.height(spacing.small))
+                Spacer(modifier = Modifier.height(spacing.sm))
                 StepHeadline(
                     line1 = "What's your",
                     line2 = "current level?",
                     subtitle = "We'll tailor your vocabulary sets to match your current skills.",
                     spacing = spacing
                 )
-                Spacer(modifier = Modifier.height(spacing.medium))
+                Spacer(modifier = Modifier.height(spacing.md))
                 LevelCards(
                     selectedLevel = state.selectedLevel,
                     onLevelSelected = onLevelSelected,
                     spacing = spacing,
                     enabled = !state.isLoading
                 )
-                Spacer(modifier = Modifier.height(spacing.small))
                 state.error?.let { error ->
+                    Spacer(modifier = Modifier.height(spacing.xs))
                     Text(
                         text = error,
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
-                    Spacer(modifier = Modifier.height(spacing.extraSmall2))
                 }
             }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = spacing.medium),
+                    .padding(horizontal = spacing.md),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.isLoading) {
@@ -839,7 +849,7 @@ internal fun OnboardingStep3Content(
                         modifier = Modifier
                             .fillMaxWidth()
                             .widthIn(max = Theme.dimensions.contentMaxWidth),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.small)
+                        horizontalArrangement = Arrangement.spacedBy(spacing.sm)
                     ) {
                         TextButton(
                             onClick = onBack,
@@ -856,7 +866,7 @@ internal fun OnboardingStep3Content(
                             onClick = onSubmit,
                             modifier = Modifier.weight(2f),
                             enabled = state.selectedLevel != null,
-                            contentPadding = PaddingValues(vertical = 14.dp, horizontal = 24.dp),
+                            contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary,
                                 contentColor = MaterialTheme.colorScheme.onPrimary
@@ -868,12 +878,12 @@ internal fun OnboardingStep3Content(
                                 contentDescription = null,
                                 modifier = Modifier.size(dimensions.iconSizeMedium)
                             )
-                            Spacer(modifier = Modifier.size(spacing.extraSmall2))
+                            Spacer(modifier = Modifier.size(spacing.xs))
                             Text("Let's Go!", style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(spacing.medium))
+                Spacer(modifier = Modifier.height(spacing.md))
             }
         }
 
@@ -1042,96 +1052,121 @@ internal fun LevelCards(
         "advanced" to "Fluent speaker. Master nuances, idioms, and specialized topics."
     )
 
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.extraSmall2)) {
+    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
         levels.forEach { (level, description) ->
-            val selected = selectedLevel == level
-            val levelIcon = levelIcons[level]
-            val levelColor = when (level) {
-                "beginner" -> MaterialTheme.colorScheme.secondary
-                "intermediate" -> MaterialTheme.colorScheme.tertiary
-                else -> MaterialTheme.colorScheme.primary
-            }
-            val bgColor by animateColorAsState(
-                targetValue = if (selected) levelColor.copy(alpha = 0.10f)
-                else MaterialTheme.colorScheme.surface,
-                animationSpec = tween(200),
-                label = "level_bg_$level"
+            LevelTile(
+                level = level,
+                description = description,
+                icon = levelIcons[level],
+                levelColor = when (level) {
+                    "beginner" -> MaterialTheme.colorScheme.secondary
+                    "intermediate" -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.primary
+                },
+                selected = selectedLevel == level,
+                enabled = enabled,
+                onClick = { onLevelSelected(level) }
             )
+        }
+    }
+}
 
-            Card(
-                onClick = { if (enabled) onLevelSelected(level) },
+@Composable
+private fun LevelTile(
+    level: String,
+    description: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector?,
+    levelColor: Color,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val bgColor by animateColorAsState(
+        targetValue = if (selected) levelColor.copy(alpha = 0.10f)
+        else MaterialTheme.colorScheme.surface,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "level_bg_$level"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) levelColor
+        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "level_border_$level"
+    )
+
+    Card(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer { alpha = if (enabled) 1f else 0.5f },
+        enabled = enabled,
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        shape = RoundedCornerShape(Theme.shapes.large),
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = borderColor
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (selected) Theme.elevation.medium else Theme.elevation.none
+        )
+    ) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(Theme.spacing.xs)
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(levelColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = Color.White
+                    )
+                }
+            }
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer { alpha = if (enabled) 1f else 0.5f },
-                enabled = enabled,
-                colors = CardDefaults.cardColors(containerColor = bgColor),
-                shape = RoundedCornerShape(Theme.shapes.large),
-                border = if (selected)
-                    BorderStroke(2.dp, levelColor)
-                else
-                    BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    .padding(vertical = Theme.spacing.md, horizontal = Theme.spacing.sm),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
             ) {
-                Row(
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(spacing.small),
-                    verticalAlignment = Alignment.CenterVertically
+                        .size(Theme.dimensions.touchTarget)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(levelColor.copy(alpha = if (selected) 0.18f else 0.10f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(Theme.dimensions.touchTarget)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(levelColor.copy(alpha = if (selected) 0.18f else 0.10f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        levelIcon?.let { icon ->
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                modifier = Modifier.size(Theme.dimensions.iconSize),
-                                tint = levelColor
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.size(spacing.small))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = level.replaceFirstChar { it.uppercase() },
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = if (selected) levelColor else MaterialTheme.colorScheme.onSurface
+                    icon?.let {
+                        Icon(
+                            imageVector = it,
+                            contentDescription = null,
+                            modifier = Modifier.size(Theme.dimensions.iconSize),
+                            tint = levelColor
                         )
-                        Text(
-                            text = description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = spacing.extraSmall4)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.size(spacing.extraSmall2))
-
-                    Box(
-                        modifier = Modifier
-                            .size(22.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (selected) levelColor
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (selected) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = Color.White
-                            )
-                        }
                     }
                 }
+
+                Text(
+                    text = level.replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.SemiBold,
+                    color = if (selected) levelColor else MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

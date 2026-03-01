@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,7 +45,6 @@ import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.LexiconColumn
 import presentation.ui.components.profile.DeleteAccountCoolingDialogContent
 import presentation.ui.components.profile.DeleteAccountHiddenDialogContent
-import presentation.ui.components.profile.LanguagesSection
 import presentation.ui.components.profile.LogoutDialogContent
 import presentation.ui.components.profile.MemberSinceSection
 import presentation.ui.components.profile.StreakSection
@@ -57,12 +58,17 @@ import presentation.ui.screens.study.staggeredFadeSlide
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.delete_account
+import lexicon.resources.generated.resources.leaderboard
 import lexicon.resources.generated.resources.logout
+import lexicon.resources.generated.resources.edit_profile
 import lexicon.resources.generated.resources.more_options
 import lexicon.resources.generated.resources.profile
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onNavigateToLeaderboard: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {}
+) {
     val profileViewModel = koinViewModel<ProfileViewModel>()
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
@@ -92,6 +98,10 @@ fun ProfileScreen() {
                 onClick = {
                     overlayHost.showFullscreenBottomSheet(tag = "more-options") { navigator ->
                         ProfileMoreOptionsSheet(
+                            onEditProfile = {
+                                navigator.dismiss()
+                                onNavigateToEditProfile()
+                            },
                             onDeleteAccount = {
                                 navigator.dismiss()
                                 showDeleteAccountFlow(overlayHost) {
@@ -120,6 +130,7 @@ fun ProfileScreen() {
                 isLoggedIn -> {
                     ProfileContent(
                         profileData = profileData,
+                        onNavigateToLeaderboard = onNavigateToLeaderboard,
                         onLogout = {
                             overlayHost.showDialog(tag = "logout") { nav ->
                                 LogoutDialogContent(
@@ -152,6 +163,7 @@ fun ProfileScreen() {
 @Composable
 private fun ProfileContent(
     profileData: ProfileUiData,
+    onNavigateToLeaderboard: () -> Unit,
     onLogout: () -> Unit,
 ) {
     val userInfo = profileData.userInfo ?: return
@@ -180,7 +192,28 @@ private fun ProfileContent(
             )
         }
 
-        // 3. Weekly Activity (server data — loads async)
+        // 3. Leaderboard Button
+        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+        OutlinedButton(
+            onClick = onNavigateToLeaderboard,
+            modifier = Modifier
+                .fillMaxWidth()
+                .staggeredFadeSlide(sectionIndex++),
+            border = BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.primary),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Leaderboard,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(Theme.spacing.xs))
+            Text(stringResource(Res.string.leaderboard))
+        }
+
+        // 4. Weekly Activity (server data — loads async)
         val weeklyActivity = profileData.profileStats?.weeklyActivity
         if (weeklyActivity != null && weeklyActivity.any { it.reviewCount > 0 }) {
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
@@ -191,18 +224,7 @@ private fun ProfileContent(
             )
         }
 
-        // 4. Languages (server data — loads async)
-        val languages = profileData.profileStats?.languages
-        if (!languages.isNullOrEmpty()) {
-            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
-            LanguagesSection(
-                languages = languages,
-                modifier = Modifier
-                    .staggeredFadeSlide(sectionIndex++)
-            )
-        }
-
-        // 5. Member Since (server data — loads async)
+        // 6. Member Since (server data — loads async)
         val memberSince = profileData.profileStats?.memberSince
         if (memberSince != null) {
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
@@ -213,7 +235,7 @@ private fun ProfileContent(
             )
         }
 
-        // 6. Logout Button
+        // 7. Logout Button
         Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
 
         OutlinedButton(
@@ -241,6 +263,7 @@ private fun ProfileContent(
 
 @Composable
 private fun ProfileMoreOptionsSheet(
+    onEditProfile: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
     Column(
@@ -258,6 +281,31 @@ private fun ProfileMoreOptionsSheet(
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onEditProfile)
+                .padding(
+                    horizontal = Theme.spacing.sectionSpacing,
+                    vertical = Theme.spacing.cardPadding
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.width(Theme.spacing.cardPadding))
+            Text(
+                text = stringResource(Res.string.edit_profile),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
 
         Row(
             modifier = Modifier

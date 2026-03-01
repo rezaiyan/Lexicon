@@ -188,7 +188,7 @@ fun StudyScreen() {
                                                         nav.dismiss()
                                                         navigator.dismiss()
                                                     },
-                                                    onDismiss = { nav.dismiss() }
+                                                    onDismiss = nav::dismiss
                                                 )
                                             }
                                         },
@@ -233,11 +233,8 @@ fun StudyScreen() {
                                     title = stringResource(Res.string.stage_words_string, stageName),
                                     reviewType = ReviewType.BROWSE,
                                     reviewState = reviewState,
-                                    onClose = { navigator.dismiss() },
-                                    onReviewComplete = {
-                                        viewModel.onReviewSessionComplete()
-                                        navigator.dismiss()
-                                    },
+                                    onClose = navigator::dismiss,
+                                    onReviewComplete = navigator::dismiss,
                                     onReviewWord = viewModel::reviewWord,
                                     onLoadWords = viewModel::loadWords,
                                     onUpdateWord = viewModel::updateWord,

@@ -6,8 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface IStreakManager {
     fun getStreak(): Flow<StreakState>
-    suspend fun recordActivity(): Try<StreakData>
-    
+    suspend fun recordActivity(count: Int): Try<StreakData>
+    fun clearCache()
+
     sealed interface StreakState {
         data object Loading : StreakState
         data class Error(val message: String) : StreakState

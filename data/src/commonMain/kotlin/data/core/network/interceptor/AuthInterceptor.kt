@@ -24,22 +24,27 @@ class AuthInterceptor(
          * For a 24-hour token, this means proactive refresh at ~99.6% of lifetime.
          */
         private const val PROACTIVE_REFRESH_THRESHOLD_MS = 5 * 60 * 1000L // 5 minutes
+
+        /**
+         * Public endpoints that don't require authentication.
+         * Mirrors the backend's SecurityConfig permitAll() list.
+         * All other endpoints get the Bearer token automatically.
+         */
+        private val PUBLIC_PATHS = listOf(
+            "/auth/google",
+            "/auth/apple",
+            "/auth/refresh",
+        )
     }
+
+    private fun isPublicEndpoint(path: String): Boolean =
+        PUBLIC_PATHS.any { path.contains(it) }
 
     fun createPlugin(): ClientPlugin<Unit> = createClientPlugin("AuthInterceptor") {
         onRequest { request, _ ->
-            // Skip if this is an auth endpoint (login/refresh/logout)
             val path = request.url.encodedPath.lowercase()
-            if (path.contains("/auth/")) {
-                // Still add existing token for logout endpoint
-                if (path.contains("/logout")) {
-                    val token = tokenManager.getAccessToken()
-                    if (token != null && !request.headers.contains(HttpHeaders.Authorization)) {
-                        request.headers.append(HttpHeaders.Authorization, "Bearer $token")
-                    }
-                }
-                return@onRequest
-            }
+
+            if (isPublicEndpoint(path)) return@onRequest
 
             // Check if token is about to expire and proactively refresh
             val expiresAt = tokenManager.getTokenExpiresAt()

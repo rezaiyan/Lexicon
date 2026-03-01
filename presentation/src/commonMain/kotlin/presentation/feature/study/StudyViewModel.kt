@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
-import presentation.model.MessageState
 import presentation.model.ProgressScreenState
 import presentation.model.ReviewScreenState
 import presentation.model.UiState
@@ -49,7 +48,6 @@ import kotlin.time.ExperimentalTime
 class StudyViewModel(
     private val getProgressStatsUseCase: GetProgressStatsUseCase,
     private val evaluateProgressUseCase: EvaluateProgressUseCase,
-    private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase,
     private val getDueWordsUseCase: GetDueWordsUseCase,
     private val getWordsByStageUseCase: GetWordsByStageUseCase,
@@ -59,9 +57,9 @@ class StudyViewModel(
     private val recordStreakActivityUseCase: RecordStreakActivityUseCase,
     private val speakWordUseCase: SpeakWordUseCase,
     private val stopSpeakingUseCase: StopSpeakingUseCase,
-    private val ttsRepository: ITtsRepository,
     private val analyticsTracker: IAnalyticsTracker,
-    private val userManager: IUserManager
+    getFeatureAccessUseCase: GetFeatureAccessUseCase,
+    ttsRepository: ITtsRepository
 ) : ViewModel() {
 
     private val _progressStatistics = MutableStateFlow<ProgressScreenState?>(null)
@@ -76,12 +74,8 @@ class StudyViewModel(
     val reviewScreenState: StateFlow<ReviewScreenState> = _reviewScreenState.asStateFlow()
 
     val hasPremiumAccess: StateFlow<Boolean> = getFeatureAccessUseCase()
-        .map { it.userAccess?.hasPremiumAccess == true }
+        .map { it.userAccess.hasPremiumAccess }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    val userName: StateFlow<String> = userManager.observeUser()
-        .map { it?.name.orEmpty() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     private val _events = Channel<StudyEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
@@ -186,7 +180,6 @@ class StudyViewModel(
 
     fun startStageReview(stage: LearningStage) {
         loadWordsByStage(stage)
-        viewModelScope.launch { recordActivity() }
         val currentState = _reviewScreenState.value.wordListState
         val cardCount = if (currentState is UiState.Loaded) currentState.value.size else 0
         analyticsTracker.logReviewSessionStart(cardCount = cardCount)
@@ -230,7 +223,7 @@ class StudyViewModel(
             deleteWordUseCase(wordId).onSuccess {
                 val currentState = _reviewScreenState.value.wordListState
                 if (currentState is UiState.Loaded) {
-                    val updatedWords = currentState.value.filterNot { it.id.toInt() == wordId }
+                    val updatedWords = currentState.value.filterNot { it.id == wordId }
                     _reviewScreenState.value = _reviewScreenState.value.copy(
                         wordListState = UiState.Loaded(updatedWords)
                     )
@@ -250,16 +243,18 @@ class StudyViewModel(
     }
 
     fun onReviewSessionComplete() {
+        val wordListState = _reviewScreenState.value.wordListState
+        val count = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         viewModelScope.launch {
-            recordActivity()
+            if (count > 0) recordActivity(count)
             _reviewScreenState.value = ReviewScreenState()
         }
     }
 
-    private suspend fun recordActivity() {
-        recordStreakActivityUseCase()
-            .onSuccess { logNetwork("RecordActivity", "Success") }
-            .onFailure { logNetwork("RecordActivity", "Failed") }
+    private suspend fun recordActivity(count: Int) {
+        recordStreakActivityUseCase(count)
+            .onSuccess { logNetwork("RecordActivity", "Success, count=$count") }
+            .onFailure { logNetwork("RecordActivity", "Failed, count=$count") }
     }
 
     // === TTS Functionality ===
@@ -298,9 +293,4 @@ class StudyViewModel(
             ?: languageCode
     }
 
-    fun stopSpeaking() {
-        viewModelScope.launch {
-            stopSpeakingUseCase()
-        }
-    }
 }

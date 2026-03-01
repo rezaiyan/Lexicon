@@ -111,19 +111,19 @@
     <string name="view_stats">View Stats</string>
     <string name="ready_to_learn">Ready to Learn?</string>
     <string name="ready_to_learn_subtitle">Import your first words and start building your vocabulary.</string>
-    <string name="lets_go">Let\'s Go!</string>
+    <string name="lets_go">Let's Go!</string>
     <string name="almost_a_master">So Close!</string>
     <string name="almost_a_master_subtitle">Just a few more words to unlock full mastery!</string>
     <string name="getting_started">Off to a Great Start!</string>
-    <string name="getting_started_subtitle">The hardest part is starting — and you\'ve done it!</string>
+    <string name="getting_started_subtitle">The hardest part is starting — and you've done it!</string>
     <string name="building_foundation">Gaining Momentum!</string>
     <string name="building_foundation_subtitle">Your practice is paying off. Words are starting to stick!</string>
     <string name="over_halfway">Halfway There!</string>
     <string name="over_halfway_subtitle">More than half mastered. The best is yet to come!</string>
     <string name="strong_knowledge">Crushing It!</string>
-    <string name="strong_knowledge_subtitle">You\'re in the home stretch — mastery is within reach!</string>
+    <string name="strong_knowledge_subtitle">You're in the home stretch — mastery is within reach!</string>
     <string name="fully_mastered">Word Master!</string>
-    <string name="fully_mastered_subtitle">Every single word mastered. You\'ve earned this!</string>
+    <string name="fully_mastered_subtitle">Every single word mastered. You've earned this!</string>
     <string name="queue_is_empty">Queue is Empty</string>
     <string name="everything_reviewed">Everything is reviewed!</string>
     <string name="refresh">Refresh</string>
@@ -475,8 +475,8 @@
     <string name="import_manually">Manually</string>
     <string name="ai_assistant">AI Assistant</string>
     <string name="ai_wizard_target_language">Which language do you want to learn?</string>
-    <string name="ai_wizard_native_language">What\'s your native language?</string>
-    <string name="ai_wizard_level">What\'s your level?</string>
+    <string name="ai_wizard_native_language">What's your native language?</string>
+    <string name="ai_wizard_level">What's your level?</string>
     <string name="ai_wizard_topics">What topics interest you?</string>
     <string name="ai_wizard_generate_words">Generate Words</string>
     <string name="ai_wizard_add_to_library">Add to Library</string>
@@ -517,5 +517,22 @@
     <string name="starter_vocabulary">Starter Vocabulary</string>
     <string name="accept">Accept</string>
     <string name="deny">Deny</string>
+
+    <!-- Edit Profile -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="username">Username</string>
+    <string name="username_hint">Choose a username</string>
+    <string name="username_description">2-30 characters: letters, numbers, spaces, underscores, hyphens</string>
+    <string name="change_photo">Change Photo</string>
+    <string name="remove_photo">Remove Photo</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="profile_updated">Profile updated</string>
+
+    <!-- Leaderboard -->
+    <string name="leaderboard">Leaderboard</string>
+    <string name="leaderboard_current_streak">Current Streak</string>
+    <string name="leaderboard_longest_streak">Longest Streak</string>
+    <string name="leaderboard_mastered">Mastered</string>
+    <string name="leaderboard_your_ranking">Your Ranking</string>
 </resources>
 

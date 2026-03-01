@@ -5,7 +5,7 @@ import domain.streak.model.StreakData
 
 interface IStreakRepository {
     suspend fun getStreak(): Try<StreakData>
-    suspend fun recordActivity(): Try<StreakData>
+    suspend fun recordActivity(count: Int): Try<StreakData>
 }
 
 

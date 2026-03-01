@@ -69,6 +69,8 @@ import presentation.model.UiMessage
 import presentation.ui.components.AnimatedNavIcon
 import presentation.ui.overlay.OverlayHostContainer
 import presentation.ui.screens.AuthGateScreen
+import presentation.ui.screens.EditProfileScreen
+import presentation.ui.screens.LeaderboardScreen
 import presentation.ui.screens.OnboardingScreen
 import presentation.ui.screens.ProfileScreen
 import presentation.ui.screens.SettingsScreen
@@ -412,7 +414,26 @@ private fun NavigationGraph(
         }
     ) {
         composable<TabDestination.Profile> {
-            ProfileScreen()
+            ProfileScreen(
+                onNavigateToLeaderboard = {
+                    navController.navigate(TabDestination.Leaderboard)
+                },
+                onNavigateToEditProfile = {
+                    navController.navigate(TabDestination.EditProfile)
+                }
+            )
+        }
+
+        composable<TabDestination.Leaderboard> {
+            LeaderboardScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable<TabDestination.EditProfile> {
+            EditProfileScreen(
+                onNavigateBack = { navController.navigateUp() }
+            )
         }
 
         composable<TabDestination.Study> {

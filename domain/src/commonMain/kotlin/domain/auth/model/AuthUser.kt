@@ -9,7 +9,9 @@ data class AuthUser(
     val name: String,
     val subscriptionStatus: SubscriptionStatus = SubscriptionStatus.FREE,
     val subscriptionExpiresAt: String? = null,
-    val currentStreak: Int = 0
+    val currentStreak: Int = 0,
+    val displayAlias: String? = null,
+    val profileImageUrl: String? = null
 )
 
 enum class SubscriptionStatus {

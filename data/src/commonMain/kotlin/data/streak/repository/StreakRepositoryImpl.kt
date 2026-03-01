@@ -24,8 +24,8 @@ class StreakRepositoryImpl(
         )
     }
 
-    override suspend fun recordActivity(): Try<StreakData> {
-        return streakRemoteDataSource.recordActivity().fold(
+    override suspend fun recordActivity(count: Int): Try<StreakData> {
+        return streakRemoteDataSource.recordActivity(count).fold(
             onSuccess = { streakResponse ->
                 val streakData = StreakData(
                     currentStreak = streakResponse.currentStreak

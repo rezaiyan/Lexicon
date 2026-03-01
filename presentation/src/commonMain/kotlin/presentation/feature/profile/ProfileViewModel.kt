@@ -207,11 +207,10 @@ private fun DayActivity.toUiModel(todayStr: String): DayActivityUiModel {
         DayOfWeek.FRIDAY -> "FRI"
         DayOfWeek.SATURDAY -> "SAT"
         DayOfWeek.SUNDAY -> "SUN"
-        else -> ""
     }
     return DayActivityUiModel(
         date = date,
-        dayOfMonth = localDate.dayOfMonth,
+        dayOfMonth = localDate.day,
         dayOfWeekLabel = dayOfWeekLabel,
         reviewCount = reviewCount,
         isToday = date == todayStr

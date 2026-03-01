@@ -11,7 +11,9 @@ internal fun UserDto.toDomain(): AuthUser {
         name = this.name,
         subscriptionStatus = SubscriptionStatus.valueOf(this.subscriptionStatus),
         subscriptionExpiresAt = this.subscriptionExpiresAt,
-        currentStreak = this.currentStreak
+        currentStreak = this.currentStreak,
+        displayAlias = this.displayAlias,
+        profileImageUrl = this.profileImageUrl
     )
 }
 

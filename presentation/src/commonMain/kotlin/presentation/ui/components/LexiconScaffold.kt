@@ -4,6 +4,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -86,7 +87,7 @@ fun LexiconColumn(
             }
         }
     } else {
-        Column {
+        Column(Modifier.fillMaxSize()) {
             if (hasTopBar) {
                 FlexibleTopBar(
                     title = title,
@@ -100,7 +101,9 @@ fun LexiconColumn(
             }
             Box(
                 modifier = Modifier
-                    .fillMaxWidth().padding(horizontal = Theme.spacing.medium)
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = Theme.spacing.medium)
             ) {
                 content()
             }
