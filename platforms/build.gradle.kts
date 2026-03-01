@@ -99,6 +99,10 @@ kotlin {
         iosMain.dependencies {
             implementation(project(":core"))
         }
+
+        wasmJsMain.dependencies {
+            implementation(project(":core"))
+        }
     }
 }
 
