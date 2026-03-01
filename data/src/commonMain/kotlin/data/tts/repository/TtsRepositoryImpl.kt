@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import tts.IModelFileManager
 import tts.ITtsEngine
 
@@ -60,26 +62,24 @@ class TtsRepositoryImpl(
         return modelFileManager.isModelPresent(languageCode)
     }
 
-    override suspend fun downloadModel(languageCode: String): Flow<Float> = flow {
+    override suspend fun downloadModel(languageCode: String): Flow<Float> {
         val modelInfo = LanguageModelMapping.getModelInfo(languageCode)
         if (modelInfo == null) {
             _ttsState.value = TtsState.Error("No model available for $languageCode")
-            return@flow
+            return flow {}
         }
 
         _ttsState.value = TtsState.Downloading(languageCode, 0f)
 
-        modelFileManager.downloadAndExtractModel(
+        return modelFileManager.downloadAndExtractModel(
             archiveUrl = modelInfo.archiveUrl,
             languageCode = languageCode,
             extractedDirName = modelInfo.extractedDirName
-        ).collect { progress ->
+        ).onEach { progress ->
             _ttsState.value = TtsState.Downloading(languageCode, progress)
-            emit(progress)
+        }.onCompletion {
+            _ttsState.value = TtsState.Idle
         }
-
-        _ttsState.value = TtsState.Idle
-        emit(1f)
     }
 
     override fun isLanguageSupported(languageCode: String): Boolean {
