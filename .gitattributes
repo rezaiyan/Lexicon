@@ -1,0 +1,2 @@
+platforms/libs/sherpa-onnx-1.12.26.aar filter=lfs diff=lfs merge=lfs -text
+platforms/libs/build-ios/**/*.a filter=lfs diff=lfs merge=lfs -text

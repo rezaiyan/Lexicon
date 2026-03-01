@@ -30,6 +30,4 @@ fastlane/report.xml
 *credential*
 *.bak
 
-# TTS native binaries (downloaded via scripts/download-tts-libs.sh)
-*.a
-*.aar
+# TTS native binaries are tracked via Git LFS (see .gitattributes)

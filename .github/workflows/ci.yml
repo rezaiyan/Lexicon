@@ -43,6 +43,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config
@@ -84,6 +86,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config
@@ -116,6 +120,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config
@@ -156,6 +162,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config
@@ -268,6 +276,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config
@@ -297,6 +307,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config
