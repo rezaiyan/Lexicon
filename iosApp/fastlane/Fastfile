@@ -105,6 +105,7 @@ platform :ios do
       output_name: "Lexicon.ipa",
       clean: true,
       include_bitcode: false,
+      cloned_source_packages_path: "./SourcePackages",
       export_options: {
         signingStyle: "manual",
         provisioningProfiles: {

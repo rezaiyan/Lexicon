@@ -357,6 +357,7 @@ jobs:
         run: |
           rm -rf ~/Library/Developer/Xcode/DerivedData
           rm -rf ~/Library/Caches/org.swift.swiftpm
+          rm -rf ~/Library/org.swift.swiftpm
 
       - name: Upload to TestFlight
         env:
