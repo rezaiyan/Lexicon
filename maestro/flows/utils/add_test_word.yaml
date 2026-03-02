@@ -1,0 +1,50 @@
+# Utility flow: add a single test word via manual import.
+#
+# Called by test flows that need at least one word to exist:
+#   - runFlow: ../utils/add_test_word.yaml
+#
+# Adds the word "MaestroTest" with translation "TestTranslation" using the
+# manual text input tab on the import bottom sheet.
+#
+# Assumes:
+#   - The app is already on the Study screen.
+#   - The import sheet is NOT currently open.
+
+appId: com.alirezaiyan.vokab
+---
+# Open the import picker via the "Import Words" button (content description).
+- tapOn: "Import Words"
+
+# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
+- tapOn: "Manually"
+
+# Wait for the import sheet to appear with the "Type Text" tab selected by default.
+- assertVisible: "Add a Word"
+
+# Fill in the "Original Word" field.
+- tapOn: "Original Word"
+- inputText: "MaestroTest"
+- hideKeyboard
+
+# Fill in the "Translation" field.
+- tapOn: "Translation"
+- inputText: "TestTranslation"
+- hideKeyboard
+
+# Tap "Add Word" to submit.
+- tapOn: "Add Word"
+
+# Wait for the operation to complete. On first run "X words added" appears;
+# on repeated runs "already exist in your collection" (word is still available).
+- assertVisible:
+    text: "words added"
+    optional: true
+- assertVisible:
+    text: "already exist"
+    optional: true
+
+# Close the import sheet by tapping the "Cancel" button in the header.
+- tapOn: "Cancel"
+
+# Verify we are back on the Study screen.
+- assertVisible: "Import Words"

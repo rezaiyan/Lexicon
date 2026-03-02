@@ -1,0 +1,19 @@
+# Utility flow: navigate from the main app to the Study screen.
+#
+# Called by study and import test flows via:
+#   - runFlow: ../utils/navigate_to_study.yaml
+#
+# Assumes:
+#   - The app is already running (launched by the calling flow).
+#   - The user is authenticated and the main app is visible (Study/Settings/Profile tabs).
+#   - The device is not in a dialog or overlay state.
+
+appId: com.alirezaiyan.vokab
+---
+# Navigate to the Study tab via the bottom navigation bar.
+- tapOn:
+    text: "Study"
+
+# Verify the Study screen is open by checking for the "Import Words" button
+# (content description). This button is always present on the Study screen.
+- assertVisible: "Import Words"

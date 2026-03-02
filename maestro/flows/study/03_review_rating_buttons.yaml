@@ -1,0 +1,50 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - review
+  - rating
+---
+# Test: Rating buttons appear after card flip during review.
+#
+# Verifies that the "Tap card to reveal" hint is shown before flipping,
+# and that "Did you get it?", "Nope", and "Got it!" buttons appear after flip.
+#
+# Requires: At least one word exists in the library (previous test adds one).
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Start a review session.
+- tapOn: "Start Review"
+
+# Before flipping: the hint must be visible.
+- assertVisible: "Tap card to reveal"
+
+# Note: Rating buttons use graphicsLayer alpha animation, so they remain in the
+# accessibility tree even when visually hidden. We skip assertNotVisible checks
+# and instead verify they become interactable after flipping.
+
+# Flip the card by tapping the card area.
+- tapOn:
+    point: "50%,40%"
+
+# After flipping: the rating prompt must appear.
+- assertVisible: "Did you get it?"
+
+# Both rating buttons must be visible.
+- assertVisible: "Nope"
+- assertVisible: "Got it!"
+
+# Close the review without rating to avoid modifying word state.
+- tapOn: "Close"
+
+# The exit confirmation dialog must appear.
+- assertVisible: "Exit Review?"
+
+# Confirm exit.
+- tapOn: "Yes, Exit"
+
+# We should be back on the Study screen.
+- assertVisible: "Import Words"

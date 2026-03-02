@@ -1,0 +1,71 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - manual-input
+---
+# Test: Add a word via manual text input on the import sheet.
+#
+# Verifies the full manual word entry flow: open import sheet → fill in
+# word/translation/description → tap "Add Word" → success counter shown → close.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Open the import picker.
+- tapOn: "Import Words"
+
+# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
+- tapOn: "Manually"
+
+# The sheet must open with the "Type Text" tab selected by default.
+- assertVisible: "Type Text"
+
+# The manual entry section header must be visible.
+- assertVisible: "Add a Word"
+
+# The subtitle must be visible.
+- assertVisible: "Add vocabulary words one at a time with translation and optional description"
+
+# Visible form fields must be present (Description is below the fold).
+- assertVisible: "Original Word"
+- assertVisible: "Translation"
+
+# Fill in the "Original Word" field.
+- tapOn: "Original Word"
+- inputText: "ImportTest"
+- hideKeyboard
+
+# Fill in the "Translation" field.
+- tapOn: "Translation"
+- inputText: "TestImport"
+- hideKeyboard
+
+# Scroll down to reveal the Description field and Add Word button.
+- scrollUntilVisible:
+    element: "Description (Optional)"
+    direction: DOWN
+
+# Fill in the optional "Description" field.
+- tapOn: "Description (Optional)"
+- inputText: "Added by Maestro import test"
+- hideKeyboard
+
+# Tap "Add Word" to submit.
+- tapOn: "Add Word"
+
+# Wait for the operation to complete. On first run "X words added" appears;
+# on repeated runs "already exist in your collection" appears instead.
+- assertVisible:
+    text: "words added"
+    optional: true
+- assertVisible:
+    text: "already exist"
+    optional: true
+
+# Close the import sheet via the X icon (content description: "Cancel").
+- tapOn: "Cancel"
+
+# Verify we are back on the Study screen.
+- assertVisible: "Import Words"

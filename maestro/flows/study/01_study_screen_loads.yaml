@@ -1,0 +1,33 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - smoke
+---
+# Test: Study screen loads with core UI elements visible.
+#
+# Verifies that navigating to the Study screen from the bottom nav renders
+# the import button — regardless of whether the word library is empty or
+# populated. State-specific elements are checked with optional assertions.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# The "Import Words" button must always be visible (content description).
+- assertVisible: "Import Words"
+
+# Empty state: "Ready to Learn?" heading may be visible if no words exist.
+- assertVisible:
+    text: "Ready to Learn?"
+    optional: true
+
+# Populated state: "Start Review" button may be visible if due words exist.
+- assertVisible:
+    text: "Start Review"
+    optional: true
+
+# Populated state: "Review Due Cards" may be visible as an alternative label.
+- assertVisible:
+    text: "Review Due Cards"
+    optional: true

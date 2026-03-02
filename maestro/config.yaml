@@ -1,11 +1,17 @@
 # Maestro Workspace Configuration — CLI 2.2.0+
 # Docs: https://docs.maestro.dev
 #
-# Run all word manager flows:
+# Run all flows:
 #   maestro test maestro/
+#
+# Run a single category:
+#   maestro test maestro/flows/word_manager/
+#   maestro test maestro/flows/import/
+#   maestro test maestro/flows/study/
 #
 # Run a single flow:
 #   maestro test maestro/flows/word_manager/01_screen_loads.yaml
+#   maestro test maestro/flows/study/02_edit_word_from_review.yaml
 #
 # Prerequisites:
 #   1. Install Maestro CLI:
@@ -19,11 +25,22 @@
 #   5. Ensure the device is not locked / screen is on.
 
 flows:
+  - "flows/import/*.yaml"
+  - "flows/study/*.yaml"
   - "flows/word_manager/*.yaml"
 
 executionOrder:
   continueOnFailure: false
   flowsOrder:
+    # Import tests run first (create test data for subsequent tests)
+    - flows/import/01_manual_text_input.yaml
+    - flows/import/02_file_import_ui.yaml
+    - flows/import/03_import_sheet_tabs.yaml
+    # Study/review tests run after (need words to exist)
+    - flows/study/01_study_screen_loads.yaml
+    - flows/study/02_edit_word_from_review.yaml
+    - flows/study/03_review_rating_buttons.yaml
+    # Word manager tests run last
     - flows/word_manager/01_screen_loads.yaml
     - flows/word_manager/02_empty_state.yaml
     - flows/word_manager/03_search_functionality.yaml

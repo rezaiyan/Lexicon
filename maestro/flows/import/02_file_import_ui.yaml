@@ -1,0 +1,53 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - file-import
+---
+# Test: File import tab renders correct UI elements.
+#
+# Switches to the "From File" tab and verifies that all static UI elements
+# are displayed. Does NOT automate the system file picker (not possible
+# in Maestro), so this is a UI verification test only.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Open the import picker.
+- tapOn: "Import Words"
+
+# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
+- tapOn: "Manually"
+
+# The sheet must open with the "Type Text" tab.
+- assertVisible: "Type Text"
+
+# Switch to the "From File" tab.
+- tapOn: "From File"
+
+# The file import section header must be visible.
+- assertVisible: "Import from File"
+
+# The description subtitle must be visible.
+- assertVisible: "Select a .txt file containing your vocabulary list"
+
+# The "Choose File" button must be present.
+- assertVisible: "Choose File"
+
+# The file format badge must be visible.
+- assertVisible: ".txt format"
+
+# The supported format section must be visible.
+- assertVisible: "Supported Format"
+
+# Format examples must be shown (each prefixed with "• " in the UI).
+- assertVisible: "• word,translation"
+- assertVisible: "• word,translation,description"
+- assertVisible: "• Separated by semicolons or new lines"
+
+# Close the import sheet.
+- tapOn: "Cancel"
+
+# Verify we are back on the Study screen.
+- assertVisible: "Import Words"

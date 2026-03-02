@@ -1,0 +1,51 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - tabs
+---
+# Test: Import sheet tab switching works correctly.
+#
+# Verifies that all three import tabs — "Type Text", "From File", "From Image" —
+# can be selected and each displays its unique content.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Open the import picker.
+- tapOn: "Import Words"
+
+# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
+- tapOn: "Manually"
+
+# --- Tab 1: "Type Text" (default) ---
+- assertVisible: "Type Text"
+- assertVisible: "Add a Word"
+
+# --- Tab 2: Switch to "From File" ---
+- tapOn: "From File"
+- assertVisible: "Import from File"
+
+# "Type Text" content must no longer be shown.
+- assertNotVisible: "Add a Word"
+
+# --- Tab 3: Switch to "From Image" ---
+- tapOn: "From Image"
+- assertVisible: "AI-Powered Extraction"
+
+# "From File" content must no longer be shown.
+- assertNotVisible: "Import from File"
+
+# --- Back to Tab 1: Switch to "Type Text" ---
+- tapOn: "Type Text"
+- assertVisible: "Add a Word"
+
+# "From Image" content must no longer be shown.
+- assertNotVisible: "AI-Powered Extraction"
+
+# Close the import sheet.
+- tapOn: "Cancel"
+
+# Verify we are back on the Study screen.
+- assertVisible: "Import Words"

@@ -1,0 +1,134 @@
+name: Maestro UI Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: maestro-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
+  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
+  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
+  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
+  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
+  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
+  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
+  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
+  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+
+jobs:
+  maestro:
+    name: Maestro UI Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: ./gradlew composeApp:assembleDebug --stacktrace
+
+      - name: Install Maestro CLI
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Obtain CI auth tokens
+        id: ci-auth
+        env:
+          CI_TEST_SECRET: ${{ secrets.CI_TEST_SECRET }}
+        run: |
+          RESPONSE=$(curl -sf -X POST \
+            "${{ secrets.VOKAB_BACKEND_URL }}/api/v1/auth/ci-token" \
+            -H "X-CI-Secret: $CI_TEST_SECRET" \
+            -H "Content-Type: application/json")
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.data.accessToken')
+          REFRESH_TOKEN=$(echo "$RESPONSE" | jq -r '.data.refreshToken')
+          EXPIRES_IN=$(echo "$RESPONSE" | jq -r '.data.expiresIn')
+
+          if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "null" ]; then
+            echo "::error::Failed to obtain CI auth tokens"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+          # Mask tokens so they never appear in logs
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "::add-mask::$REFRESH_TOKEN"
+
+          echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+          echo "refresh_token=$REFRESH_TOKEN" >> $GITHUB_OUTPUT
+          echo "expires_in=$EXPIRES_IN" >> $GITHUB_OUTPUT
+
+      - name: Run Maestro tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          heap-size: 512M
+          ram-size: 4096M
+          disk-size: 8G
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            # Install the debug APK
+            adb install composeApp/build/outputs/apk/debug/*.apk
+
+            # Launch the app briefly so Koin initializes
+            adb shell am start -n com.alirezaiyan.vokab/.MainActivity
+            sleep 8
+
+            # Inject CI auth tokens via broadcast
+            adb shell am broadcast \
+              -a com.alirezaiyan.vokab.CI_INJECT_TOKENS \
+              -n com.alirezaiyan.vokab/com.alirezaiyan.vokab.CiTokenReceiver \
+              --es accessToken "${{ steps.ci-auth.outputs.access_token }}" \
+              --es refreshToken "${{ steps.ci-auth.outputs.refresh_token }}" \
+              --el expiresInMs "${{ steps.ci-auth.outputs.expires_in }}"
+
+            # Force-stop and let Maestro launch the app fresh with valid auth state
+            adb shell am force-stop com.alirezaiyan.vokab
+
+            # Run Maestro tests
+            maestro test maestro/
+
+      - name: Upload Maestro artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: maestro-artifacts
+          path: |
+            ~/.maestro/tests/
+          retention-days: 7
