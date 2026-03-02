@@ -54,7 +54,6 @@ fun presentationModule() = module {
             loginWithGoogleUseCase = get(),
             loginWithAppleUseCase = get(),
             logoutUseCase = get(),
-            deleteAccountUseCase = get(),
             isAuthenticatedUseCase = get(),
             verifySessionUseCase = get(),
             syncRemoteToLocalUseCase = get(),

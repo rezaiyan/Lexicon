@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthState
 import domain.auth.repository.SessionVerificationResult
-import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
@@ -36,7 +35,6 @@ class AuthViewModel(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val loginWithAppleUseCase: LoginWithAppleUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val deleteAccountUseCase: DeleteAccountUseCase,
     private val isAuthenticatedUseCase: IsAuthenticatedUseCase,
     private val verifySessionUseCase: VerifySessionUseCase,
     private val syncRemoteToLocalUseCase: SyncRemoteToLocalUseCase,
