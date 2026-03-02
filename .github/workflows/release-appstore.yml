@@ -1,137 +1,137 @@
-name: Release to App Store
-
-on:
-  workflow_dispatch:
-    inputs:
-      skip_validation:
-        description: 'Skip validation step (not recommended)'
-        required: false
-        default: 'false'
-        type: choice
-        options:
-          - 'false'
-          - 'true'
-
-env:
-  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
-  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
-  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
-  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
-  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
-  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
-  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
-  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
-  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
-  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
-  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
-  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
-  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
-  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
-  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
-  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
-  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
-
-jobs:
-  release-appstore:
-    name: Build & Release iOS to App Store
-    runs-on: macos-26
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Initialize configuration
-        uses: ./.github/actions/init-config
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          architecture: 'aarch64'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Set up Xcode
-        run: xcodebuild -version
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: iosApp
-
-      - name: Install Fastlane
-        run: |
-          cd iosApp
-          bundle install
-
-      - name: Set up certificates and provisioning profiles
-        uses: ./.github/actions/ios-cert-setup
-        with:
-          certificate_base64: ${{ secrets.IOS_CERTIFICATES_P12_BASE64 }}
-          certificate_password: ${{ secrets.IOS_CERTIFICATES_PASSWORD }}
-          provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
-
-      - name: Build Kotlin Multiplatform Framework
-        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
-
-      - name: Clean Xcode derived data and SPM cache
-        run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          rm -rf ~/Library/Caches/org.swift.swiftpm
-
-      - name: Build, validate, and upload to App Store
-        env:
-          FASTLANE_USER: ${{ secrets.APPLE_ID }}
-          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
-          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
-          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 10
-          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 6
-        run: |
-          # Save App Store Connect API Key
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
-
-          # Set the API key path for Fastlane
-          export APP_STORE_CONNECT_API_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-
-          cd iosApp
-          bundle exec fastlane release
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: ios-appstore-ipa
-          path: iosApp/build/*.ipa
-          retention-days: 30
-
-      - name: Create deployment summary
-        run: |
-          echo "## 🎉 iOS App Store Deployment Successful" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The app has been uploaded to App Store Connect." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
-          echo "1. Go to [App Store Connect](https://appstoreconnect.apple.com)" >> $GITHUB_STEP_SUMMARY
-          echo "2. Select your app (Lexicon)" >> $GITHUB_STEP_SUMMARY
-          echo "3. Navigate to the new version" >> $GITHUB_STEP_SUMMARY
-          echo "4. Fill in 'What's New' and verify metadata" >> $GITHUB_STEP_SUMMARY
-          echo "5. Add screenshots if needed" >> $GITHUB_STEP_SUMMARY
-          echo "6. Submit for review when ready" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Build Information" >> $GITHUB_STEP_SUMMARY
-          echo "- **Workflow Run:** [${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+#name: Release to App Store
+#
+#on:
+#  workflow_dispatch:
+#    inputs:
+#      skip_validation:
+#        description: 'Skip validation step (not recommended)'
+#        required: false
+#        default: 'false'
+#        type: choice
+#        options:
+#          - 'false'
+#          - 'true'
+#
+#env:
+#  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+#  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+#  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+#  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
+#  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+#  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
+#  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+#  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+#  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
+#  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+#  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
+#  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
+#  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
+#  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
+#  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+#  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
+#  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
+#  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+#  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+#
+#jobs:
+#  release-appstore:
+#    name: Build & Release iOS to App Store
+#    runs-on: macos-26
+#    if: github.ref == 'refs/heads/main'
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Initialize configuration
+#        uses: ./.github/actions/init-config
+#
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: '17'
+#          architecture: 'aarch64'
+#
+#      - name: Setup Gradle
+#        uses: gradle/actions/setup-gradle@v4
+#
+#      - name: Set up Xcode
+#        run: xcodebuild -version
+#
+#      - name: Set up Ruby
+#        uses: ruby/setup-ruby@v1
+#        with:
+#          ruby-version: '3.2'
+#          bundler-cache: true
+#          working-directory: iosApp
+#
+#      - name: Install Fastlane
+#        run: |
+#          cd iosApp
+#          bundle install
+#
+#      - name: Set up certificates and provisioning profiles
+#        uses: ./.github/actions/ios-cert-setup
+#        with:
+#          certificate_base64: ${{ secrets.IOS_CERTIFICATES_P12_BASE64 }}
+#          certificate_password: ${{ secrets.IOS_CERTIFICATES_PASSWORD }}
+#          provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+#
+#      - name: Build Kotlin Multiplatform Framework
+#        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
+#
+#      - name: Clean Xcode derived data and SPM cache
+#        run: |
+#          rm -rf ~/Library/Developer/Xcode/DerivedData
+#          rm -rf ~/Library/Caches/org.swift.swiftpm
+#
+#      - name: Build, validate, and upload to App Store
+#        env:
+#          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+#          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+#          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+#          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+#          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+#          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+#          APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
+#          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+#          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 10
+#          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 6
+#        run: |
+#          # Save App Store Connect API Key
+#          mkdir -p ~/.appstoreconnect/private_keys
+#          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+#
+#          # Set the API key path for Fastlane
+#          export APP_STORE_CONNECT_API_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+#
+#          cd iosApp
+#          bundle exec fastlane release
+#
+#      - name: Upload IPA artifact
+#        uses: actions/upload-artifact@v7
+#        with:
+#          name: ios-appstore-ipa
+#          path: iosApp/build/*.ipa
+#          retention-days: 30
+#
+#      - name: Create deployment summary
+#        run: |
+#          echo "## 🎉 iOS App Store Deployment Successful" >> $GITHUB_STEP_SUMMARY
+#          echo "" >> $GITHUB_STEP_SUMMARY
+#          echo "The app has been uploaded to App Store Connect." >> $GITHUB_STEP_SUMMARY
+#          echo "" >> $GITHUB_STEP_SUMMARY
+#          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+#          echo "1. Go to [App Store Connect](https://appstoreconnect.apple.com)" >> $GITHUB_STEP_SUMMARY
+#          echo "2. Select your app (Lexicon)" >> $GITHUB_STEP_SUMMARY
+#          echo "3. Navigate to the new version" >> $GITHUB_STEP_SUMMARY
+#          echo "4. Fill in 'What's New' and verify metadata" >> $GITHUB_STEP_SUMMARY
+#          echo "5. Add screenshots if needed" >> $GITHUB_STEP_SUMMARY
+#          echo "6. Submit for review when ready" >> $GITHUB_STEP_SUMMARY
+#          echo "" >> $GITHUB_STEP_SUMMARY
+#          echo "### Build Information" >> $GITHUB_STEP_SUMMARY
+#          echo "- **Workflow Run:** [${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+#          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+#          echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
