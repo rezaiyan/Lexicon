@@ -68,18 +68,28 @@ jobs:
         id: ci-auth
         env:
           CI_TEST_SECRET: ${{ secrets.CI_TEST_SECRET }}
+          BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
         run: |
-          RESPONSE=$(curl -sf -X POST \
-            "${{ secrets.VOKAB_BACKEND_URL }}/api/v1/auth/ci-token" \
+          HTTP_CODE=$(curl -s -o /tmp/ci-auth-response.json -w "%{http_code}" \
+            -X POST "${BACKEND_URL}/api/v1/auth/ci-token" \
             -H "X-CI-Secret: $CI_TEST_SECRET" \
             -H "Content-Type: application/json")
+
+          RESPONSE=$(cat /tmp/ci-auth-response.json)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::CI auth endpoint returned HTTP $HTTP_CODE"
+            echo "URL: ${BACKEND_URL}/api/v1/auth/ci-token"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
 
           ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.data.accessToken')
           REFRESH_TOKEN=$(echo "$RESPONSE" | jq -r '.data.refreshToken')
           EXPIRES_IN=$(echo "$RESPONSE" | jq -r '.data.expiresIn')
 
           if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "null" ]; then
-            echo "::error::Failed to obtain CI auth tokens"
+            echo "::error::Failed to parse tokens from response"
             echo "Response: $RESPONSE"
             exit 1
           fi
