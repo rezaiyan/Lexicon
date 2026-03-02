@@ -127,15 +127,16 @@ jobs:
             sleep 8
 
             # Inject CI auth tokens via broadcast
-            adb shell am broadcast \
-              -a com.alirezaiyan.vokab.CI_INJECT_TOKENS \
-              -n com.alirezaiyan.vokab/com.alirezaiyan.vokab.CiTokenReceiver \
-              --es accessToken "${{ steps.ci-auth.outputs.access_token }}" \
-              --es refreshToken "${{ steps.ci-auth.outputs.refresh_token }}" \
-              --el expiresInMs "${{ steps.ci-auth.outputs.expires_in }}"
+            ACCESS_TOKEN="${{ steps.ci-auth.outputs.access_token }}"
+            REFRESH_TOKEN="${{ steps.ci-auth.outputs.refresh_token }}"
+            EXPIRES_IN="${{ steps.ci-auth.outputs.expires_in }}"
+            adb shell am broadcast -a com.alirezaiyan.vokab.CI_INJECT_TOKENS -n com.alirezaiyan.vokab/com.alirezaiyan.vokab.CiTokenReceiver --es accessToken "$ACCESS_TOKEN" --es refreshToken "$REFRESH_TOKEN" --el expiresInMs "$EXPIRES_IN"
+
+            sleep 2
 
             # Force-stop and let Maestro launch the app fresh with valid auth state
             adb shell am force-stop com.alirezaiyan.vokab
+            sleep 2
 
             # Run Maestro tests
             maestro test maestro/
