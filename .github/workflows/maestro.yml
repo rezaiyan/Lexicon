@@ -70,7 +70,7 @@ jobs:
           CI_TEST_SECRET: ${{ secrets.CI_TEST_SECRET }}
           BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
         run: |
-          HTTP_CODE=$(curl -s -o /tmp/ci-auth-response.json -w "%{http_code}" \
+          HTTP_CODE=$(curl -sL -o /tmp/ci-auth-response.json -w "%{http_code}" \
             -X POST "${BACKEND_URL}/api/v1/auth/ci-token" \
             -H "X-CI-Secret: $CI_TEST_SECRET" \
             -H "Content-Type: application/json")
