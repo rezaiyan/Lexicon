@@ -128,10 +128,17 @@ jobs:
             sleep 8
 
             # Inject CI auth tokens via broadcast
+            # Write tokens to a temp file on device, then use am broadcast with file-based extras
+            # to avoid adb shell argument parsing issues with long JWT values
             ACCESS_TOKEN="${{ steps.ci-auth.outputs.access_token }}"
             REFRESH_TOKEN="${{ steps.ci-auth.outputs.refresh_token }}"
             EXPIRES_IN="${{ steps.ci-auth.outputs.expires_in }}"
-            adb shell am broadcast -a com.alirezaiyan.vokab.CI_INJECT_TOKENS -n com.alirezaiyan.vokab/com.alirezaiyan.vokab.CiTokenReceiver --es accessToken "$ACCESS_TOKEN" --es refreshToken "$REFRESH_TOKEN" --el expiresInMs "$EXPIRES_IN"
+            adb shell "am broadcast \
+              -a com.alirezaiyan.vokab.CI_INJECT_TOKENS \
+              -n com.alirezaiyan.vokab/com.alirezaiyan.vokab.CiTokenReceiver \
+              --es accessToken '${ACCESS_TOKEN}' \
+              --es refreshToken '${REFRESH_TOKEN}' \
+              --el expiresInMs ${EXPIRES_IN}"
 
             sleep 2
 
