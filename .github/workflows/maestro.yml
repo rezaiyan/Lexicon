@@ -120,16 +120,14 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           emulator-boot-timeout: 600
           script: |
-            # Install the debug APK
+            # --- 1. Install the debug APK ---
             adb install composeApp/build/outputs/apk/debug/*.apk
 
-            # Launch the app briefly so Koin initializes
+            # --- 2. Launch app so Koin DI initializes ---
             adb shell am start -n com.alirezaiyan.vokab/.MainActivity
             sleep 8
 
-            # Inject CI auth tokens via broadcast
-            # Write tokens to a temp file on device, then use am broadcast with file-based extras
-            # to avoid adb shell argument parsing issues with long JWT values
+            # --- 3. Inject CI auth tokens via broadcast ---
             ACCESS_TOKEN="${{ steps.ci-auth.outputs.access_token }}"
             REFRESH_TOKEN="${{ steps.ci-auth.outputs.refresh_token }}"
             EXPIRES_IN="${{ steps.ci-auth.outputs.expires_in }}"
@@ -139,15 +137,20 @@ jobs:
               --es accessToken '${ACCESS_TOKEN}' \
               --es refreshToken '${REFRESH_TOKEN}' \
               --el expiresInMs ${EXPIRES_IN}"
-
             sleep 2
 
-            # Force-stop and let Maestro launch the app fresh with valid auth state
+            # --- 4. Force-stop so Maestro launches the app fresh with valid auth state ---
             adb shell am force-stop com.alirezaiyan.vokab
             sleep 2
 
-            # Run Maestro tests
-            maestro test maestro/
+            # --- 5. Run Maestro tests ---
+            MAESTRO_EXIT=0
+            maestro test maestro/ || MAESTRO_EXIT=$?
+
+            # --- 6. Uninstall app for clean environment ---
+            adb uninstall com.alirezaiyan.vokab || true
+
+            exit $MAESTRO_EXIT
 
       - name: Upload Maestro artifacts
         if: failure()

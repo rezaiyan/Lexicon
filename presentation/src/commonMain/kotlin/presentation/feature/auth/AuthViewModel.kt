@@ -117,7 +117,13 @@ class AuthViewModel(
                 onComplete()
             }
             is SessionVerificationResult.ServerError -> {
-                _authState.value = _authState.value.copy(isLoading = false)
+                // Tokens exist locally (ServerError only occurs after token null-check passes
+                // in SessionRepositoryImpl). Network/server error doesn't mean tokens are invalid,
+                // so treat the user as authenticated to allow offline/degraded usage.
+                _authState.value = _authState.value.copy(
+                    isAuthenticated = true,
+                    isLoading = false
+                )
                 onComplete()
             }
         }
