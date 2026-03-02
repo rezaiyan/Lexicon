@@ -42,7 +42,8 @@ fun BasicAlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         BoxWithConstraints {
-            val maxDialogHeight = if (constraints.hasBoundedHeight) maxHeight * 0.85f else maxHeight
+            val hasBoundedHeight = constraints.hasBoundedHeight
+            val maxDialogHeight = if (hasBoundedHeight) maxHeight * 0.85f else 560.dp
             val shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius)
 
             Surface(
