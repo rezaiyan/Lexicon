@@ -137,18 +137,26 @@ jobs:
 
             # --- 5. Run Maestro tests ---
             MAESTRO_EXIT=0
-            maestro test maestro/ || MAESTRO_EXIT=$?
+            maestro test --format junit --output "$HOME/maestro-report.xml" --debug-output "$HOME/maestro-debug" --flatten-debug-output maestro/ || MAESTRO_EXIT=$?
 
             # --- 6. Uninstall app for clean environment ---
             adb uninstall com.alirezaiyan.vokab || true
 
             exit $MAESTRO_EXIT
 
+      - name: Publish test report
+        if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: ~/maestro-report.xml
+          check_name: Maestro Test Results
+
       - name: Upload Maestro artifacts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: maestro-artifacts
           path: |
-            ~/.maestro/tests/
+            ~/maestro-report.xml
+            ~/maestro-debug/
           retention-days: 7
