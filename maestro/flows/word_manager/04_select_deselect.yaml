@@ -3,7 +3,7 @@ tags:
   - word-manager
   - selection
 ---
-# Test: Multi-select — Select All and Deselect All work correctly.
+# Test: Multi-select — entering selection mode, Select All, and deselect toggle.
 #
 # Requires: At least one word exists in the library so that WordListContent is rendered.
 
@@ -15,26 +15,35 @@ tags:
 # Verify we are in the word list (not empty state).
 - assertVisible: "Search words..."
 
-# Initially no words are selected; the count shows "X items" (no selection indicator).
-- assertNotVisible: "selected"
+# Initially no words are selected; the selection bar is not visible.
+- assertNotVisible:
+    text: ".*selected.*"
 
-# The "Select All" button must be present in the selection bar.
+# Long press a word card to enter selection mode.
+# This selects one word and shows the bottom SelectionActionBar.
+- longPressOn:
+    text: "MaestroTest"
+
+# The bottom selection bar should appear showing the selected count (e.g. "1 selected").
+- assertVisible:
+    text: ".*selected.*"
+
+# The "Select All" icon button must be present (content description "Select All").
 - assertVisible: "Select All"
 
-# Tap "Select All" to select every word.
+# Tap "Select All" to select every word in the list.
 - tapOn: "Select All"
 
-# After selecting all, the button label switches to "Deselect All".
-- assertVisible: "Deselect All"
+# All words should now be selected; the count text still contains "selected".
+- assertVisible:
+    text: ".*selected.*"
 
-# The selection counter must show "X / X selected" format. Plain string = substring match.
-- assertVisible: "selected"
+# Tap "Select All" again — it toggles to deselect all since every word is selected.
+- tapOn: "Select All"
 
-# Tap "Deselect All" to clear all selections.
-- tapOn: "Deselect All"
+# After deselecting all, selection mode exits and the bar disappears.
+- assertNotVisible:
+    text: ".*selected.*"
 
-# After deselecting, "Select All" must be visible again.
-- assertVisible: "Select All"
-
-# No word should remain selected.
-- assertNotVisible: "selected"
+# Word list is still visible after exiting selection mode.
+- assertVisible: "Search words..."

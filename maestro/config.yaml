@@ -1,33 +1,32 @@
 # Maestro Workspace Configuration — CLI 2.2.0+
 # Docs: https://docs.maestro.dev
 #
-# Run all flows:
+# Recommended: use the wrapper script that handles install, auth, test, and cleanup:
+#   ./maestro/run.sh                          # all flows
+#   ./maestro/run.sh maestro/flows/study/     # single category
+#   ./maestro/run.sh maestro/flows/word_manager/01_screen_loads.yaml  # single flow
+#
+# Manual run (if app is already installed and authenticated):
 #   maestro test maestro/
-#
-# Run a single category:
-#   maestro test maestro/flows/word_manager/
-#   maestro test maestro/flows/import/
-#   maestro test maestro/flows/study/
-#
-# Run a single flow:
-#   maestro test maestro/flows/word_manager/01_screen_loads.yaml
-#   maestro test maestro/flows/study/02_edit_word_from_review.yaml
 #
 # Prerequisites:
 #   1. Install Maestro CLI:
 #      curl -fsSL "https://get.maestro.mobile.dev" | bash
-#   2. Start an Android emulator or connect a device with USB debugging enabled.
-#   3. Install the debug APK:
+#   2. Build the debug APK:
 #      ./gradlew composeApp:assembleDebug
-#      adb install composeApp/build/outputs/apk/debug/*.apk
-#   4. Pre-authenticate the app on the device (sign in with Google/Apple once manually),
-#      since the app requires authentication and OAuth cannot be automated here.
-#   5. Ensure the device is not locked / screen is on.
+#   3. Start an Android emulator or connect a device with USB debugging enabled.
+#   4. Ensure the device is not locked / screen is on.
 
 flows:
   - "flows/import/*.yaml"
   - "flows/study/*.yaml"
-  - "flows/word_manager/*.yaml"
+  # 02_empty_state excluded: requires zero words but server-synced test account always has data.
+  - "flows/word_manager/01_screen_loads.yaml"
+  - "flows/word_manager/03_search_functionality.yaml"
+  - "flows/word_manager/04_select_deselect.yaml"
+  - "flows/word_manager/05_edit_word_dialog.yaml"
+  - "flows/word_manager/06_delete_flow.yaml"
+  - "flows/word_manager/07_back_navigation.yaml"
 
 executionOrder:
   continueOnFailure: false
@@ -42,7 +41,6 @@ executionOrder:
     - flows/study/03_review_rating_buttons.yaml
     # Word manager tests run last
     - flows/word_manager/01_screen_loads.yaml
-    - flows/word_manager/02_empty_state.yaml
     - flows/word_manager/03_search_functionality.yaml
     - flows/word_manager/04_select_deselect.yaml
     - flows/word_manager/05_edit_word_dialog.yaml

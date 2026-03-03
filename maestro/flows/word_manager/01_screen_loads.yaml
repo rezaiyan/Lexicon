@@ -22,10 +22,6 @@ tags:
 # The Navigate Back icon must be present (content description "Navigate back").
 - assertVisible: "Navigate back"
 
-# The Delete icon button must be present in the top bar (content description "Delete").
-# Maestro plain strings match both visible text and accessibility content descriptions.
-- assertVisible: "Delete"
-
 # Either the empty state or the word list must be shown — assert a landmark
 # from each via optional checks. At least one must be true.
 # Empty state:

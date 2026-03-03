@@ -65,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import components.EmptyScreen
@@ -253,7 +254,7 @@ internal fun SearchBar(
             leadingIcon = {
                 Icon(
                     Icons.Default.Search,
-                    contentDescription = stringResource(Res.string.search_words),
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -809,17 +810,27 @@ internal fun EmptyLibraryView() {
 
 @Composable
 private fun EmptySearchView() {
-    EmptyScreen(
-        title = stringResource(Res.string.no_results_found),
-        icon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.touchTarget),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    )
+    // Inline layout instead of EmptyScreen to avoid fillMaxSize/verticalScroll inside LazyColumn
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Theme.spacing.lg),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
+    ) {
+        Icon(
+            Icons.Default.Search,
+            contentDescription = null,
+            modifier = Modifier.size(Theme.dimensions.touchTarget),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = stringResource(Res.string.no_results_found),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable

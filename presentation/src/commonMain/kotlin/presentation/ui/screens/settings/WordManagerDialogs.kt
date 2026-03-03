@@ -9,11 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -100,8 +98,7 @@ internal fun EditWordDialog(
             Column(
                 modifier = Modifier
                     .padding(top = Theme.spacing.sm)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState()),
+                    .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
             ) {
                 OutlinedTextField(

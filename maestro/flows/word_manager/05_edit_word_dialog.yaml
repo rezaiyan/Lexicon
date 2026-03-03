@@ -3,8 +3,8 @@ tags:
   - word-manager
   - edit
 ---
-# Test: Tapping the Edit button opens the Edit Word dialog with correct fields,
-# and the Cancel button dismisses the dialog without changes.
+# Test: Tapping a word opens the detail bottom sheet, then the Edit button opens
+# the Edit Word dialog with correct fields. Cancel dismisses the dialog.
 #
 # Requires: At least one word exists in the library.
 
@@ -16,12 +16,14 @@ tags:
 # Verify we are in the word list state.
 - assertVisible: "Search words..."
 
-# Tap the Edit icon on the first visible word card.
-# Each card exposes an IconButton with content description "Edit".
-# Plain string in Maestro matches content descriptions; index selects the first one.
-- tapOn:
-    text: "Edit"
-    index: 0
+# Tap a word card to open the detail bottom sheet.
+- tapOn: "MaestroTest"
+
+# The detail sheet must appear with the Edit icon (content description "Edit").
+- assertVisible: "Edit"
+
+# Tap Edit to open the EditWord dialog.
+- tapOn: "Edit"
 
 # The Edit Word dialog must appear with its title.
 - assertVisible: "Edit Word"
