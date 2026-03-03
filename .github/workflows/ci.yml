@@ -1,381 +1,500 @@
-#name: CI
-#
-#on:
-#  push:
-#    branches: [main]
-#  pull_request:
-#    branches: [main]
-#  workflow_dispatch:
-#
-#concurrency:
-#  group: ci-${{ github.ref }}
-#  cancel-in-progress: true
-#
-#env:
-#  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
-#  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
-#  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
-#  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
-#  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
-#  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
-#  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-#  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
-#  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
-#  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
-#  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
-#  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
-#  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
-#  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
-#  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
-#  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
-#  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
-#  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
-#  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
-#
-#jobs:
-#  test:
-#    name: Tests
-#    runs-on: ubuntu-latest
-#    permissions:
-#      checks: write
-#      contents: read
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          lfs: true
-#
-#      - name: Initialize configuration
-#        uses: ./.github/actions/init-config
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v4
-#
-#      - name: Run all tests
-#        run: ./gradlew composeApp:cleanAllTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
-#
-#      - name: Upload test results
-#        if: always()
-#        uses: actions/upload-artifact@v7
-#        with:
-#          name: test-results
-#          path: |
-#            composeApp/build/reports/tests/
-#            composeApp/build/test-results/
-#
-#      - name: Test report
-#        if: always()
-#        uses: dorny/test-reporter@v1
-#        with:
-#          name: Test Results
-#          path: composeApp/build/test-results/**/TEST-*.xml
-#          reporter: java-junit
-#
-#  build-android:
-#    name: Build Android
-#    runs-on: ubuntu-latest
-#    needs: [test]
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          lfs: true
-#
-#      - name: Initialize configuration
-#        uses: ./.github/actions/init-config
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v4
-#
-#      - name: Build Android APK
-#        run: ./gradlew composeApp:assembleDebug --stacktrace
-#
-#      - name: Upload APK
-#        uses: actions/upload-artifact@v7
-#        with:
-#          name: debug-apk
-#          path: composeApp/build/outputs/apk/debug/*.apk
-#          retention-days: 7
-#
-#  deploy-android:
-#    name: Deploy Android to Closed Testing
-#    runs-on: ubuntu-latest
-#    needs: [build-android]
-#    if: github.ref == 'refs/heads/main'
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          lfs: true
-#
-#      - name: Initialize configuration
-#        uses: ./.github/actions/init-config
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v4
-#
-#      - name: Set up Ruby
-#        uses: ruby/setup-ruby@v1
-#        with:
-#          ruby-version: '3.2'
-#          bundler-cache: true
-#
-#      - name: Install Fastlane
-#        run: bundle install
-#
-#      - name: Upload to Google Play (closed testing)
-#        run: bundle exec fastlane android beta
-#        env:
-#          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
-#          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-#          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-#          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-#          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-#          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
-#
-#  build-web:
-#    name: Build Web (wasmJs)
-#    runs-on: ubuntu-latest
-#    needs: [test]
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          lfs: true
-#
-#      - name: Initialize configuration
-#        uses: ./.github/actions/init-config
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v4
-#
-#      - name: Build wasmJs distribution
-#        run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
-#
-#      - name: Upload web distribution
-#        uses: actions/upload-artifact@v7
-#        with:
-#          name: web-dist
-#          path: composeApp/build/dist/wasmJs/productionExecutable/
-#          retention-days: 7
-#
-#  deploy-web:
-#    name: Deploy Web to VPS
-#    runs-on: ubuntu-latest
-#    needs: [build-web]
-#    if: github.ref == 'refs/heads/main'
-#
-#    steps:
-#      - name: Download web distribution
-#        uses: actions/download-artifact@v8
-#        with:
-#          name: web-dist
-#          path: composeApp/build/dist/wasmJs/productionExecutable/
-#
-#      - name: Setup SSH for deployment
-#        env:
-#          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-#          VPS_HOST: ${{ secrets.VPS_HOST }}
-#          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
-#        run: |
-#          mkdir -p ~/.ssh
-#          chmod 700 ~/.ssh
-#          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-#          chmod 600 ~/.ssh/deploy_key
-#
-#          if ! ssh-keygen -l -f ~/.ssh/deploy_key &> /dev/null; then
-#            echo "✗ Invalid SSH key format"
-#            exit 1
-#          fi
-#
-#          ssh-keyscan -p "$VPS_SSH_PORT" -T 30 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
-#            ssh-keyscan -p "$VPS_SSH_PORT" -T 30 "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
-#            echo "Warning: ssh-keyscan failed — host key will not be pre-verified"
-#
-#          echo "✓ SSH setup complete"
-#
-#      - name: Deploy to VPS
-#        env:
-#          VPS_HOST: ${{ secrets.VPS_HOST }}
-#          VPS_PATH: ${{ secrets.VPS_WEB_PATH }}
-#          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
-#        run: |
-#          DIST_DIR="composeApp/build/dist/wasmJs/productionExecutable"
-#          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=30 -p ${VPS_SSH_PORT}"
-#
-#          echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH} (port ${VPS_SSH_PORT})..."
-#
-#          for attempt in 1 2 3; do
-#            if ssh $SSH_OPTS "root@${VPS_HOST}" "echo 'SSH connection successful'"; then
-#              echo "✓ SSH connection established (attempt ${attempt})"
-#              break
-#            fi
-#            if [ "$attempt" -eq 3 ]; then
-#              echo "✗ SSH connection failed after 3 attempts"
-#              exit 1
-#            fi
-#            echo "⚠ Attempt ${attempt} failed — retrying in 15s..."
-#            sleep 15
-#          done
-#
-#          ssh $SSH_OPTS "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
-#
-#          rsync -avz --delete --checksum \
-#            -e "ssh $SSH_OPTS" \
-#            "${DIST_DIR}/" \
-#            "root@${VPS_HOST}:${VPS_PATH}/"
-#
-#          echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
-#
-#      - name: Cleanup SSH key
-#        if: always()
-#        run: rm -f ~/.ssh/deploy_key
-#
-#      - name: Deployment Summary
-#        env:
-#          VPS_HOST: ${{ secrets.VPS_HOST }}
-#        run: |
-#          echo "### Deployment Successful! 🚀" >> $GITHUB_STEP_SUMMARY
-#          echo "" >> $GITHUB_STEP_SUMMARY
-#          echo "**Host:** ${VPS_HOST}" >> $GITHUB_STEP_SUMMARY
-#          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-#
-#  build-ios:
-#    name: Build iOS
-#    runs-on: macos-26
-#    needs: [test]
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          lfs: true
-#
-#      - name: Initialize configuration
-#        uses: ./.github/actions/init-config
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
-#          architecture: 'aarch64'
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v4
-#
-#      - name: Set up Xcode
-#        run: xcodebuild -version
-#
-#      - name: Build iOS Framework
-#        run: ./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64 --stacktrace
-#
-#  deploy-ios:
-#    name: Deploy iOS to TestFlight
-#    runs-on: macos-26
-#    needs: [build-ios]
-#    if: github.ref == 'refs/heads/main'
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v4
-#        with:
-#          lfs: true
-#
-#      - name: Initialize configuration
-#        uses: ./.github/actions/init-config
-#
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: '17'
-#          architecture: 'aarch64'
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v4
-#
-#      - name: Set up Xcode
-#        run: xcodebuild -version
-#
-#      - name: Set up Ruby
-#        uses: ruby/setup-ruby@v1
-#        with:
-#          ruby-version: '3.2'
-#          bundler-cache: true
-#          working-directory: iosApp
-#
-#      - name: Install Fastlane
-#        run: |
-#          cd iosApp
-#          bundle install
-#
-#      - name: Set up certificates and provisioning profiles
-#        uses: ./.github/actions/ios-cert-setup
-#        with:
-#          certificate_base64: ${{ secrets.IOS_CERTIFICATES_P12_BASE64 }}
-#          certificate_password: ${{ secrets.IOS_CERTIFICATES_PASSWORD }}
-#          provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
-#
-#      - name: Write GoogleService-Info.plist
-#        run: echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
-#        env:
-#          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
-#
-#      - name: Build Kotlin Multiplatform Framework
-#        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
-#
-#      - name: Clean Xcode derived data and SPM cache
-#        run: |
-#          rm -rf ~/Library/Developer/Xcode/DerivedData
-#          rm -rf ~/Library/Caches/org.swift.swiftpm
-#          rm -rf ~/Library/org.swift.swiftpm
-#
-#      - name: Upload to TestFlight
-#        env:
-#          FASTLANE_USER: ${{ secrets.APPLE_ID }}
-#          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-#          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-#          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-#          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-#          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
-#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-#          APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
-#          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
-#          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 10
-#          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 6
-#        run: |
-#          mkdir -p ~/.appstoreconnect/private_keys
-#          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
-#          export APP_STORE_CONNECT_API_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
-#
-#          cd iosApp
-#          bundle exec fastlane beta
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
+  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
+  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
+  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
+  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
+  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
+  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
+  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
+  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run all tests
+        run: ./gradlew composeApp:cleanAllTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: |
+            composeApp/build/reports/tests/
+            composeApp/build/test-results/
+
+      - name: Test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: composeApp/build/test-results/**/TEST-*.xml
+          reporter: java-junit
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Android APK
+        run: ./gradlew composeApp:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: debug-apk
+          path: composeApp/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+  maestro:
+    name: Maestro UI Tests
+    runs-on: ubuntu-latest
+    needs: [test]
+    timeout-minutes: 45
+    permissions:
+      checks: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: ./gradlew composeApp:assembleDebug --stacktrace
+
+      - name: Install Maestro CLI
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Obtain CI auth tokens
+        id: ci-auth
+        env:
+          CI_TEST_SECRET: ${{ secrets.CI_TEST_SECRET }}
+          BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+        run: |
+          HTTP_CODE=$(curl -sL -o /tmp/ci-auth-response.json -w "%{http_code}" \
+            --connect-timeout 15 --max-time 30 --retry 3 --retry-delay 5 \
+            -X POST "${BACKEND_URL}/api/v1/auth/ci-token" \
+            -H "X-CI-Secret: $CI_TEST_SECRET" \
+            -H "Content-Type: application/json")
+
+          RESPONSE=$(cat /tmp/ci-auth-response.json)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::CI auth endpoint returned HTTP $HTTP_CODE"
+            echo "URL: ${BACKEND_URL}/api/v1/auth/ci-token"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.data.accessToken')
+          REFRESH_TOKEN=$(echo "$RESPONSE" | jq -r '.data.refreshToken')
+          EXPIRES_IN=$(echo "$RESPONSE" | jq -r '.data.expiresIn')
+
+          if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "null" ]; then
+            echo "::error::Failed to parse tokens from response"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "::add-mask::$REFRESH_TOKEN"
+
+          echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+          echo "refresh_token=$REFRESH_TOKEN" >> $GITHUB_OUTPUT
+          echo "expires_in=$EXPIRES_IN" >> $GITHUB_OUTPUT
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Maestro tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 31
+          arch: x86_64
+          ram-size: 4096M
+          disk-size: 8G
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-boot-timeout: 600
+          script: |
+            adb install composeApp/build/outputs/apk/debug/*.apk
+            adb shell am start -n com.alirezaiyan.vokab/.MainActivity
+            sleep 8
+            adb shell "am broadcast -a com.alirezaiyan.vokab.CI_INJECT_TOKENS -n com.alirezaiyan.vokab/com.alirezaiyan.vokab.CiTokenReceiver --es accessToken '${{ steps.ci-auth.outputs.access_token }}' --es refreshToken '${{ steps.ci-auth.outputs.refresh_token }}' --el expiresInMs ${{ steps.ci-auth.outputs.expires_in }}"
+            sleep 2
+            adb shell am force-stop com.alirezaiyan.vokab
+            sleep 2
+            MAESTRO_EXIT=0
+            maestro test --format junit --output "$HOME/maestro-report.xml" --debug-output "$HOME/maestro-debug" --flatten-debug-output maestro/ || MAESTRO_EXIT=$?
+            adb uninstall com.alirezaiyan.vokab || true
+            exit $MAESTRO_EXIT
+
+      - name: Publish Maestro test report
+        if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: ~/maestro-report.xml
+          check_name: Maestro Test Results
+
+      - name: Upload Maestro artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: maestro-artifacts
+          path: |
+            ~/maestro-report.xml
+            ~/maestro-debug/
+          retention-days: 7
+
+  deploy-android:
+    name: Deploy Android to Closed Testing
+    runs-on: ubuntu-latest
+    needs: [build-android, maestro]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install Fastlane
+        run: bundle install
+
+      - name: Upload to Google Play (closed testing)
+        run: bundle exec fastlane android beta
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+
+  build-web:
+    name: Build Web (wasmJs)
+    runs-on: ubuntu-latest
+    needs: [test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build wasmJs distribution
+        run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
+
+      - name: Upload web distribution
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-dist
+          path: composeApp/build/dist/wasmJs/productionExecutable/
+          retention-days: 7
+
+  deploy-web:
+    name: Deploy Web to VPS
+    runs-on: ubuntu-latest
+    needs: [build-web, maestro]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download web distribution
+        uses: actions/download-artifact@v8
+        with:
+          name: web-dist
+          path: composeApp/build/dist/wasmJs/productionExecutable/
+
+      - name: Setup SSH for deployment
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          if ! ssh-keygen -l -f ~/.ssh/deploy_key &> /dev/null; then
+            echo "✗ Invalid SSH key format"
+            exit 1
+          fi
+
+          ssh-keyscan -p "$VPS_SSH_PORT" -T 30 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
+            ssh-keyscan -p "$VPS_SSH_PORT" -T 30 "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
+            echo "Warning: ssh-keyscan failed — host key will not be pre-verified"
+
+          echo "✓ SSH setup complete"
+
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PATH: ${{ secrets.VPS_WEB_PATH }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+        run: |
+          DIST_DIR="composeApp/build/dist/wasmJs/productionExecutable"
+          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=30 -p ${VPS_SSH_PORT}"
+
+          echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH} (port ${VPS_SSH_PORT})..."
+
+          for attempt in 1 2 3; do
+            if ssh $SSH_OPTS "root@${VPS_HOST}" "echo 'SSH connection successful'"; then
+              echo "✓ SSH connection established (attempt ${attempt})"
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "✗ SSH connection failed after 3 attempts"
+              exit 1
+            fi
+            echo "⚠ Attempt ${attempt} failed — retrying in 15s..."
+            sleep 15
+          done
+
+          ssh $SSH_OPTS "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+
+          rsync -avz --delete --checksum \
+            -e "ssh $SSH_OPTS" \
+            "${DIST_DIR}/" \
+            "root@${VPS_HOST}:${VPS_PATH}/"
+
+          echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Deployment Summary
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          echo "### Deployment Successful! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Host:** ${VPS_HOST}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-26
+    needs: [maestro]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          architecture: 'aarch64'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Xcode
+        run: xcodebuild -version
+
+      - name: Build iOS Framework
+        run: ./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64 --stacktrace
+
+  deploy-ios:
+    name: Deploy iOS to TestFlight
+    runs-on: macos-26
+    needs: [build-ios]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          architecture: 'aarch64'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Xcode
+        run: xcodebuild -version
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: iosApp
+
+      - name: Install Fastlane
+        run: |
+          cd iosApp
+          bundle install
+
+      - name: Set up certificates and provisioning profiles
+        uses: ./.github/actions/ios-cert-setup
+        with:
+          certificate_base64: ${{ secrets.IOS_CERTIFICATES_P12_BASE64 }}
+          certificate_password: ${{ secrets.IOS_CERTIFICATES_PASSWORD }}
+          provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+
+      - name: Write GoogleService-Info.plist
+        run: echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
+        env:
+          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+
+      - name: Build Kotlin Multiplatform Framework
+        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
+
+      - name: Clean Xcode derived data and SPM cache
+        run: |
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          rm -rf ~/Library/Caches/org.swift.swiftpm
+          rm -rf ~/Library/org.swift.swiftpm
+
+      - name: Upload to TestFlight
+        env:
+          FASTLANE_USER: ${{ secrets.APPLE_ID }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
+          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+          FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 10
+          FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 6
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_CONNECT_API_KEY_CONTENT" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+          export APP_STORE_CONNECT_API_KEY_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8"
+
+          cd iosApp
+          bundle exec fastlane beta
