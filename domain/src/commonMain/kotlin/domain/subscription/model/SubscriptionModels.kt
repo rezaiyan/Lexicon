@@ -22,7 +22,8 @@ data class SubscriptionEntitlement(
     val identifier: String,
     val isActive: Boolean,
     val expirationDateMillis: Long?,
-    val productIdentifier: String
+    val productIdentifier: String,
+    val willRenew: Boolean = true
 )
 
 data class SubscriptionCustomerInfo(

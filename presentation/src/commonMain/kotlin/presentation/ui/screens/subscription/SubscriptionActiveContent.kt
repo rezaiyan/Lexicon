@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -22,12 +23,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import domain.subscription.model.SubscriptionCustomerInfo
+import kotlin.time.Clock
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
@@ -39,15 +42,26 @@ import lexicon.resources.generated.resources.expires
 import lexicon.resources.generated.resources.manage_subscription
 import lexicon.resources.generated.resources.premium_label
 import lexicon.resources.generated.resources.premium_plan_name
+import lexicon.resources.generated.resources.subscription_access_until
 import lexicon.resources.generated.resources.subscription_active
+import lexicon.resources.generated.resources.subscription_day_remaining
+import lexicon.resources.generated.resources.subscription_days_remaining
+import lexicon.resources.generated.resources.subscription_expires_today
+import lexicon.resources.generated.resources.subscription_cancelled_access_note
+import lexicon.resources.generated.resources.subscription_cancelling
+import lexicon.resources.generated.resources.subscription_resubscribe
 
 @Composable
 fun SubscriptionActiveContent(
     customerInfo: SubscriptionCustomerInfo?,
     formattedExpirationDate: String?,
+    willRenew: Boolean = true,
     onManageSubscription: () -> Unit,
     onCancelSubscription: (() -> Unit)? = null
 ) {
+    val expirationDateMillis = customerInfo?.activeEntitlements?.values?.firstOrNull()?.expirationDateMillis
+    val isCancelled = !willRenew && expirationDateMillis != null
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -57,6 +71,7 @@ fun SubscriptionActiveContent(
         SubscriptionStatusCard(
             customerInfo = customerInfo,
             formattedExpirationDate = formattedExpirationDate,
+            isCancelled = isCancelled,
             onManageSubscription = onManageSubscription
         )
 
@@ -77,16 +92,36 @@ fun SubscriptionActiveContent(
 private fun SubscriptionStatusCard(
     customerInfo: SubscriptionCustomerInfo?,
     formattedExpirationDate: String?,
+    isCancelled: Boolean = false,
     onManageSubscription: () -> Unit
 ) {
     val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
     val productIdentifier = activeEntitlement?.productIdentifier ?: ""
     val planName = getPlanNameFromProductIdentifier(productIdentifier)
 
+    val warningColor = Theme.colors.warning
+
+    val daysRemaining = if (isCancelled) {
+        val expirationMillis = activeEntitlement?.expirationDateMillis
+        remember(expirationMillis) {
+            expirationMillis?.let {
+                val nowMillis = Clock.System.now().toEpochMilliseconds()
+                val diffDays = (it - nowMillis) / (24 * 60 * 60 * 1000L)
+                diffDays.coerceAtLeast(0L)
+            }
+        }
+    } else {
+        null
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.subscriptionRecommended.copy(alpha = 0.1f)
+            containerColor = if (isCancelled) {
+                Theme.colors.warningContainer.copy(alpha = 0.3f)
+            } else {
+                AppColors.subscriptionRecommended.copy(alpha = 0.1f)
+            }
         ),
         shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius)
     ) {
@@ -121,30 +156,59 @@ private fun SubscriptionStatusCard(
                                 )
                             )
                         }
-                        Surface(
-                            shape = RoundedCornerShape(Theme.spacing.extraSmall),
-                            color = Color(0xFF10B981).copy(alpha = 0.2f)
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3),
-                                modifier = Modifier.padding(
-                                    horizontal = Theme.spacing.small,
-                                    vertical = Theme.spacing.extraSmall
-                                )
+                        if (isCancelled) {
+                            Surface(
+                                shape = RoundedCornerShape(Theme.spacing.extraSmall),
+                                color = warningColor.copy(alpha = 0.2f)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = Color(0xFF10B981),
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Text(
-                                    text = stringResource(Res.string.subscription_active),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFF10B981),
-                                    fontWeight = FontWeight.Medium
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3),
+                                    modifier = Modifier.padding(
+                                        horizontal = Theme.spacing.small,
+                                        vertical = Theme.spacing.extraSmall
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = warningColor,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(Res.string.subscription_cancelling),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = warningColor,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                        } else {
+                            Surface(
+                                shape = RoundedCornerShape(Theme.spacing.extraSmall),
+                                color = Color(0xFF10B981).copy(alpha = 0.2f)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3),
+                                    modifier = Modifier.padding(
+                                        horizontal = Theme.spacing.small,
+                                        vertical = Theme.spacing.extraSmall
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = Color(0xFF10B981),
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(Res.string.subscription_active),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF10B981),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                         }
                     }
@@ -159,11 +223,31 @@ private fun SubscriptionStatusCard(
                     )
 
                     formattedExpirationDate?.let { formattedDate ->
-                        Text(
-                            text = stringResource(Res.string.expires, formattedDate),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (isCancelled) {
+                            Text(
+                                text = stringResource(Res.string.subscription_access_until, formattedDate),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = warningColor
+                            )
+                            daysRemaining?.let { days ->
+                                Text(
+                                    text = when {
+                                        days == 0L -> stringResource(Res.string.subscription_expires_today)
+                                        days == 1L -> stringResource(Res.string.subscription_day_remaining)
+                                        else -> stringResource(Res.string.subscription_days_remaining, days.toInt())
+                                    },
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = warningColor
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = stringResource(Res.string.expires, formattedDate),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
@@ -185,6 +269,14 @@ private fun SubscriptionStatusCard(
                 }
             }
 
+            if (isCancelled) {
+                Text(
+                    text = stringResource(Res.string.subscription_cancelled_access_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             Button(
                 onClick = onManageSubscription,
                 modifier = Modifier.fillMaxWidth(),
@@ -195,7 +287,11 @@ private fun SubscriptionStatusCard(
                 shape = RoundedCornerShape(Theme.spacing.extraSmall2)
             ) {
                 Text(
-                    text = stringResource(Res.string.manage_subscription),
+                    text = if (isCancelled) {
+                        stringResource(Res.string.subscription_resubscribe)
+                    } else {
+                        stringResource(Res.string.manage_subscription)
+                    },
                     fontWeight = FontWeight.Bold
                 )
             }

@@ -213,7 +213,8 @@ private fun CustomerInfo.toDomain(): SubscriptionCustomerInfo {
             identifier = entitlement.identifier,
             isActive = entitlement.isActive,
             expirationDateMillis = entitlement.expirationDate?.toEpochMilliseconds(),
-            productIdentifier = entitlement.productIdentifier
+            productIdentifier = entitlement.productIdentifier,
+            willRenew = entitlement.willRenew
         )
     }
     return SubscriptionCustomerInfo(

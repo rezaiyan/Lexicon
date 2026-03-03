@@ -102,8 +102,6 @@ data class AppSemanticColors(
     // Backgrounds
     val background: Color,
 
-    // Card backgrounds
-    val settingsCardBackground: Color,
 )
 
 private val LightSemanticColors = AppSemanticColors(
@@ -131,7 +129,6 @@ private val LightSemanticColors = AppSemanticColors(
     scrim = Color(0xFF000000),
 
     background = Color(0xFFF8F6F7),
-    settingsCardBackground = Color(0xFFFFFFFF),
 )
 
 private val DarkSemanticColors = AppSemanticColors(
@@ -158,8 +155,7 @@ private val DarkSemanticColors = AppSemanticColors(
 
     scrim = Color(0xFF000000),
 
-    background = Color(0xFF221019),
-    settingsCardBackground = Color(0xFF2D1A23),
+    background = Color(0xFF16161A),
 )
 
 // endregion
@@ -355,7 +351,7 @@ data class AppBreakpoints(
 // Color constants shared between color schemes and gradients
 private val LightBackground = Color(0xFFF8F6F7)
 private val LightSurface = Color(0xFFFFFFFF)
-private val DarkBackground = Color(0xFF221019)
+private val DarkBackground = Color(0xFF16161A)
 private val DarkSurface = Color(0xFF1E1E1E)
 
 @Immutable
@@ -439,7 +435,7 @@ private val LightColorScheme = lightColorScheme(
     onTertiaryContainer = Color(0xFF1E1E1E),
 
     background = LightBackground,
-    onBackground = Color(0xFF1E1E1E),
+    onBackground = Color(0xFF16161A),
 
     surface = LightSurface,
     onSurface = Color(0xFF1E1E1E),

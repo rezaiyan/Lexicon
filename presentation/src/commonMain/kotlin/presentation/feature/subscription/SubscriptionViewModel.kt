@@ -58,13 +58,15 @@ class SubscriptionViewModel(
                 val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
                 val expirationDateMillis = activeEntitlement?.expirationDateMillis
                 val formattedExpirationDate = expirationDateMillis?.let { formatDate(it) }
+                val willRenew = activeEntitlement?.willRenew == true
 
                 UiState.Loaded(
                     SubscriptionData(
                         packages = offerings?.availablePackages ?: emptyList(),
                         isSubscribed = isSubscribed,
                         customerInfo = customerInfo,
-                        formattedExpirationDate = formattedExpirationDate
+                        formattedExpirationDate = formattedExpirationDate,
+                        willRenew = willRenew
                     )
                 )
             }

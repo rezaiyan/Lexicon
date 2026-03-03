@@ -436,6 +436,13 @@
     <string name="subscription_unable_to_load">Oops! We couldn't load subscriptions</string>
     <string name="subscription_terms">Payment will be charged to your account. Your subscription will automatically renew unless you cancel at least 24 hours before the end of the current period. You can manage your subscription anytime in your account settings.</string>
     <string name="subscription_active">Active</string>
+    <string name="subscription_cancelling">Expires Soon</string>
+    <string name="subscription_access_until">Access until: %1$s</string>
+    <string name="subscription_cancelled_access_note">Your subscription has been cancelled. You still have access to all premium features until the expiration date.</string>
+    <string name="subscription_expires_today">Expires today</string>
+    <string name="subscription_day_remaining">1 day remaining</string>
+    <string name="subscription_days_remaining">%1$d days remaining</string>
+    <string name="subscription_resubscribe">Resubscribe</string>
     <string name="manage_subscription">Manage Subscription</string>
     <string name="cancel_subscription">Cancel Subscription</string>
     <string name="billing_period_monthly">Monthly</string>
