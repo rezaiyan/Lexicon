@@ -1,6 +1,7 @@
 package domain.word.usecase
 
 import core.common.Try
+import core.common.UseCase
 import domain.word.repository.IWordRepository
 
 /**
@@ -8,8 +9,8 @@ import domain.word.repository.IWordRepository
  */
 class DeleteWordUseCase(
     private val wordRepository: IWordRepository
-) {
-    suspend operator fun invoke(wordId: Int): Try<Unit> {
+) : UseCase<Int, Unit> {
+    override suspend operator fun invoke(wordId: Int): Try<Unit> {
         return Try {
             wordRepository.deleteWord(wordId)
         }

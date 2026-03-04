@@ -1,5 +1,6 @@
 package domain.ai.usecase
 
+import core.common.FlowUseCase
 import domain.ai.repository.IAiRepository
 import core.common.Try
 import core.common.fold
@@ -14,7 +15,11 @@ class ImportFromImageUseCase(
     private val aiRepository: IAiRepository,
     private val importWordsUseCase: ImportWordsUseCase,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
-    ) {
+    ) : FlowUseCase<ImportFromImageUseCase.Params, ImportImageResult> {
+    data class Params(val imageBytes: ByteArray, val extractWords: Boolean = true, val extractSentences: Boolean = false)
+
+    override operator fun invoke(params: Params) = invoke(params.imageBytes, params.extractWords, params.extractSentences)
+
     operator fun invoke(
         imageBytes: ByteArray,
         extractWords: Boolean = true,

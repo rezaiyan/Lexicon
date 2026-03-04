@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import core.common.FlowUseCase
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +20,11 @@ import kotlinx.coroutines.flow.onStart
  */
 class BatchUpdateLanguagesUseCase(
     private val wordRepository: IWordRepository
-) {
+) : FlowUseCase<BatchUpdateLanguagesUseCase.Params, BatchUpdateLanguagesResult> {
+    data class Params(val wordIds: List<Int>, val sourceLanguage: String, val targetLanguage: String)
+
+    override operator fun invoke(params: Params) = invoke(params.wordIds, params.sourceLanguage, params.targetLanguage)
+
     operator fun invoke(
         wordIds: List<Int>,
         sourceLanguage: String,

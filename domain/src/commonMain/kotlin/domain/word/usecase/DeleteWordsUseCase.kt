@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import core.common.FlowUseCase
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.onStart
 /**
  * Use case for deleting multiple words at once using batch operation
  * Uses Flow for reactive state management and proper sequential execution
- * 
+ *
  * Flow sequence:
  * 1. Deleting (initial state)
  * 2. DeletingFromBackend (backend deletion in progress)
@@ -19,8 +20,8 @@ import kotlinx.coroutines.flow.onStart
  */
 class DeleteWordsUseCase(
     private val wordRepository: IWordRepository
-) {
-    operator fun invoke(wordIds: List<Int>): Flow<DeleteWordsResult> {
+) : FlowUseCase<List<Int>, DeleteWordsResult> {
+    override operator fun invoke(wordIds: List<Int>): Flow<DeleteWordsResult> {
         if (wordIds.isEmpty()) {
             return flowOf(DeleteWordsResult.Error("No words selected"))
         }

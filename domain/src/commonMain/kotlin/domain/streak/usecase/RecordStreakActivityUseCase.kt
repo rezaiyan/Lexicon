@@ -1,6 +1,7 @@
 package domain.streak.usecase
 
 import core.common.Try
+import core.common.UseCase
 import domain.streak.model.StreakData
 import domain.streak.repository.IStreakRepository
 
@@ -10,8 +11,8 @@ import domain.streak.repository.IStreakRepository
  */
 class RecordStreakActivityUseCase(
     private val streakRepository: IStreakRepository
-) {
-    suspend operator fun invoke(count: Int): Try<StreakData> {
+) : UseCase<Int, StreakData> {
+    override suspend operator fun invoke(count: Int): Try<StreakData> {
         return streakRepository.recordActivity(count)
     }
 }

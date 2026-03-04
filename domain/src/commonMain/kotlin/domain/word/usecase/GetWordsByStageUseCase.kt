@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import core.common.FlowUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
@@ -10,8 +11,8 @@ import kotlinx.coroutines.flow.Flow
  */
 class GetWordsByStageUseCase(
     private val wordRepository: IWordRepository
-) {
-    operator fun invoke(stage: LearningStage): Flow<List<Word>> {
+) : FlowUseCase<LearningStage, List<Word>> {
+    override operator fun invoke(stage: LearningStage): Flow<List<Word>> {
         return wordRepository.getWordsByStage(stage)
     }
 }
