@@ -9,9 +9,8 @@ import com.revenuecat.purchases.kmp.models.PackageType
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.StoreProduct
 import com.revenuecat.purchases.kmp.models.StoreTransaction
-import domain.common.Try
-import domain.common.fold
-import domain.common.getOrNull
+import core.common.Try
+import core.common.getOrNull
 import domain.subscription.ISubscriptionManager
 import domain.subscription.model.PackagePeriod
 import domain.subscription.model.SubscriptionCustomerInfo
@@ -213,7 +212,8 @@ private fun CustomerInfo.toDomain(): SubscriptionCustomerInfo {
             identifier = entitlement.identifier,
             isActive = entitlement.isActive,
             expirationDateMillis = entitlement.expirationDate?.toEpochMilliseconds(),
-            productIdentifier = entitlement.productIdentifier
+            productIdentifier = entitlement.productIdentifier,
+            willRenew = entitlement.willRenew
         )
     }
     return SubscriptionCustomerInfo(

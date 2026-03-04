@@ -37,6 +37,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache Git LFS
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: git-lfs-${{ runner.os }}-${{ hashFiles('platforms/libs/**') }}
+          restore-keys: git-lfs-${{ runner.os }}-
+
+      - name: Pull LFS files
+        run: git lfs pull
+
       - name: Initialize configuration
         uses: ./.github/actions/init-config
 
@@ -92,6 +102,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Cache Git LFS
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: git-lfs-${{ runner.os }}-${{ hashFiles('platforms/libs/**') }}
+          restore-keys: git-lfs-${{ runner.os }}-
+
+      - name: Pull LFS files
+        run: git lfs pull
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config

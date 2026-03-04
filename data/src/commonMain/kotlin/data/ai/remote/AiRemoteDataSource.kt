@@ -3,8 +3,8 @@ package data.ai.remote
 import data.ai.remote.model.ExtractVocabularyRequest
 import data.ai.remote.model.VocabularyExtractionResponse
 import data.core.network.client.ApiClient
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import expects.logNetwork
 import utils.Language
 import kotlin.io.encoding.Base64

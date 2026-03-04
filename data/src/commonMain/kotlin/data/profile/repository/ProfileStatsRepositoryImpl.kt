@@ -1,8 +1,8 @@
 package data.profile.repository
 
 import data.profile.remote.ProfileStatsRemoteDataSource
-import domain.common.Try
-import domain.common.map
+import core.common.Try
+import core.common.map
 import domain.profile.model.DayActivity
 import domain.profile.model.LanguagePair
 import domain.profile.model.ProfileStats

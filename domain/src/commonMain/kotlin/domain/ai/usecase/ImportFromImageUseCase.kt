@@ -1,8 +1,8 @@
 package domain.ai.usecase
 
 import domain.ai.repository.IAiRepository
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.flow.Flow

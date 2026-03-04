@@ -1,6 +1,6 @@
 package domain.streak.manager
 
-import domain.common.Try
+import core.common.Try
 import domain.streak.model.StreakData
 import kotlinx.coroutines.flow.Flow
 

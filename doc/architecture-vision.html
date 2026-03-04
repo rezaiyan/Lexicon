@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lexicon — Architecture Vision</title>
+<style>
+  @page {
+    size: A2 landscape;
+    margin: 10mm;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    padding: 32px;
+    min-width: 1400px;
+    line-height: 1.5;
+  }
+  code, pre, .mono {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+  }
+
+  /* ── Header / Hero ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #21262d;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff, #f778ba);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero .subtitle {
+    color: #8b949e;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+  .hero .stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .hero .stat {
+    text-align: center;
+  }
+  .hero .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #58a6ff;
+  }
+  .hero .stat-label {
+    font-size: 10px;
+    color: #8b949e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #8b949e;
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+  }
+
+  /* ── Panel ── */
+  .panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 14px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #21262d;
+    background: rgba(22, 27, 34, 0.8);
+  }
+  .panel-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    color: #0f1117;
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f0f3f6;
+  }
+  .panel-desc {
+    font-size: 11px;
+    color: #8b949e;
+    margin-left: auto;
+  }
+
+  .panel-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100px;
+  }
+
+  /* ── Current (left) / Proposed (right) ── */
+  .side {
+    padding: 20px;
+    position: relative;
+  }
+  .side-current {
+    background: rgba(218, 54, 51, 0.04);
+    border-right: 1px solid #21262d;
+  }
+  .side-proposed {
+    background: rgba(63, 185, 80, 0.04);
+  }
+  .side-label {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .side-current .side-label {
+    background: rgba(218, 54, 51, 0.15);
+    color: #f85149;
+  }
+  .side-proposed .side-label {
+    background: rgba(63, 185, 80, 0.15);
+    color: #3fb950;
+  }
+
+  /* ── Pain Points & Benefits ── */
+  .pain-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: rgba(218, 54, 51, 0.06);
+    border-left: 3px solid #f85149;
+    color: #f0f3f6;
+  }
+  .pain-point .icon { color: #f85149; flex-shrink: 0; font-size: 13px; }
+
+  .benefit {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: rgba(63, 185, 80, 0.06);
+    border-left: 3px solid #3fb950;
+    color: #f0f3f6;
+  }
+  .benefit .icon { color: #3fb950; flex-shrink: 0; font-size: 13px; }
+
+  .keep {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    background: rgba(88, 166, 255, 0.06);
+    border-left: 3px solid #58a6ff;
+    color: #f0f3f6;
+  }
+  .keep .icon { color: #58a6ff; flex-shrink: 0; font-size: 13px; }
+
+  /* ── Code Blocks ── */
+  pre.code-block {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 11px;
+    line-height: 1.55;
+    overflow-x: auto;
+    margin: 10px 0;
+    color: #c9d1d9;
+    white-space: pre;
+  }
+  .kw { color: #ff7b72; }        /* keyword */
+  .ty { color: #79c0ff; }        /* type */
+  .fn { color: #d2a8ff; }        /* function */
+  .st { color: #a5d6ff; }        /* string */
+  .cm { color: #8b949e; }        /* comment */
+  .an { color: #ffa657; }        /* annotation */
+  .op { color: #ff7b72; }        /* operator */
+  .nu { color: #79c0ff; }        /* number */
+
+  /* ── Diagram Boxes ── */
+  .module-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .module-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .module-box {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid;
+    min-width: 100px;
+  }
+  .mod-app    { background: rgba(88,166,255,0.12); border-color: rgba(88,166,255,0.3);  color: #58a6ff; }
+  .mod-feat   { background: rgba(188,140,255,0.12); border-color: rgba(188,140,255,0.3); color: #bc8cff; }
+  .mod-core   { background: rgba(63,185,80,0.12);  border-color: rgba(63,185,80,0.3);   color: #3fb950; }
+  .mod-domain { background: rgba(255,123,60,0.12); border-color: rgba(255,123,60,0.3);  color: #ff7b3c; }
+  .mod-current{ background: rgba(218,54,51,0.08);  border-color: rgba(218,54,51,0.25);  color: #f85149; }
+  .mod-keep   { background: rgba(88,166,255,0.08); border-color: rgba(88,166,255,0.2);  color: #58a6ff; }
+  .mod-new    { background: rgba(188,140,255,0.08);border-color: rgba(188,140,255,0.2); color: #bc8cff; }
+
+  .arrow-down {
+    text-align: center;
+    color: #484f58;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  /* ── Tables ── */
+  .sig-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin: 10px 0;
+  }
+  .sig-table th {
+    background: rgba(0,0,0,0.3);
+    padding: 6px 10px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8b949e;
+    border-bottom: 1px solid #21262d;
+  }
+  .sig-table td {
+    padding: 5px 10px;
+    border-bottom: 1px solid rgba(48,54,61,0.5);
+    vertical-align: top;
+  }
+  .sig-table tr:last-child td { border-bottom: none; }
+  .sig-table .mono { font-size: 10.5px; color: #c9d1d9; }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+  }
+  .tag-red    { background: rgba(248,81,73,0.15); color: #f85149; }
+  .tag-green  { background: rgba(63,185,80,0.15); color: #3fb950; }
+  .tag-blue   { background: rgba(88,166,255,0.15); color: #58a6ff; }
+  .tag-purple { background: rgba(188,140,255,0.15); color: #bc8cff; }
+  .tag-amber  { background: rgba(227,179,65,0.15); color: #e3b341; }
+
+  /* ── Flow Diagram ── */
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+  .flow-box {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .flow-arrow {
+    color: #484f58;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* ── Full-width panel variant ── */
+  .panel-body.full-width {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Dependency Graph (SVG) ── */
+  .dep-graph {
+    margin: 16px 0;
+    text-align: center;
+  }
+  .dep-graph svg {
+    max-width: 100%;
+  }
+
+  /* ── Section Headings inside panels ── */
+  .section-head {
+    font-size: 12px;
+    font-weight: 700;
+    color: #f0f3f6;
+    margin: 14px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #21262d;
+  }
+  .section-head:first-of-type { margin-top: 0; }
+
+  /* ── Roadmap ── */
+  .roadmap {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .roadmap-phase {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+  }
+  .roadmap-phase::after {
+    content: '→';
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #484f58;
+    font-size: 18px;
+  }
+  .roadmap-phase:last-child::after { content: ''; }
+  .phase-number {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .phase-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f0f3f6;
+    margin-bottom: 6px;
+  }
+  .phase-items {
+    list-style: none;
+    padding: 0;
+  }
+  .phase-items li {
+    font-size: 11px;
+    color: #b1bac4;
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+  }
+  .phase-items li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: #484f58;
+  }
+
+  /* ── Pyramid ── */
+  .pyramid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 16px 0;
+  }
+  .pyramid-level {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid;
+  }
+  .pyramid-count {
+    font-size: 9px;
+    font-weight: 400;
+    opacity: 0.7;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body {
+      background: #0f1117 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      padding: 16px;
+      min-width: auto;
+    }
+    .panel { break-inside: avoid; page-break-inside: avoid; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 1400px) {
+    .panel-body { grid-template-columns: 1fr; }
+    .side-current { border-right: none; border-bottom: 1px solid #21262d; }
+    .roadmap { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ── Misc ── */
+  .muted { color: #8b949e; }
+  .small { font-size: 10px; }
+  .mt { margin-top: 10px; }
+  .mb { margin-bottom: 10px; }
+  .text-center { text-align: center; }
+  .flex-center { display: flex; align-items: center; justify-content: center; }
+  .gap-8 { gap: 8px; }
+  .inline-code {
+    background: rgba(0,0,0,0.3);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: #c9d1d9;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid #21262d;
+    margin: 16px 0;
+  }
+  .footer {
+    text-align: center;
+    padding: 24px 0;
+    color: #484f58;
+    font-size: 11px;
+    border-top: 1px solid #21262d;
+    margin-top: 24px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- HERO HEADER                                                        -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <h1>Lexicon — Architecture Vision</h1>
+  <p class="subtitle">A reimagined KMP architecture · Current state vs. modern enterprise best practices</p>
+  <div class="stats">
+    <div class="stat"><div class="stat-value">11</div><div class="stat-label">Current Modules</div></div>
+    <div class="stat"><div class="stat-value" style="color:#bc8cff;">16</div><div class="stat-label">Proposed Modules</div></div>
+    <div class="stat"><div class="stat-value">6</div><div class="stat-label">VM Patterns Today</div></div>
+    <div class="stat"><div class="stat-value" style="color:#3fb950;">1</div><div class="stat-label">Unified Base VM</div></div>
+    <div class="stat"><div class="stat-value">45+</div><div class="stat-label">Use Cases</div></div>
+    <div class="stat"><div class="stat-value" style="color:#3fb950;">2</div><div class="stat-label">Base Contracts</div></div>
+  </div>
+</div>
+
+<!-- ── Legend ── -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#f85149;"></div> Pain point</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3fb950;"></div> Proposed fix</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#58a6ff;"></div> Keep as-is</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#bc8cff;"></div> New addition</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e3b341;"></div> Migrate</div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 1 — Module Architecture                                      -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">1</div>
+    <div class="panel-title">Module Architecture</div>
+    <div class="panel-desc">Flat modules → Feature-based vertical slices</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="pain-point"><span class="icon">✗</span> 11 flat modules — all depend on <span class="inline-code">:composeApp</span> for DI assembly</div>
+      <div class="pain-point"><span class="icon">✗</span> Monolithic <span class="inline-code">:presentation</span> — 13 ViewModels, all screens, navigation in one module</div>
+      <div class="pain-point"><span class="icon">✗</span> <span class="inline-code">:data</span> owns all 10 remote data sources + Room DB + repositories — no feature isolation</div>
+      <div class="pain-point"><span class="icon">✗</span> Cross-feature changes require touching shared modules — blast radius too wide</div>
+
+      <div class="module-diagram">
+        <div class="module-row">
+          <div class="module-box mod-current">:composeApp</div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="module-row">
+          <div class="module-box mod-current">:presentation</div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="module-row">
+          <div class="module-box mod-current">:domain</div>
+          <div class="module-box mod-current">:data</div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="module-row">
+          <div class="module-box mod-current" style="min-width:70px;">:core</div>
+          <div class="module-box mod-current" style="min-width:70px;">:platforms</div>
+          <div class="module-box mod-current" style="min-width:70px;">:utils</div>
+          <div class="module-box mod-current" style="min-width:70px;">:design-system</div>
+          <div class="module-box mod-current" style="min-width:70px;">:resources</div>
+          <div class="module-box mod-current" style="min-width:70px;">:test</div>
+        </div>
+      </div>
+      <p class="muted small mt">Build-logic excluded. All 11 modules in a single dependency chain.</p>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> Feature-based vertical slices — each feature owns its screen, VM, use cases, data, and DI</div>
+      <div class="benefit"><span class="icon">✓</span> Core layer split into focused modules — <span class="inline-code">:core:network</span>, <span class="inline-code">:core:database</span>, <span class="inline-code">:core:design-system</span>, <span class="inline-code">:core:testing</span></div>
+      <div class="benefit"><span class="icon">✓</span> Independent feature compilation — change <span class="inline-code">:feature:auth</span> without recompiling <span class="inline-code">:feature:study</span></div>
+      <div class="benefit"><span class="icon">✓</span> Clear ownership — each feature module has a single team/person responsible</div>
+
+      <div class="module-diagram">
+        <div class="module-row">
+          <div class="module-box mod-app">:app</div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="module-row">
+          <div class="module-box mod-feat">:feature:auth</div>
+          <div class="module-box mod-feat">:feature:study</div>
+          <div class="module-box mod-feat">:feature:words</div>
+          <div class="module-box mod-feat">:feature:profile</div>
+          <div class="module-box mod-feat">:feature:import</div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="module-row">
+          <div class="module-box mod-domain">:domain</div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="module-row">
+          <div class="module-box mod-core">:core:common</div>
+          <div class="module-box mod-core">:core:network</div>
+          <div class="module-box mod-core">:core:database</div>
+          <div class="module-box mod-core">:core:design-system</div>
+          <div class="module-box mod-core">:core:testing</div>
+        </div>
+        <div class="arrow-down">↓</div>
+        <div class="module-row">
+          <div class="module-box mod-keep" style="min-width:70px;">:platforms</div>
+          <div class="module-box mod-keep" style="min-width:70px;">:resources</div>
+        </div>
+      </div>
+      <p class="muted small mt">16 modules. Features are leaf nodes — they only depend downward on :domain and :core.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 2 — ViewModel Pattern with Event Sink + OnEvents             -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">2</div>
+    <div class="panel-title">ViewModel Pattern — Event Sink + OnEvents</div>
+    <div class="panel-desc">6 different patterns → Unified base with event sink &amp; <code style="color:#3fb950;">OnEvents</code></div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="pain-point"><span class="icon">✗</span> 6 distinct ViewModel patterns across 13 ViewModels — no shared contract</div>
+
+      <table class="sig-table">
+        <thead>
+          <tr><th>ViewModel</th><th>Pattern</th><th>StateFlows</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="mono">AuthViewModel</span></td><td><span class="tag tag-purple">Intent + Mutex</span></td><td class="mono">1</td></tr>
+          <tr><td><span class="mono">SubscriptionVM</span></td><td><span class="tag tag-amber">Combined Flows</span></td><td class="mono">7</td></tr>
+          <tr><td><span class="mono">ProfileVM</span></td><td><span class="tag tag-blue">Flow Operators</span></td><td class="mono">5</td></tr>
+          <tr><td><span class="mono">StudyVM</span></td><td><span class="tag tag-red">Hybrid State+Events</span></td><td class="mono">5</td></tr>
+          <tr><td><span class="mono">VocabularyVM</span></td><td><span class="tag tag-green">Single State</span></td><td class="mono">1</td></tr>
+          <tr><td><span class="mono">WordManagerVM</span></td><td><span class="tag tag-purple">Handler Delegation</span></td><td class="mono">2</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pain-point"><span class="icon">✗</span> SubscriptionVM: 7 separate StateFlows combined late — hard to reason about atomicity</div>
+      <div class="pain-point"><span class="icon">✗</span> No shared base class — every new ViewModel re-invents state management</div>
+      <div class="pain-point"><span class="icon">✗</span> Side effects handled differently: Channel vs SharedFlow vs callback lambdas</div>
+      <div class="keep"><span class="icon">≡</span> <span class="inline-code">OnEvents</span> composable already exists in <span class="inline-code">:core</span> — validates flow type at runtime</div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> Base class: <span class="inline-code">BaseViewModel&lt;State, Effect&gt;</span> — state + effects, no sealed event dispatch</div>
+      <div class="benefit"><span class="icon">✓</span> One atomic <span class="inline-code">mutableStateOf&lt;State&gt;</span> per screen — Compose-native, no Flow-to-State bridge</div>
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">Flow&lt;Effect&gt;</span> via Channel — one-shot effects collected by <span class="inline-code">OnEvents</span></div>
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">@Composable fun state()</span> — returns <span class="inline-code">State&lt;S&gt;</span> directly, Compose tracks reads automatically</div>
+      <div class="benefit"><span class="icon">✓</span> <b>Event sink</b> — ViewModel public methods passed as lambdas to composables</div>
+
+<pre class="code-block"><span class="kw">abstract class</span> <span class="ty">BaseViewModel</span>&lt;<span class="ty">S</span>, <span class="ty">F</span>&gt; : <span class="ty">ViewModel</span>() {
+
+    <span class="kw">private val</span> _state = <span class="ty">mutableStateOf</span>(initialState())
+
+    <span class="an">@Composable</span>
+    <span class="kw">fun</span> <span class="fn">state</span>(): <span class="ty">State</span>&lt;<span class="ty">S</span>&gt; = _state <span class="cm">// Compose snapshot — auto-recompose on change</span>
+
+    <span class="kw">private val</span> _effects = <span class="ty">Channel</span>&lt;<span class="ty">F</span>&gt;(<span class="ty">BUFFERED</span>)
+    <span class="kw">val</span> effects: <span class="ty">Flow</span>&lt;<span class="ty">F</span>&gt; = _effects.receiveAsFlow()
+
+    <span class="kw">abstract fun</span> <span class="fn">initialState</span>(): <span class="ty">S</span>
+
+    <span class="kw">protected fun</span> <span class="fn">updateState</span>(reducer: <span class="ty">S</span>.() -&gt; <span class="ty">S</span>) {
+        _state.value = _state.value.reducer()
+    }
+
+    <span class="kw">protected fun</span> <span class="fn">emitEffect</span>(effect: <span class="ty">F</span>) {
+        viewModelScope.launch { _effects.send(effect) }
+    }
+
+    <span class="cm">// Try&lt;T&gt; integration — fold result directly into state</span>
+    <span class="kw">protected fun</span> &lt;<span class="ty">T</span>&gt; <span class="ty">Try</span>&lt;<span class="ty">T</span>&gt;.<span class="fn">reduce</span>(
+        onSuccess: <span class="ty">S</span>.(<span class="ty">T</span>) -&gt; <span class="ty">S</span>,
+        onFailure: <span class="ty">S</span>.(<span class="ty">Throwable</span>) -&gt; <span class="ty">S</span>
+    ) {
+        fold(
+            onSuccess = { updateState { onSuccess(it) } },
+            onFailure = { updateState { onFailure(it) } }
+        )
+    }
+}</pre>
+
+      <div class="section-head">Event Sink — Direct Method References</div>
+<pre class="code-block"><span class="cm">// ViewModel — public methods are the event sink</span>
+<span class="kw">class</span> <span class="ty">StudyViewModel</span>(...) : <span class="ty">BaseViewModel</span>&lt;<span class="ty">StudyState</span>, <span class="ty">StudyEffect</span>&gt;() {
+
+    <span class="kw">fun</span> <span class="fn">reviewWord</span>(word: <span class="ty">Word</span>, quality: <span class="ty">Int</span>) {
+        viewModelScope.launch {
+            reviewWordUseCase(word, quality).reduce(
+                onSuccess = { copy(reviewedCount = reviewedCount + <span class="nu">1</span>) },
+                onFailure = { copy(error = it.message) }
+            )
+        }
+    }
+
+    <span class="kw">fun</span> <span class="fn">deleteWord</span>(wordId: <span class="ty">Int</span>) { <span class="cm">/* ... */</span> }
+    <span class="kw">fun</span> <span class="fn">startReview</span>() { <span class="cm">/* ... */</span> }
+}</pre>
+
+      <div class="section-head">UI — OnEvents + Event Sink Lambdas</div>
+<pre class="code-block"><span class="an">@Composable</span>
+<span class="kw">fun</span> <span class="fn">StudyScreen</span>(viewModel: <span class="ty">StudyViewModel</span> = koinViewModel()) {
+    <span class="kw">val</span> state <span class="kw">by</span> viewModel.state() <span class="cm">// Compose-native — no collectAsState needed</span>
+
+    <span class="cm">// One-shot effects — existing OnEvents pattern</span>
+    <span class="ty">OnEvents</span>(viewModel.effects) { effect -&gt;
+        <span class="kw">when</span> (effect) {
+            <span class="kw">is</span> <span class="ty">StudyEffect.ShowReviewSheet</span> -&gt; { <span class="cm">/* navigate */</span> }
+            <span class="kw">is</span> <span class="ty">StudyEffect.ShowSnackbar</span> -&gt; { <span class="cm">/* show message */</span> }
+        }
+    }
+
+    <span class="cm">// Event sink — VM methods passed as lambdas</span>
+    <span class="ty">StudyContent</span>(
+        state = state,
+        onReviewWord = viewModel::reviewWord,
+        onDeleteWord = viewModel::deleteWord,
+        onStartReview = viewModel::startReview,
+    )
+}</pre>
+
+      <!-- Flow diagram -->
+      <div class="section-head">Data Flow</div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">UI</div>
+        <span class="flow-arrow">→ vm::method →</span>
+        <div class="flow-box" style="background:rgba(255,123,60,0.12); border-color:rgba(255,123,60,0.3); color:#ff7b3c;">ViewModel</div>
+        <span class="flow-arrow">→ updateState →</span>
+        <div class="flow-box" style="background:rgba(63,185,80,0.12); border-color:rgba(63,185,80,0.3); color:#3fb950;">mutableStateOf&lt;S&gt;</div>
+        <span class="flow-arrow">→ snapshot read →</span>
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">UI</div>
+      </div>
+      <div class="flow-row" style="margin-left:180px;">
+        <span class="flow-arrow" style="transform:rotate(90deg);">↳</span>
+        <div class="flow-box" style="background:rgba(227,179,65,0.12); border-color:rgba(227,179,65,0.3); color:#e3b341;">emitEffect()</div>
+        <span class="flow-arrow">→ OnEvents →</span>
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">Navigate / Snackbar</div>
+      </div>
+
+      <div class="section-head">Why Not MVI?</div>
+      <div class="benefit"><span class="icon">✓</span> No sealed <span class="inline-code">Event</span> boilerplate — direct method calls are simpler and more discoverable</div>
+      <div class="benefit"><span class="icon">✓</span> Method references (<span class="inline-code">vm::reviewWord</span>) are type-safe event sinks — compiler checks arity &amp; types</div>
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">OnEvents</span> already exists in <span class="inline-code">:core</span> — just standardize its usage across all screens</div>
+      <div class="benefit"><span class="icon">✓</span> Content composables receive lambdas — trivially previewable with no ViewModel dependency</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 3 — UseCase Contract                                         -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">3</div>
+    <div class="panel-title">UseCase Contract</div>
+    <div class="panel-desc">8+ return type variants → 2 base interfaces</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="pain-point"><span class="icon">✗</span> 8+ different signatures across 45 use cases — no shared contract</div>
+      <div class="pain-point"><span class="icon">✗</span> Some use <span class="inline-code">operator fun invoke()</span>, others <span class="inline-code">fun execute()</span>, others <span class="inline-code">fun invoke()</span></div>
+      <div class="pain-point"><span class="icon">✗</span> Return types vary: <span class="inline-code">Unit</span>, <span class="inline-code">Try&lt;T&gt;</span>, <span class="inline-code">Flow&lt;T&gt;</span>, <span class="inline-code">Flow&lt;Try&lt;T&gt;&gt;</span>, <span class="inline-code">Boolean</span>, <span class="inline-code">String</span>, sealed class</div>
+
+      <table class="sig-table">
+        <thead><tr><th>Use Case</th><th>Signature</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">ReviewWordUseCase</td><td class="mono"><span class="kw">suspend operator fun</span> invoke(): <span class="ty">Unit</span></td></tr>
+          <tr><td class="mono">UpdateWordUseCase</td><td class="mono"><span class="kw">suspend operator fun</span> invoke(): <span class="ty">Try&lt;Word&gt;</span></td></tr>
+          <tr><td class="mono">GetDueWordsUseCase</td><td class="mono"><span class="kw">operator fun</span> invoke(): <span class="ty">Flow&lt;List&lt;Word&gt;&gt;</span></td></tr>
+          <tr><td class="mono">LoginWithGoogleUC</td><td class="mono"><span class="kw">fun</span> invoke(): <span class="ty">Flow&lt;Try&lt;AuthUser&gt;&gt;</span></td></tr>
+          <tr><td class="mono">IsAuthenticatedUC</td><td class="mono"><span class="kw">suspend operator fun</span> invoke(): <span class="ty">Boolean</span></td></tr>
+          <tr><td class="mono">VerifySessionUC</td><td class="mono"><span class="kw">suspend operator fun</span> invoke(): <span class="ty">SessionResult</span></td></tr>
+          <tr><td class="mono">ExportWordsUseCase</td><td class="mono"><span class="kw">operator fun</span> invoke(): <span class="ty">String</span></td></tr>
+          <tr><td class="mono">ImportWordsUseCase</td><td class="mono"><span class="kw">suspend fun</span> execute(): <span class="ty">Try&lt;Int&gt;</span></td></tr>
+          <tr><td class="mono">SpeakWordUseCase</td><td class="mono"><span class="kw">suspend operator fun</span> invoke(): <span class="ty">Unit</span></td></tr>
+          <tr><td class="mono">ScheduleNotifUC</td><td class="mono"><span class="kw">suspend operator fun</span> invoke(): <span class="ty">Unit</span> <span class="muted">(stateful!)</span></td></tr>
+        </tbody>
+      </table>
+      <div class="pain-point"><span class="icon">✗</span> <span class="inline-code">ScheduleNotificationsUseCase</span> holds mutable state (<span class="inline-code">hasScheduled</span>) — use cases should be stateless</div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> Two base interfaces — every use case picks one</div>
+      <div class="benefit"><span class="icon">✓</span> All fallible operations return <span class="inline-code">Try&lt;T&gt;</span> — never bare <span class="inline-code">Unit</span> for ops that can fail</div>
+      <div class="benefit"><span class="icon">✓</span> Stateless by contract — no mutable fields allowed in use case classes</div>
+
+<pre class="code-block"><span class="cm">// Suspend use case — one-shot operations</span>
+<span class="kw">fun interface</span> <span class="ty">UseCase</span>&lt;<span class="kw">in</span> <span class="ty">P</span>, <span class="kw">out</span> <span class="ty">R</span>&gt; {
+    <span class="kw">suspend operator fun</span> <span class="fn">invoke</span>(params: <span class="ty">P</span>): <span class="ty">Try</span>&lt;<span class="ty">R</span>&gt;
+}
+
+<span class="cm">// Flow use case — reactive streams</span>
+<span class="kw">fun interface</span> <span class="ty">FlowUseCase</span>&lt;<span class="kw">in</span> <span class="ty">P</span>, <span class="kw">out</span> <span class="ty">R</span>&gt; {
+    <span class="kw">operator fun</span> <span class="fn">invoke</span>(params: <span class="ty">P</span>): <span class="ty">Flow</span>&lt;<span class="ty">R</span>&gt;
+}
+
+<span class="cm">// Unit param alias</span>
+<span class="kw">typealias</span> <span class="ty">NoParamUseCase</span>&lt;<span class="ty">R</span>&gt; = <span class="ty">UseCase</span>&lt;<span class="ty">Unit</span>, <span class="ty">R</span>&gt;
+<span class="kw">typealias</span> <span class="ty">NoParamFlowUseCase</span>&lt;<span class="ty">R</span>&gt; = <span class="ty">FlowUseCase</span>&lt;<span class="ty">Unit</span>, <span class="ty">R</span>&gt;</pre>
+
+      <div class="section-head">Migration Examples</div>
+      <table class="sig-table">
+        <thead><tr><th>Current</th><th>Proposed</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">invoke(): Unit</td><td class="mono">invoke(p): <span class="ty">Try&lt;Unit&gt;</span></td></tr>
+          <tr><td class="mono">invoke(): Boolean</td><td class="mono">invoke(p): <span class="ty">Try&lt;Boolean&gt;</span></td></tr>
+          <tr><td class="mono">invoke(): String</td><td class="mono">invoke(p): <span class="ty">Try&lt;String&gt;</span></td></tr>
+          <tr><td class="mono">execute(): Try&lt;Int&gt;</td><td class="mono">invoke(p): <span class="ty">Try&lt;Int&gt;</span></td></tr>
+          <tr><td class="mono">invoke(): Flow&lt;Try&lt;T&gt;&gt;</td><td class="mono">invoke(p): <span class="ty">Flow&lt;T&gt;</span> <span class="muted">(catch in VM)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 4 — Repository Contract                                      -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">4</div>
+    <div class="panel-title">Repository Contract</div>
+    <div class="panel-desc">Mixed error contracts → Consistent Try&lt;T&gt; / Flow&lt;T&gt;</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="pain-point"><span class="icon">✗</span> <span class="inline-code">IWordRepository</span> mixes 3 error contracts in one interface</div>
+
+      <div class="section-head">IWordRepository — 3 Contracts</div>
+
+<pre class="code-block"><span class="cm">// Contract 1: Bare suspend → throws on failure</span>
+<span class="kw">suspend fun</span> <span class="fn">updateWord</span>(word: <span class="ty">Word</span>)           <span class="cm">// ← throws!</span>
+<span class="kw">suspend fun</span> <span class="fn">deleteWord</span>(id: <span class="ty">Int</span>)               <span class="cm">// ← throws!</span>
+<span class="kw">suspend fun</span> <span class="fn">insertWords</span>(words: <span class="ty">List</span>&lt;<span class="ty">Word</span>&gt;): <span class="ty">Int</span>
+
+<span class="cm">// Contract 2: Try&lt;T&gt; — explicit error handling</span>
+<span class="kw">suspend fun</span> <span class="fn">deleteAllWords</span>(): <span class="ty">Try</span>&lt;<span class="ty">Unit</span>&gt;
+<span class="kw">suspend fun</span> <span class="fn">syncWithRemote</span>(): <span class="ty">Try</span>&lt;<span class="ty">Unit</span>&gt;
+<span class="kw">suspend fun</span> <span class="fn">syncRemoteToLocal</span>(): <span class="ty">Try</span>&lt;<span class="ty">Unit</span>&gt;
+
+<span class="cm">// Contract 3: Flow with sealed progress</span>
+<span class="kw">fun</span> <span class="fn">deleteWords</span>(ids: <span class="ty">List</span>&lt;<span class="ty">Int</span>&gt;): <span class="ty">Flow</span>&lt;<span class="ty">DeleteWordsProgress</span>&gt;
+<span class="kw">fun</span> <span class="fn">updateWordsLanguages</span>(...): <span class="ty">Flow</span>&lt;<span class="ty">UpdateWordsProgress</span>&gt;</pre>
+
+      <div class="pain-point"><span class="icon">✗</span> Callers of <span class="inline-code">updateWord</span> must wrap in <span class="inline-code">Try { }</span> themselves — inconsistent burden</div>
+      <div class="pain-point"><span class="icon">✗</span> <span class="inline-code">deleteWord(id)</span> throws but <span class="inline-code">deleteAllWords()</span> returns <span class="inline-code">Try</span> — same operation, different contracts</div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> Two rules — no exceptions</div>
+
+      <div class="section-head">Rule 1: Suspend → always Try&lt;T&gt;</div>
+<pre class="code-block"><span class="kw">suspend fun</span> <span class="fn">updateWord</span>(word: <span class="ty">Word</span>): <span class="ty">Try</span>&lt;<span class="ty">Word</span>&gt;
+<span class="kw">suspend fun</span> <span class="fn">deleteWord</span>(id: <span class="ty">Int</span>): <span class="ty">Try</span>&lt;<span class="ty">Unit</span>&gt;
+<span class="kw">suspend fun</span> <span class="fn">insertWords</span>(words: <span class="ty">List</span>&lt;<span class="ty">Word</span>&gt;): <span class="ty">Try</span>&lt;<span class="ty">Int</span>&gt;
+<span class="kw">suspend fun</span> <span class="fn">deleteAllWords</span>(): <span class="ty">Try</span>&lt;<span class="ty">Unit</span>&gt;
+<span class="kw">suspend fun</span> <span class="fn">syncWithRemote</span>(): <span class="ty">Try</span>&lt;<span class="ty">Unit</span>&gt;</pre>
+
+      <div class="section-head">Rule 2: Streaming → always Flow&lt;T&gt;</div>
+<pre class="code-block"><span class="kw">fun</span> <span class="fn">getAllWords</span>(): <span class="ty">Flow</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Word</span>&gt;&gt;
+<span class="kw">fun</span> <span class="fn">getDueCards</span>(): <span class="ty">Flow</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Word</span>&gt;&gt;
+<span class="kw">fun</span> <span class="fn">getProgressStats</span>(): <span class="ty">Flow</span>&lt;<span class="ty">ProgressStats</span>&gt;
+
+<span class="cm">// Multi-step ops: sealed progress inside Flow</span>
+<span class="kw">fun</span> <span class="fn">deleteWords</span>(ids: <span class="ty">List</span>&lt;<span class="ty">Int</span>&gt;): <span class="ty">Flow</span>&lt;<span class="ty">DeleteWordsProgress</span>&gt;  <span class="cm">// ✓ keep</span></pre>
+
+      <div class="benefit"><span class="icon">✓</span> Callers never wonder "does this throw?" — the type tells them</div>
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">Try&lt;T&gt;</span> forces callers to handle errors at every call site</div>
+      <div class="keep"><span class="icon">≡</span> Reads that can't fail (<span class="inline-code">getWordById</span>) return <span class="inline-code">T?</span> directly — no wrapping needed</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 5 — Data Layer                                               -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">5</div>
+    <div class="panel-title">Data Layer — Interfaces &amp; Mappers</div>
+    <div class="panel-desc">Concrete data sources → Interface-driven testability</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="keep"><span class="icon">≡</span> 10 remote data sources exist — good coverage across all feature areas</div>
+      <div class="pain-point"><span class="icon">✗</span> No interfaces for remote data sources — repositories depend on concrete classes</div>
+      <div class="pain-point"><span class="icon">✗</span> Can't swap real data source for a fake in tests without Koin overrides</div>
+      <div class="pain-point"><span class="icon">✗</span> Mapper styles vary: top-level functions, extension functions, in-class methods</div>
+
+      <div class="section-head">Current Dependency</div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">WordRepository</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(248,81,73,0.12); border-color:rgba(248,81,73,0.3); color:#f85149;">WordRemoteDataSource</div>
+        <span class="flow-arrow muted">(concrete class)</span>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">AuthRepository</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(248,81,73,0.12); border-color:rgba(248,81,73,0.3); color:#f85149;">AuthDataSource</div>
+        <span class="flow-arrow muted">(concrete class)</span>
+      </div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> Every remote data source has an interface in <span class="inline-code">:domain</span></div>
+      <div class="benefit"><span class="icon">✓</span> Repositories depend only on interfaces — swappable in tests</div>
+      <div class="benefit"><span class="icon">✓</span> Extension function mappers: <span class="inline-code">fun Dto.toDomain(): Model</span> — consistent, discoverable</div>
+
+<pre class="code-block"><span class="cm">// In :domain</span>
+<span class="kw">interface</span> <span class="ty">IWordRemoteDataSource</span> {
+    <span class="kw">suspend fun</span> <span class="fn">fetchWords</span>(): <span class="ty">List</span>&lt;<span class="ty">WordDto</span>&gt;
+    <span class="kw">suspend fun</span> <span class="fn">addWords</span>(words: <span class="ty">List</span>&lt;<span class="ty">WordDto</span>&gt;): <span class="ty">List</span>&lt;<span class="ty">WordDto</span>&gt;
+    <span class="kw">suspend fun</span> <span class="fn">updateWord</span>(word: <span class="ty">WordDto</span>): <span class="ty">WordDto</span>
+    <span class="kw">suspend fun</span> <span class="fn">deleteWord</span>(id: <span class="ty">Int</span>)
+}
+
+<span class="cm">// In :data — implementation</span>
+<span class="kw">class</span> <span class="ty">WordRemoteDataSourceImpl</span>(
+    <span class="kw">private val</span> apiClient: <span class="ty">ApiClient</span>
+) : <span class="ty">IWordRemoteDataSource</span> { ... }
+
+<span class="cm">// In :data — mapper</span>
+<span class="kw">fun</span> <span class="ty">WordDto</span>.<span class="fn">toDomain</span>(): <span class="ty">Word</span> = <span class="ty">Word</span>(
+    id = id, originalWord = original, ...
+)</pre>
+
+      <div class="section-head">Testability</div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">WordRepository</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(63,185,80,0.12); border-color:rgba(63,185,80,0.3); color:#3fb950;">IWordRemoteDataSource</div>
+        <span class="flow-arrow muted">(interface)</span>
+      </div>
+      <div class="flow-row" style="margin-left: 60px;">
+        <span class="flow-arrow">↑ implements</span>
+      </div>
+      <div class="flow-row" style="gap: 40px; margin-left: 60px;">
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">WordRemoteDataSourceImpl</div>
+        <div class="flow-box" style="background:rgba(227,179,65,0.12); border-color:rgba(227,179,65,0.3); color:#e3b341;">FakeWordRemoteDataSource</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 6 — Request Pipeline & Error Handling                        -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">6</div>
+    <div class="panel-title">Request Pipeline &amp; Error Handling</div>
+    <div class="panel-desc">Strong foundation — targeted enhancements</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="keep"><span class="icon">≡</span> Well-designed 3-interceptor pipeline — one of the strongest parts of the codebase</div>
+
+      <div class="section-head">Current Pipeline (keep)</div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">Request</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">AuthInterceptor</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">RefreshAndRetry</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">ErrorInterceptor</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">Response</div>
+      </div>
+
+      <div class="keep"><span class="icon">≡</span> AuthInterceptor injects Bearer token, skips public paths</div>
+      <div class="keep"><span class="icon">≡</span> RefreshAndRetryInterceptor handles 401/403 with automatic token refresh</div>
+      <div class="keep"><span class="icon">≡</span> ErrorInterceptor maps HTTP status codes to domain exceptions</div>
+
+      <div class="pain-point"><span class="icon">✗</span> Ad-hoc <span class="inline-code">logNetwork()</span> calls scattered across data sources — no structured logging</div>
+      <div class="pain-point"><span class="icon">✗</span> No request timing — can't identify slow endpoints</div>
+      <div class="pain-point"><span class="icon">✗</span> <span class="inline-code">NetworkErrorHandler</span> exists but is dead code — never called</div>
+
+<pre class="code-block"><span class="cm">// Custom Try&lt;T&gt; — 225 lines, well-implemented</span>
+<span class="kw">sealed class</span> <span class="ty">Try</span>&lt;<span class="kw">out</span> <span class="ty">T</span>&gt; {
+    <span class="kw">data class</span> <span class="ty">Success</span>&lt;<span class="kw">out</span> <span class="ty">T</span>&gt;(<span class="kw">val</span> value: <span class="ty">T</span>)
+    <span class="kw">data class</span> <span class="ty">Failure</span>(<span class="kw">val</span> throwable: <span class="ty">Throwable</span>)
+    <span class="cm">// fold, map, flatMap, recover, zip...</span>
+    <span class="cm">// Rethrows CancellationException ✓</span>
+}</pre>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> Keep the 3 core interceptors — they're solid</div>
+      <div class="benefit"><span class="icon">✓</span> Add structured logging interceptor — replace ad-hoc <span class="inline-code">logNetwork()</span></div>
+      <div class="benefit"><span class="icon">✓</span> Add request timing interceptor — track performance per endpoint</div>
+      <div class="benefit"><span class="icon">✓</span> Remove dead <span class="inline-code">NetworkErrorHandler</span></div>
+
+      <div class="section-head">Enhanced Pipeline</div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">Request</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">LoggingInterceptor</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(188,140,255,0.12); border-color:rgba(188,140,255,0.3); color:#bc8cff;">TimingInterceptor</div>
+      </div>
+      <div class="flow-row" style="margin-left: 40px;">
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">AuthInterceptor</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">RefreshAndRetry</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">ErrorInterceptor</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(88,166,255,0.12); border-color:rgba(88,166,255,0.3); color:#58a6ff;">Response</div>
+      </div>
+
+<pre class="code-block"><span class="cm">// Structured logger — replaces ad-hoc logNetwork()</span>
+<span class="kw">interface</span> <span class="ty">AppLogger</span> {
+    <span class="kw">fun</span> <span class="fn">d</span>(tag: <span class="ty">String</span>, message: () -&gt; <span class="ty">String</span>)
+    <span class="kw">fun</span> <span class="fn">e</span>(tag: <span class="ty">String</span>, error: <span class="ty">Throwable</span>, message: () -&gt; <span class="ty">String</span>)
+    <span class="kw">fun</span> <span class="fn">network</span>(method: <span class="ty">String</span>, url: <span class="ty">String</span>, status: <span class="ty">Int</span>, durationMs: <span class="ty">Long</span>)
+}
+
+<span class="cm">// Timing interceptor — automatic performance tracking</span>
+<span class="kw">class</span> <span class="ty">TimingInterceptor</span>(<span class="kw">private val</span> logger: <span class="ty">AppLogger</span>) {
+    <span class="kw">override fun</span> <span class="fn">intercept</span>(chain: <span class="ty">Chain</span>): <span class="ty">Response</span> {
+        <span class="kw">val</span> start = <span class="ty">TimeSource.Monotonic</span>.markNow()
+        <span class="kw">val</span> response = chain.proceed(chain.request)
+        logger.network(request.method, request.url, response.status, start.elapsedNow())
+        <span class="kw">return</span> response
+    }
+}</pre>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 7 — Navigation Architecture                                  -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">7</div>
+    <div class="panel-title">Navigation Architecture</div>
+    <div class="panel-desc">590-line god composable → Decomposed navigation shell</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="pain-point"><span class="icon">✗</span> <span class="inline-code">LexiconApp.kt</span> — 589 lines, single file handles everything</div>
+      <div class="pain-point"><span class="icon">✗</span> Auth gate, onboarding, navigation, scaffold, effects — all in one composable</div>
+      <div class="pain-point"><span class="icon">✗</span> String-based route matching alongside type-safe destinations — migration incomplete</div>
+
+      <div class="section-head">LexiconApp.kt Breakdown</div>
+      <table class="sig-table">
+        <thead><tr><th>Section</th><th>Lines</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">LexiconApp()</td><td>102–303</td><td>App state machine: Splash → Onboarding → Auth → Ready</td></tr>
+          <tr><td class="mono">AppContent()</td><td>305–394</td><td>Scaffold + NavigationSuite + bottom nav</td></tr>
+          <tr><td class="mono">NavigationGraph()</td><td>396–483</td><td>NavHost with 8 destinations</td></tr>
+          <tr><td class="mono">HandleEffects()</td><td>485–571</td><td>Snackbar handlers for vocabulary + UI messages</td></tr>
+        </tbody>
+      </table>
+
+      <div class="pain-point"><span class="icon">✗</span> Testing this file requires mocking the entire app — no isolation possible</div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> Decomposed into 4 focused files — each under 120 lines</div>
+      <div class="benefit"><span class="icon">✓</span> ViewModels scoped to <span class="inline-code">NavBackStackEntry</span> — proper lifecycle management</div>
+      <div class="benefit"><span class="icon">✓</span> Each feature module owns its own navigation subgraph</div>
+
+      <div class="section-head">Decomposed Structure</div>
+      <table class="sig-table">
+        <thead><tr><th>File</th><th>~Lines</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="mono" style="color:#3fb950;">AppShell.kt</span></td>
+            <td>~80</td>
+            <td>Scaffold, bottom nav, snackbar host — pure layout</td>
+          </tr>
+          <tr>
+            <td><span class="mono" style="color:#3fb950;">NavigationGraph.kt</span></td>
+            <td>~100</td>
+            <td>Top-level NavHost, delegates to feature subgraphs</td>
+          </tr>
+          <tr>
+            <td><span class="mono" style="color:#3fb950;">AppFlowCoordinator.kt</span></td>
+            <td>~90</td>
+            <td>Auth gate, onboarding flow, splash → ready transitions</td>
+          </tr>
+          <tr>
+            <td><span class="mono" style="color:#3fb950;">EffectHandler.kt</span></td>
+            <td>~60</td>
+            <td>Global snackbar + navigation side-effects</td>
+          </tr>
+        </tbody>
+      </table>
+
+<pre class="code-block"><span class="cm">// Each feature module exports its subgraph</span>
+<span class="cm">// In :feature:study</span>
+<span class="kw">fun</span> <span class="ty">NavGraphBuilder</span>.<span class="fn">studyGraph</span>(navController: <span class="ty">NavHostController</span>) {
+    navigation(
+        startDestination = <span class="st">"study/review"</span>,
+        route = <span class="st">"study"</span>
+    ) {
+        composable(<span class="st">"study/review"</span>) { <span class="ty">ReviewScreen</span>(...) }
+        composable(<span class="st">"study/progress"</span>) { <span class="ty">ProgressScreen</span>(...) }
+    }
+}
+
+<span class="cm">// In NavigationGraph.kt — assembles all subgraphs</span>
+<span class="ty">NavHost</span>(...) {
+    authGraph(navController)
+    studyGraph(navController)
+    wordsGraph(navController)
+    profileGraph(navController)
+}</pre>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 8 — Testing Architecture                                     -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">8</div>
+    <div class="panel-title">Testing Architecture</div>
+    <div class="panel-desc">Domain-only tests → Full test pyramid</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="keep"><span class="icon">≡</span> Domain use case tests exist — good foundation</div>
+      <div class="keep"><span class="icon">≡</span> Spaced repetition regression tests (Android instrumented)</div>
+      <div class="keep"><span class="icon">≡</span> Room DB migration tests</div>
+
+      <div class="pain-point"><span class="icon">✗</span> No ViewModel tests — the most complex layer is untested</div>
+      <div class="pain-point"><span class="icon">✗</span> No repository tests with fake data sources</div>
+      <div class="pain-point"><span class="icon">✗</span> No shared test fixtures — each test class creates its own mocks/fakes</div>
+      <div class="pain-point"><span class="icon">✗</span> No DataSource tests with MockEngine</div>
+
+      <div class="pyramid">
+        <div class="pyramid-level" style="width:200px; background:rgba(248,81,73,0.08); border-color:rgba(248,81,73,0.25); color:#f85149;">
+          ViewModel Tests <span class="pyramid-count">(0)</span>
+        </div>
+        <div class="pyramid-level" style="width:260px; background:rgba(248,81,73,0.08); border-color:rgba(248,81,73,0.25); color:#f85149;">
+          Repository Tests <span class="pyramid-count">(0)</span>
+        </div>
+        <div class="pyramid-level" style="width:320px; background:rgba(248,81,73,0.08); border-color:rgba(248,81,73,0.25); color:#f85149;">
+          DataSource Tests <span class="pyramid-count">(0)</span>
+        </div>
+        <div class="pyramid-level" style="width:380px; background:rgba(63,185,80,0.08); border-color:rgba(63,185,80,0.25); color:#3fb950;">
+          Domain / Use Case Tests <span class="pyramid-count">(exists)</span>
+        </div>
+        <div class="pyramid-level" style="width:440px; background:rgba(88,166,255,0.08); border-color:rgba(88,166,255,0.25); color:#58a6ff;">
+          Instrumented / Integration <span class="pyramid-count">(Room, SRS)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">:core:testing</span> module — shared fakes, builders, test utilities</div>
+      <div class="benefit"><span class="icon">✓</span> ViewModel tests with <span class="inline-code">Turbine</span> — test state transitions and effects</div>
+      <div class="benefit"><span class="icon">✓</span> Repository tests with in-memory Room + fake data sources</div>
+      <div class="benefit"><span class="icon">✓</span> DataSource tests with Ktor <span class="inline-code">MockEngine</span></div>
+
+      <div class="pyramid">
+        <div class="pyramid-level" style="width:200px; background:rgba(63,185,80,0.08); border-color:rgba(63,185,80,0.25); color:#3fb950;">
+          ViewModel Tests <span class="pyramid-count">(Turbine)</span>
+        </div>
+        <div class="pyramid-level" style="width:260px; background:rgba(63,185,80,0.08); border-color:rgba(63,185,80,0.25); color:#3fb950;">
+          Repository Tests <span class="pyramid-count">(fake DS)</span>
+        </div>
+        <div class="pyramid-level" style="width:320px; background:rgba(63,185,80,0.08); border-color:rgba(63,185,80,0.25); color:#3fb950;">
+          DataSource Tests <span class="pyramid-count">(MockEngine)</span>
+        </div>
+        <div class="pyramid-level" style="width:380px; background:rgba(63,185,80,0.08); border-color:rgba(63,185,80,0.25); color:#3fb950;">
+          Domain / Use Case Tests <span class="pyramid-count">(keep + expand)</span>
+        </div>
+        <div class="pyramid-level" style="width:440px; background:rgba(88,166,255,0.08); border-color:rgba(88,166,255,0.25); color:#58a6ff;">
+          Instrumented / Integration <span class="pyramid-count">(keep)</span>
+        </div>
+      </div>
+
+<pre class="code-block"><span class="cm">// :core:testing — shared fakes</span>
+<span class="kw">class</span> <span class="ty">FakeWordRepository</span> : <span class="ty">IWordRepository</span> {
+    <span class="kw">private val</span> words = <span class="ty">MutableStateFlow</span>&lt;<span class="ty">List</span>&lt;<span class="ty">Word</span>&gt;&gt;(emptyList())
+
+    <span class="kw">fun</span> <span class="fn">emit</span>(words: <span class="ty">List</span>&lt;<span class="ty">Word</span>&gt;) { this.words.value = words }
+
+    <span class="kw">override fun</span> <span class="fn">getAllWords</span>() = words.asStateFlow()
+    <span class="kw">override suspend fun</span> <span class="fn">updateWord</span>(w: <span class="ty">Word</span>) = <span class="ty">Try</span>.success(w)
+    <span class="cm">// ... all interface methods</span>
+}
+
+<span class="cm">// ViewModel test with Turbine</span>
+<span class="an">@Test</span>
+<span class="kw">fun</span> <span class="fn">`review word updates progress`</span>() = runTest {
+    <span class="kw">val</span> vm = <span class="ty">StudyViewModel</span>(fakeRepo, fakeReviewUC)
+    vm.state.test {
+        awaitItem() <span class="cm">// initial state</span>
+        vm.reviewWord(word, quality = <span class="nu">4</span>)
+        <span class="kw">val</span> updated = awaitItem()
+        assertEquals(<span class="ty">UiState.Success</span>(...), updated.progress)
+    }
+}</pre>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 9 — State Management                                         -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">9</div>
+    <div class="panel-title">State Management</div>
+    <div class="panel-desc">Fragmented StateFlows → Single atomic state per screen</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="pain-point"><span class="icon">✗</span> SubscriptionVM: 7 separate StateFlows combined late — race condition risk</div>
+      <div class="pain-point"><span class="icon">✗</span> ProfileVM: creates fake empty data when real data fails — masks errors from user</div>
+      <div class="pain-point"><span class="icon">✗</span> StudyVM: redundant observation jobs — <span class="inline-code">_progressStatistics</span> maps to <span class="inline-code">_progressScreenState</span></div>
+
+<pre class="code-block"><span class="cm">// SubscriptionVM — 7 separate flows combined late</span>
+<span class="kw">val</span> _offerings = <span class="ty">MutableStateFlow</span>&lt;<span class="ty">SubscriptionOffering?</span>&gt;(<span class="kw">null</span>)
+<span class="kw">val</span> _isLoading = <span class="ty">MutableStateFlow</span>(<span class="kw">false</span>)
+<span class="kw">val</span> _loadError = <span class="ty">MutableStateFlow</span>&lt;<span class="ty">String?</span>&gt;(<span class="kw">null</span>)
+<span class="kw">val</span> _uiState = <span class="ty">MutableStateFlow</span>(<span class="ty">SubscriptionUiState</span>())
+<span class="kw">val</span> customerInfo = subscriptionManager.customerInfo
+<span class="kw">val</span> isSubscribed = subscriptionManager.isSubscribed()
+<span class="cm">// + combined state flow</span>
+
+<span class="cm">// Problem: updating _offerings and _isLoading</span>
+<span class="cm">// are two separate operations — UI can see</span>
+<span class="cm">// intermediate state (loaded but still "loading")</span></pre>
+
+      <div class="pain-point"><span class="icon">✗</span> No <span class="inline-code">UiState&lt;T&gt;</span> wrapper — each VM handles Loading/Error/Success differently</div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="benefit"><span class="icon">✓</span> One <span class="inline-code">data class ScreenState</span> per screen — all fields in one atomic update</div>
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">UiState&lt;T&gt;</span> sealed class for async sections within a screen</div>
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">mutableStateOf</span> — Compose-native snapshot state, no <span class="inline-code">collectAsState</span> bridge needed</div>
+      <div class="benefit"><span class="icon">✓</span> <span class="inline-code">updateState { copy(...) }</span> — the only way to mutate state</div>
+
+<pre class="code-block"><span class="cm">// Single atomic state — backed by mutableStateOf</span>
+<span class="kw">data class</span> <span class="ty">SubscriptionScreenState</span>(
+    <span class="kw">val</span> offerings: <span class="ty">UiState</span>&lt;<span class="ty">SubscriptionOffering</span>&gt; = <span class="ty">UiState.Loading</span>,
+    <span class="kw">val</span> customerInfo: <span class="ty">SubscriptionCustomerInfo?</span> = <span class="kw">null</span>,
+    <span class="kw">val</span> isSubscribed: <span class="ty">Boolean</span> = <span class="kw">false</span>,
+    <span class="kw">val</span> isPurchasing: <span class="ty">Boolean</span> = <span class="kw">false</span>,
+)
+
+<span class="cm">// In ViewModel: Compose snapshot state — UI reads trigger recomposition directly</span>
+<span class="kw">private val</span> _state = <span class="ty">mutableStateOf</span>(<span class="ty">SubscriptionScreenState</span>())
+
+<span class="an">@Composable</span>
+<span class="kw">fun</span> <span class="fn">state</span>(): <span class="ty">State</span>&lt;<span class="ty">SubscriptionScreenState</span>&gt; = _state
+
+<span class="cm">// Atomic update — no intermediate states visible</span>
+<span class="kw">fun</span> <span class="fn">loadOfferings</span>() {
+    viewModelScope.launch {
+        getOfferingsUseCase().reduce(
+            onSuccess = { copy(offerings = <span class="ty">UiState.Success</span>(it)) },
+            onFailure = { copy(offerings = <span class="ty">UiState.Error</span>(it.message)) }
+        )
+    }
+}
+
+<span class="cm">// UiState&lt;T&gt; — reusable across all screens</span>
+<span class="kw">sealed interface</span> <span class="ty">UiState</span>&lt;<span class="kw">out</span> <span class="ty">T</span>&gt; {
+    <span class="kw">data object</span> <span class="ty">Loading</span> : <span class="ty">UiState</span>&lt;<span class="ty">Nothing</span>&gt;
+    <span class="kw">data class</span> <span class="ty">Success</span>&lt;<span class="ty">T</span>&gt;(<span class="kw">val</span> data: <span class="ty">T</span>) : <span class="ty">UiState</span>&lt;<span class="ty">T</span>&gt;
+    <span class="kw">data class</span> <span class="ty">Error</span>(<span class="kw">val</span> message: <span class="ty">String?</span>) : <span class="ty">UiState</span>&lt;<span class="ty">Nothing</span>&gt;
+    <span class="kw">data object</span> <span class="ty">Empty</span> : <span class="ty">UiState</span>&lt;<span class="ty">Nothing</span>&gt;
+}</pre>
+
+      <div class="section-head">Before → After</div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(248,81,73,0.12); border-color:rgba(248,81,73,0.3); color:#f85149; font-size:9px;">7 StateFlows</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(63,185,80,0.12); border-color:rgba(63,185,80,0.3); color:#3fb950; font-size:9px;">1 mutableStateOf&lt;ScreenState&gt;</div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(248,81,73,0.12); border-color:rgba(248,81,73,0.3); color:#f85149; font-size:9px;">Race conditions</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(63,185,80,0.12); border-color:rgba(63,185,80,0.3); color:#3fb950; font-size:9px;">Atomic copy()</div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box" style="background:rgba(248,81,73,0.12); border-color:rgba(248,81,73,0.3); color:#f85149; font-size:9px;">Ad-hoc error states</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box" style="background:rgba(63,185,80,0.12); border-color:rgba(63,185,80,0.3); color:#3fb950; font-size:9px;">UiState&lt;T&gt; sealed</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- PANEL 10 — Cross-Cutting Concerns                                  -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number">10</div>
+    <div class="panel-title">Cross-Cutting Concerns</div>
+    <div class="panel-desc">DI, Coroutines, Logging, Analytics — horizontal layer</div>
+  </div>
+  <div class="panel-body">
+    <!-- CURRENT -->
+    <div class="side side-current">
+      <div class="side-label">Current</div>
+
+      <div class="section-head">Dependency Injection</div>
+      <div class="keep"><span class="icon">≡</span> Koin with 10 sub-modules — well-organized</div>
+      <div class="pain-point"><span class="icon">✗</span> All DI declared in <span class="inline-code">:composeApp</span> — features can't own their own DI graph</div>
+      <div class="pain-point"><span class="icon">✗</span> Adding a new feature requires editing centralized DI module</div>
+
+      <div class="section-head">Coroutines</div>
+      <div class="keep"><span class="icon">≡</span> ViewModels use <span class="inline-code">viewModelScope</span> correctly</div>
+      <div class="pain-point"><span class="icon">✗</span> Some composables launch coroutines outside <span class="inline-code">LaunchedEffect</span> — lifecycle leak risk</div>
+
+      <div class="section-head">Logging</div>
+      <div class="pain-point"><span class="icon">✗</span> Ad-hoc <span class="inline-code">println()</span> / <span class="inline-code">logNetwork()</span> scattered across codebase</div>
+      <div class="pain-point"><span class="icon">✗</span> No structured logger interface — can't filter or disable in release builds</div>
+
+      <div class="section-head">Analytics</div>
+      <div class="keep"><span class="icon">≡</span> Firebase Analytics via <span class="inline-code">:platforms</span> expect/actual</div>
+      <div class="pain-point"><span class="icon">✗</span> No analytics interface in domain — use cases can't track events without platform dep</div>
+    </div>
+
+    <!-- PROPOSED -->
+    <div class="side side-proposed">
+      <div class="side-label">Proposed</div>
+
+      <div class="section-head">DI — Feature-Owned Modules</div>
+<pre class="code-block"><span class="cm">// Each feature exports its Koin module</span>
+<span class="cm">// In :feature:study/di/StudyModule.kt</span>
+<span class="kw">val</span> studyModule = module {
+    singleOf(::<span class="ty">StudyRepository</span>) bind <span class="ty">IStudyRepository</span>::<span class="kw">class</span>
+    factoryOf(::<span class="ty">ReviewWordUseCase</span>)
+    viewModelOf(::<span class="ty">StudyViewModel</span>)
+}
+
+<span class="cm">// In :app — just assembles</span>
+startKoin {
+    modules(
+        coreModule,         <span class="cm">// :core:common</span>
+        networkModule,      <span class="cm">// :core:network</span>
+        databaseModule,     <span class="cm">// :core:database</span>
+        authModule,         <span class="cm">// :feature:auth</span>
+        studyModule,        <span class="cm">// :feature:study</span>
+        wordsModule,        <span class="cm">// :feature:words</span>
+        profileModule,      <span class="cm">// :feature:profile</span>
+        importModule,       <span class="cm">// :feature:import</span>
+    )
+}</pre>
+
+      <div class="section-head">Coroutines — No Manual Scopes</div>
+      <div class="benefit"><span class="icon">✓</span> All coroutine work in ViewModels or <span class="inline-code">LaunchedEffect</span> — zero manual <span class="inline-code">CoroutineScope</span> in composables</div>
+
+      <div class="section-head">Logging — Structured Interface</div>
+<pre class="code-block"><span class="cm">// In :core:common</span>
+<span class="kw">interface</span> <span class="ty">AppLogger</span> {
+    <span class="kw">fun</span> <span class="fn">d</span>(tag: <span class="ty">String</span>, message: () -&gt; <span class="ty">String</span>)
+    <span class="kw">fun</span> <span class="fn">w</span>(tag: <span class="ty">String</span>, message: () -&gt; <span class="ty">String</span>)
+    <span class="kw">fun</span> <span class="fn">e</span>(tag: <span class="ty">String</span>, error: <span class="ty">Throwable</span>?, message: () -&gt; <span class="ty">String</span>)
+}
+<span class="cm">// Impl: Android → Logcat, iOS → os_log, Release → no-op</span></pre>
+
+      <div class="section-head">Analytics — Domain Interface</div>
+<pre class="code-block"><span class="cm">// In :domain</span>
+<span class="kw">interface</span> <span class="ty">AnalyticsTracker</span> {
+    <span class="kw">fun</span> <span class="fn">track</span>(event: <span class="ty">AnalyticsEvent</span>)
+    <span class="kw">fun</span> <span class="fn">setUserProperty</span>(key: <span class="ty">String</span>, value: <span class="ty">String</span>)
+}
+
+<span class="kw">sealed interface</span> <span class="ty">AnalyticsEvent</span> {
+    <span class="kw">data class</span> <span class="ty">WordReviewed</span>(<span class="kw">val</span> quality: <span class="ty">Int</span>) : <span class="ty">AnalyticsEvent</span>
+    <span class="kw">data class</span> <span class="ty">WordImported</span>(<span class="kw">val</span> count: <span class="ty">Int</span>) : <span class="ty">AnalyticsEvent</span>
+    <span class="kw">data object</span> <span class="ty">SubscriptionPurchased</span> : <span class="ty">AnalyticsEvent</span>
+}</pre>
+      <div class="benefit"><span class="icon">✓</span> Use cases can track events via interface — no platform dependency in domain</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- MIGRATION ROADMAP                                                  -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="panel">
+  <div class="panel-header">
+    <div class="panel-number" style="background: linear-gradient(135deg, #e3b341, #ff7b3c);">→</div>
+    <div class="panel-title">Migration Roadmap</div>
+    <div class="panel-desc">Prioritized phases — each phase is independently shippable</div>
+  </div>
+  <div class="panel-body full-width">
+    <div class="side" style="background: transparent; padding: 24px;">
+
+      <div class="roadmap">
+        <!-- Phase 1 -->
+        <div class="roadmap-phase">
+          <div class="phase-number" style="color: #f85149;">Phase 1 — Foundation</div>
+          <div class="phase-title">Core Contracts</div>
+          <ul class="phase-items">
+            <li>Create <span class="inline-code">:core:common</span> module</li>
+            <li>Move <span class="inline-code">Try&lt;T&gt;</span> to core</li>
+            <li>Define <span class="inline-code">BaseViewModel</span> base class</li>
+            <li>Define <span class="inline-code">UseCase</span> / <span class="inline-code">FlowUseCase</span> interfaces</li>
+            <li>Create <span class="inline-code">UiState&lt;T&gt;</span> sealed interface</li>
+            <li>Create <span class="inline-code">AppLogger</span> interface</li>
+            <li>Create <span class="inline-code">:core:testing</span> with shared fakes</li>
+          </ul>
+          <div class="small muted mt">Impact: <span class="tag tag-green">LOW RISK</span> — additive only, no existing code changed</div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="roadmap-phase">
+          <div class="phase-number" style="color: #e3b341;">Phase 2 — Repository Layer</div>
+          <div class="phase-title">Consistent Contracts</div>
+          <ul class="phase-items">
+            <li>Add interfaces for all remote data sources</li>
+            <li>Standardize <span class="inline-code">IWordRepository</span> to <span class="inline-code">Try&lt;T&gt;</span></li>
+            <li>Standardize mapper style to extensions</li>
+            <li>Add repository-level tests</li>
+            <li>Add DataSource tests with MockEngine</li>
+            <li>Remove dead <span class="inline-code">NetworkErrorHandler</span></li>
+            <li>Add logging + timing interceptors</li>
+          </ul>
+          <div class="small muted mt">Impact: <span class="tag tag-amber">MEDIUM</span> — callers of bare-Unit methods need updating</div>
+        </div>
+
+        <!-- Phase 3 -->
+        <div class="roadmap-phase">
+          <div class="phase-number" style="color: #58a6ff;">Phase 3 — ViewModel Layer</div>
+          <div class="phase-title">Unified ViewModel</div>
+          <ul class="phase-items">
+            <li>Migrate VMs to <span class="inline-code">BaseViewModel</span> (start with simplest)</li>
+            <li>Consolidate fragmented StateFlows</li>
+            <li>Standardize use case signatures</li>
+            <li>Add ViewModel tests with Turbine</li>
+            <li>Decompose <span class="inline-code">LexiconApp.kt</span> navigation</li>
+            <li>Remove stateful use cases</li>
+          </ul>
+          <div class="small muted mt">Impact: <span class="tag tag-red">HIGH</span> — significant refactor, do VM-by-VM</div>
+        </div>
+
+        <!-- Phase 4 -->
+        <div class="roadmap-phase">
+          <div class="phase-number" style="color: #bc8cff;">Phase 4 — Feature Modules</div>
+          <div class="phase-title">Vertical Slices</div>
+          <ul class="phase-items">
+            <li>Extract <span class="inline-code">:feature:auth</span> (self-contained, good first candidate)</li>
+            <li>Extract <span class="inline-code">:feature:study</span></li>
+            <li>Extract <span class="inline-code">:feature:words</span></li>
+            <li>Extract <span class="inline-code">:feature:profile</span></li>
+            <li>Extract <span class="inline-code">:feature:import</span></li>
+            <li>Feature-owned Koin modules</li>
+            <li>Feature-owned navigation subgraphs</li>
+          </ul>
+          <div class="small muted mt">Impact: <span class="tag tag-red">HIGH</span> — restructure modules, update Gradle config</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+        <div>
+          <div class="section-head" style="border:none; color:#8b949e;">Key Principles</div>
+          <div class="benefit"><span class="icon">✓</span> Each phase is independently shippable — no big-bang rewrite</div>
+          <div class="benefit"><span class="icon">✓</span> New code follows proposed patterns immediately — old code migrates gradually</div>
+          <div class="benefit"><span class="icon">✓</span> Tests are added alongside each refactor — never decrease coverage</div>
+        </div>
+        <div>
+          <div class="section-head" style="border:none; color:#8b949e;">What We Keep</div>
+          <div class="keep"><span class="icon">≡</span> <span class="inline-code">Try&lt;T&gt;</span> — well-designed, just needs consistent usage</div>
+          <div class="keep"><span class="icon">≡</span> HTTP interceptor pipeline — AuthInterceptor, RefreshAndRetry, ErrorInterceptor</div>
+          <div class="keep"><span class="icon">≡</span> Room DB + migrations — stable and working</div>
+          <div class="keep"><span class="icon">≡</span> Koin DI — just redistribute ownership to features</div>
+          <div class="keep"><span class="icon">≡</span> Platform abstractions (expect/actual) — clean boundary</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                             -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  Lexicon Architecture Vision · Generated March 2026 · Kotlin Multiplatform · Clean Architecture + Event Sink<br>
+  <span style="color:#30363d;">Open in browser → Cmd+P → Save as PDF</span>
+</div>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 package domain.profile.repository
 
-import domain.common.Try
+import core.common.Try
 import domain.profile.model.ProfileStats
 
 interface IProfileStatsRepository {

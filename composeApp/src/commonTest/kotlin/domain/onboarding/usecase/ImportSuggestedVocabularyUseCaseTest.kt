@@ -1,7 +1,7 @@
 package domain.onboarding.usecase
 
-import domain.common.Try
-import domain.common.getOrNull
+import core.common.Try
+import core.common.getOrNull
 import domain.onboarding.model.SuggestedVocabulary
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats

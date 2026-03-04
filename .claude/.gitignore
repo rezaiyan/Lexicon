@@ -1,0 +1,5 @@
+settings.local.json
+agent-memory-local/
+hooks/logs/
+*.local.json
+*.local.md

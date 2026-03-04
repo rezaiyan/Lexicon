@@ -1,4 +1,7 @@
-.claude/
+# Claude Code personal/local files (team-shared config is committed)
+.claude/settings.local.json
+.claude/agent-memory-local/
+.claude/hooks/logs/
 kotlin-js-store/
 .gradle/
 **/build/

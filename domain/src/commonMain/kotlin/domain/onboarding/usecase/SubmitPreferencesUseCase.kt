@@ -1,6 +1,6 @@
 package domain.onboarding.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.onboarding.repository.IOnboardingRepository

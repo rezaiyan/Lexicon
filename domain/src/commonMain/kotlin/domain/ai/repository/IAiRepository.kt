@@ -1,6 +1,6 @@
 package domain.ai.repository
 
-import domain.common.Try
+import core.common.Try
 import utils.Language
 
 interface IAiRepository {

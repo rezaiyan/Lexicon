@@ -335,6 +335,13 @@
     <string name="features">Fonctionnalités</string>
     <string name="vokab_pro">Lexicon Pro</string>
     <string name="subscription_active">Actif</string>
+    <string name="subscription_cancelling">Expire bientôt</string>
+    <string name="subscription_access_until">Accès jusqu\'au : %1$s</string>
+    <string name="subscription_cancelled_access_note">Votre abonnement a été annulé. Vous avez toujours accès à toutes les fonctionnalités premium jusqu\'à la date d\'expiration.</string>
+    <string name="subscription_expires_today">Expire aujourd\'hui</string>
+    <string name="subscription_day_remaining">1 jour restant</string>
+    <string name="subscription_days_remaining">%1$d jours restants</string>
+    <string name="subscription_resubscribe">Se réabonner</string>
     <string name="manage_subscription">Gérer l'abonnement</string>
     <string name="cancel_subscription">Annuler l'abonnement</string>
     <string name="billing_period_monthly">Mensuel</string>

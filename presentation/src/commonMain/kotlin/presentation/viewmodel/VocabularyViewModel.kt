@@ -10,7 +10,7 @@ import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.UpdateWordUseCase
-import domain.common.fold
+import core.common.fold
 import events.VocabularyEffect
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

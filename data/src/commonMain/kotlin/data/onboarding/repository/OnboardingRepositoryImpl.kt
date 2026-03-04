@@ -3,8 +3,8 @@ package data.onboarding.repository
 import data.onboarding.remote.OnboardingRemoteDataSource
 import data.onboarding.remote.model.OnboardingPreferencesRequest
 import data.storage.SecureStorage
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.model.SuggestedVocabularyResponse

@@ -8,10 +8,10 @@ import data.auth.remote.model.UserDto
 import data.core.network.error.AuthenticationException
 import data.core.network.error.HttpErrorMapper
 import data.core.network.model.ApiResponse
-import domain.common.Try
-import domain.common.doOnFailure
-import domain.common.map
-import domain.common.mapFailure
+import core.common.Try
+import core.common.doOnFailure
+import core.common.map
+import core.common.mapFailure
 import expects.logNetwork
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

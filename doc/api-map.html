@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lexicon — API Architecture Map</title>
+<style>
+  @page {
+    size: A2 landscape;
+    margin: 12mm;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    padding: 32px;
+    min-width: 1800px;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #21262d;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #58a6ff, #bc8cff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header p { color: #8b949e; font-size: 13px; margin-top: 6px; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #8b949e;
+  }
+  .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+
+  /* ── Main Grid ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  /* ── Section Box ── */
+  .section {
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    border: 1px solid;
+  }
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  .section-subtitle {
+    font-size: 10px;
+    color: #8b949e;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  /* ── Endpoint Pill ── */
+  .endpoint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin-bottom: 5px;
+    font-size: 11px;
+    background: rgba(0,0,0,0.3);
+  }
+  .method {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+  .method.get    { background: #238636; color: #fff; }
+  .method.post   { background: #1f6feb; color: #fff; }
+  .method.patch  { background: #9e6a03; color: #fff; }
+  .method.delete { background: #da3633; color: #fff; }
+  .path { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; color: #c9d1d9; }
+
+  /* ── Flow Arrow ── */
+  .flow-label {
+    font-size: 9px;
+    color: #8b949e;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+  }
+  .flow-label strong { color: #c9d1d9; }
+
+  /* ── Section Colors ── */
+  .section.auth        { background: rgba(31,111,235,0.08); border-color: rgba(31,111,235,0.3); }
+  .section.auth .section-title { color: #58a6ff; }
+  .section.auth .icon  { background: rgba(31,111,235,0.2); }
+
+  .section.words       { background: rgba(35,134,54,0.08); border-color: rgba(35,134,54,0.3); }
+  .section.words .section-title { color: #3fb950; }
+  .section.words .icon { background: rgba(35,134,54,0.2); }
+
+  .section.profile     { background: rgba(188,140,255,0.08); border-color: rgba(188,140,255,0.3); }
+  .section.profile .section-title { color: #bc8cff; }
+  .section.profile .icon { background: rgba(188,140,255,0.2); }
+
+  .section.study       { background: rgba(219,171,60,0.08); border-color: rgba(219,171,60,0.3); }
+  .section.study .section-title { color: #e3b341; }
+  .section.study .icon { background: rgba(219,171,60,0.2); }
+
+  .section.streak      { background: rgba(255,123,60,0.08); border-color: rgba(255,123,60,0.3); }
+  .section.streak .section-title { color: #ff7b3c; }
+  .section.streak .icon { background: rgba(255,123,60,0.2); }
+
+  .section.leaderboard { background: rgba(255,215,0,0.08); border-color: rgba(255,215,0,0.3); }
+  .section.leaderboard .section-title { color: #ffd700; }
+  .section.leaderboard .icon { background: rgba(255,215,0,0.2); }
+
+  .section.ai          { background: rgba(240,80,120,0.08); border-color: rgba(240,80,120,0.3); }
+  .section.ai .section-title { color: #f05078; }
+  .section.ai .icon    { background: rgba(240,80,120,0.2); }
+
+  .section.onboarding  { background: rgba(56,211,159,0.08); border-color: rgba(56,211,159,0.3); }
+  .section.onboarding .section-title { color: #38d39f; }
+  .section.onboarding .icon { background: rgba(56,211,159,0.2); }
+
+  .section.push        { background: rgba(150,150,150,0.08); border-color: rgba(150,150,150,0.3); }
+  .section.push .section-title { color: #adb5bd; }
+  .section.push .icon  { background: rgba(150,150,150,0.2); }
+
+  .section.infra       { background: rgba(99,110,123,0.06); border-color: rgba(99,110,123,0.3); }
+  .section.infra .section-title { color: #8b949e; }
+  .section.infra .icon { background: rgba(99,110,123,0.2); }
+
+  .section.feature     { background: rgba(56,166,211,0.08); border-color: rgba(56,166,211,0.3); }
+  .section.feature .section-title { color: #38a6d3; }
+  .section.feature .icon { background: rgba(56,166,211,0.2); }
+
+  /* ── Span columns ── */
+  .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; }
+  .span-4 { grid-column: span 4; }
+
+  /* ── Interaction Map (bottom) ── */
+  .interaction-map {
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 24px;
+    background: rgba(13,17,23,0.6);
+    margin-bottom: 28px;
+  }
+  .interaction-map h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #c9d1d9;
+    text-align: center;
+  }
+
+  /* ── SVG container ── */
+  .svg-map {
+    width: 100%;
+    overflow: visible;
+  }
+
+  /* ── Interceptor chain ── */
+  .interceptor-chain {
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 20px;
+    background: rgba(13,17,23,0.6);
+    margin-bottom: 28px;
+  }
+  .interceptor-chain h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #c9d1d9;
+    text-align: center;
+  }
+  .chain-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: nowrap;
+  }
+  .chain-node {
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+    position: relative;
+  }
+  .chain-arrow {
+    font-size: 18px;
+    color: #484f58;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+  .chain-label {
+    font-size: 9px;
+    color: #8b949e;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .cn-vm       { background: rgba(188,140,255,0.15); border: 1px solid rgba(188,140,255,0.4); color: #bc8cff; }
+  .cn-uc       { background: rgba(56,211,159,0.15); border: 1px solid rgba(56,211,159,0.4); color: #38d39f; }
+  .cn-repo     { background: rgba(31,111,235,0.15); border: 1px solid rgba(31,111,235,0.4); color: #58a6ff; }
+  .cn-ds       { background: rgba(35,134,54,0.15); border: 1px solid rgba(35,134,54,0.4); color: #3fb950; }
+  .cn-api      { background: rgba(219,171,60,0.15); border: 1px solid rgba(219,171,60,0.4); color: #e3b341; }
+  .cn-inter    { background: rgba(240,80,120,0.15); border: 1px solid rgba(240,80,120,0.4); color: #f05078; }
+  .cn-backend  { background: rgba(150,150,150,0.15); border: 1px solid rgba(150,150,150,0.4); color: #adb5bd; }
+
+  /* ── Data flow sub-label ── */
+  .dto-label {
+    display: inline-block;
+    font-size: 9px;
+    color: #6e7681;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: rgba(0,0,0,0.4);
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-top: 3px;
+  }
+
+  /* ── Endpoint count badge ── */
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    margin-left: auto;
+  }
+
+  .section.auth .badge        { background: rgba(31,111,235,0.2); color: #58a6ff; }
+  .section.words .badge       { background: rgba(35,134,54,0.2); color: #3fb950; }
+  .section.profile .badge     { background: rgba(188,140,255,0.2); color: #bc8cff; }
+  .section.streak .badge      { background: rgba(255,123,60,0.2); color: #ff7b3c; }
+  .section.leaderboard .badge { background: rgba(255,215,0,0.2); color: #ffd700; }
+  .section.ai .badge          { background: rgba(240,80,120,0.2); color: #f05078; }
+  .section.onboarding .badge  { background: rgba(56,211,159,0.2); color: #38d39f; }
+  .section.push .badge        { background: rgba(150,150,150,0.2); color: #adb5bd; }
+  .section.feature .badge     { background: rgba(56,166,211,0.2); color: #38a6d3; }
+
+  /* ── ViewModel tag ── */
+  .vm-tag {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 3px;
+    margin-bottom: 2px;
+    background: rgba(188,140,255,0.12);
+    color: #bc8cff;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; color: #1a1a2e; padding: 10mm; }
+    .section { border-width: 1.5px; }
+    .endpoint { background: rgba(0,0,0,0.05); }
+    .interaction-map, .interceptor-chain { background: #fafbfc; }
+    .header h1 { -webkit-text-fill-color: #1a1a2e; background: none; }
+  }
+
+  /* ── Columns within sections ── */
+  .endpoints-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  /* ── Interaction row ── */
+  .interaction-row {
+    display: grid;
+    grid-template-columns: 200px 40px 200px 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    background: rgba(0,0,0,0.2);
+  }
+  .interaction-row:nth-child(even) {
+    background: rgba(0,0,0,0.1);
+  }
+  .inter-from {
+    font-weight: 600;
+    text-align: right;
+  }
+  .inter-arrow {
+    text-align: center;
+    color: #484f58;
+    font-size: 16px;
+  }
+  .inter-to {
+    font-weight: 600;
+  }
+  .inter-desc {
+    color: #8b949e;
+    font-size: 10px;
+  }
+
+  .inter-color-auth   { color: #58a6ff; }
+  .inter-color-words  { color: #3fb950; }
+  .inter-color-profile { color: #bc8cff; }
+  .inter-color-streak { color: #ff7b3c; }
+  .inter-color-push   { color: #adb5bd; }
+  .inter-color-ai     { color: #f05078; }
+  .inter-color-onboard { color: #38d39f; }
+
+  .interactions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .interactions-col h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #c9d1d9;
+    padding-left: 12px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    color: #484f58;
+    font-size: 11px;
+    padding-top: 16px;
+    border-top: 1px solid #21262d;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Lexicon — API Architecture Map</h1>
+  <p>24 endpoints &middot; 10 data sources &middot; 13 ViewModels &middot; 40+ use cases &middot; KMP (Android + iOS)</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     LEGEND
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#238636"></div> GET</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#1f6feb"></div> POST</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#9e6a03"></div> PATCH</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#da3633"></div> DELETE</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(188,140,255,0.3);border:1px solid #bc8cff"></div> ViewModel caller</div>
+  <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.1);border:1px solid #484f58"></div> Interceptor (automatic)</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     REQUEST LIFECYCLE — INTERCEPTOR CHAIN
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="interceptor-chain">
+  <h2>Request Lifecycle — Interceptor Chain</h2>
+  <div class="chain-flow">
+    <div>
+      <div class="chain-node cn-vm">ViewModel</div>
+      <div class="chain-label">events</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-uc">UseCase</div>
+      <div class="chain-label">invoke()</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-repo">Repository</div>
+      <div class="chain-label">interface</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-ds">DataSource</div>
+      <div class="chain-label">remote call</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-api">ApiClient</div>
+      <div class="chain-label">get/post/patch/delete</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-inter" style="border-style:dashed">① AuthInterceptor</div>
+      <div class="chain-label">Bearer token +<br>proactive refresh<br>(5-min threshold)</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-inter" style="border-style:dashed">② RefreshAndRetry</div>
+      <div class="chain-label">401/403 → refresh<br>→ retry once<br>(mutex single-flight)</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-inter" style="border-style:dashed">③ ErrorInterceptor</div>
+      <div class="chain-label">non-2xx →<br>typed exception</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-backend">Backend</div>
+      <div class="chain-label">HTTPS / JSON</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:12px;font-size:11px;color:#6e7681">
+    Response: <span class="dto-label">ApiResponse&lt;T&gt; { success, data?, message? }</span>
+    → <span class="dto-label">ApiResponseMapper</span>
+    → <span class="dto-label">Try&lt;T&gt;</span>
+    → ViewModel <code>.fold(onSuccess, onFailure)</code>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ENDPOINT MAP — ALL SECTIONS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="main-grid">
+
+  <!-- ── AUTH (6 endpoints) ── -->
+  <div class="section auth span-2">
+    <div class="section-title">
+      <div class="icon">🔐</div> Authentication
+      <span class="badge">6</span>
+    </div>
+    <div class="section-subtitle">AuthDataSource — uses raw HttpClient (bypasses interceptors for login/refresh)</div>
+    <div class="endpoints-grid">
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <span class="path">/auth/google</span>
+      </div>
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <span class="path">/auth/apple</span>
+      </div>
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <span class="path">/auth/refresh</span>
+      </div>
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <span class="path">/auth/logout</span>
+      </div>
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="path">/users/me</span>
+      </div>
+      <div class="endpoint">
+        <span class="method delete">DEL</span>
+        <span class="path">/auth/delete-account</span>
+      </div>
+    </div>
+    <div class="flow-label">
+      <div style="margin-bottom:4px">
+        <span class="vm-tag">AuthViewModel</span>
+        <span class="vm-tag">ProfileViewModel</span>
+      </div>
+      <strong>Login:</strong> AuthVM → LoginWithGoogle/AppleUseCase → AuthenticationService → AuthRepository → AuthDataSource<br>
+      <strong>Refresh:</strong> Automatic via RefreshAndRetryInterceptor → TokenRefreshManager (mutex single-flight)<br>
+      <strong>Verify:</strong> AuthVM → VerifySessionUseCase → SessionRepository → AuthDataSource.getUserProfile()<br>
+      <strong>Logout:</strong> AuthVM or ProfileVM → UserManager → LogoutUseCase → AuthenticationService → AuthRepository<br>
+      <strong>Delete:</strong> ProfileVM → UserManager → DeleteAccountUseCase → AuthenticationService → AuthRepository
+    </div>
+  </div>
+
+  <!-- ── WORDS (6 endpoints) ── -->
+  <div class="section words span-2">
+    <div class="section-title">
+      <div class="icon">📝</div> Words
+      <span class="badge">6</span>
+    </div>
+    <div class="section-subtitle">WordRemoteDataSource — uses ApiClient (full interceptor chain)</div>
+    <div class="endpoints-grid">
+      <div class="endpoint">
+        <span class="method get">GET</span>
+        <span class="path">/words</span>
+      </div>
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <span class="path">/words</span>
+      </div>
+      <div class="endpoint">
+        <span class="method patch">PATCH</span>
+        <span class="path">/words/{id}</span>
+      </div>
+      <div class="endpoint">
+        <span class="method delete">DEL</span>
+        <span class="path">/words/{id}</span>
+      </div>
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <span class="path">/words/batch-delete</span>
+      </div>
+      <div class="endpoint">
+        <span class="method post">POST</span>
+        <span class="path">/words/batch-update</span>
+      </div>
+    </div>
+    <div class="flow-label">
+      <div style="margin-bottom:4px">
+        <span class="vm-tag">StudyViewModel</span>
+        <span class="vm-tag">ImportViewModel</span>
+        <span class="vm-tag">WordManagerViewModel</span>
+        <span class="vm-tag">OnboardingViewModel</span>
+      </div>
+      <strong>Sync:</strong> Remote-first — sync to backend, then persist locally (Room DB)<br>
+      <strong>Full sync:</strong> GET /words → ConflictResolver (content-key dedup, last-write-wins) → upsert local<br>
+      <strong>Insert:</strong> ImportVM → ImportWordsUseCase → WordRepo → SyncHandler → POST /words<br>
+      <strong>Review:</strong> StudyVM → ReviewWordUseCase (SM-2) → WordRepo → SyncHandler → PATCH /words/{id}<br>
+      <strong>Batch delete:</strong> Flow progress: DeletingFromBackend → DeletingFromLocal → Completed
+    </div>
+  </div>
+
+  <!-- ── PROFILE (3 endpoints) ── -->
+  <div class="section profile">
+    <div class="section-title">
+      <div class="icon">👤</div> Profile
+      <span class="badge">3</span>
+    </div>
+    <div class="section-subtitle">ProfileRemoteDataSource</div>
+    <div class="endpoint">
+      <span class="method patch">PATCH</span>
+      <span class="path">/users/me</span>
+    </div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/users/me/avatar</span>
+    </div>
+    <div class="endpoint">
+      <span class="method delete">DEL</span>
+      <span class="path">/users/me/avatar</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">EditProfileViewModel</span><br>
+      <strong>Update:</strong> UpdateProfileUseCase → ProfileRepo<br>
+      <strong>Avatar:</strong> UploadAvatarUseCase → multipart<br>
+      &nbsp;&nbsp;(raw HttpClient for upload)
+    </div>
+  </div>
+
+  <!-- ── PROFILE STATS (1 endpoint) ── -->
+  <div class="section profile">
+    <div class="section-title">
+      <div class="icon">📊</div> Profile Stats
+      <span class="badge">1</span>
+    </div>
+    <div class="section-subtitle">ProfileStatsRemoteDataSource</div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/users/profile-stats</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">ProfileViewModel</span><br>
+      <strong>Load:</strong> GetProfileStatsUseCase → ProfileStatsRepo<br>
+      <strong>Throttled:</strong> max once per 60s<br>
+      <strong>Returns:</strong> streak, languages, weekly activity
+    </div>
+  </div>
+
+  <!-- ── STREAK (2 endpoints) ── -->
+  <div class="section streak">
+    <div class="section-title">
+      <div class="icon">🔥</div> Streak
+      <span class="badge">2</span>
+    </div>
+    <div class="section-subtitle">StreakRemoteDataSource</div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/streak</span>
+    </div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/streak/record</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">ProfileViewModel</span>
+      <span class="vm-tag">StudyViewModel</span><br>
+      <strong>Read:</strong> ProfileVM → StreakManager → StreakRepo<br>
+      <strong>Record:</strong> StudyVM → RecordStreakActivityUseCase<br>
+      &nbsp;&nbsp;(after review session, sends word count)
+    </div>
+  </div>
+
+  <!-- ── LEADERBOARD (1 endpoint) ── -->
+  <div class="section leaderboard">
+    <div class="section-title">
+      <div class="icon">🏆</div> Leaderboard
+      <span class="badge">1</span>
+    </div>
+    <div class="section-subtitle">LeaderboardRemoteDataSource</div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/leaderboard</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">LeaderboardViewModel</span><br>
+      <strong>Load:</strong> GetLeaderboardUseCase<br>
+      → LeaderboardRepo → DataSource<br>
+      <strong>Returns:</strong> entries[] + userEntry
+    </div>
+  </div>
+
+  <!-- ── AI (1 endpoint) ── -->
+  <div class="section ai">
+    <div class="section-title">
+      <div class="icon">🤖</div> AI Extraction
+      <span class="badge">1</span>
+    </div>
+    <div class="section-subtitle">AiRemoteDataSource</div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/ai/extract-vocabulary</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">ImportViewModel</span><br>
+      <strong>Flow:</strong> ImportFromImageUseCase<br>
+      → validate (128B–3MB) → base64 encode<br>
+      → AiRepo → DataSource → parse result<br>
+      → ImportWordsUseCase → POST /words
+    </div>
+  </div>
+
+  <!-- ── ONBOARDING (1 endpoint) ── -->
+  <div class="section onboarding">
+    <div class="section-title">
+      <div class="icon">🎯</div> Onboarding
+      <span class="badge">1</span>
+    </div>
+    <div class="section-subtitle">OnboardingRemoteDataSource</div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/onboarding/preferences</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">OnboardingViewModel</span>
+      <span class="vm-tag">AiWordImportViewModel</span><br>
+      <strong>Flow:</strong> SubmitPreferencesUseCase<br>
+      → OnboardingRepo → DataSource<br>
+      <strong>Returns:</strong> suggested vocabulary list
+    </div>
+  </div>
+
+  <!-- ── FEATURE ACCESS (1 endpoint) ── -->
+  <div class="section feature">
+    <div class="section-title">
+      <div class="icon">🎛</div> Feature Access
+      <span class="badge">1</span>
+    </div>
+    <div class="section-subtitle">FeatureAccessRemoteDataSource</div>
+    <div class="endpoint">
+      <span class="method get">GET</span>
+      <span class="path">/users/feature-access</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">ProfileViewModel</span>
+      <span class="vm-tag">StudyViewModel</span>
+      <span class="vm-tag">WordManagerViewModel</span>
+      <span class="vm-tag">ImportViewModel</span>
+      <span class="vm-tag">SettingsViewModel</span><br>
+      <strong>Exposed as:</strong> Flow (getFlowNotNull)<br>
+      <strong>Fallback:</strong> pushNotifications=true,<br>
+      &nbsp;&nbsp;hasPremiumAccess=false
+    </div>
+  </div>
+
+  <!-- ── PUSH NOTIFICATIONS (2 endpoints) ── -->
+  <div class="section push">
+    <div class="section-title">
+      <div class="icon">🔔</div> Push Notifications
+      <span class="badge">2</span>
+    </div>
+    <div class="section-subtitle">PushNotificationDataSource — raw HttpClient</div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/notifications/register-token</span>
+    </div>
+    <div class="endpoint">
+      <span class="method delete">DEL</span>
+      <span class="path">/notifications/tokens</span>
+    </div>
+    <div class="flow-label">
+      <span class="vm-tag">AuthViewModel</span>
+      <span class="vm-tag">ProfileViewModel</span><br>
+      <strong>Register:</strong> after login/session restore<br>
+      &nbsp;&nbsp;→ InitializePushNotificationsUseCase<br>
+      <strong>Deactivate:</strong> before logout/delete<br>
+      &nbsp;&nbsp;→ best-effort, always succeeds
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CROSS-SECTION INTERACTIONS
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="interaction-map">
+  <h2>Cross-Section Interactions</h2>
+  <p style="text-align:center;font-size:11px;color:#6e7681;margin-bottom:14px">
+    API calls that trigger other API calls or share data between app sections
+  </p>
+  <div class="interactions-grid">
+    <div class="interactions-col">
+      <h3>Login &amp; Session Flows</h3>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-auth">POST /auth/google</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-words">GET /words</div>
+        <div class="inter-desc">After login, sync all words from backend</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-auth">POST /auth/google</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-push">POST /notifications/register</div>
+        <div class="inter-desc">After login, register FCM/APNs push token</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-auth">POST /auth/apple</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-words">GET /words</div>
+        <div class="inter-desc">After login, sync all words from backend</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-auth">POST /auth/apple</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-push">POST /notifications/register</div>
+        <div class="inter-desc">After login, register FCM/APNs push token</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-push">DEL /notifications/tokens</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-auth">POST /auth/logout</div>
+        <div class="inter-desc">Deactivate tokens before logout</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-push">DEL /notifications/tokens</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-auth">DEL /auth/delete-account</div>
+        <div class="inter-desc">Deactivate tokens before account deletion</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from" style="color:#f05078">Any 401/403 response</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-auth">POST /auth/refresh</div>
+        <div class="inter-desc">Automatic: interceptor refreshes token, retries</div>
+      </div>
+
+    </div>
+    <div class="interactions-col">
+      <h3>Study &amp; Data Flows</h3>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-words">PATCH /words/{id}</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-streak">POST /streak/record</div>
+        <div class="inter-desc">After review session, record activity + word count</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-ai">POST /ai/extract-vocabulary</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-words">POST /words</div>
+        <div class="inter-desc">Parse AI extraction → insert words into backend</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-onboard">POST /onboarding/preferences</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to inter-color-words">POST /words</div>
+        <div class="inter-desc">Import suggested vocabulary as new words</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-words">GET /words (sync)</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to" style="color:#e3b341">Room DB (local)</div>
+        <div class="inter-desc">ConflictResolver merges → upsert into local DB</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from inter-color-words">POST/PATCH/DEL words</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to" style="color:#e3b341">Room DB (local)</div>
+        <div class="inter-desc">Remote-first: sync to backend, then persist locally</div>
+      </div>
+
+      <div class="interaction-row">
+        <div class="inter-from" style="color:#38a6d3">GET /users/feature-access</div>
+        <div class="inter-arrow">→</div>
+        <div class="inter-to" style="color:#bc8cff">5 ViewModels</div>
+        <div class="inter-desc">Feature flags control premium features across app</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CACHING & STORAGE
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="interaction-map">
+  <h2>Data Storage Strategy</h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px;">
+
+    <div style="background:rgba(35,134,54,0.08);border:1px solid rgba(35,134,54,0.25);border-radius:8px;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#3fb950;margin-bottom:6px;">Words</div>
+      <div style="font-size:10px;color:#8b949e;">
+        <strong>Storage:</strong> Room DB + Remote<br>
+        <strong>Strategy:</strong> Local-first w/ remote sync<br>
+        <strong>Source of truth:</strong> Local (Room)<br>
+        <strong>Offline:</strong> Yes
+      </div>
+    </div>
+
+    <div style="background:rgba(31,111,235,0.08);border:1px solid rgba(31,111,235,0.25);border-radius:8px;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#58a6ff;margin-bottom:6px;">Auth Tokens</div>
+      <div style="font-size:10px;color:#8b949e;">
+        <strong>Storage:</strong> SecureStorage<br>
+        <strong>iOS:</strong> Keychain<br>
+        <strong>Android:</strong> EncryptedSharedPrefs<br>
+        <strong>Lifecycle:</strong> Until logout/expiry
+      </div>
+    </div>
+
+    <div style="background:rgba(188,140,255,0.08);border:1px solid rgba(188,140,255,0.25);border-radius:8px;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#bc8cff;margin-bottom:6px;">Profile / Stats / Leaderboard / Streak</div>
+      <div style="font-size:10px;color:#8b949e;">
+        <strong>Storage:</strong> None (no local cache)<br>
+        <strong>Strategy:</strong> Remote-only, fetch on demand<br>
+        <strong>Source of truth:</strong> Remote<br>
+        <strong>Offline:</strong> No
+      </div>
+    </div>
+
+    <div style="background:rgba(219,171,60,0.08);border:1px solid rgba(219,171,60,0.25);border-radius:8px;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:#e3b341;margin-bottom:6px;">Settings</div>
+      <div style="font-size:10px;color:#8b949e;">
+        <strong>Storage:</strong> Room DB<br>
+        <strong>Strategy:</strong> Local-only<br>
+        <strong>Source of truth:</strong> Local<br>
+        <strong>Offline:</strong> Yes
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ERROR HANDLING SUMMARY
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="interaction-map">
+  <h2>Error Handling Pipeline</h2>
+  <div class="chain-flow" style="flex-wrap:wrap;gap:8px;">
+    <div>
+      <div class="chain-node cn-backend">HTTP Response</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-inter" style="border-style:dashed">ErrorInterceptor<br><span style="font-size:9px">(non-2xx check)</span></div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node" style="background:rgba(218,54,51,0.12);border:1px solid rgba(218,54,51,0.4);color:#f85149">HttpErrorMapper</div>
+      <div class="chain-label">Maps status to typed exception</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div style="display:flex;flex-direction:column;gap:4px;">
+      <div class="chain-node" style="background:rgba(31,111,235,0.12);border:1px solid rgba(31,111,235,0.4);color:#58a6ff;padding:6px 10px;font-size:10px">AuthenticationException<br><span style="font-size:9px;opacity:0.7">401, 403</span></div>
+      <div class="chain-node" style="background:rgba(219,171,60,0.12);border:1px solid rgba(219,171,60,0.4);color:#e3b341;padding:6px 10px;font-size:10px">ServerException<br><span style="font-size:9px;opacity:0.7">500, 502, 503</span></div>
+      <div class="chain-node" style="background:rgba(150,150,150,0.12);border:1px solid rgba(150,150,150,0.4);color:#adb5bd;padding:6px 10px;font-size:10px">NetworkException<br><span style="font-size:9px;opacity:0.7">timeout, other</span></div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node" style="background:rgba(240,80,120,0.12);border:1px solid rgba(240,80,120,0.4);color:#f05078">Try.Failure</div>
+      <div class="chain-label">Wraps exception</div>
+    </div>
+    <div class="chain-arrow">→</div>
+    <div>
+      <div class="chain-node cn-vm">ViewModel.fold()</div>
+      <div class="chain-label">→ UI error state</div>
+    </div>
+  </div>
+  <div style="margin-top:14px;display:flex;justify-content:center;gap:24px;font-size:10px;color:#6e7681;">
+    <div><strong style="color:#58a6ff">401/403 before reaching ErrorInterceptor:</strong> RefreshAndRetryInterceptor catches → refreshes token → retries once</div>
+    <div><strong style="color:#f85149">Auth rejection on refresh:</strong> clear tokens, destroy session</div>
+    <div><strong style="color:#3fb950">Transient error on refresh:</strong> keep session intact</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="footer">
+  Lexicon API Architecture Map &middot; 24 endpoints &middot; Generated from codebase analysis &middot; Open in browser → File → Print → Save as PDF
+</div>
+
+</body>
+</html>

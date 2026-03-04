@@ -3,15 +3,14 @@ package presentation.feature.subscription
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.subscription.ISubscriptionManager
-import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import domain.common.onFailure
-import domain.common.onSuccess
+import core.common.onFailure
+import core.common.onSuccess
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -34,7 +33,6 @@ class SubscriptionViewModel(
     val isSubscribed = subscriptionManager.isSubscribed()
 
     private val _offerings = MutableStateFlow<SubscriptionOffering?>(null)
-    val offerings: StateFlow<SubscriptionOffering?> = _offerings.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -58,13 +56,15 @@ class SubscriptionViewModel(
                 val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
                 val expirationDateMillis = activeEntitlement?.expirationDateMillis
                 val formattedExpirationDate = expirationDateMillis?.let { formatDate(it) }
+                val willRenew = activeEntitlement?.willRenew == true
 
                 UiState.Loaded(
                     SubscriptionData(
                         packages = offerings?.availablePackages ?: emptyList(),
                         isSubscribed = isSubscribed,
                         customerInfo = customerInfo,
-                        formattedExpirationDate = formattedExpirationDate
+                        formattedExpirationDate = formattedExpirationDate,
+                        willRenew = willRenew
                     )
                 )
             }

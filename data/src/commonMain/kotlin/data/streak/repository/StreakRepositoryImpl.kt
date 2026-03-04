@@ -1,8 +1,8 @@
 package data.streak.repository
 
 import data.streak.remote.StreakRemoteDataSource
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import domain.streak.model.StreakData
 import domain.streak.repository.IStreakRepository
 

@@ -1,8 +1,8 @@
 package domain.word.usecase
 
-import domain.common.Try
-import domain.common.exceptionOrNull
-import domain.common.getOrThrow
+import core.common.Try
+import core.common.exceptionOrNull
+import core.common.getOrThrow
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress

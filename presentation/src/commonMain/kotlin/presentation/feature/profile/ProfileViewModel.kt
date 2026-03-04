@@ -8,8 +8,8 @@ import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
-import domain.common.fold
-import domain.common.getOrNull
+import core.common.fold
+import core.common.getOrNull
 import domain.profile.model.DayActivity
 import domain.profile.model.ProfileStats
 import domain.profile.usecase.GetProfileStatsUseCase
@@ -37,8 +37,10 @@ import presentation.model.LanguagePairUiModel
 import presentation.model.ProfileStatsUiModel
 import presentation.model.ProfileUiData
 import presentation.model.UiState
+import presentation.util.ThrottledAction
 import presentation.util.stateInEagerly
 import presentation.util.stateInWhileSubscribed
+import kotlin.time.Duration.Companion.seconds
 
 class ProfileViewModel(
     private val userManager: IUserManager,
@@ -49,6 +51,12 @@ class ProfileViewModel(
 
     private val streakRefreshTrigger = MutableStateFlow(0)
     private val profileStatsRefreshTrigger = MutableStateFlow(0)
+
+    private val throttledProfileStatsRefresh = ThrottledAction(
+        scope = viewModelScope,
+        interval = 60.seconds,
+        action = { profileStatsRefreshTrigger.value++ }
+    )
 
     private val _state = MutableStateFlow<UiState<ProfileUiData>>(UiState.Loading)
     val state: StateFlow<UiState<ProfileUiData>> = _state.asStateFlow()
@@ -86,7 +94,6 @@ class ProfileViewModel(
     private val profileStatsFlow: StateFlow<ProfileStatsUiModel?> = profileStatsRefreshTrigger
         .flatMapLatest {
             flow {
-                emit(null)
                 val result = getProfileStatsUseCase()
                 emit(result.getOrNull()?.toUiModel())
             }
@@ -120,6 +127,10 @@ class ProfileViewModel(
                     _state.value = newState
                 }
         }
+    }
+
+    fun refreshProfileStats() {
+        throttledProfileStatsRefresh.request()
     }
 
     fun onEvent(event: ProfileEvent) {

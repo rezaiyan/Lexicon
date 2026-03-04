@@ -85,8 +85,9 @@ fun SubscriptionScreen(
                     SubscriptionActiveContent(
                         customerInfo = subscriptionData.customerInfo,
                         formattedExpirationDate = subscriptionData.formattedExpirationDate,
+                        willRenew = subscriptionData.willRenew,
                         onManageSubscription = actions.onManageSubscription,
-                        onCancelSubscription = actions.onCancelSubscription
+                        onCancelSubscription = if (subscriptionData.willRenew) actions.onCancelSubscription else null
                     )
                 } else {
                     SubscriptionNotSubscribedContent(
@@ -107,7 +108,8 @@ data class SubscriptionData(
     val packages: List<SubscriptionPackage>,
     val isSubscribed: Boolean,
     val customerInfo: SubscriptionCustomerInfo?,
-    val formattedExpirationDate: String? = null
+    val formattedExpirationDate: String? = null,
+    val willRenew: Boolean = true
 )
 
 data class SubscriptionScreenActions(

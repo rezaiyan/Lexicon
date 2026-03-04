@@ -6,9 +6,9 @@ import data.word.local.IWordLocalDataSource
 import data.word.mapper.WordMapper
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
-import domain.common.Try
-import domain.common.fold
-import domain.common.onFailure
+import core.common.Try
+import core.common.fold
+import core.common.onFailure
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word

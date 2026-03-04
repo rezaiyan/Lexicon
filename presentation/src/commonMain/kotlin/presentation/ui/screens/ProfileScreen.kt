@@ -73,6 +73,8 @@ fun ProfileScreen(
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
 
+    LaunchedEffect(Unit) { profileViewModel.refreshProfileStats() }
+
     val uiState by profileViewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(uiState) {
@@ -215,7 +217,7 @@ private fun ProfileContent(
 
         // 4. Weekly Activity (server data — loads async)
         val weeklyActivity = profileData.profileStats?.weeklyActivity
-        if (weeklyActivity != null && weeklyActivity.any { it.reviewCount > 0 }) {
+        if (weeklyActivity != null) {
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
             WeeklyActivitySection(
                 weeklyActivity = weeklyActivity,

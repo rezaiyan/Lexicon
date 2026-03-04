@@ -1,6 +1,6 @@
 package domain.word.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.word.repository.IWordRepository
 
 class SyncRemoteToLocalUseCase(
