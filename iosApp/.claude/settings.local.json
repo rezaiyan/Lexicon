@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew composeApp:compileKotlinMetadata:*)",
+      "Bash(./gradlew composeApp:cleanAllTests:*)",
+      "Bash(./gradlew composeApp:testDebugUnitTest:*)"
+    ]
+  }
+}

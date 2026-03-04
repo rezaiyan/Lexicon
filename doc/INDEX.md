@@ -12,6 +12,7 @@ Quick-reference documentation for Claude AI to understand and work on the Lexico
 | [repositories.md](repositories.md) | Repository interfaces and implementations |
 | [data-layer.md](data-layer.md) | Database schema, local/remote data sources, mappers |
 | [api-endpoints.md](api-endpoints.md) | All 18 backend API endpoints with request/response models |
+| [api-architecture.md](api-architecture.md) | Full API architecture: 24 endpoints, interceptor chains, auth flows, sync patterns, error handling, data mapping — with Mermaid diagrams |
 | [network-infrastructure.md](network-infrastructure.md) | HTTP client, interceptors, token refresh, error handling |
 | [presentation-screens.md](presentation-screens.md) | All screens, their composables, and connections |
 | [viewmodels.md](viewmodels.md) | All ViewModels with state/event/effect classes |

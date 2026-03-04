@@ -98,6 +98,15 @@ All environment secrets are injected via `.github/actions/init-config/action.yml
 - PRs should follow conventional commit style and maintain SOLID principles
 - Add tests for new use cases
 
+## Workflow Best Practices
+
+- **Plan first**: Use plan mode for any task touching 3+ files or requiring architectural decisions
+- **Commit often**: Commit as soon as a logical unit of work is complete
+- **Compact proactively**: Run `/compact` at ~50% context usage to stay in the effective zone
+- **Custom commands**: Use `/test`, `/build`, `/review`, `/new-feature` for common workflows
+- **Custom agents**: `architecture-reviewer` (boundary checks), `test-writer` (generate tests), `kmp-navigator` (trace code flows)
+- **Break large tasks**: Keep subtasks under 50% context window — delegate to subagents for independent work
+
 ## Kotlin code style
 
 - **No `!!` (double-bang)**: Do not use the non-null assertion operator. Handle nullability explicitly with safe calls (`?.`), Elvis (`?:`), `let`/`also`/`takeIf`, or proper types so values are non-null where needed.
