@@ -1,7 +1,7 @@
 package domain.word.usecase
 
-import domain.common.Try
-import domain.common.getOrThrow
+import core.common.Try
+import core.common.getOrThrow
 import domain.word.model.Word
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats

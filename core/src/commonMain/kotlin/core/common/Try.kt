@@ -1,4 +1,4 @@
-package domain.common
+package core.common
 
 import kotlinx.coroutines.CancellationException
 

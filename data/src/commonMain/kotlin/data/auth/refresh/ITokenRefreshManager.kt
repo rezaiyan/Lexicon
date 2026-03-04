@@ -1,6 +1,6 @@
 package data.auth.refresh
 
-import domain.common.Try
+import core.common.Try
 
 /**
  * Interface for token refresh manager with single-flight refresh support

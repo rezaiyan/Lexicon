@@ -3,8 +3,8 @@ package data.profile.repository
 import data.auth.mapper.toDomain
 import data.profile.remote.ProfileRemoteDataSource
 import domain.auth.model.AuthUser
-import domain.common.Try
-import domain.common.map
+import core.common.Try
+import core.common.map
 import domain.profile.repository.IProfileRepository
 
 class ProfileRepositoryImpl(

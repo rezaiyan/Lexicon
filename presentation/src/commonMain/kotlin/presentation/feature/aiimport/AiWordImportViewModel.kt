@@ -2,8 +2,8 @@ package presentation.feature.aiimport
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import domain.common.onFailure
-import domain.common.onSuccess
+import core.common.onFailure
+import core.common.onSuccess
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase

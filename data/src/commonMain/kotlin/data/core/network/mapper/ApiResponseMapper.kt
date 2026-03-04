@@ -2,7 +2,7 @@ package data.core.network.mapper
 
 import data.core.network.error.HttpErrorMapper
 import data.core.network.model.ApiResponse
-import domain.common.Try
+import core.common.Try
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
 
@@ -35,7 +35,7 @@ class ApiResponseMapper {
         return Try.success(apiResponse.data)
     }
 
-    suspend fun mapUnitResponse(
+    fun mapUnitResponse(
         httpResponse: HttpResponse
     ): Try<Unit> {
         if (httpResponse.status.value !in 200..299) {

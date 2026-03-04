@@ -1,16 +1,12 @@
 package data.word.sync
 
-import data.core.network.error.AuthenticationException
 import data.core.network.error.NetworkErrorHandler
 import data.word.remote.WordRemoteDataSource
 import data.word.remote.model.BatchUpdateLanguagesRequest
 import data.word.remote.model.RemoteWord
-import domain.auth.repository.IAuthRepository
-import domain.common.Try
-import domain.common.map
+import core.common.Try
 import domain.word.model.Word
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
 interface IWordRemoteSyncHandler {
     suspend fun syncWordsToRemote(words: List<Word>): Try<Unit>
@@ -22,6 +18,7 @@ interface IWordRemoteSyncHandler {
         sourceLanguage: String?,
         targetLanguage: String?
     ): Try<Unit>
+
     suspend fun syncFromRemote(): Try<List<RemoteWord>>
 }
 
@@ -29,64 +26,26 @@ class WordRemoteSyncHandler(
     private val wordRemoteDataSource: WordRemoteDataSource
 ) : IWordRemoteSyncHandler, KoinComponent {
 
-    // Lazy injection to break circular dependency
-    private val authRepository: IAuthRepository by inject()
-
     override suspend fun syncWordsToRemote(words: List<Word>): Try<Unit> {
         if (words.isEmpty()) return Try.success(Unit)
 
         val remoteWords = words.map { it.toRemote() }
-        val result = wordRemoteDataSource.upsertWords(remoteWords)
 
-        return NetworkErrorHandler.handleResult(
-            result = result.map { Unit },
-            authRepository = authRepository,
-            onError = { error ->
-                if (error !is AuthenticationException) {
-                }
-            }
-        )
+        return wordRemoteDataSource.upsertWords(remoteWords)
     }
 
     override suspend fun syncWordUpdateToRemote(id: Long, word: Word): Try<Unit> {
-        val result = wordRemoteDataSource.updateWord(id, word.toRemote())
-
-        return NetworkErrorHandler.handleResult(
-            result = result.map { Unit },
-            authRepository = authRepository,
-            onError = { error ->
-                if (error !is AuthenticationException) {
-                }
-            }
-        )
+        return wordRemoteDataSource.updateWord(id, word.toRemote())
     }
 
     override suspend fun syncWordDeletionToRemote(id: Long): Try<Unit> {
-        val result = wordRemoteDataSource.deleteWord(id)
-
-        return NetworkErrorHandler.handleResult(
-            result = result.map { Unit },
-            authRepository = authRepository,
-            onError = { error ->
-                if (error !is AuthenticationException) {
-                }
-            }
-        )
+        return wordRemoteDataSource.deleteWord(id)
     }
 
     override suspend fun syncWordsDeletionToRemote(ids: List<Long>): Try<Unit> {
         if (ids.isEmpty()) return Try.success(Unit)
 
-        val result = wordRemoteDataSource.deleteWords(ids)
-
-        return NetworkErrorHandler.handleResult(
-            result = result,
-            authRepository = authRepository,
-            onError = { error ->
-                if (error !is AuthenticationException) {
-                }
-            }
-        )
+        return wordRemoteDataSource.deleteWords(ids)
     }
 
     override suspend fun syncBatchLanguageUpdateToRemote(
@@ -101,25 +60,13 @@ class WordRemoteSyncHandler(
             sourceLanguage = sourceLanguage,
             targetLanguage = targetLanguage
         )
-        val result = wordRemoteDataSource.batchUpdateLanguages(request)
-
-        return NetworkErrorHandler.handleResult(
-            result = result,
-            authRepository = authRepository,
-            onError = { error ->
-                if (error !is AuthenticationException) {
-                }
-            }
-        )
+        return wordRemoteDataSource.batchUpdateLanguages(request)
     }
 
     override suspend fun syncFromRemote(): Try<List<RemoteWord>> {
         val result = wordRemoteDataSource.getWords()
 
-        return NetworkErrorHandler.handleResult(
-            result = result,
-            authRepository = authRepository
-        )
+        return NetworkErrorHandler.handleResult(result = result)
     }
 
     private fun Word.toRemote(): RemoteWord = RemoteWord(

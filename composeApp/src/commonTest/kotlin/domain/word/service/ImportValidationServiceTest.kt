@@ -1,7 +1,7 @@
 package domain.word.service
 
-import domain.common.exceptionOrNull
-import domain.common.getOrThrow
+import core.common.exceptionOrNull
+import core.common.getOrThrow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

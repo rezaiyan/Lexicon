@@ -1,6 +1,6 @@
 package domain.word.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word

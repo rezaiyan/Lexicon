@@ -1,6 +1,6 @@
 package domain.streak.repository
 
-import domain.common.Try
+import core.common.Try
 import domain.streak.model.StreakData
 
 interface IStreakRepository {

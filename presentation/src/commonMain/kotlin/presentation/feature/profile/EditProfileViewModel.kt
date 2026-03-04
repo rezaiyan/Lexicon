@@ -3,7 +3,7 @@ package presentation.feature.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
-import domain.common.fold
+import core.common.fold
 import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.UpdateProfileUseCase
 import domain.profile.usecase.UploadAvatarUseCase

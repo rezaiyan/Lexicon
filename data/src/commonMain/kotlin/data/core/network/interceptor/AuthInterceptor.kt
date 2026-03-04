@@ -2,7 +2,7 @@ package data.core.network.interceptor
 
 import data.auth.refresh.ITokenRefreshManager
 import data.auth.token.ITokenManager
-import domain.common.fold
+import core.common.fold
 import expects.logNetwork
 import io.ktor.client.plugins.api.ClientPlugin
 import io.ktor.client.plugins.api.createClientPlugin

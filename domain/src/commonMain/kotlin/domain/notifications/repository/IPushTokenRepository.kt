@@ -1,6 +1,6 @@
 package domain.notifications.repository
 
-import domain.common.Try
+import core.common.Try
 
 interface IPushTokenRepository {
     suspend fun registerToken(token: String): Try<Unit>

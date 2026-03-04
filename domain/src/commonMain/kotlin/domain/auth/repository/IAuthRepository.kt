@@ -2,7 +2,7 @@ package domain.auth.repository
 
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
-import domain.common.Try
+import core.common.Try
 import kotlinx.coroutines.flow.Flow
 
 /**

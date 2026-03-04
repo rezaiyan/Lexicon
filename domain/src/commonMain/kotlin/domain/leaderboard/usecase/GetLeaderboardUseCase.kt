@@ -1,6 +1,6 @@
 package domain.leaderboard.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.leaderboard.model.Leaderboard
 import domain.leaderboard.repository.ILeaderboardRepository
 

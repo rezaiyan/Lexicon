@@ -2,7 +2,7 @@ package data.ai.repository
 
 import data.ai.remote.AiRemoteDataSource
 import domain.ai.repository.IAiRepository
-import domain.common.Try
+import core.common.Try
 import utils.Language
 
 class AiRepositoryImpl(

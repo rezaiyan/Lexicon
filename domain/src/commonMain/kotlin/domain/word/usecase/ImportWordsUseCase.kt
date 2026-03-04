@@ -1,7 +1,7 @@
 package domain.word.usecase
 
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService

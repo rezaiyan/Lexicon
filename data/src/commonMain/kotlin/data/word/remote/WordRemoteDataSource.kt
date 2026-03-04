@@ -4,8 +4,8 @@ import data.core.network.client.ApiClient
 import data.word.remote.model.BatchUpdateLanguagesRequest
 import data.word.remote.model.RemoteWord
 import data.word.remote.model.UpsertWordsPayload
-import domain.common.Try
-import domain.common.map
+import core.common.Try
+import core.common.map
 
 /**
  * Remote data source for word operations

@@ -2,9 +2,9 @@ package data.notification.remote
 
 import data.core.network.model.ApiResponse
 import data.notification.remote.model.RegisterPushTokenRequest
-import domain.common.Try
-import domain.common.doOnFailure
-import domain.common.map
+import core.common.Try
+import core.common.doOnFailure
+import core.common.map
 import expects.logNetwork
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

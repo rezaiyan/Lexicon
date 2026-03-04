@@ -1,8 +1,8 @@
 package data.leaderboard.repository
 
 import data.leaderboard.remote.LeaderboardRemoteDataSource
-import domain.common.Try
-import domain.common.map
+import core.common.Try
+import core.common.map
 import domain.leaderboard.model.Leaderboard
 import domain.leaderboard.model.LeaderboardEntry
 import domain.leaderboard.repository.ILeaderboardRepository

@@ -3,9 +3,9 @@ package data.notification.repository
 import data.notification.remote.PushNotificationDataSource
 import data.notification.remote.model.Platform
 import data.notification.remote.model.RegisterPushTokenRequest
-import domain.common.Try
-import domain.common.onFailure
-import domain.common.onSuccess
+import core.common.Try
+import core.common.onFailure
+import core.common.onSuccess
 import domain.notifications.repository.IPushTokenRepository
 import expects.logNetwork
 import kotlinx.coroutines.CoroutineScope

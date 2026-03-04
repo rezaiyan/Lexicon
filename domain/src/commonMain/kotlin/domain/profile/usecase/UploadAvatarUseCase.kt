@@ -1,6 +1,6 @@
 package domain.profile.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.profile.repository.IProfileRepository
 
 class UploadAvatarUseCase(

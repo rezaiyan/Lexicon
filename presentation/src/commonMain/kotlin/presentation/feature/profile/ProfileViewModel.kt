@@ -8,8 +8,8 @@ import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
-import domain.common.fold
-import domain.common.getOrNull
+import core.common.fold
+import core.common.getOrNull
 import domain.profile.model.DayActivity
 import domain.profile.model.ProfileStats
 import domain.profile.usecase.GetProfileStatsUseCase

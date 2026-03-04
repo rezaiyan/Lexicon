@@ -3,9 +3,9 @@ package data.streak.remote
 import data.core.network.client.ApiClient
 import data.streak.remote.model.RecordActivityRequest
 import data.streak.remote.model.StreakResponse
-import domain.common.Try
-import domain.common.doOnFailure
-import domain.common.doOnSuccess
+import core.common.Try
+import core.common.doOnFailure
+import core.common.doOnSuccess
 import expects.logNetwork
 
 /**

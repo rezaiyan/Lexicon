@@ -5,9 +5,9 @@ import data.core.network.client.ApiClient
 import data.core.network.model.ApiResponse
 import data.profile.remote.model.AvatarResponseDto
 import data.profile.remote.model.UpdateProfileRequestDto
-import domain.common.Try
-import domain.common.doOnSuccess
-import domain.common.flatMap
+import core.common.Try
+import core.common.doOnSuccess
+import core.common.flatMap
 import expects.logNetwork
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.formData

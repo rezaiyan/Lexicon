@@ -8,8 +8,8 @@ import data.auth.remote.FeatureAccessRemoteDataSource
 import domain.auth.session.ISessionManager
 import data.auth.token.ITokenManager
 import domain.auth.model.AuthUser
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
@@ -120,14 +120,14 @@ class AuthRepositoryImpl(
             .flatMapLatest { isAuthenticated ->
                 if (isAuthenticated) {
                     featureAccessRemoteDataSource.getFeatureAccessAsFlow()
-                        .catch { error ->
+                        .catch { _ ->
                             emit(defaultFeatureAccess())
                         }
                 } else {
                     flowOf(defaultFeatureAccess())
                 }
             }
-            .catch { error ->
+            .catch { _ ->
                 emit(defaultFeatureAccess())
             }
     }

@@ -2,7 +2,7 @@ package domain.auth.usecase
 
 import domain.auth.model.AuthUser
 import domain.auth.service.IAuthenticationService
-import domain.common.Try
+import core.common.Try
 import kotlinx.coroutines.flow.Flow
 
 class LoginWithAppleUseCase(

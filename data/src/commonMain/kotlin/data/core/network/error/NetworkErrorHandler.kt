@@ -1,10 +1,7 @@
 package data.core.network.error
 
-import domain.auth.repository.IAuthRepository
-import domain.common.Try
-import domain.common.fold
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
+import core.common.Try
+import core.common.fold
 
 /**
  * Centralized error handler for network operations.
@@ -16,19 +13,8 @@ import kotlinx.coroutines.flow.catch
  */
 object NetworkErrorHandler {
 
-    fun <T> handleErrors(
-        flow: Flow<T>,
-        authRepository: IAuthRepository,
-        onError: (Exception) -> Unit = {}
-    ): Flow<T> = flow.catch { exception ->
-        val mappedException = HttpErrorMapper.mapException(exception)
-        onError(mappedException)
-        throw mappedException
-    }
-
-    suspend fun <T> handleResult(
+    fun <T> handleResult(
         result: Try<T>,
-        authRepository: IAuthRepository,
         onSuccess: (T) -> Unit = {},
         onError: (Exception) -> Unit = {}
     ): Try<T> {

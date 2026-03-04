@@ -2,7 +2,7 @@
 
 package domain.word.service
 
-import domain.common.Try
+import core.common.Try
 import domain.word.model.Word
 import utils.Language
 import kotlin.time.Clock

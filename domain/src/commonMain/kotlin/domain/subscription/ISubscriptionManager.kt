@@ -1,6 +1,6 @@
 package domain.subscription
 
-import domain.common.Try
+import core.common.Try
 import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
