@@ -1,5 +1,7 @@
 package domain.word.usecase
 
+import core.common.Try
+import core.common.UseCase
 import domain.word.model.ProgressEvaluation
 import domain.word.model.ProgressStats
 import domain.word.model.ProgressTier
@@ -12,19 +14,19 @@ import domain.word.model.ProgressTier
  * (Level N = N / 6 of full mastery). Level 0 (fresh) words are excluded
  * from the numerator so newly added words don't inflate the score.
  */
-class EvaluateProgressUseCase {
+class EvaluateProgressUseCase : UseCase<ProgressStats, ProgressEvaluation> {
 
-    operator fun invoke(stats: ProgressStats): ProgressEvaluation {
-        val progressFraction = if (stats.totalWords > 0) {
+    override suspend operator fun invoke(params: ProgressStats): Try<ProgressEvaluation> = Try {
+        val progressFraction = if (params.totalWords > 0) {
             val weightedScore = (
-                    stats.level1Count * 1 +
-                            stats.level2Count * 2 +
-                            stats.level3Count * 3 +
-                            stats.level4Count * 4 +
-                            stats.level5Count * 5 +
-                            stats.level6Count * 6
+                    params.level1Count * 1 +
+                            params.level2Count * 2 +
+                            params.level3Count * 3 +
+                            params.level4Count * 4 +
+                            params.level5Count * 5 +
+                            params.level6Count * 6
                     ).toFloat()
-            (weightedScore / (stats.totalWords * MAX_LEVEL_WEIGHT)).coerceIn(0f, 1f)
+            (weightedScore / (params.totalWords * MAX_LEVEL_WEIGHT)).coerceIn(0f, 1f)
         } else {
             0f
         }
@@ -32,7 +34,7 @@ class EvaluateProgressUseCase {
         val progressPercent = (progressFraction * 100).toInt()
 
         val tier = when {
-            stats.totalWords == 0 -> ProgressTier.EMPTY
+            params.totalWords == 0 -> ProgressTier.EMPTY
             progressPercent >= 100 -> ProgressTier.MASTERED
             progressPercent >= 90 -> ProgressTier.ALMOST_MASTER
             progressPercent >= 75 -> ProgressTier.STRONG
@@ -42,7 +44,7 @@ class EvaluateProgressUseCase {
             else -> ProgressTier.GETTING_STARTED
         }
 
-        return ProgressEvaluation(
+        ProgressEvaluation(
             progressFraction = progressFraction,
             progressPercent = progressPercent,
             tier = tier

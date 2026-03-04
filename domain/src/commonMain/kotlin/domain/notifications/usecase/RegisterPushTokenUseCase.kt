@@ -1,17 +1,19 @@
 package domain.notifications.usecase
 
 import core.common.Try
+import core.common.UseCase
 import domain.notifications.repository.IPushTokenRepository
 
 class RegisterPushTokenUseCase(
     private val pushTokenRepository: IPushTokenRepository
-) {
-    fun initializeAndRegister() {
-        pushTokenRepository.initializeAndRegister()
+) : UseCase<String, Unit> {
+
+    override suspend operator fun invoke(params: String): Try<Unit> {
+        return pushTokenRepository.registerToken(params)
     }
 
-    suspend fun registerToken(token: String): Try<Unit> {
-        return pushTokenRepository.registerToken(token)
+    fun initializeAndRegister() {
+        pushTokenRepository.initializeAndRegister()
     }
 
     suspend fun deactivateAllTokens(): Try<Unit> {

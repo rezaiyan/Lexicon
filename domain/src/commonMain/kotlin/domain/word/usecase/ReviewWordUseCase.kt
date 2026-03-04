@@ -4,6 +4,7 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.UseCase
+import core.common.getOrThrow
 import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
@@ -57,7 +58,7 @@ class ReviewWordUseCase(
 
     suspend operator fun invoke(word: Word, quality: Int): Try<Unit> = Try {
         // Get current review settings
-        val settings = getReviewSettingsUseCase()
+        val settings = getReviewSettingsUseCase(Unit).getOrThrow()
 
         val now = Clock.System.now().toEpochMilliseconds()
         val minuteInMillis = 60 * 1000L

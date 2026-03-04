@@ -4,6 +4,7 @@ package presentation.viewmodel
 
 import analytics.IAnalyticsTracker
 import domain.word.model.Word
+import core.common.fold
 import domain.word.usecase.ExportWordsUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
@@ -32,21 +33,27 @@ class WordExportHandler(
                 return@launch
             }
             
-            val exportText = exportWordsUseCase(wordsToExport)
-            val timestamp = Clock.System.now().toEpochMilliseconds()
-            
-            events.send(WordManagerEffect.WordsShared(
-                count = wordsToExport.size,
-                text = exportText,
-                timestamp = timestamp
-            ))
-            
-            analyticsTracker.logEvent(
-                "word_manager_share",
-                mapOf(
-                    "count" to wordsToExport.size.toString(),
-                    "type" to if (selectedWordIds.isEmpty()) "all" else "selected"
-                )
+            exportWordsUseCase(wordsToExport).fold(
+                onSuccess = { exportText ->
+                    val timestamp = Clock.System.now().toEpochMilliseconds()
+
+                    events.send(WordManagerEffect.WordsShared(
+                        count = wordsToExport.size,
+                        text = exportText,
+                        timestamp = timestamp
+                    ))
+
+                    analyticsTracker.logEvent(
+                        "word_manager_share",
+                        mapOf(
+                            "count" to wordsToExport.size.toString(),
+                            "type" to if (selectedWordIds.isEmpty()) "all" else "selected"
+                        )
+                    )
+                },
+                onFailure = {
+                    events.send(WordManagerEffect.ShareFailed)
+                }
             )
         }
     }

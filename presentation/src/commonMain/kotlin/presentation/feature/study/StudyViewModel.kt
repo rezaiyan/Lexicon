@@ -6,6 +6,7 @@ import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.usecase.GetFeatureAccessUseCase
+import core.common.getOrThrow
 import core.common.onFailure
 import core.common.onSuccess
 import domain.notifications.usecase.ScheduleNotificationsUseCase
@@ -93,7 +94,7 @@ class StudyViewModel(
                 .collect { stats ->
                     val screenState = ProgressScreenState(
                         progressStats = stats,
-                        progressEvaluation = evaluateProgressUseCase(stats),
+                        progressEvaluation = evaluateProgressUseCase(stats).getOrThrow(),
                         messageState = null
                     )
                     _progressStatistics.value = screenState
