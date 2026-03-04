@@ -2,7 +2,7 @@
 
 package domain.onboarding.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.onboarding.model.SuggestedVocabulary
 import domain.word.model.Word
 import domain.word.repository.IWordRepository

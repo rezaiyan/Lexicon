@@ -1,6 +1,6 @@
 package domain.streak.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.streak.model.StreakData
 import domain.streak.repository.IStreakRepository
 

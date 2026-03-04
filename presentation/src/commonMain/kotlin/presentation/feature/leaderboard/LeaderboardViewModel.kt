@@ -2,7 +2,7 @@ package presentation.feature.leaderboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import domain.common.fold
+import core.common.fold
 import domain.leaderboard.usecase.GetLeaderboardUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

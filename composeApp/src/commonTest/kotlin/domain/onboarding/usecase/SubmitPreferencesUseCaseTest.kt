@@ -1,8 +1,8 @@
 package domain.onboarding.usecase
 
-import domain.common.Try
-import domain.common.exceptionOrNull
-import domain.common.getOrNull
+import core.common.Try
+import core.common.exceptionOrNull
+import core.common.getOrNull
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.model.SuggestedVocabularyResponse

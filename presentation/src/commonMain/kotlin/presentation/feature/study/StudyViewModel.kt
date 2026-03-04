@@ -5,16 +5,14 @@ package presentation.feature.study
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
-import domain.common.onFailure
-import domain.common.onSuccess
+import core.common.onFailure
+import core.common.onSuccess
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
 import domain.tts.usecase.SpeakWordUseCase
-import domain.tts.usecase.StopSpeakingUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.usecase.DeleteWordUseCase
@@ -56,7 +54,6 @@ class StudyViewModel(
     private val deleteWordUseCase: DeleteWordUseCase,
     private val recordStreakActivityUseCase: RecordStreakActivityUseCase,
     private val speakWordUseCase: SpeakWordUseCase,
-    private val stopSpeakingUseCase: StopSpeakingUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
     ttsRepository: ITtsRepository

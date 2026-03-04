@@ -4,8 +4,8 @@ import domain.auth.manager.IUserManager
 import domain.auth.model.AuthUser
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.LogoutUseCase
-import domain.common.Try
-import domain.common.onSuccess
+import core.common.Try
+import core.common.onSuccess
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.streak.manager.IStreakManager
 import domain.subscription.ISubscriptionManager

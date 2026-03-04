@@ -6,7 +6,7 @@ import domain.ai.usecase.ImportFromImageUseCase
 import domain.ai.usecase.ImportImageResult
 import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
-import domain.common.fold
+import core.common.fold
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map

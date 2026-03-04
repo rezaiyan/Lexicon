@@ -1,6 +1,6 @@
 package domain.word.usecase
 
-import domain.common.Try
+import core.common.Try
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import utils.Language

@@ -1,9 +1,8 @@
 package data.core.network.client
 
 import data.core.network.mapper.ApiResponseMapper
-import domain.common.Try
-import domain.common.flatMap
-import domain.common.getOrNull
+import core.common.Try
+import core.common.flatMap
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete

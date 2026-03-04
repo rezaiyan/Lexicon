@@ -1,8 +1,8 @@
 package domain.auth.usecase
 
 import domain.auth.service.IAuthenticationService
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import domain.settings.repository.ISettingsRepository
 import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow

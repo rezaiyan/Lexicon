@@ -1,6 +1,6 @@
 package domain.notifications.usecase
 
-import domain.common.Try
+import core.common.Try
 import domain.notifications.repository.IPushTokenRepository
 
 class RegisterPushTokenUseCase(

@@ -97,7 +97,6 @@ fun presentationModule() = module {
             deleteWordUseCase = get(),
             recordStreakActivityUseCase = get(),
             speakWordUseCase = get(),
-            stopSpeakingUseCase = get(),
             ttsRepository = get(),
             analyticsTracker = get(),
         )

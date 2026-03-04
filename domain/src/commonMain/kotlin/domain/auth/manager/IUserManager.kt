@@ -1,7 +1,7 @@
 package domain.auth.manager
 
 import domain.auth.model.AuthUser
-import domain.common.Try
+import core.common.Try
 import kotlinx.coroutines.flow.Flow
 
 interface IUserManager {

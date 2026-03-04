@@ -2,8 +2,8 @@ package data.leaderboard.remote
 
 import data.core.network.client.ApiClient
 import data.leaderboard.remote.model.LeaderboardResponse
-import domain.common.Try
-import domain.common.doOnSuccess
+import core.common.Try
+import core.common.doOnSuccess
 import expects.logNetwork
 
 class LeaderboardRemoteDataSource(

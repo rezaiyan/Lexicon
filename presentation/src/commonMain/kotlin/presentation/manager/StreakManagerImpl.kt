@@ -1,8 +1,8 @@
 package presentation.manager
 
-import domain.common.Try
-import domain.common.fold
-import domain.common.onSuccess
+import core.common.Try
+import core.common.fold
+import core.common.onSuccess
 import domain.streak.model.StreakData
 import domain.streak.manager.IStreakManager
 import domain.streak.repository.IStreakRepository

@@ -4,8 +4,8 @@ import data.auth.remote.AuthDataSource
 import data.auth.state.IAuthenticationStateManager
 import data.auth.token.ITokenManager
 import data.core.network.error.AuthenticationException
-import domain.common.Try
-import domain.common.fold
+import core.common.Try
+import core.common.fold
 import expects.logNetwork
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

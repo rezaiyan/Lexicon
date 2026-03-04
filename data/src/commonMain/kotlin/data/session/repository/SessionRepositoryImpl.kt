@@ -8,7 +8,7 @@ import data.core.network.error.ServerException
 import data.storage.SecureStorage
 import domain.auth.repository.ISessionRepository
 import domain.auth.repository.SessionVerificationResult
-import domain.common.fold
+import core.common.fold
 
 /**
  * Session repository that verifies sessions using backend tokens only

@@ -11,7 +11,7 @@ import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.VerifySessionUseCase
-import domain.common.fold
+import core.common.fold
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.subscription.ISubscriptionManager
@@ -225,10 +225,10 @@ class AuthViewModel(
         registerPushTokenUseCase.deactivateAllTokens()
         userManager.setUser(null)
         logoutUseCase.invoke()
-            .catch { error ->
+            .catch { _ ->
                 _authState.value = AuthState(isAuthenticated = false, isLoading = false)
             }
-            .collect { result ->
+            .collect { _ ->
                 _authState.value = AuthState(isAuthenticated = false, isLoading = false)
             }
     }

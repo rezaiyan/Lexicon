@@ -1,6 +1,6 @@
 package domain.leaderboard.repository
 
-import domain.common.Try
+import core.common.Try
 import domain.leaderboard.model.Leaderboard
 
 interface ILeaderboardRepository {
