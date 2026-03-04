@@ -1,5 +1,7 @@
 package domain.settings.usecase
 
+import core.common.Try
+import core.common.UseCase
 import domain.settings.repository.ISettingsRepository
 import utils.Language
 
@@ -8,8 +10,8 @@ import utils.Language
  */
 class SetLanguageUseCase(
     private val settingsRepository: ISettingsRepository
-) {
-    suspend operator fun invoke(language: Language) {
-        settingsRepository.setLanguage(language)
+) : UseCase<Language, Unit> {
+    override suspend operator fun invoke(params: Language): Try<Unit> = Try {
+        settingsRepository.setLanguage(params)
     }
 }

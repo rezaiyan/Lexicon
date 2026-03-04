@@ -4,6 +4,7 @@ import core.common.FlowUseCase
 import domain.ai.repository.IAiRepository
 import core.common.Try
 import core.common.fold
+import core.common.getOrThrow
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +28,7 @@ class ImportFromImageUseCase(
     ): Flow<ImportImageResult> = flow {
         emit(ImportImageResult.Loading)
     }.flatMapLatest {
-        val targetLanguage = getCurrentLanguageUseCase.invoke()
+        val targetLanguage = getCurrentLanguageUseCase.invoke().getOrThrow()
         val extractionResult = aiRepository.extractVocabularyFromImage(
             imageBytes,
             targetLanguage,

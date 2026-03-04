@@ -1,5 +1,7 @@
 package domain.settings.usecase
 
+import core.common.Try
+import core.common.UseCase
 import domain.settings.repository.ISettingsRepository
 
 /**
@@ -9,8 +11,8 @@ import domain.settings.repository.ISettingsRepository
  */
 class SetNotificationsEnabledUseCase(
     private val settingsRepository: ISettingsRepository
-) {
-    suspend operator fun invoke(enabled: Boolean) {
-        settingsRepository.setNotificationsEnabled(enabled)
+) : UseCase<Boolean, Unit> {
+    override suspend operator fun invoke(params: Boolean): Try<Unit> = Try {
+        settingsRepository.setNotificationsEnabled(params)
     }
 }

@@ -1,5 +1,7 @@
 package domain.auth.usecase
 
+import core.common.NoParamUseCase
+import core.common.Try
 import domain.auth.session.ISessionManager
 import domain.auth.storage.ISecureStorage
 import domain.settings.repository.ISettingsRepository
@@ -14,8 +16,10 @@ class ClearAllUserDataUseCase(
     private val settingsRepository: ISettingsRepository,
     private val secureStorage: ISecureStorage,
     private val sessionManager: ISessionManager
-) {
-    suspend operator fun invoke() {
+) : NoParamUseCase<Unit> {
+    override suspend operator fun invoke(params: Unit) = invoke()
+
+    suspend operator fun invoke(): Try<Unit> = Try {
         wordRepository.deleteAllWords()
         settingsRepository.clearSettings()
         secureStorage.clearTokens()

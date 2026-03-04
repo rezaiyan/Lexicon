@@ -1,11 +1,15 @@
 package domain.tts.usecase
 
+import core.common.NoParamUseCase
+import core.common.Try
 import domain.tts.repository.ITtsRepository
 
 class StopSpeakingUseCase(
     private val ttsRepository: ITtsRepository
-) {
-    suspend operator fun invoke() {
+) : NoParamUseCase<Unit> {
+    override suspend operator fun invoke(params: Unit) = invoke()
+
+    suspend operator fun invoke(): Try<Unit> = Try {
         ttsRepository.stop()
     }
 }

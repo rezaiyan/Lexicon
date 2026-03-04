@@ -11,6 +11,7 @@ import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
+import core.common.getOrDefault
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -116,7 +117,7 @@ class SettingsViewModel(
                 }
             }
             SettingsEvent.RequestNotificationPermission -> {
-                val granted = requestNotificationPermissionUseCase()
+                val granted = requestNotificationPermissionUseCase().getOrDefault(false)
                 _events.emit(SettingsEffect.NotificationPermissionGranted(granted))
                 _dialogState.value = DialogState.None
                 if (granted) {

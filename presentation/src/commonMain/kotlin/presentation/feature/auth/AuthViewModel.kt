@@ -12,6 +12,8 @@ import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import core.common.fold
+import core.common.getOrElse
+import core.common.onFailure
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.subscription.ISubscriptionManager
@@ -93,7 +95,16 @@ class AuthViewModel(
 
     private suspend fun processVerifyAndRestore(onComplete: () -> Unit) {
         _authState.value = _authState.value.copy(isLoading = true)
-        when (val result = verifySessionUseCase()) {
+        val result = verifySessionUseCase().getOrElse { error ->
+            // Treat verification failure like a server error — keep user authenticated
+            _authState.value = _authState.value.copy(
+                isAuthenticated = true,
+                isLoading = false
+            )
+            onComplete()
+            return
+        }
+        when (result) {
             is SessionVerificationResult.Valid -> {
                 _authState.value = AuthState(
                     isAuthenticated = true,
@@ -115,9 +126,6 @@ class AuthViewModel(
                 onComplete()
             }
             is SessionVerificationResult.ServerError -> {
-                // Tokens exist locally (ServerError only occurs after token null-check passes
-                // in SessionRepositoryImpl). Network/server error doesn't mean tokens are invalid,
-                // so treat the user as authenticated to allow offline/degraded usage.
                 _authState.value = _authState.value.copy(
                     isAuthenticated = true,
                     isLoading = false
@@ -251,12 +259,10 @@ class AuthViewModel(
 
     private fun initializePushNotifications() {
         viewModelScope.launch {
-            try {
-                initializePushNotificationsUseCase()
-            } catch (e: Exception) {
+            initializePushNotificationsUseCase().onFailure { error ->
                 analyticsTracker.logNonFatalError(
                     message = "Push notification initialization failed",
-                    additionalInfo = mapOf("error" to (e.message ?: "unknown"))
+                    additionalInfo = mapOf("error" to (error.message ?: "unknown"))
                 )
             }
         }

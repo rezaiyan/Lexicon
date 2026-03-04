@@ -7,6 +7,7 @@ import domain.ai.usecase.ImportImageResult
 import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
 import core.common.fold
+import core.common.getOrDefault
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
@@ -44,7 +45,7 @@ class ImportViewModel(
 
     init {
         viewModelScope.launch {
-            val targetLanguage = getCurrentLanguageUseCase()
+            val targetLanguage = getCurrentLanguageUseCase().getOrDefault(Language.ENGLISH)
             _state.update { it.copy(targetLanguage = targetLanguage) }
         }
         observeFeatureAccess()

@@ -1,5 +1,7 @@
 package domain.settings.usecase
 
+import core.common.Try
+import core.common.UseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 
@@ -8,8 +10,8 @@ import domain.settings.repository.ISettingsRepository
  */
 class SetThemeModeUseCase(
     private val settingsRepository: ISettingsRepository
-) {
-    suspend operator fun invoke(mode: ThemeMode) {
-        settingsRepository.setThemeMode(mode)
+) : UseCase<ThemeMode, Unit> {
+    override suspend operator fun invoke(params: ThemeMode): Try<Unit> = Try {
+        settingsRepository.setThemeMode(params)
     }
 }

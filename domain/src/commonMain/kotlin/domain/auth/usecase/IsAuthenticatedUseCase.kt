@@ -1,5 +1,7 @@
 package domain.auth.usecase
 
+import core.common.NoParamUseCase
+import core.common.Try
 import domain.auth.repository.IAuthRepository
 import kotlinx.coroutines.flow.Flow
 
@@ -8,14 +10,15 @@ import kotlinx.coroutines.flow.Flow
  */
 class IsAuthenticatedUseCase(
     private val authRepository: IAuthRepository
-) {
-    suspend operator fun invoke(): Boolean {
-        return authRepository.isAuthenticated()
+) : NoParamUseCase<Boolean> {
+
+    override suspend operator fun invoke(params: Unit) = invoke()
+
+    suspend operator fun invoke(): Try<Boolean> = Try {
+        authRepository.isAuthenticated()
     }
 
     fun asFlow(): Flow<Boolean> {
         return authRepository.isAuthenticatedAsFlow()
     }
 }
-
-

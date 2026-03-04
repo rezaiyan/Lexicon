@@ -1,5 +1,7 @@
 package domain.notifications.usecase
 
+import core.common.NoParamUseCase
+import core.common.Try
 import domain.notifications.repository.INotificationRepository
 
 /**
@@ -8,8 +10,10 @@ import domain.notifications.repository.INotificationRepository
  */
 class OpenNotificationSettingsUseCase(
     private val notificationRepository: INotificationRepository
-) {
-    suspend operator fun invoke() {
+) : NoParamUseCase<Unit> {
+    override suspend operator fun invoke(params: Unit) = invoke()
+
+    suspend operator fun invoke(): Try<Unit> = Try {
         notificationRepository.openNotificationSettings()
     }
 }

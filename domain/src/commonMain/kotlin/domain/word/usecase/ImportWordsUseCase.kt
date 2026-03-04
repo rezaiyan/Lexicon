@@ -2,6 +2,7 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.fold
+import core.common.getOrDefault
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
@@ -22,7 +23,7 @@ class ImportWordsUseCase(
         targetLanguage: Language? = null,
     ): Try<Int> {
         val resolvedSourceLanguage = sourceLanguage ?: Language.ENGLISH
-        val resolvedTargetLanguage = targetLanguage ?: getCurrentLanguageUseCase()
+        val resolvedTargetLanguage = targetLanguage ?: getCurrentLanguageUseCase().getOrDefault(Language.ENGLISH)
         return validationService.validateAndParse(
             text = text,
             sourceLanguage = resolvedSourceLanguage,
