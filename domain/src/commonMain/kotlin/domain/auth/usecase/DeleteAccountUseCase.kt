@@ -1,8 +1,7 @@
 package domain.auth.usecase
 
+import core.common.NoParamFlowUseCase
 import domain.auth.service.IAuthenticationService
-import core.common.Try
-import core.common.fold
 import domain.settings.repository.ISettingsRepository
 import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,22 +11,17 @@ class DeleteAccountUseCase(
     private val authenticationService: IAuthenticationService,
     private val wordRepository: IWordRepository,
     private val settingsRepository: ISettingsRepository
-) {
-    fun invoke(): Flow<Try<Unit>> = flow {
-        // Perform account deletion on server first
-        authenticationService.deleteAccount().collect { result ->
-            result.fold(
-                onSuccess = {
-                    // Clear all local data after successful account deletion
-                    wordRepository.deleteAllWords()
-                    settingsRepository.clearSettings()
-                    settingsRepository.clearInsightData()
-                    emit(Try.success(Unit))
-                },
-                onFailure = { error ->
-                    emit(Try.failure(error))
-                }
-            )
+) : NoParamFlowUseCase<Unit> {
+
+    override operator fun invoke(params: Unit): Flow<Unit> = invoke()
+
+    fun invoke(): Flow<Unit> = flow {
+        authenticationService.deleteAccount().collect {
+            // Clear all local data after successful account deletion
+            wordRepository.deleteAllWords()
+            settingsRepository.clearSettings()
+            settingsRepository.clearInsightData()
+            emit(Unit)
         }
     }
 }

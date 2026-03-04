@@ -5,7 +5,6 @@ import domain.auth.model.AuthUser
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.LogoutUseCase
 import core.common.Try
-import core.common.onSuccess
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.streak.manager.IStreakManager
 import domain.subscription.ISubscriptionManager
@@ -32,8 +31,8 @@ class UserManagerImpl(
 
     override suspend fun logout(): Try<Unit> {
         registerPushTokenUseCase.deactivateAllTokens()
-        val logoutResult = logoutUseCase.invoke().first()
-        return logoutResult.onSuccess {
+        return Try {
+            logoutUseCase.invoke().first()
             _currentUser.value = null
             subscriptionManager.logOut()
             streakManager.clearCache()
@@ -42,8 +41,8 @@ class UserManagerImpl(
 
     override suspend fun deleteAccount(): Try<Unit> {
         registerPushTokenUseCase.deactivateAllTokens()
-        val result = deleteAccountUseCase.invoke().first()
-        return result.onSuccess {
+        return Try {
+            deleteAccountUseCase.invoke().first()
             _currentUser.value = null
             subscriptionManager.logOut()
             streakManager.clearCache()

@@ -1,7 +1,6 @@
 package domain.word.usecase
 
 import core.common.Try
-import core.common.getOrThrow
 import domain.word.model.Word
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
@@ -40,12 +39,10 @@ class ImportWordsUseCaseTest {
     private val useCase = ImportWordsUseCase(fakeRepository, validationService, getCurrentLanguageUseCase)
     
     private suspend fun executeImport(input: String): Try<Int> =
-        useCase(input).first()
+        Try { useCase.asFlow(input).first() }
 
-    private suspend fun executeImportSuccess(input: String): Int {
-        val result = executeImport(input)
-        return result.getOrThrow()
-    }
+    private suspend fun executeImportSuccess(input: String): Int =
+        useCase.asFlow(input).first()
     
     @Test
     fun `basic word pair should parse correctly`() = runTest {

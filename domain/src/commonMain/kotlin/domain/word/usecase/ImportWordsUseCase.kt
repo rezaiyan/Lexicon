@@ -1,8 +1,10 @@
 package domain.word.usecase
 
 import core.common.Try
+import core.common.UseCase
 import core.common.fold
 import core.common.getOrDefault
+import core.common.getOrThrow
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
@@ -15,7 +17,16 @@ class ImportWordsUseCase(
     private val wordRepository: IWordRepository,
     private val validationService: IImportValidationService,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase
-) {
+) : UseCase<ImportWordsUseCase.Params, Int> {
+
+    data class Params(
+        val text: String,
+        val sourceLanguage: Language? = null,
+        val targetLanguage: Language? = null,
+    )
+
+    override suspend operator fun invoke(params: Params): Try<Int> =
+        execute(params.text, params.sourceLanguage, params.targetLanguage)
 
     suspend fun execute(
         text: String,
@@ -50,37 +61,33 @@ class ImportWordsUseCase(
         )
     }
 
-    operator fun invoke(text: String): Flow<Try<Int>> =
-        validationService.validateAndParse(text)
-            .fold(
-                onSuccess = { parsedWords ->
-                    val uniqueImportWords = parsedWords.distinctBy {
-                        Pair(
-                            it.originalWord.trim().lowercase(),
-                            it.translation.trim().lowercase()
-                        )
+    fun asFlow(text: String): Flow<Int> {
+        val parseResult = validationService.validateAndParse(text)
+        val parsedWords = parseResult.getOrThrow()
+
+        val uniqueImportWords = parsedWords.distinctBy {
+            Pair(
+                it.originalWord.trim().lowercase(),
+                it.translation.trim().lowercase()
+            )
+        }
+
+        return wordRepository.getAllWords()
+            .flatMapLatest { existingWords ->
+                flow {
+                    val newWords = uniqueImportWords.filter { newWord ->
+                        existingWords.none { existingWord ->
+                            existingWord.isSameContent(newWord)
+                        }
                     }
 
-                    wordRepository.getAllWords()
-                        .flatMapLatest { existingWords ->
-                            flow {
-                                val newWords = uniqueImportWords.filter { newWord ->
-                                    existingWords.none { existingWord ->
-                                        existingWord.isSameContent(newWord)
-                                    }
-                                }
-
-                                if (newWords.isEmpty()) {
-                                    emit(Try.failure(Exception("All ${uniqueImportWords.size} word(s) already exist in your collection.")))
-                                } else {
-                                    wordRepository.insertWords(newWords)
-                                    emit(Try.success(newWords.size))
-                                }
-                            }
-                        }
-                },
-                onFailure = { throwable ->
-                    flow { emit(Try.failure(throwable)) }
+                    if (newWords.isEmpty()) {
+                        throw Exception("All ${uniqueImportWords.size} word(s) already exist in your collection.")
+                    } else {
+                        wordRepository.insertWords(newWords)
+                        emit(newWords.size)
+                    }
                 }
-            )
+            }
+    }
 }

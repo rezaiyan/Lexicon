@@ -11,7 +11,6 @@ import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.VerifySessionUseCase
-import core.common.fold
 import core.common.getOrElse
 import core.common.onFailure
 import domain.notifications.usecase.InitializePushNotificationsUseCase
@@ -148,47 +147,30 @@ class AuthViewModel(
                         "login_failed",
                         mapOf(
                             "provider" to "google",
-                            "stage" to "flow_exception",
+                            "stage" to "backend_error",
                             "error_type" to (error::class.simpleName ?: "unknown"),
                             "error_message" to (error.message ?: "no_message")
                         )
                     )
-                    analyticsTracker.logError(error, "google_login_flow_exception")
+                    analyticsTracker.logError(error, "google_login_backend_error")
                     _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
                 }
-                .collect { result ->
-                    result.fold(
-                        onSuccess = { user ->
-                            analyticsTracker.logEvent(
-                                "login_success",
-                                mapOf("user_id" to user.id.toString(), "provider" to "google")
-                            )
-                            _authState.value = AuthState(
-                                isAuthenticated = true,
-                                isLoading = true,
-                                user = user,
-                                error = null
-                            )
-                            userManager.setUser(user)
-                            subscriptionManager.logIn(user.id.toString())
-                            syncRemoteToLocalUseCase(clearFirst = false)
-                            initializePushNotifications()
-                            _authState.value = _authState.value.copy(isLoading = false)
-                        },
-                        onFailure = { error ->
-                            analyticsTracker.logEvent(
-                                "login_failed",
-                                mapOf(
-                                    "provider" to "google",
-                                    "stage" to "backend_error",
-                                    "error_type" to (error::class.simpleName ?: "unknown"),
-                                    "error_message" to (error.message ?: "no_message")
-                                )
-                            )
-                            analyticsTracker.logError(error, "google_login_backend_error")
-                            _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
-                        }
+                .collect { user ->
+                    analyticsTracker.logEvent(
+                        "login_success",
+                        mapOf("user_id" to user.id.toString(), "provider" to "google")
                     )
+                    _authState.value = AuthState(
+                        isAuthenticated = true,
+                        isLoading = true,
+                        user = user,
+                        error = null
+                    )
+                    userManager.setUser(user)
+                    subscriptionManager.logIn(user.id.toString())
+                    syncRemoteToLocalUseCase(clearFirst = false)
+                    initializePushNotifications()
+                    _authState.value = _authState.value.copy(isLoading = false)
                 }
         }
     }
@@ -200,30 +182,22 @@ class AuthViewModel(
                     analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
                     _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
                 }
-                .collect { result ->
-                    result.fold(
-                        onSuccess = { user ->
-                            analyticsTracker.logEvent(
-                                "login_success",
-                                mapOf("user_id" to user.id.toString(), "provider" to "apple")
-                            )
-                            _authState.value = AuthState(
-                                isAuthenticated = true,
-                                isLoading = true,
-                                user = user,
-                                error = null
-                            )
-                            userManager.setUser(user)
-                            subscriptionManager.logIn(user.id.toString())
-                            syncRemoteToLocalUseCase(clearFirst = false)
-                            initializePushNotifications()
-                            _authState.value = _authState.value.copy(isLoading = false)
-                        },
-                        onFailure = { error ->
-                            analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
-                            _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
-                        }
+                .collect { user ->
+                    analyticsTracker.logEvent(
+                        "login_success",
+                        mapOf("user_id" to user.id.toString(), "provider" to "apple")
                     )
+                    _authState.value = AuthState(
+                        isAuthenticated = true,
+                        isLoading = true,
+                        user = user,
+                        error = null
+                    )
+                    userManager.setUser(user)
+                    subscriptionManager.logIn(user.id.toString())
+                    syncRemoteToLocalUseCase(clearFirst = false)
+                    initializePushNotifications()
+                    _authState.value = _authState.value.copy(isLoading = false)
                 }
         }
     }

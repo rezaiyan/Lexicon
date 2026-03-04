@@ -1,13 +1,13 @@
 package domain.ai.usecase
 
 import core.common.FlowUseCase
-import domain.ai.repository.IAiRepository
-import core.common.Try
 import core.common.fold
 import core.common.getOrThrow
+import domain.ai.repository.IAiRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -38,16 +38,12 @@ class ImportFromImageUseCase(
 
         extractionResult.fold(
             onSuccess = { extractedText ->
-                importWordsUseCase(extractedText)
-                    .map { tryResult: Try<Int> ->
-                        tryResult.fold(
-                            onSuccess = { count ->
-                                ImportImageResult.Success(count)
-                            },
-                            onFailure = { error ->
-                                ImportImageResult.Error(error.message ?: "Import failed")
-                            }
-                        )
+                importWordsUseCase.asFlow(extractedText)
+                    .map<Int, ImportImageResult> { count ->
+                        ImportImageResult.Success(count)
+                    }
+                    .catch { error ->
+                        emit(ImportImageResult.Error(error.message ?: "Import failed"))
                     }
             },
             onFailure = { error: Throwable ->
