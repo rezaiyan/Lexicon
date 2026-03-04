@@ -1,6 +1,8 @@
 package domain.word.usecase
 
+import core.common.getOrThrow
 import domain.word.model.Word
+import kotlinx.coroutines.test.runTest
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,8 +23,10 @@ import kotlin.test.assertFalse
  * - Round-trip compatibility (export → import)
  */
 class ExportWordsUseCaseTest {
-    
+
     private val exportUseCase = ExportWordsUseCase()
+
+    private suspend fun export(words: List<Word>): String = exportUseCase(words).getOrThrow()
     
     // Helper to create test words
     private fun createWord(
@@ -49,25 +53,25 @@ class ExportWordsUseCaseTest {
 
     
     @Test
-    fun `empty list should return empty string`() {
-        val result = exportUseCase(emptyList())
+    fun `empty list should return empty string`() = runTest {
+        val result = export(emptyList())
         assertEquals("", result)
     }
     
     @Test
-    fun `single word without description should export correctly`() {
+    fun `single word without description should export correctly`() = runTest {
         val words = listOf(
             createWord(originalWord = "hello", translation = "hola")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // Should contain the word in comma format
         assertEquals("hello,hola", result)
     }
     
     @Test
-    fun `single word with description should export correctly`() {
+    fun `single word with description should export correctly`() = runTest {
         val words = listOf(
             createWord(
                 originalWord = "hello",
@@ -76,27 +80,27 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertEquals("hello,hola,Common greeting", result)
     }
     
     @Test
-    fun `multiple words should export separated by semicolons`() {
+    fun `multiple words should export separated by semicolons`() = runTest {
         val words = listOf(
             createWord(id = 1, originalWord = "hello", translation = "hola"),
             createWord(id = 2, originalWord = "goodbye", translation = "adiós"),
             createWord(id = 3, originalWord = "thank you", translation = "gracias")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // Format: word1,translation1;word2,translation2;word3,translation3
         assertEquals("hello,hola;goodbye,adiós;thank you,gracias", result)
     }
     
     @Test
-    fun `words with mixed descriptions should export correctly`() {
+    fun `words with mixed descriptions should export correctly`() = runTest {
         val words = listOf(
             createWord(
                 id = 1,
@@ -118,7 +122,7 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // Format: word1,trans1,desc1;word2,trans2;word3,trans3,desc3
         // Words are separated by semicolons, not newlines
@@ -127,7 +131,7 @@ class ExportWordsUseCaseTest {
 
     
     @Test
-    fun `words with commas should be preserved`() {
+    fun `words with commas should be preserved`() = runTest {
         val words = listOf(
             createWord(
                 originalWord = "Hello, my friend",
@@ -136,7 +140,7 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // Format includes the commas from the phrase
         // Note: This creates ambiguity - "Hello, my friend,Hola, mi amigo" has 3 commas total
@@ -145,7 +149,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `words with quotes should be preserved`() {
+    fun `words with quotes should be preserved`() = runTest {
         val words = listOf(
             createWord(
                 originalWord = "He said \"hello\"",
@@ -154,13 +158,13 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertEquals("He said \"hello\",Él dijo \"hola\",Quote marks should work", result)
     }
     
     @Test
-    fun `words with semicolons should export but may cause issues on import`() {
+    fun `words with semicolons should export but may cause issues on import`() = runTest {
         // Edge case: what if the word itself contains a semicolon (the separator)?
         val words = listOf(
             createWord(
@@ -169,7 +173,7 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // This is a known limitation - semicolons in words will cause parsing issues
         // But the export should still succeed
@@ -178,7 +182,7 @@ class ExportWordsUseCaseTest {
 
     
     @Test
-    fun `Spanish characters should be preserved`() {
+    fun `Spanish characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "¡Hola!", translation = "Hello!"),
             createWord(originalWord = "¿Qué tal?", translation = "How are you?"),
@@ -186,7 +190,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "Señor", translation = "Sir")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("¡Hola!,Hello!"))
         assertTrue(result.contains("¿Qué tal?,How are you?"))
@@ -195,7 +199,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `French characters should be preserved`() {
+    fun `French characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "Café", translation = "Coffee"),
             createWord(originalWord = "Être", translation = "To be"),
@@ -203,7 +207,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "Ça va?", translation = "How are you?")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("Café,Coffee"))
         assertTrue(result.contains("Être,To be"))
@@ -212,7 +216,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `German characters should be preserved`() {
+    fun `German characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "Grüß Gott", translation = "Hello (Southern Germany)"),
             createWord(originalWord = "Über", translation = "Over/Above"),
@@ -220,7 +224,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "Größe", translation = "Size")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("Grüß Gott"))
         assertTrue(result.contains("Über"))
@@ -229,7 +233,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `Arabic characters should be preserved`() {
+    fun `Arabic characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "مرحبا", translation = "Hello"),
             createWord(originalWord = "شكرا", translation = "Thank you"),
@@ -237,7 +241,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "مع السلامة", translation = "Goodbye")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("مرحبا,Hello"))
         assertTrue(result.contains("شكرا,Thank you"))
@@ -246,7 +250,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `Chinese characters should be preserved`() {
+    fun `Chinese characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "你好", translation = "Hello"),
             createWord(originalWord = "谢谢", translation = "Thank you"),
@@ -254,7 +258,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "早上好", translation = "Good morning")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("你好,Hello"))
         assertTrue(result.contains("谢谢,Thank you"))
@@ -263,7 +267,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `Japanese characters should be preserved`() {
+    fun `Japanese characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "こんにちは", translation = "Hello"),
             createWord(originalWord = "ありがとう", translation = "Thank you"),
@@ -271,7 +275,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "おはよう", translation = "Good morning")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("こんにちは,Hello"))
         assertTrue(result.contains("ありがとう,Thank you"))
@@ -280,7 +284,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `Korean characters should be preserved`() {
+    fun `Korean characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "안녕하세요", translation = "Hello"),
             createWord(originalWord = "감사합니다", translation = "Thank you"),
@@ -288,7 +292,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "좋은 아침", translation = "Good morning")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("안녕하세요,Hello"))
         assertTrue(result.contains("감사합니다,Thank you"))
@@ -297,7 +301,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `Russian characters should be preserved`() {
+    fun `Russian characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "Привет", translation = "Hello"),
             createWord(originalWord = "Спасибо", translation = "Thank you"),
@@ -305,7 +309,7 @@ class ExportWordsUseCaseTest {
             createWord(originalWord = "Доброе утро", translation = "Good morning")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("Привет,Hello"))
         assertTrue(result.contains("Спасибо,Thank you"))
@@ -314,14 +318,14 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `emoji should be preserved`() {
+    fun `emoji should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "Happy ", translation = "Feliz "),
             createWord(originalWord = "Heart ", translation = "Corazón "),
             createWord(originalWord = "Thumbs up ", translation = "Pulgar arriba ")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("Happy ,Feliz "))
         assertTrue(result.contains("Heart ,Corazón "))
@@ -329,14 +333,14 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `mixed language characters should be preserved`() {
+    fun `mixed language characters should be preserved`() = runTest {
         val words = listOf(
             createWord(originalWord = "Hello مرحبا", translation = "English + Arabic"),
             createWord(originalWord = "你好 こんにちは", translation = "Chinese + Japanese"),
             createWord(originalWord = "Привет Hello", translation = "Russian + English")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertTrue(result.contains("Hello مرحبا,English + Arabic"))
         assertTrue(result.contains("你好 こんにちは,Chinese + Japanese"))
@@ -345,12 +349,12 @@ class ExportWordsUseCaseTest {
 
     
     @Test
-    fun `export should be compact without headers`() {
+    fun `export should be compact without headers`() = runTest {
         val words = listOf(
             createWord(originalWord = "hello", translation = "hola")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // New format is simple and compact - no headers
         assertEquals("hello,hola", result)
@@ -359,13 +363,13 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `words should be separated by semicolons`() {
+    fun `words should be separated by semicolons`() = runTest {
         val words = listOf(
             createWord(id = 1, originalWord = "hello", translation = "hola"),
             createWord(id = 2, originalWord = "goodbye", translation = "adiós")
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // Format: word1,trans1;word2,trans2
         assertEquals("hello,hola;goodbye,adiós", result)
@@ -373,7 +377,7 @@ class ExportWordsUseCaseTest {
 
     
     @Test
-    fun `exported words should be importable`() {
+    fun `exported words should be importable`() = runTest {
         val originalWords = listOf(
             createWord(
                 id = 1,
@@ -396,7 +400,7 @@ class ExportWordsUseCaseTest {
         )
         
         // Export
-        val exportedText = exportUseCase(originalWords)
+        val exportedText = export(originalWords)
         
         // The exported format should be compatible with import
         // Format: word1,trans1,desc1;word2,trans2;word3,trans3,desc3
@@ -404,7 +408,7 @@ class ExportWordsUseCaseTest {
     }
     
     @Test
-    fun `exported words with special characters should be importable`() {
+    fun `exported words with special characters should be importable`() = runTest {
         val originalWords = listOf(
             createWord(
                 originalWord = "Hello, my friend",
@@ -423,7 +427,7 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val exportedText = exportUseCase(originalWords)
+        val exportedText = export(originalWords)
         
         // Format: word1,trans1,desc1;word2,trans2,desc2;word3,trans3,desc3
         assertEquals("Hello, my friend,Hola, mi amigo,Friendly greeting, with commas;你好,Hello,Chinese greeting;مرحبا,Hello,Arabic greeting", exportedText)
@@ -431,7 +435,7 @@ class ExportWordsUseCaseTest {
 
     
     @Test
-    fun `very long words should not truncate`() {
+    fun `very long words should not truncate`() = runTest {
         val longWord = "This is a very long phrase with many words and characters " +
                        "that could potentially cause issues with truncation or buffer overflow"
         val longTranslation = "Esta es una frase muy larga con muchas palabras y caracteres " +
@@ -446,13 +450,13 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         assertEquals("$longWord,$longTranslation,$longDescription", result)
     }
     
     @Test
-    fun `words with newlines in description should be preserved`() {
+    fun `words with newlines in description should be preserved`() = runTest {
         // Edge case: description with embedded newlines
         val words = listOf(
             createWord(
@@ -462,14 +466,14 @@ class ExportWordsUseCaseTest {
             )
         )
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // The newline in description should be preserved
         assertEquals("hello,hola,Line 1\nLine 2", result)
     }
     
     @Test
-    fun `export with 100 words should complete successfully`() {
+    fun `export with 100 words should complete successfully`() = runTest {
         val words = (1..100).map { i ->
             createWord(
                 id = i,
@@ -479,7 +483,7 @@ class ExportWordsUseCaseTest {
             )
         }
         
-        val result = exportUseCase(words)
+        val result = export(words)
         
         // Should contain all 100 words separated by semicolons
         assertTrue(result.contains("word1,palabra1,Description 1"))
