@@ -28,7 +28,7 @@ import io.ktor.http.contentType
 class AuthDataSource(
     private val baseUrl: String,
     private val httpClient: HttpClient
-) {
+) : IAuthDataSource {
 
     suspend fun authenticateWithGoogle(idToken: String): Try<AuthResponse> {
         logNetwork("Auth", "Authenticating with Google")

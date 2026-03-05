@@ -15,7 +15,7 @@ import kotlin.io.encoding.Base64
  */
 class AiRemoteDataSource(
     private val apiClient: ApiClient
-) {
+) : IAiRemoteDataSource {
 
     suspend fun extractVocabularyFromImage(
         imageBytes: ByteArray,

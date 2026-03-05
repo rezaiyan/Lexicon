@@ -1,7 +1,7 @@
 package data.session.repository
 
 import data.auth.mapper.toDomain
-import data.auth.remote.AuthDataSource
+import data.auth.remote.IAuthDataSource
 import data.core.network.error.AuthenticationException
 import data.core.network.error.NetworkException
 import data.core.network.error.ServerException
@@ -15,7 +15,7 @@ import core.common.fold
  * Token refresh on expiry is handled automatically by RefreshAndRetryInterceptor
  */
 class SessionRepositoryImpl(
-    private val authDataSource: AuthDataSource,
+    private val authDataSource: IAuthDataSource,
     private val secureStorage: SecureStorage
 ) : ISessionRepository {
 

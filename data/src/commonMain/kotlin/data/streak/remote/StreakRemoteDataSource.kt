@@ -14,7 +14,7 @@ import expects.logNetwork
  */
 class StreakRemoteDataSource(
     private val apiClient: ApiClient
-) {
+) : IStreakRemoteDataSource {
 
     suspend fun getStreak(): Try<StreakResponse> =
         apiClient.getNotNull<StreakResponse>("/streak")

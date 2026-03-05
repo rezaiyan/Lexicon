@@ -1,6 +1,6 @@
 package data.onboarding.repository
 
-import data.onboarding.remote.OnboardingRemoteDataSource
+import data.onboarding.remote.IOnboardingRemoteDataSource
 import data.onboarding.remote.model.OnboardingPreferencesRequest
 import data.storage.SecureStorage
 import core.common.Try
@@ -11,7 +11,7 @@ import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.onboarding.repository.IOnboardingRepository
 
 class OnboardingRepositoryImpl(
-    private val remoteDataSource: OnboardingRemoteDataSource,
+    private val remoteDataSource: IOnboardingRemoteDataSource,
     private val secureStorage: SecureStorage
 ) : IOnboardingRepository {
 

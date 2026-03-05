@@ -1,6 +1,6 @@
 package data.notification.repository
 
-import data.notification.remote.PushNotificationDataSource
+import data.notification.remote.IPushNotificationDataSource
 import data.notification.remote.model.Platform
 import data.notification.remote.model.RegisterPushTokenRequest
 import core.common.Try
@@ -15,7 +15,7 @@ import pushnotification.IPushTokenManager
 
 class PushTokenRepositoryImpl(
     private val pushTokenManager: IPushTokenManager,
-    private val pushNotificationDataSource: PushNotificationDataSource,
+    private val pushNotificationDataSource: IPushNotificationDataSource,
     private val platform: Platform
 ) : IPushTokenRepository {
 

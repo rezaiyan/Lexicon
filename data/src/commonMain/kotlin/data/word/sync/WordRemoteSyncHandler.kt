@@ -1,6 +1,6 @@
 package data.word.sync
 
-import data.word.remote.WordRemoteDataSource
+import data.word.remote.IWordRemoteDataSource
 import data.word.remote.model.BatchUpdateLanguagesRequest
 import data.word.remote.model.RemoteWord
 import core.common.Try
@@ -22,7 +22,7 @@ interface IWordRemoteSyncHandler {
 }
 
 class WordRemoteSyncHandler(
-    private val wordRemoteDataSource: WordRemoteDataSource
+    private val wordRemoteDataSource: IWordRemoteDataSource
 ) : IWordRemoteSyncHandler, KoinComponent {
 
     override suspend fun syncWordsToRemote(words: List<Word>): Try<Unit> {

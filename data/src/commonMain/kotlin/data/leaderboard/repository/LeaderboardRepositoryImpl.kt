@@ -1,6 +1,6 @@
 package data.leaderboard.repository
 
-import data.leaderboard.remote.LeaderboardRemoteDataSource
+import data.leaderboard.remote.ILeaderboardRemoteDataSource
 import core.common.Try
 import core.common.map
 import domain.leaderboard.model.Leaderboard
@@ -8,7 +8,7 @@ import domain.leaderboard.model.LeaderboardEntry
 import domain.leaderboard.repository.ILeaderboardRepository
 
 class LeaderboardRepositoryImpl(
-    private val remoteDataSource: LeaderboardRemoteDataSource
+    private val remoteDataSource: ILeaderboardRemoteDataSource
 ) : ILeaderboardRepository {
 
     override suspend fun getLeaderboard(): Try<Leaderboard> {

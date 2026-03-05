@@ -1,10 +1,12 @@
 package di
 
 import data.ai.remote.AiRemoteDataSource
+import data.ai.remote.IAiRemoteDataSource
 import data.ai.repository.AiRepositoryImpl
 import data.core.database.LexiconQueries
 import data.word.local.IWordLocalDataSource
 import data.word.local.WordLocalDataSource
+import data.word.remote.IWordRemoteDataSource
 import data.word.remote.WordRemoteDataSource
 import data.word.repository.WordRepositoryImpl
 import data.word.sync.IWordConflictResolver
@@ -45,8 +47,8 @@ fun wordModule() = module {
     single<IWordConflictResolver> { WordConflictResolver() }
 
     // Remote Data Sources
-    single { WordRemoteDataSource(apiClient = get()) }
-    single { AiRemoteDataSource(apiClient = get()) }
+    single<IWordRemoteDataSource> { WordRemoteDataSource(apiClient = get()) }
+    single<IAiRemoteDataSource> { AiRemoteDataSource(apiClient = get()) }
 
     // Repositories
     single<IWordRepository> {

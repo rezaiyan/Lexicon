@@ -13,7 +13,7 @@ import core.common.map
  */
 class WordRemoteDataSource(
     private val apiClient: ApiClient
-) {
+) : IWordRemoteDataSource {
 
     suspend fun getWords(): Try<List<RemoteWord>> =
         apiClient.get<List<RemoteWord>>("/words")

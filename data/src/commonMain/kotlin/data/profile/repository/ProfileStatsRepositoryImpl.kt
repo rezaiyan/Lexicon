@@ -1,6 +1,6 @@
 package data.profile.repository
 
-import data.profile.remote.ProfileStatsRemoteDataSource
+import data.profile.remote.IProfileStatsRemoteDataSource
 import core.common.Try
 import core.common.map
 import domain.profile.model.DayActivity
@@ -9,7 +9,7 @@ import domain.profile.model.ProfileStats
 import domain.profile.repository.IProfileStatsRepository
 
 class ProfileStatsRepositoryImpl(
-    private val remoteDataSource: ProfileStatsRemoteDataSource
+    private val remoteDataSource: IProfileStatsRemoteDataSource
 ) : IProfileStatsRepository {
 
     override suspend fun getProfileStats(): Try<ProfileStats> {

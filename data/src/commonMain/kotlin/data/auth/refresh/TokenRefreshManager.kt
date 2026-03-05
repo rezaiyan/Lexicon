@@ -1,6 +1,6 @@
 package data.auth.refresh
 
-import data.auth.remote.AuthDataSource
+import data.auth.remote.IAuthDataSource
 import data.auth.state.IAuthenticationStateManager
 import data.auth.token.ITokenManager
 import data.core.network.error.AuthenticationException
@@ -23,7 +23,7 @@ import kotlinx.coroutines.sync.withLock
  */
 class TokenRefreshManager(
     private val tokenManager: ITokenManager,
-    private val authDataSource: AuthDataSource,
+    private val authDataSource: IAuthDataSource,
     private val authenticationStateManager: IAuthenticationStateManager
 ) : ITokenRefreshManager {
 

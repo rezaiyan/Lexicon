@@ -1,5 +1,6 @@
 package di
 
+import data.notification.remote.IPushNotificationDataSource
 import data.notification.remote.PushNotificationDataSource
 import data.notification.remote.model.Platform
 import data.notification.repository.NotificationRepositoryImpl
@@ -48,7 +49,7 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
     }
 
     // Data Sources
-    single {
+    single<IPushNotificationDataSource> {
         PushNotificationDataSource(
             baseUrl = backendUrl,
             getAuthToken = { get<SecureStorage>().getAccessToken() },

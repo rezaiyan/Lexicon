@@ -21,7 +21,7 @@ class PushNotificationDataSource(
     private val baseUrl: String,
     private val getAuthToken: suspend () -> String?,
     private val httpClient: HttpClient
-) {
+) : IPushNotificationDataSource {
 
     /**
      * Register FCM push token with the backend

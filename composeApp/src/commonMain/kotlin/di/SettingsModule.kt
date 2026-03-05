@@ -1,6 +1,7 @@
 package di
 
 import data.settings.repository.SettingsRepositoryImpl
+import data.streak.remote.IStreakRemoteDataSource
 import data.streak.remote.StreakRemoteDataSource
 import data.streak.repository.StreakRepositoryImpl
 import domain.settings.repository.ISettingsRepository
@@ -19,7 +20,7 @@ import org.koin.dsl.module
 fun settingsModule() = module {
 
     // Remote Data Sources
-    single { StreakRemoteDataSource(apiClient = get()) }
+    single<IStreakRemoteDataSource> { StreakRemoteDataSource(apiClient = get()) }
 
     // Repositories
     single {

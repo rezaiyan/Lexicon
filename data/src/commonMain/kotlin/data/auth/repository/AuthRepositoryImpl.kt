@@ -3,8 +3,8 @@ package data.auth.repository
 import auth.IAppleAuthStateProvider
 import auth.IGoogleAuthStateProvider
 import data.auth.mapper.toDomain
-import data.auth.remote.AuthDataSource
-import data.auth.remote.FeatureAccessRemoteDataSource
+import data.auth.remote.IAuthDataSource
+import data.auth.remote.IFeatureAccessRemoteDataSource
 import domain.auth.session.ISessionManager
 import data.auth.token.ITokenManager
 import domain.auth.model.AuthUser
@@ -22,8 +22,8 @@ import kotlinx.coroutines.flow.flowOf
 class AuthRepositoryImpl(
     private val tokenManager: ITokenManager,
     private val sessionManager: ISessionManager,
-    private val featureAccessRemoteDataSource: FeatureAccessRemoteDataSource,
-    private val authDataSource: AuthDataSource,
+    private val featureAccessRemoteDataSource: IFeatureAccessRemoteDataSource,
+    private val authDataSource: IAuthDataSource,
     private val googleAuthStateProvider: IGoogleAuthStateProvider,
     private val appleAuthStateProvider: IAppleAuthStateProvider
 ) : IAuthRepository {

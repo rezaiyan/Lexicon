@@ -17,7 +17,7 @@ import io.ktor.http.HttpHeaders
 
 class ProfileRemoteDataSource(
     private val apiClient: ApiClient
-) {
+) : IProfileRemoteDataSource {
 
     suspend fun updateProfile(name: String?, displayAlias: String?): Try<UserDto> =
         apiClient.patchNotNull<UserDto>(

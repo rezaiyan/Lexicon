@@ -1,13 +1,13 @@
 package data.streak.repository
 
-import data.streak.remote.StreakRemoteDataSource
+import data.streak.remote.IStreakRemoteDataSource
 import core.common.Try
 import core.common.fold
 import domain.streak.model.StreakData
 import domain.streak.repository.IStreakRepository
 
 class StreakRepositoryImpl(
-    private val streakRemoteDataSource: StreakRemoteDataSource
+    private val streakRemoteDataSource: IStreakRemoteDataSource
 ) : IStreakRepository {
 
     override suspend fun getStreak(): Try<StreakData> {

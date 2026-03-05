@@ -4,6 +4,8 @@ import data.auth.refresh.ITokenRefreshManager
 import data.auth.refresh.TokenRefreshManager
 import data.auth.remote.AuthDataSource
 import data.auth.remote.FeatureAccessRemoteDataSource
+import data.auth.remote.IAuthDataSource
+import data.auth.remote.IFeatureAccessRemoteDataSource
 import data.auth.repository.AuthRepositoryImpl
 import data.auth.session.SessionManager
 import domain.auth.session.ISessionManager
@@ -44,14 +46,14 @@ fun authModule(backendUrl: String) = module {
     single<ITokenRefreshManager> {
         TokenRefreshManager(
             tokenManager = get(),
-            authDataSource = get<AuthDataSource>(),
+            authDataSource = get<IAuthDataSource>(),
             authenticationStateManager = get()
         )
     }
 
     // Data Sources
-    single { AuthDataSource(backendUrl, get<HttpClient>()) }
-    single { FeatureAccessRemoteDataSource(apiClient = get()) }
+    single<IAuthDataSource> { AuthDataSource(backendUrl, get<HttpClient>()) }
+    single<IFeatureAccessRemoteDataSource> { FeatureAccessRemoteDataSource(apiClient = get()) }
 
     // Repositories
     single<IAuthRepository> {

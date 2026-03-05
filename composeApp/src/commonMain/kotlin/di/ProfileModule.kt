@@ -1,5 +1,7 @@
 package di
 
+import data.profile.remote.IProfileRemoteDataSource
+import data.profile.remote.IProfileStatsRemoteDataSource
 import data.profile.remote.ProfileRemoteDataSource
 import data.profile.remote.ProfileStatsRemoteDataSource
 import data.profile.repository.ProfileRepositoryImpl
@@ -16,8 +18,8 @@ import org.koin.dsl.module
 fun profileModule() = module {
 
     // Remote Data Sources
-    single { ProfileStatsRemoteDataSource(apiClient = get()) }
-    single { ProfileRemoteDataSource(apiClient = get()) }
+    single<IProfileStatsRemoteDataSource> { ProfileStatsRemoteDataSource(apiClient = get()) }
+    single<IProfileRemoteDataSource> { ProfileRemoteDataSource(apiClient = get()) }
 
     // Repositories
     single<IProfileStatsRepository> {
