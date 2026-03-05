@@ -11,8 +11,6 @@ class DeleteWordUseCase(
     private val wordRepository: IWordRepository
 ) : UseCase<Int, Unit> {
     override suspend operator fun invoke(wordId: Int): Try<Unit> {
-        return Try {
-            wordRepository.deleteWord(wordId)
-        }
+        return wordRepository.deleteWord(wordId)
     }
 }

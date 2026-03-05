@@ -130,20 +130,21 @@ class ReviewWordUseCaseTest {
         var lastUpdatedWord: Word? = null
         var updateCount: Int = 0
 
-        override suspend fun updateWord(word: Word) {
+        override suspend fun updateWord(word: Word): Try<Unit> {
             lastUpdatedWord = word
             updateCount++
+            return Try.success(Unit)
         }
 
-        override suspend fun getAllWordsAsync(): List<Word> = emptyList()
-        override suspend fun insertWords(words: List<Word>): Int = words.size
-        override suspend fun deleteWord(id: Int) {}
+        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
+        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
+        override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
-        override suspend fun getTotalCount(): Int = 0
-        override suspend fun getDueCount(): Int = 0
+        override suspend fun getTotalCount(): Try<Int> = Try.success(0)
+        override suspend fun getDueCount(): Try<Int> = Try.success(0)
 
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())

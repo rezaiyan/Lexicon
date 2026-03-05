@@ -103,25 +103,25 @@ class ImportSuggestedVocabularyUseCaseTest {
     private class FakeWordRepository : IWordRepository {
         val insertedWords = mutableListOf<Word>()
 
-        override suspend fun insertWords(words: List<Word>): Int {
+        override suspend fun insertWords(words: List<Word>): Try<Int> {
             insertedWords.addAll(words)
-            return words.size
+            return Try.success(words.size)
         }
 
-        override suspend fun getAllWordsAsync(): List<Word> = insertedWords.toList()
+        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(insertedWords.toList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(insertedWords)
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
-        override suspend fun updateWord(word: Word) {}
-        override suspend fun deleteWord(id: Int) {}
+        override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
+        override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
-        override suspend fun getTotalCount(): Int = insertedWords.size
-        override suspend fun getDueCount(): Int = 0
+        override suspend fun getTotalCount(): Try<Int> = Try.success(insertedWords.size)
+        override suspend fun getDueCount(): Try<Int> = Try.success(0)
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     }
 }

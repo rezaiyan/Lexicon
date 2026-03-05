@@ -18,6 +18,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import core.common.getOrThrow
 import kotlin.time.Clock
 
 /**
@@ -207,7 +208,7 @@ class EndToEndReviewTest {
         repository.insertWords(words)
         
         // Verify initial due count
-        var dueCount = repository.getDueCount()
+        var dueCount = repository.getDueCount().getOrThrow()
         assertEquals(5, dueCount, "Initially 5 cards are due")
         
         // WHEN: Review 3 cards
@@ -217,7 +218,7 @@ class EndToEndReviewTest {
         }
         
         // THEN: Due count should decrease
-        dueCount = repository.getDueCount()
+        dueCount = repository.getDueCount().getOrThrow()
         assertEquals(2, dueCount, "Only 2 cards should remain due")
     }
     

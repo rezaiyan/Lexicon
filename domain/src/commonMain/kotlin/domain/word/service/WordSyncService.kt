@@ -29,8 +29,7 @@ class WordSyncService(
                     }
 
                     if (newWords.isNotEmpty()) {
-                        wordRepository.insertWords(newWords)
-                        emit(Try.success(newWords.size))
+                        emit(wordRepository.insertWords(newWords))
                     } else {
                         emit(Try.success(0))
                     }

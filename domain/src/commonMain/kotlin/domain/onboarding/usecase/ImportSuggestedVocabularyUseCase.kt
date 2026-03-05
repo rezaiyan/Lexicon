@@ -33,6 +33,6 @@ class ImportSuggestedVocabularyUseCase(
                 dateAdded = now
             )
         }
-        return Try.success(wordRepository.insertWords(words))
+        return wordRepository.insertWords(words)
     }
 }

@@ -56,20 +56,21 @@ class DeleteWordUseCaseTest {
         var shouldThrow = false
         var throwOnNegative = false
 
-        override suspend fun deleteWord(id: Int) {
+        override suspend fun deleteWord(id: Int): Try<Unit> {
             deleteWordCallCount++
             lastDeletedId = id
             if (throwOnNegative && id < 0) {
-                throw IllegalArgumentException("Invalid id")
+                return Try.failure(IllegalArgumentException("Invalid id"))
             }
             if (shouldThrow) {
-                throw IllegalStateException("Repository failure")
+                return Try.failure(IllegalStateException("Repository failure"))
             }
+            return Try.success(Unit)
         }
 
-        override suspend fun updateWord(word: Word) {}
-        override suspend fun insertWords(words: List<Word>): Int = words.size
-        override suspend fun getAllWordsAsync(): List<Word> = emptyList()
+        override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
+        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
+        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
@@ -79,8 +80,8 @@ class DeleteWordUseCaseTest {
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
-        override suspend fun getTotalCount(): Int = 0
-        override suspend fun getDueCount(): Int = 0
+        override suspend fun getTotalCount(): Try<Int> = Try.success(0)
+        override suspend fun getDueCount(): Try<Int> = Try.success(0)
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     }
 }

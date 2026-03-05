@@ -95,21 +95,21 @@ class WordSyncServiceTest {
         private val existingFlow = MutableStateFlow(existing)
         val lastInserted = mutableListOf<Word>()
 
-        override suspend fun getAllWordsAsync(): List<Word> = existingFlow.value
+        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(existingFlow.value)
         override fun getAllWords(): Flow<List<Word>> = existingFlow
-        override suspend fun insertWords(words: List<Word>): Int {
+        override suspend fun insertWords(words: List<Word>): Try<Int> {
             if (words.isNotEmpty()) {
                 lastInserted.clear()
                 lastInserted.addAll(words)
                 existingFlow.value = existingFlow.value + words
             }
-            return words.size
+            return Try.success(words.size)
         }
 
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
-        override suspend fun updateWord(word: Word) {}
-        override suspend fun deleteWord(id: Int) {}
+        override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
+        override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> =
             flowOf(DeleteWordsProgress.Completed(0))
         override suspend fun getWordById(id: Int): Word? = null
@@ -117,8 +117,8 @@ class WordSyncServiceTest {
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
-        override suspend fun getTotalCount(): Int = existingFlow.value.size
-        override suspend fun getDueCount(): Int = 0
+        override suspend fun getTotalCount(): Try<Int> = Try.success(existingFlow.value.size)
+        override suspend fun getDueCount(): Try<Int> = Try.success(0)
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     }
 }

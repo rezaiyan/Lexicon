@@ -11,14 +11,14 @@ import kotlinx.coroutines.flow.Flow
  * Defines contract for word data operations
  */
 interface IWordRepository {
-    suspend fun getAllWordsAsync(): List<Word>
+    suspend fun getAllWordsAsync(): Try<List<Word>>
     fun getAllWords(): Flow<List<Word>>
     fun getDueCards(): Flow<List<Word>>
     fun getWordsByStage(stage: LearningStage): Flow<List<Word>>
     suspend fun getWordById(id: Int): Word?
-    suspend fun insertWords(words: List<Word>): Int
-    suspend fun updateWord(word: Word)
-    suspend fun deleteWord(id: Int)
+    suspend fun insertWords(words: List<Word>): Try<Int>
+    suspend fun updateWord(word: Word): Try<Unit>
+    suspend fun deleteWord(id: Int): Try<Unit>
     fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress>
     fun updateWordsLanguages(
         ids: List<Int>,
@@ -29,8 +29,8 @@ interface IWordRepository {
     suspend fun syncWithRemote(): Try<Unit>
     suspend fun syncRemoteToLocal(clearFirst: Boolean = false): Try<Unit>
     fun getProgressStats(): Flow<ProgressStats>
-    suspend fun getTotalCount(): Int
-    suspend fun getDueCount(): Int
+    suspend fun getTotalCount(): Try<Int>
+    suspend fun getDueCount(): Try<Int>
 }
 
 /**
@@ -52,4 +52,3 @@ sealed class UpdateWordsLanguagesProgress {
     data class Completed(val count: Int) : UpdateWordsLanguagesProgress()
     data class Failed(val error: String) : UpdateWordsLanguagesProgress()
 }
-

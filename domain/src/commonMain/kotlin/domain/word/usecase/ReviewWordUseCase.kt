@@ -4,6 +4,7 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.UseCase
+import core.common.flatMap
 import core.common.getOrThrow
 import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.word.model.Word
@@ -132,6 +133,8 @@ class ReviewWordUseCase(
             nextReviewDate = nextReview
         )
 
+        updatedWord
+    }.flatMap { updatedWord ->
         wordRepository.updateWord(updatedWord)
     }
 }

@@ -260,19 +260,19 @@ internal class FakeWordRepositoryForDelete : IWordRepository {
     }
     
     // Other methods not needed for this test
-    override suspend fun getAllWordsAsync(): List<domain.word.model.Word> = emptyList()
+    override suspend fun getAllWordsAsync(): Try<List<domain.word.model.Word>> = Try.success(emptyList())
     override fun getAllWords() = kotlinx.coroutines.flow.flowOf<List<domain.word.model.Word>>(emptyList())
     override fun getDueCards() = kotlinx.coroutines.flow.flowOf<List<domain.word.model.Word>>(emptyList())
     override fun getWordsByStage(stage: domain.word.model.LearningStage) = kotlinx.coroutines.flow.flowOf<List<domain.word.model.Word>>(emptyList())
     override suspend fun getWordById(id: Int) = null
-    override suspend fun insertWords(words: List<domain.word.model.Word>): Int = words.size
-    override suspend fun updateWord(word: domain.word.model.Word) {}
-    override suspend fun deleteWord(id: Int) {}
+    override suspend fun insertWords(words: List<domain.word.model.Word>): Try<Int> = Try.success(words.size)
+    override suspend fun updateWord(word: domain.word.model.Word): Try<Unit> = Try.success(Unit)
+    override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
     override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
     override suspend fun syncWithRemote() = Try.success(Unit)
     override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
     override fun getProgressStats() = kotlinx.coroutines.flow.flowOf(domain.word.model.ProgressStats())
-    override suspend fun getTotalCount() = 0
-    override suspend fun getDueCount() = 0
+    override suspend fun getTotalCount(): Try<Int> = Try.success(0)
+    override suspend fun getDueCount(): Try<Int> = Try.success(0)
     override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): kotlinx.coroutines.flow.Flow<UpdateWordsLanguagesProgress> = kotlinx.coroutines.flow.flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
 }

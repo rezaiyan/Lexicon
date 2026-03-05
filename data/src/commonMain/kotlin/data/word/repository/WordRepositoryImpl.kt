@@ -32,8 +32,8 @@ class WordRepositoryImpl(
     private val conflictResolver: IWordConflictResolver
 ) : IWordRepository {
 
-    override suspend fun getAllWordsAsync(): List<Word> {
-        return localDataSource.getAllWordsAsync()
+    override suspend fun getAllWordsAsync(): Try<List<Word>> {
+        return Try { localDataSource.getAllWordsAsync() }
     }
 
     override fun getAllWords(): Flow<List<Word>> {
@@ -48,33 +48,39 @@ class WordRepositoryImpl(
         return localDataSource.getWordsByStage(stage)
     }
 
-    override suspend fun insertWords(words: List<Word>): Int {
-        if (words.isEmpty()) return 0
+    override suspend fun insertWords(words: List<Word>): Try<Int> {
+        if (words.isEmpty()) return Try.success(0)
 
-        val existingWords = getAllWordsAsync()
-        val newWords = words.filter { newWord ->
-            existingWords.none { it.isSameContent(newWord) }
+        return Try {
+            val existingWords = localDataSource.getAllWordsAsync()
+            val newWords = words.filter { newWord ->
+                existingWords.none { it.isSameContent(newWord) }
+            }
+
+            if (newWords.isEmpty()) return Try.success(0)
+
+            remoteSyncHandler.syncWordsToRemote(newWords)
+            localDataSource.insertWords(newWords)
+            newWords.size
         }
-
-        if (newWords.isEmpty()) return 0
-
-        remoteSyncHandler.syncWordsToRemote(newWords)
-        localDataSource.insertWords(newWords)
-        return newWords.size
     }
 
     override suspend fun getWordById(id: Int): Word? {
         return localDataSource.getWordById(id)
     }
 
-    override suspend fun updateWord(word: Word) {
-        remoteSyncHandler.syncWordUpdateToRemote(word.id.toLong(), word)
-        localDataSource.updateWord(word)
+    override suspend fun updateWord(word: Word): Try<Unit> {
+        return Try {
+            remoteSyncHandler.syncWordUpdateToRemote(word.id.toLong(), word)
+            localDataSource.updateWord(word)
+        }
     }
 
-    override suspend fun deleteWord(id: Int) {
-        remoteSyncHandler.syncWordDeletionToRemote(id.toLong())
-        localDataSource.deleteWord(id)
+    override suspend fun deleteWord(id: Int): Try<Unit> {
+        return Try {
+            remoteSyncHandler.syncWordDeletionToRemote(id.toLong())
+            localDataSource.deleteWord(id)
+        }
     }
 
     override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> {
@@ -207,12 +213,12 @@ class WordRepositoryImpl(
             .flowOn(Dispatchers.Default)
     }
 
-    override suspend fun getTotalCount(): Int {
-        return localDataSource.getTotalCount()
+    override suspend fun getTotalCount(): Try<Int> {
+        return Try { localDataSource.getTotalCount() }
     }
 
-    override suspend fun getDueCount(): Int {
-        return localDataSource.getDueCount()
+    override suspend fun getDueCount(): Try<Int> {
+        return Try { localDataSource.getDueCount() }
     }
 
     override suspend fun deleteAllWords(): Try<Unit> {
@@ -221,4 +227,3 @@ class WordRepositoryImpl(
         }
     }
 }
-

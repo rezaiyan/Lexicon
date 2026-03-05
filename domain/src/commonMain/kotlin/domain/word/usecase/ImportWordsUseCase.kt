@@ -2,6 +2,7 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.UseCase
+import core.common.flatMap
 import core.common.fold
 import core.common.getOrDefault
 import core.common.getOrThrow
@@ -48,11 +49,12 @@ class ImportWordsUseCase(
                     )
                 }
 
-                val importedWords = wordRepository.insertWords(importWords)
-                if (importedWords > 0) {
-                    Try.success(importWords.size)
-                } else {
-                    Try.failure(Exception("All ${importWords.size} word(s) already exist in your collection."))
+                wordRepository.insertWords(importWords).flatMap { importedCount ->
+                    if (importedCount > 0) {
+                        Try.success(importedCount)
+                    } else {
+                        Try.failure(Exception("All ${importWords.size} word(s) already exist in your collection."))
+                    }
                 }
             },
             onFailure = { throwable ->
@@ -84,8 +86,8 @@ class ImportWordsUseCase(
                     if (newWords.isEmpty()) {
                         throw Exception("All ${uniqueImportWords.size} word(s) already exist in your collection.")
                     } else {
-                        wordRepository.insertWords(newWords)
-                        emit(newWords.size)
+                        val count = wordRepository.insertWords(newWords).getOrThrow()
+                        emit(count)
                     }
                 }
             }

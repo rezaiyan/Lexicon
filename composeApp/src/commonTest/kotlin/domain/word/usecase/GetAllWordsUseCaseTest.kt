@@ -63,7 +63,7 @@ class GetAllWordsUseCaseTest {
             allWordsFlow.value = words
         }
 
-        override suspend fun getAllWordsAsync(): List<Word> = allWordsFlow.value
+        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(allWordsFlow.value)
 
         override fun getAllWords(): Flow<List<Word>> {
             allWordsCallCount++
@@ -72,17 +72,17 @@ class GetAllWordsUseCaseTest {
 
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
-        override suspend fun updateWord(word: Word) {}
-        override suspend fun insertWords(words: List<Word>): Int = words.size
+        override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
+        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
-        override suspend fun deleteWord(id: Int) {}
+        override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
-        override suspend fun getTotalCount(): Int = allWordsFlow.value.size
-        override suspend fun getDueCount(): Int = 0
+        override suspend fun getTotalCount(): Try<Int> = Try.success(allWordsFlow.value.size)
+        override suspend fun getDueCount(): Try<Int> = Try.success(0)
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     }
 }
