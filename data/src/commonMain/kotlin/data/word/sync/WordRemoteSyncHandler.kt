@@ -1,6 +1,5 @@
 package data.word.sync
 
-import data.core.network.error.NetworkErrorHandler
 import data.word.remote.WordRemoteDataSource
 import data.word.remote.model.BatchUpdateLanguagesRequest
 import data.word.remote.model.RemoteWord
@@ -64,9 +63,7 @@ class WordRemoteSyncHandler(
     }
 
     override suspend fun syncFromRemote(): Try<List<RemoteWord>> {
-        val result = wordRemoteDataSource.getWords()
-
-        return NetworkErrorHandler.handleResult(result = result)
+        return wordRemoteDataSource.getWords()
     }
 
     private fun Word.toRemote(): RemoteWord = RemoteWord(
