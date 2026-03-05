@@ -2,7 +2,6 @@
 
 package presentation.feature.profile
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
@@ -18,7 +17,6 @@ import domain.streak.model.StreakData
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -32,6 +30,7 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import presentation.base.BaseViewModel
 import presentation.model.DayActivityUiModel
 import presentation.model.LanguagePairUiModel
 import presentation.model.ProfileStatsUiModel
@@ -47,7 +46,9 @@ class ProfileViewModel(
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
     streakManager: IStreakManager,
     private val getProfileStatsUseCase: GetProfileStatsUseCase
-) : ViewModel() {
+) : BaseViewModel<UiState<ProfileUiData>, Nothing>() {
+
+    override fun initialState(): UiState<ProfileUiData> = UiState.Loading
 
     private val streakRefreshTrigger = MutableStateFlow(0)
     private val profileStatsRefreshTrigger = MutableStateFlow(0)
@@ -57,9 +58,6 @@ class ProfileViewModel(
         interval = 60.seconds,
         action = { profileStatsRefreshTrigger.value++ }
     )
-
-    private val _state = MutableStateFlow<UiState<ProfileUiData>>(UiState.Loading)
-    val state: StateFlow<UiState<ProfileUiData>> = _state.asStateFlow()
 
     private val userFlow: StateFlow<AuthUser?> = userManager.observeUser()
         .distinctUntilChanged()
@@ -124,7 +122,7 @@ class ProfileViewModel(
                     emit(UiState.Error(error.message ?: "An error occurred"))
                 }
                 .collect { newState ->
-                    _state.value = newState
+                    updateState { newState }
                 }
         }
     }
@@ -142,16 +140,18 @@ class ProfileViewModel(
     }
 
     private fun clearError() {
-        if (_state.value is UiState.Error) {
-            _state.value = UiState.Loaded(
-                ProfileUiData(
-                    userInfo = null,
-                    streak = null,
-                    featureAccess = null,
-                    isSubscriptionsEnabled = false,
-                    shouldShowSubscriptionUI = false
+        if (currentState is UiState.Error) {
+            updateState {
+                UiState.Loaded(
+                    ProfileUiData(
+                        userInfo = null,
+                        streak = null,
+                        featureAccess = null,
+                        isSubscriptionsEnabled = false,
+                        shouldShowSubscriptionUI = false
+                    )
                 )
-            )
+            }
         }
     }
 

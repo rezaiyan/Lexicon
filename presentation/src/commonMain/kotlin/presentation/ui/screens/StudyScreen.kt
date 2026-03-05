@@ -67,10 +67,11 @@ fun StudyScreen() {
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
 
-    val uiState by viewModel.progressScreenState.collectAsStateWithLifecycle()
-    val reviewState by viewModel.reviewScreenState.collectAsStateWithLifecycle()
+    val screenState by viewModel.state()
+    val uiState = screenState.progress
+    val reviewState = screenState.review
+    val hasPremiumAccess = screenState.hasPremiumAccess
     val ttsState by viewModel.ttsState.collectAsStateWithLifecycle()
-    val hasPremiumAccess by viewModel.hasPremiumAccess.collectAsStateWithLifecycle(false)
 
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
@@ -168,7 +169,7 @@ fun StudyScreen() {
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
 
-                    OnEvents(viewModel.events) { event ->
+                    OnEvents(viewModel.effects) { event ->
                         when (event) {
                             is StudyEvent.StartReview -> {
                                 viewModel.startDueReview()

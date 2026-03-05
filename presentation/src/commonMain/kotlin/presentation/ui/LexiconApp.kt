@@ -451,14 +451,13 @@ private fun NavigationGraph(
 
         composable<TabDestination.Subscription> {
             val subscriptionViewModel: SubscriptionViewModel = koinViewModel()
-            val state by subscriptionViewModel.state.collectAsStateWithLifecycle()
-            val subscriptionUiState by subscriptionViewModel.uiState.collectAsStateWithLifecycle()
+            val screenState by subscriptionViewModel.state()
 
             SubscriptionScreen(
-                state = state,
-                isPurchasing = subscriptionUiState.isPurchasing,
-                errorMessage = subscriptionUiState.errorMessage,
-                successMessage = subscriptionUiState.successMessage,
+                state = screenState.content,
+                isPurchasing = screenState.isPurchasing,
+                errorMessage = screenState.errorMessage,
+                successMessage = screenState.successMessage,
                 actions = SubscriptionScreenActions(
                     onPurchaseClick = { pkg -> subscriptionViewModel.purchasePackage(pkg) },
                     onRestoreClick = { subscriptionViewModel.restorePurchases() },

@@ -1,25 +1,22 @@
 package presentation.feature.subscription
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.subscription.ISubscriptionManager
-import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import core.common.onFailure
 import core.common.onSuccess
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import presentation.base.BaseViewModel
 import presentation.model.UiState
 import presentation.ui.screens.SubscriptionData
-import presentation.util.stateInWhileSubscribed
 import kotlinx.datetime.Instant as DateTimeInstant
 
-data class SubscriptionUiState(
+data class SubscriptionScreenState(
+    val content: UiState<SubscriptionData> = UiState.Loading,
     val isPurchasing: Boolean = false,
     val errorMessage: String? = null,
     val successMessage: String? = null,
@@ -27,52 +24,45 @@ data class SubscriptionUiState(
 
 class SubscriptionViewModel(
     private val subscriptionManager: ISubscriptionManager
-) : ViewModel() {
+) : BaseViewModel<SubscriptionScreenState, Nothing>() {
 
-    val customerInfo = subscriptionManager.customerInfo
-    val isSubscribed = subscriptionManager.isSubscribed()
+    override fun initialState() = SubscriptionScreenState()
 
-    private val _offerings = MutableStateFlow<SubscriptionOffering?>(null)
+    init {
+        loadOfferings()
+        observeSubscriptionState()
+    }
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private fun observeSubscriptionState() {
+        viewModelScope.launch {
+            combine(
+                subscriptionManager.customerInfo,
+                subscriptionManager.isSubscribed()
+            ) { customerInfo, isSubscribed ->
+                customerInfo to isSubscribed
+            }.collect { (customerInfo, isSubscribed) ->
+                val existingData = (currentState.content as? UiState.Loaded)?.value ?: return@collect
 
-    private val _loadError = MutableStateFlow<String?>(null)
-
-    private val _uiState = MutableStateFlow(SubscriptionUiState())
-    val uiState: StateFlow<SubscriptionUiState> = _uiState.asStateFlow()
-
-    val state: StateFlow<UiState<SubscriptionData>> = combine(
-        _offerings,
-        _isLoading,
-        _loadError,
-        customerInfo,
-        isSubscribed
-    ) { offerings, isLoading, loadError, customerInfo, isSubscribed ->
-        when {
-            isLoading && offerings == null -> UiState.Loading
-            loadError != null -> UiState.Error(loadError)
-            else -> {
                 val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
                 val expirationDateMillis = activeEntitlement?.expirationDateMillis
                 val formattedExpirationDate = expirationDateMillis?.let { formatDate(it) }
                 val willRenew = activeEntitlement?.willRenew == true
 
-                UiState.Loaded(
-                    SubscriptionData(
-                        packages = offerings?.availablePackages ?: emptyList(),
-                        isSubscribed = isSubscribed,
-                        customerInfo = customerInfo,
-                        formattedExpirationDate = formattedExpirationDate,
-                        willRenew = willRenew
+                updateState {
+                    copy(
+                        content = UiState.Loaded(
+                            existingData.copy(
+                                customerInfo = customerInfo ?: existingData.customerInfo,
+                                isSubscribed = isSubscribed,
+                                formattedExpirationDate = formattedExpirationDate,
+                                willRenew = willRenew
+                            )
+                        )
                     )
-                )
+                }
             }
         }
-    }.stateInWhileSubscribed(
-        scope = viewModelScope,
-        initialValue = UiState.Loading
-    )
+    }
 
     private fun formatDate(epochMillis: Long): String {
         val dateTimeInstant = DateTimeInstant.fromEpochMilliseconds(epochMillis)
@@ -85,112 +75,113 @@ class SubscriptionViewModel(
         return "$monthName ${localDateTime.dayOfMonth}, ${localDateTime.year}"
     }
 
-    init {
-        loadOfferings()
-    }
-
     fun loadOfferings() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _loadError.value = null
-            _uiState.value = _uiState.value.copy(errorMessage = null)
+            updateState { copy(content = UiState.Loading, errorMessage = null) }
             subscriptionManager.getOfferings()
                 .onSuccess { offerings ->
-                    _offerings.value = offerings
-                    _isLoading.value = false
+                    val isSubscribed = subscriptionManager.isSubscribed().first()
+                    val customerInfo = subscriptionManager.customerInfo.value
+                    val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
+                    val formattedExpirationDate = activeEntitlement?.expirationDateMillis?.let { formatDate(it) }
+                    val willRenew = activeEntitlement?.willRenew == true
+
+                    updateState {
+                        copy(
+                            content = UiState.Loaded(
+                                SubscriptionData(
+                                    packages = offerings?.availablePackages ?: emptyList(),
+                                    isSubscribed = isSubscribed,
+                                    customerInfo = customerInfo,
+                                    formattedExpirationDate = formattedExpirationDate,
+                                    willRenew = willRenew
+                                )
+                            )
+                        )
+                    }
                 }
                 .onFailure { error ->
-                    _isLoading.value = false
-                    _loadError.value = error.message ?: "SUBSCRIPTION_LOAD_FAILED"
+                    updateState {
+                        copy(content = UiState.Error(error.message ?: "SUBSCRIPTION_LOAD_FAILED"))
+                    }
                 }
         }
     }
 
     fun purchasePackage(packageToPurchase: SubscriptionPackage) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isPurchasing = true, errorMessage = null)
+            updateState { copy(isPurchasing = true, errorMessage = null) }
             subscriptionManager.purchase(packageToPurchase)
                 .onSuccess {
-                    _uiState.value = _uiState.value.copy(isPurchasing = false)
+                    updateState { copy(isPurchasing = false) }
                 }
                 .onFailure { error ->
-                    _uiState.value = _uiState.value.copy(
-                        isPurchasing = false,
-                        errorMessage = error.message ?: "PURCHASE_FAILED"
-                    )
+                    updateState {
+                        copy(
+                            isPurchasing = false,
+                            errorMessage = error.message ?: "PURCHASE_FAILED"
+                        )
+                    }
                 }
         }
     }
 
     fun restorePurchases() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _uiState.value = _uiState.value.copy(errorMessage = null, successMessage = null)
+            updateState { copy(errorMessage = null, successMessage = null) }
 
             subscriptionManager.restore()
                 .onSuccess { customerInfo ->
-                    _isLoading.value = false
                     val hasActiveEntitlements = customerInfo.activeEntitlements.isNotEmpty()
                     if (hasActiveEntitlements) {
-                        _uiState.value = _uiState.value.copy(successMessage = "PURCHASES_RESTORED_SUCCESS")
+                        updateState { copy(successMessage = "PURCHASES_RESTORED_SUCCESS") }
                     } else {
-                        _uiState.value = _uiState.value.copy(errorMessage = "NO_PURCHASES_TO_RESTORE")
+                        updateState { copy(errorMessage = "NO_PURCHASES_TO_RESTORE") }
                     }
                 }
                 .onFailure { error ->
-                    _isLoading.value = false
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = error.message ?: "RESTORE_PURCHASES_FAILED"
-                    )
+                    updateState {
+                        copy(errorMessage = error.message ?: "RESTORE_PURCHASES_FAILED")
+                    }
                 }
         }
     }
 
     fun clearError() {
-        _uiState.value = _uiState.value.copy(errorMessage = null)
+        updateState { copy(errorMessage = null) }
     }
 
     fun clearSuccess() {
-        _uiState.value = _uiState.value.copy(successMessage = null)
+        updateState { copy(successMessage = null) }
     }
 
     fun retry() {
-        _loadError.value = null
+        updateState { copy(errorMessage = null) }
         loadOfferings()
     }
 
     fun manageSubscription() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _uiState.value = _uiState.value.copy(errorMessage = null, successMessage = null)
+            updateState { copy(errorMessage = null, successMessage = null) }
 
             subscriptionManager.manageSubscription()
-                .onSuccess {
-                    _isLoading.value = false
-                }
                 .onFailure { error ->
-                    _isLoading.value = false
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = error.message ?: "SUBSCRIPTION_INFO_UNAVAILABLE"
-                    )
+                    updateState {
+                        copy(errorMessage = error.message ?: "SUBSCRIPTION_INFO_UNAVAILABLE")
+                    }
                 }
         }
     }
 
     fun cancelSubscription() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _uiState.value = _uiState.value.copy(errorMessage = null)
+            updateState { copy(errorMessage = null) }
 
             subscriptionManager.cancelSubscription()
-                .onSuccess {
-                    _isLoading.value = false
-                }
                 .onFailure { error ->
-                    _isLoading.value = false
-                    _uiState.value = _uiState.value.copy(
-                        errorMessage = error.message ?: "CANCEL_SUBSCRIPTION_FAILED"
-                    )
+                    updateState {
+                        copy(errorMessage = error.message ?: "CANCEL_SUBSCRIPTION_FAILED")
+                    }
                 }
         }
     }

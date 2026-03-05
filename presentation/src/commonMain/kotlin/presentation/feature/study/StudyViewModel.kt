@@ -3,7 +3,6 @@
 package presentation.feature.study
 
 import analytics.IAnalyticsTracker
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.usecase.GetFeatureAccessUseCase
 import core.common.getOrThrow
@@ -25,24 +24,25 @@ import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
 import expects.logNetwork
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
+import presentation.base.BaseViewModel
 import presentation.model.ProgressScreenState
 import presentation.model.ReviewScreenState
 import presentation.model.UiState
 import presentation.util.NotificationStringHelper
 import kotlin.time.ExperimentalTime
+
+data class StudyScreenState(
+    val progress: UiState<ProgressScreenState> = UiState.Loading,
+    val review: ReviewScreenState = ReviewScreenState(),
+    val hasPremiumAccess: Boolean = false,
+)
 
 class StudyViewModel(
     private val getProgressStatsUseCase: GetProgressStatsUseCase,
@@ -58,29 +58,28 @@ class StudyViewModel(
     private val analyticsTracker: IAnalyticsTracker,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
     ttsRepository: ITtsRepository
-) : ViewModel() {
+) : BaseViewModel<StudyScreenState, StudyEvent>() {
 
-    private val _progressStatistics = MutableStateFlow<ProgressScreenState?>(null)
+    override fun initialState() = StudyScreenState()
+
     private var progressObservationJob: Job? = null
 
-    // Consolidated Progress Screen State wrapped in UiState
-    private val _progressScreenState = MutableStateFlow<UiState<ProgressScreenState>>(UiState.Loading)
-    val progressScreenState: StateFlow<UiState<ProgressScreenState>> = _progressScreenState.asStateFlow()
-
-    // Review Screen State for review bottom sheet
-    private val _reviewScreenState = MutableStateFlow(ReviewScreenState())
-    val reviewScreenState: StateFlow<ReviewScreenState> = _reviewScreenState.asStateFlow()
-
-    val hasPremiumAccess: StateFlow<Boolean> = getFeatureAccessUseCase()
-        .map { it.userAccess.hasPremiumAccess }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    private val _events = Channel<StudyEvent>(Channel.BUFFERED)
-    val events = _events.receiveAsFlow()
+    val ttsState: StateFlow<TtsState> = ttsRepository.ttsState
 
     init {
-        observeAndCombineStates()
+        observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
+    }
+
+    private fun observeFeatureAccess(getFeatureAccessUseCase: GetFeatureAccessUseCase) {
+        viewModelScope.launch {
+            getFeatureAccessUseCase()
+                .map { it.userAccess.hasPremiumAccess }
+                .catch { emit(false) }
+                .collect { hasPremium ->
+                    updateState { copy(hasPremiumAccess = hasPremium) }
+                }
+        }
     }
 
     fun refreshStats() {
@@ -97,16 +96,14 @@ class StudyViewModel(
                         progressEvaluation = evaluateProgressUseCase(stats).getOrThrow(),
                         messageState = null
                     )
-                    _progressStatistics.value = screenState
+                    updateState { copy(progress = UiState.Loaded(screenState)) }
 
-                    // Update analytics when stats change
                     analyticsTracker.updateUserProgress(
                         totalWords = stats.totalWords,
                         matureWords = stats.matureWords,
                         currentStreak = 0
                     )
 
-                    // Reschedule notifications when stats change
                     val notifStrings =
                         NotificationStringHelper.getNotificationResources(stats.dueCards)
                     val title = getString(
@@ -126,25 +123,13 @@ class StudyViewModel(
         }
     }
 
-    private fun observeAndCombineStates() {
-        viewModelScope.launch {
-            _progressStatistics.collect { state ->
-                _progressScreenState.value = if (state != null) {
-                    UiState.Loaded(state)
-                } else {
-                    UiState.Loading
-                }
-            }
-        }
-    }
-
     fun startReview() {
         viewModelScope.launch {
             getDueWordsUseCase()
                 .catch { /* review unavailable */ }
                 .firstOrNull()
                 ?.firstOrNull()
-                ?.let { _events.send(StudyEvent.StartReview(it)) }
+                ?.let { emitEffect(StudyEvent.StartReview(it)) }
         }
     }
 
@@ -152,34 +137,34 @@ class StudyViewModel(
 
     fun startDueReview() {
         viewModelScope.launch {
-            _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = UiState.Loading)
+            updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
             getDueWordsUseCase()
                 .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
                 .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
                 .first()
                 .let { state ->
-                    _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = state)
+                    updateState { copy(review = review.copy(wordListState = state)) }
                 }
         }
     }
 
     fun loadWordsByStage(stage: LearningStage) {
         viewModelScope.launch {
-            _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = UiState.Loading)
+            updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
             getWordsByStageUseCase(stage)
                 .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
                 .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
                 .first()
                 .let { state ->
-                    _reviewScreenState.value = _reviewScreenState.value.copy(wordListState = state)
+                    updateState { copy(review = review.copy(wordListState = state)) }
                 }
         }
     }
 
     fun startStageReview(stage: LearningStage) {
         loadWordsByStage(stage)
-        val currentState = _reviewScreenState.value.wordListState
-        val cardCount = if (currentState is UiState.Loaded) currentState.value.size else 0
+        val wordListState = currentState.review.wordListState
+        val cardCount = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         analyticsTracker.logReviewSessionStart(cardCount = cardCount)
     }
 
@@ -197,14 +182,14 @@ class StudyViewModel(
     fun updateWord(word: Word) {
         viewModelScope.launch {
             updateWordUseCase(word).onSuccess { updatedWord ->
-                val currentState = _reviewScreenState.value.wordListState
-                if (currentState is UiState.Loaded) {
-                    val updatedWords = currentState.value.map {
+                val wordListState = currentState.review.wordListState
+                if (wordListState is UiState.Loaded) {
+                    val updatedWords = wordListState.value.map {
                         if (it.id == word.id) updatedWord else it
                     }
-                    _reviewScreenState.value = _reviewScreenState.value.copy(
-                        wordListState = UiState.Loaded(updatedWords)
-                    )
+                    updateState {
+                        copy(review = review.copy(wordListState = UiState.Loaded(updatedWords)))
+                    }
                 }
                 analyticsTracker.logEvent("word_updated_in_review")
             }.onFailure { error ->
@@ -219,12 +204,12 @@ class StudyViewModel(
     fun deleteWord(wordId: Int) {
         viewModelScope.launch {
             deleteWordUseCase(wordId).onSuccess {
-                val currentState = _reviewScreenState.value.wordListState
-                if (currentState is UiState.Loaded) {
-                    val updatedWords = currentState.value.filterNot { it.id == wordId }
-                    _reviewScreenState.value = _reviewScreenState.value.copy(
-                        wordListState = UiState.Loaded(updatedWords)
-                    )
+                val wordListState = currentState.review.wordListState
+                if (wordListState is UiState.Loaded) {
+                    val updatedWords = wordListState.value.filterNot { it.id == wordId }
+                    updateState {
+                        copy(review = review.copy(wordListState = UiState.Loaded(updatedWords)))
+                    }
                 }
                 analyticsTracker.logEvent("word_deleted_in_review")
             }.onFailure { error ->
@@ -241,11 +226,11 @@ class StudyViewModel(
     }
 
     fun onReviewSessionComplete() {
-        val wordListState = _reviewScreenState.value.wordListState
+        val wordListState = currentState.review.wordListState
         val count = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         viewModelScope.launch {
             if (count > 0) recordActivity(count)
-            _reviewScreenState.value = ReviewScreenState()
+            updateState { copy(review = ReviewScreenState()) }
         }
     }
 
@@ -256,8 +241,6 @@ class StudyViewModel(
     }
 
     // === TTS Functionality ===
-
-    val ttsState: StateFlow<TtsState> = ttsRepository.ttsState
 
     fun speakWord(text: String, languageCode: String) {
         viewModelScope.launch {
@@ -274,7 +257,7 @@ class StudyViewModel(
     private fun resolveLanguageCode(text: String, languageCode: String): String {
         if (languageCode.isNotBlank()) return languageCode
 
-        val words = (_reviewScreenState.value.wordListState as? UiState.Loaded<List<Word>>)?.value
+        val words = (currentState.review.wordListState as? UiState.Loaded<List<Word>>)?.value
             ?: return languageCode
 
         val isTargetSide = words.any { it.originalWord == text }
@@ -290,5 +273,4 @@ class StudyViewModel(
             ?.key
             ?: languageCode
     }
-
 }

@@ -33,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.profile.ProfileEvent
@@ -75,7 +74,7 @@ fun ProfileScreen(
 
     LaunchedEffect(Unit) { profileViewModel.refreshProfileStats() }
 
-    val uiState by profileViewModel.state.collectAsStateWithLifecycle()
+    val uiState by profileViewModel.state()
 
     LaunchedEffect(uiState) {
         if (uiState is UiState.Error) {
