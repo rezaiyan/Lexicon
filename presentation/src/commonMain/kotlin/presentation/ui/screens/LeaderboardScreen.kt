@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.leaderboard
@@ -70,7 +69,7 @@ fun LeaderboardScreen(
     onNavigateBack: () -> Unit
 ) {
     val viewModel = koinViewModel<LeaderboardViewModel>()
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val uiState by viewModel.state()
 
     LexiconColumn(
         title = stringResource(Res.string.leaderboard),

@@ -105,7 +105,7 @@ fun LexiconApp() {
     val authViewModel = koinViewModel<AuthViewModel>()
     val settingsRepository = koinInject<ISettingsRepository>()
 
-    val appUiState by appNavigationViewModel.appUiState.collectAsStateWithLifecycle()
+    val appUiState by appNavigationViewModel.state()
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
 
     val systemInDarkTheme = isSystemInDarkTheme()
@@ -244,20 +244,18 @@ fun LexiconApp() {
                             vocabularyPreviewViewModel.setWords(previewWords)
                         }
                         LaunchedEffect(Unit) {
-                            vocabularyPreviewViewModel.events.collect { event ->
+                            vocabularyPreviewViewModel.effects.collect { event ->
                                 when (event) {
                                     is VocabularyPreviewViewModel.Event.ProceedWithSelection -> {
-                                        // Navigate to auth gate with selected words
                                         appNavigationViewModel.onNavigateToAuthGate(event.words)
                                     }
                                     is VocabularyPreviewViewModel.Event.SkipVocabulary -> {
-                                        // Navigate to auth gate without words
                                         appNavigationViewModel.onNavigateToAuthGate()
                                     }
                                 }
                             }
                         }
-                        val previewState by vocabularyPreviewViewModel.state.collectAsStateWithLifecycle()
+                        val previewState by vocabularyPreviewViewModel.state()
                         VocabularyPreviewScreen(
                             state = previewState,
                             onAccept = vocabularyPreviewViewModel::proceedWithSelected,

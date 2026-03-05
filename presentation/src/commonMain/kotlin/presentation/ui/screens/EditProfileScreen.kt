@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.profile.EditProfileEffect
@@ -57,7 +56,7 @@ fun EditProfileScreen(
     onNavigateBack: () -> Unit
 ) {
     val viewModel = koinViewModel<EditProfileViewModel>()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state()
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
     val profileUpdatedMessage = stringResource(Res.string.profile_updated)
