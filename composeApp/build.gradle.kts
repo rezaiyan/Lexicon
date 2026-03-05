@@ -176,6 +176,9 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test-common"))
             implementation(kotlin("test-annotations-common"))
+            implementation(libs.ktor.client.mock)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
         }
     }
     jvmToolchain(11)
