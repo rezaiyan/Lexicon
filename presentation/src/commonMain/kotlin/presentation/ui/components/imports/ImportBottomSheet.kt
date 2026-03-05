@@ -67,7 +67,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -143,13 +142,13 @@ import utils.toImageBitmap
 @Composable
 fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
     val viewModel = koinInject<ImportViewModel>()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state()
     val errorMessage = stringResource(Res.string.import_failed_generic)
     val successImportedWordsFormat = stringResource(Res.string.success_imported_words)
     val latestErrorMessage = rememberUpdatedState(errorMessage)
     val latestSuccessFormat = rememberUpdatedState(successImportedWordsFormat)
 
-    OnEvents(viewModel.events) { event ->
+    OnEvents(viewModel.effects) { event ->
         when (event) {
             is ImportEvent.WordAddedSuccessfully -> {
                 // Do NOT dismiss — sheet stays open for adding more words

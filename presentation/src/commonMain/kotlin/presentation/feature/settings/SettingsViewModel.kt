@@ -1,7 +1,6 @@
 package presentation.feature.settings
 
 import analytics.IAnalyticsTracker
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.repository.IAuthRepository
 import domain.notifications.repository.INotificationRepository
@@ -13,23 +12,27 @@ import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
 import core.common.getOrDefault
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import platform.IAppVersionProvider
+import presentation.base.BaseViewModel
 import presentation.feature.settings.model.SettingsEffect
 import presentation.feature.settings.model.SettingsEvent
 import presentation.model.DialogState
 import presentation.model.SettingsScreenState
 import domain.settings.model.ThemeMode
 
+data class SettingsState(
+    val screen: SettingsScreenState = SettingsScreenState(),
+    val dialog: DialogState = DialogState.None,
+)
+
 class SettingsViewModel(
-    private val notificationRepository: INotificationRepository, // Keep for areNotificationsEnabled()
+    private val notificationRepository: INotificationRepository,
     private val setLanguageUseCase: SetLanguageUseCase,
     private val setThemeModeUseCase: SetThemeModeUseCase,
     private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase,
@@ -37,17 +40,14 @@ class SettingsViewModel(
     private val openNotificationSettingsUseCase: OpenNotificationSettingsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val notificationPermissionMonitor: NotificationPermissionMonitor,
-    settingsRepository: ISettingsRepository, // Keep for read-only state flows
+    settingsRepository: ISettingsRepository,
     authRepository: IAuthRepository,
     appVersionProvider: IAppVersionProvider,
-) : ViewModel() {
+) : BaseViewModel<SettingsState, SettingsEffect>() {
 
-    private val _dialogState = MutableStateFlow<DialogState>(DialogState.None)
-    val dialogState: StateFlow<DialogState> = _dialogState
+    override fun initialState() = SettingsState()
 
     private val intents = MutableSharedFlow<SettingsEvent>(extraBufferCapacity = 64)
-    private val _events = MutableSharedFlow<SettingsEffect>(extraBufferCapacity = 64)
-    val events = _events.asSharedFlow()
 
     private val systemNotificationsEnabled: StateFlow<Boolean> =
         notificationPermissionMonitor.systemNotificationsEnabled
@@ -57,28 +57,34 @@ class SettingsViewModel(
                 initialValue = true
             )
 
-    val settingsScreenState: StateFlow<SettingsScreenState> = SettingsStateBuilder.buildStateFlow(
-        currentLanguage = settingsRepository.getLanguage(),
-        themeMode = settingsRepository.getThemeMode(),
-        notificationsEnabled = settingsRepository.getNotificationsEnabled(),
-        systemNotificationsEnabled = systemNotificationsEnabled,
-        appVersion = flowOf(appVersionProvider.getVersion()),
-        featureAccessFlow = authRepository.getFeatureAccessAsFlow()
-    ).catch { e ->
-        analyticsTracker.logNonFatalError(
-            message = "Settings state build failed",
-            additionalInfo = mapOf("error" to (e.message ?: "unknown"))
-        )
-    }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SettingsScreenState()
-        )
-
     init {
         initializeNotificationState()
         observeIntents()
+        observeSettingsState(settingsRepository, authRepository, appVersionProvider)
+    }
+
+    private fun observeSettingsState(
+        settingsRepository: ISettingsRepository,
+        authRepository: IAuthRepository,
+        appVersionProvider: IAppVersionProvider,
+    ) {
+        viewModelScope.launch {
+            SettingsStateBuilder.buildStateFlow(
+                currentLanguage = settingsRepository.getLanguage(),
+                themeMode = settingsRepository.getThemeMode(),
+                notificationsEnabled = settingsRepository.getNotificationsEnabled(),
+                systemNotificationsEnabled = systemNotificationsEnabled,
+                appVersion = flowOf(appVersionProvider.getVersion()),
+                featureAccessFlow = authRepository.getFeatureAccessAsFlow()
+            ).catch { e ->
+                analyticsTracker.logNonFatalError(
+                    message = "Settings state build failed",
+                    additionalInfo = mapOf("error" to (e.message ?: "unknown"))
+                )
+            }.collect { screenState ->
+                updateState { copy(screen = screenState) }
+            }
+        }
     }
 
     private fun initializeNotificationState() {
@@ -113,17 +119,17 @@ class SettingsViewModel(
             is SettingsEvent.SetNotificationsEnabled -> {
                 setNotificationsEnabledUseCase(intent.enabled)
                 if (intent.enabled && !systemNotificationsEnabled.value) {
-                    _dialogState.value = DialogState.NotificationPermission
+                    updateState { copy(dialog = DialogState.NotificationPermission) }
                 }
             }
             SettingsEvent.RequestNotificationPermission -> {
                 val granted = requestNotificationPermissionUseCase().getOrDefault(false)
-                _events.emit(SettingsEffect.NotificationPermissionGranted(granted))
-                _dialogState.value = DialogState.None
+                emitEffect(SettingsEffect.NotificationPermissionGranted(granted))
+                updateState { copy(dialog = DialogState.None) }
                 if (granted) {
                     setNotificationsEnabledUseCase(true)
                 } else {
-                    _events.emit(SettingsEffect.OpenSystemNotificationSettings)
+                    emitEffect(SettingsEffect.OpenSystemNotificationSettings)
                     openNotificationSettingsUseCase()
                 }
                 notificationPermissionMonitor.refresh()
@@ -132,10 +138,10 @@ class SettingsViewModel(
                 notificationPermissionMonitor.refresh()
             }
             is SettingsEvent.ShowDialog -> {
-                _dialogState.value = intent.dialogState
+                updateState { copy(dialog = intent.dialogState) }
             }
             SettingsEvent.DismissDialog -> {
-                _dialogState.value = DialogState.None
+                updateState { copy(dialog = DialogState.None) }
             }
         }
     }

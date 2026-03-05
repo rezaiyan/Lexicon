@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import core.common.Try
 import core.common.fold
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -47,6 +48,9 @@ abstract class BaseViewModel<S, F> : ViewModel() {
     protected fun emitEffect(effect: F) {
         viewModelScope.launch { _effects.send(effect) }
     }
+
+    /** [SendChannel] for delegating effect emission to handler classes. */
+    protected val effectsSendChannel: SendChannel<F> get() = _effects
 
     /** Fold a [Try] result directly into a state update. */
     protected fun <T> Try<T>.reduce(

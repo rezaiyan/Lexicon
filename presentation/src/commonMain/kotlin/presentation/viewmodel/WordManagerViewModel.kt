@@ -3,7 +3,6 @@
 package presentation.viewmodel
 
 import analytics.IAnalyticsTracker
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.word.model.LearningStage
@@ -13,12 +12,9 @@ import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
 import domain.word.usecase.GetAllWordsUseCase
 import domain.word.usecase.UpdateWordUseCase
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import presentation.base.BaseViewModel
 import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
 import presentation.model.WordSortOption
@@ -27,48 +23,44 @@ import kotlin.time.ExperimentalTime
 
 class WordManagerViewModel(
     private val getAllWordsUseCase: GetAllWordsUseCase,
-    private val deleteWordsUseCase: DeleteWordsUseCase,
-    private val batchUpdateLanguagesUseCase: BatchUpdateLanguagesUseCase,
-    private val updateWordUseCase: UpdateWordUseCase,
+    deleteWordsUseCase: DeleteWordsUseCase,
+    batchUpdateLanguagesUseCase: BatchUpdateLanguagesUseCase,
+    updateWordUseCase: UpdateWordUseCase,
     private val exportWordsUseCase: ExportWordsUseCase,
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
-    private val analyticsTracker: IAnalyticsTracker
-) : ViewModel() {
+    analyticsTracker: IAnalyticsTracker
+) : BaseViewModel<WordManagerScreenState, WordManagerEffect>() {
 
-    private val _state = MutableStateFlow(WordManagerScreenState())
-    val state = _state.asStateFlow()
-
-    private val _events = Channel<WordManagerEffect>(Channel.BUFFERED)
-    val events = _events.receiveAsFlow()
+    override fun initialState() = WordManagerScreenState()
 
     private val deletionHandler = WordDeletionHandler(
         deleteWordsUseCase = deleteWordsUseCase,
         analyticsTracker = analyticsTracker,
-        state = _state,
-        events = _events,
+        stateAccess = stateAccess,
+        events = effectsSendChannel,
         scope = viewModelScope
     )
 
     private val batchEditHandler = WordBatchEditHandler(
         batchUpdateLanguagesUseCase = batchUpdateLanguagesUseCase,
         analyticsTracker = analyticsTracker,
-        state = _state,
-        events = _events,
+        stateAccess = stateAccess,
+        events = effectsSendChannel,
         scope = viewModelScope
     )
 
     private val exportHandler = WordExportHandler(
         exportWordsUseCase = exportWordsUseCase,
         analyticsTracker = analyticsTracker,
-        events = _events,
+        events = effectsSendChannel,
         scope = viewModelScope
     )
 
     private val editingHandler = WordEditingHandler(
         updateWordUseCase = updateWordUseCase,
         analyticsTracker = analyticsTracker,
-        state = _state,
-        events = _events,
+        stateAccess = stateAccess,
+        events = effectsSendChannel,
         scope = viewModelScope
     )
 
@@ -80,107 +72,109 @@ class WordManagerViewModel(
                     it.printStackTrace()
                 }
                 .collect { featureAccess ->
-                    _state.value = _state.value.copy(isUserSubscribed = featureAccess.userAccess.hasPremiumAccess)
+                    updateState { copy(isUserSubscribed = featureAccess.userAccess.hasPremiumAccess) }
                 }
         }
     }
 
     fun resetState() {
-        _state.value = _state.value.copy(
-            selectedWordIds = emptySet(),
-            isSelectionMode = false,
-            searchQuery = "",
-            detailWord = null,
-            showDeleteConfirmation = false,
-            showBatchEditLanguages = false,
-            isDeletingWords = false,
-            isBatchUpdatingLanguages = false,
-            errorMessage = null
-        )
+        updateState {
+            copy(
+                selectedWordIds = emptySet(),
+                isSelectionMode = false,
+                searchQuery = "",
+                detailWord = null,
+                showDeleteConfirmation = false,
+                showBatchEditLanguages = false,
+                isDeletingWords = false,
+                isBatchUpdatingLanguages = false,
+                errorMessage = null
+            )
+        }
     }
 
     private fun startObservingWords() {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, errorMessage = null)
+            updateState { copy(isLoading = true, errorMessage = null) }
 
             getAllWordsUseCase()
                 .catch {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        errorMessage = it.message ?: "Failed to load words"
-                    )
+                    updateState {
+                        copy(
+                            isLoading = false,
+                            errorMessage = it.message ?: "Failed to load words"
+                        )
+                    }
                 }
                 .collect { words ->
-                    _state.value = _state.value.copy(
-                        words = words,
-                        isLoading = false,
-                        errorMessage = null
-                    )
+                    updateState {
+                        copy(
+                            words = words,
+                            isLoading = false,
+                            errorMessage = null
+                        )
+                    }
                 }
         }
     }
 
     fun toggleWordSelection(wordId: Int) {
-        val currentSelection = _state.value.selectedWordIds
-        val newSelection = if (currentSelection.contains(wordId)) {
-            currentSelection - wordId
-        } else {
-            currentSelection + wordId
-        }
-        _state.value = _state.value.copy(
-            selectedWordIds = newSelection,
-            isSelectionMode = newSelection.isNotEmpty()
-        )
-    }
-
-    fun selectAll() {
-        val allWordIds: Set<Int> = _state.value.filteredWords.map { it.id }.toSet()
-        if (_state.value.selectedWordIds.containsAll(allWordIds)) {
-            deselectAll()
-        } else {
-            _state.value = _state.value.copy(
-                selectedWordIds = allWordIds,
-                isSelectionMode = allWordIds.isNotEmpty()
+        updateState {
+            val newSelection = if (selectedWordIds.contains(wordId)) {
+                selectedWordIds - wordId
+            } else {
+                selectedWordIds + wordId
+            }
+            copy(
+                selectedWordIds = newSelection,
+                isSelectionMode = newSelection.isNotEmpty()
             )
         }
     }
 
-    private fun deselectAll() {
-        _state.value = _state.value.copy(
-            selectedWordIds = emptySet(),
-            isSelectionMode = true
-        )
+    fun selectAll() {
+        updateState {
+            val allWordIds: Set<Int> = filteredWords.map { it.id }.toSet()
+            if (selectedWordIds.containsAll(allWordIds)) {
+                copy(
+                    selectedWordIds = emptySet(),
+                    isSelectionMode = true
+                )
+            } else {
+                copy(
+                    selectedWordIds = allWordIds,
+                    isSelectionMode = allWordIds.isNotEmpty()
+                )
+            }
+        }
     }
 
     fun updateSearchQuery(query: String) {
-        _state.value = _state.value.copy(searchQuery = query)
+        updateState { copy(searchQuery = query) }
     }
 
     fun clearSearch() {
-        _state.value = _state.value.copy(searchQuery = "")
+        updateState { copy(searchQuery = "") }
     }
 
     fun setSortOption(option: WordSortOption) {
-        _state.value = _state.value.copy(sortOption = option)
+        updateState { copy(sortOption = option) }
     }
 
     fun setFilterLanguage(language: Language?) {
-        _state.value = _state.value.copy(filterLanguage = language)
+        updateState { copy(filterLanguage = language) }
     }
 
     fun setFilterLearningStage(stage: LearningStage?) {
-        _state.value = _state.value.copy(filterLearningStage = stage)
+        updateState { copy(filterLearningStage = stage) }
     }
 
     fun enterSelectionMode() {
-        _state.value = _state.value.copy(isSelectionMode = true)
+        updateState { copy(isSelectionMode = true) }
     }
 
     fun exitSelectionMode() {
-        _state.value = _state.value.copy(
-            isSelectionMode = false,
-            selectedWordIds = emptySet()
-        )
+        updateState { copy(isSelectionMode = false, selectedWordIds = emptySet()) }
     }
 
     fun openWordDetail(word: Word) {
@@ -196,38 +190,37 @@ class WordManagerViewModel(
     }
 
     fun showDeleteConfirmation() {
-        _state.value = _state.value.copy(showDeleteConfirmation = true)
+        updateState { copy(showDeleteConfirmation = true) }
     }
 
     fun hideDeleteConfirmation() {
-        _state.value = _state.value.copy(showDeleteConfirmation = false)
+        updateState { copy(showDeleteConfirmation = false) }
     }
 
     fun deleteSelectedWords() {
-        val selectedIds = _state.value.selectedWordIds.toList()
+        val selectedIds = currentState.selectedWordIds.toList()
         viewModelScope.launch {
             deletionHandler.deleteSelectedWords(selectedIds)
         }
     }
 
     fun showBatchEditLanguages() {
-        _state.value = _state.value.copy(showBatchEditLanguages = true)
+        updateState { copy(showBatchEditLanguages = true) }
     }
 
     fun hideBatchEditLanguages() {
-        _state.value = _state.value.copy(showBatchEditLanguages = false)
+        updateState { copy(showBatchEditLanguages = false) }
     }
 
     fun batchUpdateLanguages(sourceLanguage: Language, targetLanguage: Language) {
-        val selectedIds = _state.value.selectedWordIds.toList()
+        val selectedIds = currentState.selectedWordIds.toList()
         batchEditHandler.batchUpdateLanguages(selectedIds, sourceLanguage, targetLanguage)
     }
 
     fun shareWords() {
         exportHandler.shareWords(
-            words = _state.value.words,
-            selectedWordIds = _state.value.selectedWordIds
+            words = currentState.words,
+            selectedWordIds = currentState.selectedWordIds
         )
     }
-
 }

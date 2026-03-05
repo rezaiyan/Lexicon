@@ -1,18 +1,15 @@
 package presentation.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import presentation.feature.settings.SettingsState
 import presentation.feature.settings.SettingsViewModel
 import presentation.feature.settings.model.SettingsEvent
 import presentation.model.DialogState
-import presentation.model.SettingsScreenState
 import presentation.ui.components.LanguageSelectionDialog
 import presentation.ui.components.LexiconColumn
 import presentation.ui.components.NotificationPermissionDialog
@@ -36,12 +33,10 @@ fun SettingsScreen(
     onNavigateToSubscription: () -> Unit = {},
 ) {
     val settingsViewModel = koinViewModel<SettingsViewModel>()
-    val state by settingsViewModel.settingsScreenState.collectAsStateWithLifecycle()
-    val dialogState by settingsViewModel.dialogState.collectAsStateWithLifecycle()
+    val settingsState by settingsViewModel.state()
 
     SettingsScreenContent(
-        state = state,
-        dialogState = dialogState,
+        settingsState = settingsState,
         onEvent = settingsViewModel::onEvent,
         onNavigateToWordManager = onNavigateToWordManager,
         onNavigateToSubscription = onNavigateToSubscription,
@@ -50,12 +45,13 @@ fun SettingsScreen(
 
 @Composable
 private fun SettingsScreenContent(
-    state: SettingsScreenState,
-    dialogState: DialogState,
+    settingsState: SettingsState,
     onEvent: (SettingsEvent) -> Unit,
     onNavigateToWordManager: () -> Unit,
     onNavigateToSubscription: () -> Unit,
 ) {
+    val state = settingsState.screen
+    val dialogState = settingsState.dialog
     val currentLanguage = state.currentLanguage
     val themeMode = state.themeMode
     val notificationsEnabled = state.notificationsEnabled

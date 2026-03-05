@@ -17,7 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.model.WordManagerEffect
@@ -48,7 +47,7 @@ fun WordManagerScreen(
     onNavigateBack: () -> Unit
 ) {
     val viewModel = koinViewModel<WordManagerViewModel>()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state()
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
 
@@ -68,7 +67,7 @@ fun WordManagerScreen(
     val errorPrefix = stringResource(Res.string.error_prefix)
 
     LaunchedEffect(Unit) {
-        viewModel.events.collect { event ->
+        viewModel.effects.collect { event ->
             when (event) {
                 is WordManagerEffect.WordsShared -> {
                     val pattern = "%1" + '$' + "d"

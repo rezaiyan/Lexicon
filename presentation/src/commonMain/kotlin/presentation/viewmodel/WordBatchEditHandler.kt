@@ -5,8 +5,8 @@ import domain.word.usecase.BatchUpdateLanguagesResult
 import domain.word.usecase.BatchUpdateLanguagesUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import presentation.base.BaseViewModel
 import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
 import utils.Language
@@ -14,7 +14,7 @@ import utils.Language
 class WordBatchEditHandler(
     private val batchUpdateLanguagesUseCase: BatchUpdateLanguagesUseCase,
     private val analyticsTracker: IAnalyticsTracker,
-    private val state: MutableStateFlow<WordManagerScreenState>,
+    private val stateAccess: BaseViewModel.StateAccess<WordManagerScreenState>,
     private val events: SendChannel<WordManagerEffect>,
     private val scope: CoroutineScope
 ) {
@@ -29,7 +29,7 @@ class WordBatchEditHandler(
             return
         }
 
-        if (state.value.isBatchUpdatingLanguages) return
+        if (stateAccess.current.isBatchUpdatingLanguages) return
 
         scope.launch {
             batchUpdateLanguagesUseCase(
@@ -41,19 +41,23 @@ class WordBatchEditHandler(
                     is BatchUpdateLanguagesResult.Updating,
                     is BatchUpdateLanguagesResult.UpdatingBackend,
                     is BatchUpdateLanguagesResult.UpdatingLocal -> {
-                        state.value = state.value.copy(
-                            isBatchUpdatingLanguages = true,
-                            errorMessage = null
-                        )
+                        stateAccess.update {
+                            copy(
+                                isBatchUpdatingLanguages = true,
+                                errorMessage = null
+                            )
+                        }
                     }
 
                     is BatchUpdateLanguagesResult.Success -> {
-                        state.value = state.value.copy(
-                            isBatchUpdatingLanguages = false,
-                            showBatchEditLanguages = false,
-                            selectedWordIds = emptySet(),
-                            errorMessage = null
-                        )
+                        stateAccess.update {
+                            copy(
+                                isBatchUpdatingLanguages = false,
+                                showBatchEditLanguages = false,
+                                selectedWordIds = emptySet(),
+                                errorMessage = null
+                            )
+                        }
 
                         events.send(WordManagerEffect.WordsLanguageUpdated(result.count))
 
@@ -68,11 +72,13 @@ class WordBatchEditHandler(
                     }
 
                     is BatchUpdateLanguagesResult.Error -> {
-                        state.value = state.value.copy(
-                            isBatchUpdatingLanguages = false,
-                            showBatchEditLanguages = false,
-                            errorMessage = result.message
-                        )
+                        stateAccess.update {
+                            copy(
+                                isBatchUpdatingLanguages = false,
+                                showBatchEditLanguages = false,
+                                errorMessage = result.message
+                            )
+                        }
 
                         events.send(WordManagerEffect.Error(result.message))
 
