@@ -10,7 +10,7 @@ class ProfileStatsRemoteDataSource(
     private val apiClient: ApiClient
 ) : IProfileStatsRemoteDataSource {
 
-    suspend fun getProfileStats(): Try<ProfileStatsResponse> =
+    override suspend fun getProfileStats(): Try<ProfileStatsResponse> =
         apiClient.getNotNull<ProfileStatsResponse>("/users/profile-stats")
             .doOnSuccess { response ->
                 logNetwork(

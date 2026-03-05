@@ -15,26 +15,26 @@ class WordRemoteDataSource(
     private val apiClient: ApiClient
 ) : IWordRemoteDataSource {
 
-    suspend fun getWords(): Try<List<RemoteWord>> =
+    override suspend fun getWords(): Try<List<RemoteWord>> =
         apiClient.get<List<RemoteWord>>("/words")
             .map { it ?: emptyList() }
 
-    suspend fun upsertWords(words: List<RemoteWord>): Try<Unit> =
+    override suspend fun upsertWords(words: List<RemoteWord>): Try<Unit> =
         apiClient.postUnit(
             path = "/words",
             body = UpsertWordsPayload(words)
         )
 
-    suspend fun updateWord(id: Long, word: RemoteWord): Try<Unit> =
+    override suspend fun updateWord(id: Long, word: RemoteWord): Try<Unit> =
         apiClient.patchUnit(
             path = "/words/$id",
             body = word
         )
 
-    suspend fun deleteWord(id: Long): Try<Unit> =
+    override suspend fun deleteWord(id: Long): Try<Unit> =
         apiClient.delete("/words/$id")
 
-    suspend fun deleteWords(ids: List<Long>): Try<Unit> =
+    override suspend fun deleteWords(ids: List<Long>): Try<Unit> =
         if (ids.isEmpty()) {
             Try.success(Unit)
         } else {
@@ -44,7 +44,7 @@ class WordRemoteDataSource(
             )
         }
 
-    suspend fun batchUpdateLanguages(request: BatchUpdateLanguagesRequest): Try<Unit> =
+    override suspend fun batchUpdateLanguages(request: BatchUpdateLanguagesRequest): Try<Unit> =
         apiClient.postUnit(
             path = "/words/batch-update",
             body = request

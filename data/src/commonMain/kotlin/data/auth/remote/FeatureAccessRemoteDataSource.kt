@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 private const val path = "/users/feature-access"
 class FeatureAccessRemoteDataSource(private val apiClient: ApiClient) : IFeatureAccessRemoteDataSource {
 
-    fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> {
+    override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> {
         return apiClient.getFlowNotNull<FeatureAccessResponse>(path)
             .map { result ->
                 result.fold(

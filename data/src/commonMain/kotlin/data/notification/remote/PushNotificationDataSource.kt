@@ -26,7 +26,7 @@ class PushNotificationDataSource(
     /**
      * Register FCM push token with the backend
      */
-    suspend fun registerPushToken(request: RegisterPushTokenRequest): Try<Unit> {
+    override suspend fun registerPushToken(request: RegisterPushTokenRequest): Try<Unit> {
         if (getAuthToken() == null) {
             logNetwork("PushNotification", "Cannot register token - user not authenticated")
             return Try.failure(Exception("User not authenticated"))
@@ -52,7 +52,7 @@ class PushNotificationDataSource(
     /**
      * Deactivate all push tokens for the current user (useful for logout)
      */
-    suspend fun deactivateAllTokens(): Try<Unit> {
+    override suspend fun deactivateAllTokens(): Try<Unit> {
         if (getAuthToken() == null) {
             return Try.success(Unit)
         }

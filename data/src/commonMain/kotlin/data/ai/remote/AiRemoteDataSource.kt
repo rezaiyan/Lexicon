@@ -17,11 +17,11 @@ class AiRemoteDataSource(
     private val apiClient: ApiClient
 ) : IAiRemoteDataSource {
 
-    suspend fun extractVocabularyFromImage(
+    override suspend fun extractVocabularyFromImage(
         imageBytes: ByteArray,
         targetLanguage: Language,
-        extractWords: Boolean = true,
-        extractSentences: Boolean = false
+        extractWords: Boolean,
+        extractSentences: Boolean
     ): Try<String> {
         // Validate image size
         val maxSizeBytes = 3 * 1024 * 1024

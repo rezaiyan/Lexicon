@@ -9,7 +9,7 @@ import expects.logNetwork
 class LeaderboardRemoteDataSource(
     private val apiClient: ApiClient
 ) : ILeaderboardRemoteDataSource {
-    suspend fun getLeaderboard(): Try<LeaderboardResponse> =
+    override suspend fun getLeaderboard(): Try<LeaderboardResponse> =
         apiClient.getNotNull<LeaderboardResponse>("/leaderboard")
             .doOnSuccess { response ->
                 logNetwork(

@@ -30,7 +30,7 @@ class AuthDataSource(
     private val httpClient: HttpClient
 ) : IAuthDataSource {
 
-    suspend fun authenticateWithGoogle(idToken: String): Try<AuthResponse> {
+    override suspend fun authenticateWithGoogle(idToken: String): Try<AuthResponse> {
         logNetwork("Auth", "Authenticating with Google")
 
         return Try {
@@ -49,9 +49,9 @@ class AuthDataSource(
         }
     }
 
-    suspend fun authenticateWithApple(
+    override suspend fun authenticateWithApple(
         idToken: String,
-        fullName: String? = null,
+        fullName: String?,
         appleUserId: String
     ): Try<AuthResponse> {
         logNetwork("Auth", "Authenticating with Apple")
@@ -78,7 +78,7 @@ class AuthDataSource(
         }
     }
 
-    suspend fun refreshTokens(refreshToken: String): Try<AuthResponse> {
+    override suspend fun refreshTokens(refreshToken: String): Try<AuthResponse> {
         logNetwork("Auth", "Refreshing tokens")
 
         return Try {
@@ -97,7 +97,7 @@ class AuthDataSource(
         }
     }
 
-    suspend fun logout(refreshToken: String): Try<Unit> {
+    override suspend fun logout(refreshToken: String): Try<Unit> {
         logNetwork("Auth", "Logging out")
 
         return Try {
@@ -116,7 +116,7 @@ class AuthDataSource(
         }
     }
 
-    suspend fun getUserProfile(): Try<UserDto> {
+    override suspend fun getUserProfile(): Try<UserDto> {
         logNetwork("Auth", "Getting user profile")
 
         return Try {
@@ -135,7 +135,7 @@ class AuthDataSource(
         }
     }
 
-    suspend fun deleteAccount(): Try<Unit> {
+    override suspend fun deleteAccount(): Try<Unit> {
         logNetwork("Auth", "Deleting user account")
 
         return Try {

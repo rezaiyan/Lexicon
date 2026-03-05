@@ -19,7 +19,7 @@ class ProfileRemoteDataSource(
     private val apiClient: ApiClient
 ) : IProfileRemoteDataSource {
 
-    suspend fun updateProfile(name: String?, displayAlias: String?): Try<UserDto> =
+    override suspend fun updateProfile(name: String?, displayAlias: String?): Try<UserDto> =
         apiClient.patchNotNull<UserDto>(
             "/users/me",
             UpdateProfileRequestDto(name = name, displayAlias = displayAlias)
@@ -27,7 +27,7 @@ class ProfileRemoteDataSource(
             logNetwork("ProfileRemoteDataSource", "Profile updated: ${response.email}")
         }
 
-    suspend fun uploadAvatar(imageBytes: ByteArray, mimeType: String): Try<String> {
+    override suspend fun uploadAvatar(imageBytes: ByteArray, mimeType: String): Try<String> {
         val extension = mimeType.substringAfter("/", "jpg")
         return Try {
             val response = apiClient.httpClient.submitFormWithBinaryData(
@@ -53,7 +53,7 @@ class ProfileRemoteDataSource(
         }
     }
 
-    suspend fun deleteAvatar(): Try<Unit> =
+    override suspend fun deleteAvatar(): Try<Unit> =
         apiClient.delete("/users/me/avatar")
             .doOnSuccess {
                 logNetwork("ProfileRemoteDataSource", "Avatar deleted")

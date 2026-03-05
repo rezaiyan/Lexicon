@@ -8,6 +8,6 @@ import core.common.Try
 class OnboardingRemoteDataSource(
     private val apiClient: ApiClient
 ) : IOnboardingRemoteDataSource {
-    suspend fun submitPreferences(request: OnboardingPreferencesRequest): Try<SuggestedVocabularyResponseDto> =
+    override suspend fun submitPreferences(request: OnboardingPreferencesRequest): Try<SuggestedVocabularyResponseDto> =
         apiClient.postNotNull("/onboarding/preferences", request)
 }

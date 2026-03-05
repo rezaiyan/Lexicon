@@ -16,13 +16,13 @@ class StreakRemoteDataSource(
     private val apiClient: ApiClient
 ) : IStreakRemoteDataSource {
 
-    suspend fun getStreak(): Try<StreakResponse> =
+    override suspend fun getStreak(): Try<StreakResponse> =
         apiClient.getNotNull<StreakResponse>("/streak")
             .doOnSuccess { response ->
                 logNetwork("StreakRemoteDataSource", "Streak retrieved: ${response.currentStreak}")
             }
 
-    suspend fun recordActivity(count: Int): Try<StreakResponse> =
+    override suspend fun recordActivity(count: Int): Try<StreakResponse> =
         apiClient.postNotNull<StreakResponse>("/streak/record", body = RecordActivityRequest(count))
             .doOnSuccess { response ->
                 logNetwork("StreakRemoteDataSource", "Activity recorded: streak=${response.currentStreak}")
