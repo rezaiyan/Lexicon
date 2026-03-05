@@ -9,10 +9,12 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import data.core.database.LexiconQueries
-import data.core.database.ProgressRow
 import data.core.database.WordEntity
 import data.core.database.WordEntityData
-import data.word.mapper.WordMapper
+import data.word.mapper.toDomain
+import data.word.mapper.toDomainList
+import data.word.mapper.toEntityData
+import data.word.mapper.toEntityDataList
 import domain.settings.repository.ISettingsRepository
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
@@ -50,7 +52,7 @@ class WordLocalDataSource(
 
     override suspend fun getAllWordsAsync(): List<Word> {
         val fallback = settingsRepository.getLanguage().first()
-        return WordMapper.toDomainList(queries.getAllWords().awaitAsList(), fallback)
+        return queries.getAllWords().awaitAsList().toDomainList(fallback)
     }
 
     override fun getAllWords(): Flow<List<Word>> {
@@ -58,7 +60,7 @@ class WordLocalDataSource(
             queries.getAllWords().asFlow().mapToList(Dispatchers.Default),
             settingsRepository.getLanguage()
         ) { entities, language ->
-            WordMapper.toDomainList(entities, language)
+            entities.toDomainList(language)
         }
     }
 
@@ -68,7 +70,7 @@ class WordLocalDataSource(
             queries.getDueCards(currentTime).asFlow().mapToList(Dispatchers.Default),
             settingsRepository.getLanguage()
         ) { entities, language ->
-            WordMapper.toDomainList(entities, language)
+            entities.toDomainList(language)
         }
     }
 
@@ -79,18 +81,18 @@ class WordLocalDataSource(
                 .asFlow().mapToList(Dispatchers.Default),
             settingsRepository.getLanguage()
         ) { entities, language ->
-            WordMapper.toDomainList(entities, language)
+            entities.toDomainList(language)
         }
     }
 
     override suspend fun getWordById(id: Int): Word? {
         val fallback = settingsRepository.getLanguage().first()
         return queries.getWordById(id.toLong()).awaitAsOneOrNull()
-            ?.let { WordMapper.toDomain(it, fallback) }
+            ?.toDomain(fallback)
     }
 
     override suspend fun insertWords(words: List<Word>) {
-        val entities = WordMapper.toEntityDataList(words)
+        val entities = words.toEntityDataList()
         queries.transaction {
             entities.forEach { entity ->
                 queries.upsertWord(
@@ -113,7 +115,7 @@ class WordLocalDataSource(
     }
 
     override suspend fun updateWord(word: Word) {
-        val entity = WordMapper.toEntityData(word)
+        val entity = word.toEntityData()
         queries.upsertWord(
             id = entity.id.toLong(),
             originalWord = entity.originalWord,

@@ -3,7 +3,7 @@
 package data.word.repository
 
 import data.word.local.IWordLocalDataSource
-import data.word.mapper.WordMapper
+import data.word.mapper.toDomain
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
 import core.common.Try
@@ -181,7 +181,7 @@ class WordRepositoryImpl(
 
                     if (resolvedEntities.isNotEmpty()) {
                         val resolvedWords = resolvedEntities.map { entity ->
-                            WordMapper.toDomain(entity)
+                            entity.toDomain()
                         }
                         localDataSource.insertWords(resolvedWords)
                     }
