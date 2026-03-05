@@ -1,7 +1,6 @@
 package presentation.feature.auth
 
 import analytics.IAnalyticsTracker
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthState
@@ -18,12 +17,11 @@ import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.subscription.ISubscriptionManager
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import presentation.base.BaseViewModel
 
 sealed class AuthIntent {
     data class VerifyAndRestore(val onComplete: () -> Unit) : AuthIntent()
@@ -44,13 +42,12 @@ class AuthViewModel(
     private val analyticsTracker: IAnalyticsTracker,
     private val userManager: IUserManager,
     private val subscriptionManager: ISubscriptionManager,
-) : ViewModel() {
+) : BaseViewModel<AuthState, Nothing>() {
 
     private val intents = MutableSharedFlow<AuthIntent>(extraBufferCapacity = 64)
     private val authMutex = Mutex()
 
-    private val _authState = MutableStateFlow(AuthState())
-    val authState = _authState.asStateFlow()
+    override fun initialState() = AuthState()
 
     init {
         startIntentProcessor()
@@ -61,15 +58,16 @@ class AuthViewModel(
     private fun observeAuthenticationState() {
         viewModelScope.launch {
             isAuthenticatedUseCase.asFlow().collect { isAuthenticated ->
-                if (!isAuthenticated && _authState.value.isAuthenticated) {
-                    // User has been logged out (either manually or automatically)
+                if (!isAuthenticated && currentState.isAuthenticated) {
                     userManager.setUser(null)
-                    _authState.value = AuthState(
-                        isAuthenticated = false,
-                        isLoading = false,
-                        user = null,
-                        error = null
-                    )
+                    updateState {
+                        AuthState(
+                            isAuthenticated = false,
+                            isLoading = false,
+                            user = null,
+                            error = null
+                        )
+                    }
                 }
             }
         }
@@ -93,42 +91,37 @@ class AuthViewModel(
     }
 
     private suspend fun processVerifyAndRestore(onComplete: () -> Unit) {
-        _authState.value = _authState.value.copy(isLoading = true)
-        val result = verifySessionUseCase().getOrElse { error ->
-            // Treat verification failure like a server error — keep user authenticated
-            _authState.value = _authState.value.copy(
-                isAuthenticated = true,
-                isLoading = false
-            )
+        updateState { copy(isLoading = true) }
+        val result = verifySessionUseCase().getOrElse { _ ->
+            updateState { copy(isAuthenticated = true, isLoading = false) }
             onComplete()
             return
         }
         when (result) {
             is SessionVerificationResult.Valid -> {
-                _authState.value = AuthState(
-                    isAuthenticated = true,
-                    isLoading = false,
-                    user = result.user,
-                    error = null
-                )
+                updateState {
+                    AuthState(
+                        isAuthenticated = true,
+                        isLoading = false,
+                        user = result.user,
+                        error = null
+                    )
+                }
                 userManager.setUser(result.user)
                 subscriptionManager.logIn(result.user.id.toString())
                 initializePushNotifications()
                 onComplete()
             }
             is SessionVerificationResult.Expired -> {
-                _authState.value = _authState.value.copy(isLoading = false)
+                updateState { copy(isLoading = false) }
                 onComplete()
             }
             is SessionVerificationResult.NotAuthenticated -> {
-                _authState.value = AuthState(isAuthenticated = false, isLoading = false)
+                updateState { AuthState(isAuthenticated = false, isLoading = false) }
                 onComplete()
             }
             is SessionVerificationResult.ServerError -> {
-                _authState.value = _authState.value.copy(
-                    isAuthenticated = true,
-                    isLoading = false
-                )
+                updateState { copy(isAuthenticated = true, isLoading = false) }
                 onComplete()
             }
         }
@@ -139,7 +132,7 @@ class AuthViewModel(
             "login_google_token_received",
             mapOf("token_length" to idToken.length.toString())
         )
-        _authState.value = _authState.value.copy(isLoading = true)
+        updateState { copy(isLoading = true) }
         authMutex.withLock {
             loginWithGoogleUseCase.invoke(idToken)
                 .catch { error ->
@@ -153,24 +146,26 @@ class AuthViewModel(
                         )
                     )
                     analyticsTracker.logError(error, "google_login_backend_error")
-                    _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
+                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.message) }
                 }
                 .collect { user ->
                     analyticsTracker.logEvent(
                         "login_success",
                         mapOf("user_id" to user.id.toString(), "provider" to "google")
                     )
-                    _authState.value = AuthState(
-                        isAuthenticated = true,
-                        isLoading = true,
-                        user = user,
-                        error = null
-                    )
+                    updateState {
+                        AuthState(
+                            isAuthenticated = true,
+                            isLoading = true,
+                            user = user,
+                            error = null
+                        )
+                    }
                     userManager.setUser(user)
                     subscriptionManager.logIn(user.id.toString())
                     syncRemoteToLocalUseCase(clearFirst = false)
                     initializePushNotifications()
-                    _authState.value = _authState.value.copy(isLoading = false)
+                    updateState { copy(isLoading = false) }
                 }
         }
     }
@@ -180,24 +175,26 @@ class AuthViewModel(
             loginWithAppleUseCase.invoke(idToken, fullName, appleUserId)
                 .catch { error ->
                     analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
-                    _authState.value = AuthState(isAuthenticated = false, isLoading = false, error = error.message)
+                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.message) }
                 }
                 .collect { user ->
                     analyticsTracker.logEvent(
                         "login_success",
                         mapOf("user_id" to user.id.toString(), "provider" to "apple")
                     )
-                    _authState.value = AuthState(
-                        isAuthenticated = true,
-                        isLoading = true,
-                        user = user,
-                        error = null
-                    )
+                    updateState {
+                        AuthState(
+                            isAuthenticated = true,
+                            isLoading = true,
+                            user = user,
+                            error = null
+                        )
+                    }
                     userManager.setUser(user)
                     subscriptionManager.logIn(user.id.toString())
                     syncRemoteToLocalUseCase(clearFirst = false)
                     initializePushNotifications()
-                    _authState.value = _authState.value.copy(isLoading = false)
+                    updateState { copy(isLoading = false) }
                 }
         }
     }
@@ -208,10 +205,10 @@ class AuthViewModel(
         userManager.setUser(null)
         logoutUseCase.invoke()
             .catch { _ ->
-                _authState.value = AuthState(isAuthenticated = false, isLoading = false)
+                updateState { AuthState(isAuthenticated = false, isLoading = false) }
             }
             .collect { _ ->
-                _authState.value = AuthState(isAuthenticated = false, isLoading = false)
+                updateState { AuthState(isAuthenticated = false, isLoading = false) }
             }
     }
 
@@ -241,5 +238,4 @@ class AuthViewModel(
             }
         }
     }
-
 }

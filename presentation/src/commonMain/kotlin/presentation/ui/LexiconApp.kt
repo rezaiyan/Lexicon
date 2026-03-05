@@ -104,7 +104,7 @@ fun LexiconApp() {
     val settingsRepository = koinInject<ISettingsRepository>()
 
     val appUiState by appNavigationViewModel.state()
-    val authState by authViewModel.authState.collectAsStateWithLifecycle()
+    val authState by authViewModel.state()
 
     val systemInDarkTheme = isSystemInDarkTheme()
     val themeMode by settingsRepository.getThemeMode().collectAsStateWithLifecycle(ThemeMode.AUTO)
