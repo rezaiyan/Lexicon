@@ -27,9 +27,9 @@ class ImportWordsUseCase(
     )
 
     override suspend operator fun invoke(params: Params): Try<Int> =
-        execute(params.text, params.sourceLanguage, params.targetLanguage)
+        invoke(params.text, params.sourceLanguage, params.targetLanguage)
 
-    suspend fun execute(
+    suspend operator fun invoke(
         text: String,
         sourceLanguage: Language? = null,
         targetLanguage: Language? = null,

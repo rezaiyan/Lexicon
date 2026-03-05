@@ -137,7 +137,7 @@ class ImportViewModel(
 
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                importWordsUseCase.execute(
+                importWordsUseCase(
                     csvLine,
                     currentState.sourceLanguage,
                     currentState.targetLanguage

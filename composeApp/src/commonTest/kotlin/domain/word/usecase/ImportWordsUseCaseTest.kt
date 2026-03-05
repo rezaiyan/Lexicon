@@ -321,7 +321,7 @@ class ImportWordsUseCaseTest {
     @Test
     fun `explicit language params should be used when provided`() = runTest {
         val input = "bonjour,hola"
-        val result = useCase.execute(
+        val result = useCase(
             text = input,
             sourceLanguage = Language.FRENCH,
             targetLanguage = Language.SPANISH
@@ -340,7 +340,7 @@ class ImportWordsUseCaseTest {
     @Test
     fun `default languages should be used when params are null`() = runTest {
         val input = "hello,hola"
-        val result = useCase.execute(text = input)
+        val result = useCase(text = input)
 
         assertTrue(result.isSuccess)
         assertEquals(1, fakeRepository.insertedWords.size)

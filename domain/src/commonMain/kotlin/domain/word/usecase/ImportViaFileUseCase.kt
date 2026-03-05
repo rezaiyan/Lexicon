@@ -40,7 +40,7 @@ class ImportViaFileUseCase(
                 }
             }
 
-            importWordsUseCase.execute(fileContent, sourceLanguage, targetLanguage)
+            importWordsUseCase(fileContent, sourceLanguage, targetLanguage)
         }
     }
 }
