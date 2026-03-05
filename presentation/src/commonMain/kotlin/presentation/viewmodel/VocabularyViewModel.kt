@@ -61,14 +61,13 @@ class VocabularyViewModel(
         }
     }
 
-    fun deleteWord(wordId: Int, onDeleted: () -> Unit) {
+    fun deleteWord(wordId: Int) {
         viewModelScope.launch {
             val result = deleteWordUseCase(wordId)
             result.fold(
                 onSuccess = {
                     emitEffect(VocabularyEffect.WordDeleted)
                     loadWords(currentReviewMode)
-                    onDeleted()
                     analyticsTracker.logEvent("word_deleted_in_review")
                 },
                 onFailure = { error ->

@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.profile.EditProfileEffect
-import presentation.feature.profile.EditProfileEvent
 import presentation.feature.profile.EditProfileViewModel
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.LexiconColumn
@@ -74,7 +73,7 @@ fun EditProfileScreen(
 
     val imagePickerLauncher = rememberImagePickerLauncher { bytes ->
         if (bytes != null) {
-            viewModel.onEvent(EditProfileEvent.UploadAvatar(bytes, "image/jpeg"))
+            viewModel.uploadAvatar(bytes, "image/jpeg")
         }
     }
 
@@ -116,7 +115,7 @@ fun EditProfileScreen(
                                     },
                                     onRemovePhoto = {
                                         navigator.dismiss()
-                                        viewModel.onEvent(EditProfileEvent.DeleteAvatar)
+                                        viewModel.deleteAvatar()
                                     }
                                 )
                             }
@@ -152,7 +151,7 @@ fun EditProfileScreen(
             // Username field
             OutlinedTextField(
                 value = state.displayAlias,
-                onValueChange = { viewModel.onEvent(EditProfileEvent.UpdateDisplayAlias(it)) },
+                onValueChange = { viewModel.updateDisplayAlias(it) },
                 label = { Text(stringResource(Res.string.username)) },
                 placeholder = { Text(stringResource(Res.string.username_hint)) },
                 supportingText = { Text(stringResource(Res.string.username_description)) },
@@ -188,7 +187,7 @@ fun EditProfileScreen(
             // Save button
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
             Button(
-                onClick = { viewModel.onEvent(EditProfileEvent.SaveProfile) },
+                onClick = { viewModel.saveProfile() },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !state.isSaving
             ) {

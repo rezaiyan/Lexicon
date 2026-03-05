@@ -20,14 +20,6 @@ data class EditProfileState(
     val errorMessage: String? = null
 )
 
-sealed interface EditProfileEvent {
-    data class UpdateDisplayAlias(val value: String) : EditProfileEvent
-    data object SaveProfile : EditProfileEvent
-    data class UploadAvatar(val imageBytes: ByteArray, val mimeType: String) : EditProfileEvent
-    data object DeleteAvatar : EditProfileEvent
-    data object DismissError : EditProfileEvent
-}
-
 sealed interface EditProfileEffect {
     data object ProfileSaved : EditProfileEffect
 }
@@ -59,21 +51,15 @@ class EditProfileViewModel(
         }
     }
 
-    fun onEvent(event: EditProfileEvent) {
-        when (event) {
-            is EditProfileEvent.UpdateDisplayAlias -> {
-                updateState { copy(displayAlias = event.value) }
-            }
-            is EditProfileEvent.SaveProfile -> saveProfile()
-            is EditProfileEvent.UploadAvatar -> uploadAvatar(event.imageBytes, event.mimeType)
-            is EditProfileEvent.DeleteAvatar -> deleteAvatar()
-            is EditProfileEvent.DismissError -> {
-                updateState { copy(errorMessage = null) }
-            }
-        }
+    fun updateDisplayAlias(value: String) {
+        updateState { copy(displayAlias = value) }
     }
 
-    private fun saveProfile() {
+    fun dismissError() {
+        updateState { copy(errorMessage = null) }
+    }
+
+    fun saveProfile() {
         val alias = currentState.displayAlias.trim()
 
         if (alias.isNotEmpty() && (alias.length < 2 || alias.length > 30)) {
@@ -108,7 +94,7 @@ class EditProfileViewModel(
         }
     }
 
-    private fun uploadAvatar(imageBytes: ByteArray, mimeType: String) {
+    fun uploadAvatar(imageBytes: ByteArray, mimeType: String) {
         viewModelScope.launch {
             updateState { copy(isUploadingAvatar = true, errorMessage = null) }
 
@@ -132,7 +118,7 @@ class EditProfileViewModel(
         }
     }
 
-    private fun deleteAvatar() {
+    fun deleteAvatar() {
         viewModelScope.launch {
             updateState { copy(isUploadingAvatar = true, errorMessage = null) }
 
