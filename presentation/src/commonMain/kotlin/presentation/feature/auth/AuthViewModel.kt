@@ -16,19 +16,11 @@ import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.subscription.ISubscriptionManager
 import domain.word.usecase.SyncRemoteToLocalUseCase
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import presentation.base.BaseViewModel
-
-sealed class AuthIntent {
-    data class VerifyAndRestore(val onComplete: () -> Unit) : AuthIntent()
-    data class LoginWithIdToken(val idToken: String) : AuthIntent()
-    data class LoginWithApple(val idToken: String, val fullName: String?, val appleUserId: String) : AuthIntent()
-    data object Logout : AuthIntent()
-}
 
 class AuthViewModel(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
@@ -44,13 +36,11 @@ class AuthViewModel(
     private val subscriptionManager: ISubscriptionManager,
 ) : BaseViewModel<AuthState, Nothing>() {
 
-    private val intents = MutableSharedFlow<AuthIntent>(extraBufferCapacity = 64)
     private val authMutex = Mutex()
 
     override fun initialState() = AuthState()
 
     init {
-        startIntentProcessor()
         verifyAndRestoreSession { }
         observeAuthenticationState()
     }
@@ -70,23 +60,6 @@ class AuthViewModel(
                     }
                 }
             }
-        }
-    }
-
-    private fun startIntentProcessor() {
-        viewModelScope.launch {
-            intents.collect { intent ->
-                processIntent(intent)
-            }
-        }
-    }
-
-    private suspend fun processIntent(intent: AuthIntent) {
-        when (intent) {
-            is AuthIntent.VerifyAndRestore -> processVerifyAndRestore(intent.onComplete)
-            is AuthIntent.LoginWithIdToken -> processLogin(intent.idToken)
-            is AuthIntent.LoginWithApple -> processLoginWithApple(intent.idToken, intent.fullName, intent.appleUserId)
-            AuthIntent.Logout -> processLogout()
         }
     }
 
@@ -213,19 +186,19 @@ class AuthViewModel(
     }
 
     fun verifyAndRestoreSession(onComplete: () -> Unit) {
-        intents.tryEmit(AuthIntent.VerifyAndRestore(onComplete))
+        viewModelScope.launch { processVerifyAndRestore(onComplete) }
     }
 
     fun loginWithGoogle(idToken: String) {
-        intents.tryEmit(AuthIntent.LoginWithIdToken(idToken))
+        viewModelScope.launch { processLogin(idToken) }
     }
 
     fun loginWithApple(idToken: String, fullName: String?, appleUserId: String) {
-        intents.tryEmit(AuthIntent.LoginWithApple(idToken, fullName, appleUserId))
+        viewModelScope.launch { processLoginWithApple(idToken, fullName, appleUserId) }
     }
 
     fun logout() {
-        intents.tryEmit(AuthIntent.Logout)
+        viewModelScope.launch { processLogout() }
     }
 
     private fun initializePushNotifications() {

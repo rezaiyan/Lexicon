@@ -131,15 +131,7 @@ class ProfileViewModel(
         throttledProfileStatsRefresh.request()
     }
 
-    fun onEvent(event: ProfileEvent) {
-        when (event) {
-            is ProfileEvent.Logout -> logout()
-            is ProfileEvent.DeleteAccount -> deleteAccount()
-            is ProfileEvent.ClearError -> clearError()
-        }
-    }
-
-    private fun clearError() {
+    fun clearError() {
         if (currentState is UiState.Error) {
             updateState {
                 UiState.Loaded(
@@ -155,7 +147,7 @@ class ProfileViewModel(
         }
     }
 
-    private fun logout() {
+    fun logout() {
         viewModelScope.launch {
             userManager.logout().fold(
                 onSuccess = {
@@ -171,7 +163,7 @@ class ProfileViewModel(
         }
     }
 
-    private fun deleteAccount() {
+    fun deleteAccount() {
         viewModelScope.launch {
             userManager.deleteAccount().fold(
                 onSuccess = {

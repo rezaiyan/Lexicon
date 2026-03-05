@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.profile.ProfileEvent
 import presentation.feature.profile.ProfileViewModel
 import presentation.model.ProfileUiData
 import presentation.model.UiState
@@ -82,7 +81,7 @@ fun ProfileScreen(
                 message = (uiState as UiState.Error).message,
                 withDismissAction = true
             )
-            profileViewModel.onEvent(ProfileEvent.ClearError)
+            profileViewModel.clearError()
         }
     }
 
@@ -106,7 +105,7 @@ fun ProfileScreen(
                             onDeleteAccount = {
                                 navigator.dismiss()
                                 showDeleteAccountFlow(overlayHost) {
-                                    profileViewModel.onEvent(ProfileEvent.DeleteAccount)
+                                    profileViewModel.deleteAccount()
                                 }
                             }
                         )
@@ -137,7 +136,7 @@ fun ProfileScreen(
                                 LogoutDialogContent(
                                     onConfirm = {
                                         nav.dismiss()
-                                        profileViewModel.onEvent(ProfileEvent.Logout)
+                                        profileViewModel.logout()
                                     },
                                     onDismiss = { nav.dismiss() }
                                 )
