@@ -6,9 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.settings.SettingsState
 import presentation.feature.settings.SettingsViewModel
-import presentation.feature.settings.model.SettingsEvent
 import presentation.model.DialogState
 import presentation.ui.components.LanguageSelectionDialog
 import presentation.ui.components.LexiconColumn
@@ -32,24 +30,8 @@ fun SettingsScreen(
     onNavigateToWordManager: () -> Unit,
     onNavigateToSubscription: () -> Unit = {},
 ) {
-    val settingsViewModel = koinViewModel<SettingsViewModel>()
-    val settingsState by settingsViewModel.state()
-
-    SettingsScreenContent(
-        settingsState = settingsState,
-        onEvent = settingsViewModel::onEvent,
-        onNavigateToWordManager = onNavigateToWordManager,
-        onNavigateToSubscription = onNavigateToSubscription,
-    )
-}
-
-@Composable
-private fun SettingsScreenContent(
-    settingsState: SettingsState,
-    onEvent: (SettingsEvent) -> Unit,
-    onNavigateToWordManager: () -> Unit,
-    onNavigateToSubscription: () -> Unit,
-) {
+    val viewModel = koinViewModel<SettingsViewModel>()
+    val settingsState by viewModel.state()
     val state = settingsState.screen
     val dialogState = settingsState.dialog
     val currentLanguage = state.currentLanguage
@@ -67,13 +49,13 @@ private fun SettingsScreenContent(
             if (state.isPremiumFeatureEnabled) {
                 LanguageSettingsCard(
                     currentLanguage = currentLanguage,
-                    onShowLanguageDialog = { onEvent(SettingsEvent.ShowDialog(DialogState.LanguageSelection)) }
+                    onShowLanguageDialog = { viewModel.showDialog(DialogState.LanguageSelection) }
                 )
             }
 
             ThemeSettingsCard(
                 themeMode = themeMode,
-                onShowThemeDialog = { onEvent(SettingsEvent.ShowDialog(DialogState.ThemeSelection)) }
+                onShowThemeDialog = { viewModel.showDialog(DialogState.ThemeSelection) }
             )
 
             NotificationSettingsCard(
@@ -81,9 +63,9 @@ private fun SettingsScreenContent(
                 notificationsEnabled = notificationsEnabled,
                 onEnable = {
                     if (systemNotificationsEnabled) {
-                        onEvent(SettingsEvent.ShowDialog(DialogState.NotificationSettings))
+                        viewModel.showDialog(DialogState.NotificationSettings)
                     } else {
-                        onEvent(SettingsEvent.ShowDialog(DialogState.NotificationPermission))
+                        viewModel.showDialog(DialogState.NotificationPermission)
                     }
                 }
             )
@@ -100,10 +82,10 @@ private fun SettingsScreenContent(
     if (dialogState is DialogState.LanguageSelection) {
         LanguageSelectionDialog(
             currentLanguage = currentLanguage,
-            onDismiss = { onEvent(SettingsEvent.DismissDialog) },
+            onDismiss = { viewModel.dismissDialog() },
             onLanguageSelected = { language ->
-                onEvent(SettingsEvent.SetLanguage(language))
-                onEvent(SettingsEvent.DismissDialog)
+                viewModel.setLanguage(language)
+                viewModel.dismissDialog()
             }
         )
     }
@@ -111,10 +93,10 @@ private fun SettingsScreenContent(
     if (dialogState is DialogState.ThemeSelection) {
         ThemeModeDialog(
             currentThemeMode = themeMode,
-            onDismiss = { onEvent(SettingsEvent.DismissDialog) },
+            onDismiss = { viewModel.dismissDialog() },
             onThemeModeSelected = { mode ->
-                onEvent(SettingsEvent.SetThemeMode(mode))
-                onEvent(SettingsEvent.DismissDialog)
+                viewModel.setThemeMode(mode)
+                viewModel.dismissDialog()
             }
         )
     }
@@ -123,21 +105,21 @@ private fun SettingsScreenContent(
         val deniedPreviously = wasNotificationPermissionDenied()
         val requestPermission = rememberNotificationPermissionRequester { granted ->
             if (granted) {
-                onEvent(SettingsEvent.SetNotificationsEnabled(true))
-                onEvent(SettingsEvent.DismissDialog)
-                onEvent(SettingsEvent.RefreshNotificationPermissionStatus)
+                viewModel.setNotificationsEnabled(true)
+                viewModel.dismissDialog()
+                viewModel.refreshNotificationPermissionStatus()
             } else {
-                onEvent(SettingsEvent.DismissDialog)
-                onEvent(SettingsEvent.RefreshNotificationPermissionStatus)
+                viewModel.dismissDialog()
+                viewModel.refreshNotificationPermissionStatus()
             }
         }
         NotificationPermissionDialog(
-            onDismiss = { onEvent(SettingsEvent.DismissDialog) },
+            onDismiss = { viewModel.dismissDialog() },
             onEnableNotifications = {
                 if (deniedPreviously) {
-                    onEvent(SettingsEvent.DismissDialog)
-                    onEvent(SettingsEvent.RequestNotificationPermission)
-                    onEvent(SettingsEvent.RefreshNotificationPermissionStatus)
+                    viewModel.dismissDialog()
+                    viewModel.requestNotificationPermission()
+                    viewModel.refreshNotificationPermissionStatus()
                 } else {
                     requestPermission()
                 }
@@ -149,8 +131,8 @@ private fun SettingsScreenContent(
         NotificationSettingsDialog(
             notificationsEnabled = notificationsEnabled,
             systemNotificationsEnabled = systemNotificationsEnabled,
-            onNotificationsToggle = { onEvent(SettingsEvent.SetNotificationsEnabled(it)) },
-            onDismiss = { onEvent(SettingsEvent.DismissDialog) }
+            onNotificationsToggle = { viewModel.setNotificationsEnabled(it) },
+            onDismiss = { viewModel.dismissDialog() }
         )
     }
 }

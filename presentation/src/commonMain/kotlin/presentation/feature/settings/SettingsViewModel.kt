@@ -11,7 +11,6 @@ import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
 import core.common.getOrDefault
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -21,10 +20,10 @@ import kotlinx.coroutines.launch
 import platform.IAppVersionProvider
 import presentation.base.BaseViewModel
 import presentation.feature.settings.model.SettingsEffect
-import presentation.feature.settings.model.SettingsEvent
 import presentation.model.DialogState
 import presentation.model.SettingsScreenState
 import domain.settings.model.ThemeMode
+import utils.Language
 
 data class SettingsState(
     val screen: SettingsScreenState = SettingsScreenState(),
@@ -47,8 +46,6 @@ class SettingsViewModel(
 
     override fun initialState() = SettingsState()
 
-    private val intents = MutableSharedFlow<SettingsEvent>(extraBufferCapacity = 64)
-
     private val systemNotificationsEnabled: StateFlow<Boolean> =
         notificationPermissionMonitor.systemNotificationsEnabled
             .stateIn(
@@ -59,7 +56,6 @@ class SettingsViewModel(
 
     init {
         initializeNotificationState()
-        observeIntents()
         observeSettingsState(settingsRepository, authRepository, appVersionProvider)
     }
 
@@ -97,56 +93,58 @@ class SettingsViewModel(
         }
     }
 
-    private fun observeIntents() {
+    fun setLanguage(language: Language) {
         viewModelScope.launch {
-            intents.collect { intent -> handleIntent(intent) }
+            setLanguageUseCase(language)
+            analyticsTracker.logLanguageChanged(language = language.name)
         }
     }
 
-    private suspend fun handleIntent(intent: SettingsEvent) {
-        when (intent) {
-            is SettingsEvent.SetLanguage -> {
-                setLanguageUseCase(intent.language)
-                analyticsTracker.logLanguageChanged(language = intent.language.name)
-            }
-            is SettingsEvent.SetThemeMode -> {
-                setThemeModeUseCase(intent.mode)
-                analyticsTracker.logThemeChanged(
-                    themeMode = intent.mode.displayName,
-                    isDark = intent.mode == ThemeMode.DARK
-                )
-            }
-            is SettingsEvent.SetNotificationsEnabled -> {
-                setNotificationsEnabledUseCase(intent.enabled)
-                if (intent.enabled && !systemNotificationsEnabled.value) {
-                    updateState { copy(dialog = DialogState.NotificationPermission) }
-                }
-            }
-            SettingsEvent.RequestNotificationPermission -> {
-                val granted = requestNotificationPermissionUseCase().getOrDefault(false)
-                emitEffect(SettingsEffect.NotificationPermissionGranted(granted))
-                updateState { copy(dialog = DialogState.None) }
-                if (granted) {
-                    setNotificationsEnabledUseCase(true)
-                } else {
-                    emitEffect(SettingsEffect.OpenSystemNotificationSettings)
-                    openNotificationSettingsUseCase()
-                }
-                notificationPermissionMonitor.refresh()
-            }
-            SettingsEvent.RefreshNotificationPermissionStatus -> {
-                notificationPermissionMonitor.refresh()
-            }
-            is SettingsEvent.ShowDialog -> {
-                updateState { copy(dialog = intent.dialogState) }
-            }
-            SettingsEvent.DismissDialog -> {
-                updateState { copy(dialog = DialogState.None) }
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch {
+            setThemeModeUseCase(mode)
+            analyticsTracker.logThemeChanged(
+                themeMode = mode.displayName,
+                isDark = mode == ThemeMode.DARK
+            )
+        }
+    }
+
+    fun setNotificationsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            setNotificationsEnabledUseCase(enabled)
+            if (enabled && !systemNotificationsEnabled.value) {
+                updateState { copy(dialog = DialogState.NotificationPermission) }
             }
         }
     }
 
-    fun onEvent(event: SettingsEvent) {
-        viewModelScope.launch { intents.emit(event) }
+    fun requestNotificationPermission() {
+        viewModelScope.launch {
+            val granted = requestNotificationPermissionUseCase().getOrDefault(false)
+            emitEffect(SettingsEffect.NotificationPermissionGranted(granted))
+            updateState { copy(dialog = DialogState.None) }
+            if (granted) {
+                setNotificationsEnabledUseCase(true)
+            } else {
+                emitEffect(SettingsEffect.OpenSystemNotificationSettings)
+                openNotificationSettingsUseCase()
+            }
+            notificationPermissionMonitor.refresh()
+        }
+    }
+
+    fun refreshNotificationPermissionStatus() {
+        viewModelScope.launch {
+            notificationPermissionMonitor.refresh()
+        }
+    }
+
+    fun showDialog(dialogState: DialogState) {
+        updateState { copy(dialog = dialogState) }
+    }
+
+    fun dismissDialog() {
+        updateState { copy(dialog = DialogState.None) }
     }
 }
