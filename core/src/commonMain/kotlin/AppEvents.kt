@@ -7,4 +7,5 @@ sealed class VocabularyEffect {
     data class ImageImportError(val message: String) : VocabularyEffect()
     data object ImageImportRequiresLogin : VocabularyEffect()
     data object ReviewSessionComplete : VocabularyEffect()
+    data object WordDeleted : VocabularyEffect()
 }

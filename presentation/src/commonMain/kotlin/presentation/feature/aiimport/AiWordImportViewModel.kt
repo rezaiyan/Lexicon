@@ -1,117 +1,107 @@
 package presentation.feature.aiimport
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import core.common.onFailure
 import core.common.onSuccess
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import presentation.base.BaseViewModel
 import presentation.model.AiWordImportStep
 import presentation.model.AiWordImportUiState
 
 class AiWordImportViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val importSuggestedVocabularyUseCase: ImportSuggestedVocabularyUseCase,
-) : ViewModel() {
+) : BaseViewModel<AiWordImportUiState, AiWordImportViewModel.Event>() {
 
     sealed interface Event {
         data class ImportSuccess(val count: Int) : Event
         data object Dismiss : Event
     }
 
-    private val _state = MutableStateFlow(AiWordImportUiState())
-    val state: StateFlow<AiWordImportUiState> = _state.asStateFlow()
-
-    private val _events = MutableSharedFlow<Event>()
-    val events = _events.asSharedFlow()
+    override fun initialState() = AiWordImportUiState()
 
     fun selectTargetLanguage(language: String) {
-        _state.update { it.copy(selectedTargetLanguage = language) }
+        updateState { copy(selectedTargetLanguage = language) }
     }
 
     fun selectNativeLanguage(language: String) {
-        _state.update { it.copy(selectedNativeLanguage = language) }
+        updateState { copy(selectedNativeLanguage = language) }
     }
 
     fun selectLevel(level: String) {
-        _state.update { it.copy(selectedLevel = level) }
+        updateState { copy(selectedLevel = level) }
     }
 
     fun toggleTopic(topic: String) {
-        _state.update { current ->
-            val updated = if (current.selectedTopics.contains(topic)) {
-                current.selectedTopics - topic
+        updateState {
+            val updated = if (selectedTopics.contains(topic)) {
+                selectedTopics - topic
             } else {
-                current.selectedTopics + topic
+                selectedTopics + topic
             }
-            current.copy(selectedTopics = updated)
+            copy(selectedTopics = updated)
         }
     }
 
     fun toggleWordSelection(index: Int) {
-        _state.update { current ->
-            val updated = if (current.selectedWordIndices.contains(index)) {
-                current.selectedWordIndices - index
+        updateState {
+            val updated = if (selectedWordIndices.contains(index)) {
+                selectedWordIndices - index
             } else {
-                current.selectedWordIndices + index
+                selectedWordIndices + index
             }
-            current.copy(selectedWordIndices = updated)
+            copy(selectedWordIndices = updated)
         }
     }
 
     fun nextStep() {
-        _state.update { current ->
-            val next = when (current.step) {
+        updateState {
+            val next = when (step) {
                 AiWordImportStep.TARGET_LANG -> AiWordImportStep.NATIVE_LANG
                 AiWordImportStep.NATIVE_LANG -> AiWordImportStep.LEVEL
                 AiWordImportStep.LEVEL -> AiWordImportStep.TOPICS
-                AiWordImportStep.TOPICS -> current.step
-                AiWordImportStep.PREVIEW -> current.step
+                AiWordImportStep.TOPICS -> step
+                AiWordImportStep.PREVIEW -> step
             }
-            current.copy(step = next, error = null)
+            copy(step = next, error = null)
         }
     }
 
     fun previousStep() {
-        _state.update { current ->
-            val prev = when (current.step) {
-                AiWordImportStep.TARGET_LANG -> current.step
+        updateState {
+            val prev = when (step) {
+                AiWordImportStep.TARGET_LANG -> step
                 AiWordImportStep.NATIVE_LANG -> AiWordImportStep.TARGET_LANG
                 AiWordImportStep.LEVEL -> AiWordImportStep.NATIVE_LANG
                 AiWordImportStep.TOPICS -> AiWordImportStep.LEVEL
                 AiWordImportStep.PREVIEW -> AiWordImportStep.TOPICS
             }
-            current.copy(step = prev, error = null)
+            copy(step = prev, error = null)
         }
     }
 
     fun submit() {
-        val currentState = _state.value
-        val targetLang = currentState.selectedTargetLanguage ?: return
-        val nativeLang = currentState.selectedNativeLanguage ?: return
-        val level = currentState.selectedLevel ?: return
+        val state = currentState
+        val targetLang = state.selectedTargetLanguage ?: return
+        val nativeLang = state.selectedNativeLanguage ?: return
+        val level = state.selectedLevel ?: return
 
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            updateState { copy(isLoading = true, error = null) }
             val preferences = OnboardingPreferences(
                 targetLanguage = targetLang,
                 nativeLanguage = nativeLang,
                 level = level,
-                interests = currentState.selectedTopics.toList()
+                interests = state.selectedTopics.toList()
             )
             submitPreferencesUseCase(preferences)
                 .onSuccess { response ->
                     val allIndices = response.suggestedVocabulary.indices.toSet()
-                    _state.update {
-                        it.copy(
+                    updateState {
+                        copy(
                             isLoading = false,
                             step = AiWordImportStep.PREVIEW,
                             suggestedWords = response.suggestedVocabulary,
@@ -121,39 +111,37 @@ class AiWordImportViewModel(
                     }
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.message) }
+                    updateState { copy(isLoading = false, error = error.message) }
                 }
         }
     }
 
     fun importSelected() {
-        val currentState = _state.value
-        val wordsToImport = currentState.selectedWordIndices
+        val state = currentState
+        val wordsToImport = state.selectedWordIndices
             .sorted()
-            .mapNotNull { currentState.suggestedWords.getOrNull(it) }
+            .mapNotNull { state.suggestedWords.getOrNull(it) }
 
         if (wordsToImport.isEmpty()) return
 
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            updateState { copy(isLoading = true, error = null) }
             importSuggestedVocabularyUseCase(wordsToImport)
                 .onSuccess { count ->
-                    _state.update { it.copy(isLoading = false) }
-                    _events.emit(Event.ImportSuccess(count))
+                    updateState { copy(isLoading = false) }
+                    emitEffect(Event.ImportSuccess(count))
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.message) }
+                    updateState { copy(isLoading = false, error = error.message) }
                 }
         }
     }
 
     fun dismiss() {
-        viewModelScope.launch {
-            _events.emit(Event.Dismiss)
-        }
+        emitEffect(Event.Dismiss)
     }
 
     fun reset() {
-        _state.value = AiWordImportUiState()
+        updateState { initialState() }
     }
 }

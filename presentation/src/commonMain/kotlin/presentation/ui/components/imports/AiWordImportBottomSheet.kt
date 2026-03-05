@@ -68,7 +68,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import events.OnEvents
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.aiimport.AiWordImportViewModel
@@ -298,7 +297,7 @@ fun AiWordImportBottomSheet(
     onShowSnackBar: (String) -> Unit,
 ) {
     val viewModel = koinViewModel<AiWordImportViewModel>()
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by viewModel.state()
     val spacing = Theme.spacing
     val dimensions = Theme.dimensions
     var showDiscardDialog by remember { mutableStateOf(false) }
@@ -308,7 +307,7 @@ fun AiWordImportBottomSheet(
         onDismiss()
     }
 
-    OnEvents(viewModel.events) { event ->
+    OnEvents(viewModel.effects) { event ->
         when (event) {
             is AiWordImportViewModel.Event.ImportSuccess -> {
                 onShowSnackBar("Added ${event.count} words to your library!")

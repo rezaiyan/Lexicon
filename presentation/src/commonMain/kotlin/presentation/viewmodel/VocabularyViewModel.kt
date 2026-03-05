@@ -3,7 +3,6 @@
 package presentation.viewmodel
 
 import analytics.IAnalyticsTracker
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.word.model.Word
 import domain.word.usecase.DeleteWordUseCase
@@ -12,13 +11,10 @@ import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.UpdateWordUseCase
 import core.common.fold
 import events.VocabularyEffect
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import presentation.base.BaseViewModel
 import presentation.model.ReviewMode
-import presentation.model.UiMessage
 import presentation.model.UiState
 
 class VocabularyViewModel(
@@ -27,29 +23,23 @@ class VocabularyViewModel(
     private val updateWordUseCase: UpdateWordUseCase,
     private val deleteWordUseCase: DeleteWordUseCase,
     private val analyticsTracker: IAnalyticsTracker,
-) : ViewModel() {
+) : BaseViewModel<UiState<List<Word>>, VocabularyEffect>() {
 
-    private val _events = Channel<VocabularyEffect>(Channel.BUFFERED)
-    val events = _events.receiveAsFlow()
-
-    private val _uiMessages = Channel<UiMessage>(Channel.BUFFERED)
-    val uiMessages = _uiMessages.receiveAsFlow()
-
-    private val _wordListState = MutableStateFlow<UiState<List<Word>>>(UiState.Loading)
+    override fun initialState(): UiState<List<Word>> = UiState.Loading
 
     private var currentReviewMode: ReviewMode = ReviewMode.DuoCards
 
     fun loadWords(reviewMode: ReviewMode = ReviewMode.DuoCards) {
         currentReviewMode = reviewMode
-        _wordListState.value = UiState.Loading
+        updateState { UiState.Loading }
 
         viewModelScope.launch {
             when (reviewMode) {
                 is ReviewMode.DuoCards -> getDueWordsUseCase()
                 is ReviewMode.ByStage -> getWordsByStageUseCase(reviewMode.stage)
             }
-                .catch { e -> _wordListState.value = UiState.Error(e.message ?: "Unknown error") }
-                .collect { words -> _wordListState.value = UiState.Loaded(words) }
+                .catch { e -> updateState { UiState.Error(e.message ?: "Unknown error") } }
+                .collect { words -> updateState { UiState.Loaded(words) } }
         }
     }
 
@@ -76,7 +66,7 @@ class VocabularyViewModel(
             val result = deleteWordUseCase(wordId)
             result.fold(
                 onSuccess = {
-                    _uiMessages.send(UiMessage.WordDeleted)
+                    emitEffect(VocabularyEffect.WordDeleted)
                     loadWords(currentReviewMode)
                     onDeleted()
                     analyticsTracker.logEvent("word_deleted_in_review")

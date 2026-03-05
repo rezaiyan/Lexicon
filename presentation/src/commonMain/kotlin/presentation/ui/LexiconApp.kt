@@ -48,7 +48,6 @@ import domain.auth.session.ISessionManager
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
-import events.OnEvents
 import events.VocabularyEffect
 import expects.SetSystemBarsColor
 import expects.isSystemInDarkTheme
@@ -65,7 +64,6 @@ import presentation.feature.onboarding.VocabularyPreviewViewModel
 import presentation.feature.subscription.SubscriptionViewModel
 import presentation.model.AppUiState
 import presentation.model.TabDestination
-import presentation.model.UiMessage
 import presentation.ui.components.AnimatedNavIcon
 import presentation.ui.overlay.OverlayHostContainer
 import presentation.ui.screens.AuthGateScreen
@@ -165,10 +163,6 @@ fun LexiconApp() {
                 vocabularyViewModel = vocabularyViewModel,
             )
 
-            HandleUiMessages(
-                vocabularyViewModel = vocabularyViewModel
-            )
-
             OverlayHostContainer {
                 AnimatedContent(
                     targetState = appUiState,
@@ -208,10 +202,10 @@ fun LexiconApp() {
 
                     is AppUiState.Onboarding -> {
                         val onboardingViewModel: OnboardingViewModel = koinViewModel()
-                        val onboardingState by onboardingViewModel.state.collectAsStateWithLifecycle()
+                        val onboardingState by onboardingViewModel.state()
 
                         LaunchedEffect(Unit) {
-                            onboardingViewModel.events.collect { event ->
+                            onboardingViewModel.effects.collect { event ->
                                 when (event) {
                                     is OnboardingViewModel.Event.NavigateToPreview -> {
                                         appNavigationViewModel.onNavigateToVocabularyPreview(
@@ -489,8 +483,12 @@ private fun HandleVocabularyEffects(
     val pleaseLoginForAi = stringResource(Res.string.please_login_for_ai)
     val successImportedWordsFormat = stringResource(Res.string.success_imported_words)
 
+    val reviewComplete = stringResource(Res.string.review_complete)
+    val reviewCompleteMessage = stringResource(Res.string.review_complete_message)
+    val wordDeleted = stringResource(Res.string.word_deleted)
+
     LaunchedEffect(Unit) {
-        vocabularyViewModel.events.collect { event ->
+        vocabularyViewModel.effects.collect { event ->
             when (event) {
                 is VocabularyEffect.ImportSuccess -> {
                     val pattern = "%1" + '$' + "d"
@@ -514,9 +512,7 @@ private fun HandleVocabularyEffects(
                     )
                 }
 
-                is VocabularyEffect.ImageImportSuccess -> {
-
-                }
+                is VocabularyEffect.ImageImportSuccess -> {}
 
                 is VocabularyEffect.ImageImportError -> {
                     snackbarHostState.showSnackbar(
@@ -533,40 +529,23 @@ private fun HandleVocabularyEffects(
                 }
 
                 is VocabularyEffect.ReviewSessionComplete -> {
-                    // Handled by UiMessages
+                    snackbarHostState.showSnackbar(
+                        message = "$reviewComplete\n$reviewCompleteMessage",
+                        duration = SnackbarDuration.Short
+                    )
+                }
+
+                is VocabularyEffect.WordDeleted -> {
+                    snackbarHostState.showSnackbar(
+                        message = wordDeleted,
+                        duration = SnackbarDuration.Short
+                    )
                 }
             }
         }
     }
 }
 
-@Composable
-private fun HandleUiMessages(
-    vocabularyViewModel: VocabularyViewModel
-) {
-    val snackbarHostState = LocalSnackbarHostState.current
-    val reviewComplete = stringResource(Res.string.review_complete)
-    val reviewCompleteMessage = stringResource(Res.string.review_complete_message)
-    val wordDeleted = stringResource(Res.string.word_deleted)
-
-    OnEvents(vocabularyViewModel.uiMessages) { message ->
-        when (message) {
-            is UiMessage.ReviewComplete -> {
-                snackbarHostState.showSnackbar(
-                    message = "$reviewComplete\n$reviewCompleteMessage",
-                    duration = SnackbarDuration.Short
-                )
-            }
-
-            is UiMessage.WordDeleted -> {
-                snackbarHostState.showSnackbar(
-                    message = wordDeleted,
-                    duration = SnackbarDuration.Short
-                )
-            }
-        }
-    }
-}
 
 private fun NavHostController.navigateToTab(destination: TabDestination) {
     navigate(destination) {

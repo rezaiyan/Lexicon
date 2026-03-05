@@ -1,6 +1,5 @@
 package presentation.feature.onboarding
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabularyResponse
@@ -8,92 +7,79 @@ import core.common.onFailure
 import core.common.onSuccess
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.usecase.SetLanguageUseCase
-import kotlinx.coroutines.flow.MutableSharedFlow
 import utils.Language
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import presentation.base.BaseViewModel
 import presentation.model.OnboardingUiState
 
 class OnboardingViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val setLanguageUseCase: SetLanguageUseCase
-) : ViewModel() {
-
-    private val _state = MutableStateFlow(OnboardingUiState())
-    val state: StateFlow<OnboardingUiState> = _state.asStateFlow()
+) : BaseViewModel<OnboardingUiState, OnboardingViewModel.Event>() {
 
     sealed interface Event {
         data class NavigateToPreview(val response: SuggestedVocabularyResponse) : Event
         data object NavigateToMain : Event
     }
 
-    private val _events = MutableSharedFlow<Event>()
-    val events = _events.asSharedFlow()
+    override fun initialState() = OnboardingUiState()
 
     fun selectTargetLanguage(language: String) {
-        _state.update { it.copy(selectedTargetLanguage = language) }
+        updateState { copy(selectedTargetLanguage = language) }
     }
 
     fun selectNativeLanguage(language: String) {
-        _state.update { it.copy(selectedNativeLanguage = language) }
+        updateState { copy(selectedNativeLanguage = language) }
     }
 
     fun selectLevel(level: String) {
-        _state.update { it.copy(selectedLevel = level) }
+        updateState { copy(selectedLevel = level) }
     }
 
     fun nextStep() {
-        _state.update { current ->
-            if (current.currentStep < current.totalSteps) {
-                current.copy(currentStep = current.currentStep + 1, error = null)
-            } else current
+        updateState {
+            if (currentStep < totalSteps) {
+                copy(currentStep = currentStep + 1, error = null)
+            } else this
         }
     }
 
     fun previousStep() {
-        _state.update { current ->
-            if (current.currentStep > 1) {
-                current.copy(currentStep = current.currentStep - 1, error = null)
-            } else current
+        updateState {
+            if (currentStep > 1) {
+                copy(currentStep = currentStep - 1, error = null)
+            } else this
         }
     }
 
     fun submit() {
-        val currentState = _state.value
-        val targetLang = currentState.selectedTargetLanguage ?: return
-        val nativeLang = currentState.selectedNativeLanguage ?: return
-        val level = currentState.selectedLevel ?: return
+        val state = currentState
+        val targetLang = state.selectedTargetLanguage ?: return
+        val nativeLang = state.selectedNativeLanguage ?: return
+        val level = state.selectedLevel ?: return
 
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
+            updateState { copy(isLoading = true, error = null) }
             val preferences = OnboardingPreferences(
                 targetLanguage = targetLang,
                 nativeLanguage = nativeLang,
                 level = level,
-                interests = currentState.interests
+                interests = state.interests
             )
             submitPreferencesUseCase(preferences)
                 .onSuccess { response ->
-                    // Persist target language so TTS and other features can use it
                     val targetLanguage = Language.fromCode(Language.toCode(targetLang))
                     setLanguageUseCase(targetLanguage)
-
-                    _state.update { it.copy(isLoading = false) }
-                    _events.emit(Event.NavigateToPreview(response))
+                    updateState { copy(isLoading = false) }
+                    emitEffect(Event.NavigateToPreview(response))
                 }
                 .onFailure { error ->
-                    _state.update { it.copy(isLoading = false, error = error.message) }
+                    updateState { copy(isLoading = false, error = error.message) }
                 }
         }
     }
 
     fun skip() {
-        viewModelScope.launch {
-            _events.emit(Event.NavigateToMain)
-        }
+        emitEffect(Event.NavigateToMain)
     }
 }
