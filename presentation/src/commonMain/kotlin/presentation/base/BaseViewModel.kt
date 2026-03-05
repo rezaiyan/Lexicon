@@ -23,6 +23,9 @@ abstract class BaseViewModel<S, F> : ViewModel() {
 
     private val _state = mutableStateOf(initialState())
 
+    /** Current state value for non-composable reads. */
+    protected val currentState: S get() = _state.value
+
     /** Compose snapshot state — triggers recomposition automatically. */
     @Composable
     fun state(): State<S> = _state
@@ -54,5 +57,20 @@ abstract class BaseViewModel<S, F> : ViewModel() {
             onSuccess = { value -> updateState { onSuccess(value) } },
             onFailure = { error -> updateState { onFailure(error) } },
         )
+    }
+
+    /**
+     * Typed accessor for delegating state reads/writes to handler classes.
+     * Avoids exposing [MutableStateFlow] to handlers.
+     */
+    interface StateAccess<S> {
+        val current: S
+        fun update(reducer: S.() -> S)
+    }
+
+    /** [StateAccess] instance wired to this ViewModel's snapshot state. */
+    protected val stateAccess: StateAccess<S> = object : StateAccess<S> {
+        override val current get() = currentState
+        override fun update(reducer: S.() -> S) = updateState(reducer)
     }
 }
