@@ -27,6 +27,15 @@ enum class Language(
             return entries.find { it.code == code } ?: ENGLISH
         }
 
+        fun fromCodeOrName(codeOrName: String): Language {
+            if (codeOrName.length == 2) return fromCode(codeOrName)
+            return entries.find {
+                it.displayName.equals(codeOrName, ignoreCase = true) ||
+                    it.nativeName.equals(codeOrName, ignoreCase = true) ||
+                    it.aiPromptName.equals(codeOrName, ignoreCase = true)
+            } ?: ENGLISH
+        }
+
         fun toCode(codeOrName: String): String {
             // Already a 2-letter code
             if (codeOrName.length == 2) return codeOrName

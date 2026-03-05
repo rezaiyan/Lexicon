@@ -68,8 +68,7 @@ class OnboardingViewModel(
             )
             submitPreferencesUseCase(preferences)
                 .onSuccess { response ->
-                    val targetLanguage = Language.fromCode(Language.toCode(targetLang))
-                    setLanguageUseCase(targetLanguage)
+                    setLanguageUseCase(Language.fromCodeOrName(targetLang))
                     updateState { copy(isLoading = false) }
                     emitEffect(Event.NavigateToPreview(response))
                 }

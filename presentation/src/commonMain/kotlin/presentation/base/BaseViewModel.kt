@@ -24,8 +24,8 @@ abstract class BaseViewModel<S, F> : ViewModel() {
 
     private val _state = mutableStateOf(initialState())
 
-    /** Current state value for non-composable reads. */
-    protected val currentState: S get() = _state.value
+    /** Current state value for non-composable reads (public for testability). */
+    val currentState: S get() = _state.value
 
     /** Compose snapshot state — triggers recomposition automatically. */
     @Composable
