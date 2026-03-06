@@ -1,9 +1,9 @@
 ---
 name: e2e-feature
-description: Build a feature end-to-end across Vokab backend (Spring Boot) and Lexicon client (KMP), including API endpoint, service, entity, DTO, client data source, repository, use case, ViewModel, and screen
+description: Build a feature end-to-end across Vokab backend (Spring Boot) and Lexicon client (KMP), using BaseViewModel event sink, UseCase<P,R>/FlowUseCase<P,R>, and consistent Try<T>/Flow<T> contracts
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Agent"]
 model: opus
-skills: ["screen-patterns", "viewmodel-patterns", "design-system", "navigation-overlays"]
+skills: ["screen-patterns", "viewmodel-patterns", "design-system", "navigation-overlays", "usecase-patterns", "repository-patterns", "testing-patterns"]
 ---
 
 # End-to-End Feature Builder
@@ -46,69 +46,27 @@ Build bottom-up:
 
 ### 2b. Entity
 - Location: `domain/entity/`
-- Pattern:
-```kotlin
-@Entity
-@Table(name = "table_name", indexes = [...])
-data class Feature(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    val user: User,
-
-    // fields...
-
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now()
-)
-```
+- JPA `@Entity` with `@Table`, `@Id @GeneratedValue`, relationships via `@ManyToOne`
 
 ### 2c. Repository
 - Location: `domain/repository/`
 - Extend `JpaRepository<Entity, Long>`
-- Custom queries via `@Query` annotation
 
 ### 2d. Service
 - Location: `service/`
-- Constructor-injected dependencies
-- Business logic lives here, not in controllers
-- Use `kotlin-logging`: `private val logger = KotlinLogging.logger {}`
+- Constructor-injected dependencies, business logic here (not controllers)
 
 ### 2e. DTOs
 - Location: `presentation/dto/`
-- Request and response data classes
-- Keep separate from entities
+- Request and response data classes, separate from entities
 
 ### 2f. Controller
 - Location: `presentation/controller/`
-- Pattern:
-```kotlin
-@RestController
-@RequestMapping("/api/v1/feature")
-class FeatureController(private val featureService: FeatureService) {
-
-    @GetMapping
-    fun get(@AuthenticationPrincipal user: User): ResponseEntity<ApiResponse<FeatureDto>> {
-        val data = featureService.get(user)
-        return ResponseEntity.ok(ApiResponse(success = true, data = data))
-    }
-
-    @PostMapping
-    fun create(
-        @AuthenticationPrincipal user: User,
-        @Valid @RequestBody request: CreateFeatureRequest
-    ): ResponseEntity<ApiResponse<FeatureDto>> {
-        val data = featureService.create(user, request)
-        return ResponseEntity.ok(ApiResponse(success = true, data = data))
-    }
-}
-```
+- All endpoints return `ApiResponse<T>` wrapper
+- Auth via `@AuthenticationPrincipal user: User`
 
 ### Backend Rules
 - All endpoints return `ApiResponse<T>` wrapper (`success`, `data`, `message`)
-- Auth via `@AuthenticationPrincipal user: User` — Spring Security handles JWT
 - Premium-gated features: check `featureAccessService.hasActivePremiumAccess(user)`
 - Rate limiting: use `rateLimitConfig.getBucket(user.id.toString())`
 - Validate with `@Valid` on request bodies
@@ -122,88 +80,95 @@ Build bottom-up:
 
 ### 3a. API DTO (shared)
 - Location: `data/src/commonMain/kotlin/data/remote/dto/`
-- Kotlinx Serialization `@Serializable` data classes
-- Must match backend DTOs
+- `@Serializable` data classes matching backend DTOs
 
-### 3b. Remote Data Source
-- Location: `data/src/commonMain/kotlin/data/remote/`
-- Uses Ktor HttpClient (injected via Koin)
-- Pattern:
+### 3b. Remote Data Source Interface (in domain)
 ```kotlin
-class FeatureRemoteDataSource(private val client: HttpClient) {
-    suspend fun getFeature(): FeatureResponse {
-        return client.get("feature").body()
-    }
-    suspend fun createFeature(request: CreateFeatureRequest): FeatureResponse {
-        return client.post("feature") { setBody(request) }.body()
-    }
+// In domain — interface
+interface IFeatureRemoteDataSource {
+    suspend fun getFeature(): FeatureDto
+    suspend fun createFeature(request: CreateFeatureRequest): FeatureDto
 }
 ```
-- Base URL and auth headers are handled by Ktor interceptors automatically
 
-### 3c. Domain Model
+### 3c. Remote Data Source Implementation (in data)
+```kotlin
+// In data — implementation
+class FeatureRemoteDataSourceImpl(
+    private val client: HttpClient,
+) : IFeatureRemoteDataSource {
+    override suspend fun getFeature(): FeatureDto = client.get("feature").body()
+    override suspend fun createFeature(request: CreateFeatureRequest): FeatureDto =
+        client.post("feature") { setBody(request) }.body()
+}
+```
+
+### 3d. Domain Model
 - Location: `domain/src/commonMain/kotlin/domain/model/`
 - Pure Kotlin data class — no serialization annotations
 
-### 3d. Repository Interface
-- Location: `domain/src/commonMain/kotlin/domain/repository/`
-- Returns `Flow<T>` or `suspend` functions
+### 3e. Mapper
+- Extension functions: `fun FeatureDto.toDomain(): Feature`, `fun Feature.toDto(): FeatureDto`
 
-### 3e. Repository Implementation
-- Location: `data/src/commonMain/kotlin/data/repository/`
-- Maps DTOs to domain models
-- Combines local (Room) + remote data sources if needed
+### 3f. Repository Interface (in domain)
+- Suspend methods return `Try<T>`, streaming methods return `Flow<T>`
 
-### 3f. Use Case
-- Location: `domain/src/commonMain/kotlin/domain/usecase/`
-- One class per business operation
-- Pattern:
+### 3g. Repository Implementation (in data)
+- Depends on `IFeatureRemoteDataSource` (interface), local DAO
+- Maps DTOs to domain models via extension function mappers
+
+### 3h. Use Case
+- Implements `UseCase<P, R>` or `FlowUseCase<P, R>`
+- Suspend use cases return `Try<T>`
+- Stateless — no mutable fields
+
+### 3i. ViewModel
+- Extends `BaseViewModel<FeatureState, FeatureEffect>`
+- Single `data class` state, event sink pattern (public methods)
+- `updateState { copy(...) }`, `emitEffect()`, `.reduce()`
+
+### 3j. Screen
+- `koinViewModel` + `viewModel.state()` + `OnEvents(viewModel.effects)`
+- `LexiconColumn` scaffold
+- Content composable: data + lambdas, VM method references as event sink
+
+### 3k. DI Registration
 ```kotlin
-class GetFeatureUseCase(private val repository: FeatureRepository) {
-    operator fun invoke(): Flow<Feature> = repository.getFeature()
-}
-```
-
-### 3g. ViewModel
-- Follow `viewmodel-patterns` skill
-- `StateFlow<UiState<T>>` + `Channel<Event>`
-
-### 3h. Screen
-- Follow `screen-patterns` skill
-- `koinViewModel` + `LexiconColumn` + `UiState` handling
-
-### 3i. DI Registration
-- Register ALL new classes in `composeApp/src/commonMain/kotlin/di/AppModule.kt`:
-```kotlin
-singleOf(::FeatureRemoteDataSource)
-singleOf(::FeatureRepositoryImpl) { bind<FeatureRepository>() }
+singleOf(::FeatureRemoteDataSourceImpl) { bind<IFeatureRemoteDataSource>() }
+singleOf(::FeatureRepositoryImpl) { bind<IFeatureRepository>() }
 factoryOf(::GetFeatureUseCase)
 viewModelOf(::FeatureViewModel)
 ```
 
-### 3j. Navigation
-- Add route in `LexiconApp.kt` NavHost block
+### 3l. Navigation
+- Add route in NavHost block (or feature subgraph)
 - Type-safe `@Serializable` destination
 
 ### Client Rules
 - Domain module: pure Kotlin only — no Ktor, Room, Compose, platform imports
-- No `!!` — handle nullability explicitly
-- No try-catch for control flow — use Flow `.catch {}` operator
-- No unnecessary `runCatching`
+- No `!!`, no try-catch for control flow, no unnecessary `runCatching`
+- All new code follows new patterns — BaseViewModel, UseCase<P,R>, Try<T> contracts
 - Design-system first — check existing components before creating new ones
-- Shared components go to `design-system/` module
 
-## Step 4: Verify
+## Step 4: Tests
+
+Delegate to `test-writer` agent for:
+1. ViewModel tests with Turbine
+2. Use case tests with fake repositories
+3. Repository tests with fake data sources
+4. DataSource tests with MockEngine (if complex serialization)
+
+## Step 5: Verify
 
 1. Build backend: `cd ~/AndroidStudioProjects/Vokab/vokab.server && ./gradlew build`
 2. Build client: `cd ~/AndroidStudioProjects/Vokab/Lexicon && ./gradlew composeApp:compileKotlinMetadata`
 3. Run client tests: `./gradlew composeApp:cleanAllTests composeApp:allTests`
 4. Suggest deployment: remind user to check `.claude/infra.local.md` for deploy commands
 
-## Step 5: Summary
+## Step 6: Summary
 
 After implementation, provide:
 - List of all files created/modified (both projects)
 - API endpoint(s) added with method + path
 - How to test manually
-- What tests should be written
+- What tests were written

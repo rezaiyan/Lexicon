@@ -1,6 +1,6 @@
 ---
 name: screen-patterns
-description: Create Compose Multiplatform screens following Lexicon's screen structure, LexiconColumn scaffold, UiState handling, and state hoisting conventions
+description: Create Compose Multiplatform screens following Lexicon's BaseViewModel event sink, Compose-native state(), OnEvents, LexiconColumn scaffold, and state hoisting conventions
 argument-hint: "<screen-description>"
 user-invocable: true
 allowed-tools: ["Read", "Write", "Edit", "Glob", "Grep"]
@@ -24,23 +24,104 @@ fun FeatureScreen(
     val overlayHost = LocalOverlayHost.current
     val snackbarHostState = LocalSnackbarHostState.current
 
-    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    // Compose-native state — no collectAsState needed
+    val state by viewModel.state()
+
+    // One-shot effects via OnEvents
+    OnEvents(viewModel.effects) { effect ->
+        when (effect) {
+            is FeatureEffect.NavigateTo -> onNavigateTo(effect.destination)
+            is FeatureEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
+        }
+    }
 
     LexiconColumn(
         title = "Screen Title",
-        // actionIcon1 = ActionIconConfig(...),
     ) {
-        when (uiState) {
-            is UiState.Loading -> LoadingScreen()
-            is UiState.Error -> ErrorScreen(
-                message = (uiState as UiState.Error).message,
-                onRetry = { viewModel.retry() }
-            )
-            is UiState.Loaded -> {
-                val data = (uiState as UiState.Loaded).value
-                FeatureContent(data = data, ...)
+        // Event sink — VM methods passed as lambdas
+        FeatureContent(
+            state = state,
+            onAction = viewModel::doAction,
+            onDelete = viewModel::deleteItem,
+            onRetry = viewModel::retry,
+        )
+    }
+}
+```
+
+## State Reading
+
+Use `viewModel.state()` which returns Compose `State<S>` directly — **no `collectAsStateWithLifecycle()`** needed:
+
+```kotlin
+val state by viewModel.state()  // Compose snapshot — auto-recompose on change
+```
+
+## Content Composable (State Hoisting)
+
+Split every screen into wrapper (state collection) and content (pure rendering):
+
+```kotlin
+@Composable
+private fun FeatureContent(
+    state: FeatureState,
+    onAction: (Item) -> Unit,
+    onDelete: (Int) -> Unit,
+    onRetry: () -> Unit,
+) {
+    if (state.isLoading) {
+        LoadingScreen()
+        return
+    }
+
+    state.error?.let { error ->
+        ErrorScreen(message = error, onRetry = onRetry)
+        return
+    }
+
+    // Render data
+    LazyColumn {
+        items(state.items, key = { it.id }) { item ->
+            ItemRow(item = item, onClick = { onAction(item) })
+        }
+    }
+}
+```
+
+## UiState<T> Handling (for async sections)
+
+When state contains `UiState<T>` fields:
+
+```kotlin
+@Composable
+private fun FeatureContent(state: FeatureScreenState, ...) {
+    when (val offerings = state.offerings) {
+        is UiState.Loading -> LoadingScreen()
+        is UiState.Error -> ErrorScreen(message = offerings.message, onRetry = onRetry)
+        is UiState.Empty -> EmptyScreen(title = "No items")
+        is UiState.Success -> {
+            OfferingsGrid(offerings = offerings.data, ...)
+        }
+    }
+}
+```
+
+## OnEvents Pattern
+
+Use `OnEvents` from `:core` for one-shot effects:
+
+```kotlin
+OnEvents(viewModel.effects) { effect ->
+    when (effect) {
+        is FeatureEffect.ShowReviewSheet -> {
+            overlayHost.showFullscreenBottomSheet(tag = "review") { nav ->
+                ReviewSheetContent(onDismiss = { nav.dismiss() })
             }
         }
+        is FeatureEffect.ShowSnackbar -> {
+            snackbarHostState.showSnackbar(effect.message)
+        }
+        is FeatureEffect.NavigateBack -> onNavigateBack()
     }
 }
 ```
@@ -48,11 +129,12 @@ fun FeatureScreen(
 ## Rules
 
 - Get ViewModel via `koinViewModel<T>()` at the **top-level screen composable only**
-- **Never pass ViewModel down** to child composables — extract state and pass data + callback lambdas instead
-- Collect state with `collectAsStateWithLifecycle()` — never `collectAsState()`
-- Wrap content in `LexiconColumn` (from LexiconScaffold.kt) — never raw `Column` + `Scaffold`
-- Use `UiState<T>` sealed interface for all async data (Loading/Error/Loaded)
-- Split large screens: public wrapper (state collection + ViewModel) → private content composable (receives data + lambdas, no ViewModel reference)
+- **Never pass ViewModel down** to child composables — extract state and pass data + callback lambdas
+- Use `viewModel.state()` for Compose-native state — **not** `collectAsStateWithLifecycle()`
+- Use `OnEvents` for one-shot effects — **not** `LaunchedEffect` with Flow collection
+- Wrap content in `LexiconColumn` — never raw `Column` + `Scaffold`
+- Pass VM methods as references: `viewModel::doAction` — these are the event sink
+- Content composables are trivially previewable: they take data + lambdas, no ViewModel
 
 ## LexiconColumn API
 
@@ -81,8 +163,10 @@ fun LexiconColumn(
 
 1. ViewModel obtained via `koinViewModel` at top level only
 2. ViewModel never passed to child composables
-3. State collected with `collectAsStateWithLifecycle()`
-4. Content wrapped in `LexiconColumn`
-5. All three `UiState` branches handled (Loading/Error/Loaded)
-6. Screen registered in NavHost inside `LexiconApp.kt`
-7. ViewModel registered in `AppModule.kt` via `viewModelOf(::FeatureViewModel)`
+3. State read via `viewModel.state()` — Compose-native, no Flow collection
+4. Effects handled via `OnEvents(viewModel.effects)`
+5. VM methods passed as references for event sink
+6. Content wrapped in `LexiconColumn`
+7. Content composable is pure: takes data + lambdas, no ViewModel
+8. Screen registered in NavHost
+9. ViewModel registered in AppModule.kt via `viewModelOf(::FeatureViewModel)`

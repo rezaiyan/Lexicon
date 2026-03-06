@@ -30,7 +30,7 @@ data class DetailDestination(val itemId: String)  // with params
 
 ### Registering a Screen
 
-Add to `NavHost` block in `LexiconApp.kt`:
+Add to `NavHost` block in `NavigationGraph.kt` (or feature subgraph):
 
 ```kotlin
 composable<FeatureDestination> {
@@ -40,6 +40,37 @@ composable<FeatureDestination> {
     )
 }
 ```
+
+### Feature Subgraphs (target structure)
+
+Each feature module exports its own navigation subgraph:
+
+```kotlin
+// In :feature:study
+fun NavGraphBuilder.studyGraph(navController: NavHostController) {
+    navigation(startDestination = "study/review", route = "study") {
+        composable("study/review") { ReviewScreen(...) }
+        composable("study/progress") { ProgressScreen(...) }
+    }
+}
+
+// In NavigationGraph.kt — assembles all subgraphs
+NavHost(...) {
+    authGraph(navController)
+    studyGraph(navController)
+    wordsGraph(navController)
+    profileGraph(navController)
+}
+```
+
+### Decomposed Navigation Files (target)
+
+| File | Responsibility |
+|---|---|
+| `AppShell.kt` | Scaffold, bottom nav, snackbar host — pure layout |
+| `NavigationGraph.kt` | Top-level NavHost, delegates to feature subgraphs |
+| `AppFlowCoordinator.kt` | Auth gate, onboarding, splash -> ready transitions |
+| `EffectHandler.kt` | Global snackbar + navigation side-effects |
 
 ### Rules
 
