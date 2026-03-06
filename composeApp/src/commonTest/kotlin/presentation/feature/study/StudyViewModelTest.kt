@@ -2,6 +2,7 @@ package presentation.feature.study
 
 import analytics.IAnalyticsTracker
 import core.common.Try
+import feature.study.StudyViewModel
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess

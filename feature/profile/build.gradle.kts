@@ -64,8 +64,6 @@ kotlin {
             api(libs.koin.compose.viewmodel)
             implementation(libs.coil.compose)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.compottie)
-            implementation(libs.compottie.network)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
         }
 

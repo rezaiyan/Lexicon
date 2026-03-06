@@ -52,6 +52,8 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
+            implementation(libs.compottie)
+            implementation(libs.compottie.network)
         }
 
         androidMain.dependencies {

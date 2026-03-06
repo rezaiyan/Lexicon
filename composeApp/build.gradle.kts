@@ -169,6 +169,7 @@ kotlin {
             implementation(project(":feature:leaderboard"))
             implementation(project(":feature:profile"))
             implementation(project(":feature:onboarding"))
+            implementation(project(":feature:study"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)

@@ -11,7 +11,7 @@ import feature.profile.EditProfileViewModel
 import feature.profile.ProfileViewModel
 import presentation.feature.settings.NotificationPermissionMonitor
 import presentation.feature.settings.SettingsViewModel
-import presentation.feature.study.StudyViewModel
+import feature.study.StudyViewModel
 import feature.subscription.SubscriptionViewModel
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
