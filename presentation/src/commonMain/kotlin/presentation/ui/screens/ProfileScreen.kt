@@ -39,8 +39,8 @@ import presentation.feature.profile.ProfileViewModel
 import presentation.model.ProfileUiData
 import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
-import presentation.ui.components.ActionIconConfig
-import presentation.ui.components.LexiconColumn
+import components.scaffold.ActionIconConfig
+import components.scaffold.LexiconColumn
 import presentation.ui.components.profile.DeleteAccountCoolingDialogContent
 import presentation.ui.components.profile.DeleteAccountHiddenDialogContent
 import presentation.ui.components.profile.LogoutDialogContent
@@ -48,10 +48,10 @@ import presentation.ui.components.profile.MemberSinceSection
 import presentation.ui.components.profile.StreakSection
 import presentation.ui.components.profile.UserInfoSection
 import presentation.ui.components.profile.WeeklyActivitySection
-import presentation.ui.overlay.LocalOverlayHost
-import presentation.ui.overlay.OverlayHost
-import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
-import presentation.ui.overlay.dialog.showDialog
+import overlay.LocalOverlayHost
+import overlay.OverlayHost
+import overlay.bottomsheet.showFullscreenBottomSheet
+import overlay.dialog.showDialog
 import presentation.ui.screens.study.staggeredFadeSlide
 import theme.Theme
 import lexicon.resources.generated.resources.Res

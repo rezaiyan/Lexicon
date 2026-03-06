@@ -2,6 +2,7 @@
 
 package presentation.ui.components
 
+import components.dialog.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource

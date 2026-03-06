@@ -56,8 +56,8 @@ import presentation.feature.leaderboard.LeaderboardViewModel
 import presentation.model.LeaderboardEntryUiModel
 import presentation.model.LeaderboardUiData
 import core.common.UiState
-import presentation.ui.components.ActionIconConfig
-import presentation.ui.components.LexiconColumn
+import components.scaffold.ActionIconConfig
+import components.scaffold.LexiconColumn
 import theme.Theme
 
 private val Gold = Color(0xFFFFD700)

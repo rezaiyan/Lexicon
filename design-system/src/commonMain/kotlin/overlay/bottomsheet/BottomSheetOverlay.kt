@@ -1,4 +1,4 @@
-package presentation.ui.overlay.bottomsheet
+package overlay.bottomsheet
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -18,12 +18,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import expects.BackHandler
 import kotlinx.coroutines.launch
-import presentation.ui.overlay.Overlay
-import presentation.ui.overlay.OverlayNavigator
+import overlay.LocalIsTopmostOverlay
+import overlay.Overlay
+import overlay.OverlayNavigator
 
-/**
- * Clean bottom sheet overlay.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 class BottomSheetOverlay(
     private val mode: BottomSheetMode,
@@ -45,8 +43,7 @@ class BottomSheetOverlay(
             gesturesEnabled = scopeImpl.properties.sheetGesturesEnabled
         )
 
-        // Back press - always intercept when topmost, but only dismiss if allowed
-        val isTopMost = presentation.ui.overlay.LocalIsTopmostOverlay.current
+        val isTopMost = LocalIsTopmostOverlay.current
         BackHandler(enabled = isTopMost && sheetState.isVisible) {
             if (scopeImpl.properties.dismissOnBackPress) {
                 coroutineScope.launch { sheetState.hide() }
@@ -59,7 +56,6 @@ class BottomSheetOverlay(
             }
         }
 
-        // When hidden, tell host to pop - ensure we only dismiss once
         LaunchedEffect(sheetState.targetValue, sheetState.isVisible) {
             if (sheetState.targetValue == SheetValue.Hidden && !sheetState.isVisible) {
                 navigator.dismiss()
@@ -72,7 +68,7 @@ class BottomSheetOverlay(
                     coroutineScope.launch { sheetState.hide() }
                 }
             },
-            dragHandle = null, // Full screen mode doesn't need drag handle
+            dragHandle = null,
             sheetState = sheetState,
             sheetGesturesEnabled = scopeImpl.properties.sheetGesturesEnabled,
         ) {
@@ -114,8 +110,6 @@ private fun rememberSheetStateFor(
         skipPartiallyExpanded = skipPartiallyExpanded,
         confirmValueChange = { newValue ->
             if (!gesturesEnabled) {
-                // Block transitions to Hidden when gestures are disabled
-                // Only allow staying at Expanded or transitioning from Hidden to Expanded
                 newValue != SheetValue.Hidden
             } else true
         }
@@ -129,4 +123,3 @@ private fun rememberBottomSheetScopeImpl(
     override val isDragHandleShown: Boolean = showDragHandle
     override fun dismiss() = onDismiss()
 }
-

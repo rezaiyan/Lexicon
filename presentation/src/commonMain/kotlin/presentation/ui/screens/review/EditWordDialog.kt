@@ -26,7 +26,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.components.BasicAlertDialog
+import components.dialog.BasicAlertDialog
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel

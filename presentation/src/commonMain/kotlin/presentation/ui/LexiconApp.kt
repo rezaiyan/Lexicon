@@ -42,7 +42,7 @@ import presentation.feature.onboarding.OnboardingViewModel
 import presentation.feature.onboarding.VocabularyPreviewViewModel
 import presentation.model.AppUiState
 import presentation.model.TabDestination
-import presentation.ui.overlay.OverlayHostContainer
+import overlay.OverlayHostContainer
 import presentation.ui.screens.AuthGateScreen
 import presentation.ui.screens.OnboardingScreen
 import presentation.ui.screens.VocabularyPreviewScreen

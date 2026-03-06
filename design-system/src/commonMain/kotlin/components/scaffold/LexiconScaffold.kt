@@ -1,4 +1,4 @@
-package presentation.ui.components
+package components.scaffold
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -33,19 +33,6 @@ import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.navigate_back
 
-/**
- * Reusable scaffold layout for Lexicon app screens
- * Provides consistent structure with optional components
- *
- * Features:
- * - Optional top app bar with title
- * - Optional navigation icon (back button)
- * - Optional divider below app bar
- * - Up to 2 action icons
- * - Scroll behavior (hide/show on scroll)
- * - Consistent padding system
- * - Safe area handling
- */
 @Composable
 fun LexiconColumn(
     title: String? = null,

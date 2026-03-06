@@ -33,10 +33,10 @@ import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.profile.EditProfileEffect
 import presentation.feature.profile.EditProfileViewModel
 import presentation.ui.LocalSnackbarHostState
-import presentation.ui.components.LexiconColumn
+import components.scaffold.LexiconColumn
 import presentation.ui.components.profile.ProfileAvatar
-import presentation.ui.overlay.LocalOverlayHost
-import presentation.ui.overlay.bottomsheet.showFullscreenBottomSheet
+import overlay.LocalOverlayHost
+import overlay.bottomsheet.showFullscreenBottomSheet
 import theme.Theme
 import utils.rememberImagePickerLauncher
 import lexicon.resources.generated.resources.Res

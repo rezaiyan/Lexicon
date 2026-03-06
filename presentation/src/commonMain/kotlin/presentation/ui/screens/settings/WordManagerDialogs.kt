@@ -60,8 +60,8 @@ import lexicon.resources.generated.resources.update_words_count
 import lexicon.resources.generated.resources.updating_languages
 import lexicon.resources.generated.resources.word_language
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.components.BasicAlertDialog
-import presentation.ui.components.ButtonType
+import components.dialog.BasicAlertDialog
+import components.dialog.ButtonType
 import presentation.ui.components.LanguageSelectionDialog
 import theme.Theme
 import utils.Language

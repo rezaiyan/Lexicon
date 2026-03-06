@@ -12,11 +12,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.components.ButtonState
-import presentation.ui.components.ButtonType
-import presentation.ui.components.DialogIconState
-import presentation.ui.components.DialogProgressState
-import presentation.ui.components.LexiconDialogContent
+import components.dialog.ButtonState
+import components.dialog.ButtonType
+import components.dialog.DialogIconState
+import components.dialog.DialogProgressState
+import components.dialog.LexiconDialogContent
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete_account_cooling_period_cancel

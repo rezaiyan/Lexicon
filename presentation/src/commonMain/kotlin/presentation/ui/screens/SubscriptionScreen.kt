@@ -9,7 +9,7 @@ import domain.subscription.model.SubscriptionPackage
 import org.jetbrains.compose.resources.stringResource
 import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
-import presentation.ui.components.LexiconColumn
+import components.scaffold.LexiconColumn
 import presentation.ui.screens.subscription.SubscriptionActiveContent
 import presentation.ui.screens.subscription.SubscriptionErrorContent
 import presentation.ui.screens.subscription.SubscriptionLoadingContent

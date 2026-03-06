@@ -1,12 +1,8 @@
-package presentation.ui.overlay.bottomsheet
+package overlay.bottomsheet
 
 import androidx.compose.runtime.Composable
-import presentation.ui.overlay.*
+import overlay.*
 
-/**
- * Host helpers to show common bottom sheet flavors.
- * All accept optional destination/tag for your nav model.
- */
 fun OverlayHost.showFullscreenBottomSheet(
     destination: NavDestination? = null,
     tag: String? = null,
@@ -57,4 +53,3 @@ fun OverlayHost.showSizeToFitBottomSheet(
         tag = tag
     )
 }
-

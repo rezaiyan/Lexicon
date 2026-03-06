@@ -130,7 +130,7 @@ import lexicon.resources.generated.resources.words_added_count
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.model.ImageImportState
-import presentation.ui.components.BasicAlertDialog
+import components.dialog.BasicAlertDialog
 import presentation.ui.components.LanguageSelectionDialog
 import theme.Theme
 import utils.Language

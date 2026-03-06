@@ -21,10 +21,10 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.model.WordManagerEffect
 import presentation.ui.LocalSnackbarHostState
-import presentation.ui.components.ActionIconConfig
-import presentation.ui.components.TopBarColor
-import presentation.ui.components.LexiconColumn
-import presentation.ui.overlay.LocalOverlayHost
+import components.scaffold.ActionIconConfig
+import components.scaffold.TopBarColor
+import components.scaffold.LexiconColumn
+import overlay.LocalOverlayHost
 import presentation.util.shareContentAsFile
 import presentation.viewmodel.WordManagerViewModel
 import theme.Theme

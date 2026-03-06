@@ -40,9 +40,9 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.overlay.OverlayHost
-import presentation.ui.overlay.OverlayNavigator
-import presentation.ui.overlay.bottomsheet.showSizeToFitBottomSheet
+import overlay.OverlayHost
+import overlay.OverlayNavigator
+import overlay.bottomsheet.showSizeToFitBottomSheet
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.delete

@@ -1,12 +1,8 @@
-package presentation.ui.overlay.dialog
+package overlay.dialog
 
 import androidx.compose.runtime.Composable
-import presentation.ui.overlay.*
+import overlay.*
 
-/**
- * Host helper to show dialogs.
- * Accepts optional destination/tag for navigation model.
- */
 fun OverlayHost.showDialog(
     destination: NavDestination? = null,
     tag: String? = null,
@@ -22,4 +18,3 @@ fun OverlayHost.showDialog(
         tag = tag
     )
 }
-

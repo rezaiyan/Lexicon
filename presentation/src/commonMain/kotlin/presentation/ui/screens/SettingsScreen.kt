@@ -9,7 +9,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.settings.SettingsViewModel
 import presentation.model.DialogState
 import presentation.ui.components.LanguageSelectionDialog
-import presentation.ui.components.LexiconColumn
+import components.scaffold.LexiconColumn
 import presentation.ui.components.NotificationPermissionDialog
 import presentation.ui.components.NotificationSettingsDialog
 import presentation.ui.components.ThemeModeDialog

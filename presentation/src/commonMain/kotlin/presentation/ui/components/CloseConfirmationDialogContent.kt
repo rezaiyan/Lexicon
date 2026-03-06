@@ -1,5 +1,6 @@
 package presentation.ui.components
 
+import components.dialog.LexiconDialogContent
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import lexicon.resources.generated.resources.Res

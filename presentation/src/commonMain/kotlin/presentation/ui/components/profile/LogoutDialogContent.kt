@@ -4,8 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.components.ButtonType
-import presentation.ui.components.LexiconDialogContent
+import components.dialog.ButtonType
+import components.dialog.LexiconDialogContent
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.logout

@@ -1,4 +1,4 @@
-package presentation.ui.components
+package components.dialog
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -194,9 +194,6 @@ fun LexiconDialogContent(
             Spacer(Modifier.height(Theme.spacing.small))
 
             if (negativeButton != null) {
-                // 3-button layout:
-                //   Row (end-aligned): secondary text | primary filled
-                //   Full-width outlined error button for destructive action
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
@@ -237,8 +234,6 @@ fun LexiconDialogContent(
                         }
                     }
 
-                    // Destructive action — full-width, outlined with error styling so it's
-                    // visible but less aggressive than a solid filled error button.
                     OutlinedButton(
                         onClick = negativeButton.onClick,
                         enabled = negativeButton.enabled,
@@ -255,7 +250,6 @@ fun LexiconDialogContent(
                     }
                 }
             } else {
-                // 2-button layout — stacked vertically for reliable sizing
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)

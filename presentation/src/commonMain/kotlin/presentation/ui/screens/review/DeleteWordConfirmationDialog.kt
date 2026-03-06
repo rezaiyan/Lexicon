@@ -9,7 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.components.BasicAlertDialog
+import components.dialog.BasicAlertDialog
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete
