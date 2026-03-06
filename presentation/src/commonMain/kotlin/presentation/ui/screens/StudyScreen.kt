@@ -69,9 +69,7 @@ fun StudyScreen() {
 
     val screenState by viewModel.state()
     val uiState = screenState.progress
-    val reviewState = screenState.review
     val hasPremiumAccess = screenState.hasPremiumAccess
-    val ttsState by viewModel.ttsState.collectAsStateWithLifecycle()
 
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
@@ -177,10 +175,15 @@ fun StudyScreen() {
                                     tag = "review-due",
                                     properties = LockedSheetProperties
                                 ) { navigator ->
+                                    // Read state inside the composable lambda so the
+                                    // overlay host recomposes when the ViewModel updates.
+                                    val sheetState by viewModel.state()
+                                    val sheetTts by viewModel.ttsState.collectAsStateWithLifecycle()
+
                                     ReviewBottomSheetContent(
                                         title = stringResource(Res.string.review_due_cards),
                                         reviewType = ReviewType.REVIEW,
-                                        reviewState = reviewState,
+                                        reviewState = sheetState.review,
                                         initialWord = event.firstWord,
                                         onClose = {
                                             overlayHost.showDialog(tag = "exit-confirmation") { nav ->
@@ -204,7 +207,7 @@ fun StudyScreen() {
                                             viewModel.deleteWord(wordId)
                                             onComplete()
                                         },
-                                        ttsState = ttsState,
+                                        ttsState = sheetTts,
                                         onSpeakClick = viewModel::speakWord
                                     )
                                 }
@@ -230,10 +233,13 @@ fun StudyScreen() {
                         onStageClick = { stage, stageName ->
                             viewModel.loadWordsByStage(stage)
                             overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
+                                val sheetState by viewModel.state()
+                                val sheetTts by viewModel.ttsState.collectAsStateWithLifecycle()
+
                                 ReviewBottomSheetContent(
                                     title = stringResource(Res.string.stage_words_string, stageName),
                                     reviewType = ReviewType.BROWSE,
-                                    reviewState = reviewState,
+                                    reviewState = sheetState.review,
                                     onClose = navigator::dismiss,
                                     onReviewComplete = navigator::dismiss,
                                     onReviewWord = viewModel::reviewWord,
@@ -243,7 +249,7 @@ fun StudyScreen() {
                                         viewModel.deleteWord(wordId)
                                         onComplete()
                                     },
-                                    ttsState = ttsState,
+                                    ttsState = sheetTts,
                                     onSpeakClick = viewModel::speakWord
                                 )
                             }

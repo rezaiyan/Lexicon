@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTime::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 
 package data.word.repository
 
@@ -18,13 +18,11 @@ import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
-import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.launch
 
 class WordRepositoryImpl(
     private val localDataSource: IWordLocalDataSource,
@@ -59,8 +57,8 @@ class WordRepositoryImpl(
 
             if (newWords.isEmpty()) return Try.success(0)
 
-            remoteSyncHandler.syncWordsToRemote(newWords)
             localDataSource.insertWords(newWords)
+            remoteSyncHandler.syncWordsToRemote(newWords)
             newWords.size
         }
     }
@@ -71,15 +69,15 @@ class WordRepositoryImpl(
 
     override suspend fun updateWord(word: Word): Try<Unit> {
         return Try {
-            remoteSyncHandler.syncWordUpdateToRemote(word.id.toLong(), word)
             localDataSource.updateWord(word)
+            remoteSyncHandler.syncWordUpdateToRemote(word.id.toLong(), word)
         }
     }
 
     override suspend fun deleteWord(id: Int): Try<Unit> {
         return Try {
-            remoteSyncHandler.syncWordDeletionToRemote(id.toLong())
             localDataSource.deleteWord(id)
+            remoteSyncHandler.syncWordDeletionToRemote(id.toLong())
         }
     }
 
@@ -204,11 +202,12 @@ class WordRepositoryImpl(
     }
 
     override fun getProgressStats(): Flow<ProgressStats> {
-        val currentTime = Clock.System.now().toEpochMilliseconds()
-        return flow {
-            emitAll(localDataSource.getProgressStats(currentTime))
+        return channelFlow {
+            // Sync in background — don't block initial emission
+            launch { try { syncWithRemote() } catch (_: Exception) { } }
+            // Immediately emit local stats; DB changes from sync trigger re-emission
+            localDataSource.getProgressStats().collect { send(it) }
         }
-            .onStart { syncWithRemote() }
             .catch { emit(ProgressStats()) }
             .flowOn(Dispatchers.Default)
     }

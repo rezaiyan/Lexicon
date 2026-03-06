@@ -21,7 +21,6 @@ import domain.word.model.ProgressStats
 import domain.word.model.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlin.time.Clock
@@ -39,7 +38,7 @@ interface IWordLocalDataSource {
     suspend fun deleteWords(ids: List<Int>): Int
     suspend fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Int
     suspend fun getAllWordsOnce(): List<WordEntity>
-    fun getProgressStats(currentTime: Long): Flow<ProgressStats>
+    fun getProgressStats(): Flow<ProgressStats>
     suspend fun getTotalCount(): Int
     suspend fun getDueCount(): Int
     suspend fun deleteAllWords(): Unit
@@ -56,33 +55,30 @@ class WordLocalDataSource(
     }
 
     override fun getAllWords(): Flow<List<Word>> {
-        return combine(
-            queries.getAllWords().asFlow().mapToList(Dispatchers.Default),
-            settingsRepository.getLanguage()
-        ) { entities, language ->
-            entities.toDomainList(language)
-        }
+        return queries.getAllWords().asFlow().mapToList(Dispatchers.Default)
+            .map { entities ->
+                val language = settingsRepository.getLanguage().first()
+                entities.toDomainList(language)
+            }
     }
 
     override fun getDueCards(): Flow<List<Word>> {
-        val currentTime = Clock.System.now().toEpochMilliseconds()
-        return combine(
-            queries.getDueCards(currentTime).asFlow().mapToList(Dispatchers.Default),
-            settingsRepository.getLanguage()
-        ) { entities, language ->
-            entities.toDomainList(language)
-        }
+        return queries.countWords().asFlow().mapToOneOrNull(Dispatchers.Default)
+            .map {
+                val language = settingsRepository.getLanguage().first()
+                val currentTime = Clock.System.now().toEpochMilliseconds()
+                queries.getDueCards(currentTime).awaitAsList().toDomainList(language)
+            }
     }
 
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> {
-        val currentTime = Clock.System.now().toEpochMilliseconds()
-        return combine(
-            queries.getWordsByLevel(stage.level.toLong(), currentTime)
-                .asFlow().mapToList(Dispatchers.Default),
-            settingsRepository.getLanguage()
-        ) { entities, language ->
-            entities.toDomainList(language)
-        }
+        return queries.countWords().asFlow().mapToOneOrNull(Dispatchers.Default)
+            .map {
+                val language = settingsRepository.getLanguage().first()
+                val currentTime = Clock.System.now().toEpochMilliseconds()
+                queries.getWordsByLevel(stage.level.toLong(), currentTime)
+                    .awaitAsList().toDomainList(language)
+            }
     }
 
     override suspend fun getWordById(id: Int): Word? {
@@ -159,9 +155,11 @@ class WordLocalDataSource(
         return queries.getAllWords().awaitAsList()
     }
 
-    override fun getProgressStats(currentTime: Long): Flow<ProgressStats> {
-        return queries.progressRow(currentTime).asFlow().mapToOneOrNull(Dispatchers.Default)
-            .map { row ->
+    override fun getProgressStats(): Flow<ProgressStats> {
+        return queries.countWords().asFlow().mapToOneOrNull(Dispatchers.Default)
+            .map {
+                val currentTime = Clock.System.now().toEpochMilliseconds()
+                val row = queries.progressRow(currentTime).awaitAsOneOrNull()
                 if (row != null) {
                     ProgressStats(
                         level0Count = row.level0Count.toInt(),

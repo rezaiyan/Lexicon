@@ -9,12 +9,15 @@ tags:
 # Verifies that the "Tap card to reveal" hint is shown before flipping,
 # and that "Did you get it?", "Nope", and "Got it!" buttons appear after flip.
 #
-# Requires: At least one word exists in the library (previous test adds one).
+# Requires: At least one word exists in the library.
 
 - launchApp:
     clearState: false
 
 - runFlow: ../utils/navigate_to_study.yaml
+
+# Add a test word so we have something to review.
+- runFlow: ../utils/add_test_word.yaml
 
 # Start a review session.
 - tapOn: "Start Review"

@@ -78,7 +78,7 @@ class WordRepositoryImplTest {
 
         override suspend fun getAllWordsOnce(): List<WordEntity> = storedEntities.toList()
 
-        override fun getProgressStats(currentTime: Long): Flow<ProgressStats> = flowOf(ProgressStats())
+        override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
 
         override suspend fun getTotalCount(): Int = storedWords.size
 
@@ -368,7 +368,7 @@ class WordRepositoryImplTest {
     }
 
     @Test
-    fun `updateWord with remote failure returns failure and does not update locally`() = runTest {
+    fun `updateWord with remote failure returns failure but local update still applied`() = runTest {
         val local = FakeWordLocalDataSource()
         val remote = FakeWordRemoteSyncHandler().apply { shouldFailSyncWordUpdate = true }
         val repo = makeRepository(local = local, remote = remote)
@@ -376,13 +376,13 @@ class WordRepositoryImplTest {
         val word = makeWord(id = 7)
         val result = repo.updateWord(word)
 
-        // Remote throws inside Try{}, so the whole operation fails before local update
+        // Local-first: local update succeeds, then remote throws inside Try{}
         assertTrue(result.isFailure)
-        assertTrue(local.updatedWords.isEmpty())
+        assertTrue(local.updatedWords.isNotEmpty())
     }
 
     // -------------------------------------------------------------------------
-    // deleteWord — syncs to remote then deletes local
+    // deleteWord — deletes local then syncs to remote
     // -------------------------------------------------------------------------
 
     @Test
@@ -411,16 +411,16 @@ class WordRepositoryImplTest {
     }
 
     @Test
-    fun `deleteWord with remote failure returns failure and does not delete locally`() = runTest {
+    fun `deleteWord with remote failure returns failure but local delete still applied`() = runTest {
         val local = FakeWordLocalDataSource()
         val remote = FakeWordRemoteSyncHandler().apply { shouldFailSyncWordDeletion = true }
         val repo = makeRepository(local = local, remote = remote)
 
         val result = repo.deleteWord(15)
 
-        // Remote throws inside Try{}, so the whole operation fails before local delete
+        // Local-first: local delete succeeds, then remote throws inside Try{}
         assertTrue(result.isFailure)
-        assertFalse(local.deletedIds.contains(15))
+        assertTrue(local.deletedIds.contains(15))
     }
 
     // -------------------------------------------------------------------------
