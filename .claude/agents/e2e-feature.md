@@ -12,7 +12,7 @@ Build features across both the **Vokab backend** (Spring Boot) and **Lexicon cli
 
 ## Project Locations
 
-Read `.claude/infra.local.md` for backend path, deployment script, and server query commands.
+Read `.claude/infra.local.md` for backend path, deployment script, and server query commands. Always read this file first before accessing backend paths.
 
 ## Phase 1: Research & Plan (DO NOT WRITE CODE YET)
 
@@ -35,7 +35,7 @@ You MUST complete this entire phase before writing any code. No exceptions.
 
 ## Step 2: Backend (Spring Boot)
 
-Work in `~/AndroidStudioProjects/Vokab/vokab.server/src/main/kotlin/com/alirezaiyan/vokab/server/`
+Work in the backend path from `infra.local.md` under `src/main/kotlin/com/alirezaiyan/vokab/server/`.
 
 Build bottom-up:
 
@@ -74,7 +74,7 @@ Build bottom-up:
 
 ## Step 3: Client (KMP Lexicon)
 
-Work in `~/AndroidStudioProjects/Vokab/Lexicon`
+Work in the client path from `infra.local.md`.
 
 Build bottom-up:
 
@@ -160,10 +160,10 @@ Delegate to `test-writer` agent for:
 
 ## Step 5: Verify
 
-1. Build backend: `cd ~/AndroidStudioProjects/Vokab/vokab.server && ./gradlew build`
-2. Build client: `cd ~/AndroidStudioProjects/Vokab/Lexicon && ./gradlew composeApp:compileKotlinMetadata`
+1. Build backend: `cd <backend-path> && ./gradlew build` (path from `infra.local.md`)
+2. Build client: `./gradlew composeApp:compileKotlinMetadata`
 3. Run client tests: `./gradlew composeApp:cleanAllTests composeApp:allTests`
-4. Suggest deployment: remind user to check `.claude/infra.local.md` for deploy commands
+4. Suggest deployment: remind user to check `infra.local.md` for deploy commands
 
 ## Step 6: Summary
 

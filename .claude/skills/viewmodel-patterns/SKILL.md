@@ -94,7 +94,7 @@ class StudyViewModel(
 One `data class` per screen — all fields in one atomic update:
 
 ```kotlin
-@Stable
+@Stable  // @Stable (not @Immutable) because state contains collections
 data class StudyState(
     val words: List<Word> = emptyList(),
     val reviewedCount: Int = 0,

@@ -39,11 +39,19 @@ val formatted = remember(data) { expensiveFormat(data) }
 
 ## Stable Types
 
-Use `@Stable` or `@Immutable` on state data classes so Compose can skip recomposition. `UiState` is already `@Stable`.
+Annotate types so Compose can skip recomposition:
+
+- **`@Stable`** — for state data classes (values replaced via `copy()`, but may contain collections). `UiState` is already `@Stable`.
+- **`@Immutable`** — for deeply immutable value objects where all properties are primitives or other `@Immutable` types.
 
 ```kotlin
-@Immutable
+// State classes — use @Stable (contains List which isn't deeply immutable)
+@Stable
 data class FeatureState(val items: List<Item>, val title: String)
+
+// Value objects — use @Immutable (all primitives/strings)
+@Immutable
+data class ThemeColors(val primary: Color, val secondary: Color)
 ```
 
 ## Avoid Allocations in Composition
