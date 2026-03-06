@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -61,6 +62,7 @@ kotlin {
             api(libs.koin.core)
             api(libs.koin.compose)
             api(libs.koin.compose.viewmodel)
+            implementation(libs.navigation.compose)
             implementation(libs.kotlinx.datetime)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
         }

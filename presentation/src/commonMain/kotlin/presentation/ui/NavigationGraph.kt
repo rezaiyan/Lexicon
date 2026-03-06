@@ -7,22 +7,19 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import org.koin.compose.viewmodel.koinViewModel
-import feature.subscription.SubscriptionViewModel
-import feature.subscription.ui.SubscriptionScreen
-import feature.subscription.ui.SubscriptionScreenActions
+import feature.leaderboard.navigation.LeaderboardRoute
+import feature.leaderboard.navigation.leaderboardGraph
+import feature.profile.navigation.EditProfileRoute
+import feature.profile.navigation.ProfileRoute
+import feature.profile.navigation.profileGraph
+import feature.subscription.navigation.SubscriptionRoute
+import feature.subscription.navigation.subscriptionGraph
 import presentation.model.TabDestination
-import feature.profile.ui.EditProfileScreen
-import feature.leaderboard.ui.LeaderboardScreen
-import feature.profile.ui.ProfileScreen
-import overlay.LocalOverlayHost
 import presentation.ui.screens.SettingsScreen
 import presentation.ui.screens.StudyScreen
 import presentation.ui.screens.settings.WordManagerScreen
@@ -32,6 +29,8 @@ internal fun NavigationGraph(
     modifier: Modifier,
     navController: NavHostController,
 ) {
+    val snackbarHostState = LocalSnackbarHostState.current
+
     NavHost(
         navController = navController,
         startDestination = TabDestination.Study,
@@ -47,33 +46,24 @@ internal fun NavigationGraph(
                 fadeOut(animationSpec = tween(300))
         }
     ) {
-        composable<TabDestination.Profile> {
-            ProfileScreen(
-                snackbarHostState = LocalSnackbarHostState.current,
-                overlayHost = LocalOverlayHost.current,
-                onNavigateToLeaderboard = {
-                    navController.navigate(TabDestination.Leaderboard)
-                },
-                onNavigateToEditProfile = {
-                    navController.navigate(TabDestination.EditProfile)
-                }
-            )
-        }
+        // Feature-owned subgraphs
+        profileGraph(
+            snackbarHostState = snackbarHostState,
+            onNavigateToLeaderboard = { navController.navigate(LeaderboardRoute) },
+            onNavigateToEditProfile = { navController.navigate(EditProfileRoute) },
+            onNavigateBack = { navController.navigateUp() },
+        )
 
-        composable<TabDestination.Leaderboard> {
-            LeaderboardScreen(
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
+        leaderboardGraph(
+            onNavigateBack = { navController.navigateUp() },
+        )
 
-        composable<TabDestination.EditProfile> {
-            EditProfileScreen(
-                snackbarHostState = LocalSnackbarHostState.current,
-                overlayHost = LocalOverlayHost.current,
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
+        subscriptionGraph(
+            snackbarHostState = snackbarHostState,
+            onNavigateBack = { navController.navigateUp() },
+        )
 
+        // Presentation-owned routes (screens still in :presentation)
         composable<TabDestination.Study> {
             StudyScreen()
         }
@@ -84,7 +74,7 @@ internal fun NavigationGraph(
                     navController.navigate(TabDestination.WordManager)
                 },
                 onNavigateToSubscription = {
-                    navController.navigate(TabDestination.Subscription)
+                    navController.navigate(SubscriptionRoute)
                 }
             )
         }
@@ -94,33 +84,10 @@ internal fun NavigationGraph(
                 onNavigateBack = { navController.navigateUp() }
             )
         }
-
-        composable<TabDestination.Subscription> {
-            val subscriptionViewModel: SubscriptionViewModel = koinViewModel()
-            val screenState by subscriptionViewModel.state()
-
-            SubscriptionScreen(
-                state = screenState.content,
-                isPurchasing = screenState.isPurchasing,
-                errorMessage = screenState.errorMessage,
-                successMessage = screenState.successMessage,
-                actions = SubscriptionScreenActions(
-                    onPurchaseClick = { pkg -> subscriptionViewModel.purchasePackage(pkg) },
-                    onRestoreClick = { subscriptionViewModel.restorePurchases() },
-                    onRetryClick = { subscriptionViewModel.retry() },
-                    onDismissError = { subscriptionViewModel.clearError() },
-                    onDismissSuccess = { subscriptionViewModel.clearSuccess() },
-                    onManageSubscription = { subscriptionViewModel.manageSubscription() },
-                    onCancelSubscription = { subscriptionViewModel.cancelSubscription() }
-                ),
-                snackbarHostState = LocalSnackbarHostState.current,
-                onNavigateBack = { navController.navigateUp() }
-            )
-        }
     }
 }
 
-internal fun NavHostController.navigateToTab(destination: TabDestination) {
+internal fun NavHostController.navigateToTab(destination: Any) {
     navigate(destination) {
         popUpTo(graph.findStartDestination().id) {
             saveState = true

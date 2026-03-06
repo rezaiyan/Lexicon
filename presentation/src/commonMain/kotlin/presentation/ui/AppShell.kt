@@ -27,6 +27,7 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.jetbrains.compose.resources.stringResource
+import feature.profile.navigation.ProfileRoute
 import presentation.model.TabDestination
 import presentation.ui.components.AnimatedNavIcon
 import lexicon.resources.generated.resources.Res
@@ -47,13 +48,13 @@ internal fun AppContent(
     NavigationSuiteScaffold(
         layoutType = layoutType,
         navigationSuiteItems = {
-            val profileSelected = currentDestination?.hasRoute<TabDestination.Profile>() == true
+            val profileSelected = currentDestination?.hasRoute<ProfileRoute>() == true
             val studySelected = currentDestination?.hasRoute<TabDestination.Study>() == true
             val settingsSelected = currentDestination?.hasRoute<TabDestination.Settings>() == true
 
             item(
                 selected = profileSelected,
-                onClick = { navController.navigateToTab(TabDestination.Profile) },
+                onClick = { navController.navigateToTab(ProfileRoute) },
                 icon = {
                     AnimatedNavIcon(
                         icon = Icons.Filled.Person,
