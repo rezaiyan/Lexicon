@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import feature.profile.EditProfileEffect
+import feature.profile.EditProfileViewModel
 import presentation.ViewModelTestBase
 import kotlin.test.Test
 import kotlin.test.assertEquals

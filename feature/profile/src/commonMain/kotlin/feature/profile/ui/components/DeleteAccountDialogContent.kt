@@ -1,4 +1,4 @@
-package presentation.ui.components.profile
+package feature.profile.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -65,7 +65,7 @@ fun DeleteAccountCoolingDialogContent(
     } else {
         stringResource(Res.string.ready_to_proceed_deletion)
     }
-    
+
     LexiconDialogContent(
         iconState = DialogIconState.Icon(Icons.Default.Timer),
         title = stringResource(Res.string.delete_account_cooling_period_title),
@@ -87,4 +87,3 @@ fun DeleteAccountCoolingDialogContent(
         )
     )
 }
-

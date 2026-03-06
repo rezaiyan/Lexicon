@@ -1,4 +1,4 @@
-package presentation.feature.profile
+package feature.profile
 
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager

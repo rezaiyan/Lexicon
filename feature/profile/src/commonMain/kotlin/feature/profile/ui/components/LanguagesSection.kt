@@ -1,4 +1,4 @@
-package presentation.ui.components.profile
+package feature.profile.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -31,7 +31,7 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.languages
 import lexicon.resources.generated.resources.words
 import org.jetbrains.compose.resources.stringResource
-import presentation.model.LanguagePairUiModel
+import feature.profile.model.LanguagePairUiModel
 import components.animation.rememberAnimatedCounter
 import components.animation.staggeredFadeSlide
 import theme.Theme

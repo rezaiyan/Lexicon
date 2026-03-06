@@ -7,8 +7,8 @@ import domain.streak.manager.IStreakManager
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import feature.auth.AuthViewModel
-import presentation.feature.profile.EditProfileViewModel
-import presentation.feature.profile.ProfileViewModel
+import feature.profile.EditProfileViewModel
+import feature.profile.ProfileViewModel
 import presentation.feature.settings.NotificationPermissionMonitor
 import presentation.feature.settings.SettingsViewModel
 import presentation.feature.study.StudyViewModel

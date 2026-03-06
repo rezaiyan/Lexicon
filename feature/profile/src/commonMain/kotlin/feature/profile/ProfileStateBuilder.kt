@@ -1,11 +1,11 @@
-package presentation.feature.profile
+package feature.profile
 
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
 import domain.streak.model.StreakData
-import presentation.model.ProfileStatsUiModel
-import presentation.model.ProfileUiData
-import presentation.model.ProfileUserUiModel
+import feature.profile.model.ProfileStatsUiModel
+import feature.profile.model.ProfileUiData
+import feature.profile.model.ProfileUserUiModel
 import core.common.UiState
 
 internal object ProfileStateBuilder {

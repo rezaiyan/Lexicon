@@ -1,4 +1,4 @@
-package presentation.model
+package feature.profile.model
 
 
 data class ProfileUserUiModel(
@@ -7,4 +7,3 @@ data class ProfileUserUiModel(
     val displayAlias: String? = null,
     val profileImageUrl: String? = null
 )
-

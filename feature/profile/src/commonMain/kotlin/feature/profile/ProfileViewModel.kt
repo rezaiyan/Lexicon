@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalTime::class)
 
-package presentation.feature.profile
+package feature.profile
 
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
@@ -31,10 +31,10 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import core.base.BaseViewModel
-import presentation.model.DayActivityUiModel
-import presentation.model.LanguagePairUiModel
-import presentation.model.ProfileStatsUiModel
-import presentation.model.ProfileUiData
+import feature.profile.model.DayActivityUiModel
+import feature.profile.model.LanguagePairUiModel
+import feature.profile.model.ProfileStatsUiModel
+import feature.profile.model.ProfileUiData
 import core.common.UiState
 import core.common.ThrottledAction
 import core.common.stateInEagerly

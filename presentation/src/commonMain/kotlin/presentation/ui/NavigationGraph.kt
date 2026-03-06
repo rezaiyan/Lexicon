@@ -19,9 +19,10 @@ import feature.subscription.SubscriptionViewModel
 import feature.subscription.ui.SubscriptionScreen
 import feature.subscription.ui.SubscriptionScreenActions
 import presentation.model.TabDestination
-import presentation.ui.screens.EditProfileScreen
+import feature.profile.ui.EditProfileScreen
 import feature.leaderboard.ui.LeaderboardScreen
-import presentation.ui.screens.ProfileScreen
+import feature.profile.ui.ProfileScreen
+import overlay.LocalOverlayHost
 import presentation.ui.screens.SettingsScreen
 import presentation.ui.screens.StudyScreen
 import presentation.ui.screens.settings.WordManagerScreen
@@ -48,6 +49,8 @@ internal fun NavigationGraph(
     ) {
         composable<TabDestination.Profile> {
             ProfileScreen(
+                snackbarHostState = LocalSnackbarHostState.current,
+                overlayHost = LocalOverlayHost.current,
                 onNavigateToLeaderboard = {
                     navController.navigate(TabDestination.Leaderboard)
                 },
@@ -65,6 +68,8 @@ internal fun NavigationGraph(
 
         composable<TabDestination.EditProfile> {
             EditProfileScreen(
+                snackbarHostState = LocalSnackbarHostState.current,
+                overlayHost = LocalOverlayHost.current,
                 onNavigateBack = { navController.navigateUp() }
             )
         }

@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.profile.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -25,6 +25,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,20 +36,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.profile.ProfileViewModel
-import presentation.model.ProfileUiData
+import feature.profile.ProfileViewModel
+import feature.profile.model.ProfileUiData
 import core.common.UiState
-import presentation.ui.LocalSnackbarHostState
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
-import presentation.ui.components.profile.DeleteAccountCoolingDialogContent
-import presentation.ui.components.profile.DeleteAccountHiddenDialogContent
-import presentation.ui.components.profile.LogoutDialogContent
-import presentation.ui.components.profile.MemberSinceSection
-import presentation.ui.components.profile.StreakSection
-import presentation.ui.components.profile.UserInfoSection
-import presentation.ui.components.profile.WeeklyActivitySection
-import overlay.LocalOverlayHost
+import feature.profile.ui.components.DeleteAccountCoolingDialogContent
+import feature.profile.ui.components.DeleteAccountHiddenDialogContent
+import feature.profile.ui.components.LogoutDialogContent
+import feature.profile.ui.components.MemberSinceSection
+import feature.profile.ui.components.StreakSection
+import feature.profile.ui.components.UserInfoSection
+import feature.profile.ui.components.WeeklyActivitySection
 import overlay.OverlayHost
 import overlay.bottomsheet.showFullscreenBottomSheet
 import overlay.dialog.showDialog
@@ -64,12 +63,12 @@ import lexicon.resources.generated.resources.profile
 
 @Composable
 fun ProfileScreen(
+    snackbarHostState: SnackbarHostState,
+    overlayHost: OverlayHost,
     onNavigateToLeaderboard: () -> Unit = {},
     onNavigateToEditProfile: () -> Unit = {}
 ) {
     val profileViewModel = koinViewModel<ProfileViewModel>()
-    val snackbarHostState = LocalSnackbarHostState.current
-    val overlayHost = LocalOverlayHost.current
 
     LaunchedEffect(Unit) { profileViewModel.refreshProfileStats() }
 

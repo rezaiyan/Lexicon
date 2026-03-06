@@ -1,4 +1,4 @@
-package presentation.ui.components.profile
+package feature.profile.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -27,7 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import presentation.model.DayActivityUiModel
+import feature.profile.model.DayActivityUiModel
 import theme.Theme
 
 private val BarMaxHeight = 120.dp

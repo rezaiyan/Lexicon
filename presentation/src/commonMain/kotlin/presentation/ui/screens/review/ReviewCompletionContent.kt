@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.components.profile.LottieMotionIcon
+import feature.profile.ui.components.LottieMotionIcon
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.done

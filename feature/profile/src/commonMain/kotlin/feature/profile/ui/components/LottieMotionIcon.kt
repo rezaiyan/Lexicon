@@ -1,4 +1,4 @@
-package presentation.ui.components.profile
+package feature.profile.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable

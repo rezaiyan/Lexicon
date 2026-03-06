@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.profile.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,12 +31,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.profile.EditProfileEffect
-import presentation.feature.profile.EditProfileViewModel
-import presentation.ui.LocalSnackbarHostState
+import feature.profile.EditProfileEffect
+import feature.profile.EditProfileViewModel
 import components.scaffold.LexiconColumn
-import presentation.ui.components.profile.ProfileAvatar
-import overlay.LocalOverlayHost
+import feature.profile.ui.components.ProfileAvatar
+import overlay.OverlayHost
 import overlay.bottomsheet.showFullscreenBottomSheet
 import theme.Theme
 import utils.rememberImagePickerLauncher
@@ -52,12 +52,12 @@ import lexicon.resources.generated.resources.profile_updated
 
 @Composable
 fun EditProfileScreen(
+    snackbarHostState: SnackbarHostState,
+    overlayHost: OverlayHost,
     onNavigateBack: () -> Unit
 ) {
     val viewModel = koinViewModel<EditProfileViewModel>()
     val state by viewModel.state()
-    val snackbarHostState = LocalSnackbarHostState.current
-    val overlayHost = LocalOverlayHost.current
     val profileUpdatedMessage = stringResource(Res.string.profile_updated)
 
     LaunchedEffect(Unit) {
@@ -140,6 +140,7 @@ fun EditProfileScreen(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(32.dp),
+                            strokeWidth = 2.dp,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     }

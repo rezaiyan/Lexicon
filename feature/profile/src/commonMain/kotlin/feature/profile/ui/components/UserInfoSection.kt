@@ -1,4 +1,4 @@
-package presentation.ui.components.profile
+package feature.profile.ui.components
 
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import presentation.model.ProfileUserUiModel
+import feature.profile.model.ProfileUserUiModel
 import theme.Theme
 
 @Composable
@@ -183,11 +183,6 @@ internal fun ProfileAvatar(
     }
 }
 
-/**
- * Returns 1-2 letter initials if the name looks like a real human name (letters + spaces only).
- * Falls back to the first letter of the email local part.
- * Returns null if no meaningful initials can be derived (shows icon instead).
- */
 private fun extractInitials(name: String, email: String): String? {
     val cleanName = name.trim()
 
@@ -201,8 +196,6 @@ private fun extractInitials(name: String, email: String): String? {
         }
     }
 
-    // Name is absent or looks non-human (e.g. Apple private relay random string) —
-    // fall back to the first letter of the email local part.
     val emailFirstChar = email.firstOrNull()
     if (emailFirstChar != null && emailFirstChar.isLetter()) {
         return emailFirstChar.uppercaseChar().toString()

@@ -1,4 +1,4 @@
-package presentation.ui.components.profile
+package feature.profile.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
@@ -28,4 +28,3 @@ fun LogoutDialogContent(
         secondaryButtonOnClick = onDismiss
     )
 }
-

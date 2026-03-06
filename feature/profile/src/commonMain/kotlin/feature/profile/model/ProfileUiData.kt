@@ -1,4 +1,4 @@
-package presentation.model
+package feature.profile.model
 
 import domain.streak.model.StreakData
 import domain.auth.model.FeatureAccessResponse

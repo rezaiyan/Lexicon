@@ -167,6 +167,7 @@ kotlin {
             implementation(project(":feature:auth"))
             implementation(project(":feature:subscription"))
             implementation(project(":feature:leaderboard"))
+            implementation(project(":feature:profile"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)

@@ -1,4 +1,4 @@
-package presentation.model
+package feature.profile.model
 
 data class ProfileStatsUiModel(
     val currentStreak: Int,

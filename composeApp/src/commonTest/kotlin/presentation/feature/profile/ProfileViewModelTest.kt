@@ -20,8 +20,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import feature.profile.ProfileViewModel
+import feature.profile.model.ProfileUiData
 import presentation.ViewModelTestBase
-import presentation.model.ProfileUiData
 import core.common.UiState
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -129,7 +130,7 @@ class ProfileViewModelTest : ViewModelTestBase() {
 
         val state = assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState)
         val userInfo = state.value.userInfo
-        assertIs<presentation.model.ProfileUserUiModel>(userInfo)
+        assertIs<feature.profile.model.ProfileUserUiModel>(userInfo)
         assertEquals("Test User", userInfo.name)
         assertEquals("user@example.com", userInfo.email)
         assertEquals("tester", userInfo.displayAlias)
@@ -286,7 +287,7 @@ class ProfileViewModelTest : ViewModelTestBase() {
 
         val state = assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState)
         val stats = state.value.profileStats
-        assertIs<presentation.model.ProfileStatsUiModel>(stats)
+        assertIs<feature.profile.model.ProfileStatsUiModel>(stats)
         assertEquals(7, stats.currentStreak)
         assertEquals(14, stats.longestStreak)
         assertEquals("2024-01-01", stats.memberSince)
