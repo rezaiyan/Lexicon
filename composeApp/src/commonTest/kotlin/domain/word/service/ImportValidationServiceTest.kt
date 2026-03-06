@@ -1,6 +1,6 @@
 package domain.word.service
 
-import core.common.exceptionOrNull
+import core.common.Try
 import core.common.getOrThrow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -81,7 +81,7 @@ class ImportValidationServiceTest {
         val result = service.validateAndParse("   \n ")
 
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("empty") == true)
+        assertTrue((result as Try.Failure).throwable.message?.contains("empty") == true)
     }
 
     @Test
@@ -89,7 +89,7 @@ class ImportValidationServiceTest {
         val result = service.validateAndParse("invalid-line-without-comma")
 
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("expected", ignoreCase = true) == true)
+        assertTrue((result as Try.Failure).throwable.message?.contains("expected", ignoreCase = true) == true)
     }
 }
 

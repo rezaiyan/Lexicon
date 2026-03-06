@@ -1,7 +1,6 @@
 package domain.onboarding.usecase
 
 import core.common.Try
-import core.common.exceptionOrNull
 import core.common.getOrNull
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
@@ -69,7 +68,7 @@ class SubmitPreferencesUseCaseTest {
         val result = useCase(preferences)
 
         assertTrue(result.isFailure)
-        assertEquals("Network error", result.exceptionOrNull()?.message)
+        assertEquals("Network error", (result as Try.Failure).throwable.message)
     }
 
     private class FakeOnboardingRepository : IOnboardingRepository {

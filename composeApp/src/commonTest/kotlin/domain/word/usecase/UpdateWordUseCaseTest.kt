@@ -59,7 +59,7 @@ class UpdateWordUseCaseTest {
         
         // Then: Should fail with validation error
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("cannot be empty") == true)
+        assertTrue((result as Try.Failure).throwable.message?.contains("cannot be empty") == true)
         assertEquals(0, fakeRepository.updateCallCount)
     }
     
@@ -76,7 +76,7 @@ class UpdateWordUseCaseTest {
         
         // Then: Should fail with validation error
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("cannot be empty") == true)
+        assertTrue((result as Try.Failure).throwable.message?.contains("cannot be empty") == true)
         assertEquals(0, fakeRepository.updateCallCount)
     }
     
@@ -93,7 +93,7 @@ class UpdateWordUseCaseTest {
         
         // Then: Should fail with validation error
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("cannot be empty") == true)
+        assertTrue((result as Try.Failure).throwable.message?.contains("cannot be empty") == true)
         assertEquals(0, fakeRepository.updateCallCount)
     }
     
@@ -110,7 +110,7 @@ class UpdateWordUseCaseTest {
         
         // Then: Should fail with validation error
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("cannot be empty") == true)
+        assertTrue((result as Try.Failure).throwable.message?.contains("cannot be empty") == true)
         assertEquals(0, fakeRepository.updateCallCount)
     }
     

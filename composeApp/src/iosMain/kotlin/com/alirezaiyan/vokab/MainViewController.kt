@@ -20,41 +20,13 @@ import platform.Foundation.NSLog
 import presentation.ui.LexiconApp
 import pushnotification.IOSPushTokenManager
 
-/**
- * Constants for iOS notification categories and actions
- * These match the NotificationCategory enum in iOSApp.swift
- */
 object NotificationCategoryConstants {
-    // Notification category identifiers (must match Swift enum)
-    const val ACCOUNT_DELETED = "ACCOUNT_DELETED"
     const val STREAK_REMINDER = "STREAK_REMINDER"
     const val REVIEW_REMINDER = "REVIEW_REMINDER"
-    const val ACHIEVEMENT_UNLOCKED = "ACHIEVEMENT_UNLOCKED"
     const val GENERIC = "GENERIC"
-    
-    // Notification action identifiers
-    const val ACTION_VIEW_PROGRESS = "VIEW_PROGRESS"
-    const val ACTION_DISMISS = "DISMISS"
-    const val ACTION_START_REVIEW = "START_REVIEW"
-    const val ACTION_REMIND_LATER = "REMIND_LATER"
-    const val ACTION_VIEW_ACHIEVEMENT = "VIEW_ACHIEVEMENT"
-    
-    // Notification type values (for userInfo["type"])
-    const val TYPE_ACCOUNT_DELETED = "account_deleted"
+
     const val TYPE_STREAK_REMINDER = "streak_reminder"
     const val TYPE_REVIEW_REMINDER = "review_reminder"
-    const val TYPE_ACHIEVEMENT_UNLOCKED = "achievement_unlocked"
-}
-
-/**
- * Constants for NotificationCenter notification names
- * These are posted from Swift when notification actions are tapped
- */
-object NotificationNameConstants {
-    const val NAVIGATE_TO_PROGRESS = "NavigateToProgress"
-    const val START_REVIEW_SESSION = "StartReviewSession"
-    const val SHOW_ACHIEVEMENT_DETAILS = "ShowAchievementDetails"
-    const val SCHEDULE_REVIEW_REMINDER = "ScheduleReviewReminder"
 }
 
 private var accountDeletionHandler: IOSAccountDeletionHandler? = null
@@ -123,15 +95,6 @@ fun clearUserData() {
 
 fun notifyPushTokenReceived(token: String) {
     IOSPushTokenManager.notifyTokenReceived(token)
-}
-
-fun isUserAuthenticated(): Boolean {
-    startKoinIfNeeded()
-    return runBlocking {
-        val authRepository: IAuthRepository = koinInstance?.get()
-            ?: return@runBlocking false
-        authRepository.isAuthenticated()
-    }
 }
 
 fun shouldShowNotification(categoryValue: String?): Boolean {

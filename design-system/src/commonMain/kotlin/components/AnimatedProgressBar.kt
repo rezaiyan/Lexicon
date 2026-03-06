@@ -5,61 +5,15 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-
-/**
- * A thin animated linear progress bar with configurable colors.
- *
- * @param progress Target progress fraction (0f..1f). Animates smoothly to this value.
- * @param color The filled portion color.
- * @param modifier Optional modifier.
- * @param trackColor Background track color. Defaults to [color] at 8% alpha.
- * @param height Bar height. Defaults to 5.dp.
- * @param animationDurationMs Duration for the progress animation.
- * @param cornerRadius Corner radius. Defaults to pill shape (50%).
- */
-@Composable
-fun AnimatedProgressBar(
-    progress: Float,
-    color: Color,
-    modifier: Modifier = Modifier,
-    trackColor: Color = color.copy(alpha = 0.08f),
-    height: Dp = 5.dp,
-    animationDurationMs: Int = 700,
-    cornerRadius: Dp = 50.dp
-) {
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = animationDurationMs, easing = FastOutSlowInEasing),
-        label = "progressBar"
-    )
-
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(RoundedCornerShape(cornerRadius))
-            .background(trackColor)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(animatedProgress)
-                .fillMaxHeight()
-                .background(color.copy(alpha = 0.8f))
-        )
-    }
-}
 
 /**
  * Gradient variant of the animated progress bar (e.g. for review progress strips).

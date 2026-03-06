@@ -1,10 +1,9 @@
 package notification
 
 import android.Manifest
-import android.app.AlarmManager
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,10 +11,10 @@ import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import android.R as AndroidR
+import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.core.net.toUri
+import android.R as AndroidR
 
 class AndroidNotificationManager(
     private val context: Context
@@ -24,7 +23,6 @@ class AndroidNotificationManager(
     companion object {
         private const val CHANNEL_ID = "lexicon_notifications"
         private const val REVIEW_NOTIFICATION_ID = 1001
-        private const val MOTIVATIONAL_NOTIFICATION_ID = 1002
     }
     
     init {
@@ -91,6 +89,7 @@ class AndroidNotificationManager(
         return null
     }
     
+    @SuppressLint("InlinedApi")
     override suspend fun requestNotificationPermission(): Boolean {
         // For Android 13+, we need to trigger the system permission dialog
         // This will be handled through an Intent to open system settings
@@ -102,14 +101,14 @@ class AndroidNotificationManager(
             } else {
                 // Open system settings for the app so user can enable notifications
                 try {
-                    val intent = android.content.Intent().apply {
+                    val intent = Intent().apply {
                         action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
                         putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, context.packageName)
-                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(intent)
                     false // Return false since we're navigating to settings
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     false
                 }
             }
@@ -119,13 +118,13 @@ class AndroidNotificationManager(
             if (!enabled) {
                 // Open app settings
                 try {
-                    val intent = android.content.Intent().apply {
+                    val intent = Intent().apply {
                         action = android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                         data = android.net.Uri.fromParts("package", context.packageName, null)
-                        addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
                     context.startActivity(intent)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // Ignore
                 }
             }
@@ -148,7 +147,7 @@ class AndroidNotificationManager(
                 showImmediateNotification(title, message)
             }
             // TODO: Implement WorkManager for delayed notifications
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             // Handle case where permission was revoked
             // Silently fail - don't crash the app
         }
@@ -167,12 +166,13 @@ class AndroidNotificationManager(
                 showImmediateNotification(title, message)
             }
             // TODO: Implement WorkManager for delayed notifications
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             // Handle case where permission was revoked
             // Silently fail - don't crash the app
         }
     }
     
+    @SuppressLint("MissingPermission")
     override suspend fun showImmediateNotification(
         title: String,
         message: String
@@ -202,7 +202,7 @@ class AndroidNotificationManager(
             }
             
             NotificationManagerCompat.from(context).notify(REVIEW_NOTIFICATION_ID, notification)
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             // Handle case where permission was revoked between checks
             // Silently fail - don't crash the app
         }
@@ -212,7 +212,7 @@ class AndroidNotificationManager(
         try {
             // Canceling notifications doesn't require permission, but wrap in try-catch for safety
             NotificationManagerCompat.from(context).cancelAll()
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             // Handle edge case where something goes wrong
             // Silently fail - don't crash the app
         }
@@ -224,11 +224,12 @@ class AndroidNotificationManager(
             // Clear all notifications to clear the badge
             NotificationManagerCompat.from(context).cancelAll()
             println(" Badge cleared (Android)")
-        } catch (e: SecurityException) {
+        } catch (_: SecurityException) {
             // Silently fail - don't crash the app
         }
     }
     
+    @SuppressLint("InlinedApi")
     override suspend fun openNotificationSettings() = withContext(Dispatchers.Main) {
         try {
             val intent = Intent().apply {
@@ -242,7 +243,7 @@ class AndroidNotificationManager(
                         data = "package:${context.packageName}".toUri()
                     }
                 }
-                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
             println(" Opened notification settings")
