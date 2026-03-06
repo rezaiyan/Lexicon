@@ -78,8 +78,8 @@ private fun startKoinIfNeeded() {
         }
         koinInstance = koinApplication.koin
     }
-    if (accountDeletionHandler == null && koinInstance != null) {
-        accountDeletionHandler = koinInstance!!.get()
+    if (accountDeletionHandler == null) {
+        koinInstance?.let { accountDeletionHandler = it.get() }
     }
 }
 

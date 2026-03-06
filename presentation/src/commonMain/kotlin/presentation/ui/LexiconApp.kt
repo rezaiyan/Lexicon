@@ -23,7 +23,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.rememberNavController
 import domain.auth.session.ISessionManager
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
@@ -66,7 +66,7 @@ fun LexiconApp() {
     val authState by authViewModel.state()
 
     val systemInDarkTheme = isSystemInDarkTheme()
-    val themeMode by settingsRepository.getThemeMode().collectAsStateWithLifecycle(ThemeMode.AUTO)
+    val themeMode by settingsRepository.getThemeMode().collectAsState(ThemeMode.AUTO)
     val darkMode = when (themeMode) {
         ThemeMode.AUTO -> systemInDarkTheme
         ThemeMode.LIGHT -> false

@@ -24,7 +24,6 @@ import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
 import expects.logNetwork
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -42,6 +41,7 @@ data class StudyScreenState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,
     val review: ReviewScreenState = ReviewScreenState(),
     val hasPremiumAccess: Boolean = false,
+    val ttsState: TtsState = TtsState.Idle,
 )
 
 class StudyViewModel(
@@ -64,11 +64,18 @@ class StudyViewModel(
 
     private var progressObservationJob: Job? = null
 
-    val ttsState: StateFlow<TtsState> = ttsRepository.ttsState
-
     init {
         observeFeatureAccess(getFeatureAccessUseCase)
+        observeTtsState(ttsRepository)
         startObservingProgress()
+    }
+
+    private fun observeTtsState(ttsRepository: ITtsRepository) {
+        viewModelScope.launch {
+            ttsRepository.ttsState.collect { state ->
+                updateState { copy(ttsState = state) }
+            }
+        }
     }
 
     private fun observeFeatureAccess(getFeatureAccessUseCase: GetFeatureAccessUseCase) {

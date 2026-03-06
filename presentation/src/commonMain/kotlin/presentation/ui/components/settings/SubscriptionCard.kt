@@ -5,7 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import components.Pill
 import domain.auth.manager.IUserManager
 import domain.subscription.ISubscriptionManager
@@ -25,8 +25,8 @@ fun SubscriptionCard(
     subscriptionManager: ISubscriptionManager = koinInject(),
     userManager: IUserManager = koinInject()
 ) {
-    val currentUser by userManager.observeUser().collectAsStateWithLifecycle(initialValue = null)
-    val isSubscribed by subscriptionManager.isSubscribed().collectAsStateWithLifecycle(false)
+    val currentUser by userManager.observeUser().collectAsState(initial = null)
+    val isSubscribed by subscriptionManager.isSubscribed().collectAsState(false)
 
     if (currentUser != null) {
         SettingsCard(

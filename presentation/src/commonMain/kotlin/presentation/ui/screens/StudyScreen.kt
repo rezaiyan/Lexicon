@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import events.OnEvents
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -178,7 +177,7 @@ fun StudyScreen() {
                                     // Read state inside the composable lambda so the
                                     // overlay host recomposes when the ViewModel updates.
                                     val sheetState by viewModel.state()
-                                    val sheetTts by viewModel.ttsState.collectAsStateWithLifecycle()
+                                    val sheetTts = sheetState.ttsState
 
                                     ReviewBottomSheetContent(
                                         title = stringResource(Res.string.review_due_cards),
@@ -234,7 +233,7 @@ fun StudyScreen() {
                             viewModel.loadWordsByStage(stage)
                             overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
                                 val sheetState by viewModel.state()
-                                val sheetTts by viewModel.ttsState.collectAsStateWithLifecycle()
+                                val sheetTts = sheetState.ttsState
 
                                 ReviewBottomSheetContent(
                                     title = stringResource(Res.string.stage_words_string, stageName),

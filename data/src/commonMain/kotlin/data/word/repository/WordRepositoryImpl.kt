@@ -204,7 +204,7 @@ class WordRepositoryImpl(
     override fun getProgressStats(): Flow<ProgressStats> {
         return channelFlow {
             // Sync in background — don't block initial emission
-            launch { try { syncWithRemote() } catch (_: Exception) { } }
+            launch { syncWithRemote() }
             // Immediately emit local stats; DB changes from sync trigger re-emission
             localDataSource.getProgressStats().collect { send(it) }
         }
