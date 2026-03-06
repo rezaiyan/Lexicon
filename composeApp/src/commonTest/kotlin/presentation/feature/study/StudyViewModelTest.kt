@@ -259,4 +259,50 @@ class StudyViewModelTest : ViewModelTestBase() {
         vm.reviewWord(testWord(1), quality = 1)
         assertTrue("word_reviewed" in loggedEvents)
     }
+
+    @Test
+    fun `startStageReview loads stage words and logs analytics`() = runTest {
+        val vm = createViewModel()
+        vm.startStageReview(LearningStage.LEVEL_0_FRESH)
+
+        val state = vm.currentState.review.wordListState
+        assertIs<UiState.Loaded<List<Word>>>(state)
+        assertTrue("review_session_start" in loggedEvents)
+    }
+
+    @Test
+    fun `updateWord failure does not modify review list`() = runTest {
+        updateResult = Try.failure(RuntimeException("fail"))
+        val vm = createViewModel()
+        vm.startDueReview()
+
+        val updatedWord = testWord(1).copy(originalWord = "should-not-appear")
+        vm.updateWord(updatedWord)
+
+        val state = vm.currentState.review.wordListState
+        assertIs<UiState.Loaded<List<Word>>>(state)
+        assertEquals("word1", state.value.first { it.id == 1 }.originalWord)
+    }
+
+    @Test
+    fun `loadWords delegates to startDueReview`() = runTest {
+        val vm = createViewModel()
+        vm.loadWords()
+
+        val state = vm.currentState.review.wordListState
+        assertIs<UiState.Loaded<List<Word>>>(state)
+        assertEquals(2, state.value.size)
+    }
+
+    @Test
+    fun `initial ttsState is Idle`() {
+        val vm = createViewModel()
+        assertEquals(TtsState.Idle, vm.currentState.ttsState)
+    }
+
+    @Test
+    fun `initial hasPremiumAccess is false`() = runTest {
+        val vm = createViewModel()
+        assertEquals(false, vm.currentState.hasPremiumAccess)
+    }
 }

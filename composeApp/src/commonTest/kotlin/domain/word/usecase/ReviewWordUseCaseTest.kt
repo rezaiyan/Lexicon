@@ -89,6 +89,100 @@ class ReviewWordUseCaseTest {
     }
 
     @Test
+    fun `level 5 advances to level 6 on success`() = runTest {
+        val word = createWord(level = 5, repetitions = 0, easeFactor = 2.0f, interval = 14)
+
+        useCase(word, quality = 1)
+
+        val updated = wordRepository.lastUpdatedWord
+        assertNotNull(updated)
+        assertEquals(6, updated.level)
+        assertEquals(0, updated.repetitions) // Reset for new level
+        assertEquals(30, updated.interval) // Level 6 base interval
+        assertEquals(2.1f, updated.easeFactor) // +0.1
+    }
+
+    @Test
+    fun `level 6 cannot advance beyond 6`() = runTest {
+        val word = createWord(level = 6, repetitions = 0, easeFactor = 2.5f, interval = 30)
+
+        useCase(word, quality = 1)
+
+        val updated = wordRepository.lastUpdatedWord
+        assertNotNull(updated)
+        assertEquals(6, updated.level) // Stays at 6
+    }
+
+    @Test
+    fun `mastered interval capped at 365 days`() = runTest {
+        // With interval=200 and easeFactor=2.5, next would be 500 → capped at 365
+        val word = createWord(level = 6, repetitions = 2, easeFactor = 2.5f, interval = 200)
+
+        useCase(word, quality = 1)
+
+        val updated = wordRepository.lastUpdatedWord
+        assertNotNull(updated)
+        assertEquals(365, updated.interval) // Capped at 1 year
+    }
+
+    @Test
+    fun `ease factor never drops below 1_3`() = runTest {
+        val word = createWord(level = 2, repetitions = 0, easeFactor = 1.3f, interval = 1)
+
+        useCase(word, quality = 0)
+
+        val updated = wordRepository.lastUpdatedWord
+        assertNotNull(updated)
+        assertEquals(1.3f, updated.easeFactor) // Floor at 1.3
+    }
+
+    @Test
+    fun `ease factor never exceeds 2_5`() = runTest {
+        val word = createWord(level = 3, repetitions = 0, easeFactor = 2.5f, interval = 3)
+
+        useCase(word, quality = 1)
+
+        val updated = wordRepository.lastUpdatedWord
+        assertNotNull(updated)
+        assertEquals(2.5f, updated.easeFactor) // Capped at 2.5
+    }
+
+    @Test
+    fun `level 0 and 1 use minutes for next review, level 2 plus uses days`() = runTest {
+        // Level 0 → level 1 (10 minutes in millis)
+        val word0 = createWord(level = 0, repetitions = 0, easeFactor = 2.5f, interval = 1)
+        useCase(word0, quality = 1)
+        val updated0 = wordRepository.lastUpdatedWord
+        assertNotNull(updated0)
+        assertEquals(1, updated0.level)
+        // Level 1 interval = 10 minutes → next review is ~10 min from now
+        val tenMinutesInMillis = 10 * 60 * 1000L
+        assertTrue(updated0.nextReviewDate - updated0.lastReviewDate in (tenMinutesInMillis - 1000)..(tenMinutesInMillis + 1000))
+
+        // Level 1 → level 2 (1 day in millis)
+        val word1 = createWord(level = 1, repetitions = 0, easeFactor = 2.5f, interval = 10)
+        useCase(word1, quality = 1)
+        val updated1 = wordRepository.lastUpdatedWord
+        assertNotNull(updated1)
+        assertEquals(2, updated1.level)
+        val oneDayInMillis = 24 * 60 * 60 * 1000L
+        assertTrue(updated1.nextReviewDate - updated1.lastReviewDate in (oneDayInMillis - 1000)..(oneDayInMillis + 1000))
+    }
+
+    @Test
+    fun `forgot at level 1 drops to level 0 with penalty 2`() = runTest {
+        // BALANCED forgotPenalty = 2, level 1 - 2 = -1 → clamped to 0
+        val word = createWord(level = 1, repetitions = 3, easeFactor = 2.0f, interval = 10)
+
+        useCase(word, quality = 0)
+
+        val updated = wordRepository.lastUpdatedWord
+        assertNotNull(updated)
+        assertEquals(0, updated.level)
+        assertEquals(1, updated.interval) // Level 0 interval
+    }
+
+    @Test
     fun `invalid quality is treated as forgot with configured penalty`() = runTest {
         // BALANCED forgotPenalty = 2 → level 2 - 2 = level 0
         val word = createWord(level = 2, repetitions = 5, easeFactor = 1.5f, interval = 3)
