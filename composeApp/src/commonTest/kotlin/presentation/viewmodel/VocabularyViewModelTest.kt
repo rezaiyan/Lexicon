@@ -21,7 +21,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import presentation.model.ReviewMode
-import presentation.model.UiState
+import core.common.UiState
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals

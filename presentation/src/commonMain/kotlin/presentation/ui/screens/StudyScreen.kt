@@ -28,7 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.study.StudyEvent
 import presentation.feature.study.StudyViewModel
 import presentation.model.ReviewType
-import presentation.model.UiState
+import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.CloseConfirmationDialogContent

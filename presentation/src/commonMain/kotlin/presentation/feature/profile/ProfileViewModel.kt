@@ -30,12 +30,12 @@ import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.DayActivityUiModel
 import presentation.model.LanguagePairUiModel
 import presentation.model.ProfileStatsUiModel
 import presentation.model.ProfileUiData
-import presentation.model.UiState
+import core.common.UiState
 import presentation.util.ThrottledAction
 import presentation.util.stateInEagerly
 import presentation.util.stateInWhileSubscribed

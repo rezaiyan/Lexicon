@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import presentation.model.UiState
+import core.common.UiState
 import presentation.ui.screens.SubscriptionData
 import kotlin.test.Test
 import kotlin.test.assertEquals

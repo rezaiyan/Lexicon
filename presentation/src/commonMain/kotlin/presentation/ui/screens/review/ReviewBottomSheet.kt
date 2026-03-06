@@ -17,7 +17,7 @@ import domain.word.model.Word
 import expects.BackHandler
 import presentation.model.ReviewScreenState
 import presentation.model.ReviewType
-import presentation.model.UiState
+import core.common.UiState
 
 @Composable
 fun ReviewBottomSheet(

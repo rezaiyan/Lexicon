@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import presentation.model.UiState
+import core.common.UiState
 import presentation.ui.screens.subscription.ComparisonTable
 import presentation.ui.screens.subscription.PlanCard
 import presentation.ui.screens.subscription.PremiumFeaturesGrid

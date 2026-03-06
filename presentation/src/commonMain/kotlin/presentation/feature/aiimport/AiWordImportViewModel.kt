@@ -7,7 +7,7 @@ import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import kotlinx.coroutines.launch
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.AiWordImportStep
 import presentation.model.AiWordImportUiState
 

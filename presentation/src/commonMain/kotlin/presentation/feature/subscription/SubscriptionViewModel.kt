@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import presentation.base.BaseViewModel
-import presentation.model.UiState
+import core.base.BaseViewModel
+import core.common.UiState
 import presentation.ui.screens.SubscriptionData
 import kotlinx.datetime.Instant as DateTimeInstant
 

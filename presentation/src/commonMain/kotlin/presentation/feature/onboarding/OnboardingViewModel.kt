@@ -9,7 +9,7 @@ import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import utils.Language
 import kotlinx.coroutines.launch
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.OnboardingUiState
 
 class OnboardingViewModel(

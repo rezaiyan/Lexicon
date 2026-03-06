@@ -7,7 +7,7 @@ import core.getPlatformName
 import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionPackage
 import org.jetbrains.compose.resources.stringResource
-import presentation.model.UiState
+import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.LexiconColumn
 import presentation.ui.screens.subscription.SubscriptionActiveContent

@@ -40,7 +40,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import presentation.model.UiState
+import core.common.UiState
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals

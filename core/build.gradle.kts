@@ -119,6 +119,7 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.serialization.json)
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
+            api(libs.lifecycle.viewmodel)
         }
 
         androidMain.dependencies {

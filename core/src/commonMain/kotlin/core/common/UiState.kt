@@ -1,4 +1,4 @@
-package presentation.model
+package core.common
 
 import androidx.compose.runtime.Stable
 

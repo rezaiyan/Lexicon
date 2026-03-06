@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.ImageImportState
 import utils.Language
 

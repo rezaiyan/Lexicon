@@ -6,7 +6,7 @@ import domain.word.usecase.BatchUpdateLanguagesUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
 import utils.Language

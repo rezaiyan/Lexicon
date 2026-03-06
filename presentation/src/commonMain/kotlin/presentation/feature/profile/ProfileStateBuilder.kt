@@ -6,7 +6,7 @@ import domain.streak.model.StreakData
 import presentation.model.ProfileStatsUiModel
 import presentation.model.ProfileUiData
 import presentation.model.ProfileUserUiModel
-import presentation.model.UiState
+import core.common.UiState
 
 internal object ProfileStateBuilder {
 

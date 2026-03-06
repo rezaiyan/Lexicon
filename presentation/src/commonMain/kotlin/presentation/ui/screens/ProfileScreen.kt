@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.profile.ProfileViewModel
 import presentation.model.ProfileUiData
-import presentation.model.UiState
+import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.LexiconColumn

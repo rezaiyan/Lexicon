@@ -8,7 +8,7 @@ import domain.profile.usecase.UpdateProfileUseCase
 import domain.profile.usecase.UploadAvatarUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 
 data class EditProfileState(
     val displayAlias: String = "",

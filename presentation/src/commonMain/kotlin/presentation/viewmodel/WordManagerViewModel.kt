@@ -14,7 +14,7 @@ import domain.word.usecase.GetAllWordsUseCase
 import domain.word.usecase.UpdateWordUseCase
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.WordManagerEffect
 import presentation.model.WordManagerScreenState
 import presentation.model.WordSortOption

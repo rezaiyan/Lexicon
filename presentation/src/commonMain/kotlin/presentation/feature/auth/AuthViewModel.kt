@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 
 class AuthViewModel(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,

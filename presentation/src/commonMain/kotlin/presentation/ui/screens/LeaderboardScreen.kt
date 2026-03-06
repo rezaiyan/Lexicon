@@ -55,7 +55,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.leaderboard.LeaderboardViewModel
 import presentation.model.LeaderboardEntryUiModel
 import presentation.model.LeaderboardUiData
-import presentation.model.UiState
+import core.common.UiState
 import presentation.ui.components.ActionIconConfig
 import presentation.ui.components.LexiconColumn
 import theme.Theme

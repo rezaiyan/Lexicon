@@ -13,9 +13,9 @@ import core.common.fold
 import events.VocabularyEffect
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.ReviewMode
-import presentation.model.UiState
+import core.common.UiState
 
 class VocabularyViewModel(
     private val getDueWordsUseCase: GetDueWordsUseCase,

@@ -1,4 +1,4 @@
-package presentation.base
+package core.base
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State

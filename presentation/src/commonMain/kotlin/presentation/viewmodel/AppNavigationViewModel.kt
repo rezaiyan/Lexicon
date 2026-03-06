@@ -4,7 +4,7 @@ import androidx.lifecycle.viewModelScope
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
 import kotlinx.coroutines.launch
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.AppUiState
 
 class AppNavigationViewModel(

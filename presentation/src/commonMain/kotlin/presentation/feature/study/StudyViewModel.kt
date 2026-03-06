@@ -31,10 +31,10 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
-import presentation.base.BaseViewModel
+import core.base.BaseViewModel
 import presentation.model.ProgressScreenState
 import presentation.model.ReviewScreenState
-import presentation.model.UiState
+import core.common.UiState
 import presentation.util.NotificationStringHelper
 import kotlin.time.ExperimentalTime
 

@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import presentation.model.ProfileUiData
-import presentation.model.UiState
+import core.common.UiState
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

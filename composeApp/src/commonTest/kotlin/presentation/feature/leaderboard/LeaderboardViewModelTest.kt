@@ -7,7 +7,7 @@ import domain.leaderboard.usecase.GetLeaderboardUseCase
 import domain.leaderboard.repository.ILeaderboardRepository
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import presentation.model.UiState
+import core.common.UiState
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
