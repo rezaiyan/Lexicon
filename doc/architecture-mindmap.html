@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexicon Architecture Mindmap</title>
+<style>
+:root {
+  --bg: #0c0e14;
+  --bg2: #131620;
+  --card: #1a1e2e;
+  --card-hover: #212640;
+  --border: #282d42;
+  --text: #e4e7f0;
+  --text2: #9499b0;
+  --text3: #5a5f78;
+  --green: #4ade80;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --orange: #fb923c;
+  --pink: #f472b6;
+  --cyan: #22d3ee;
+  --yellow: #fbbf24;
+  --red: #f87171;
+  --accent: #7c82e0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg); color: var(--text);
+  overflow: hidden; height: 100vh; width: 100vw;
+  cursor: grab; user-select: none;
+}
+body.grabbing { cursor: grabbing; }
+
+.toolbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(12,14,20,0.82); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px; display: flex; align-items: center; gap: 12px;
+}
+.toolbar-title {
+  font-size: 17px; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.toolbar-sep { width:1px; height:20px; background: var(--border); }
+.toolbar-btn {
+  padding: 5px 12px; font-size: 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg2);
+  color: var(--text2); cursor: pointer; transition: all 0.2s;
+}
+.toolbar-btn:hover { background: var(--card); color: var(--text); border-color: var(--accent); }
+.toolbar-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.zoom-display { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; min-width: 44px; text-align: center; }
+.toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+/* Layer labels */
+.layer-label {
+  position: absolute; left: 10px;
+  font-size: 11px; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  writing-mode: vertical-rl; text-orientation: mixed;
+  transform: rotate(180deg);
+  opacity: 0.5;
+}
+.layer-band {
+  position: absolute; left: 0; right: 0;
+  border-top: 1px dashed rgba(46,51,66,0.5);
+  pointer-events: none;
+}
+
+/* Legend */
+.legend {
+  position: fixed; bottom: 16px; left: 16px; z-index: 100;
+  background: rgba(12,14,20,0.9); backdrop-filter: blur(12px);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; font-size: 11px;
+}
+.legend-title { font-weight: 600; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
+.legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: var(--text2); }
+.legend-line { width: 28px; height: 0; border-top: 2px solid; flex-shrink: 0; }
+.legend-line.dashed { border-top-style: dashed; }
+.legend-line.forbidden { border-top: 2px dashed var(--red); }
+.legend-line.thick { border-top-width: 3px; }
+
+.hints {
+  position: fixed; bottom: 16px; right: 16px; z-index: 100;
+  font-size: 11px; color: var(--text3);
+  background: rgba(12,14,20,0.9); backdrop-filter: blur(12px);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 16px; line-height: 1.8;
+}
+kbd { padding: 2px 6px; background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; font-family: inherit; color: var(--text2); }
+
+#world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+#connections { position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; }
+
+/* Nodes */
+.mnode {
+  position: absolute; background: var(--card);
+  border: 1.5px solid var(--border); border-radius: 10px;
+  padding: 10px 14px; cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, opacity 0.35s, transform 0.35s;
+  white-space: nowrap; opacity: 0; transform: scale(0.7);
+}
+.mnode.show { opacity: 1; transform: scale(1); }
+.mnode:hover {
+  border-color: var(--node-color, var(--accent));
+  box-shadow: 0 0 24px rgba(124,130,224,0.12), 0 4px 20px rgba(0,0,0,0.3);
+  background: var(--card-hover); z-index: 20;
+}
+.mnode.expanded { border-color: var(--node-color, var(--accent)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--node-color, var(--accent)) 20%, transparent); }
+.mnode.root-node { background: linear-gradient(135deg, #1e2240, #252a48); border-color: var(--accent); padding: 14px 22px; }
+.mnode.root-node .mnode-name { font-size: 16px; }
+.mnode.dimmed { opacity: 0.12 !important; }
+
+.mnode-top { display: flex; align-items: center; gap: 8px; }
+.mnode-icon {
+  width: 26px; height: 26px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.mnode-name { font-size: 13px; font-weight: 600; letter-spacing: -0.2px; }
+.mnode-badge {
+  font-size: 9px; padding: 2px 6px; border-radius: 10px;
+  font-weight: 700; letter-spacing: 0.3px; margin-left: 6px;
+}
+.mnode-desc { font-size: 10px; color: var(--text3); margin-top: 3px; padding-left: 34px; }
+.mnode-dep-count {
+  position: absolute; right: -6px; top: -6px;
+  min-width: 18px; height: 18px; border-radius: 9px;
+  background: var(--node-color, var(--accent)); color: var(--bg);
+  font-size: 9px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  opacity: 0; transition: opacity 0.2s;
+}
+.mnode:hover .mnode-dep-count, .mnode.expanded .mnode-dep-count { opacity: 1; }
+.mnode-expand {
+  position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--card); border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text3); transition: all 0.2s;
+}
+.mnode:hover .mnode-expand { border-color: var(--node-color, var(--accent)); color: var(--node-color, var(--accent)); }
+
+/* Detail Panel */
+.detail-panel {
+  position: fixed; top: 48px; right: 0; bottom: 0; width: 380px;
+  background: rgba(19,22,32,0.95); backdrop-filter: blur(20px);
+  border-left: 1px solid var(--border); z-index: 90;
+  overflow-y: auto; padding: 24px;
+  transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.detail-panel.open { transform: translateX(0); }
+.detail-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 28px; height: 28px; border-radius: 6px;
+  background: var(--bg2); border: 1px solid var(--border);
+  color: var(--text2); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.detail-close:hover { background: var(--card); color: var(--text); }
+.detail-icon { font-size: 28px; margin-bottom: 8px; }
+.detail-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.detail-sub { font-size: 13px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+.detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+.detail-tag { font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+.detail-section { margin-bottom: 20px; }
+.detail-section-title {
+  font-size: 11px; font-weight: 600; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 8px;
+}
+.detail-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 5px 8px; border-radius: 6px; font-size: 12px;
+  color: var(--text2); transition: background 0.15s;
+}
+.detail-item:hover { background: var(--card); }
+.detail-item .di-icon { font-size: 13px; flex-shrink: 0; width: 18px; text-align: center; margin-top: 1px; }
+.detail-item code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px; background: rgba(124,130,224,0.1);
+  padding: 1px 5px; border-radius: 3px; color: var(--accent);
+}
+.detail-conn { margin-top: 20px; }
+.detail-conn-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.detail-conn-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 12px; color: var(--text2); }
+.detail-conn-arrow { color: var(--text3); font-size: 11px; }
+.detail-conn-node { padding: 3px 8px; border-radius: 5px; font-weight: 500; font-size: 11px; cursor: pointer; transition: filter 0.15s; }
+.detail-conn-node:hover { filter: brightness(1.3); }
+.detail-code { background: var(--bg); border-radius: 8px; padding: 14px; margin-top: 12px; overflow-x: auto; }
+.detail-code pre { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 11px; line-height: 1.7; color: var(--text2); }
+.detail-code .kw { color: var(--purple); }
+.detail-code .fn { color: var(--blue); }
+.detail-code .tp { color: var(--green); }
+.detail-code .cm { color: var(--text3); font-style: italic; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="toolbar-title">Lexicon Architecture</div>
+  <div class="toolbar-sep"></div>
+  <button class="toolbar-btn" onclick="resetView()">Fit View</button>
+  <button class="toolbar-btn" onclick="collapseAll()">Collapse All</button>
+  <button class="toolbar-btn" onclick="expandAll()">Expand All</button>
+  <div class="toolbar-sep"></div>
+  <button class="toolbar-btn active" id="btnDeps" onclick="toggleConn('deps')">Dependencies</button>
+  <button class="toolbar-btn" id="btnFlow" onclick="toggleConn('flow')">Data Flow</button>
+  <button class="toolbar-btn" id="btnForbid" onclick="toggleConn('forbidden')">Forbidden</button>
+  <button class="toolbar-btn" id="btnImpl" onclick="toggleConn('impl')">Implements</button>
+  <div class="toolbar-right">
+    <button class="toolbar-btn" onclick="zoomBy(-0.15)">&minus;</button>
+    <div class="zoom-display" id="zoomDisplay">100%</div>
+    <button class="toolbar-btn" onclick="zoomBy(0.15)">+</button>
+  </div>
+</div>
+
+<div id="world">
+  <svg id="connections" width="6000" height="5000"></svg>
+</div>
+
+<div class="detail-panel" id="detailPanel">
+  <button class="detail-close" onclick="closeDetail()">&times;</button>
+  <div id="detailContent"></div>
+</div>
+
+<div class="legend">
+  <div class="legend-title">Connections</div>
+  <div class="legend-row"><div class="legend-line thick" style="border-color:var(--accent)"></div> depends on</div>
+  <div class="legend-row"><div class="legend-line" style="border-color:var(--green)"></div> data flow</div>
+  <div class="legend-row"><div class="legend-line dashed" style="border-color:var(--yellow)"></div> implements</div>
+  <div class="legend-row"><div class="legend-line forbidden"></div> forbidden</div>
+  <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+    <div class="legend-row" style="color:var(--text3)"><span style="font-size:14px">&#9679;</span> badge = connection count</div>
+    <div class="legend-row" style="color:var(--text3)"><span style="font-size:14px">&#8614;</span> thicker = more deps</div>
+  </div>
+</div>
+
+<div class="hints">
+  <kbd>Click</kbd> Expand/Collapse &nbsp; <kbd>Dbl-click</kbd> Details<br>
+  <kbd>Hover</kbd> Highlight connections &nbsp; <kbd>Esc</kbd> Close<br>
+  <kbd>Scroll</kbd> Zoom &nbsp; <kbd>Drag</kbd> Pan &nbsp; <kbd>0</kbd> Fit
+</div>
+
+<script>
+// =============================================
+//  ARCHITECTURE LAYERS (top to bottom)
+//
+//  Layer 0: composeApp (orchestrator)
+//  Layer 1: presentation + features (UI)
+//  Layer 2: domain (business logic) - center
+//  Layer 3: data (implementations)
+//  Layer 4: core, design-system, platforms, support
+// =============================================
+
+const COL = 200;   // column spacing
+const ROW = 180;   // row spacing between layers
+const CHILD_GAP = 170; // child spacing
+const L0_Y = 80;
+const L1_Y = L0_Y + ROW + 20;
+const L2_Y = L1_Y + ROW + 40;
+const L3_Y = L2_Y + ROW + 40;
+const L4_Y = L3_Y + ROW + 20;
+
+// Center X of the whole map
+const CX = 2100;
+
+// =============================================
+//  NODES - positioned in dependency layers
+// =============================================
+const NODES = {
+  // ── LAYER 0: ORCHESTRATOR ──────────────────
+  composeApp: {
+    label: 'composeApp', icon: '\u26A1', desc: 'Entry Point + DI Root',
+    color: 'var(--cyan)', x: CX, y: L0_Y, layer: 0,
+    detail: {
+      subtitle: 'Wires all modules via Koin. Imports everything.',
+      tags: [{ l:'DI Root', c:'var(--cyan)' }, { l:'Platform Init', c:'var(--cyan)' }],
+      sections: [
+        { title: 'Koin Modules', items: [
+          { i:'\uD83D\uDD17', t:'networkModule', d:'Ktor + interceptors' },
+          { i:'\uD83D\uDD17', t:'authModule', d:'Auth repos, use cases, managers' },
+          { i:'\uD83D\uDD17', t:'wordModule', d:'Word repos, use cases' },
+          { i:'\uD83D\uDD17', t:'settingsModule / ttsModule / profileModule' },
+          { i:'\uD83D\uDD17', t:'leaderboardModule / onboardingModule / notificationModule' },
+          { i:'\uD83D\uDD17', t:'presentationModule', d:'UserManager, StreakManager' },
+        ]}
+      ]
+    }
+  },
+
+  // ── LAYER 1: UI LAYER ─────────────────────
+  presentation: {
+    label: 'presentation', icon: '\uD83D\uDCF1', desc: 'Nav + Shared UI (40 files)',
+    color: 'var(--green)', x: CX - 650, y: L1_Y, layer: 1, badge: '40',
+    children: ['presNav','presShared','presManagers','presImport'],
+    childDir: 'left',
+    detail: {
+      subtitle: 'Global navigation, shared screens & components, manager implementations.',
+      tags: [{ l:'40 files', c:'var(--green)' }], sections: []
+    }
+  },
+  features: {
+    label: 'feature/*', icon: '\uD83D\uDCE6', desc: '8 Feature Modules (87 files)',
+    color: 'var(--blue)', x: CX + 650, y: L1_Y, layer: 1, badge: '87',
+    children: ['fAuth','fStudy','fWords','fProfile','fSettings','fOnboard','fSubscription','fLeaderboard','fImport'],
+    childDir: 'right',
+    detail: {
+      subtitle: 'Self-contained feature modules. Each has ViewModel, UI, DI.',
+      tags: [{ l:'87 files', c:'var(--blue)' }, { l:'15 ViewModels', c:'var(--blue)' }], sections: []
+    }
+  },
+
+  // ── LAYER 2: DOMAIN (center, most depended-on) ─
+  domain: {
+    label: 'domain', icon: '\uD83C\uDFDB\uFE0F', desc: 'Pure Kotlin Logic (79 files)',
+    color: 'var(--purple)', x: CX, y: L2_Y, layer: 2, badge: '79',
+    children: ['dWord','dAuth','dProfile','dNotif','dSettings','dStreak','dLeaderboard','dTts','dOnboard','dAi','dSub'],
+    childDir: 'below',
+    detail: {
+      subtitle: 'Pure Kotlin business logic. 40+ use cases, 10+ repository interfaces, 15 models.\nNEVER imports: data, presentation, platforms, core, composeApp.',
+      tags: [{ l:'79 files', c:'var(--purple)' }, { l:'40+ Use Cases', c:'var(--purple)' }, { l:'PURE KOTLIN', c:'var(--purple)' }],
+      sections: [
+        { title: 'Strict Rules', items: [
+          { i:'\uD83D\uDEAB', t:'NEVER imports: data, presentation, platforms, core' },
+          { i:'\uD83D\uDEAB', t:'NEVER references: Room, Ktor, Koin, Compose' },
+          { i:'\u2714\uFE0F', t:'Only pure Kotlin + coroutines' },
+        ]}
+      ]
+    }
+  },
+
+  // ── LAYER 3: DATA IMPLEMENTATION ───────────
+  data: {
+    label: 'data', icon: '\uD83D\uDDC4\uFE0F', desc: 'Repos + Network + DB (66 files)',
+    color: 'var(--orange)', x: CX + 650, y: L3_Y, layer: 3, badge: '66',
+    children: ['dataRepos','dataRemote','dataLocal','dataNet','dataDb','dataUtils'],
+    childDir: 'right',
+    detail: {
+      subtitle: 'Repository implementations, Ktor data sources, Room database. Implements domain interfaces.',
+      tags: [{ l:'66 files', c:'var(--orange)' }, { l:'11 Repos', c:'var(--orange)' }, { l:'12 DataSources', c:'var(--orange)' }], sections: []
+    }
+  },
+
+  // ── LAYER 4: FOUNDATION ────────────────────
+  core: {
+    label: 'core', icon: '\u2B22', desc: 'BaseViewModel, Try<T>, UseCase (19 files)',
+    color: 'var(--accent)', x: CX - 200, y: L4_Y, layer: 4, badge: '19',
+    detail: {
+      subtitle: 'Foundation: BaseViewModel<S,F>, UseCase<P,R>, FlowUseCase<P,R>, Try<T>, UiState<T>, OnEvents.',
+      tags: [{ l:'19 files', c:'var(--accent)' }],
+      sections: [
+        { title: 'Base Classes', items: [
+          { i:'\uD83E\uDDE0', t:'BaseViewModel<S, F>', d:'mutableStateOf, updateState, emitEffect, reduce' },
+          { i:'\u25B6\uFE0F', t:'UseCase<P, R>', d:'suspend (P) -> Try<R>' },
+          { i:'\u25B6\uFE0F', t:'FlowUseCase<P, R>', d:'(P) -> Flow<R>' },
+          { i:'\u2714\uFE0F', t:'Try<T>', d:'Success/Failure + map, flatMap, fold, recover' },
+          { i:'\uD83D\uDCCB', t:'UiState<T>', d:'Loading / Success / Error' },
+          { i:'\uD83D\uDD14', t:'OnEvents', d:'Compose effect collector' },
+        ]},
+        { title: 'Platform Bridges', items: [
+          { i:'\uD83D\uDCF1', t:'SystemBarsController / BackHandler / ImagePicker' },
+          { i:'\uD83C\uDF10', t:'UrlOpener / FileSharer / ShareService' },
+        ]}
+      ],
+      code: `<span class="kw">abstract class</span> <span class="tp">BaseViewModel</span>&lt;<span class="tp">S</span>, <span class="tp">F</span>&gt; : <span class="tp">ViewModel</span>() {
+  @<span class="tp">Composable</span> <span class="kw">fun</span> <span class="fn">state</span>(): <span class="tp">State</span>&lt;<span class="tp">S</span>&gt;
+  <span class="kw">protected fun</span> <span class="fn">updateState</span>(reducer: <span class="tp">S</span>.() -> <span class="tp">S</span>)
+  <span class="kw">protected fun</span> <span class="fn">emitEffect</span>(effect: <span class="tp">F</span>)
+  <span class="kw">protected fun</span> &lt;<span class="tp">T</span>&gt; <span class="tp">Try</span>&lt;<span class="tp">T</span>&gt;.<span class="fn">reduce</span>(...)
+}`
+    }
+  },
+  designSystem: {
+    label: 'design-system', icon: '\uD83C\uDFA8', desc: 'Theme + Components (22 files)',
+    color: 'var(--pink)', x: CX - 700, y: L4_Y, layer: 4, badge: '22',
+    detail: {
+      subtitle: 'Pure Compose components, Material3 theming, overlay system. No business logic.',
+      tags: [{ l:'22 files', c:'var(--pink)' }, { l:'PURE COMPOSE', c:'var(--pink)' }],
+      sections: [
+        { title: 'Theme', items: [{ i:'\uD83C\uDFA8', t:'AppTheme', d:'Material3 color + typography tokens' }]},
+        { title: 'Components', items: [
+          { i:'\uD83E\uDDF1', t:'LexiconScaffold / StatusScreen / ListTile / Pill' },
+          { i:'\uD83E\uDDF1', t:'SectionHeader / AnimatedProgressBar / StaggeredFadeSlide' },
+        ]},
+        { title: 'Overlay System', items: [
+          { i:'\uD83D\uDDC2\uFE0F', t:'OverlayHost / DialogOverlay / BottomSheetOverlay' },
+        ]}
+      ]
+    }
+  },
+  platforms: {
+    label: 'platforms', icon: '\uD83D\uDD0C', desc: 'expect/actual (13 files)',
+    color: 'var(--cyan)', x: CX + 350, y: L4_Y, layer: 4, badge: '13',
+    detail: {
+      subtitle: 'Platform bridges: Firebase, notifications, TTS (Sherpa ONNX), secure storage, analytics.',
+      tags: [{ l:'13 files', c:'var(--cyan)' }, { l:'Android + iOS', c:'var(--cyan)' }],
+      sections: [
+        { title: 'Bridges', items: [
+          { i:'\uD83D\uDD12', t:'IGoogleAuthStateProvider / IAppleAuthStateProvider' },
+          { i:'\uD83D\uDD14', t:'INotificationManager / IPushTokenManager' },
+          { i:'\uD83D\uDD0A', t:'ITtsEngine / IModelFileManager', d:'Sherpa ONNX Piper' },
+          { i:'\uD83D\uDCCA', t:'IAnalyticsTracker / SecureStorage / IAppVersionProvider' },
+        ]}
+      ]
+    }
+  },
+  support: {
+    label: 'utils / test / resources', icon: '\uD83D\uDCE6', desc: 'Helpers + Test Fakes',
+    color: 'var(--text3)', x: CX + 900, y: L4_Y, layer: 4,
+    detail: {
+      subtitle: 'Shared helpers, test utilities, string resources, convention plugins.',
+      tags: [],
+      sections: [{ title: 'Modules', items: [
+        { i:'\uD83D\uDD27', t:'utils', d:'Shared helper functions' },
+        { i:'\uD83E\uDDEA', t:'test', d:'Shared test utilities and fakes' },
+        { i:'\uD83C\uDF10', t:'resources', d:'Compose Multiplatform strings' },
+        { i:'\u2699\uFE0F', t:'build-logic', d:'Convention plugins' },
+        { i:'\uD83C\uDF4F', t:'iosApp', d:'Swift entry point' },
+      ]}]
+    }
+  },
+
+  // ── PRESENTATION CHILDREN ──────────────────
+  presNav: {
+    label: 'Navigation', icon: '\uD83D\uDDFA\uFE0F', color: 'var(--green)', desc: 'LexiconApp, AppShell, Routes',
+    detail: { subtitle:'Root composable, app shell with bottom tabs, route graph.', tags:[{l:'4 files',c:'var(--green)'}],
+      sections:[{title:'Files',items:[
+        {i:'\uD83D\uDCC4',t:'LexiconApp.kt',d:'Root composable'},{i:'\uD83D\uDCC4',t:'AppShell.kt',d:'Bottom nav + scaffold'},
+        {i:'\uD83D\uDCC4',t:'NavigationGraph.kt',d:'All routes'},{i:'\uD83E\uDDE0',t:'AppNavigationViewModel',d:'Tab state'},
+    ]}]}
+  },
+  presShared: {
+    label: 'Shared UI', icon: '\uD83E\uDDF1', color: 'var(--green)', desc: 'Dialogs, Settings Cards',
+    detail: { subtitle:'Reusable dialogs, settings cards.', tags:[{l:'22 files',c:'var(--green)'}],
+      sections:[{title:'Components',items:[
+        {i:'\uD83D\uDCAC',t:'CloseConfirmation / Language / Theme / Notification dialogs'},
+        {i:'\uD83C\uDFA8',t:'Language / Theme / Notification / Subscription / About cards'},
+    ]}]}
+  },
+  presManagers: {
+    label: 'Managers', icon: '\uD83D\uDD27', color: 'var(--green)', desc: 'UserManager, StreakManager',
+    detail: { subtitle:'Implements domain manager interfaces.', tags:[],
+      sections:[{title:'Impls',items:[
+        {i:'\u2699\uFE0F',t:'UserManagerImpl',d:'IUserManager'},{i:'\u2699\uFE0F',t:'StreakManagerImpl',d:'IStreakManager'},
+    ]}]}
+  },
+  presImport: {
+    label: 'Import UI', icon: '\uD83D\uDCE5', color: 'var(--green)', desc: 'ImportViewModel + Sheets',
+    detail: { subtitle:'Shared import bottom sheet and tab components.', tags:[{l:'8 files',c:'var(--green)'}],
+      sections:[{title:'Components',items:[
+        {i:'\uD83E\uDDE0',t:'ImportViewModel'},{i:'\uD83C\uDFA8',t:'ImportBottomSheet / ImportTabV2 / AiWordImportBottomSheet'},
+    ]}]}
+  },
+
+  // ── FEATURE CHILDREN (sorted by file count desc) ──
+  fStudy: {
+    label: 'study', icon: '\uD83D\uDCDA', color: 'var(--green)', desc: '35 files, 11 use cases',
+    detail: { subtitle:'Core study: flashcards, SRS, progress.', tags:[{l:'35 files',c:'var(--green)'},{l:'SRS',c:'var(--green)'}],
+      sections:[
+        {title:'ViewModel',items:[{i:'\uD83E\uDDE0',t:'StudyViewModel',d:'BaseViewModel<StudyScreenState, StudyEvent>'}]},
+        {title:'Progress UI',items:[{i:'\uD83C\uDFA8',t:'ProgressRing / WordDistributionBar / StatsSection / LearningStagesSection'}]},
+        {title:'Review UI',items:[{i:'\uD83C\uDFA8',t:'FlashCard / LevelBucketCard / ReviewBottomSheet / ReviewCompletionContent'}]},
+    ]}
+  },
+  fProfile: {
+    label: 'profile', icon: '\uD83D\uDC64', color: 'var(--purple)', desc: '15 files, 2 VMs',
+    detail: { subtitle:'Profile view, edit, stats, avatar.', tags:[{l:'15 files',c:'var(--purple)'}],
+      sections:[
+        {title:'ViewModels',items:[{i:'\uD83E\uDDE0',t:'ProfileViewModel / EditProfileViewModel'}]},
+        {title:'UI',items:[{i:'\uD83D\uDCF1',t:'ProfileScreen / EditProfileScreen'},{i:'\uD83C\uDFA8',t:'UserInfoSection / WeeklyActivitySection / StreakSection'}]},
+    ]}
+  },
+  fOnboard: {
+    label: 'onboarding', icon: '\uD83D\uDE80', color: 'var(--cyan)', desc: '10 files, 2 VMs',
+    detail: { subtitle:'First-time setup: language/level selection, vocabulary preview.', tags:[{l:'10 files',c:'var(--cyan)'}],
+      sections:[
+        {title:'ViewModels',items:[{i:'\uD83E\uDDE0',t:'OnboardingViewModel / VocabularyPreviewViewModel'}]},
+        {title:'UI',items:[{i:'\uD83C\uDFA8',t:'OnboardingScreen / OnboardingLanguageGrid / OnboardingLevelContent'}]},
+    ]}
+  },
+  fSubscription: {
+    label: 'subscription', icon: '\u2B50', color: 'var(--orange)', desc: '10 files, Paywall',
+    detail: { subtitle:'RevenueCat subscription and paywall.', tags:[{l:'10 files',c:'var(--orange)'}],
+      sections:[
+        {title:'ViewModel',items:[{i:'\uD83E\uDDE0',t:'SubscriptionViewModel'}]},
+        {title:'UI',items:[{i:'\uD83C\uDFA8',t:'PremiumHeroSection / PremiumFeaturesGrid / PlanCard / ComparisonTable'}]},
+    ]}
+  },
+  fWords: {
+    label: 'words', icon: '\uD83D\uDDD2\uFE0F', color: 'var(--yellow)', desc: '8 files, 2 VMs',
+    detail: { subtitle:'Vocabulary management: view, edit, delete, export, batch.', tags:[{l:'8 files',c:'var(--yellow)'}],
+      sections:[
+        {title:'ViewModels',items:[{i:'\uD83E\uDDE0',t:'VocabularyViewModel / WordManagerViewModel'}]},
+        {title:'Handlers',items:[{i:'\u2699\uFE0F',t:'WordEditingHandler / WordDeletionHandler / WordExportHandler / WordBatchEditHandler'}]},
+    ]}
+  },
+  fAuth: {
+    label: 'auth', icon: '\uD83D\uDD10', color: 'var(--red)', desc: '6 files, OAuth',
+    detail: { subtitle:'Login/signup: Google OAuth, Apple Sign-In, Firebase.', tags:[{l:'6 files',c:'var(--red)'}],
+      sections:[
+        {title:'ViewModel',items:[{i:'\uD83E\uDDE0',t:'AuthViewModel'}]},
+        {title:'Screens',items:[{i:'\uD83D\uDCF1',t:'SplashScreen / AuthGateScreen / GoogleSignInContainer / AppleSignInButton'}]},
+    ]}
+  },
+  fSettings: {
+    label: 'settings', icon: '\u2699\uFE0F', color: 'var(--text2)', desc: '5 files',
+    detail: { subtitle:'Theme, language, notification preferences.', tags:[{l:'5 files',c:'var(--text2)'}],
+      sections:[{title:'Components',items:[{i:'\uD83E\uDDE0',t:'SettingsViewModel'},{i:'\uD83D\uDCCB',t:'SettingsScreenState / SettingsEffect'}]}]}
+  },
+  fLeaderboard: {
+    label: 'leaderboard', icon: '\uD83C\uDFC6', color: 'var(--yellow)', desc: '4 files',
+    detail: { subtitle:'Leaderboard rankings.', tags:[{l:'4 files',c:'var(--yellow)'}],
+      sections:[{title:'Components',items:[{i:'\uD83E\uDDE0',t:'LeaderboardViewModel'},{i:'\uD83D\uDCF1',t:'LeaderboardScreen'}]}]}
+  },
+  fImport: {
+    label: 'import', icon: '\uD83E\uDD16', color: 'var(--pink)', desc: '3 files, AI',
+    detail: { subtitle:'AI-powered word import from images.', tags:[{l:'3 files',c:'var(--pink)'}],
+      sections:[{title:'Components',items:[{i:'\uD83E\uDDE0',t:'AiWordImportViewModel'},{i:'\uD83D\uDCCB',t:'AiWordImportUiState'}]}]}
+  },
+
+  // ── DOMAIN CHILDREN (sorted by use case count desc) ──
+  dWord: {
+    label: 'word', icon: '\uD83D\uDCDA', color: 'var(--green)', desc: '18 files, 13 UCs',
+    detail: { subtitle:'Largest domain area. Word models, SRS stages, 13 use cases.', tags:[{l:'18 files',c:'var(--green)'},{l:'SRS 7-bucket',c:'var(--green)'}],
+      sections:[
+        {title:'Models',items:[{i:'\uD83D\uDCCB',t:'Word / LearningStage / ProgressStats / ProgressEvaluation'}]},
+        {title:'Query',items:[{i:'\uD83D\uDD0D',t:'GetAllWords / GetDueWords / GetWordsByStage / GetProgressStats'}]},
+        {title:'Mutation',items:[{i:'\u270F\uFE0F',t:'UpdateWord / ReviewWord / EvaluateProgress / DeleteWord'}]},
+        {title:'Import/Export',items:[{i:'\uD83D\uDCE5',t:'ImportWords / ImportViaFile / ExportWords / BatchUpdateLanguages / SyncRemoteToLocal'}]},
+    ]}
+  },
+  dAuth: {
+    label: 'auth', icon: '\uD83D\uDD10', color: 'var(--red)', desc: '10 files, 8 UCs',
+    detail: { subtitle:'Auth models, session management, 8 use cases.', tags:[{l:'10 files',c:'var(--red)'}],
+      sections:[
+        {title:'Interfaces',items:[{i:'\uD83D\uDD0C',t:'ISessionManager / IUserManager / IAuthRepository / ISessionRepository / ISecureStorage'}]},
+        {title:'Use Cases',items:[
+          {i:'\u25B6\uFE0F',t:'LoginWithGoogle / LoginWithApple / Logout / DeleteAccount'},
+          {i:'\u25B6\uFE0F',t:'IsAuthenticated / VerifySession / GetFeatureAccess / ClearAllUserData'},
+        ]}
+    ]}
+  },
+  dProfile: {
+    label: 'profile', icon: '\uD83D\uDC64', color: 'var(--purple)', desc: '6 files, 5 UCs',
+    detail: { subtitle:'Profile data, stats, avatar.', tags:[{l:'6 files',c:'var(--purple)'}],
+      sections:[{title:'Use Cases',items:[{i:'\u25B6\uFE0F',t:'UpdateProfile / GetProfileStats / UploadAvatar / DeleteAvatar'}]}]}
+  },
+  dNotif: {
+    label: 'notifications', icon: '\uD83D\uDD14', color: 'var(--orange)', desc: '6 files, 5 UCs',
+    detail: { subtitle:'Push notifications, scheduling, permissions.', tags:[{l:'6 files',c:'var(--orange)'}],
+      sections:[{title:'Use Cases',items:[{i:'\u25B6\uFE0F',t:'InitializePush / RegisterPushToken / OpenSettings / RequestPermission / Schedule'}]}]}
+  },
+  dSettings: {
+    label: 'settings', icon: '\u2699\uFE0F', color: 'var(--text2)', desc: '6 files, 4 UCs' },
+  dStreak: { label: 'streak', icon: '\uD83D\uDD25', color: 'var(--orange)', desc: '5 files, 2 UCs' },
+  dLeaderboard: { label: 'leaderboard', icon: '\uD83C\uDFC6', color: 'var(--yellow)', desc: '5 files, 1 UC' },
+  dTts: { label: 'tts', icon: '\uD83D\uDD0A', color: 'var(--cyan)', desc: '4 files, 2 UCs' },
+  dOnboard: { label: 'onboarding', icon: '\uD83D\uDE80', color: 'var(--cyan)', desc: '4 files, 2 UCs' },
+  dAi: { label: 'ai', icon: '\uD83E\uDD16', color: 'var(--pink)', desc: '3 files, 2 UCs' },
+  dSub: { label: 'subscription', icon: '\u2B50', color: 'var(--orange)', desc: '2 files' },
+
+  // ── DATA CHILDREN (sorted by importance) ──
+  dataRepos: {
+    label: 'Repositories', icon: '\uD83D\uDD0C', color: 'var(--orange)', desc: '11 impls',
+    detail: { subtitle:'Implements domain repository interfaces. suspend -> Try<T>.', tags:[{l:'11 repos',c:'var(--orange)'}],
+      sections:[{title:'Implementations',items:[
+        {i:'\uD83D\uDD0C',t:'AuthRepositoryImpl / WordRepositoryImpl / SettingsRepositoryImpl'},
+        {i:'\uD83D\uDD0C',t:'ProfileRepositoryImpl / ProfileStatsRepositoryImpl / LeaderboardRepositoryImpl'},
+        {i:'\uD83D\uDD0C',t:'StreakRepositoryImpl / OnboardingRepositoryImpl / AiRepositoryImpl'},
+        {i:'\uD83D\uDD0C',t:'NotificationRepositoryImpl / TtsRepositoryImpl / SessionRepositoryImpl'},
+    ]}]}
+  },
+  dataRemote: {
+    label: 'Remote Sources', icon: '\u2601\uFE0F', color: 'var(--orange)', desc: '12 API sources',
+    detail: { subtitle:'Ktor-based API data sources. Interface + impl pairs.', tags:[{l:'18 endpoints',c:'var(--orange)'}],
+      sections:[{title:'Data Sources',items:[
+        {i:'\u2601\uFE0F',t:'Auth / FeatureAccess / Word / Profile / ProfileStats'},
+        {i:'\u2601\uFE0F',t:'Leaderboard / Streak / Onboarding / PushNotification / Ai'},
+    ]}]}
+  },
+  dataNet: {
+    label: 'Network', icon: '\uD83C\uDF10', color: 'var(--orange)', desc: 'Ktor + Interceptors',
+    detail: { subtitle:'Ktor HTTP client with auth, error, refresh interceptors.', tags:[{l:'7 files',c:'var(--orange)'}],
+      sections:[
+        {title:'Core',items:[{i:'\uD83C\uDF10',t:'ApiClient / HttpClientProvider / ApiResponse<T>'}]},
+        {title:'Interceptors',items:[
+          {i:'\uD83D\uDD12',t:'AuthInterceptor',d:'Bearer token'},{i:'\u26A0\uFE0F',t:'ErrorInterceptor'},
+          {i:'\uD83D\uDD04',t:'RefreshAndRetryInterceptor',d:'Auto 401/403 refresh'},
+        ]}
+    ]}
+  },
+  dataDb: {
+    label: 'Database', icon: '\uD83D\uDDC3\uFE0F', color: 'var(--orange)', desc: 'Room v5',
+    detail: { subtitle:'Room multiplatform database. Schema v5 with migrations.', tags:[{l:'3 files',c:'var(--orange)'}],
+      sections:[{title:'Files',items:[
+        {i:'\uD83D\uDDC3\uFE0F',t:'AppDatabase',d:'Room + migrations'},{i:'\uD83D\uDD0D',t:'LexiconDao / DatabaseDriverFactory'},
+        {i:'\uD83D\uDCCB',t:'Tables: WordEntity, SettingsEntity'},
+    ]}]}
+  },
+  dataLocal: { label: 'Local Source', icon: '\uD83D\uDCBE', color: 'var(--orange)', desc: 'WordLocalDataSource' },
+  dataUtils: {
+    label: 'Utilities', icon: '\uD83D\uDD27', color: 'var(--orange)', desc: 'Token, Sync, DTOs',
+    detail: { subtitle:'Token management, session state, sync, DTOs.', tags:[{l:'13 files',c:'var(--orange)'}],
+      sections:[
+        {title:'Auth',items:[{i:'\uD83D\uDD12',t:'TokenManager / SessionManager / AuthenticationStateManager / TokenRefreshManager'}]},
+        {title:'Sync',items:[{i:'\uD83D\uDD04',t:'WordConflictResolver / WordRemoteSyncHandler'}]},
+    ]}
+  },
+};
+
+// =============================================
+//  CONNECTIONS - categorized by type
+// =============================================
+const CONNECTIONS = {
+  deps: [
+    // composeApp -> all (6 connections = highest)
+    { from:'composeApp', to:'presentation' },
+    { from:'composeApp', to:'features' },
+    { from:'composeApp', to:'domain' },
+    { from:'composeApp', to:'data' },
+    { from:'composeApp', to:'core' },
+    { from:'composeApp', to:'platforms' },
+    // features -> deps (3)
+    { from:'features', to:'domain' },
+    { from:'features', to:'core' },
+    { from:'features', to:'designSystem' },
+    // presentation -> deps (4)
+    { from:'presentation', to:'domain' },
+    { from:'presentation', to:'core' },
+    { from:'presentation', to:'designSystem' },
+    { from:'presentation', to:'features' },
+    // data -> deps (2)
+    { from:'data', to:'platforms' },
+    { from:'data', to:'core' },
+    // data internals
+    { from:'dataRepos', to:'dataRemote', internal: true },
+    { from:'dataRepos', to:'dataLocal', internal: true },
+    { from:'dataRemote', to:'dataNet', internal: true },
+    { from:'dataLocal', to:'dataDb', internal: true },
+    // feature -> domain area links
+    { from:'fStudy', to:'dWord', cross: true },
+    { from:'fStudy', to:'dStreak', cross: true },
+    { from:'fStudy', to:'dTts', cross: true },
+    { from:'fAuth', to:'dAuth', cross: true },
+    { from:'fWords', to:'dWord', cross: true },
+    { from:'fProfile', to:'dProfile', cross: true },
+    { from:'fProfile', to:'dStreak', cross: true },
+    { from:'fSettings', to:'dSettings', cross: true },
+    { from:'fOnboard', to:'dOnboard', cross: true },
+    { from:'fSubscription', to:'dSub', cross: true },
+    { from:'fLeaderboard', to:'dLeaderboard', cross: true },
+    { from:'fImport', to:'dAi', cross: true },
+  ],
+  impl: [
+    { from:'data', to:'domain', label:'implements' },
+    { from:'dataRepos', to:'domain', label:'implements', internal: true },
+    { from:'presManagers', to:'domain', label:'implements' },
+  ],
+  flow: [
+    { from:'presNav', to:'features', label:'renders' },
+    { from:'features', to:'domain', label:'calls UseCases' },
+    { from:'domain', to:'data', label:'via interfaces' },
+    { from:'dataRepos', to:'dataRemote', label:'API calls' },
+    { from:'dataRepos', to:'dataLocal', label:'DB queries' },
+    { from:'dataRemote', to:'dataNet', label:'HTTP' },
+    { from:'dataLocal', to:'dataDb', label:'Room' },
+  ],
+  forbidden: [
+    { from:'domain', to:'data' },
+    { from:'domain', to:'presentation' },
+    { from:'domain', to:'core' },
+    { from:'domain', to:'platforms' },
+    { from:'designSystem', to:'domain' },
+    { from:'designSystem', to:'data' },
+    { from:'presentation', to:'data' },
+  ],
+};
+
+// =============================================
+//  STATE
+// =============================================
+let panX = 0, panY = 0, zoom = 1;
+let isPanning = false, panSX = 0, panSY = 0;
+let expanded = new Set();
+let showConn = new Set(['deps']);
+let hoveredNode = null;
+const nodeEls = {};
+
+const world = document.getElementById('world');
+const svg = document.getElementById('connections');
+
+// Count connections per node
+function countConns(id) {
+  let c = 0;
+  for (const type of showConn) {
+    (CONNECTIONS[type]||[]).forEach(conn => {
+      if (conn.from === id || conn.to === id) c++;
+    });
+  }
+  return c;
+}
+
+// =============================================
+//  LAYOUT: position children dynamically
+// =============================================
+function layoutChildren(parentId) {
+  const p = NODES[parentId];
+  if (!p || !p.children) return;
+  const kids = p.children;
+  const dir = p.childDir || 'right';
+  const n = kids.length;
+
+  if (dir === 'left') {
+    const startY = p.y - ((n - 1) * CHILD_GAP) / 2;
+    kids.forEach((kid, i) => {
+      if (!NODES[kid]) return;
+      NODES[kid].x = p.x - 260;
+      NODES[kid].y = startY + i * CHILD_GAP;
+    });
+  } else if (dir === 'right') {
+    const startY = p.y - ((n - 1) * CHILD_GAP) / 2;
+    kids.forEach((kid, i) => {
+      if (!NODES[kid]) return;
+      NODES[kid].x = p.x + 300;
+      NODES[kid].y = startY + i * CHILD_GAP;
+    });
+  } else if (dir === 'below') {
+    // Fan out below, centered
+    const spread = Math.min(CHILD_GAP, 1800 / n);
+    const totalW = (n - 1) * spread;
+    const startX = p.x - totalW / 2;
+    kids.forEach((kid, i) => {
+      if (!NODES[kid]) return;
+      NODES[kid].x = startX + i * spread;
+      NODES[kid].y = p.y + 160;
+    });
+  }
+}
+
+// =============================================
+//  RENDER
+// =============================================
+function getVisibleNodes() {
+  const topLevel = ['composeApp','presentation','features','domain','data','core','designSystem','platforms','support'];
+  const visible = [...topLevel];
+  for (const id of topLevel) {
+    if (expanded.has(id) && NODES[id].children) {
+      layoutChildren(id);
+      visible.push(...NODES[id].children);
+    }
+  }
+  return visible;
+}
+
+function renderNodes() {
+  Object.keys(nodeEls).forEach(id => { if (nodeEls[id].parentNode) nodeEls[id].remove(); delete nodeEls[id]; });
+  const visible = getVisibleNodes();
+
+  visible.forEach((id, i) => {
+    const n = NODES[id];
+    if (!n) return;
+    const cc = countConns(id);
+    const el = document.createElement('div');
+    el.className = 'mnode' + (n.root ? ' root-node' : '') + (expanded.has(id) ? ' expanded' : '');
+    el.style.cssText = `--node-color:${n.color||'var(--accent)'};left:${n.x}px;top:${n.y}px;`;
+    el.dataset.id = id;
+
+    let html = `<div class="mnode-top">
+      <div class="mnode-icon" style="background:${n.color||'var(--accent)'}18">${n.icon||''}</div>
+      <div class="mnode-name">${n.label}</div>
+      ${n.badge ? `<div class="mnode-badge" style="background:${n.color||'var(--accent)'}18;color:${n.color||'var(--accent)'}">${n.badge}</div>` : ''}
+    </div>`;
+    if (n.desc) html += `<div class="mnode-desc">${n.desc}</div>`;
+    if (cc > 0) html += `<div class="mnode-dep-count">${cc}</div>`;
+    if (n.children) html += `<div class="mnode-expand">${expanded.has(id)?'\u2212':'+'}</div>`;
+    el.innerHTML = html;
+
+    el.addEventListener('click', e => { e.stopPropagation(); toggleExpand(id); });
+    el.addEventListener('dblclick', e => { e.stopPropagation(); openDetail(id); });
+    el.addEventListener('mouseenter', () => { hoveredNode = id; highlight(id); });
+    el.addEventListener('mouseleave', () => { hoveredNode = null; clearHL(); });
+
+    world.appendChild(el);
+    nodeEls[id] = el;
+    setTimeout(() => el.classList.add('show'), i * 20);
+  });
+
+  renderLines();
+}
+
+// =============================================
+//  SVG CONNECTIONS
+// =============================================
+function nodeRect(id) {
+  const el = nodeEls[id]; if (!el) return null;
+  const n = NODES[id];
+  const w = el.offsetWidth || 160, h = el.offsetHeight || 50;
+  return { cx: n.x + w/2, cy: n.y + h/2, w, h };
+}
+
+function edgePt(rect, target) {
+  const dx = target.cx - rect.cx, dy = target.cy - rect.cy;
+  const hw = rect.w/2 + 6, hh = rect.h/2 + 6;
+  if (Math.abs(dy/(dx||.001)) < hh/hw) {
+    return { x: rect.cx + Math.sign(dx)*hw, y: rect.cy + hw*dy/(Math.abs(dx)||1)*Math.sign(dx) };
+  }
+  return { x: rect.cx + hh*dx/(Math.abs(dy)||1)*Math.sign(dy), y: rect.cy + Math.sign(dy)*hh };
+}
+
+function renderLines() {
+  let h = `<defs>
+    <marker id="a" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="currentColor" opacity="0.7"/></marker>
+    <marker id="aR" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--red)" opacity="0.7"/></marker>
+    <marker id="aG" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--green)" opacity="0.7"/></marker>
+    <marker id="aY" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5" fill="var(--yellow)" opacity="0.7"/></marker>
+  </defs>`;
+
+  const typeStyles = {
+    deps:      { color:'var(--accent)', opacity: 0.55, width: 1.5, dash:'none', marker:'url(#a)' },
+    impl:      { color:'var(--yellow)', opacity: 0.55, width: 1.5, dash:'6,4', marker:'url(#aY)' },
+    flow:      { color:'var(--green)',  opacity: 0.6,  width: 2,   dash:'none', marker:'url(#aG)' },
+    forbidden: { color:'var(--red)',    opacity: 0.4,  width: 1.5, dash:'5,4', marker:'url(#aR)' },
+  };
+
+  for (const type of showConn) {
+    const conns = CONNECTIONS[type] || [];
+    const style = typeStyles[type];
+
+    conns.forEach(c => {
+      const fr = nodeRect(c.from), tr = nodeRect(c.to);
+      if (!fr || !tr) return;
+      const fp = edgePt(fr, tr), tp = edgePt(tr, fr);
+
+      const dx = tp.x - fp.x, dy = tp.y - fp.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      const curveAmt = c.cross ? Math.min(dist*0.35, 80) : Math.min(dist*0.2, 50);
+      const nx = -dy/dist * curveAmt, ny = dx/dist * curveAmt;
+      const cpx = (fp.x+tp.x)/2 + nx, cpy = (fp.y+tp.y)/2 + ny;
+
+      const op = c.cross ? 0.2 : (c.internal ? 0.4 : style.opacity);
+      const w = c.cross ? 1 : (c.internal ? 1.2 : style.width);
+
+      h += `<path d="M${fp.x},${fp.y} Q${cpx},${cpy} ${tp.x},${tp.y}"
+        fill="none" stroke="${style.color}" stroke-width="${w}"
+        stroke-opacity="${op}" stroke-dasharray="${style.dash}"
+        marker-end="${style.marker}"
+        data-from="${c.from}" data-to="${c.to}" class="cline"/>`;
+
+      if (c.label && !c.internal && !c.cross) {
+        const lx = (fp.x+2*cpx+tp.x)/4, ly = (fp.y+2*cpy+tp.y)/4;
+        h += `<text x="${lx}" y="${ly-7}" fill="${style.color}" font-size="9" opacity="0.55"
+          text-anchor="middle" font-family="system-ui">${c.label}</text>`;
+      }
+    });
+  }
+
+  // Layer labels
+  const layers = [
+    { y: L0_Y - 30, label: 'ORCHESTRATOR' },
+    { y: L1_Y - 30, label: 'UI LAYER' },
+    { y: L2_Y - 30, label: 'BUSINESS LOGIC' },
+    { y: L3_Y - 30, label: 'DATA LAYER' },
+    { y: L4_Y - 30, label: 'FOUNDATION' },
+  ];
+  layers.forEach(l => {
+    h += `<line x1="40" y1="${l.y+15}" x2="4200" y2="${l.y+15}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,8" opacity="0.3"/>`;
+    h += `<text x="50" y="${l.y+10}" fill="var(--text3)" font-size="10" opacity="0.4"
+      font-family="system-ui" font-weight="600" letter-spacing="2">${l.label}</text>`;
+  });
+
+  svg.innerHTML = h;
+}
+
+// =============================================
+//  INTERACTION
+// =============================================
+function toggleExpand(id) {
+  const n = NODES[id];
+  if (n && n.children) {
+    if (expanded.has(id)) {
+      expanded.delete(id);
+      n.children.forEach(c => expanded.delete(c));
+    } else {
+      expanded.add(id);
+    }
+    renderNodes();
+  } else if (n && n.detail) {
+    openDetail(id);
+  }
+}
+
+function collapseAll() { expanded.clear(); renderNodes(); }
+function expandAll() {
+  Object.entries(NODES).forEach(([id,n]) => { if (n.children) expanded.add(id); });
+  renderNodes();
+}
+
+function highlight(nodeId) {
+  const connected = new Set([nodeId]);
+  for (const type of showConn) {
+    (CONNECTIONS[type]||[]).forEach(c => {
+      if (c.from === nodeId) connected.add(c.to);
+      if (c.to === nodeId) connected.add(c.from);
+    });
+  }
+  Object.entries(nodeEls).forEach(([id,el]) => el.classList.toggle('dimmed', !connected.has(id)));
+  svg.querySelectorAll('.cline').forEach(l => {
+    const match = l.dataset.from === nodeId || l.dataset.to === nodeId;
+    l.style.strokeOpacity = match ? '0.9' : '0.04';
+    l.style.strokeWidth = match ? '3' : '';
+  });
+}
+
+function clearHL() {
+  Object.values(nodeEls).forEach(el => el.classList.remove('dimmed'));
+  svg.querySelectorAll('.cline').forEach(l => { l.style.strokeOpacity = ''; l.style.strokeWidth = ''; });
+}
+
+function toggleConn(type) {
+  if (showConn.has(type)) showConn.delete(type); else showConn.add(type);
+  document.getElementById('btnDeps').classList.toggle('active', showConn.has('deps'));
+  document.getElementById('btnFlow').classList.toggle('active', showConn.has('flow'));
+  document.getElementById('btnForbid').classList.toggle('active', showConn.has('forbidden'));
+  document.getElementById('btnImpl').classList.toggle('active', showConn.has('impl'));
+  renderNodes(); // re-count badges too
+}
+
+// =============================================
+//  DETAIL PANEL
+// =============================================
+function openDetail(id) {
+  const n = NODES[id]; if (!n || !n.detail) return;
+  const d = n.detail;
+  let html = `<div class="detail-icon">${n.icon||''}</div>`;
+  html += `<div class="detail-title" style="color:${n.color}">${n.label}</div>`;
+  html += `<div class="detail-sub">${(d.subtitle||'').replace(/\n/g,'<br>')}</div>`;
+  if (d.tags && d.tags.length) {
+    html += '<div class="detail-tags">';
+    d.tags.forEach(t => html += `<span class="detail-tag" style="background:${t.c}15;color:${t.c}">${t.l}</span>`);
+    html += '</div>';
+  }
+  if (d.sections) d.sections.forEach(s => {
+    html += `<div class="detail-section"><div class="detail-section-title">${s.title}</div>`;
+    s.items.forEach(item => html += `<div class="detail-item"><span class="di-icon">${item.i||''}</span><span>${item.t}${item.d?` <span style="color:var(--text3)">- ${item.d}</span>`:''}</span></div>`);
+    html += '</div>';
+  });
+  if (d.code) html += `<div class="detail-code"><pre>${d.code}</pre></div>`;
+
+  // Connections summary
+  const inC = [], outC = [];
+  ['deps','impl','flow','forbidden'].forEach(type => {
+    (CONNECTIONS[type]||[]).forEach(c => {
+      if (c.from === id && NODES[c.to]) outC.push({ ...c, type });
+      if (c.to === id && NODES[c.from]) inC.push({ ...c, type });
+    });
+  });
+  if (outC.length || inC.length) {
+    html += '<div class="detail-conn">';
+    if (outC.length) {
+      html += `<div class="detail-conn-title">Depends On (${outC.length})</div>`;
+      outC.forEach(c => {
+        const tn = NODES[c.to];
+        const typeLabel = c.type === 'forbidden' ? ' \u26D4' : c.type === 'impl' ? ' (impl)' : c.type === 'flow' ? ' (flow)' : '';
+        html += `<div class="detail-conn-item">
+          <span class="detail-conn-arrow">\u2192</span>
+          <span class="detail-conn-node" style="background:${tn.color}18;color:${tn.color}" onclick="openDetail('${c.to}')">${tn.label}</span>
+          <span style="font-size:10px;color:var(--text3)">${c.label||''}${typeLabel}</span>
+        </div>`;
+      });
+    }
+    if (inC.length) {
+      html += `<div class="detail-conn-title" style="margin-top:12px">Depended On By (${inC.length})</div>`;
+      inC.forEach(c => {
+        const fn = NODES[c.from];
+        html += `<div class="detail-conn-item">
+          <span class="detail-conn-arrow">\u2190</span>
+          <span class="detail-conn-node" style="background:${fn.color}18;color:${fn.color}" onclick="openDetail('${c.from}')">${fn.label}</span>
+          <span style="font-size:10px;color:var(--text3)">${c.label||''}</span>
+        </div>`;
+      });
+    }
+    html += '</div>';
+  }
+
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetail() { document.getElementById('detailPanel').classList.remove('open'); }
+
+// =============================================
+//  PAN & ZOOM
+// =============================================
+function applyTx() {
+  world.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
+  document.getElementById('zoomDisplay').textContent = Math.round(zoom*100)+'%';
+}
+
+function zoomBy(d) { zoom = Math.max(0.15, Math.min(3, zoom + d)); applyTx(); }
+
+function resetView() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  // Calculate bounding box of visible nodes
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  Object.entries(nodeEls).forEach(([id,el]) => {
+    const n = NODES[id]; if (!n) return;
+    minX = Math.min(minX, n.x);
+    maxX = Math.max(maxX, n.x + (el.offsetWidth||160));
+    minY = Math.min(minY, n.y);
+    maxY = Math.max(maxY, n.y + (el.offsetHeight||50));
+  });
+  if (!isFinite(minX)) { minX=0; maxX=4200; minY=0; maxY=1200; }
+  const pad = 120;
+  const w = maxX - minX + pad*2;
+  const h = maxY - minY + pad*2;
+  zoom = Math.min(vw / w, (vh - 48) / h, 1.2);
+  panX = (vw - w*zoom)/2 - (minX - pad)*zoom;
+  panY = (vh - 48 - h*zoom)/2 - (minY - pad)*zoom + 48;
+  applyTx();
+}
+
+document.addEventListener('mousedown', e => {
+  if (e.target.closest('.mnode,.toolbar,.legend,.hints,.detail-panel')) return;
+  isPanning = true; panSX = e.clientX - panX; panSY = e.clientY - panY;
+  document.body.classList.add('grabbing');
+});
+document.addEventListener('mousemove', e => {
+  if (!isPanning) return;
+  panX = e.clientX - panSX; panY = e.clientY - panSY; applyTx();
+});
+document.addEventListener('mouseup', () => { isPanning = false; document.body.classList.remove('grabbing'); });
+
+document.addEventListener('wheel', e => {
+  if (e.target.closest('.detail-panel')) return;
+  e.preventDefault();
+  const d = e.deltaY > 0 ? -0.08 : 0.08;
+  const oZ = zoom;
+  zoom = Math.max(0.15, Math.min(3, zoom + d));
+  panX = e.clientX - (e.clientX - panX)*(zoom/oZ);
+  panY = e.clientY - (e.clientY - panY)*(zoom/oZ);
+  applyTx();
+}, { passive: false });
+
+// Touch
+let lastTD = 0;
+document.addEventListener('touchstart', e => {
+  if (e.target.closest('.mnode,.toolbar,.detail-panel')) return;
+  if (e.touches.length === 1) { isPanning=true; panSX=e.touches[0].clientX-panX; panSY=e.touches[0].clientY-panY; }
+  else if (e.touches.length === 2) { const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY; lastTD=Math.sqrt(dx*dx+dy*dy); }
+});
+document.addEventListener('touchmove', e => {
+  if (e.target.closest('.detail-panel')) return; e.preventDefault();
+  if (e.touches.length===1&&isPanning) { panX=e.touches[0].clientX-panSX; panY=e.touches[0].clientY-panSY; applyTx(); }
+  else if (e.touches.length===2) { const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY,d=Math.sqrt(dx*dx+dy*dy); if(lastTD){zoom=Math.max(.15,Math.min(3,zoom*(d/lastTD)));applyTx();} lastTD=d; }
+}, { passive: false });
+document.addEventListener('touchend', () => { isPanning=false; lastTD=0; });
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') closeDetail();
+  if (e.key==='+'||e.key==='=') zoomBy(0.15);
+  if (e.key==='-') zoomBy(-0.15);
+  if (e.key==='0') resetView();
+});
+
+// =============================================
+//  INIT
+// =============================================
+renderNodes();
+requestAnimationFrame(() => requestAnimationFrame(resetView));
+</script>
+</body>
+</html>
