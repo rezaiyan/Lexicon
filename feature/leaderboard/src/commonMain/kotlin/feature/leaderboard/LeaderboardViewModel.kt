@@ -1,12 +1,12 @@
-package presentation.feature.leaderboard
+package feature.leaderboard
 
 import androidx.lifecycle.viewModelScope
 import core.common.fold
 import domain.leaderboard.usecase.GetLeaderboardUseCase
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
-import presentation.model.LeaderboardEntryUiModel
-import presentation.model.LeaderboardUiData
+import feature.leaderboard.model.LeaderboardEntryUiModel
+import feature.leaderboard.model.LeaderboardUiData
 import core.common.UiState
 
 class LeaderboardViewModel(

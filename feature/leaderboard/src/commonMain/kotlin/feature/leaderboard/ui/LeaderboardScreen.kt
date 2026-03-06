@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.leaderboard.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -52,9 +52,9 @@ import lexicon.resources.generated.resources.leaderboard_your_ranking
 import lexicon.resources.generated.resources.refresh
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.leaderboard.LeaderboardViewModel
-import presentation.model.LeaderboardEntryUiModel
-import presentation.model.LeaderboardUiData
+import feature.leaderboard.LeaderboardViewModel
+import feature.leaderboard.model.LeaderboardEntryUiModel
+import feature.leaderboard.model.LeaderboardUiData
 import core.common.UiState
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn

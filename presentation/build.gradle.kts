@@ -60,6 +60,7 @@ kotlin {
             implementation(project(":platforms"))
             implementation(project(":feature:auth"))
             implementation(project(":feature:subscription"))
+            implementation(project(":feature:leaderboard"))
             // Removed: presentation should only depend on domain, not data
             implementation(project(":resources"))
             implementation(compose.runtime)

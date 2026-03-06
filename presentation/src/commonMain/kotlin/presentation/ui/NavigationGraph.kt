@@ -20,7 +20,7 @@ import feature.subscription.ui.SubscriptionScreen
 import feature.subscription.ui.SubscriptionScreenActions
 import presentation.model.TabDestination
 import presentation.ui.screens.EditProfileScreen
-import presentation.ui.screens.LeaderboardScreen
+import feature.leaderboard.ui.LeaderboardScreen
 import presentation.ui.screens.ProfileScreen
 import presentation.ui.screens.SettingsScreen
 import presentation.ui.screens.StudyScreen

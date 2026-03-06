@@ -1,4 +1,4 @@
-package presentation.model
+package feature.leaderboard.model
 
 import androidx.compose.runtime.Immutable
 

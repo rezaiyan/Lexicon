@@ -5,6 +5,8 @@ import domain.leaderboard.model.Leaderboard
 import domain.leaderboard.model.LeaderboardEntry
 import domain.leaderboard.usecase.GetLeaderboardUseCase
 import domain.leaderboard.repository.ILeaderboardRepository
+import feature.leaderboard.LeaderboardViewModel
+import feature.leaderboard.model.LeaderboardUiData
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import core.common.UiState
@@ -56,7 +58,7 @@ class LeaderboardViewModelTest : ViewModelTestBase() {
         val vm = LeaderboardViewModel(createFakeUseCase(Try.success(leaderboard)))
 
         val state = assertIs<UiState.Loaded<*>>(vm.currentState)
-        val data = state.value as presentation.model.LeaderboardUiData
+        val data = state.value as LeaderboardUiData
         assertEquals(2, data.entries.size)
         assertEquals("Alice", data.entries[0].displayName)
         assertEquals("Bob", data.userEntry?.displayName)
