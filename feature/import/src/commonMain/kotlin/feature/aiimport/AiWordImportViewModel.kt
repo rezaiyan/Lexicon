@@ -1,4 +1,4 @@
-package presentation.feature.aiimport
+package feature.aiimport
 
 import androidx.lifecycle.viewModelScope
 import core.common.onFailure
@@ -8,8 +8,8 @@ import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
-import presentation.model.AiWordImportStep
-import presentation.model.AiWordImportUiState
+import feature.aiimport.model.AiWordImportStep
+import feature.aiimport.model.AiWordImportUiState
 
 class AiWordImportViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,

@@ -172,6 +172,7 @@ kotlin {
             implementation(project(":feature:study"))
             implementation(project(":feature:settings"))
             implementation(project(":feature:words"))
+            implementation(project(":feature:import"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)

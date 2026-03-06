@@ -20,7 +20,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import presentation.model.AiWordImportStep
+import feature.aiimport.AiWordImportViewModel
+import feature.aiimport.model.AiWordImportStep
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

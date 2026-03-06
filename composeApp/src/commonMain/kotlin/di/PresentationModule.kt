@@ -16,7 +16,7 @@ import feature.subscription.SubscriptionViewModel
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel
-import presentation.feature.aiimport.AiWordImportViewModel
+import feature.aiimport.AiWordImportViewModel
 import feature.leaderboard.LeaderboardViewModel
 import feature.onboarding.OnboardingViewModel
 import feature.onboarding.VocabularyPreviewViewModel

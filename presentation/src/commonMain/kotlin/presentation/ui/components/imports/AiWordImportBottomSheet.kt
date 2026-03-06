@@ -70,9 +70,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import events.OnEvents
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.aiimport.AiWordImportViewModel
-import presentation.model.AiWordImportStep
-import presentation.model.AiWordImportUiState
+import feature.aiimport.AiWordImportViewModel
+import feature.aiimport.model.AiWordImportStep
+import feature.aiimport.model.AiWordImportUiState
 import feature.onboarding.ui.components.LanguageGrid
 import feature.onboarding.ui.components.LevelCards
 import feature.onboarding.ui.components.OnboardingLoadingCard
