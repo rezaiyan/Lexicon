@@ -42,6 +42,7 @@ compottie = "2.0.2"
 profileinstaller = "1.4.1"
 commonsCompress = "1.28.0"
 turbine = "1.2.0"
+detekt = "1.23.7"
 
 [libraries]
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
@@ -192,5 +193,6 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 googleServices = { id = "com.google.gms.google-services", version = "4.4.4" }
 firebaseCrashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }
