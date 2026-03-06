@@ -1,4 +1,4 @@
-package presentation.ui.screens.study
+package components.animation
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing

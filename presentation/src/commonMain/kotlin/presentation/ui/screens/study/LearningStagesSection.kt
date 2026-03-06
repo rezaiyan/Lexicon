@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import components.SectionHeader
+import components.animation.staggeredFadeSlide
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import org.jetbrains.compose.resources.stringResource

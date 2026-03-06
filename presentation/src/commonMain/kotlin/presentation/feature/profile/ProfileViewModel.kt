@@ -36,9 +36,9 @@ import presentation.model.LanguagePairUiModel
 import presentation.model.ProfileStatsUiModel
 import presentation.model.ProfileUiData
 import core.common.UiState
-import presentation.util.ThrottledAction
-import presentation.util.stateInEagerly
-import presentation.util.stateInWhileSubscribed
+import core.common.ThrottledAction
+import core.common.stateInEagerly
+import core.common.stateInWhileSubscribed
 import kotlin.time.Duration.Companion.seconds
 
 class ProfileViewModel(

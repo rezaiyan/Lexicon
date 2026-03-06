@@ -52,7 +52,7 @@ import overlay.LocalOverlayHost
 import overlay.OverlayHost
 import overlay.bottomsheet.showFullscreenBottomSheet
 import overlay.dialog.showDialog
-import presentation.ui.screens.study.staggeredFadeSlide
+import components.animation.staggeredFadeSlide
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.delete_account

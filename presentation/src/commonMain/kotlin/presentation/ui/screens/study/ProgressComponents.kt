@@ -20,6 +20,7 @@ import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.stringResource
+import components.animation.staggeredFadeSlide
 import presentation.ui.components.LevelBucketCard
 import theme.AppColors
 import theme.Theme

@@ -30,7 +30,7 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.best_streak
 import lexicon.resources.generated.resources.day_streak
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.screens.study.rememberAnimatedCounter
+import components.animation.rememberAnimatedCounter
 import theme.Theme
 
 private const val FIRE_LOTTIE_URL =

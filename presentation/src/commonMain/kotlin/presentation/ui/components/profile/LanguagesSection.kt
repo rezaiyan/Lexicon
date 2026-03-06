@@ -32,8 +32,8 @@ import lexicon.resources.generated.resources.languages
 import lexicon.resources.generated.resources.words
 import org.jetbrains.compose.resources.stringResource
 import presentation.model.LanguagePairUiModel
-import presentation.ui.screens.study.rememberAnimatedCounter
-import presentation.ui.screens.study.staggeredFadeSlide
+import components.animation.rememberAnimatedCounter
+import components.animation.staggeredFadeSlide
 import theme.Theme
 
 @Composable

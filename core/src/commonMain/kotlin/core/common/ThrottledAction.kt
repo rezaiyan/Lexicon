@@ -1,4 +1,4 @@
-package presentation.util
+package core.common
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
