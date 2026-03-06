@@ -1,5 +1,6 @@
 package presentation.feature.auth
 
+import feature.auth.AuthViewModel
 import analytics.IAnalyticsTracker
 import core.common.Try
 import domain.auth.manager.IUserManager

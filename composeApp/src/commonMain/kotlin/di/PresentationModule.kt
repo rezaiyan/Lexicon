@@ -6,7 +6,7 @@ import domain.auth.manager.IUserManager
 import domain.streak.manager.IStreakManager
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
-import presentation.feature.auth.AuthViewModel
+import feature.auth.AuthViewModel
 import presentation.feature.profile.EditProfileViewModel
 import presentation.feature.profile.ProfileViewModel
 import presentation.feature.settings.NotificationPermissionMonitor

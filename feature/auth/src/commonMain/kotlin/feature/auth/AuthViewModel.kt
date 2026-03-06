@@ -1,4 +1,4 @@
-package presentation.feature.auth
+package feature.auth
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope

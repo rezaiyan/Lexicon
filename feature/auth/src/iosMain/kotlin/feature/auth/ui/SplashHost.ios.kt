@@ -1,7 +1,6 @@
-package presentation.ui
+package feature.auth.ui
 
 import androidx.compose.runtime.Composable
-import presentation.ui.screens.SplashScreen
 
 // iOS: show the full animated Compose splash screen.
 @Composable

@@ -1,4 +1,4 @@
-package presentation.ui.components
+package feature.auth.ui
 
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button

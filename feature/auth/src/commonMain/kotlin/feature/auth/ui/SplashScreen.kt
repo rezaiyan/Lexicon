@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.auth.ui
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -35,27 +35,20 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
-import presentation.feature.auth.AuthViewModel
+import feature.auth.AuthViewModel
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.app_name
 import lexicon.resources.generated.resources.app_tagline
 
-/**
- * Splash Screen - Self-contained
- * Manages its own ViewModel and session verification internally
- * 
- * Only requires navigation callbacks from parent
- */
 @Composable
 fun SplashScreen(
     onEnd: () -> Unit,
 ) {
     val authViewModel = koinInject<AuthViewModel>()
-    
+
     var startAnimation by remember { mutableStateOf(false) }
 
-    // Logo scale animation
     val logoScale by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0.5f,
         animationSpec = spring(
@@ -64,13 +57,11 @@ fun SplashScreen(
         )
     )
 
-    // Logo alpha animation
     val logoAlpha by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
         animationSpec = tween(durationMillis = 800)
     )
 
-    // Glow pulse animation
     val infiniteTransition = rememberInfiniteTransition()
     val glowAlpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
@@ -85,8 +76,6 @@ fun SplashScreen(
         startAnimation = true
         val sessionReady = CompletableDeferred<Unit>()
         authViewModel.verifyAndRestoreSession(onComplete = { sessionReady.complete(Unit) })
-        // Enforce a minimum display time so animations are visible,
-        // then wait for session verification if it hasn't finished yet.
         delay(1800)
         sessionReady.await()
         onEnd()
@@ -109,11 +98,9 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // App Logo/Name with neon effect
             Box(
                 contentAlignment = Alignment.Center
             ) {
-                // Glow effect layer
                 Text(
                     text = stringResource(Res.string.app_name),
                     fontSize = 64.sp,
@@ -124,7 +111,6 @@ fun SplashScreen(
                         .alpha(logoAlpha * 0.5f)
                 )
 
-                // Main text
                 Text(
                     text = stringResource(Res.string.app_name),
                     fontSize = 64.sp,
@@ -147,4 +133,3 @@ fun SplashScreen(
         }
     }
 }
-

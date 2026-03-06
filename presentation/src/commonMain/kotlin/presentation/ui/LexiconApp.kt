@@ -37,13 +37,14 @@ import kotlinx.coroutines.SupervisorJob
 import org.kodein.emoji.compose.EmojiService
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.auth.AuthViewModel
+import feature.auth.AuthViewModel
 import presentation.feature.onboarding.OnboardingViewModel
 import presentation.feature.onboarding.VocabularyPreviewViewModel
 import presentation.model.AppUiState
 import presentation.model.TabDestination
 import overlay.OverlayHostContainer
-import presentation.ui.screens.AuthGateScreen
+import feature.auth.ui.AuthGateScreen
+import feature.auth.ui.SplashHost
 import presentation.ui.screens.OnboardingScreen
 import presentation.ui.screens.VocabularyPreviewScreen
 import presentation.viewmodel.AppNavigationViewModel

@@ -1,4 +1,4 @@
-package presentation.ui
+package feature.auth.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
