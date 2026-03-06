@@ -6,23 +6,19 @@ import domain.auth.manager.IUserManager
 import domain.streak.manager.IStreakManager
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
-import feature.auth.AuthViewModel
-import feature.profile.EditProfileViewModel
-import feature.profile.ProfileViewModel
-import feature.settings.NotificationPermissionMonitor
-import feature.settings.SettingsViewModel
-import feature.study.StudyViewModel
-import feature.subscription.SubscriptionViewModel
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel
-import feature.aiimport.AiWordImportViewModel
-import feature.leaderboard.LeaderboardViewModel
-import feature.onboarding.OnboardingViewModel
-import feature.onboarding.VocabularyPreviewViewModel
 import presentation.viewmodel.AppNavigationViewModel
-import feature.words.VocabularyViewModel
-import feature.words.WordManagerViewModel
+import feature.auth.di.authModule
+import feature.study.di.studyModule
+import feature.words.di.wordsModule
+import feature.profile.di.profileModule
+import feature.settings.di.settingsModule
+import feature.onboarding.di.onboardingModule
+import feature.subscription.di.subscriptionModule
+import feature.leaderboard.di.leaderboardModule
+import feature.aiimport.di.importModule
 
 fun presentationModule() = module {
 
@@ -45,63 +41,10 @@ fun presentationModule() = module {
         StreakManagerImpl(streakRepository = get())
     }
 
-    // Notification Permission Monitor
-    single { NotificationPermissionMonitor(notificationRepository = get()) }
-
-    // ViewModels (properly scoped)
-    viewModel {
-        AuthViewModel(
-            loginWithGoogleUseCase = get(),
-            loginWithAppleUseCase = get(),
-            logoutUseCase = get(),
-            isAuthenticatedUseCase = get(),
-            verifySessionUseCase = get(),
-            syncRemoteToLocalUseCase = get(),
-            initializePushNotificationsUseCase = get(),
-            registerPushTokenUseCase = get(),
-            analyticsTracker = get(),
-            userManager = get(),
-            subscriptionManager = get(),
-        )
-    }
-
-    viewModel {
-        SettingsViewModel(
-            settingsRepository = get(),
-            notificationRepository = get(),
-            setLanguageUseCase = get(),
-            setThemeModeUseCase = get(),
-            setNotificationsEnabledUseCase = get(),
-            requestNotificationPermissionUseCase = get(),
-            openNotificationSettingsUseCase = get(),
-            analyticsTracker = get(),
-            authRepository = get(),
-            notificationPermissionMonitor = get(),
-            appVersionProvider = get(),
-        )
-    }
-
+    // App Navigation (stays in presentation — app-level coordinator)
     viewModel { AppNavigationViewModel(onboardingRepository = get()) }
 
-    // Screen-Scoped ViewModels
-    viewModel {
-        StudyViewModel(
-            getProgressStatsUseCase = get(),
-            evaluateProgressUseCase = get(),
-            getFeatureAccessUseCase = get(),
-            scheduleNotificationsUseCase = get(),
-            getDueWordsUseCase = get(),
-            getWordsByStageUseCase = get(),
-            reviewWordUseCase = get(),
-            updateWordUseCase = get(),
-            deleteWordUseCase = get(),
-            recordStreakActivityUseCase = get(),
-            speakWordUseCase = get(),
-            ttsRepository = get(),
-            analyticsTracker = get(),
-        )
-    }
-
+    // Import VM (stays in presentation — depends on Compose UI types)
     viewModel {
         ImportViewModel(
             getFeatureAccessUseCase = get(),
@@ -113,73 +56,16 @@ fun presentationModule() = module {
         )
     }
 
-    viewModel {
-        VocabularyViewModel(
-            getDueWordsUseCase = get(),
-            getWordsByStageUseCase = get(),
-            updateWordUseCase = get(),
-            deleteWordUseCase = get(),
-            analyticsTracker = get(),
-        )
-    }
-    viewModel {
-        WordManagerViewModel(
-            getAllWordsUseCase = get(),
-            deleteWordsUseCase = get(),
-            batchUpdateLanguagesUseCase = get(),
-            updateWordUseCase = get(),
-            exportWordsUseCase = get(),
-            getFeatureAccessUseCase = get(),
-            analyticsTracker = get(),
-        )
-    }
-
-
-    viewModel {
-        ProfileViewModel(
-            userManager = get(),
-            getFeatureAccessUseCase = get(),
-            streakManager = get(),
-            getProfileStatsUseCase = get()
-        )
-    }
-
-    viewModel {
-        EditProfileViewModel(
-            userManager = get(),
-            updateProfileUseCase = get(),
-            uploadAvatarUseCase = get(),
-            deleteAvatarUseCase = get()
-        )
-    }
-
-    viewModel {
-        SubscriptionViewModel(
-            subscriptionManager = get()
-        )
-    }
-
-    viewModel {
-        LeaderboardViewModel(
-            getLeaderboardUseCase = get()
-        )
-    }
-
-    // Onboarding ViewModels
-    viewModel {
-        OnboardingViewModel(
-            submitPreferencesUseCase = get(),
-            setLanguageUseCase = get()
-        )
-    }
-
-    viewModel { VocabularyPreviewViewModel() }
-
-    // AI Word Import
-    viewModel {
-        AiWordImportViewModel(
-            submitPreferencesUseCase = get(),
-            importSuggestedVocabularyUseCase = get()
-        )
-    }
+    // Feature modules
+    includes(
+        authModule(),
+        studyModule(),
+        wordsModule(),
+        profileModule(),
+        settingsModule(),
+        onboardingModule(),
+        subscriptionModule(),
+        leaderboardModule(),
+        importModule(),
+    )
 }

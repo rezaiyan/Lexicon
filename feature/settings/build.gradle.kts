@@ -34,6 +34,7 @@ kotlin {
             implementation(project(":utils"))
             api(libs.lifecycle.viewmodel)
             api(libs.koin.core)
+            api(libs.koin.compose.viewmodel)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
         }
     }
