@@ -1,0 +1,36 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - settings
+  - smoke
+---
+# Test: Settings screen loads with core UI elements visible.
+#
+# Verifies that navigating to the Settings screen from the bottom nav renders
+# all expected settings cards: Theme, Notifications, Word Manager, Subscription,
+# and About.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# The screen title must be visible.
+- assertVisible: "Settings"
+
+# Theme card must be visible.
+- assertVisible: "Theme"
+
+# Notifications card must be visible.
+- assertVisible: "Notifications"
+
+# Word Manager card must be visible.
+- assertVisible: "Word Manager"
+
+# Subscription card must be visible.
+- assertVisible: "Subscription"
+
+# About card must be visible (may need to scroll).
+- scrollUntilVisible:
+    element: "About"
+    direction: DOWN
+    timeout: 3000

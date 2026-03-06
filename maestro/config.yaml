@@ -18,8 +18,10 @@
 #   4. Ensure the device is not locked / screen is on.
 
 flows:
+  - "flows/navigation/*.yaml"
   - "flows/import/*.yaml"
   - "flows/study/*.yaml"
+  - "flows/settings/*.yaml"
   # 02_empty_state excluded: requires zero words but server-synced test account always has data.
   - "flows/word_manager/01_screen_loads.yaml"
   - "flows/word_manager/03_search_functionality.yaml"
@@ -31,14 +33,19 @@ flows:
 executionOrder:
   continueOnFailure: false
   flowsOrder:
-    # Import tests run first (create test data for subsequent tests)
+    # Navigation smoke test first (validates all tabs are reachable)
+    - flows/navigation/01_bottom_tab_navigation.yaml
+    # Import tests (create test data for subsequent tests)
     - flows/import/01_manual_text_input.yaml
     - flows/import/02_file_import_ui.yaml
     - flows/import/03_import_sheet_tabs.yaml
-    # Study/review tests run after (need words to exist)
+    # Study/review tests (need words to exist)
     - flows/study/01_study_screen_loads.yaml
     - flows/study/02_edit_word_from_review.yaml
     - flows/study/03_review_rating_buttons.yaml
+    # Settings tests
+    - flows/settings/01_settings_screen_loads.yaml
+    - flows/settings/02_theme_dialog.yaml
     # Word manager tests run last
     - flows/word_manager/01_screen_loads.yaml
     - flows/word_manager/03_search_functionality.yaml

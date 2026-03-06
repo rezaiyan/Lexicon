@@ -1,0 +1,32 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - navigation
+  - smoke
+---
+# Test: Bottom tab navigation works across all tabs.
+#
+# Verifies that tapping each bottom navigation tab loads the corresponding
+# screen. The app has three tabs: Profile, Study, and Settings.
+
+- launchApp:
+    clearState: false
+
+# Navigate to Study tab.
+- tapOn:
+    text: "Study"
+- assertVisible: "Import Words"
+
+# Navigate to Settings tab.
+- tapOn:
+    text: "Settings"
+- assertVisible: "Settings"
+
+# Navigate to Profile tab.
+- tapOn:
+    text: "Profile"
+- assertVisible: "Profile"
+
+# Navigate back to Study tab to verify round-trip.
+- tapOn:
+    text: "Study"
+- assertVisible: "Import Words"
