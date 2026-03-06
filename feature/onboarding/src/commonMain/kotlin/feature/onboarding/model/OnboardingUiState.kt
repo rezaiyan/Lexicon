@@ -1,4 +1,4 @@
-package presentation.model
+package feature.onboarding.model
 
 data class OnboardingUiState(
     val currentStep: Int = 0,

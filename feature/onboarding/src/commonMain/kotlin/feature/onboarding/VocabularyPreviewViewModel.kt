@@ -1,8 +1,8 @@
-package presentation.feature.onboarding
+package feature.onboarding
 
 import domain.onboarding.model.SuggestedVocabulary
 import core.base.BaseViewModel
-import presentation.model.VocabularyPreviewUiState
+import feature.onboarding.model.VocabularyPreviewUiState
 
 class VocabularyPreviewViewModel : BaseViewModel<VocabularyPreviewUiState, VocabularyPreviewViewModel.Event>() {
 

@@ -1,4 +1,4 @@
-package presentation.ui.screens.onboarding
+package feature.onboarding.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,11 +35,11 @@ import lexicon.resources.generated.resources.onboarding_which_language
 import lexicon.resources.generated.resources.onboarding_whats_your
 import lexicon.resources.generated.resources.skip_preferences
 import org.jetbrains.compose.resources.stringResource
-import presentation.model.OnboardingUiState
+import feature.onboarding.model.OnboardingUiState
 import theme.Theme
 
 @Composable
-internal fun OnboardingStep1Content(
+fun OnboardingStep1Content(
     state: OnboardingUiState,
     onTargetLanguageSelected: (String) -> Unit,
     onNextStep: () -> Unit,

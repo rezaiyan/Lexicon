@@ -1,4 +1,4 @@
-package presentation.ui.screens.onboarding
+package feature.onboarding.ui.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
@@ -76,7 +76,7 @@ import lexicon.resources.generated.resources.onboarding_loading_tip_3
 import lexicon.resources.generated.resources.onboarding_loading_tip_4
 import lexicon.resources.generated.resources.onboarding_whats_your
 import org.jetbrains.compose.resources.stringResource
-import presentation.model.OnboardingUiState
+import feature.onboarding.model.OnboardingUiState
 import theme.Theme
 
 internal val levelIcons = mapOf(
@@ -193,7 +193,7 @@ internal fun OnboardingStep3Content(
 }
 
 @Composable
-internal fun OnboardingLoadingCard() {
+fun OnboardingLoadingCard() {
     val spacing = Theme.spacing
     var currentTipIndex by remember { mutableStateOf(0) }
     val loadingTips = listOf(
@@ -328,7 +328,7 @@ internal fun OnboardingLoadingCard() {
 }
 
 @Composable
-internal fun LevelCards(
+fun LevelCards(
     selectedLevel: String?,
     onLevelSelected: (String) -> Unit,
     enabled: Boolean = true

@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.onboarding.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,7 @@ import lexicon.resources.generated.resources.deny
 import lexicon.resources.generated.resources.starter_vocabulary
 import lexicon.resources.generated.resources.words
 import org.jetbrains.compose.resources.stringResource
-import presentation.model.VocabularyPreviewUiState
+import feature.onboarding.model.VocabularyPreviewUiState
 import theme.Theme
 
 private val ButtonContentPaddingVertical = 14.dp

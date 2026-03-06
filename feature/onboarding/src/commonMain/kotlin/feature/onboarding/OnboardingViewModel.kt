@@ -1,4 +1,4 @@
-package presentation.feature.onboarding
+package feature.onboarding
 
 import androidx.lifecycle.viewModelScope
 import domain.onboarding.model.OnboardingPreferences
@@ -10,7 +10,7 @@ import domain.settings.usecase.SetLanguageUseCase
 import utils.Language
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
-import presentation.model.OnboardingUiState
+import feature.onboarding.model.OnboardingUiState
 
 class OnboardingViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,

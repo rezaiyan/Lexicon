@@ -1,6 +1,7 @@
 package presentation.feature.onboarding
 
 import domain.onboarding.model.SuggestedVocabulary
+import feature.onboarding.VocabularyPreviewViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher

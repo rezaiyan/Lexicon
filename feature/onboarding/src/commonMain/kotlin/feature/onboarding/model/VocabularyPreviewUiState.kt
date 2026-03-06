@@ -1,4 +1,4 @@
-package presentation.model
+package feature.onboarding.model
 
 import domain.onboarding.model.SuggestedVocabulary
 

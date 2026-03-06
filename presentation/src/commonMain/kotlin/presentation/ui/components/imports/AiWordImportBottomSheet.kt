@@ -73,9 +73,9 @@ import org.koin.compose.viewmodel.koinViewModel
 import presentation.feature.aiimport.AiWordImportViewModel
 import presentation.model.AiWordImportStep
 import presentation.model.AiWordImportUiState
-import presentation.ui.screens.onboarding.LanguageGrid
-import presentation.ui.screens.onboarding.LevelCards
-import presentation.ui.screens.onboarding.OnboardingLoadingCard
+import feature.onboarding.ui.components.LanguageGrid
+import feature.onboarding.ui.components.LevelCards
+import feature.onboarding.ui.components.OnboardingLoadingCard
 import theme.AppDimensions
 import theme.AppSpacing
 import theme.Theme

@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.onboarding.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
@@ -34,11 +34,11 @@ import androidx.compose.ui.draw.clip
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.back
 import org.jetbrains.compose.resources.stringResource
-import presentation.model.OnboardingUiState
-import presentation.ui.screens.onboarding.OnboardingIntroContent
-import presentation.ui.screens.onboarding.OnboardingStep1Content
-import presentation.ui.screens.onboarding.OnboardingStep2Content
-import presentation.ui.screens.onboarding.OnboardingStep3Content
+import feature.onboarding.model.OnboardingUiState
+import feature.onboarding.ui.components.OnboardingIntroContent
+import feature.onboarding.ui.components.OnboardingStep1Content
+import feature.onboarding.ui.components.OnboardingStep2Content
+import feature.onboarding.ui.components.OnboardingStep3Content
 import theme.Theme
 
 private const val OnboardingTransitionDuration = 300

@@ -7,8 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import presentation.model.OnboardingUiState
-import presentation.ui.screens.onboarding.OnboardingStep1Content
+import feature.onboarding.model.OnboardingUiState
+import feature.onboarding.ui.components.OnboardingStep1Content
 import theme.LexiconTheme
 
 @Preview(showBackground = true, name = "Onboarding Step 1 - German Selected")

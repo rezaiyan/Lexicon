@@ -1,4 +1,4 @@
-package presentation.ui.screens.onboarding
+package feature.onboarding.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -91,7 +91,7 @@ private val SelectionBadgeSize = 22.dp
 private val CheckIconSize = 14.dp
 
 @Composable
-internal fun LanguageGrid(
+fun LanguageGrid(
     languages: List<String>,
     selectedLanguage: String?,
     onLanguageSelected: (String) -> Unit

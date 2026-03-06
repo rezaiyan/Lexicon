@@ -18,8 +18,8 @@ import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel
 import presentation.feature.aiimport.AiWordImportViewModel
 import feature.leaderboard.LeaderboardViewModel
-import presentation.feature.onboarding.OnboardingViewModel
-import presentation.feature.onboarding.VocabularyPreviewViewModel
+import feature.onboarding.OnboardingViewModel
+import feature.onboarding.VocabularyPreviewViewModel
 import presentation.viewmodel.AppNavigationViewModel
 import presentation.viewmodel.VocabularyViewModel
 import presentation.viewmodel.WordManagerViewModel

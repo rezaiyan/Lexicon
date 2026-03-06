@@ -1,4 +1,4 @@
-package presentation.ui.screens.onboarding
+package feature.onboarding.ui.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
