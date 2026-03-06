@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.subscription.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,12 +21,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import core.common.UiState
-import presentation.ui.screens.subscription.ComparisonTable
-import presentation.ui.screens.subscription.PlanCard
-import presentation.ui.screens.subscription.PremiumFeaturesGrid
-import presentation.ui.screens.subscription.PremiumHeroSection
-import presentation.ui.screens.subscription.SubscriptionPlan
 import theme.AppColors
 import theme.Theme
 import theme.LexiconTheme
@@ -96,19 +90,17 @@ private fun SubscriptionScreenPreview() {
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(Theme.spacing.medium),
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Theme.spacing.medium)
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
             ) {
-//                PremiumHeroSection()
-//                ComparisonTable()
                 PremiumFeaturesGrid()
-                
+
                 OutlinedButton(
                     onClick = {},
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(Res.string.restore_purchases))
                 }
-                
+
                 Text(
                     text = stringResource(Res.string.cancel_anytime_prices_in_usd),
                     style = MaterialTheme.typography.labelSmall,
@@ -118,7 +110,7 @@ private fun SubscriptionScreenPreview() {
                         .fillMaxWidth()
                         .padding(top = Theme.spacing.extraSmall)
                 )
-                
+
                 Text(
                     text = stringResource(Res.string.subscription_terms),
                     style = MaterialTheme.typography.bodySmall,

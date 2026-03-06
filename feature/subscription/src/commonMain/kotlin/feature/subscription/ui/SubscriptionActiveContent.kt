@@ -1,4 +1,4 @@
-package presentation.ui.screens.subscription
+package feature.subscription.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -299,20 +299,14 @@ private fun SubscriptionStatusCard(
     }
 }
 
-/**
- * Extracts a user-friendly plan name from a product identifier.
- * 
- * iOS format: com.alirezaiyan.vokab.Monthly or com.alirezaiyan.vokab.Annual
- * Android format: com.alirezaiyan.vokab.premium.p1m or com.alirezaiyan.vokab.premium.p1y
- */
 @Composable
 private fun getPlanNameFromProductIdentifier(productIdentifier: String): String {
     if (productIdentifier.isBlank()) {
         return stringResource(Res.string.premium_plan_name)
     }
-    
+
     val identifierLower = productIdentifier.lowercase()
-    
+
     return when {
         isMonthlyPlan(identifierLower) -> stringResource(Res.string.billing_period_monthly)
         isAnnualPlan(identifierLower) -> stringResource(Res.string.billing_period_annual)
@@ -323,8 +317,8 @@ private fun getPlanNameFromProductIdentifier(productIdentifier: String): String 
 private fun isMonthlyPlan(identifier: String): Boolean {
     return identifier.contains("monthly") ||
            identifier.contains("p1m") ||
-           (identifier.contains("month") && 
-            !identifier.contains("annual") && 
+           (identifier.contains("month") &&
+            !identifier.contains("annual") &&
             !identifier.contains("p1y"))
 }
 
@@ -333,4 +327,3 @@ private fun isAnnualPlan(identifier: String): Boolean {
            identifier.contains("p1y") ||
            identifier.contains("year")
 }
-

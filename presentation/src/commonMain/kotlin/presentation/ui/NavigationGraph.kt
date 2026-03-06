@@ -15,15 +15,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.subscription.SubscriptionViewModel
+import feature.subscription.SubscriptionViewModel
+import feature.subscription.ui.SubscriptionScreen
+import feature.subscription.ui.SubscriptionScreenActions
 import presentation.model.TabDestination
 import presentation.ui.screens.EditProfileScreen
 import presentation.ui.screens.LeaderboardScreen
 import presentation.ui.screens.ProfileScreen
 import presentation.ui.screens.SettingsScreen
 import presentation.ui.screens.StudyScreen
-import presentation.ui.screens.SubscriptionScreen
-import presentation.ui.screens.SubscriptionScreenActions
 import presentation.ui.screens.settings.WordManagerScreen
 
 @Composable
@@ -108,6 +108,7 @@ internal fun NavigationGraph(
                     onManageSubscription = { subscriptionViewModel.manageSubscription() },
                     onCancelSubscription = { subscriptionViewModel.cancelSubscription() }
                 ),
+                snackbarHostState = LocalSnackbarHostState.current,
                 onNavigateBack = { navController.navigateUp() }
             )
         }

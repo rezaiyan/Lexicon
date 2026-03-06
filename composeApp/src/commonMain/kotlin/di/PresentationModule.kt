@@ -12,7 +12,7 @@ import presentation.feature.profile.ProfileViewModel
 import presentation.feature.settings.NotificationPermissionMonitor
 import presentation.feature.settings.SettingsViewModel
 import presentation.feature.study.StudyViewModel
-import presentation.feature.subscription.SubscriptionViewModel
+import feature.subscription.SubscriptionViewModel
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel

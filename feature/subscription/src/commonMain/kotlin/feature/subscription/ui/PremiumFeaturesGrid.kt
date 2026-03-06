@@ -1,4 +1,4 @@
-package presentation.ui.screens.subscription
+package feature.subscription.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -66,21 +66,11 @@ fun PremiumFeaturesGrid() {
             stringResource(Res.string.feature_ai_extraction),
             stringResource(Res.string.feature_ai_extraction_desc)
         ),
-//        FeatureItem(
-//            FeatureIcon.Vector(Icons.AutoMirrored.Rounded.ShowChart),
-//            stringResource(Res.string.feature_advanced_analytics),
-//            stringResource(Res.string.feature_advanced_analytics_desc)
-//        ),
         FeatureItem(
             FeatureIcon.Vector(Icons.Outlined.Info),
             stringResource(Res.string.feature_priority_support),
             stringResource(Res.string.feature_priority_support_desc)
         ),
-//        FeatureItem(
-//            FeatureIcon.Vector(Icons.Rounded.WorkspacePremium),
-//            stringResource(Res.string.vokab_pro),
-//            stringResource(Res.string.feature_export_data_desc)
-//        ),
         FeatureItem(
             FeatureIcon.Vector(Icons.Outlined.Cloud),
             stringResource(Res.string.feature_export_data),
@@ -186,4 +176,3 @@ fun FeatureCard(
         }
     }
 }
-

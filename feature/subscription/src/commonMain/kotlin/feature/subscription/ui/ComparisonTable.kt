@@ -1,4 +1,4 @@
-package presentation.ui.screens.subscription
+package feature.subscription.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -245,4 +245,3 @@ private fun PlanIconCell(
         modifier = Modifier.size(iconSize)
     )
 }
-

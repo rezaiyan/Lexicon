@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import core.common.UiState
-import presentation.ui.screens.SubscriptionData
+import feature.subscription.SubscriptionViewModel
+import feature.subscription.ui.SubscriptionData
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

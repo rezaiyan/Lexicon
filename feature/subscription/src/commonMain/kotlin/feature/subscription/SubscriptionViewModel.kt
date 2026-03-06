@@ -1,4 +1,4 @@
-package presentation.feature.subscription
+package feature.subscription
 
 import androidx.lifecycle.viewModelScope
 import domain.subscription.ISubscriptionManager
@@ -12,7 +12,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import core.base.BaseViewModel
 import core.common.UiState
-import presentation.ui.screens.SubscriptionData
+import feature.subscription.ui.SubscriptionData
 import kotlinx.datetime.Instant as DateTimeInstant
 
 data class SubscriptionScreenState(

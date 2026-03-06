@@ -1,4 +1,4 @@
-package presentation.ui.screens.subscription
+package feature.subscription.ui
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -105,4 +105,3 @@ fun PremiumHeroSection() {
         )
     }
 }
-

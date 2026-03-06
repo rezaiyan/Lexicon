@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -29,7 +28,7 @@ kotlin {
             }
         }
         iosTarget.binaries.framework {
-            baseName = "presentation"
+            baseName = "feature-subscription"
             isStatic = true
         }
     }
@@ -46,21 +45,11 @@ kotlin {
     }
 
     sourceSets {
-        val mobileMain by creating {
-            dependsOn(commonMain.get())
-        }
-        androidMain.get().dependsOn(mobileMain)
-        iosMain.get().dependsOn(mobileMain)
-
         commonMain.dependencies {
             implementation(project(":domain"))
             implementation(project(":design-system"))
-            implementation(project(":utils"))
             implementation(project(":core"))
             implementation(project(":platforms"))
-            implementation(project(":feature:auth"))
-            implementation(project(":feature:subscription"))
-            // Removed: presentation should only depend on domain, not data
             implementation(project(":resources"))
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -68,41 +57,22 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.materialIconsExtended)
-            api(libs.navigation.compose)
-            api(libs.lifecycle.runtime.compose)
             api(libs.lifecycle.viewmodel)
-            api(libs.lifecycle.viewmodel.compose)
             api(libs.koin.core)
             api(libs.koin.compose)
             api(libs.koin.compose.viewmodel)
-            implementation(libs.coil.compose)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.emoji.compose.m3)
-            implementation(libs.compottie)
-            implementation(libs.compottie.network)
-            implementation(compose.material3AdaptiveNavigationSuite)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
-        }
-
-        mobileMain.dependencies {
-            implementation(libs.kmpauth.google)
-            implementation(libs.kmpauth.firebase)
-            implementation(libs.kmpauth.uihelper)
-            implementation(libs.gitlive.firebase.auth)
-            implementation(libs.purchases.kmp.core)
         }
 
         androidMain.dependencies {
             implementation(compose.components.uiToolingPreview)
         }
-
-        iosMain.dependencies {
-        }
     }
 }
 
 android {
-    namespace = "com.alirezaiyan.vokab.presentation"
+    namespace = "com.alirezaiyan.vokab.feature.subscription"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

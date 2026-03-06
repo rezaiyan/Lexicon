@@ -1,4 +1,4 @@
-package presentation.ui.screens.subscription
+package feature.subscription.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import org.jetbrains.compose.resources.stringResource
-import presentation.ui.screens.getLocalizedErrorMessage
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.retry
@@ -70,4 +69,3 @@ fun SubscriptionErrorContent(
         }
     }
 }
-

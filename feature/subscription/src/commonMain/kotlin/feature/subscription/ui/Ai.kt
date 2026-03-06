@@ -1,4 +1,4 @@
-package presentation.ui.screens.subscription
+package feature.subscription.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color

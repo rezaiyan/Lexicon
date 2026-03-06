@@ -165,6 +165,7 @@ kotlin {
             implementation(project(":core"))
             implementation(project(":resources"))
             implementation(project(":feature:auth"))
+            implementation(project(":feature:subscription"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)

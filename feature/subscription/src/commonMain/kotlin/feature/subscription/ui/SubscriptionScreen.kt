@@ -1,4 +1,4 @@
-package presentation.ui.screens
+package feature.subscription.ui
 
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
@@ -8,12 +8,7 @@ import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionPackage
 import org.jetbrains.compose.resources.stringResource
 import core.common.UiState
-import presentation.ui.LocalSnackbarHostState
 import components.scaffold.LexiconColumn
-import presentation.ui.screens.subscription.SubscriptionActiveContent
-import presentation.ui.screens.subscription.SubscriptionErrorContent
-import presentation.ui.screens.subscription.SubscriptionLoadingContent
-import presentation.ui.screens.subscription.SubscriptionNotSubscribedContent
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.manage_subscription_app_store
 import lexicon.resources.generated.resources.manage_subscription_device_settings
@@ -34,10 +29,9 @@ fun SubscriptionScreen(
     errorMessage: String?,
     successMessage: String?,
     actions: SubscriptionScreenActions,
+    snackbarHostState: androidx.compose.material3.SnackbarHostState,
     onNavigateBack: () -> Unit
 ) {
-    val snackbarHostState = LocalSnackbarHostState.current
-
     val localizedErrorMessage = errorMessage?.let { getLocalizedErrorMessage(it) }
     val localizedSuccessMessage = successMessage?.let { getLocalizedSuccessMessage(it) }
 
