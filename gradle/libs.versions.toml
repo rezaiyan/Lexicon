@@ -41,6 +41,7 @@ emoji-kt = "2.3.0"
 compottie = "2.0.2"
 profileinstaller = "1.4.1"
 commonsCompress = "1.28.0"
+turbine = "1.2.0"
 
 [libraries]
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
@@ -122,6 +123,7 @@ purchases-kmp-either = { module = "com.revenuecat.purchases:purchases-kmp-either
 purchases-kmp-result = { module = "com.revenuecat.purchases:purchases-kmp-result", version.ref = "revenuecat-kmp" }
 androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 
 
@@ -162,7 +164,8 @@ composeAppAndroidMainImplementation = [
 ]
 composeAppCommonTestImplementation = [
     "kotlin-test",
-    "kotlinx-coroutines-test"
+    "kotlinx-coroutines-test",
+    "turbine"
 ]
 composeAppAndroidInstrumentedTestImplementation = [
     "androidx-test-junit",
