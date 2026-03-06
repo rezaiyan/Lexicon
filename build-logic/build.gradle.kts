@@ -33,5 +33,9 @@ gradlePlugin {
             id = "lexicon.kmp.feature"
             implementationClass = "com.vokab.gradle.KmpFeatureConventionPlugin"
         }
+        register("kmpFeatureUi") {
+            id = "lexicon.kmp.feature-ui"
+            implementationClass = "com.vokab.gradle.KmpFeatureUiConventionPlugin"
+        }
     }
 }

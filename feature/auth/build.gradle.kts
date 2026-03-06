@@ -1,6 +1,5 @@
 plugins {
-    id("lexicon.kmp.feature")
-    id("lexicon.kmp.compose")
+    id("lexicon.kmp.feature-ui")
 }
 
 kotlin {
@@ -12,16 +11,7 @@ kotlin {
         iosMain.get().dependsOn(mobileMain)
 
         commonMain.dependencies {
-            implementation(project(":design-system"))
             implementation(project(":platforms"))
-            implementation(project(":resources"))
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            api(libs.koin.compose)
-            implementation(libs.kotlinx.coroutines.core)
         }
 
         mobileMain.dependencies {
