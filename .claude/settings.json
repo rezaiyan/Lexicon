@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
+  },
   "permissions": {
     "allow": [
       "Read",
@@ -45,7 +48,7 @@
       "Bash(npx *)"
     ]
   },
-  "env": {
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
+  "enabledPlugins": {
+    "everything-claude-code@everything-claude-code": true
   }
 }

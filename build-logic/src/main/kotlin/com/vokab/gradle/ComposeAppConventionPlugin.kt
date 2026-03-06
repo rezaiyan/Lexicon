@@ -30,25 +30,25 @@ class ComposeAppConventionPlugin : Plugin<Project> {
             }
         }
 
-        sourceSets.matching { it.name == "mobileMain" }.all {
+        sourceSets.matching { it.name == "mobileMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppMobileMainImplementation")
             }
         }
 
-        sourceSets.matching { it.name == "androidMain" }.all {
+        sourceSets.matching { it.name == "androidMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppAndroidMainImplementation")
             }
         }
 
-        sourceSets.matching { it.name == "iosMain" }.all {
+        sourceSets.matching { it.name == "iosMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppIosMainImplementation")
             }
         }
 
-        sourceSets.matching { it.name == "wasmJsMain" }.all {
+        sourceSets.matching { it.name == "wasmJsMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppWasmJsMainImplementation")
             }
@@ -60,7 +60,7 @@ class ComposeAppConventionPlugin : Plugin<Project> {
             }
         }
 
-        sourceSets.matching { it.name == "androidInstrumentedTest" }.all {
+        sourceSets.matching { it.name == "androidInstrumentedTest" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppAndroidInstrumentedTestImplementation")
             }

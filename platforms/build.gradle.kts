@@ -26,7 +26,7 @@ kotlin {
             }
         }
 
-        binaries.all {
+        binaries.configureEach {
             linkerOpts(
                 "-L${sherpaRoot.absolutePath}", "-lsherpa-onnx",
                 "-L${onnxruntimeRoot.absolutePath}", "-lonnxruntime",

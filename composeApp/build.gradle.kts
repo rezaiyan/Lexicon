@@ -13,7 +13,7 @@ plugins {
     id("lexicon.compose-app")
 }
 
-configurations.all {
+configurations.configureEach {
     exclude(group = "com.amazon.device", module = "amazon-appstore-sdk")
 }
 
@@ -139,7 +139,7 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
 
-    sourceSets.all {
+    sourceSets.configureEach {
         languageSettings {
             optIn("kotlin.time.ExperimentalTime")
         }

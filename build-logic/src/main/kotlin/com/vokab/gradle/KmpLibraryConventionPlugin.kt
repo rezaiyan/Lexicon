@@ -37,7 +37,7 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
 
             applyDefaultHierarchyTemplate()
 
-            sourceSets.all {
+            sourceSets.configureEach {
                 languageSettings {
                     optIn("kotlin.time.ExperimentalTime")
                 }
