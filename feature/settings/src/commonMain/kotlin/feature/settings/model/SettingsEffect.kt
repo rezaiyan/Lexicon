@@ -1,6 +1,4 @@
-package presentation.feature.settings.model
-
-import presentation.model.DialogState
+package feature.settings.model
 
 sealed class SettingsEffect {
     data class ShowDialog(val dialogState: DialogState) : SettingsEffect()

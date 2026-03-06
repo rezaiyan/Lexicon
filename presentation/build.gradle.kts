@@ -64,6 +64,7 @@ kotlin {
             implementation(project(":feature:profile"))
             implementation(project(":feature:onboarding"))
             implementation(project(":feature:study"))
+            implementation(project(":feature:settings"))
             // Removed: presentation should only depend on domain, not data
             implementation(project(":resources"))
             implementation(compose.runtime)

@@ -6,8 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.feature.settings.SettingsViewModel
-import presentation.model.DialogState
+import feature.settings.SettingsViewModel
+import feature.settings.model.DialogState
 import presentation.ui.components.LanguageSelectionDialog
 import components.scaffold.LexiconColumn
 import presentation.ui.components.NotificationPermissionDialog

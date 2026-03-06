@@ -1,4 +1,4 @@
-package presentation.model
+package feature.settings.model
 
 import domain.settings.model.ThemeMode
 import utils.Language

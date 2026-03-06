@@ -1,4 +1,4 @@
-package presentation.feature.settings
+package feature.settings
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
@@ -19,9 +19,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import platform.IAppVersionProvider
 import core.base.BaseViewModel
-import presentation.feature.settings.model.SettingsEffect
-import presentation.model.DialogState
-import presentation.model.SettingsScreenState
+import feature.settings.model.DialogState
+import feature.settings.model.SettingsEffect
+import feature.settings.model.SettingsScreenState
 import domain.settings.model.ThemeMode
 import utils.Language
 

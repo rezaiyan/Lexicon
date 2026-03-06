@@ -1,4 +1,4 @@
-package presentation.feature.settings
+package feature.settings
 
 import domain.notifications.repository.INotificationRepository
 import kotlinx.coroutines.flow.Flow
@@ -26,5 +26,3 @@ class NotificationPermissionMonitor(
         refreshTrigger.emit(Unit)
     }
 }
-
-

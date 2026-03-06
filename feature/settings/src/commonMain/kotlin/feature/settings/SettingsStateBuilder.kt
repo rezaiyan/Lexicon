@@ -1,4 +1,4 @@
-package presentation.feature.settings
+package feature.settings
 
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
@@ -6,7 +6,7 @@ import domain.auth.model.UserFeatureAccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import presentation.model.SettingsScreenState
+import feature.settings.model.SettingsScreenState
 import domain.settings.model.ThemeMode
 import utils.Language
 
@@ -16,7 +16,7 @@ import utils.Language
  * All upstream flows handle errors gracefully via Flow operators
  */
 internal object SettingsStateBuilder {
-    
+
     fun buildStateFlow(
         currentLanguage: Flow<Language>,
         themeMode: Flow<ThemeMode>,
@@ -50,7 +50,7 @@ internal object SettingsStateBuilder {
             )
         }
     }
-    
+
     private fun defaultFeatureAccess(): FeatureAccessResponse {
         return FeatureAccessResponse(
             featureFlags = FeatureFlags(pushNotificationsEnabled = true),
@@ -58,4 +58,3 @@ internal object SettingsStateBuilder {
         )
     }
 }
-

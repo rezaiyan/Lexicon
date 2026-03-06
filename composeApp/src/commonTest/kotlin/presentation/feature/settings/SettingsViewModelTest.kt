@@ -21,8 +21,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import platform.IAppVersionProvider
+import feature.settings.NotificationPermissionMonitor
+import feature.settings.SettingsViewModel
 import presentation.ViewModelTestBase
-import presentation.model.DialogState
+import feature.settings.model.DialogState
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
