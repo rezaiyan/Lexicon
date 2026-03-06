@@ -1,4 +1,4 @@
-package presentation.model
+package feature.words.model
 
 enum class WordSortOption {
     DATE_ADDED_DESC,

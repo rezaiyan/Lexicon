@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package presentation.viewmodel
+package feature.words
 
 import analytics.IAnalyticsTracker
 import domain.word.model.Word
@@ -9,7 +9,7 @@ import domain.word.usecase.ExportWordsUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
-import presentation.model.WordManagerEffect
+import feature.words.model.WordManagerEffect
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -19,7 +19,7 @@ class WordExportHandler(
     private val events: SendChannel<WordManagerEffect>,
     private val scope: CoroutineScope
 ) {
-    
+
     fun shareWords(words: List<Word>, selectedWordIds: Set<Int>) {
         scope.launch {
             val wordsToExport = if (selectedWordIds.isEmpty()) {
@@ -27,12 +27,12 @@ class WordExportHandler(
             } else {
                 words.filter { selectedWordIds.contains(it.id) }
             }
-            
+
             if (wordsToExport.isEmpty()) {
                 events.send(WordManagerEffect.ShareFailed)
                 return@launch
             }
-            
+
             exportWordsUseCase(wordsToExport).fold(
                 onSuccess = { exportText ->
                     val timestamp = Clock.System.now().toEpochMilliseconds()
@@ -58,6 +58,3 @@ class WordExportHandler(
         }
     }
 }
-
-
-

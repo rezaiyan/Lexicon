@@ -171,6 +171,7 @@ kotlin {
             implementation(project(":feature:onboarding"))
             implementation(project(":feature:study"))
             implementation(project(":feature:settings"))
+            implementation(project(":feature:words"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)

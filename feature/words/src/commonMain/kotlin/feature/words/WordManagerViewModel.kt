@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTime::class)
 
-package presentation.viewmodel
+package feature.words
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
@@ -15,9 +15,9 @@ import domain.word.usecase.UpdateWordUseCase
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
-import presentation.model.WordManagerEffect
-import presentation.model.WordManagerScreenState
-import presentation.model.WordSortOption
+import feature.words.model.WordManagerEffect
+import feature.words.model.WordManagerScreenState
+import feature.words.model.WordSortOption
 import utils.Language
 import kotlin.time.ExperimentalTime
 

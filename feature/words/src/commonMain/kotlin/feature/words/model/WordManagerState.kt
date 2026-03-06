@@ -1,4 +1,4 @@
-package presentation.model
+package feature.words.model
 
 import domain.word.model.LearningStage
 import domain.word.model.Word

@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import events.VocabularyEffect
 import org.jetbrains.compose.resources.stringResource
-import presentation.viewmodel.VocabularyViewModel
+import feature.words.VocabularyViewModel
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_failed_generic
 import lexicon.resources.generated.resources.please_login_for_ai

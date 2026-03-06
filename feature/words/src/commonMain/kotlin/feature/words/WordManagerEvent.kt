@@ -1,8 +1,8 @@
-package presentation.viewmodel
+package feature.words
 
 import domain.word.model.LearningStage
 import domain.word.model.Word
-import presentation.model.WordSortOption
+import feature.words.model.WordSortOption
 import utils.Language
 
 sealed interface WordManagerEvent {

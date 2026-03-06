@@ -48,7 +48,7 @@ import feature.auth.ui.SplashHost
 import feature.onboarding.ui.OnboardingScreen
 import feature.onboarding.ui.VocabularyPreviewScreen
 import presentation.viewmodel.AppNavigationViewModel
-import presentation.viewmodel.VocabularyViewModel
+import feature.words.VocabularyViewModel
 import theme.LexiconTheme
 
 val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> {

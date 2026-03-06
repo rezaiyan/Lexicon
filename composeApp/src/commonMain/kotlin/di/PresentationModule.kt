@@ -21,8 +21,8 @@ import feature.leaderboard.LeaderboardViewModel
 import feature.onboarding.OnboardingViewModel
 import feature.onboarding.VocabularyPreviewViewModel
 import presentation.viewmodel.AppNavigationViewModel
-import presentation.viewmodel.VocabularyViewModel
-import presentation.viewmodel.WordManagerViewModel
+import feature.words.VocabularyViewModel
+import feature.words.WordManagerViewModel
 
 fun presentationModule() = module {
 

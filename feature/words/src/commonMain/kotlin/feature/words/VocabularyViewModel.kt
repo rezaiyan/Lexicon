@@ -1,6 +1,6 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
-package presentation.viewmodel
+package feature.words
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,7 @@ import events.VocabularyEffect
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
-import presentation.model.ReviewMode
+import feature.words.model.ReviewMode
 import core.common.UiState
 
 class VocabularyViewModel(

@@ -20,7 +20,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import presentation.model.ReviewMode
+import feature.words.model.ReviewMode
+import feature.words.VocabularyViewModel
 import core.common.UiState
 import utils.Language
 import kotlin.test.Test

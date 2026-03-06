@@ -25,7 +25,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import presentation.model.WordSortOption
+import feature.words.model.WordSortOption
+import feature.words.WordManagerViewModel
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals

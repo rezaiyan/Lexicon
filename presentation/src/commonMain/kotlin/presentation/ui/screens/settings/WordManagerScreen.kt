@@ -19,14 +19,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import presentation.model.WordManagerEffect
+import feature.words.model.WordManagerEffect
 import presentation.ui.LocalSnackbarHostState
 import components.scaffold.ActionIconConfig
 import components.scaffold.TopBarColor
 import components.scaffold.LexiconColumn
 import overlay.LocalOverlayHost
 import presentation.util.shareContentAsFile
-import presentation.viewmodel.WordManagerViewModel
+import feature.words.WordManagerViewModel
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel

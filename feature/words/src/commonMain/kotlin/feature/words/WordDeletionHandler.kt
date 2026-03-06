@@ -1,4 +1,4 @@
-package presentation.viewmodel
+package feature.words
 
 import analytics.IAnalyticsTracker
 import domain.word.usecase.DeleteWordsResult
@@ -7,8 +7,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
-import presentation.model.WordManagerEffect
-import presentation.model.WordManagerScreenState
+import feature.words.model.WordManagerEffect
+import feature.words.model.WordManagerScreenState
 
 class WordDeletionHandler(
     private val deleteWordsUseCase: DeleteWordsUseCase,

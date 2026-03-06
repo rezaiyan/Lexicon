@@ -115,8 +115,8 @@ import lexicon.resources.generated.resources.word_count_filtered_format
 import lexicon.resources.generated.resources.word_count_format
 import org.jetbrains.compose.resources.stringResource
 
-import presentation.model.WordManagerScreenState
-import presentation.model.WordSortOption
+import feature.words.model.WordManagerScreenState
+import feature.words.model.WordSortOption
 import theme.AppColors
 import theme.Theme
 import utils.Language
