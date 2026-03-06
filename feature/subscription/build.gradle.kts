@@ -1,55 +1,13 @@
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.compose.compiler)
+    id("lexicon.kmp.feature")
+    id("lexicon.kmp.compose")
     alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-            freeCompilerArgs.addAll(listOf(
-                "-opt-in=kotlin.time.ExperimentalTime"
-            ))
-        }
-    }
-
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.compilations.all {
-            compilerOptions.configure {
-                freeCompilerArgs.addAll(listOf(
-                    "-opt-in=kotlin.time.ExperimentalTime"
-                ))
-            }
-        }
-        iosTarget.binaries.framework {
-            baseName = "feature-subscription"
-            isStatic = true
-        }
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs { browser() }
-
-    applyDefaultHierarchyTemplate()
-
-    sourceSets.all {
-        languageSettings {
-            optIn("kotlin.time.ExperimentalTime")
-        }
-    }
-
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":domain"))
             implementation(project(":design-system"))
-            implementation(project(":core"))
             implementation(project(":platforms"))
             implementation(project(":resources"))
             implementation(compose.runtime)
@@ -58,13 +16,10 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.materialIconsExtended)
-            api(libs.lifecycle.viewmodel)
-            api(libs.koin.core)
             api(libs.koin.compose)
-            api(libs.koin.compose.viewmodel)
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.datetime)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
+            implementation(libs.kotlinx.coroutines.core)
         }
 
         androidMain.dependencies {
@@ -74,12 +29,6 @@ kotlin {
 }
 
 android {
-    namespace = "com.alirezaiyan.vokab.feature.subscription"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     dependencies {
         debugImplementation(compose.uiTooling)
     }

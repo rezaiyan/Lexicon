@@ -1,21 +1,10 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    id("lexicon.kmp.library")
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-            freeCompilerArgs.addAll(listOf(
-                "-opt-in=kotlin.time.ExperimentalTime"
-            ))
-        }
-    }
-
     fun KotlinNativeTarget.configureSherpaOnnxCinterop() {
         val archDir = when (name) {
             "iosArm64" -> "ios-arm64"
@@ -33,7 +22,6 @@ kotlin {
             }
             cinterops.create("bz2") {
                 definitionFile.set(project.file("src/nativeInterop/cinterop/bz2.def"))
-                // Use our custom bz2_api.h header (system bzlib.h uses BZ_API() macro wrappers that confuse cinterop)
                 includeDirs(project.file("src/nativeInterop/cinterop"))
             }
         }
@@ -51,39 +39,22 @@ kotlin {
         }
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.compilations.all {
+    targets.withType<KotlinNativeTarget>().configureEach {
+        compilations.configureEach {
             compilerOptions.configure {
                 freeCompilerArgs.addAll(listOf(
-                    "-opt-in=kotlin.time.ExperimentalTime",
                     "-opt-in=kotlinx.cinterop.ExperimentalForeignApi"
                 ))
             }
         }
-        iosTarget.binaries.framework {
-            baseName = "platforms"
-            isStatic = true
-        }
-        iosTarget.configureSherpaOnnxCinterop()
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs { browser() }
-
-    sourceSets.all {
-        languageSettings {
-            optIn("kotlin.time.ExperimentalTime")
-        }
+        configureSherpaOnnxCinterop()
     }
 
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core"))
             implementation(libs.koin.core)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
+            implementation(libs.kotlinx.coroutines.core)
         }
 
         androidMain.dependencies {
@@ -103,14 +74,5 @@ kotlin {
         wasmJsMain.dependencies {
             implementation(project(":core"))
         }
-    }
-}
-
-android {
-    namespace = "com.alirezaiyan.vokab.platforms"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }

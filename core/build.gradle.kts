@@ -1,10 +1,8 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.compose.compiler)
+    id("lexicon.kmp.library")
+    id("lexicon.kmp.compose")
 }
 
 private val localProperties: Properties = Properties().apply {
@@ -70,45 +68,6 @@ val generateWasmJsBuildConfig by tasks.registering {
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            freeCompilerArgs.addAll(listOf(
-                "-opt-in=kotlin.time.ExperimentalTime"
-            ))
-        }
-    }
-
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.compilations.configureEach {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.addAll(listOf(
-                        "-opt-in=kotlin.time.ExperimentalTime"
-                    ))
-                }
-            }
-        }
-        iosTarget.binaries.framework {
-            baseName = "core"
-            isStatic = true
-        }
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
-
-    sourceSets.all {
-        languageSettings {
-            optIn("kotlin.time.ExperimentalTime")
-        }
-    }
-
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -118,7 +77,7 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.serialization.json)
-            api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
+            api(libs.kotlinx.coroutines.core)
             api(libs.lifecycle.viewmodel)
         }
 
@@ -126,9 +85,6 @@ kotlin {
             implementation(libs.androidx.core.ktx)
             implementation(libs.koin.core)
             implementation(libs.androidx.activity.compose)
-        }
-
-        iosMain.dependencies {
         }
 
         val wasmJsMain by getting {
@@ -143,8 +99,6 @@ tasks.matching { it.name.startsWith("compileKotlinWasmJs") }.configureEach {
 }
 
 android {
-    namespace = "com.alirezaiyan.vokab.core"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
         buildConfigField("String", "VOKAB_BACKEND_HOST", backendHost.toQuotedLiteral())
         buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", googleServerClientId.toQuotedLiteral())
@@ -153,9 +107,5 @@ android {
     }
     buildFeatures {
         buildConfig = true
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }

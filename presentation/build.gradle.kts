@@ -1,50 +1,10 @@
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.compose.compiler)
+    id("lexicon.kmp.library")
+    id("lexicon.kmp.compose")
     alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-            freeCompilerArgs.addAll(listOf(
-                "-opt-in=kotlin.time.ExperimentalTime"
-            ))
-        }
-    }
-
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.compilations.all {
-            compilerOptions.configure {
-                freeCompilerArgs.addAll(listOf(
-                    "-opt-in=kotlin.time.ExperimentalTime"
-                ))
-            }
-        }
-        iosTarget.binaries.framework {
-            baseName = "presentation"
-            isStatic = true
-        }
-    }
-
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
-    wasmJs { browser() }
-
-    applyDefaultHierarchyTemplate()
-
-    sourceSets.all {
-        languageSettings {
-            optIn("kotlin.time.ExperimentalTime")
-        }
-    }
-
     sourceSets {
         val mobileMain by creating {
             dependsOn(commonMain.get())
@@ -67,7 +27,6 @@ kotlin {
             implementation(project(":feature:settings"))
             implementation(project(":feature:words"))
             implementation(project(":feature:import"))
-            // Removed: presentation should only depend on domain, not data
             implementation(project(":resources"))
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -88,7 +47,7 @@ kotlin {
             implementation(libs.compottie)
             implementation(libs.compottie.network)
             implementation(compose.material3AdaptiveNavigationSuite)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinxCoroutinesSwing.get()}")
+            implementation(libs.kotlinx.coroutines.core)
         }
 
         mobileMain.dependencies {
@@ -102,19 +61,10 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.components.uiToolingPreview)
         }
-
-        iosMain.dependencies {
-        }
     }
 }
 
 android {
-    namespace = "com.alirezaiyan.vokab.presentation"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     dependencies {
         debugImplementation(compose.uiTooling)
     }
