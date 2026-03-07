@@ -1,5 +1,7 @@
 package feature.study.ui.review
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,14 +12,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import domain.tts.model.TtsState
 import domain.word.model.Word
 import expects.BackHandler
 import feature.study.model.ReviewScreenState
 import feature.study.model.ReviewType
 import core.common.UiState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import theme.Theme
 
 @Composable
 fun ReviewBottomSheet(
@@ -50,8 +57,50 @@ fun ReviewBottomSheet(
         if (wordListState is UiState.Loaded) wordListState.value.size else 0
     }
 
+    // Content enter/exit animation — fade + slide for smooth open/close
+    val motion = Theme.motion
+    val coroutineScope = rememberCoroutineScope()
+    var contentVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { contentVisible = true }
+
+    val contentAlpha by animateFloatAsState(
+        targetValue = if (contentVisible) 1f else 0f,
+        animationSpec = if (contentVisible)
+            tween(motion.durationMedium2, delayMillis = motion.durationXShort, easing = motion.easingDecelerate)
+        else
+            tween(motion.durationMedium, easing = motion.easingAccelerate),
+        label = "sheetContentAlpha"
+    )
+    val contentTranslationY by animateFloatAsState(
+        targetValue = if (contentVisible) 0f else 60f,
+        animationSpec = if (contentVisible)
+            tween(motion.durationLong, delayMillis = motion.durationXShort, easing = motion.easingDecelerate)
+        else
+            tween(motion.durationMedium, easing = motion.easingAccelerate),
+        label = "sheetContentSlide"
+    )
+
+    // Animate content out, then invoke the actual dismiss callback
+    val animatedDismiss: (() -> Unit) -> Unit = { callback ->
+        contentVisible = false
+        coroutineScope.launch {
+            delay(motion.durationMedium.toLong())
+            callback()
+        }
+    }
+
+    var showExitConfirmation by remember { mutableStateOf(false) }
+
+    // Close button: browse mode animates out directly;
+    // review mode shows an inline confirmation banner first.
+    val animatedOnClose: () -> Unit = if (reviewType == ReviewType.BROWSE) {
+        { animatedDismiss(onClose) }
+    } else {
+        { showExitConfirmation = true }
+    }
+
     BackHandler(enabled = reviewType == ReviewType.REVIEW && !showCompletion) {
-        onClose()
+        showExitConfirmation = true
     }
 
     LaunchedEffect(initialWord, wordListState) {
@@ -75,6 +124,8 @@ fun ReviewBottomSheet(
                         reviewedCount = initialWordCount
                         showCompletion = true
                     } else {
+                        contentVisible = false
+                        delay(motion.durationMedium.toLong())
                         onReviewComplete()
                     }
                 }
@@ -96,14 +147,15 @@ fun ReviewBottomSheet(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
             .then(modifier)
+            .graphicsLayer {
+                alpha = contentAlpha
+                translationY = contentTranslationY
+            }
     ) {
         if (showCompletion) {
             ReviewCompletionContent(
                 reviewedCount = reviewedCount,
-                onDismiss = {
-                    showCompletion = false
-                    onReviewComplete()
-                }
+                onDismiss = { animatedDismiss(onReviewComplete) }
             )
         } else {
             when (wordListState) {
@@ -128,7 +180,7 @@ fun ReviewBottomSheet(
                                 isFlipped = isFlipped,
                                 reviewType = reviewType,
                                 title = title,
-                                onClose = onClose,
+                                onClose = animatedOnClose,
                                 onFlip = { isFlipped = !isFlipped },
                                 onNavigateBack = {
                                     if (currentIndex > 0) {
@@ -163,6 +215,9 @@ fun ReviewBottomSheet(
                                 },
                                 ttsState = ttsState,
                                 onSpeakClick = onSpeakClick,
+                                showExitConfirmation = showExitConfirmation,
+                                onConfirmExit = { animatedDismiss(onClose) },
+                                onCancelExit = { showExitConfirmation = false },
                             )
 
                             editingWord?.let { word ->

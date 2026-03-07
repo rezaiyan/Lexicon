@@ -30,7 +30,6 @@ import feature.study.model.ReviewType
 import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
 import components.scaffold.ActionIconConfig
-import presentation.ui.components.CloseConfirmationDialogContent
 import components.scaffold.LexiconColumn
 import presentation.ui.components.imports.AiWordImportBottomSheet
 import presentation.ui.components.imports.ImportBottomSheet
@@ -39,7 +38,6 @@ import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetProperties
 import overlay.bottomsheet.showFullscreenBottomSheet
 import overlay.bottomsheet.showSizeToFitBottomSheet
-import overlay.dialog.showDialog
 import feature.study.ui.review.ReviewBottomSheetContent
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -184,17 +182,7 @@ fun StudyScreen() {
                                         reviewType = ReviewType.REVIEW,
                                         reviewState = sheetState.review,
                                         initialWord = event.firstWord,
-                                        onClose = {
-                                            overlayHost.showDialog(tag = "exit-confirmation") { nav ->
-                                                CloseConfirmationDialogContent(
-                                                    onConfirm = {
-                                                        nav.dismiss()
-                                                        navigator.dismiss()
-                                                    },
-                                                    onDismiss = nav::dismiss
-                                                )
-                                            }
-                                        },
+                                        onClose = { navigator.dismiss() },
                                         onReviewComplete = {
                                             viewModel.onReviewSessionComplete()
                                             navigator.dismiss()

@@ -3,27 +3,35 @@
 package feature.study.ui.review
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,18 +40,23 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import components.CounterPill
@@ -63,9 +76,12 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advance
 import lexicon.resources.generated.resources.back
 import lexicon.resources.generated.resources.browse_your_words
+import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.close
 import lexicon.resources.generated.resources.did_you_remember
 import lexicon.resources.generated.resources.edit
+import lexicon.resources.generated.resources.exit_review
+import lexicon.resources.generated.resources.exit_review_message
 import lexicon.resources.generated.resources.forgot
 import lexicon.resources.generated.resources.next
 import lexicon.resources.generated.resources.no_words_to_review
@@ -151,7 +167,7 @@ private fun ReviewTopBar(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = Theme.spacing.extraSmall2),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
 
             CounterPill(text = "${currentIndex + 1} / $totalCount")
@@ -192,6 +208,9 @@ fun ReviewContent(
     onEdit: (() -> Unit)? = null,
     ttsState: TtsState = TtsState.Idle,
     onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> },
+    showExitConfirmation: Boolean = false,
+    onConfirmExit: () -> Unit = {},
+    onCancelExit: () -> Unit = {},
 ) {
     // Animate the "tap to reveal" hint alpha outside the nested Box lambda to
     // avoid Kotlin's implicit-receiver overload resolution picking ColumnScope.AnimatedVisibility.
@@ -201,111 +220,152 @@ fun ReviewContent(
         label = "hintAlpha"
     )
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        ReviewTopBar(
-            title = title,
-            currentIndex = currentIndex,
-            totalCount = words.size,
-            onClose = onClose
-        )
+    // Dim the content behind the exit sheet
+    val scrimAlpha by animateFloatAsState(
+        targetValue = if (showExitConfirmation) 0.45f else 0f,
+        animationSpec = tween(300),
+        label = "scrimAlpha"
+    )
 
-        // ── Card slot: fills all remaining vertical space ─────────────────────
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.medium)
-                .padding(top = Theme.spacing.medium, bottom = Theme.spacing.extraSmall2),
-            contentAlignment = Alignment.Center
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AnimatedContent(
-                targetState = currentIndex,
-                transitionSpec = {
-                    val goingForward = targetState > initialState
-                    val enter = slideInHorizontally(
-                        animationSpec = tween(380, easing = FastOutSlowInEasing),
-                        initialOffsetX = { if (goingForward) it else -it }
-                    ) + fadeIn(tween(280, delayMillis = 60))
-                    val exit = slideOutHorizontally(
-                        animationSpec = tween(300, easing = FastOutSlowInEasing),
-                        targetOffsetX = { if (goingForward) -it else it }
-                    ) + fadeOut(tween(200))
-                    enter togetherWith exit
-                },
-                label = "cardSlide",
-                modifier = Modifier.fillMaxSize()
-            ) { index ->
-                val word = words.getOrNull(index)
-                if (word != null) {
-                    FlashCard(
-                        word = word,
-                        isFlipped = isFlipped,
-                        onFlip = onFlip,
-                        ttsState = ttsState,
-                        onSpeakClick = onSpeakClick
+            ReviewTopBar(
+                title = title,
+                currentIndex = currentIndex,
+                totalCount = words.size,
+                onClose = onClose
+            )
+
+            // ── Card slot: fills all remaining vertical space ─────────────────
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = Theme.spacing.medium)
+                    .padding(top = Theme.spacing.medium, bottom = Theme.spacing.extraSmall2),
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = currentIndex,
+                    transitionSpec = {
+                        val goingForward = targetState > initialState
+                        val enter = slideInHorizontally(
+                            animationSpec = tween(380, easing = FastOutSlowInEasing),
+                            initialOffsetX = { if (goingForward) it else -it }
+                        ) + fadeIn(tween(280, delayMillis = 60))
+                        val exit = slideOutHorizontally(
+                            animationSpec = tween(300, easing = FastOutSlowInEasing),
+                            targetOffsetX = { if (goingForward) -it else it }
+                        ) + fadeOut(tween(200))
+                        enter togetherWith exit
+                    },
+                    label = "cardSlide",
+                    modifier = Modifier.fillMaxSize()
+                ) { index ->
+                    val word = words.getOrNull(index)
+                    if (word != null) {
+                        FlashCard(
+                            word = word,
+                            isFlipped = isFlipped,
+                            onFlip = onFlip,
+                            ttsState = ttsState,
+                            onSpeakClick = onSpeakClick
+                        )
+                    }
+                }
+
+                // "Tap to reveal" hint
+                Text(
+                    text = stringResource(Res.string.tap_card_to_reveal),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = Theme.spacing.extraSmall2)
+                        .graphicsLayer { alpha = hintAlpha }
+                )
+            }
+
+            // ── Edit word ─────────────────────────────────────────────────────
+            if (onEdit != null) {
+                Row(
+                    modifier = Modifier
+                        .padding(vertical = Theme.spacing.extraSmall3)
+                        .clip(RoundedCornerShape(50))
+                        .clickable(onClick = onEdit)
+                        .padding(horizontal = Theme.spacing.sm, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(Res.string.edit),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = stringResource(Res.string.edit),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
                     )
                 }
             }
 
-            // "Tap to reveal" hint — overlaid at the bottom of the card area.
-            // Uses graphicsLayer alpha so it never affects layout or triggers
-            // scoped-overload resolution issues.
-            Text(
-                text = stringResource(Res.string.tap_card_to_reveal),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+            // ── Action buttons ────────────────────────────────────────────────
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = Theme.spacing.extraSmall2)
-                    .graphicsLayer { alpha = hintAlpha }
-            )
-        }
-
-        // ── Edit word — subtle centered action between card and buttons ─────────
-        if (onEdit != null) {
-            Row(
-                modifier = Modifier
-                    .padding(vertical = Theme.spacing.extraSmall3)
-                    .clip(RoundedCornerShape(50))
-                    .clickable(onClick = onEdit)
-                    .padding(horizontal = Theme.spacing.sm, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
+                    .fillMaxWidth()
+                    .padding(horizontal = Theme.spacing.medium)
+                    .padding(bottom = Theme.spacing.medium)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(Res.string.edit),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    text = stringResource(Res.string.edit),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
-                )
+                when (reviewType) {
+                    ReviewType.REVIEW -> ReviewRatingArea(isFlipped = isFlipped, onReview = onReview)
+                    ReviewType.BROWSE -> NavigationButtons(
+                        currentIndex = currentIndex,
+                        totalCount = words.size,
+                        onNavigateBack = onNavigateBack,
+                        onNavigateForward = onNavigateForward
+                    )
+                }
             }
         }
 
-        // ── Action buttons ─────────────────────────────────────────────────────
+        // ── Scrim (always composed, alpha-animated, no ripple) ────────────────
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.medium)
-                .padding(bottom = Theme.spacing.medium)
-        ) {
-            when (reviewType) {
-                ReviewType.REVIEW -> ReviewRatingArea(isFlipped = isFlipped, onReview = onReview)
-                ReviewType.BROWSE -> NavigationButtons(
-                    currentIndex = currentIndex,
-                    totalCount = words.size,
-                    onNavigateBack = onNavigateBack,
-                    onNavigateForward = onNavigateForward
+                .fillMaxSize()
+                .graphicsLayer { alpha = scrimAlpha }
+                .background(Color.Black)
+                .then(
+                    if (showExitConfirmation) Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onCancelExit
+                    ) else Modifier
                 )
-            }
+        )
+
+        // ── Exit confirmation sheet ──────────────────────────────────────────
+        AnimatedVisibility(
+            visible = showExitConfirmation,
+            enter = slideInVertically(
+                animationSpec = tween(350, easing = FastOutSlowInEasing),
+                initialOffsetY = { it }
+            ) + fadeIn(tween(250, delayMillis = 50)),
+            exit = slideOutVertically(
+                animationSpec = tween(250, easing = FastOutSlowInEasing),
+                targetOffsetY = { it }
+            ) + fadeOut(tween(150)),
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            ExitConfirmationSheet(
+                onConfirm = onConfirmExit,
+                onCancel = onCancelExit
+            )
         }
     }
 }
@@ -437,6 +497,83 @@ fun NavigationButtons(
                         modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Clean exit-confirmation sheet — slides up from the bottom.
+ * No drag handle, clear typography hierarchy, stacked full-width buttons.
+ */
+@Composable
+private fun ExitConfirmationSheet(
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = Theme.shapes.extraLarge, topEnd = Theme.shapes.extraLarge),
+        tonalElevation = Theme.elevation.high,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .padding(
+                    start = Theme.spacing.medium,
+                    end = Theme.spacing.medium,
+                    top = Theme.spacing.lg,
+                    bottom = Theme.spacing.medium
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(Res.string.exit_review),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(Modifier.height(Theme.spacing.extraSmall2))
+
+            Text(
+                text = stringResource(Res.string.exit_review_message),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(Modifier.height(Theme.spacing.lg))
+
+            Button(
+                onClick = onConfirm,
+                modifier = Modifier.fillMaxWidth().height(Theme.dimensions.buttonHeight),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                ),
+                shape = RoundedCornerShape(Theme.shapes.medium)
+            ) {
+                Text(
+                    text = stringResource(Res.string.exit_review),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(Modifier.height(Theme.spacing.extraSmall2))
+
+            TextButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth().height(Theme.dimensions.buttonHeight),
+                shape = RoundedCornerShape(Theme.shapes.medium)
+            ) {
+                Text(
+                    text = stringResource(Res.string.cancel),
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
