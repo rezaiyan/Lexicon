@@ -27,6 +27,7 @@ import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class VocabularyViewModelTest : ViewModelTestBase() {
@@ -139,5 +140,76 @@ class VocabularyViewModelTest : ViewModelTestBase() {
         vm.deleteWord(1)
         // State should still be Loaded (reloaded from loadWords)
         assertIs<UiState.Loaded<List<Word>>>(vm.currentState)
+    }
+
+    @Test
+    fun `updateWord reloads words on success`() = runTest {
+        val vm = createViewModel()
+        vm.loadWords(ReviewMode.DuoCards)
+
+        val word = testWord(1).copy(originalWord = "updated")
+        vm.updateWord(word)
+
+        // After updateWord succeeds, loadWords is called again → state is still Loaded
+        assertIs<UiState.Loaded<List<Word>>>(vm.currentState)
+        assertTrue("word_updated_in_review" in loggedEvents)
+    }
+
+    @Test
+    fun `updateWord failure logs non-fatal error`() = runTest {
+        val vm = createViewModel()
+        vm.loadWords(ReviewMode.DuoCards)
+
+        // Override repo to fail updates — need to rebuild VM
+        val failingRepo = object : IWordRepository {
+            override fun getDueCards(): Flow<List<Word>> = flowOf(dueWords)
+            override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(stageWords)
+            override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
+            override suspend fun updateWord(word: Word): Try<Unit> = Try.failure(RuntimeException("update failed"))
+            override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
+            override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
+            override suspend fun getWordById(id: Int): Word? = null
+            override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
+            override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
+            override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flowOf()
+            override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
+            override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
+            override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
+            override fun getProgressStats(): Flow<ProgressStats> = flowOf()
+            override suspend fun getTotalCount(): Try<Int> = Try.success(0)
+            override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        }
+        val failVm = VocabularyViewModel(
+            getDueWordsUseCase = GetDueWordsUseCase(failingRepo),
+            getWordsByStageUseCase = GetWordsByStageUseCase(failingRepo),
+            updateWordUseCase = UpdateWordUseCase(failingRepo),
+            deleteWordUseCase = DeleteWordUseCase(failingRepo),
+            analyticsTracker = fakeAnalytics()
+        )
+        failVm.loadWords()
+        failVm.updateWord(testWord(1))
+
+        // No crash, no word_updated_in_review event
+        assertTrue("word_updated_in_review" !in loggedEvents)
+    }
+
+    @Test
+    fun `loadWords with empty due cards emits empty Loaded state`() = runTest {
+        dueWords = emptyList()
+        val vm = createViewModel()
+        vm.loadWords(ReviewMode.DuoCards)
+
+        val state = vm.currentState
+        assertIs<UiState.Loaded<List<Word>>>(state)
+        assertEquals(0, state.value.size)
+    }
+
+    @Test
+    fun `deleteWord logs analytics on success`() = runTest {
+        val vm = createViewModel()
+        vm.loadWords()
+        vm.deleteWord(1)
+
+        assertTrue("word_deleted_in_review" in loggedEvents)
     }
 }

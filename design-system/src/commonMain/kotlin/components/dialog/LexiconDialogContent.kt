@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -30,7 +32,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import theme.Theme
 
 enum class ButtonType {
@@ -59,6 +60,7 @@ data class ButtonState(
 
 @Composable
 fun LexiconDialogContent(
+    modifier: Modifier = Modifier,
     iconState: DialogIconState = DialogIconState.None,
     title: String? = null,
     message: String? = null,
@@ -69,7 +71,9 @@ fun LexiconDialogContent(
     negativeButton: ButtonState? = null
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth()
+            .safeDrawingPadding()
+            .padding(Theme.spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // ── Header: icon circle + title, vertically centered ──────────────────
@@ -288,6 +292,7 @@ fun LexiconDialogContent(
 
 @Composable
 fun LexiconDialogContent(
+    modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     title: String? = null,
     message: String? = null,
@@ -300,6 +305,7 @@ fun LexiconDialogContent(
     iconTint: Color? = null
 ) {
     LexiconDialogContent(
+        modifier = modifier,
         iconState = when {
             icon != null -> DialogIconState.Icon(icon, iconTint)
             else -> DialogIconState.None

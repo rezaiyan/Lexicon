@@ -16,6 +16,8 @@
     <string name="cancel">Cancel</string>
     <string name="done">Done</string>
     <string name="close">Close</string>
+    <string name="auto_play">Auto-play</string>
+    <string name="repeat_pronunciation">Repeat pronunciation</string>
     <string name="retry">Retry</string>
     <string name="change">Change</string>
     <string name="logout">Logout</string>
@@ -131,7 +133,23 @@
     <string name="add_words_to_start">Add words to start your journey</string>
     <string name="session_complete">Session Complete!</string>
     <string name="you_reviewed_cards">You reviewed %1$d cards</string>
-    
+
+    <!-- Review Completion - Performance Tiers -->
+    <string name="completion_perfect_title">Perfect Score!</string>
+    <string name="completion_perfect_message">Flawless memory. Every single word nailed.</string>
+    <string name="completion_great_title">Outstanding!</string>
+    <string name="completion_great_message">Your memory is sharp. Keep this momentum going.</string>
+    <string name="completion_good_title">Solid Session!</string>
+    <string name="completion_good_message">Good recall. The words you missed will stick next time.</string>
+    <string name="completion_okay_title">Making Progress!</string>
+    <string name="completion_okay_message">Each review strengthens your memory. You're building something.</string>
+    <string name="completion_tough_title">Every Review Counts!</string>
+    <string name="completion_tough_message">Tough words take time. You showed up — that's what matters.</string>
+    <string name="completion_remembered">Remembered</string>
+    <string name="completion_forgot">Forgot</string>
+    <string name="completion_score_percent">%1$d%%</string>
+    <string name="completion_cards_reviewed">%1$d cards reviewed</string>
+
     <!-- Learning Stages (7 Levels) -->
     <string name="level_0_fresh">First Encounter</string>
     <string name="level_0_description">Level 1 • Just discovered</string>

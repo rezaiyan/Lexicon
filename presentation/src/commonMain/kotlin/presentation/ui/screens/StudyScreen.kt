@@ -8,8 +8,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -20,7 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import events.OnEvents
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -31,16 +32,16 @@ import feature.study.model.ReviewType
 import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
 import components.scaffold.ActionIconConfig
-import presentation.ui.components.CloseConfirmationDialogContent
 import components.scaffold.LexiconColumn
 import presentation.ui.components.imports.AiWordImportBottomSheet
 import presentation.ui.components.imports.ImportBottomSheet
 import presentation.ui.components.imports.ImportMethodSelectorContent
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetProperties
-import overlay.bottomsheet.showFullscreenBottomSheet
-import overlay.bottomsheet.showSizeToFitBottomSheet
-import overlay.dialog.showDialog
+import overlay.bottomsheet.BottomSheetPages
+import overlay.bottomsheet.rememberBottomSheetPageNavigator
+import overlay.fullscreen.FullScreenProperties
+import overlay.fullscreen.showFullScreen
 import feature.study.ui.review.ReviewBottomSheetContent
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -49,8 +50,7 @@ import feature.study.ui.study.WordDistributionBar
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
-import lexicon.resources.generated.resources.review_due_cards
-import lexicon.resources.generated.resources.stage_words_string
+import overlay.bottomsheet.showSizeToFitBottomSheet
 
 /** Non-dismissable sheet configuration reused for import and review flows. */
 private val LockedSheetProperties = BottomSheetProperties(
@@ -59,6 +59,12 @@ private val LockedSheetProperties = BottomSheetProperties(
     isNavigationBarsPaddingEnabled = true,
     sheetGesturesEnabled = false,
 )
+
+private sealed interface ImportFlowPage {
+    data object Selector : ImportFlowPage
+    data object Manual : ImportFlowPage
+    data object AiAssistant : ImportFlowPage
+}
 
 @Composable
 fun StudyScreen() {
@@ -88,38 +94,38 @@ fun StudyScreen() {
 
     val openImportSheet: () -> Unit = {
         if (hasPremiumAccess) {
-            overlayHost.showSizeToFitBottomSheet(tag = "import-method") { selectorNav ->
-                ImportMethodSelectorContent(
-                    onManual = {
-                        selectorNav.dismiss()
-                        overlayHost.showFullscreenBottomSheet(
-                            tag = "import",
-                            properties = LockedSheetProperties
-                        ) { nav ->
-                            ImportBottomSheet(
-                                onDismiss = { nav.dismiss() },
-                                onShowSnackBar = onImportSuccess
-                            )
-                        }
-                    },
-                    onAiAssistant = {
-                        selectorNav.dismiss()
-                        overlayHost.showFullscreenBottomSheet(
-                            tag = "ai-import",
-                            properties = LockedSheetProperties
-                        ) { nav ->
-                            AiWordImportBottomSheet(
-                                onDismiss = { nav.dismiss() },
-                                onShowSnackBar = onImportSuccess
-                            )
-                        }
+            overlayHost.showSizeToFitBottomSheet(tag = "import") { sheetNav ->
+                val pages = rememberBottomSheetPageNavigator<ImportFlowPage>(ImportFlowPage.Selector)
+
+                LaunchedEffect(pages.currentPage) {
+                    properties = when (pages.currentPage) {
+                        is ImportFlowPage.Selector -> BottomSheetProperties(showCloseButton = false)
+                        is ImportFlowPage.Manual -> LockedSheetProperties.copy(showCloseButton = true)
+                        is ImportFlowPage.AiAssistant -> LockedSheetProperties
                     }
-                )
+                }
+
+                BottomSheetPages(navigator = pages) { currentPage ->
+                    when (currentPage) {
+                        is ImportFlowPage.Selector -> ImportMethodSelectorContent(
+                            onManual = { pages.navigateTo(ImportFlowPage.Manual) },
+                            onAiAssistant = { pages.navigateTo(ImportFlowPage.AiAssistant) }
+                        )
+                        is ImportFlowPage.Manual -> ImportBottomSheet(
+                            onDismiss = { sheetNav.dismiss() },
+                            onShowSnackBar = onImportSuccess
+                        )
+                        is ImportFlowPage.AiAssistant -> AiWordImportBottomSheet(
+                            onDismiss = { sheetNav.dismiss() },
+                            onShowSnackBar = onImportSuccess
+                        )
+                    }
+                }
             }
         } else {
-            overlayHost.showFullscreenBottomSheet(
+            overlayHost.showSizeToFitBottomSheet(
                 tag = "import",
-                properties = LockedSheetProperties
+                properties = LockedSheetProperties.copy(showCloseButton = true)
             ) { nav ->
                 ImportBottomSheet(
                     onDismiss = { nav.dismiss() },
@@ -171,31 +177,23 @@ fun StudyScreen() {
                         when (event) {
                             is StudyEvent.StartReview -> {
                                 viewModel.startDueReview()
-                                overlayHost.showFullscreenBottomSheet(
+                                overlayHost.showFullScreen(
                                     tag = "review-due",
-                                    properties = LockedSheetProperties
+                                    properties = FullScreenProperties(
+                                        dismissOnBackPress = false,
+                                        isNavigationBarsPaddingEnabled = true,
+                                    )
                                 ) { navigator ->
                                     // Read state inside the composable lambda so the
                                     // overlay host recomposes when the ViewModel updates.
                                     val sheetState by viewModel.state()
-                                    val sheetTts by viewModel.ttsState.collectAsStateWithLifecycle()
+                                    val sheetTts = sheetState.ttsState
 
                                     ReviewBottomSheetContent(
-                                        title = stringResource(Res.string.review_due_cards),
                                         reviewType = ReviewType.REVIEW,
                                         reviewState = sheetState.review,
                                         initialWord = event.firstWord,
-                                        onClose = {
-                                            overlayHost.showDialog(tag = "exit-confirmation") { nav ->
-                                                CloseConfirmationDialogContent(
-                                                    onConfirm = {
-                                                        nav.dismiss()
-                                                        navigator.dismiss()
-                                                    },
-                                                    onDismiss = nav::dismiss
-                                                )
-                                            }
-                                        },
+                                        onClose = { navigator.dismiss() },
                                         onReviewComplete = {
                                             viewModel.onReviewSessionComplete()
                                             navigator.dismiss()
@@ -232,12 +230,11 @@ fun StudyScreen() {
                         stats = loadedStats,
                         onStageClick = { stage, stageName ->
                             viewModel.loadWordsByStage(stage)
-                            overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
+                            overlayHost.showFullScreen(tag = "review-stage-${stage}") { navigator ->
                                 val sheetState by viewModel.state()
-                                val sheetTts by viewModel.ttsState.collectAsStateWithLifecycle()
+                                val sheetTts = sheetState.ttsState
 
                                 ReviewBottomSheetContent(
-                                    title = stringResource(Res.string.stage_words_string, stageName),
                                     reviewType = ReviewType.BROWSE,
                                     reviewState = sheetState.review,
                                     onClose = navigator::dismiss,

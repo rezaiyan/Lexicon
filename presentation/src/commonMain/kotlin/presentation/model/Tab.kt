@@ -9,7 +9,4 @@ sealed interface TabDestination {
 
     @Serializable
     data object Settings : TabDestination
-
-    @Serializable
-    data object WordManager : TabDestination
 }

@@ -6,6 +6,21 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.googleServices) apply false
     alias(libs.plugins.firebaseCrashlytics) apply false
+    alias(libs.plugins.detekt)
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom(files("$rootDir/detekt.yml"))
+    baseline = file("$rootDir/detekt-baseline.xml")
+    source.setFrom(
+        files(
+            fileTree("$rootDir") {
+                include("**/src/*/kotlin/**/*.kt")
+                exclude("**/build/**")
+            }
+        )
+    )
 }
 
 tasks.register<Exec>("bumpVersion") {

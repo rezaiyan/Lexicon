@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexicon Architecture Explorer</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg-card: #1a1d27;
+    --bg-card-hover: #222636;
+    --bg-node: #252a3a;
+    --border: #2e3348;
+    --border-active: #6c72cb;
+    --text: #e1e4ed;
+    --text-muted: #8b90a5;
+    --text-dim: #5c6178;
+    --accent: #6c72cb;
+    --accent-light: #8b8fd9;
+    --accent-glow: rgba(108,114,203,0.15);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.12);
+    --blue: #60a5fa;
+    --blue-dim: rgba(96,165,250,0.12);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.12);
+    --orange: #fb923c;
+    --orange-dim: rgba(251,146,60,0.12);
+    --pink: #f472b6;
+    --pink-dim: rgba(244,114,182,0.12);
+    --cyan: #22d3ee;
+    --cyan-dim: rgba(34,211,238,0.12);
+    --yellow: #fbbf24;
+    --yellow-dim: rgba(251,191,36,0.12);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,17,23,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .header-logo {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--accent-light), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+    flex: 1;
+  }
+
+  .breadcrumb-item {
+    cursor: pointer;
+    transition: color var(--transition);
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  .breadcrumb-item:hover { color: var(--text); background: var(--bg-card); }
+  .breadcrumb-item.active { color: var(--accent-light); }
+  .breadcrumb-sep { color: var(--text-dim); font-size: 12px; }
+
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-item { display: flex; align-items: center; gap: 6px; }
+  .stat-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* Main Canvas */
+  .canvas {
+    padding: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* View Title */
+  .view-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+    opacity: 0;
+    transform: translateY(-8px);
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  .view-subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+    opacity: 0;
+    transform: translateY(-8px);
+    animation: fadeIn 0.4s 0.05s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Grid */
+  .node-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+
+  .node-grid.wide {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+
+  /* Node Card */
+  .node-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+
+  .node-card.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .node-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--node-color, var(--accent));
+    opacity: 0;
+    transition: opacity var(--transition);
+  }
+
+  .node-card:hover {
+    border-color: var(--node-color, var(--border-active));
+    background: var(--bg-card-hover);
+    transform: translateY(-2px) scale(1);
+    box-shadow: var(--shadow), 0 0 0 1px var(--node-color, var(--border-active));
+  }
+
+  .node-card:hover::before { opacity: 1; }
+
+  .node-card.leaf { cursor: default; }
+  .node-card.leaf:hover { transform: translateY(0) scale(1); }
+
+  .node-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .node-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: var(--node-bg, var(--accent-glow));
+    flex-shrink: 0;
+  }
+
+  .node-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--node-bg, var(--accent-glow));
+    color: var(--node-color, var(--accent-light));
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .node-name {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+
+  .node-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .node-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .meta-tag {
+    padding: 3px 8px;
+    background: var(--bg-node);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-tag .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--node-color, var(--text-dim));
+  }
+
+  .node-arrow {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg-node);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    transition: all var(--transition);
+  }
+
+  .node-card:hover .node-arrow {
+    background: var(--node-color, var(--accent));
+    color: var(--bg);
+  }
+
+  /* Back Button */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    margin-bottom: 24px;
+    transition: all var(--transition);
+  }
+
+  .back-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text);
+    border-color: var(--border-active);
+  }
+
+  /* Dependency Flow */
+  .flow-section {
+    margin-top: 32px;
+    padding: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    opacity: 0;
+    animation: fadeIn 0.5s 0.3s ease forwards;
+  }
+
+  .flow-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+
+  .flow-chain {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .flow-node {
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+
+  .flow-node:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+  .flow-arrow {
+    color: var(--text-dim);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Detail List */
+  .detail-section {
+    margin-top: 20px;
+    opacity: 0;
+    animation: fadeIn 0.4s 0.15s ease forwards;
+  }
+
+  .detail-group {
+    margin-bottom: 20px;
+  }
+
+  .detail-group-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .detail-list {
+    list-style: none;
+  }
+
+  .detail-list li {
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--text-muted);
+    border-radius: 6px;
+    transition: background var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .detail-list li:hover { background: var(--bg-node); }
+
+  .detail-list li .icon { font-size: 14px; flex-shrink: 0; width: 20px; text-align: center; }
+  .detail-list li code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: var(--accent-light);
+    background: var(--accent-glow);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* Sections */
+  .section-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* Patterns section */
+  .pattern-card {
+    background: var(--bg-node);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .pattern-card pre {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    overflow-x: auto;
+  }
+
+  .pattern-card pre .kw { color: var(--purple); }
+  .pattern-card pre .fn { color: var(--blue); }
+  .pattern-card pre .tp { color: var(--green); }
+  .pattern-card pre .cm { color: var(--text-dim); font-style: italic; }
+  .pattern-card pre .st { color: var(--orange); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .header { padding: 12px 16px; flex-wrap: wrap; }
+    .canvas { padding: 16px; }
+    .node-grid { grid-template-columns: 1fr; }
+    .stats-bar { display: none; }
+    .flow-chain { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+  /* Zoom transition */
+  .canvas.zooming-in .node-grid { animation: zoomIn 0.35s ease; }
+  .canvas.zooming-out .node-grid { animation: zoomOut 0.35s ease; }
+
+  @keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes zoomOut {
+    from { opacity: 0; transform: scale(1.05); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: fixed;
+    z-index: 200;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+    pointer-events: none;
+    box-shadow: var(--shadow);
+    max-width: 250px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .tooltip.show { opacity: 1; }
+
+  /* Keyboard hint */
+  .keyboard-hint {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--bg-card);
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    z-index: 50;
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    font-size: 11px;
+    background: var(--bg-node);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-family: inherit;
+    margin: 0 2px;
+  }
+
+  /* Two column layout for detail views */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  .full-width { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">Lexicon</div>
+  <div class="breadcrumb" id="breadcrumb"></div>
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-dot" style="background:var(--green)"></span> ~350 Kotlin files</div>
+    <div class="stat-item"><span class="stat-dot" style="background:var(--blue)"></span> 15 ViewModels</div>
+    <div class="stat-item"><span class="stat-dot" style="background:var(--purple)"></span> 40+ Use Cases</div>
+    <div class="stat-item"><span class="stat-dot" style="background:var(--orange)"></span> 11 Repositories</div>
+  </div>
+</div>
+
+<div class="canvas" id="canvas"></div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<div class="keyboard-hint">
+  <kbd>Esc</kbd> Back &nbsp; <kbd>Click</kbd> Zoom In
+</div>
+
+<script>
+const ARCH = {
+  root: {
+    title: 'Lexicon Architecture',
+    subtitle: 'KMP Vocabulary App - Clean Architecture + Event Sink MVVM',
+    children: ['composeApp', 'features', 'presentation', 'domain', 'data', 'core', 'designSystem', 'platforms', 'support'],
+    flow: [
+      { label: 'View', bg: 'var(--green-dim)', color: 'var(--green)', id: 'presentation' },
+      { label: 'ViewModel', bg: 'var(--blue-dim)', color: 'var(--blue)', id: 'features' },
+      { label: 'UseCase', bg: 'var(--purple-dim)', color: 'var(--purple)', id: 'domain' },
+      { label: 'Repository', bg: 'var(--orange-dim)', color: 'var(--orange)', id: 'data' },
+      { label: 'DataSource', bg: 'var(--pink-dim)', color: 'var(--pink)', id: 'data' },
+    ]
+  },
+
+  composeApp: {
+    title: 'composeApp',
+    subtitle: 'Application entry point, DI wiring, and platform hooks',
+    color: 'var(--cyan)', bg: 'var(--cyan-dim)',
+    icon: '\u26A1',
+    badge: 'Entry',
+    desc: 'Root module - wires all modules together via Koin DI',
+    meta: ['DI Root', 'Platform Init'],
+    leaf: true,
+    detail: {
+      groups: [
+        {
+          title: 'Key Files',
+          items: [
+            { icon: '\uD83D\uDCC4', text: 'AppModule.kt', code: 'di/AppModule.kt', desc: 'Root Koin module - includes all feature modules' },
+            { icon: '\uD83D\uDCC4', text: 'App Entry', desc: 'Platform-specific Application/UIApplication setup' },
+          ]
+        },
+        {
+          title: 'DI Modules Included',
+          items: [
+            { icon: '\uD83D\uDD17', text: 'networkModule', desc: 'Ktor client + interceptors' },
+            { icon: '\uD83D\uDD17', text: 'authModule', desc: 'Auth repos, use cases, managers' },
+            { icon: '\uD83D\uDD17', text: 'wordModule', desc: 'Word repos, use cases' },
+            { icon: '\uD83D\uDD17', text: 'settingsModule', desc: 'Settings repos, use cases' },
+            { icon: '\uD83D\uDD17', text: 'ttsModule', desc: 'TTS engine setup' },
+            { icon: '\uD83D\uDD17', text: 'profileModule / leaderboardModule', desc: 'Profile & leaderboard repos' },
+            { icon: '\uD83D\uDD17', text: 'onboardingModule / notificationModule', desc: 'Onboarding & notification services' },
+            { icon: '\uD83D\uDD17', text: 'presentationModule', desc: 'Global managers (UserManager, StreakManager)' },
+          ]
+        }
+      ]
+    }
+  },
+
+  features: {
+    title: 'Feature Modules',
+    subtitle: '8 feature modules following BaseViewModel + UseCase patterns',
+    color: 'var(--blue)', bg: 'var(--blue-dim)',
+    icon: '\uD83D\uDCE6',
+    badge: '8 Modules',
+    desc: 'Self-contained feature modules with ViewModel, UI, DI',
+    meta: ['87 files', '15 ViewModels'],
+    children: ['featureAuth', 'featureStudy', 'featureWords', 'featureProfile', 'featureSettings', 'featureOnboarding', 'featureSubscription', 'featureLeaderboard', 'featureImport']
+  },
+
+  featureAuth: {
+    title: 'feature/auth',
+    subtitle: 'Authentication - Google OAuth, Apple Sign-In, Firebase Auth',
+    color: 'var(--red)', bg: 'var(--red-dim)',
+    icon: '\uD83D\uDD10',
+    badge: '6 files',
+    desc: 'Login/signup flow with KMPAuth + Firebase',
+    meta: ['1 ViewModel', 'OAuth'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'ViewModel', items: [
+          { icon: '\uD83E\uDDE0', text: 'AuthViewModel', desc: 'Manages auth state, Google/Apple sign-in flows' }
+        ]},
+        { title: 'Screens', items: [
+          { icon: '\uD83D\uDCF1', text: 'SplashScreen', desc: 'App launch + session check' },
+          { icon: '\uD83D\uDCF1', text: 'AuthGateScreen', desc: 'Login options (Google, Apple)' },
+          { icon: '\uD83E\uDDF1', text: 'SplashHost', desc: 'Splash container' },
+          { icon: '\uD83E\uDDF1', text: 'GoogleSignInContainer / AppleSignInButton', desc: 'Platform sign-in buttons' },
+        ]},
+        { title: 'DI', items: [
+          { icon: '\uD83D\uDD17', text: 'AuthModule', desc: 'Registers AuthViewModel' }
+        ]}
+      ]
+    }
+  },
+
+  featureStudy: {
+    title: 'feature/study',
+    subtitle: 'Core study and review functionality - the heart of the app',
+    color: 'var(--green)', bg: 'var(--green-dim)',
+    icon: '\uD83D\uDCDA',
+    badge: '35 files',
+    desc: 'Flashcard review, progress tracking, SRS algorithm',
+    meta: ['1 ViewModel', '11 Use Cases', 'SRS'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'ViewModel', items: [
+          { icon: '\uD83E\uDDE0', text: 'StudyViewModel', code: 'BaseViewModel<StudyScreenState, StudyEvent>', desc: 'Progress stats, due words, review, streak, TTS' }
+        ]},
+        { title: 'State Models', items: [
+          { icon: '\uD83D\uDCCB', text: 'StudyScreenState', desc: 'Main combined state' },
+          { icon: '\uD83D\uDCCB', text: 'ProgressScreenState', desc: 'Progress tab state' },
+          { icon: '\uD83D\uDCCB', text: 'ReviewScreenState', desc: 'Review tab state' },
+          { icon: '\uD83D\uDCCB', text: 'StudyEvent', desc: 'One-shot side effects' },
+        ]},
+        { title: 'Progress UI', items: [
+          { icon: '\uD83C\uDFA8', text: 'ProgressRing', desc: 'Circular progress indicator' },
+          { icon: '\uD83C\uDFA8', text: 'WordDistributionBar', desc: 'Visual word distribution' },
+          { icon: '\uD83C\uDFA8', text: 'StatsSection / CollapsedStatsBar', desc: 'Stats display' },
+          { icon: '\uD83C\uDFA8', text: 'LearningStagesSection', desc: '7-bucket SRS stages' },
+        ]},
+        { title: 'Review UI', items: [
+          { icon: '\uD83C\uDFA8', text: 'FlashCard', desc: 'Flip card component' },
+          { icon: '\uD83C\uDFA8', text: 'LevelBucketCard', desc: 'SRS level display' },
+          { icon: '\uD83C\uDFA8', text: 'ReviewBottomSheet', desc: 'Review session controls' },
+          { icon: '\uD83C\uDFA8', text: 'EditWordDialog / DeleteWordConfirmationDialog', desc: 'In-review editing' },
+          { icon: '\uD83C\uDFA8', text: 'ReviewCompletionContent', desc: 'Session complete screen' },
+        ]}
+      ]
+    }
+  },
+
+  featureWords: {
+    title: 'feature/words',
+    subtitle: 'Vocabulary management - view, edit, delete, export words',
+    color: 'var(--yellow)', bg: 'var(--yellow-dim)',
+    icon: '\uD83D\uDDD2\uFE0F',
+    badge: '8 files',
+    desc: 'Full word management with batch operations',
+    meta: ['2 ViewModels', 'CRUD'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'ViewModels', items: [
+          { icon: '\uD83E\uDDE0', text: 'VocabularyViewModel', desc: 'Vocabulary list view' },
+          { icon: '\uD83E\uDDE0', text: 'WordManagerViewModel', desc: 'Full word CRUD + export' },
+        ]},
+        { title: 'Handlers', items: [
+          { icon: '\u2699\uFE0F', text: 'WordEditingHandler', desc: 'Edit word logic' },
+          { icon: '\u2699\uFE0F', text: 'WordDeletionHandler', desc: 'Delete logic' },
+          { icon: '\u2699\uFE0F', text: 'WordExportHandler', desc: 'Export CSV logic' },
+          { icon: '\u2699\uFE0F', text: 'WordBatchEditHandler', desc: 'Bulk operations' },
+        ]},
+        { title: 'Models', items: [
+          { icon: '\uD83D\uDCCB', text: 'WordManagerState / ReviewMode / WordSortOption' },
+        ]}
+      ]
+    }
+  },
+
+  featureProfile: {
+    title: 'feature/profile',
+    subtitle: 'User profile display and editing',
+    color: 'var(--purple)', bg: 'var(--purple-dim)',
+    icon: '\uD83D\uDC64',
+    badge: '15 files',
+    desc: 'Profile view, edit, stats, avatar upload',
+    meta: ['2 ViewModels', 'Nested Nav'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'ViewModels', items: [
+          { icon: '\uD83E\uDDE0', text: 'ProfileViewModel', desc: 'Display profile + stats' },
+          { icon: '\uD83E\uDDE0', text: 'EditProfileViewModel', desc: 'Edit profile data' },
+        ]},
+        { title: 'Screens', items: [
+          { icon: '\uD83D\uDCF1', text: 'ProfileScreen', desc: 'View profile' },
+          { icon: '\uD83D\uDCF1', text: 'EditProfileScreen', desc: 'Edit form' },
+        ]},
+        { title: 'Components', items: [
+          { icon: '\uD83C\uDFA8', text: 'UserInfoSection', desc: 'Avatar + name' },
+          { icon: '\uD83C\uDFA8', text: 'WeeklyActivitySection', desc: 'Activity chart' },
+          { icon: '\uD83C\uDFA8', text: 'StreakSection', desc: 'Streak display' },
+          { icon: '\uD83C\uDFA8', text: 'MemberSinceSection', desc: 'Join date' },
+          { icon: '\uD83C\uDFA8', text: 'LogoutDialogContent / DeleteAccountDialogContent', desc: 'Account actions' },
+        ]}
+      ]
+    }
+  },
+
+  featureSettings: {
+    title: 'feature/settings',
+    subtitle: 'App settings - theme, language, notifications',
+    color: 'var(--text-muted)', bg: 'rgba(139,144,165,0.12)',
+    icon: '\u2699\uFE0F',
+    badge: '5 files',
+    desc: 'Settings screen with theme, language, notification prefs',
+    meta: ['1 ViewModel'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'ViewModel', items: [
+          { icon: '\uD83E\uDDE0', text: 'SettingsViewModel', desc: 'Settings state management' },
+        ]},
+        { title: 'Models', items: [
+          { icon: '\uD83D\uDCCB', text: 'SettingsScreenState', desc: 'Settings state' },
+          { icon: '\uD83D\uDCCB', text: 'DialogState', desc: 'Dialog visibility' },
+          { icon: '\uD83D\uDCCB', text: 'SettingsEffect', desc: 'Settings side effects' },
+        ]},
+        { title: 'Utilities', items: [
+          { icon: '\u2699\uFE0F', text: 'SettingsStateBuilder', desc: 'State construction' },
+          { icon: '\u2699\uFE0F', text: 'NotificationPermissionMonitor', desc: 'Permission tracking' },
+        ]}
+      ]
+    }
+  },
+
+  featureOnboarding: {
+    title: 'feature/onboarding',
+    subtitle: 'First-time user setup flow',
+    color: 'var(--cyan)', bg: 'var(--cyan-dim)',
+    icon: '\uD83D\uDE80',
+    badge: '10 files',
+    desc: 'Language/level selection, vocabulary preview',
+    meta: ['2 ViewModels'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'ViewModels', items: [
+          { icon: '\uD83E\uDDE0', text: 'OnboardingViewModel', desc: 'Language/level selection' },
+          { icon: '\uD83E\uDDE0', text: 'VocabularyPreviewViewModel', desc: 'Preview vocabulary' },
+        ]},
+        { title: 'Screens', items: [
+          { icon: '\uD83D\uDCF1', text: 'OnboardingScreen', desc: 'Main onboarding flow' },
+          { icon: '\uD83D\uDCF1', text: 'VocabularyPreviewScreen', desc: 'Preview suggested vocab' },
+        ]},
+        { title: 'Components', items: [
+          { icon: '\uD83C\uDFA8', text: 'OnboardingStepContent', desc: 'Step container' },
+          { icon: '\uD83C\uDFA8', text: 'OnboardingIntroContent', desc: 'Welcome intro' },
+          { icon: '\uD83C\uDFA8', text: 'OnboardingLanguageGrid', desc: 'Language picker grid' },
+          { icon: '\uD83C\uDFA8', text: 'OnboardingLevelContent', desc: 'Level selection' },
+        ]}
+      ]
+    }
+  },
+
+  featureSubscription: {
+    title: 'feature/subscription',
+    subtitle: 'RevenueCat subscription and paywall',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\u2B50',
+    badge: '10 files',
+    desc: 'Paywall, plan comparison, premium features',
+    meta: ['1 ViewModel', 'RevenueCat'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'ViewModel', items: [
+          { icon: '\uD83E\uDDE0', text: 'SubscriptionViewModel', desc: 'Subscription state + purchase flow' },
+        ]},
+        { title: 'Screens', items: [
+          { icon: '\uD83D\uDCF1', text: 'SubscriptionScreen', desc: 'Paywall screen' },
+        ]},
+        { title: 'Content Variants', items: [
+          { icon: '\uD83C\uDFA8', text: 'SubscriptionActiveContent', desc: 'Subscribed state' },
+          { icon: '\uD83C\uDFA8', text: 'SubscriptionNotSubscribedContent', desc: 'Free tier' },
+          { icon: '\uD83C\uDFA8', text: 'SubscriptionLoadingContent / ErrorContent', desc: 'Loading/error states' },
+        ]},
+        { title: 'Premium Components', items: [
+          { icon: '\uD83C\uDFA8', text: 'PremiumHeroSection', desc: 'Hero banner' },
+          { icon: '\uD83C\uDFA8', text: 'PremiumFeaturesGrid', desc: 'Feature showcase' },
+          { icon: '\uD83C\uDFA8', text: 'PlanCard / ComparisonTable', desc: 'Plan details' },
+        ]}
+      ]
+    }
+  },
+
+  featureLeaderboard: {
+    title: 'feature/leaderboard',
+    subtitle: 'Leaderboard rankings',
+    color: 'var(--yellow)', bg: 'var(--yellow-dim)',
+    icon: '\uD83C\uDFC6',
+    badge: '4 files',
+    desc: 'Leaderboard display with user rankings',
+    meta: ['1 ViewModel'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Components', items: [
+          { icon: '\uD83E\uDDE0', text: 'LeaderboardViewModel', desc: 'Leaderboard data fetching' },
+          { icon: '\uD83D\uDCF1', text: 'LeaderboardScreen', desc: 'Rankings list' },
+          { icon: '\uD83D\uDCCB', text: 'LeaderboardUiModel', desc: 'UI data model' },
+          { icon: '\uD83D\uDD17', text: 'LeaderboardModule', desc: 'DI registration' },
+        ]}
+      ]
+    }
+  },
+
+  featureImport: {
+    title: 'feature/import',
+    subtitle: 'AI-powered word import from images',
+    color: 'var(--pink)', bg: 'var(--pink-dim)',
+    icon: '\uD83E\uDD16',
+    badge: '3 files',
+    desc: 'AI image recognition for vocabulary import',
+    meta: ['1 ViewModel', 'AI'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Components', items: [
+          { icon: '\uD83E\uDDE0', text: 'AiWordImportViewModel', desc: 'AI import flow management' },
+          { icon: '\uD83D\uDCCB', text: 'AiWordImportUiState', desc: 'Import state model' },
+          { icon: '\uD83D\uDD17', text: 'ImportModule', desc: 'DI registration' },
+        ]}
+      ]
+    }
+  },
+
+  presentation: {
+    title: 'presentation',
+    subtitle: 'Global navigation, shared screens, and managers',
+    color: 'var(--green)', bg: 'var(--green-dim)',
+    icon: '\uD83D\uDCF1',
+    badge: '40 files',
+    desc: 'App shell, navigation graph, shared UI components',
+    meta: ['Navigation', 'Shared UI', 'Managers'],
+    children: ['presNav', 'presSharedUI', 'presManagers', 'presImport']
+  },
+
+  presNav: {
+    title: 'Navigation',
+    subtitle: 'Global app navigation with bottom tabs',
+    color: 'var(--green)', bg: 'var(--green-dim)',
+    icon: '\uD83D\uDDFA\uFE0F',
+    badge: 'Nav',
+    desc: 'Root composable, app shell, route graph, tab state',
+    meta: ['4 files'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Files', items: [
+          { icon: '\uD83D\uDCC4', text: 'LexiconApp.kt', desc: 'Root composable - theme, overlay, nav host' },
+          { icon: '\uD83D\uDCC4', text: 'AppShell.kt', desc: 'Bottom nav + scaffold' },
+          { icon: '\uD83D\uDCC4', text: 'NavigationGraph.kt', desc: 'All routes + nested navigation' },
+          { icon: '\uD83E\uDDE0', text: 'AppNavigationViewModel.kt', desc: 'Tab + navigation state' },
+        ]},
+        { title: 'Bottom Tabs', items: [
+          { icon: '\uD83D\uDCDA', text: 'Study', desc: 'feature/study' },
+          { icon: '\uD83D\uDDD2\uFE0F', text: 'Vocabulary', desc: 'feature/words' },
+          { icon: '\uD83D\uDC64', text: 'Profile', desc: 'feature/profile' },
+          { icon: '\u2699\uFE0F', text: 'Settings', desc: 'feature/settings' },
+        ]}
+      ]
+    }
+  },
+
+  presSharedUI: {
+    title: 'Shared Components',
+    subtitle: 'Reusable UI components across features',
+    color: 'var(--green)', bg: 'var(--green-dim)',
+    icon: '\uD83E\uDDF1',
+    badge: '22 files',
+    desc: 'Dialogs, settings cards, animated icons, navigation helpers',
+    meta: ['Dialogs', 'Cards', 'Helpers'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Dialogs', items: [
+          { icon: '\uD83D\uDCAC', text: 'CloseConfirmationDialog' },
+          { icon: '\uD83D\uDCAC', text: 'LanguageSelectionDialog' },
+          { icon: '\uD83D\uDCAC', text: 'ThemeModeDialog' },
+          { icon: '\uD83D\uDCAC', text: 'NotificationDialogs' },
+        ]},
+        { title: 'Settings Cards', items: [
+          { icon: '\uD83C\uDFA8', text: 'LanguageSettingsCard / ThemeSettingsCard' },
+          { icon: '\uD83C\uDFA8', text: 'NotificationSettingsCard / SubscriptionCard' },
+          { icon: '\uD83C\uDFA8', text: 'AboutSettingsCard / NavigationSettingsCards' },
+        ]},
+        { title: 'Other', items: [
+          { icon: '\uD83C\uDFA8', text: 'AnimatedNavIcon', desc: 'Tab bar icon animation' },
+          { icon: '\u2699\uFE0F', text: 'NavigationSuiteHelper', desc: 'Nav utils' },
+        ]}
+      ]
+    }
+  },
+
+  presManagers: {
+    title: 'Managers',
+    subtitle: 'Global state managers implementing domain interfaces',
+    color: 'var(--green)', bg: 'var(--green-dim)',
+    icon: '\uD83D\uDD27',
+    badge: '2 files',
+    desc: 'UserManager and StreakManager implementations',
+    meta: ['UserManager', 'StreakManager'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Implementations', items: [
+          { icon: '\u2699\uFE0F', text: 'UserManagerImpl', desc: 'Implements IUserManager - logout, delete account' },
+          { icon: '\u2699\uFE0F', text: 'StreakManagerImpl', desc: 'Implements IStreakManager - streak updates' },
+        ]}
+      ]
+    }
+  },
+
+  presImport: {
+    title: 'Import UI',
+    subtitle: 'Shared import bottom sheet and tab components',
+    color: 'var(--green)', bg: 'var(--green-dim)',
+    icon: '\uD83D\uDCE5',
+    badge: '8 files',
+    desc: 'ImportViewModel, ImportBottomSheet, file import flow',
+    meta: ['1 ViewModel'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Components', items: [
+          { icon: '\uD83E\uDDE0', text: 'ImportViewModel', desc: 'Import flow management' },
+          { icon: '\uD83C\uDFA8', text: 'ImportBottomSheet / ImportTabV2', desc: 'Import UI' },
+          { icon: '\uD83C\uDFA8', text: 'AiWordImportBottomSheet', desc: 'AI import sheet' },
+          { icon: '\uD83D\uDCCB', text: 'ImportUiState / ImportFileState / ImportEvent', desc: 'State models' },
+        ]}
+      ]
+    }
+  },
+
+  domain: {
+    title: 'domain',
+    subtitle: 'Pure Kotlin - use cases, models, and repository interfaces',
+    color: 'var(--purple)', bg: 'var(--purple-dim)',
+    icon: '\uD83C\uDFDB\uFE0F',
+    badge: '79 files',
+    desc: 'Business logic layer - no framework dependencies',
+    meta: ['40+ Use Cases', '10 Repos', '15 Models'],
+    children: ['domainAuth', 'domainWord', 'domainSettings', 'domainProfile', 'domainNotification', 'domainStreak', 'domainLeaderboard', 'domainTts', 'domainOnboarding', 'domainAi', 'domainSubscription']
+  },
+
+  domainAuth: {
+    title: 'domain/auth',
+    subtitle: 'Authentication domain - models, managers, use cases',
+    color: 'var(--red)', bg: 'var(--red-dim)',
+    icon: '\uD83D\uDD10',
+    badge: '10 files',
+    desc: 'Auth models, session management, 8 use cases',
+    meta: ['8 Use Cases', '2 Repos'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Models', items: [
+          { icon: '\uD83D\uDCCB', text: 'AuthUser', desc: 'User identity' },
+          { icon: '\uD83D\uDCCB', text: 'FeatureAccess', desc: 'Premium feature flags' },
+        ]},
+        { title: 'Interfaces', items: [
+          { icon: '\uD83D\uDD0C', text: 'ISessionManager', desc: 'Session state' },
+          { icon: '\uD83D\uDD0C', text: 'IUserManager', desc: 'User lifecycle' },
+          { icon: '\uD83D\uDD0C', text: 'IAuthRepository', desc: 'Auth operations' },
+          { icon: '\uD83D\uDD0C', text: 'ISessionRepository', desc: 'Session persistence' },
+          { icon: '\uD83D\uDD0C', text: 'ISecureStorage', desc: 'Token storage' },
+          { icon: '\u2699\uFE0F', text: 'AuthenticationService', desc: 'Auth orchestration' },
+        ]},
+        { title: 'Use Cases', items: [
+          { icon: '\u25B6\uFE0F', text: 'LoginWithGoogleUseCase / LoginWithAppleUseCase' },
+          { icon: '\u25B6\uFE0F', text: 'LogoutUseCase / DeleteAccountUseCase' },
+          { icon: '\u25B6\uFE0F', text: 'IsAuthenticatedUseCase / VerifySessionUseCase' },
+          { icon: '\u25B6\uFE0F', text: 'GetFeatureAccessUseCase / ClearAllUserDataUseCase' },
+        ]}
+      ]
+    }
+  },
+
+  domainWord: {
+    title: 'domain/word',
+    subtitle: 'Vocabulary domain - the largest domain area',
+    color: 'var(--green)', bg: 'var(--green-dim)',
+    icon: '\uD83D\uDCDA',
+    badge: '18 files',
+    desc: 'Word models, SRS stages, 13 use cases',
+    meta: ['13 Use Cases', '1 Repo', 'SRS'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Models', items: [
+          { icon: '\uD83D\uDCCB', text: 'Word', desc: 'Core vocabulary entity' },
+          { icon: '\uD83D\uDCCB', text: 'LearningStage', desc: '7-bucket SRS levels' },
+          { icon: '\uD83D\uDCCB', text: 'ProgressStats', desc: 'Learning statistics' },
+          { icon: '\uD83D\uDCCB', text: 'ProgressEvaluation', desc: 'Progress assessment' },
+        ]},
+        { title: 'Interfaces', items: [
+          { icon: '\uD83D\uDD0C', text: 'IWordRepository', desc: 'Word CRUD + sync' },
+          { icon: '\u2699\uFE0F', text: 'ImportValidationService', desc: 'Import validation' },
+          { icon: '\u2699\uFE0F', text: 'WordSyncService', desc: 'Remote sync logic' },
+        ]},
+        { title: 'Query Use Cases', items: [
+          { icon: '\uD83D\uDD0D', text: 'GetAllWordsUseCase / GetDueWordsUseCase' },
+          { icon: '\uD83D\uDD0D', text: 'GetWordsByStageUseCase / GetProgressStatsUseCase' },
+        ]},
+        { title: 'Mutation Use Cases', items: [
+          { icon: '\u270F\uFE0F', text: 'UpdateWordUseCase / ReviewWordUseCase' },
+          { icon: '\u270F\uFE0F', text: 'EvaluateProgressUseCase / DeleteWordUseCase' },
+        ]},
+        { title: 'Import/Export Use Cases', items: [
+          { icon: '\uD83D\uDCE5', text: 'ImportWordsUseCase / ImportViaFileUseCase / ExportWordsUseCase' },
+          { icon: '\uD83D\uDCE5', text: 'BatchUpdateLanguagesUseCase / SyncRemoteToLocalUseCase' },
+        ]}
+      ]
+    }
+  },
+
+  domainSettings: {
+    title: 'domain/settings',
+    subtitle: 'Settings domain',
+    color: 'var(--text-muted)', bg: 'rgba(139,144,165,0.12)',
+    icon: '\u2699\uFE0F', badge: '6 files', desc: 'Review settings, theme, language preferences', meta: ['4 Use Cases'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Models', items: [{ icon: '\uD83D\uDCCB', text: 'ReviewSettings / ThemeMode' }]},
+      { title: 'Interface', items: [{ icon: '\uD83D\uDD0C', text: 'ISettingsRepository' }]},
+      { title: 'Use Cases', items: [
+        { icon: '\u25B6\uFE0F', text: 'GetCurrentLanguageUseCase / SetLanguageUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'SetThemeModeUseCase / SetNotificationsEnabledUseCase' },
+      ]}
+    ]}
+  },
+
+  domainProfile: {
+    title: 'domain/profile',
+    subtitle: 'Profile domain',
+    color: 'var(--purple)', bg: 'var(--purple-dim)',
+    icon: '\uD83D\uDC64', badge: '6 files', desc: 'Profile data, stats, avatar management', meta: ['5 Use Cases', '2 Repos'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Models', items: [{ icon: '\uD83D\uDCCB', text: 'ProfileStats', desc: 'User statistics' }]},
+      { title: 'Interfaces', items: [
+        { icon: '\uD83D\uDD0C', text: 'IProfileRepository / IProfileStatsRepository' },
+      ]},
+      { title: 'Use Cases', items: [
+        { icon: '\u25B6\uFE0F', text: 'UpdateProfileUseCase / GetProfileStatsUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'UploadAvatarUseCase / DeleteAvatarUseCase' },
+      ]}
+    ]}
+  },
+
+  domainNotification: {
+    title: 'domain/notifications',
+    subtitle: 'Notification domain',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83D\uDD14', badge: '6 files', desc: 'Push notifications, scheduling, permissions', meta: ['5 Use Cases', '2 Repos'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Interfaces', items: [
+        { icon: '\uD83D\uDD0C', text: 'INotificationRepository / IPushTokenRepository' },
+      ]},
+      { title: 'Use Cases', items: [
+        { icon: '\u25B6\uFE0F', text: 'InitializePushNotificationsUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'RegisterPushTokenUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'OpenNotificationSettingsUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'RequestNotificationPermissionUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'ScheduleNotificationsUseCase' },
+      ]}
+    ]}
+  },
+
+  domainStreak: {
+    title: 'domain/streak',
+    subtitle: 'Streak tracking domain',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83D\uDD25', badge: '5 files', desc: 'Daily streak data and tracking', meta: ['2 Use Cases'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Components', items: [
+        { icon: '\uD83D\uDCCB', text: 'StreakData', desc: 'Streak model' },
+        { icon: '\uD83D\uDD0C', text: 'IStreakManager / IStreakRepository' },
+        { icon: '\u25B6\uFE0F', text: 'GetStreakUseCase / RecordStreakActivityUseCase' },
+      ]}
+    ]}
+  },
+
+  domainLeaderboard: {
+    title: 'domain/leaderboard',
+    subtitle: 'Leaderboard domain',
+    color: 'var(--yellow)', bg: 'var(--yellow-dim)',
+    icon: '\uD83C\uDFC6', badge: '5 files', desc: 'Leaderboard models and data access', meta: ['1 Use Case'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Components', items: [
+        { icon: '\uD83D\uDCCB', text: 'Leaderboard / LeaderboardEntry' },
+        { icon: '\uD83D\uDD0C', text: 'ILeaderboardRepository' },
+        { icon: '\u25B6\uFE0F', text: 'GetLeaderboardUseCase' },
+      ]}
+    ]}
+  },
+
+  domainTts: {
+    title: 'domain/tts',
+    subtitle: 'Text-to-Speech domain',
+    color: 'var(--cyan)', bg: 'var(--cyan-dim)',
+    icon: '\uD83D\uDD0A', badge: '4 files', desc: 'TTS state and word pronunciation', meta: ['2 Use Cases'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Components', items: [
+        { icon: '\uD83D\uDCCB', text: 'TtsState', desc: 'TTS engine state' },
+        { icon: '\uD83D\uDD0C', text: 'ITtsRepository' },
+        { icon: '\u25B6\uFE0F', text: 'SpeakWordUseCase / StopSpeakingUseCase' },
+      ]}
+    ]}
+  },
+
+  domainOnboarding: {
+    title: 'domain/onboarding',
+    subtitle: 'Onboarding domain',
+    color: 'var(--cyan)', bg: 'var(--cyan-dim)',
+    icon: '\uD83D\uDE80', badge: '4 files', desc: 'Onboarding preferences and vocabulary suggestions', meta: ['2 Use Cases'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Components', items: [
+        { icon: '\uD83D\uDCCB', text: 'OnboardingPreferences / SuggestedVocabulary' },
+        { icon: '\uD83D\uDD0C', text: 'IOnboardingRepository' },
+        { icon: '\u25B6\uFE0F', text: 'SubmitPreferencesUseCase / ImportSuggestedVocabularyUseCase' },
+      ]}
+    ]}
+  },
+
+  domainAi: {
+    title: 'domain/ai',
+    subtitle: 'AI features domain',
+    color: 'var(--pink)', bg: 'var(--pink-dim)',
+    icon: '\uD83E\uDD16', badge: '3 files', desc: 'AI availability and image import', meta: ['2 Use Cases'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Components', items: [
+        { icon: '\uD83D\uDD0C', text: 'IAiRepository' },
+        { icon: '\u25B6\uFE0F', text: 'IsAiAvailableUseCase / ImportFromImageUseCase' },
+      ]}
+    ]}
+  },
+
+  domainSubscription: {
+    title: 'domain/subscription',
+    subtitle: 'Subscription domain',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\u2B50', badge: '2 files', desc: 'Subscription models and manager interface', meta: ['Models'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Components', items: [
+        { icon: '\uD83D\uDCCB', text: 'SubscriptionModels', desc: 'Offering, Package, PurchaseInfo' },
+        { icon: '\uD83D\uDD0C', text: 'ISubscriptionManager' },
+      ]}
+    ]}
+  },
+
+  data: {
+    title: 'data',
+    subtitle: 'Repository implementations, network, database, and data sources',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83D\uDDC4\uFE0F',
+    badge: '66 files',
+    desc: 'Implements domain interfaces with Ktor + Room',
+    meta: ['11 Repos', '12 DataSources', 'Ktor', 'Room'],
+    children: ['dataNetwork', 'dataDatabase', 'dataRepos', 'dataRemote', 'dataLocal', 'dataUtils']
+  },
+
+  dataNetwork: {
+    title: 'Network Layer',
+    subtitle: 'Ktor HTTP client with auth and error interceptors',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83C\uDF10', badge: '7 files', desc: 'API client, auth intercept, error handling, auto token refresh',
+    meta: ['Ktor', 'Interceptors'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Core', items: [
+        { icon: '\uD83C\uDF10', text: 'ApiClient', desc: 'Ktor HttpClient wrapper' },
+        { icon: '\uD83C\uDF10', text: 'HttpClientProvider', desc: 'Platform-specific client creation' },
+        { icon: '\uD83D\uDCCB', text: 'ApiResponse<T>', desc: 'Response envelope' },
+        { icon: '\u2699\uFE0F', text: 'ApiResponseMapper', desc: 'Serialization helpers' },
+      ]},
+      { title: 'Interceptors', items: [
+        { icon: '\uD83D\uDD12', text: 'AuthInterceptor', desc: 'Bearer token injection' },
+        { icon: '\u26A0\uFE0F', text: 'ErrorInterceptor', desc: 'HTTP error mapping' },
+        { icon: '\uD83D\uDD04', text: 'RefreshAndRetryInterceptor', desc: 'Auto 401/403 refresh + retry' },
+        { icon: '\uD83D\uDCDD', text: 'LoggingTimingInterceptor', desc: 'Request logging' },
+        { icon: '\u2699\uFE0F', text: 'HttpErrorMapper', desc: 'Exception conversion' },
+      ]}
+    ]}
+  },
+
+  dataDatabase: {
+    title: 'Database Layer',
+    subtitle: 'Room multiplatform database',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83D\uDDC3\uFE0F', badge: '3 files', desc: 'Room DB, DAO, platform drivers',
+    meta: ['Room', 'Schema v5'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Files', items: [
+        { icon: '\uD83D\uDDC3\uFE0F', text: 'AppDatabase', desc: 'Room database with migrations' },
+        { icon: '\u2699\uFE0F', text: 'DatabaseDriverFactory', desc: 'Android SqliteDriver / iOS NativeSqliteDriver' },
+        { icon: '\uD83D\uDD0D', text: 'LexiconDao', desc: 'Direct SQL queries' },
+      ]},
+      { title: 'Tables', items: [
+        { icon: '\uD83D\uDCCB', text: 'WordEntity', desc: 'Vocabulary words' },
+        { icon: '\uD83D\uDCCB', text: 'SettingsEntity', desc: 'App settings' },
+      ]}
+    ]}
+  },
+
+  dataRepos: {
+    title: 'Repository Implementations',
+    subtitle: 'Concrete implementations of domain repository interfaces',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83D\uDD0C', badge: '11 Repos', desc: 'Implements IXxxRepository with remote + local data sources',
+    meta: ['suspend -> Try<T>', 'Flow<T>'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Repositories', items: [
+        { icon: '\uD83D\uDD0C', text: 'AuthRepositoryImpl', desc: 'Auth + session state' },
+        { icon: '\uD83D\uDD0C', text: 'WordRepositoryImpl', desc: 'Word CRUD + sync' },
+        { icon: '\uD83D\uDD0C', text: 'SettingsRepositoryImpl', desc: 'App preferences' },
+        { icon: '\uD83D\uDD0C', text: 'ProfileRepositoryImpl / ProfileStatsRepositoryImpl', desc: 'Profile data' },
+        { icon: '\uD83D\uDD0C', text: 'LeaderboardRepositoryImpl', desc: 'Leaderboard data' },
+        { icon: '\uD83D\uDD0C', text: 'StreakRepositoryImpl', desc: 'Streak tracking' },
+        { icon: '\uD83D\uDD0C', text: 'OnboardingRepositoryImpl', desc: 'Onboarding flow' },
+        { icon: '\uD83D\uDD0C', text: 'AiRepositoryImpl', desc: 'AI features' },
+        { icon: '\uD83D\uDD0C', text: 'NotificationRepositoryImpl / PushTokenRepositoryImpl', desc: 'Notifications' },
+        { icon: '\uD83D\uDD0C', text: 'TtsRepositoryImpl', desc: 'Text-to-speech' },
+        { icon: '\uD83D\uDD0C', text: 'SessionRepositoryImpl', desc: 'Session persistence' },
+      ]}
+    ]}
+  },
+
+  dataRemote: {
+    title: 'Remote Data Sources',
+    subtitle: 'Ktor-based API data sources',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\u2601\uFE0F', badge: '12 pairs', desc: 'Interface + implementation pairs for each API area',
+    meta: ['18 Endpoints'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Data Sources (Interface + Impl)', items: [
+        { icon: '\u2601\uFE0F', text: 'AuthDataSource', desc: 'Auth API calls' },
+        { icon: '\u2601\uFE0F', text: 'FeatureAccessRemoteDataSource', desc: 'Feature flags' },
+        { icon: '\u2601\uFE0F', text: 'WordRemoteDataSource', desc: 'Word sync API' },
+        { icon: '\u2601\uFE0F', text: 'ProfileRemoteDataSource', desc: 'Profile CRUD API' },
+        { icon: '\u2601\uFE0F', text: 'ProfileStatsRemoteDataSource', desc: 'Stats API' },
+        { icon: '\u2601\uFE0F', text: 'LeaderboardRemoteDataSource', desc: 'Rankings API' },
+        { icon: '\u2601\uFE0F', text: 'StreakRemoteDataSource', desc: 'Streak API' },
+        { icon: '\u2601\uFE0F', text: 'OnboardingRemoteDataSource', desc: 'Onboarding API' },
+        { icon: '\u2601\uFE0F', text: 'PushNotificationDataSource', desc: 'Push token API' },
+        { icon: '\u2601\uFE0F', text: 'AiRemoteDataSource', desc: 'AI API' },
+      ]}
+    ]}
+  },
+
+  dataLocal: {
+    title: 'Local Data Source',
+    subtitle: 'Room database queries',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83D\uDCBE', badge: '1 file', desc: 'Local word storage via Room',
+    meta: ['Room'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Files', items: [
+        { icon: '\uD83D\uDCBE', text: 'WordLocalDataSource', desc: 'Room queries for words' },
+      ]}
+    ]}
+  },
+
+  dataUtils: {
+    title: 'Data Utilities',
+    subtitle: 'Auth, sync, token management, mappers',
+    color: 'var(--orange)', bg: 'var(--orange-dim)',
+    icon: '\uD83D\uDD27', badge: '13 files', desc: 'Token management, session state, sync, DTOs',
+    meta: ['Auth', 'Sync', 'DTOs'],
+    leaf: true,
+    detail: { groups: [
+      { title: 'Auth & Token', items: [
+        { icon: '\uD83D\uDD12', text: 'TokenManager', desc: 'Secure token storage' },
+        { icon: '\uD83D\uDD12', text: 'SessionManager', desc: 'Session state machine' },
+        { icon: '\uD83D\uDD12', text: 'AuthenticationStateManager', desc: 'Auth state' },
+        { icon: '\uD83D\uDD04', text: 'TokenRefreshManager', desc: 'Auto refresh on 401/403' },
+      ]},
+      { title: 'Sync', items: [
+        { icon: '\uD83D\uDD04', text: 'WordConflictResolver', desc: 'Last-write-wins conflict resolution' },
+        { icon: '\uD83D\uDD04', text: 'WordRemoteSyncHandler', desc: 'Remote sync orchestration' },
+      ]},
+      { title: 'Other', items: [
+        { icon: '\uD83D\uDD12', text: 'SecureStorageAdapter', desc: 'Platform secure storage bridge' },
+        { icon: '\u2B50', text: 'RevenueCatSubscriptionManager', desc: 'Subscription impl' },
+        { icon: '\uD83D\uDD0A', text: 'LanguageModelMapping', desc: '13 TTS languages' },
+        { icon: '\uD83D\uDCCB', text: 'Remote DTOs', desc: 'Word, Profile, Leaderboard, etc.' },
+      ]}
+    ]}
+  },
+
+  core: {
+    title: 'core',
+    subtitle: 'Base classes, Try<T>, HTTP utilities, Compose helpers',
+    color: 'var(--accent)', bg: 'var(--accent-glow)',
+    icon: '\u2B22',
+    badge: '19 files',
+    desc: 'Foundation layer used by all modules',
+    meta: ['BaseViewModel', 'Try<T>', 'UseCase', 'OnEvents'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Base Classes', items: [
+          { icon: '\uD83E\uDDE0', text: 'BaseViewModel<S, F>', desc: 'State + effects, mutableStateOf, updateState, emitEffect, reduce' },
+          { icon: '\u25B6\uFE0F', text: 'UseCase<P, R>', desc: 'suspend (P) -> Try<R>' },
+          { icon: '\u25B6\uFE0F', text: 'FlowUseCase<P, R>', desc: '(P) -> Flow<R>' },
+          { icon: '\u2714\uFE0F', text: 'Try<T>', desc: 'Success/Failure sealed class - map, flatMap, fold, recover' },
+          { icon: '\uD83D\uDCCB', text: 'UiState<T>', desc: 'Loading/Success/Error wrapper' },
+          { icon: '\u2699\uFE0F', text: 'ThrottledAction', desc: 'Rate limiting utility' },
+          { icon: '\u2699\uFE0F', text: 'FlowExt', desc: 'Flow extension helpers' },
+          { icon: '\uD83D\uDD14', text: 'OnEvents', desc: 'Compose effect collector' },
+        ]},
+        { title: 'Platform Bridges (expect/actual)', items: [
+          { icon: '\uD83D\uDCF1', text: 'SystemBarsController / BackHandler', desc: 'System UI' },
+          { icon: '\uD83D\uDCF7', text: 'ImagePicker / AppleSignIn', desc: 'Platform features' },
+          { icon: '\uD83C\uDF19', text: 'SystemThemeDetector', desc: 'Dark/light mode' },
+          { icon: '\uD83C\uDF10', text: 'UrlOpener / FileSharer / ShareService', desc: 'Platform sharing' },
+          { icon: '\u2699\uFE0F', text: 'PlatformDetector / NetworkLogger', desc: 'Platform info' },
+          { icon: '\uD83D\uDCC4', text: 'AppConfig / AppEvents', desc: 'App configuration' },
+        ]},
+      ],
+      pattern: {
+        title: 'Key Pattern: BaseViewModel',
+        code: `<span class="kw">abstract class</span> <span class="tp">BaseViewModel</span>&lt;<span class="tp">S</span>, <span class="tp">F</span>&gt; : <span class="tp">ViewModel</span>() {
+  <span class="cm">// Compose-native state</span>
+  @<span class="tp">Composable</span> <span class="kw">fun</span> <span class="fn">state</span>(): <span class="tp">State</span>&lt;<span class="tp">S</span>&gt;
+
+  <span class="cm">// Update state atomically</span>
+  <span class="kw">protected fun</span> <span class="fn">updateState</span>(reducer: <span class="tp">S</span>.() -> <span class="tp">S</span>)
+
+  <span class="cm">// Emit one-shot effect</span>
+  <span class="kw">protected fun</span> <span class="fn">emitEffect</span>(effect: <span class="tp">F</span>)
+
+  <span class="cm">// Reduce Try result into state</span>
+  <span class="kw">protected fun</span> &lt;<span class="tp">T</span>&gt; <span class="tp">Try</span>&lt;<span class="tp">T</span>&gt;.<span class="fn">reduce</span>(
+    onSuccess: (<span class="tp">T</span>) -> <span class="tp">Unit</span>,
+    onFailure: (<span class="tp">Throwable</span>) -> <span class="tp">Unit</span>
+  )
+}`
+      }
+    }
+  },
+
+  designSystem: {
+    title: 'design-system',
+    subtitle: 'Reusable Compose components, theming, and overlay system',
+    color: 'var(--pink)', bg: 'var(--pink-dim)',
+    icon: '\uD83C\uDFA8',
+    badge: '22 files',
+    desc: 'Pure Compose - no business logic imports',
+    meta: ['Theme', 'Components', 'Overlays'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Theme & Styling', items: [
+          { icon: '\uD83C\uDFA8', text: 'AppTheme', desc: 'Material3 color + typography tokens' },
+          { icon: '\uD83D\uDD24', text: 'PlatformFont', desc: 'System fonts' },
+        ]},
+        { title: 'Core Components', items: [
+          { icon: '\uD83E\uDDF1', text: 'LexiconScaffold', desc: 'Main scaffold with cutout' },
+          { icon: '\uD83E\uDDF1', text: 'StatusScreen', desc: 'Loading/error/empty states' },
+          { icon: '\uD83E\uDDF1', text: 'ListTile', desc: 'List row component' },
+          { icon: '\uD83E\uDDF1', text: 'Pill', desc: 'Tag/badge component' },
+          { icon: '\uD83E\uDDF1', text: 'SectionHeader', desc: 'Section title' },
+          { icon: '\uD83E\uDDF1', text: 'AnimatedProgressBar', desc: 'Progress animation' },
+          { icon: '\uD83E\uDDF1', text: 'LottieMotionIcon', desc: 'Animation playback' },
+          { icon: '\uD83E\uDDF1', text: 'StaggeredFadeSlide', desc: 'Enter animation' },
+        ]},
+        { title: 'Dialog System', items: [
+          { icon: '\uD83D\uDCAC', text: 'LexiconDialogContent / BasicAlertDialog', desc: 'Dialog building blocks' },
+          { icon: '\uD83D\uDCAC', text: 'DialogOverlay / DialogHostExt / DialogContracts', desc: 'Declarative dialog system' },
+        ]},
+        { title: 'Overlay Infrastructure', items: [
+          { icon: '\uD83D\uDDC2\uFE0F', text: 'OverlayHost / OverlayHostContainer / Overlay', desc: 'Base overlay system' },
+          { icon: '\uD83D\uDDC2\uFE0F', text: 'BottomSheetOverlay / BottomSheetHostExt', desc: 'Bottom sheet system' },
+        ]},
+        { title: 'Icons', items: [
+          { icon: '\u2B50', text: 'LexiconIcons', desc: 'Custom icon set' },
+        ]}
+      ]
+    }
+  },
+
+  platforms: {
+    title: 'platforms',
+    subtitle: 'expect/actual bridges for Android and iOS',
+    color: 'var(--cyan)', bg: 'var(--cyan-dim)',
+    icon: '\uD83D\uDD0C',
+    badge: '13 files',
+    desc: 'Firebase, notifications, TTS, secure storage, analytics',
+    meta: ['expect/actual', 'Android', 'iOS'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Auth', items: [
+          { icon: '\uD83D\uDD12', text: 'IGoogleAuthStateProvider', desc: 'Google OAuth state' },
+          { icon: '\uD83D\uDD12', text: 'IAppleAuthStateProvider', desc: 'Apple Sign-In state' },
+        ]},
+        { title: 'Notifications', items: [
+          { icon: '\uD83D\uDD14', text: 'INotificationManager / NotificationManagerFactory' },
+          { icon: '\uD83D\uDD14', text: 'IPushTokenManager / PushTokenManagerFactory' },
+        ]},
+        { title: 'TTS (Sherpa ONNX Piper)', items: [
+          { icon: '\uD83D\uDD0A', text: 'ITtsEngine / TtsEngineFactory' },
+          { icon: '\uD83D\uDD0A', text: 'IModelFileManager / ModelFileManagerFactory' },
+        ]},
+        { title: 'Other', items: [
+          { icon: '\uD83D\uDCCA', text: 'IAnalyticsTracker', desc: 'Custom analytics' },
+          { icon: '\uD83D\uDD12', text: 'SecureStorage', desc: 'Keychain / EncryptedPrefs' },
+          { icon: '\uD83D\uDCF1', text: 'IAppVersionProvider', desc: 'Version info' },
+        ]}
+      ]
+    }
+  },
+
+  support: {
+    title: 'Support Modules',
+    subtitle: 'Utils, test, resources, build-logic, iosApp',
+    color: 'var(--text-muted)', bg: 'rgba(139,144,165,0.12)',
+    icon: '\uD83D\uDCE6',
+    badge: '~20 files',
+    desc: 'Helper modules and infrastructure',
+    meta: ['utils', 'test', 'resources', 'build-logic'],
+    leaf: true,
+    detail: {
+      groups: [
+        { title: 'Modules', items: [
+          { icon: '\uD83D\uDD27', text: 'utils', desc: 'Shared helper functions' },
+          { icon: '\uD83E\uDDEA', text: 'test', desc: 'Shared test utilities and fakes' },
+          { icon: '\uD83C\uDF10', text: 'resources', desc: 'Compose Multiplatform strings and assets' },
+          { icon: '\u2699\uFE0F', text: 'build-logic', desc: 'Convention plugins' },
+          { icon: '\uD83C\uDF4F', text: 'iosApp', desc: 'Swift iOS entry point' },
+        ]}
+      ]
+    }
+  },
+};
+
+// --- Navigation State ---
+let navStack = ['root'];
+let currentView = 'root';
+
+function navigate(id, direction = 'in') {
+  if (!ARCH[id]) return;
+  if (direction === 'in') {
+    navStack.push(id);
+  }
+  currentView = id;
+  render(direction);
+}
+
+function goBack() {
+  if (navStack.length <= 1) return;
+  navStack.pop();
+  currentView = navStack[navStack.length - 1];
+  render('out');
+}
+
+function goTo(index) {
+  if (index >= navStack.length - 1) return;
+  navStack = navStack.slice(0, index + 1);
+  currentView = navStack[navStack.length - 1];
+  render('out');
+}
+
+// --- Render ---
+function render(direction = 'in') {
+  const node = ARCH[currentView];
+  const canvas = document.getElementById('canvas');
+
+  // Breadcrumb
+  const bc = document.getElementById('breadcrumb');
+  bc.innerHTML = navStack.map((id, i) => {
+    const n = ARCH[id];
+    const isLast = i === navStack.length - 1;
+    let html = '';
+    if (i > 0) html += '<span class="breadcrumb-sep">\u203A</span>';
+    html += `<span class="breadcrumb-item ${isLast ? 'active' : ''}" onclick="goTo(${i})">${n.title}</span>`;
+    return html;
+  }).join('');
+
+  // Build content
+  let html = '';
+
+  if (navStack.length > 1) {
+    html += `<button class="back-btn" onclick="goBack()">
+      \u2190 Back to ${ARCH[navStack[navStack.length - 2]].title}
+    </button>`;
+  }
+
+  html += `<div class="view-title">${node.title}</div>`;
+  html += `<div class="view-subtitle">${node.subtitle}</div>`;
+
+  // Children grid
+  if (node.children) {
+    html += `<div class="node-grid${node.children.length > 6 ? '' : ' wide'}">`;
+    node.children.forEach((childId, i) => {
+      const child = ARCH[childId];
+      if (!child) return;
+      const isLeaf = child.leaf && !child.children;
+      html += `
+        <div class="node-card${isLeaf ? '' : ''}"
+             style="--node-color:${child.color || 'var(--accent)'};--node-bg:${child.bg || 'var(--accent-glow)'};transition-delay:${i * 0.04}s"
+             onclick="navigate('${childId}')"
+             data-card>
+          <div class="node-header">
+            <div class="node-icon" style="background:${child.bg || 'var(--accent-glow)'}">${child.icon || ''}</div>
+            <div class="node-badge" style="background:${child.bg};color:${child.color}">${child.badge || ''}</div>
+          </div>
+          <div class="node-name">${child.title}</div>
+          <div class="node-desc">${child.desc || ''}</div>
+          <div class="node-meta">
+            ${(child.meta || []).map(m => `<span class="meta-tag"><span class="dot"></span>${m}</span>`).join('')}
+          </div>
+          <div class="node-arrow">\u2192</div>
+        </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Leaf detail view
+  if (node.detail) {
+    html += '<div class="detail-section">';
+
+    if (node.detail.groups) {
+      const groups = node.detail.groups;
+      const useTwo = groups.length >= 2 && !node.detail.pattern;
+      if (useTwo) html += '<div class="two-col">';
+      groups.forEach(group => {
+        html += `<div class="detail-group">
+          <div class="detail-group-title">${group.title}</div>
+          <ul class="detail-list">
+            ${group.items.map(item => `
+              <li>
+                <span class="icon">${item.icon || ''}</span>
+                <span>${item.code ? `<code>${item.code}</code> ` : ''}${item.text}${item.desc ? ` <span style="color:var(--text-dim)">- ${item.desc}</span>` : ''}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>`;
+      });
+      if (useTwo) html += '</div>';
+    }
+
+    if (node.detail.pattern) {
+      html += `<div class="section-divider"></div>
+        <div class="pattern-card">
+          <div class="detail-group-title" style="margin-bottom:12px">${node.detail.pattern.title}</div>
+          <pre>${node.detail.pattern.code}</pre>
+        </div>`;
+    }
+
+    html += '</div>';
+  }
+
+  // Data flow for root
+  if (node.flow) {
+    html += `<div class="flow-section">
+      <div class="flow-title">Data Flow</div>
+      <div class="flow-chain">
+        ${node.flow.map((f, i) => {
+          let s = `<div class="flow-node" style="background:${f.bg};color:${f.color}" onclick="navigate('${f.id}')">${f.label}</div>`;
+          if (i < node.flow.length - 1) s += '<span class="flow-arrow">\u2192</span>';
+          return s;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Module boundaries for root
+  if (currentView === 'root') {
+    html += `<div class="flow-section" style="margin-top:16px">
+      <div class="flow-title">Module Boundaries (Strict)</div>
+      <div class="detail-list" style="list-style:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="padding:12px;background:var(--bg-node);border-radius:8px">
+            <div style="color:var(--red);font-weight:600;font-size:13px;margin-bottom:6px">domain NEVER imports</div>
+            <div style="font-size:12px;color:var(--text-muted)">data, presentation, platforms, core, composeApp</div>
+          </div>
+          <div style="padding:12px;background:var(--bg-node);border-radius:8px">
+            <div style="color:var(--orange);font-weight:600;font-size:13px;margin-bottom:6px">presentation NEVER imports</div>
+            <div style="font-size:12px;color:var(--text-muted)">data (only through domain)</div>
+          </div>
+          <div style="padding:12px;background:var(--bg-node);border-radius:8px">
+            <div style="color:var(--pink);font-weight:600;font-size:13px;margin-bottom:6px">design-system NEVER imports</div>
+            <div style="font-size:12px;color:var(--text-muted)">domain, data, presentation</div>
+          </div>
+          <div style="padding:12px;background:var(--bg-node);border-radius:8px">
+            <div style="color:var(--green);font-weight:600;font-size:13px;margin-bottom:6px">domain must be</div>
+            <div style="font-size:12px;color:var(--text-muted)">Pure Kotlin - no Room, Ktor, Koin, Compose, Android/iOS APIs</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+    html += `<div class="flow-section" style="margin-top:16px">
+      <div class="flow-title">Tech Stack</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+        ${[
+          { label: 'Kotlin 2.2.21', c: 'var(--purple)' },
+          { label: 'Compose MP 1.9.2', c: 'var(--green)' },
+          { label: 'Ktor', c: 'var(--orange)' },
+          { label: 'Room', c: 'var(--blue)' },
+          { label: 'Koin', c: 'var(--cyan)' },
+          { label: 'KMPAuth', c: 'var(--red)' },
+          { label: 'Firebase', c: 'var(--yellow)' },
+          { label: 'RevenueCat', c: 'var(--orange)' },
+          { label: 'Sherpa ONNX', c: 'var(--pink)' },
+          { label: 'Turbine', c: 'var(--accent-light)' },
+        ].map(t => `<span style="padding:6px 12px;background:${t.c}15;color:${t.c};border-radius:20px;font-size:12px;font-weight:600">${t.label}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  canvas.className = `canvas zooming-${direction}`;
+  canvas.innerHTML = html;
+
+  // Stagger card animations
+  requestAnimationFrame(() => {
+    const cards = canvas.querySelectorAll('[data-card]');
+    cards.forEach((card, i) => {
+      setTimeout(() => card.classList.add('visible'), i * 50);
+    });
+  });
+}
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') goBack();
+});
+
+// Initial render
+render('in');
+</script>
+</body>
+</html>

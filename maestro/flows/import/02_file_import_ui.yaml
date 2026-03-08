@@ -46,8 +46,8 @@ tags:
 - assertVisible: "• word,translation,description"
 - assertVisible: "• Separated by semicolons or new lines"
 
-# Close the import sheet.
-- tapOn: "Cancel"
+# Close the import sheet via the X icon.
+- tapOn: "Close"
 
 # Verify we are back on the Study screen.
 - assertVisible: "Import Words"

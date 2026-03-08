@@ -1,0 +1,346 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:AiWordImportBottomSheet.kt$@Composable fun AiWordImportBottomSheet( onDismiss: () -&gt; Unit, onShowSnackBar: (String) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:AiWordImportBottomSheet.kt$@Composable private fun AiWordPreviewStep( state: AiWordImportUiState, onToggleWord: (Int) -&gt; Unit, onImport: () -&gt; Unit, spacing: AppSpacing, dimensions: AppDimensions )</ID>
+    <ID>CyclomaticComplexMethod:FlashCard.kt$@Composable fun FlashCard( word: Word, isFlipped: Boolean, onFlip: () -&gt; Unit, modifier: Modifier = Modifier, ttsState: TtsState = TtsState.Idle, onSpeakClick: (text: String, langCode: String) -&gt; Unit = { _, _ -&gt; } )</ID>
+    <ID>CyclomaticComplexMethod:FlashCard.kt$@Composable private fun rememberResponsiveSizes( maxWidth: Dp, maxHeight: Dp, isLandscape: Boolean ): ResponsiveSizes</ID>
+    <ID>CyclomaticComplexMethod:ImportBottomSheet.kt$@Composable private fun ImportTabSelector( tabs: List&lt;ImportTabV2&gt;, selectedTab: ImportTabV2, onTabSelected: (ImportTabV2) -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:ImportBottomSheet.kt$@Composable private fun TabContainer( selectedTab: ImportTabV2, textInputState: TextInputState, fileImportState: ImportFileState, imageImportState: ImageImportState, sourceLanguage: Language, targetLanguage: Language, modifier: Modifier, onWordChange: (String) -&gt; Unit, onTranslationChange: (String) -&gt; Unit, onDescriptionChange: (String) -&gt; Unit, onAddWord: () -&gt; Unit, onSourceLanguageSelected: (Language) -&gt; Unit, onTargetLanguageSelected: (Language) -&gt; Unit, importFile: (String, String?) -&gt; Unit, onSelectImage: (ByteArray) -&gt; Unit, onClearSelectedImage: () -&gt; Unit, onUpdateExtractionOptions: (List&lt;ExtractionOption&gt;) -&gt; Unit, onImportImage: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:IosModelFileManager.kt$IosModelFileManager$private fun parseTar(tarData: ByteArray, targetDir: String, extractedDirName: String)</ID>
+    <ID>CyclomaticComplexMethod:LexiconApp.kt$@Composable fun LexiconApp()</ID>
+    <ID>CyclomaticComplexMethod:LexiconDialogContent.kt$@Composable fun LexiconDialogContent( iconState: DialogIconState = DialogIconState.None, title: String? = null, message: String? = null, progressState: DialogProgressState = DialogProgressState.None, content: @Composable (() -&gt; Unit)? = null, primaryButton: ButtonState? = null, secondaryButton: ButtonState? = null, negativeButton: ButtonState? = null )</ID>
+    <ID>CyclomaticComplexMethod:ReviewBottomSheet.kt$@Composable fun ReviewBottomSheet( modifier: Modifier = Modifier, state: ReviewScreenState, title: String, onClose: () -&gt; Unit, onReviewComplete: () -&gt; Unit, onReviewWord: (Word, Int) -&gt; Unit, onLoadWords: () -&gt; Unit, onUpdateWord: (Word) -&gt; Unit, onDeleteWord: (Int, () -&gt; Unit) -&gt; Unit, initialWord: Word? = null, ttsState: TtsState = TtsState.Idle, onSpeakClick: (text: String, langCode: String) -&gt; Unit = { _, _ -&gt; } )</ID>
+    <ID>CyclomaticComplexMethod:WordManagerComponents.kt$@Composable private fun SortChip( currentOption: WordSortOption, onOptionSelected: (WordSortOption) -&gt; Unit )</ID>
+    <ID>CyclomaticComplexMethod:WordManagerScreen.kt$@Composable fun WordManagerScreen( onNavigateBack: () -&gt; Unit )</ID>
+    <ID>EmptyDefaultConstructor:RevenueCatSubscriptionManager.kt$RevenueCatSubscriptionManager$( )</ID>
+    <ID>EmptyFunctionBlock:AiWordImportViewModelTest.kt$AiWordImportViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:AndroidAppleAuthStateProvider.kt$AndroidAppleAuthStateProvider${}</ID>
+    <ID>EmptyFunctionBlock:AppleSignInButton.android.kt${ }</ID>
+    <ID>EmptyFunctionBlock:AppleSignInButton.wasmJs.kt${ }</ID>
+    <ID>EmptyFunctionBlock:AuthViewModelTest.kt$AuthViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:ImportWordsUseCaseTest.kt$FakeSettingsRepositoryForImport${}</ID>
+    <ID>EmptyFunctionBlock:OnboardingViewModelTest.kt$OnboardingViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:OverlayHostContainer.kt$&lt;no name provided&gt;${ }</ID>
+    <ID>EmptyFunctionBlock:ProfileViewModelTest.kt$ProfileViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:RevenueCatSubscriptionManager.kt$RevenueCatSubscriptionManager${ }</ID>
+    <ID>EmptyFunctionBlock:SettingsViewModelTest.kt$SettingsViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:StudyViewModelTest.kt$StudyViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:VocabularyViewModelTest.kt$VocabularyViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:WasmJsAppleAuthStateProvider.kt$WasmJsAppleAuthStateProvider${}</ID>
+    <ID>EmptyFunctionBlock:WordManagerViewModelTest.kt$WordManagerViewModelTest.&lt;no name provided&gt;${}</ID>
+    <ID>FunctionNaming:MainViewController.kt$fun MainViewController()</ID>
+    <ID>FunctionNaming:MainViewControllerBridging.kt$fun MainViewController()</ID>
+    <ID>InvalidPackageDeclaration:AppConfig.kt$package config</ID>
+    <ID>InvalidPackageDeclaration:AppEvents.kt$package events</ID>
+    <ID>InvalidPackageDeclaration:AppleSignIn.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:BackHandler.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:FileSharer.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:ImagePicker.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:LearningStageTest.kt$package domain.word.model</ID>
+    <ID>InvalidPackageDeclaration:NetworkLogger.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:OnEvents.kt$package events</ID>
+    <ID>InvalidPackageDeclaration:PlatformDetector.android.kt$package core</ID>
+    <ID>InvalidPackageDeclaration:PlatformDetector.ios.kt$package core</ID>
+    <ID>InvalidPackageDeclaration:PlatformDetector.kt$package core</ID>
+    <ID>InvalidPackageDeclaration:ProgressStatsTest.kt$package domain.word.model</ID>
+    <ID>InvalidPackageDeclaration:ReviewSettingsTest.kt$package domain.settings.model</ID>
+    <ID>InvalidPackageDeclaration:ShareService.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:SystemBarsController.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:SystemThemeDetector.kt$package expects</ID>
+    <ID>InvalidPackageDeclaration:UrlOpener.kt$package expects</ID>
+    <ID>LongMethod:AiWordImportBottomSheet.kt$@Composable fun AiWordImportBottomSheet( onDismiss: () -&gt; Unit, onShowSnackBar: (String) -&gt; Unit, )</ID>
+    <ID>LongMethod:AiWordImportBottomSheet.kt$@Composable fun ImportMethodSelectorContent( onManual: () -&gt; Unit, onAiAssistant: () -&gt; Unit, )</ID>
+    <ID>LongMethod:AiWordImportBottomSheet.kt$@Composable private fun AiLanguageStep( title: String, highlight: String, subtitle: String, languages: List&lt;String&gt;, selectedLanguage: String?, onLanguageSelected: (String) -&gt; Unit, onContinue: () -&gt; Unit, onCancel: () -&gt; Unit, spacing: AppSpacing, dimensions: AppDimensions )</ID>
+    <ID>LongMethod:AiWordImportBottomSheet.kt$@Composable private fun AiLevelStep( selectedLevel: String?, error: String?, onLevelSelected: (String) -&gt; Unit, onContinue: () -&gt; Unit, spacing: AppSpacing, dimensions: AppDimensions )</ID>
+    <ID>LongMethod:AiWordImportBottomSheet.kt$@Composable private fun AiTopicsStep( state: AiWordImportUiState, onToggleTopic: (String) -&gt; Unit, onGenerate: () -&gt; Unit, spacing: AppSpacing, dimensions: AppDimensions )</ID>
+    <ID>LongMethod:AiWordImportBottomSheet.kt$@Composable private fun AiWordPreviewStep( state: AiWordImportUiState, onToggleWord: (Int) -&gt; Unit, onImport: () -&gt; Unit, spacing: AppSpacing, dimensions: AppDimensions )</ID>
+    <ID>LongMethod:AiWordImportBottomSheet.kt$@Composable private fun TopicTile( topic: String, emoji: String, selected: Boolean, enabled: Boolean, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:AppShell.kt$@Composable internal fun AppContent( navController: NavHostController, )</ID>
+    <ID>LongMethod:AppTheme.kt$private fun appTypography(fontFamily: FontFamily? = null): Typography</ID>
+    <ID>LongMethod:AuthGateScreen.kt$@Composable fun AuthGateScreen( onLoginWithGoogle: suspend (String) -&gt; Unit, onLoginWithApple: (String, String?, String) -&gt; Unit, isLoading: Boolean = false, error: String? = null )</ID>
+    <ID>LongMethod:ComparisonTable.kt$@Composable fun ComparisonTable()</ID>
+    <ID>LongMethod:CooldownVisibilityTest.kt$CooldownVisibilityTest$@Test fun criticalTest_wordInCooldown_notInDueCards_butVisibleInBucket()</ID>
+
+    <ID>LongMethod:EditWordDialog.kt$@Composable fun EditWordDialog( word: Word, onDismiss: () -&gt; Unit, onSave: (Word) -&gt; Unit, onDelete: () -&gt; Unit )</ID>
+    <ID>LongMethod:FlashCard.kt$@Composable fun FlashCard( word: Word, isFlipped: Boolean, onFlip: () -&gt; Unit, modifier: Modifier = Modifier, ttsState: TtsState = TtsState.Idle, onSpeakClick: (text: String, langCode: String) -&gt; Unit = { _, _ -&gt; } )</ID>
+    <ID>LongMethod:FlashCard.kt$@Composable private fun rememberResponsiveSizes( maxWidth: Dp, maxHeight: Dp, isLandscape: Boolean ): ResponsiveSizes</ID>
+    <ID>LongMethod:GlobalEffectHandler.kt$@Composable internal fun HandleVocabularyEffects( vocabularyViewModel: VocabularyViewModel, )</ID>
+    <ID>LongMethod:GoogleSignInContainer.mobile.kt$@Composable actual fun GoogleSignInContainer( onIdToken: suspend (String) -&gt; Unit, onError: () -&gt; Unit, isLoading: Boolean, modifier: Modifier )</ID>
+    <ID>LongMethod:ImportBottomSheet.kt$@Composable fun ImportBottomSheet(onDismiss: () -&gt; Unit, onShowSnackBar: (String) -&gt; Unit)</ID>
+    <ID>LongMethod:ImportBottomSheet.kt$@Composable private fun ExtractionOptionsCard( extractWords: Boolean, extractSentences: Boolean, onExtractWordsChange: (Boolean) -&gt; Unit, onExtractSentencesChange: (Boolean) -&gt; Unit, isEnabled: Boolean )</ID>
+    <ID>LongMethod:ImportBottomSheet.kt$@Composable private fun FileTab( isEnabled: Boolean, isLoading: Boolean, importFile: (String, String?) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
+    <ID>LongMethod:ImportBottomSheet.kt$@Composable private fun FromImageTab( extractWords: Boolean, extractSentences: Boolean, onExtractWordsChange: (Boolean) -&gt; Unit, onExtractSentencesChange: (Boolean) -&gt; Unit, onCameraClick: () -&gt; Unit, onGalleryClick: () -&gt; Unit, onDismiss: () -&gt; Unit, isEnabled: Boolean, selectedImageBytes: ByteArray?, onConfirmImage: () -&gt; Unit, onCancelImage: () -&gt; Unit )</ID>
+    <ID>LongMethod:ImportBottomSheet.kt$@Composable private fun ImagePreviewCard( imageBytes: ByteArray, onConfirm: () -&gt; Unit, onCancel: () -&gt; Unit, isEnabled: Boolean )</ID>
+    <ID>LongMethod:ImportBottomSheet.kt$@Composable private fun TabContainer( selectedTab: ImportTabV2, textInputState: TextInputState, fileImportState: ImportFileState, imageImportState: ImageImportState, sourceLanguage: Language, targetLanguage: Language, modifier: Modifier, onWordChange: (String) -&gt; Unit, onTranslationChange: (String) -&gt; Unit, onDescriptionChange: (String) -&gt; Unit, onAddWord: () -&gt; Unit, onSourceLanguageSelected: (Language) -&gt; Unit, onTargetLanguageSelected: (Language) -&gt; Unit, importFile: (String, String?) -&gt; Unit, onSelectImage: (ByteArray) -&gt; Unit, onClearSelectedImage: () -&gt; Unit, onUpdateExtractionOptions: (List&lt;ExtractionOption&gt;) -&gt; Unit, onImportImage: () -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
+    <ID>LongMethod:ImportBottomSheet.kt$@Composable private fun TextTab( textInputState: TextInputState, sourceLanguage: Language, targetLanguage: Language, onWordChange: (String) -&gt; Unit, onTranslationChange: (String) -&gt; Unit, onDescriptionChange: (String) -&gt; Unit, onAddWord: () -&gt; Unit, onSourceLanguageSelected: (Language) -&gt; Unit, onTargetLanguageSelected: (Language) -&gt; Unit, )</ID>
+    <ID>LongMethod:LeaderboardScreen.kt$@Composable private fun UserRankingFooter(entry: LeaderboardEntryUiModel)</ID>
+    <ID>LongMethod:LevelBucketCard.kt$@Composable fun LevelBucketCard( level: String, description: String, count: Int, color: Color, icon: ImageVector, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:LexiconApp.kt$@Composable fun LexiconApp()</ID>
+    <ID>LongMethod:LexiconDialogContent.kt$@Composable fun LexiconDialogContent( iconState: DialogIconState = DialogIconState.None, title: String? = null, message: String? = null, progressState: DialogProgressState = DialogProgressState.None, content: @Composable (() -&gt; Unit)? = null, primaryButton: ButtonState? = null, secondaryButton: ButtonState? = null, negativeButton: ButtonState? = null )</ID>
+    <ID>LongMethod:LexiconScaffold.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable private fun FlexibleTopBar( title: String?, showNavigationIcon: Boolean, onNavigationClick: () -&gt; Unit, actionIcon1: ActionIconConfig?, actionIcon2: ActionIconConfig?, topBarColor: TopBarColor, collapsedContent: (@Composable () -&gt; Unit)? = null, )</ID>
+    <ID>LongMethod:ListTile.kt$@Composable fun ListTile( icon: ImageVector, title: String, onClick: () -&gt; Unit, modifier: Modifier = Modifier, subtitle: String? = null, iconTint: Color? = null, iconBackgroundColor: Color? = null, solidIconBackground: Boolean = false, subtitleColor: Color? = null, containerColor: Color? = null, trailingContent: (@Composable () -&gt; Unit)? = null, showTrailingArrow: Boolean = true, trailingArrowIcon: ImageVector? = null )</ID>
+    <ID>LongMethod:NotificationDialogs.kt$@Composable fun NotificationSettingsDialog( notificationsEnabled: Boolean, systemNotificationsEnabled: Boolean, onNotificationsToggle: (Boolean) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>LongMethod:OnboardingIntroContent.kt$@Composable internal fun OnboardingIntroContent( onContinue: () -&gt; Unit, onSkip: () -&gt; Unit )</ID>
+    <ID>LongMethod:OnboardingIntroContent.kt$@Composable private fun HeroLogo(animationStarted: Boolean)</ID>
+    <ID>LongMethod:OnboardingLanguageGrid.kt$@Composable internal fun LanguageGridCard( language: String, nativeName: String, flag: DrawableResource?, selected: Boolean, onClick: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:OnboardingLevelContent.kt$@Composable fun OnboardingLoadingCard()</ID>
+    <ID>LongMethod:OnboardingLevelContent.kt$@Composable internal fun OnboardingStep3Content( state: OnboardingUiState, onLevelSelected: (String) -&gt; Unit, onSubmit: () -&gt; Unit, onBack: () -&gt; Unit )</ID>
+    <ID>LongMethod:OnboardingLevelContent.kt$@Composable private fun LevelTile( level: String, description: String, icon: ImageVector?, levelColor: Color, selected: Boolean, enabled: Boolean, onClick: () -&gt; Unit )</ID>
+    <ID>LongMethod:OnboardingScreen.kt$@Composable fun OnboardingScreen( state: OnboardingUiState, onTargetLanguageSelected: (String) -&gt; Unit, onNativeLanguageSelected: (String) -&gt; Unit, onLevelSelected: (String) -&gt; Unit, onNextStep: () -&gt; Unit, onPreviousStep: () -&gt; Unit, onSubmit: () -&gt; Unit, onSkip: () -&gt; Unit )</ID>
+    <ID>LongMethod:PlanCard.kt$@Composable fun PlanCard( plan: SubscriptionPlan, isRecommended: Boolean, modifier: Modifier = Modifier, isPurchasing: Boolean = false, onClick: () -&gt; Unit = {} )</ID>
+    <ID>LongMethod:PremiumFeaturesGrid.kt$@Composable fun FeatureCard( feature: FeatureItem, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:PremiumHeroSection.kt$@Composable fun PremiumHeroSection()</ID>
+    <ID>LongMethod:ProfileScreen.kt$@Composable fun ProfileScreen( snackbarHostState: SnackbarHostState, overlayHost: OverlayHost, onNavigateToLeaderboard: () -&gt; Unit = {}, onNavigateToEditProfile: () -&gt; Unit = {} )</ID>
+    <ID>LongMethod:ProfileScreen.kt$@Composable private fun ProfileContent( profileData: ProfileUiData, onNavigateToLeaderboard: () -&gt; Unit, onLogout: () -&gt; Unit, )</ID>
+    <ID>LongMethod:ProfileScreen.kt$@Composable private fun ProfileMoreOptionsSheet( onEditProfile: () -&gt; Unit, onDeleteAccount: () -&gt; Unit, )</ID>
+    <ID>LongMethod:ProgressComponents.kt$@Composable fun LearningStagesList( stats: ProgressStats, onStageClick: (LearningStage, String) -&gt; Unit, levelTexts: List&lt;String&gt;? = null, levelNames: List&lt;String&gt;? = null, levelDescriptions: List&lt;String&gt;? = null )</ID>
+    <ID>LongMethod:RefreshAndRetryInterceptor.kt$RefreshAndRetryInterceptor.Plugin$override fun install(plugin: RefreshAndRetryInterceptor, scope: HttpClient)</ID>
+    <ID>LongMethod:ReviewBottomSheet.kt$@Composable fun ReviewBottomSheet( modifier: Modifier = Modifier, state: ReviewScreenState, title: String, onClose: () -&gt; Unit, onReviewComplete: () -&gt; Unit, onReviewWord: (Word, Int) -&gt; Unit, onLoadWords: () -&gt; Unit, onUpdateWord: (Word) -&gt; Unit, onDeleteWord: (Int, () -&gt; Unit) -&gt; Unit, initialWord: Word? = null, ttsState: TtsState = TtsState.Idle, onSpeakClick: (text: String, langCode: String) -&gt; Unit = { _, _ -&gt; } )</ID>
+    <ID>LongMethod:ReviewCompletionContent.kt$@Composable fun ReviewCompletionContent( reviewedCount: Int, onDismiss: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:ReviewComponents.kt$@Composable fun ReviewContent( words: List&lt;Word&gt;, currentIndex: Int, isFlipped: Boolean, reviewType: ReviewType, title: String, onClose: () -&gt; Unit, onFlip: () -&gt; Unit, onNavigateBack: () -&gt; Unit, onNavigateForward: () -&gt; Unit, onReview: (Int) -&gt; Unit, onEdit: (() -&gt; Unit)? = null, ttsState: TtsState = TtsState.Idle, onSpeakClick: (text: String, langCode: String) -&gt; Unit = { _, _ -&gt; }, )</ID>
+    <ID>LongMethod:SettingsScreen.kt$@Composable fun SettingsScreen( onNavigateToWordManager: () -&gt; Unit, onNavigateToSubscription: () -&gt; Unit = {}, )</ID>
+    <ID>LongMethod:SplashScreen.kt$@Composable fun SplashScreen( onEnd: () -&gt; Unit, )</ID>
+    <ID>LongMethod:StatsSection.kt$@Composable fun StatsSection( evaluation: ProgressEvaluation, dueCards: Int, onImportWords: () -&gt; Unit, onStartReview: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:StatusScreen.kt$@Composable fun ErrorScreen( message: String, modifier: Modifier = Modifier, title: String? = null, icon: ImageVector? = null, iconTint: Color = MaterialTheme.colorScheme.error, retryLabel: String? = null, onRetry: (() -&gt; Unit)? = null )</ID>
+    <ID>LongMethod:StreakSection.kt$@Composable private fun StreakCard( first: Int, firstLabel: String, second: Int? = null, secondLabel: String? = null, accentColor: Color, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:StudyScreen.kt$@Composable fun StudyScreen()</ID>
+    <ID>LongMethod:SubscriptionActiveContent.kt$@Composable private fun SubscriptionStatusCard( customerInfo: SubscriptionCustomerInfo?, formattedExpirationDate: String?, isCancelled: Boolean = false, onManageSubscription: () -&gt; Unit )</ID>
+    <ID>LongMethod:SubscriptionNotSubscribedContent.kt$@Composable fun SubscriptionNotSubscribedContent( packages: List&lt;SubscriptionPackage&gt;, isPurchasing: Boolean, onPurchaseClick: (SubscriptionPackage) -&gt; Unit, onRestoreClick: () -&gt; Unit, onPackagesSectionPositioned: (Float) -&gt; Unit = {} )</ID>
+    <ID>LongMethod:ThreeWordsReviewScenarioTest.kt$ThreeWordsReviewScenarioTest$@Test fun userScenario_word1Remembered_word2And3Forgot()</ID>
+    <ID>LongMethod:UserInfoSection.kt$@Composable internal fun ProfileAvatar( name: String, email: String, profileImageUrl: String? = null, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:VocabularyPreviewScreen.kt$@Composable fun VocabularyPreviewScreen( state: VocabularyPreviewUiState, onAccept: () -&gt; Unit, onDeny: () -&gt; Unit )</ID>
+    <ID>LongMethod:WeeklyActivitySection.kt$@Composable private fun DayBar( day: DayActivityUiModel, maxReviewCount: Int, barMaxHeight: Dp, barWidth: Dp, index: Int, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:WordBatchEditHandler.kt$WordBatchEditHandler$fun batchUpdateLanguages( selectedIds: List&lt;Int&gt;, sourceLanguage: Language, targetLanguage: Language )</ID>
+    <ID>LongMethod:WordDeletionHandler.kt$WordDeletionHandler$fun deleteSelectedWords(selectedIds: List&lt;Int&gt;)</ID>
+    <ID>LongMethod:WordManagerComponents.kt$@Composable internal fun SelectionActionBar( isVisible: Boolean, selectedCount: Int, isUserSubscribed: Boolean, onClose: () -&gt; Unit, onSelectAll: () -&gt; Unit, onDelete: () -&gt; Unit, onBatchEditLanguages: () -&gt; Unit, onShare: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:WordManagerComponents.kt$@Composable internal fun WordCard( word: Word, isSelected: Boolean, isSelectionMode: Boolean, onTap: () -&gt; Unit, onLongPress: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>LongMethod:WordManagerComponents.kt$@Composable internal fun WordListContent( state: WordManagerScreenState, onSearchQueryChange: (String) -&gt; Unit, onClearSearch: () -&gt; Unit, onToggleSelection: (Int) -&gt; Unit, onOpenDetail: (Word) -&gt; Unit, onEnterSelectionMode: (Int) -&gt; Unit, onSelectAll: () -&gt; Unit, onShareWords: () -&gt; Unit, onSortOptionChange: (WordSortOption) -&gt; Unit, onFilterLanguageChange: (Language?) -&gt; Unit, onFilterLearningStageChange: (LearningStage?) -&gt; Unit, onDeleteSelected: () -&gt; Unit, onBatchEditLanguages: () -&gt; Unit, onExitSelectionMode: () -&gt; Unit )</ID>
+    <ID>LongMethod:WordManagerDetailSheet.kt$@Composable private fun WordDetailSheetContent( word: Word, navigator: OverlayNavigator, onEdit: (Word) -&gt; Unit, onDelete: (Word) -&gt; Unit )</ID>
+    <ID>LongMethod:WordManagerDialogs.kt$@Composable internal fun BatchEditLanguagesDialog( isUpdating: Boolean, count: Int, initialSourceLanguage: Language, initialTargetLanguage: Language, onConfirm: (sourceLanguage: Language, targetLanguage: Language) -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>LongMethod:WordManagerDialogs.kt$@Composable internal fun DeleteConfirmationDialog( isDeleting: Boolean, count: Int, onConfirm: () -&gt; Unit, onDismiss: () -&gt; Unit )</ID>
+    <ID>LongMethod:WordManagerDialogs.kt$@Composable internal fun EditWordDialog( word: Word, onDismiss: () -&gt; Unit, onSave: (Word) -&gt; Unit )</ID>
+    <ID>LongMethod:WordManagerScreen.kt$@Composable fun WordManagerScreen( onNavigateBack: () -&gt; Unit )</ID>
+    <ID>LongParameterList:AuthViewModel.kt$AuthViewModel$( private val loginWithGoogleUseCase: LoginWithGoogleUseCase, private val loginWithAppleUseCase: LoginWithAppleUseCase, private val logoutUseCase: LogoutUseCase, private val isAuthenticatedUseCase: IsAuthenticatedUseCase, private val verifySessionUseCase: VerifySessionUseCase, private val syncRemoteToLocalUseCase: SyncRemoteToLocalUseCase, private val initializePushNotificationsUseCase: InitializePushNotificationsUseCase, private val registerPushTokenUseCase: RegisterPushTokenUseCase, private val analyticsTracker: IAnalyticsTracker, private val userManager: IUserManager, private val subscriptionManager: ISubscriptionManager, )</ID>
+    <ID>LongParameterList:SettingsViewModel.kt$SettingsViewModel$( private val notificationRepository: INotificationRepository, private val setLanguageUseCase: SetLanguageUseCase, private val setThemeModeUseCase: SetThemeModeUseCase, private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase, private val requestNotificationPermissionUseCase: RequestNotificationPermissionUseCase, private val openNotificationSettingsUseCase: OpenNotificationSettingsUseCase, private val analyticsTracker: IAnalyticsTracker, private val notificationPermissionMonitor: NotificationPermissionMonitor, settingsRepository: ISettingsRepository, authRepository: IAuthRepository, appVersionProvider: IAppVersionProvider, )</ID>
+    <ID>LongParameterList:StudyViewModel.kt$StudyViewModel$( private val getProgressStatsUseCase: GetProgressStatsUseCase, private val evaluateProgressUseCase: EvaluateProgressUseCase, private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase, private val getDueWordsUseCase: GetDueWordsUseCase, private val getWordsByStageUseCase: GetWordsByStageUseCase, private val reviewWordUseCase: ReviewWordUseCase, private val updateWordUseCase: UpdateWordUseCase, private val deleteWordUseCase: DeleteWordUseCase, private val recordStreakActivityUseCase: RecordStreakActivityUseCase, private val speakWordUseCase: SpeakWordUseCase, private val analyticsTracker: IAnalyticsTracker, getFeatureAccessUseCase: GetFeatureAccessUseCase, ttsRepository: ITtsRepository )</ID>
+    <ID>LongParameterList:TestUtils.kt$TestUtils$( id: Int = 1, originalWord: String = DEFAULT_ORIGINAL_WORD, translation: String = DEFAULT_TRANSLATION, description: String = DEFAULT_DESCRIPTION, sourceLanguage: Language = Language.fromCode(DEFAULT_SOURCE_LANGUAGE), targetLanguage: Language = Language.fromCode(DEFAULT_TARGET_LANGUAGE), level: Int = DEFAULT_LEVEL, easeFactor: Float = DEFAULT_EASE_FACTOR, interval: Int = DEFAULT_INTERVAL, repetitions: Int = DEFAULT_REPETITIONS, lastReviewDate: Long = DEFAULT_LAST_REVIEW_DATE, nextReviewDate: Long = Clock.System.now().toEpochMilliseconds(), dateAdded: Long = Clock.System.now().toEpochMilliseconds() )</ID>
+    <ID>LongParameterList:TestUtils.kt$TestUtils$( id: Int = 1, originalWord: String = DEFAULT_ORIGINAL_WORD, translation: String = DEFAULT_TRANSLATION, description: String = DEFAULT_DESCRIPTION, sourceLanguage: String = DEFAULT_SOURCE_LANGUAGE, targetLanguage: String = DEFAULT_TARGET_LANGUAGE, level: Int = DEFAULT_LEVEL, easeFactor: Float = DEFAULT_EASE_FACTOR, interval: Int = DEFAULT_INTERVAL, repetitions: Int = DEFAULT_REPETITIONS, lastReviewDate: Long = DEFAULT_LAST_REVIEW_DATE, nextReviewDate: Long = Clock.System.now().toEpochMilliseconds(), dateAdded: Long = Clock.System.now().toEpochMilliseconds() )</ID>
+    <ID>LongParameterList:UpdateWordUseCaseTest.kt$UpdateWordUseCaseTest$( id: Int = 1, originalWord: String, translation: String, description: String = "", sourceLanguage: Language = Language.ENGLISH, targetLanguage: Language = Language.SPANISH, level: Int = 0, easeFactor: Float = 2.5f, interval: Int = 0, repetitions: Int = 0, lastReviewDate: Long = 0L, nextReviewDate: Long = 0L )</ID>
+    <ID>LongParameterList:WordSyncServiceTest.kt$WordSyncServiceTest$( id: Int, original: String, translation: String, description: String = "", level: Int = 0, easeFactor: Float = 2.5f, interval: Int = 0, repetitions: Int = 0 )</ID>
+    <ID>LoopWithTooManyJumpStatements:IosModelFileManager.kt$IosModelFileManager$while</ID>
+    <ID>MatchingDeclarationName:AppConfig.android.kt$AppConfig</ID>
+    <ID>MatchingDeclarationName:AppConfig.wasmJs.kt$AppConfig</ID>
+    <ID>MatchingDeclarationName:AppEvents.kt$VocabularyEffect</ID>
+    <ID>MatchingDeclarationName:AppleSignIn.android.kt$AppleSignInHelper</ID>
+    <ID>MatchingDeclarationName:AppleSignIn.ios.kt$AppleSignInHelper</ID>
+    <ID>MatchingDeclarationName:AppleSignIn.kt$AppleSignInHelper</ID>
+    <ID>MatchingDeclarationName:AppleSignIn.wasmJs.kt$AppleSignInHelper</ID>
+    <ID>MatchingDeclarationName:DialogState.kt$AppUiState</ID>
+    <ID>MatchingDeclarationName:ImagePicker.android.kt$ImagePicker</ID>
+    <ID>MatchingDeclarationName:ImagePicker.ios.kt$ImagePicker</ID>
+    <ID>MatchingDeclarationName:ImagePicker.wasmJs.kt$ImagePicker</ID>
+    <ID>MatchingDeclarationName:LeaderboardNavigation.kt$LeaderboardRoute</ID>
+    <ID>MatchingDeclarationName:MainViewController.kt$NotificationCategoryConstants</ID>
+    <ID>MatchingDeclarationName:PlanCard.kt$SubscriptionPlan</ID>
+    <ID>MatchingDeclarationName:Platform.android.kt$AndroidPlatform : Platform</ID>
+    <ID>MatchingDeclarationName:Platform.ios.kt$IOSPlatform : Platform</ID>
+    <ID>MatchingDeclarationName:Platform.js.kt$JsPlatform : Platform</ID>
+    <ID>MatchingDeclarationName:Platform.wasmJs.kt$WasmPlatform : Platform</ID>
+    <ID>MatchingDeclarationName:ProgressComponents.kt$LevelBucketData</ID>
+    <ID>MatchingDeclarationName:RevenueCatSubscriptionManager.kt$CancelledPurchaseException : Exception</ID>
+    <ID>MatchingDeclarationName:ShareService.android.kt$AndroidShareService : ShareService</ID>
+    <ID>MatchingDeclarationName:ShareService.ios.kt$IOSShareService : ShareService</ID>
+    <ID>MatchingDeclarationName:SubscriptionNavigation.kt$SubscriptionRoute</ID>
+    <ID>MatchingDeclarationName:Tab.kt$TabDestination</ID>
+    <ID>MaxLineLength:AiWordImportBottomSheet.kt$border = BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))</ID>
+    <ID>MaxLineLength:AiWordImportBottomSheet.kt$color</ID>
+    <ID>MaxLineLength:AiWordImportViewModelTest.kt$AiWordImportViewModelTest.&lt;no name provided&gt;$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:AiWordImportViewModelTest.kt$AiWordImportViewModelTest.&lt;no name provided&gt;$override suspend fun submitPreferences(preferences: OnboardingPreferences): Try&lt;SuggestedVocabularyResponse&gt;</ID>
+    <ID>MaxLineLength:AuthInterceptor.kt$AuthInterceptor$logNetwork("AuthInterceptor", "Proactive refresh failed: ${error.message}, using current token")</ID>
+    <ID>MaxLineLength:AuthViewModelTest.kt$AuthViewModelTest$initializePushNotificationsUseCase = InitializePushNotificationsUseCase(isAuthUseCase, registerPushTokenUseCase)</ID>
+    <ID>MaxLineLength:AuthViewModelTest.kt$AuthViewModelTest.&lt;no name provided&gt;$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:AuthViewModelTest.kt$AuthViewModelTest.&lt;no name provided&gt;$override suspend fun logIn(userId: String): Try&lt;SubscriptionCustomerInfo&gt;</ID>
+    <ID>MaxLineLength:AuthViewModelTest.kt$AuthViewModelTest.&lt;no name provided&gt;$override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try&lt;AuthUser&gt;</ID>
+    <ID>MaxLineLength:AuthViewModelTest.kt$AuthViewModelTest.&lt;no name provided&gt;$override suspend fun purchase(packageToPurchase: SubscriptionPackage): Try&lt;SubscriptionCustomerInfo&gt;</ID>
+    <ID>MaxLineLength:DeleteAccountDialogContent.kt$stringResource(Res.string.delete_account_cooling_period_message).replace("%1\$d", coolingPeriodRemaining.toString())</ID>
+    <ID>MaxLineLength:DeleteWordUseCaseTest.kt$DeleteWordUseCaseTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:DeleteWordsUseCaseTest.kt$FakeWordRepositoryForDelete$override fun getWordsByStage(stage: domain.word.model.LearningStage)</ID>
+    <ID>MaxLineLength:DeleteWordsUseCaseTest.kt$FakeWordRepositoryForDelete$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): kotlinx.coroutines.flow.Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:ExportWordsUseCaseTest.kt$ExportWordsUseCaseTest$assertEquals("Hello, my friend,Hola, mi amigo,Friendly greeting, with commas;你好,Hello,Chinese greeting;مرحبا,Hello,Arabic greeting", exportedText)</ID>
+    <ID>MaxLineLength:GetAllWordsUseCaseTest.kt$GetAllWordsUseCaseTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:GetDueWordsUseCaseTest.kt$GetDueWordsUseCaseTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:GetProgressStatsUseCaseTest.kt$GetProgressStatsUseCaseTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:GetWordsByStageUseCaseTest.kt$GetWordsByStageUseCaseTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:HttpErrorMapper.kt$HttpErrorMapper$HttpStatusCode.Forbidden -&gt; "Authentication failed. Account may be deleted or deactivated. Please sign in again."</ID>
+    <ID>MaxLineLength:ImportFromImageUseCase.kt$ImportFromImageUseCase$Params</ID>
+    <ID>MaxLineLength:ImportFromImageUseCase.kt$ImportFromImageUseCase$override operator fun invoke(params: Params)</ID>
+    <ID>MaxLineLength:ImportSuggestedVocabularyUseCaseTest.kt$ImportSuggestedVocabularyUseCaseTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:ImportValidationService.kt$ImportValidationService$Exception("File content doesn't match expected format. Expected: word,translation or word,translation,description")</ID>
+    <ID>MaxLineLength:ImportWordsUseCaseTest.kt$FakeWordRepositoryForImport$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:IosModelFileManager.kt$IosModelFileManager$fileManager.createDirectoryAtPath(fullPath, withIntermediateDirectories = true, attributes = null, error = null)</ID>
+    <ID>MaxLineLength:IosModelFileManager.kt$IosModelFileManager$fileManager.createDirectoryAtPath(parentPath, withIntermediateDirectories = true, attributes = null, error = null)</ID>
+    <ID>MaxLineLength:IosNotificationManager.kt$IosNotificationManager$options = UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge</ID>
+    <ID>MaxLineLength:OnboardingRepositoryImpl.kt$OnboardingRepositoryImpl$SuggestedVocabulary("Bitte", "please / you're welcome", "polite request or response", preferences.nativeLanguage, preferences.targetLanguage)</ID>
+    <ID>MaxLineLength:OnboardingRepositoryImpl.kt$OnboardingRepositoryImpl$SuggestedVocabulary("Danke", "thank you", "expression of gratitude", preferences.nativeLanguage, preferences.targetLanguage)</ID>
+    <ID>MaxLineLength:OnboardingRepositoryImpl.kt$OnboardingRepositoryImpl$SuggestedVocabulary("Entschuldigung", "excuse me / sorry", "apology or getting attention", preferences.nativeLanguage, preferences.targetLanguage)</ID>
+    <ID>MaxLineLength:OnboardingRepositoryImpl.kt$OnboardingRepositoryImpl$SuggestedVocabulary("Essen", "food / to eat", "noun or verb for eating", preferences.nativeLanguage, preferences.targetLanguage)</ID>
+    <ID>MaxLineLength:OnboardingRepositoryImpl.kt$OnboardingRepositoryImpl$SuggestedVocabulary("Freund", "friend", "a close person", preferences.nativeLanguage, preferences.targetLanguage)</ID>
+    <ID>MaxLineLength:OnboardingRepositoryImpl.kt$OnboardingRepositoryImpl$SuggestedVocabulary("Guten Morgen", "good morning", "formal morning greeting", preferences.nativeLanguage, preferences.targetLanguage)</ID>
+    <ID>MaxLineLength:OnboardingViewModelTest.kt$OnboardingViewModelTest.&lt;no name provided&gt;$override suspend</ID>
+    <ID>MaxLineLength:ProfileViewModelTest.kt$ProfileViewModelTest.&lt;no name provided&gt;$override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try&lt;AuthUser&gt;</ID>
+    <ID>MaxLineLength:RevenueCatSubscriptionManager.kt$RevenueCatSubscriptionManager$return Try.failure(Exception("Unable to open subscription management. Please manage your subscription through your device settings."))</ID>
+    <ID>MaxLineLength:ReviewWordUseCaseTest.kt$ReviewWordUseCaseTest$println("Review ${i + 1}: Level ${updated.level}, Reps ${updated.repetitions}, Interval ${updated.interval}")</ID>
+    <ID>MaxLineLength:ReviewWordUseCaseTest.kt$ReviewWordUseCaseTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:SettingsViewModelTest.kt$SettingsViewModelTest.&lt;no name provided&gt;$override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try&lt;AuthUser&gt;</ID>
+    <ID>MaxLineLength:SettingsViewModelTest.kt$SettingsViewModelTest.&lt;no name provided&gt;$override suspend fun loginWithGoogle(idToken: String): Try&lt;AuthUser&gt;</ID>
+    <ID>MaxLineLength:SpeakWordUseCase.kt$SpeakWordUseCase$println("SpeakWordUseCase: input='$languageCode' normalized='$normalized' fallback='${fallback.code}' final='$code'")</ID>
+    <ID>MaxLineLength:StudyViewModelTest.kt$StudyViewModelTest.&lt;no name provided&gt;$override fun logWordReviewed(rating: Int, wordLevel: Int, wasCorrect: Boolean)</ID>
+    <ID>MaxLineLength:StudyViewModelTest.kt$StudyViewModelTest.&lt;no name provided&gt;$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:StudyViewModelTest.kt$StudyViewModelTest.&lt;no name provided&gt;$override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try&lt;AuthUser&gt;</ID>
+    <ID>MaxLineLength:SubscriptionViewModelTest.kt$SubscriptionViewModelTest.&lt;no name provided&gt;$override suspend fun purchase(packageToPurchase: SubscriptionPackage): Try&lt;SubscriptionCustomerInfo&gt;</ID>
+    <ID>MaxLineLength:UpdateWordUseCaseTest.kt$FakeWordRepositoryForUpdate$override fun deleteWords(ids: List&lt;Int&gt;)</ID>
+    <ID>MaxLineLength:UpdateWordUseCaseTest.kt$FakeWordRepositoryForUpdate$override fun getWordsByStage(stage: domain.word.model.LearningStage)</ID>
+    <ID>MaxLineLength:UpdateWordUseCaseTest.kt$FakeWordRepositoryForUpdate$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): kotlinx.coroutines.flow.Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:VocabularyViewModelTest.kt$VocabularyViewModelTest.&lt;no name provided&gt;$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>MaxLineLength:WasmJsAnalyticsTracker.kt$WasmJsAnalyticsTracker$println("[Analytics] Review session complete: reviewed=$cardsReviewed, duration=${durationMs}ms, perfect=$perfectCount")</ID>
+    <ID>MaxLineLength:WordManagerViewModelTest.kt$WordManagerViewModelTest.&lt;no name provided&gt;$override</ID>
+    <ID>MaxLineLength:WordManagerViewModelTest.kt$WordManagerViewModelTest.&lt;no name provided&gt;$override fun deleteWords(ids: List&lt;Int&gt;): Flow&lt;DeleteWordsProgress&gt;</ID>
+    <ID>MaxLineLength:WordManagerViewModelTest.kt$WordManagerViewModelTest.&lt;no name provided&gt;$override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try&lt;AuthUser&gt;</ID>
+    <ID>MaxLineLength:WordOrderingTest.kt$WordOrderingTest$assertEquals(4, result[reviewedStartIndex + 1].id, "Second most overdue reviewed word (id=4) should come second")</ID>
+    <ID>MaxLineLength:WordOrderingTest.kt$WordOrderingTest$assertTrue(neverReviewedStartIndex &lt; reviewedStartIndex, "Never-reviewed words should come before reviewed words")</ID>
+    <ID>MaxLineLength:WordSyncServiceTest.kt$WordSyncServiceTest.FakeWordRepository$override fun updateWordsLanguages(ids: List&lt;Int&gt;, sourceLanguage: String, targetLanguage: String): Flow&lt;UpdateWordsLanguagesProgress&gt;</ID>
+    <ID>NestedBlockDepth:AndroidModelFileManager.kt$AndroidModelFileManager$private fun extractTarBz2(archiveFile: File, targetDir: File, extractedDirName: String)</ID>
+    <ID>NestedBlockDepth:AndroidNotificationManager.kt$AndroidNotificationManager$@SuppressLint("InlinedApi") override suspend fun requestNotificationPermission(): Boolean</ID>
+    <ID>NewLineAtEndOfFile:App.kt$com.alirezaiyan.vokab.App.kt</ID>
+    <ID>NewLineAtEndOfFile:AppEvents.kt$events.AppEvents.kt</ID>
+    <ID>NewLineAtEndOfFile:AppleSignIn.kt$expects.AppleSignIn.kt</ID>
+    <ID>NewLineAtEndOfFile:AuthInterceptor.kt$data.core.network.interceptor.AuthInterceptor.kt</ID>
+    <ID>NewLineAtEndOfFile:CameraUtils.kt$utils.CameraUtils.kt</ID>
+    <ID>NewLineAtEndOfFile:DialogState.kt$presentation.model.DialogState.kt</ID>
+    <ID>NewLineAtEndOfFile:Greeting.kt$com.alirezaiyan.vokab.Greeting.kt</ID>
+    <ID>NewLineAtEndOfFile:HttpClientProvider.kt$data.core.network.HttpClientProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:IAppleAuthStateProvider.kt$auth.IAppleAuthStateProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:IOSAnalyticsTracker.kt$analytics.IOSAnalyticsTracker.kt</ID>
+    <ID>NewLineAtEndOfFile:IOSAppleAuthStateProvider.kt$auth.IOSAppleAuthStateProvider.kt</ID>
+    <ID>NewLineAtEndOfFile:ImagePicker.kt$expects.ImagePicker.kt</ID>
+    <ID>NewLineAtEndOfFile:ImportState.kt$presentation.model.ImportState.kt</ID>
+    <ID>NewLineAtEndOfFile:ImportTabV2.kt$presentation.ui.components.imports.ImportTabV2.kt</ID>
+    <ID>NewLineAtEndOfFile:Language.kt$utils.Language.kt</ID>
+    <ID>NewLineAtEndOfFile:LexiconDao.kt$data.core.database.LexiconDao.kt</ID>
+    <ID>NewLineAtEndOfFile:LexiconFirebaseMessagingService.kt$com.alirezaiyan.vokab.LexiconFirebaseMessagingService.kt</ID>
+    <ID>NewLineAtEndOfFile:LexiconIcons.kt$components.icons.LexiconIcons.kt</ID>
+    <ID>NewLineAtEndOfFile:NetworkModule.kt$di.NetworkModule.kt</ID>
+    <ID>NewLineAtEndOfFile:Platform.android.kt$com.alirezaiyan.vokab.Platform.android.kt</ID>
+    <ID>NewLineAtEndOfFile:Platform.ios.kt$com.alirezaiyan.vokab.Platform.ios.kt</ID>
+    <ID>NewLineAtEndOfFile:Platform.js.kt$com.alirezaiyan.vokab.Platform.js.kt</ID>
+    <ID>NewLineAtEndOfFile:Platform.kt$com.alirezaiyan.vokab.Platform.kt</ID>
+    <ID>NewLineAtEndOfFile:Platform.wasmJs.kt$com.alirezaiyan.vokab.Platform.wasmJs.kt</ID>
+    <ID>NewLineAtEndOfFile:StreakData.kt$domain.streak.model.StreakData.kt</ID>
+    <ID>NewLineAtEndOfFile:main.kt$com.alirezaiyan.vokab.main.kt</ID>
+    <ID>ReturnCount:RefreshAndRetryInterceptor.kt$RefreshAndRetryInterceptor$private fun shouldAttemptRefresh( response: HttpResponse, request: HttpRequest ): Boolean</ID>
+    <ID>SwallowedException:AndroidAppVersionProvider.kt$AndroidAppVersionProvider$e: Exception</ID>
+    <ID>SwallowedException:CameraUtils.android.kt$e: Exception</ID>
+    <ID>SwallowedException:CameraUtils.ios.kt$e: Exception</ID>
+    <ID>SwallowedException:FilePickerCompose.android.kt$e: Exception</ID>
+    <ID>SwallowedException:FilePickerCompose.ios.kt$IOSFilePicker.&lt;no name provided&gt;$e: Exception</ID>
+    <ID>SwallowedException:IOSAppVersionProvider.kt$IOSAppVersionProvider$e: Exception</ID>
+    <ID>SwallowedException:ImagePicker.android.kt$ImagePicker$e: Exception</ID>
+    <ID>SwallowedException:ImagePickerCompose.android.kt$e: Exception</ID>
+    <ID>SwallowedException:ImagePickerCompose.ios.kt$e: Exception</ID>
+    <ID>SwallowedException:ImageUtils.android.kt$e2: Exception</ID>
+    <ID>SwallowedException:ImageUtils.android.kt$e: Exception</ID>
+    <ID>SwallowedException:NotificationsPermission.wasmJs.kt$e: Exception</ID>
+    <ID>SwallowedException:PlatformDetector.android.kt$e: Exception</ID>
+    <ID>SwallowedException:WasmJsNotificationManager.kt$WasmJsNotificationManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidAppVersionProvider.kt$AndroidAppVersionProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidNotificationManager.kt$AndroidNotificationManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AndroidPushTokenManager.kt$AndroidPushTokenManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AuthInterceptor.kt$AuthInterceptor$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CameraUtils.android.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CameraUtils.ios.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FilePickerCompose.android.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FilePickerCompose.ios.kt$IOSFilePicker.&lt;no name provided&gt;$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FileSharer.android.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FileSharer.ios.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GoogleSignInContainer.mobile.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:IOSAppVersionProvider.kt$IOSAppVersionProvider$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImagePicker.android.kt$ImagePicker$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImagePickerCompose.android.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImagePickerCompose.ios.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImageUtils.android.kt$e2: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImageUtils.android.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:IosNotificationManager.kt$IosNotificationManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NotificationsPermission.wasmJs.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:OnEvents.kt$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PlatformDetector.android.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:Try.kt$Try.Companion$throwable: Throwable</ID>
+    <ID>TooGenericExceptionCaught:Try.kt$throwable: Throwable</ID>
+    <ID>TooGenericExceptionCaught:UrlOpener.android.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:UrlOpener.ios.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WasmJsNotificationManager.kt$WasmJsNotificationManager$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:FirebaseAuthJsBridge.kt$throw RuntimeException("No token received")</ID>
+    <ID>TooGenericExceptionThrown:FirebaseAuthJsBridge.kt$throw RuntimeException(error.toString())</ID>
+    <ID>TooGenericExceptionThrown:ImportWordsUseCase.kt$ImportWordsUseCase$throw Exception("All ${uniqueImportWords.size} word(s) already exist in your collection.")</ID>
+    <ID>TooGenericExceptionThrown:IosModelFileManager.kt$IosModelFileManager$throw Exception("Download failed for: $urlString")</ID>
+    <ID>TooGenericExceptionThrown:IosModelFileManager.kt$IosModelFileManager$throw Exception("Invalid URL: $urlString")</ID>
+    <ID>TooGenericExceptionThrown:PushNotificationDataSource.kt$PushNotificationDataSource$throw Exception(response.message ?: "Failed to register push token")</ID>
+    <ID>TooGenericExceptionThrown:WordRepositoryImplTest.kt$WordRepositoryImplTest.FakeWordLocalDataSource$throw RuntimeException("Local delete failed")</ID>
+    <ID>TooGenericExceptionThrown:WordRepositoryImplTest.kt$WordRepositoryImplTest.FakeWordLocalDataSource$throw RuntimeException("Local insert failed")</ID>
+    <ID>TooGenericExceptionThrown:WordRepositoryImplTest.kt$WordRepositoryImplTest.FakeWordLocalDataSource$throw RuntimeException("Local update failed")</ID>
+    <ID>TooGenericExceptionThrown:WordRepositoryImplTest.kt$WordRepositoryImplTest.FakeWordRemoteSyncHandler$throw RuntimeException("Remote deletion sync failed")</ID>
+    <ID>TooGenericExceptionThrown:WordRepositoryImplTest.kt$WordRepositoryImplTest.FakeWordRemoteSyncHandler$throw RuntimeException("Remote update sync failed")</ID>
+    <ID>TooManyFunctions:AndroidAnalyticsTracker.kt$AndroidAnalyticsTracker : IAnalyticsTracker</ID>
+    <ID>TooManyFunctions:IAnalyticsTracker.kt$IAnalyticsTracker</ID>
+    <ID>TooManyFunctions:IOSAnalyticsTracker.kt$IOSAnalyticsTracker : IAnalyticsTracker</ID>
+    <ID>TooManyFunctions:ISettingsRepository.kt$ISettingsRepository</ID>
+    <ID>TooManyFunctions:IWordRepository.kt$IWordRepository</ID>
+    <ID>TooManyFunctions:ImportViewModel.kt$ImportViewModel : BaseViewModel</ID>
+    <ID>TooManyFunctions:IosModelFileManager.kt$IosModelFileManager : IModelFileManager</ID>
+    <ID>TooManyFunctions:SecureStorage.kt$SecureStorage</ID>
+    <ID>TooManyFunctions:SettingsRepositoryImpl.kt$SettingsRepositoryImpl : ISettingsRepository</ID>
+    <ID>TooManyFunctions:StudyViewModel.kt$StudyViewModel : BaseViewModel</ID>
+    <ID>TooManyFunctions:WasmJsAnalyticsTracker.kt$WasmJsAnalyticsTracker : IAnalyticsTracker</ID>
+    <ID>TooManyFunctions:WasmJsSecureStorage.kt$WasmJsSecureStorage : SecureStorage</ID>
+    <ID>TooManyFunctions:WordLocalDataSource.kt$IWordLocalDataSource</ID>
+    <ID>TooManyFunctions:WordLocalDataSource.kt$WordLocalDataSource : IWordLocalDataSource</ID>
+    <ID>TooManyFunctions:WordManagerViewModel.kt$WordManagerViewModel : BaseViewModel</ID>
+    <ID>TooManyFunctions:WordRepositoryImpl.kt$WordRepositoryImpl : IWordRepository</ID>
+    <ID>TopLevelPropertyNaming:AppDatabase.kt$internal const val dbFileName = "lexicon.db"</ID>
+    <ID>TopLevelPropertyNaming:FeatureAccessRemoteDataSource.kt$private const val path = "/users/feature-access"</ID>
+    <ID>UnusedParameter:CollapsedStatsBar.kt$modifier: Modifier = Modifier</ID>
+    <ID>UnusedParameter:FirebaseAuthJsBridge.kt$apiKey: String</ID>
+    <ID>UnusedParameter:FirebaseAuthJsBridge.kt$authDomain: String</ID>
+    <ID>UnusedParameter:FirebaseAuthJsBridge.kt$forceRefresh: Boolean</ID>
+    <ID>UnusedParameter:FirebaseAuthJsBridge.kt$projectId: String</ID>
+    <ID>UnusedParameter:NotificationsPermission.wasmJs.kt$onResult: (String) -&gt; Unit</ID>
+    <ID>UnusedParameter:ThemeSettingsCard.kt$themeMode: ThemeMode</ID>
+    <ID>UnusedParameter:UrlOpener.wasmJs.kt$url: String</ID>
+    <ID>UnusedParameter:WasmJsNotificationManager.kt$body: String</ID>
+    <ID>UnusedParameter:WasmJsNotificationManager.kt$message: String</ID>
+    <ID>UnusedParameter:WasmJsNotificationManager.kt$onResult: (String) -&gt; Unit</ID>
+    <ID>UnusedParameter:WasmJsNotificationManager.kt$title: String</ID>
+    <ID>UnusedParameter:WasmJsSecureStorage.kt$key: String</ID>
+    <ID>UnusedParameter:WasmJsSecureStorage.kt$value: String</ID>
+    <ID>UnusedPrivateMember:IOSKeychainSecureStorage.kt$@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class) private fun ByteArray.toNSData(): NSData</ID>
+    <ID>UnusedPrivateProperty:AuthViewModelTest.kt$AuthViewModelTest$private var sessionResult: SessionVerificationResult = SessionVerificationResult.NotAuthenticated</ID>
+    <ID>UnusedPrivateProperty:WeeklyActivitySection.kt$private val ShadowOffset = 5.dp</ID>
+    <ID>UnusedPrivateProperty:WordOrderingTest.kt$WordOrderingTest$val sameDueDate = now - TestConstants.MILLIS_PER_HOUR</ID>
+    <ID>UseCheckOrError:MainViewController.kt$throw IllegalStateException("Koin not initialized")</ID>
+    <ID>WildcardImport:BottomSheetHostExt.kt$import overlay.*</ID>
+    <ID>WildcardImport:CameraUtils.android.kt$import androidx.compose.runtime.*</ID>
+    <ID>WildcardImport:CameraUtils.ios.kt$import androidx.compose.runtime.*</ID>
+    <ID>WildcardImport:DialogHostExt.kt$import overlay.*</ID>
+    <ID>WildcardImport:FilePickerCompose.android.kt$import androidx.compose.runtime.*</ID>
+    <ID>WildcardImport:FilePickerCompose.ios.kt$import platform.Foundation.*</ID>
+    <ID>WildcardImport:FilePickerCompose.ios.kt$import platform.UIKit.*</ID>
+    <ID>WildcardImport:FileSharer.ios.kt$import platform.Foundation.*</ID>
+    <ID>WildcardImport:ImagePickerCompose.ios.kt$import androidx.compose.runtime.*</ID>
+    <ID>WildcardImport:ImageUtils.ios.kt$import platform.UIKit.*</ID>
+    <ID>WildcardImport:IosNotificationManager.kt$import kotlinx.cinterop.*</ID>
+    <ID>WildcardImport:IosNotificationManager.kt$import platform.Foundation.*</ID>
+    <ID>WildcardImport:IosNotificationManager.kt$import platform.UserNotifications.*</ID>
+    <ID>WildcardImport:OverlayHost.kt$import androidx.compose.runtime.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

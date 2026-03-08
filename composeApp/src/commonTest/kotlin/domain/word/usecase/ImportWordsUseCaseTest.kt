@@ -1,6 +1,7 @@
 package domain.word.usecase
 
 import core.common.Try
+import core.common.getOrThrow
 import domain.word.model.Word
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
@@ -12,7 +13,6 @@ import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.service.ImportValidationService
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -39,10 +39,10 @@ class ImportWordsUseCaseTest {
     private val useCase = ImportWordsUseCase(fakeRepository, validationService, getCurrentLanguageUseCase)
     
     private suspend fun executeImport(input: String): Try<Int> =
-        Try { useCase.asFlow(input).first() }
+        useCase(input)
 
     private suspend fun executeImportSuccess(input: String): Int =
-        useCase.asFlow(input).first()
+        useCase(input).getOrThrow()
     
     @Test
     fun `basic word pair should parse correctly`() = runTest {

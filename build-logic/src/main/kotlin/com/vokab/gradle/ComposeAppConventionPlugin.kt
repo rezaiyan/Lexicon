@@ -3,9 +3,7 @@ package com.vokab.gradle
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.named
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
@@ -13,7 +11,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 class ComposeAppConventionPlugin : Plugin<Project> {
 
     override fun apply(target: Project) = with(target) {
-        val versionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+        val versionCatalog = libs
 
         plugins.withId("org.jetbrains.kotlin.multiplatform") {
             extensions.configure<KotlinMultiplatformExtension> {
@@ -32,25 +30,25 @@ class ComposeAppConventionPlugin : Plugin<Project> {
             }
         }
 
-        sourceSets.matching { it.name == "mobileMain" }.all {
+        sourceSets.matching { it.name == "mobileMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppMobileMainImplementation")
             }
         }
 
-        sourceSets.matching { it.name == "androidMain" }.all {
+        sourceSets.matching { it.name == "androidMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppAndroidMainImplementation")
             }
         }
 
-        sourceSets.matching { it.name == "iosMain" }.all {
+        sourceSets.matching { it.name == "iosMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppIosMainImplementation")
             }
         }
 
-        sourceSets.matching { it.name == "wasmJsMain" }.all {
+        sourceSets.matching { it.name == "wasmJsMain" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppWasmJsMainImplementation")
             }
@@ -62,7 +60,7 @@ class ComposeAppConventionPlugin : Plugin<Project> {
             }
         }
 
-        sourceSets.matching { it.name == "androidInstrumentedTest" }.all {
+        sourceSets.matching { it.name == "androidInstrumentedTest" }.configureEach {
             dependencies {
                 implementationBundle(libs, "composeAppAndroidInstrumentedTestImplementation")
             }

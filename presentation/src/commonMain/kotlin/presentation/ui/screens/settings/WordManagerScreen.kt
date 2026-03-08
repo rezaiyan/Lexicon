@@ -21,15 +21,19 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import feature.words.model.WordManagerEffect
 import presentation.ui.LocalSnackbarHostState
-import components.scaffold.ActionIconConfig
 import components.scaffold.TopBarColor
 import components.scaffold.LexiconColumn
-import overlay.LocalOverlayHost
+import domain.word.model.Word
+import overlay.OverlayHost
+import overlay.bottomsheet.BottomSheetPages
+import overlay.bottomsheet.rememberBottomSheetPageNavigator
+import overlay.fullscreen.FullScreenProperties
+import overlay.fullscreen.showFullScreen
 import presentation.util.shareContentAsFile
 import feature.words.WordManagerViewModel
 import theme.Theme
+import utils.Language
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.deleting_words_please_wait
 import lexicon.resources.generated.resources.error_prefix
 import lexicon.resources.generated.resources.failed_to_update_word
@@ -42,21 +46,43 @@ import lexicon.resources.generated.resources.word_updated
 import lexicon.resources.generated.resources.words_deleted
 import lexicon.resources.generated.resources.words_language_updated
 
+fun OverlayHost.showWordManagerSheet() {
+    showFullScreen(
+        tag = "word-manager",
+        properties = FullScreenProperties(
+            dismissOnBackPress = false,
+        )
+    ) { nav ->
+        WordManagerContent(onDismiss = { nav.dismiss() })
+    }
+}
+
+private sealed interface WordManagerPage {
+    data object List : WordManagerPage
+    data class Detail(val word: Word) : WordManagerPage
+    data class Edit(val word: Word) : WordManagerPage
+    data class DeleteConfirm(val count: Int) : WordManagerPage
+    data class BatchEditLanguages(
+        val count: Int,
+        val initialSourceLanguage: Language,
+        val initialTargetLanguage: Language
+    ) : WordManagerPage
+}
+
 @Composable
-fun WordManagerScreen(
-    onNavigateBack: () -> Unit
+internal fun WordManagerContent(
+    onDismiss: () -> Unit
 ) {
     val viewModel = koinViewModel<WordManagerViewModel>()
     val state by viewModel.state()
     val snackbarHostState = LocalSnackbarHostState.current
-    val overlayHost = LocalOverlayHost.current
+    val pages = rememberBottomSheetPageNavigator<WordManagerPage>(WordManagerPage.List)
 
-    // Reset state when screen opens
     LaunchedEffect(Unit) {
         viewModel.resetState()
     }
 
-    // Handle Word Manager events
+    // Handle Word Manager effects
     val shareTitleFormat = stringResource(Res.string.share_title_format)
     val noWordsToShare = stringResource(Res.string.no_words_to_share)
     val wordDeleted = stringResource(Res.string.word_deleted)
@@ -112,177 +138,168 @@ fun WordManagerScreen(
         }
     }
 
-    // Selection mode: show close icon in top bar; otherwise no action icons
-    val selectionModeCloseAction = if (state.isSelectionMode) {
-        ActionIconConfig(
-            icon = Icons.Default.Close,
-            contentDescription = stringResource(Res.string.cancel),
-            onClick = { viewModel.exitSelectionMode() },
-            tint = MaterialTheme.colorScheme.onSurface,
-            size = Theme.dimensions.iconSizeLarge
-        )
-    } else {
-        null
-    }
-
-    LexiconColumn(
-        title = stringResource(Res.string.word_manager),
-        showNavigationIcon = true,
-        onNavigationClick = {
-            if (state.isSelectionMode) {
-                viewModel.exitSelectionMode()
-            } else {
-                onNavigateBack()
-            }
-        },
-        actionIcon1 = selectionModeCloseAction,
-        scrollable = false,
-        topBarColor = TopBarColor.Background
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Crossfade(
-                targetState = Triple(state.isLoading, state.errorMessage, state.words.isEmpty()),
-                label = "contentCrossfade"
-            ) { (loading, error, empty) ->
-                when {
-                    loading -> LoadingView()
-                    error != null -> ErrorView(message = error)
-                    empty -> EmptyLibraryView()
-                    else -> WordListContent(
-                        state = state,
-                        onSearchQueryChange = viewModel::updateSearchQuery,
-                        onClearSearch = viewModel::clearSearch,
-                        onToggleSelection = viewModel::toggleWordSelection,
-                        onOpenDetail = { word ->
-                            overlayHost.showWordDetailSheet(
-                                word = word,
-                                onEdit = { w ->
-                                    viewModel.openWordDetail(w)
+    BottomSheetPages(navigator = pages, label = "wordManagerPages") { page ->
+        when (page) {
+            WordManagerPage.List -> LexiconColumn(
+                title = stringResource(Res.string.word_manager),
+                showNavigationIcon = true,
+                navigationIcon = Icons.Default.Close,
+                onNavigationClick = {
+                    if (state.isSelectionMode) {
+                        viewModel.exitSelectionMode()
+                    } else {
+                        onDismiss()
+                    }
+                },
+                scrollable = false,
+                topBarColor = TopBarColor.Background
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Crossfade(
+                        targetState = Triple(
+                            state.isLoading,
+                            state.errorMessage,
+                            state.words.isEmpty()
+                        ),
+                        label = "contentCrossfade"
+                    ) { (loading, error, empty) ->
+                        when {
+                            loading -> LoadingView()
+                            error != null -> ErrorView(message = error)
+                            empty -> EmptyLibraryView()
+                            else -> WordListContent(
+                                state = state,
+                                onSearchQueryChange = viewModel::updateSearchQuery,
+                                onClearSearch = viewModel::clearSearch,
+                                onToggleSelection = viewModel::toggleWordSelection,
+                                onOpenDetail = { word ->
+                                    pages.navigateTo(WordManagerPage.Detail(word))
                                 },
-                                onDelete = { w ->
-                                    viewModel.toggleWordSelection(w.id)
-                                    viewModel.showDeleteConfirmation()
-                                }
+                                onEnterSelectionMode = { wordId ->
+                                    viewModel.enterSelectionMode()
+                                    viewModel.toggleWordSelection(wordId)
+                                },
+                                onSelectAll = viewModel::selectAll,
+                                onShareWords = viewModel::shareWords,
+                                onSortOptionChange = viewModel::setSortOption,
+                                onFilterLanguageChange = viewModel::setFilterLanguage,
+                                onFilterLearningStageChange = viewModel::setFilterLearningStage,
+                                onDeleteSelected = {
+                                    if (state.selectedCount > 0) {
+                                        pages.navigateTo(
+                                            WordManagerPage.DeleteConfirm(
+                                                count = state.selectedWordIds.size
+                                            )
+                                        )
+                                    }
+                                },
+                                onBatchEditLanguages = {
+                                    if (state.selectedCount > 0) {
+                                        val selectedWords = state.words.filter {
+                                            state.selectedWordIds.contains(it.id)
+                                        }
+                                        val mostCommonSource = selectedWords
+                                            .groupingBy { it.sourceLanguage }
+                                            .eachCount()
+                                            .maxByOrNull { it.value }?.key
+                                            ?: Language.ENGLISH
+                                        val mostCommonTarget = selectedWords
+                                            .groupingBy { it.targetLanguage }
+                                            .eachCount()
+                                            .maxByOrNull { it.value }?.key
+                                            ?: Language.ENGLISH
+
+                                        pages.navigateTo(
+                                            WordManagerPage.BatchEditLanguages(
+                                                count = selectedWords.size,
+                                                initialSourceLanguage = mostCommonSource,
+                                                initialTargetLanguage = mostCommonTarget
+                                            )
+                                        )
+                                    }
+                                },
+                                onExitSelectionMode = viewModel::exitSelectionMode
                             )
-                        },
-                        onEnterSelectionMode = { wordId ->
-                            viewModel.enterSelectionMode()
-                            viewModel.toggleWordSelection(wordId)
-                        },
-                        onSelectAll = viewModel::selectAll,
-                        onShareWords = viewModel::shareWords,
-                        onSortOptionChange = viewModel::setSortOption,
-                        onFilterLanguageChange = viewModel::setFilterLanguage,
-                        onFilterLearningStageChange = viewModel::setFilterLearningStage,
-                        onDeleteSelected = {
-                            if (state.selectedCount > 0) {
-                                viewModel.showDeleteConfirmation()
-                            }
-                        },
-                        onBatchEditLanguages = {
-                            if (state.selectedCount > 0) {
-                                viewModel.showBatchEditLanguages()
-                            }
-                        },
-                        onExitSelectionMode = viewModel::exitSelectionMode
-                    )
-                }
-            }
+                        }
+                    }
 
-            // Batch language update overlay
-            if (state.isBatchUpdatingLanguages) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(Theme.dimensions.touchTarget),
-                            strokeWidth = Theme.dimensions.borderWidthThick
+                    if (state.isBatchUpdatingLanguages) {
+                        ProgressOverlay(
+                            message = stringResource(Res.string.updating_words_please_wait)
                         )
-                        Text(
-                            text = stringResource(Res.string.updating_words_please_wait),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                    }
+
+                    if (state.isDeletingWords) {
+                        ProgressOverlay(
+                            message = stringResource(Res.string.deleting_words_please_wait)
                         )
                     }
                 }
             }
 
-            // Deletion overlay
-            if (state.isDeletingWords) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(Theme.dimensions.touchTarget),
-                            strokeWidth = Theme.dimensions.borderWidthThick
-                        )
-                        Text(
-                            text = stringResource(Res.string.deleting_words_please_wait),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+            is WordManagerPage.Detail -> WordDetailSheetContent(
+                word = page.word,
+                onEdit = { word -> pages.navigateTo(WordManagerPage.Edit(word)) },
+                onDelete = { word ->
+                    viewModel.toggleWordSelection(word.id)
+                    pages.navigateTo(WordManagerPage.DeleteConfirm(count = 1))
                 }
-            }
+            )
+
+            is WordManagerPage.Edit -> EditWordContent(
+                word = page.word,
+                onSave = { updatedWord ->
+                    viewModel.updateWord(updatedWord)
+                    pages.navigateBack()
+                    pages.navigateBack()
+                },
+                onDismiss = { pages.navigateBack() }
+            )
+
+            is WordManagerPage.DeleteConfirm -> DeleteConfirmationContent(
+                count = page.count,
+                onConfirm = {
+                    viewModel.deleteSelectedWords()
+                    while (pages.canNavigateBack) pages.navigateBack()
+                },
+                onDismiss = { pages.navigateBack() }
+            )
+
+            is WordManagerPage.BatchEditLanguages -> BatchEditLanguagesContent(
+                count = page.count,
+                initialSourceLanguage = page.initialSourceLanguage,
+                initialTargetLanguage = page.initialTargetLanguage,
+                onConfirm = { source, target ->
+                    viewModel.batchUpdateLanguages(source, target)
+                    pages.navigateBack()
+                },
+                onDismiss = { pages.navigateBack() }
+            )
         }
     }
+}
 
-    // Edit Word Dialog (triggered from detail sheet)
-    state.detailWord?.let { word ->
-        EditWordDialog(
-            word = word,
-            onDismiss = viewModel::closeWordDetail,
-            onSave = viewModel::updateWord
-        )
-    }
-
-    // Delete Confirmation Dialog
-    if (state.showDeleteConfirmation) {
-        DeleteConfirmationDialog(
-            isDeleting = state.isDeletingWords,
-            count = state.selectedWordIds.size,
-            onConfirm = viewModel::deleteSelectedWords,
-            onDismiss = viewModel::hideDeleteConfirmation
-        )
-    }
-
-    // Batch Edit Languages Dialog
-    if (state.showBatchEditLanguages) {
-        val selectedWords = state.words.filter { state.selectedWordIds.contains(it.id) }
-        val mostCommonSource = selectedWords
-            .groupingBy { it.sourceLanguage }
-            .eachCount()
-            .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
-        val mostCommonTarget = selectedWords
-            .groupingBy { it.targetLanguage }
-            .eachCount()
-            .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
-
-        BatchEditLanguagesDialog(
-            isUpdating = state.isBatchUpdatingLanguages,
-            count = state.selectedWordIds.size,
-            initialSourceLanguage = mostCommonSource,
-            initialTargetLanguage = mostCommonTarget,
-            onConfirm = { source, target ->
-                viewModel.batchUpdateLanguages(source, target)
-            },
-            onDismiss = viewModel::hideBatchEditLanguages
-        )
+@Composable
+private fun ProgressOverlay(message: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(Theme.dimensions.touchTarget),
+                strokeWidth = Theme.dimensions.borderWidthThick
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }

@@ -1,0 +1,18 @@
+# Utility flow: navigate from the main app to the Settings screen.
+#
+# Called by settings test flows via:
+#   - runFlow: ../utils/navigate_to_settings.yaml
+#
+# Assumes:
+#   - The app is already running (launched by the calling flow).
+#   - The user is authenticated and the main app is visible (Study/Settings/Profile tabs).
+#   - The device is not in a dialog or overlay state.
+
+appId: com.alirezaiyan.vokab
+---
+# Navigate to the Settings tab via the bottom navigation bar.
+- tapOn:
+    text: "Settings"
+
+# Verify the Settings screen is open by checking the title.
+- assertVisible: "Settings"

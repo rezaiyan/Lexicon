@@ -3,7 +3,6 @@ package pushnotification
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
-import pushnotification.IPushTokenManager
 
 /**
  * Android implementation of push token manager using Firebase Cloud Messaging

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import components.dialog.LexiconDialogContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -41,17 +41,22 @@ import feature.profile.model.ProfileUiData
 import core.common.UiState
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
-import feature.profile.ui.components.DeleteAccountCoolingDialogContent
-import feature.profile.ui.components.DeleteAccountHiddenDialogContent
+import feature.profile.ui.components.DeleteAccountCoolingContent
+import feature.profile.ui.components.DeleteAccountHiddenContent
+import feature.profile.ui.components.EditProfileSheetContent
 import feature.profile.ui.components.LogoutDialogContent
 import feature.profile.ui.components.MemberSinceSection
 import feature.profile.ui.components.StreakSection
 import feature.profile.ui.components.UserInfoSection
 import feature.profile.ui.components.WeeklyActivitySection
 import overlay.OverlayHost
-import overlay.bottomsheet.showFullscreenBottomSheet
-import overlay.dialog.showDialog
+import overlay.bottomsheet.BottomSheetPages
+import overlay.bottomsheet.BottomSheetProperties
+import overlay.bottomsheet.rememberBottomSheetPageNavigator
+import overlay.bottomsheet.showSizeToFitBottomSheet
+import overlay.bottomsheet.showSizeToFitBottomSheet
 import components.animation.staggeredFadeSlide
+import feature.leaderboard.navigation.showLeaderboard
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.delete_account
@@ -65,8 +70,6 @@ import lexicon.resources.generated.resources.profile
 fun ProfileScreen(
     snackbarHostState: SnackbarHostState,
     overlayHost: OverlayHost,
-    onNavigateToLeaderboard: () -> Unit = {},
-    onNavigateToEditProfile: () -> Unit = {}
 ) {
     val profileViewModel = koinViewModel<ProfileViewModel>()
 
@@ -95,19 +98,48 @@ fun ProfileScreen(
                 icon = Icons.Default.MoreVert,
                 contentDescription = stringResource(Res.string.more_options),
                 onClick = {
-                    overlayHost.showFullscreenBottomSheet(tag = "more-options") { navigator ->
-                        ProfileMoreOptionsSheet(
-                            onEditProfile = {
-                                navigator.dismiss()
-                                onNavigateToEditProfile()
-                            },
-                            onDeleteAccount = {
-                                navigator.dismiss()
-                                showDeleteAccountFlow(overlayHost) {
-                                    profileViewModel.deleteAccount()
-                                }
+                    overlayHost.showSizeToFitBottomSheet(tag = "more-options") { sheetNav ->
+                        val pages = rememberBottomSheetPageNavigator<MoreOptionsPage>(MoreOptionsPage.Options)
+
+                        LaunchedEffect(pages.currentPage) {
+                            properties = when (pages.currentPage) {
+                                is MoreOptionsPage.EditProfile -> BottomSheetProperties(
+                                    dismissOnTouchOutside = false,
+                                    sheetGesturesEnabled = false
+                                )
+                                is MoreOptionsPage.DeleteCooling -> BottomSheetProperties(
+                                    dismissOnTouchOutside = false,
+                                    sheetGesturesEnabled = false
+                                )
+                                else -> BottomSheetProperties(showCloseButton = false)
                             }
-                        )
+                        }
+
+                        BottomSheetPages(navigator = pages) { currentPage ->
+                            when (currentPage) {
+                                is MoreOptionsPage.Options -> ProfileMoreOptionsSheet(
+                                    onEditProfile = { pages.navigateTo(MoreOptionsPage.EditProfile) },
+                                    onDeleteAccount = { pages.navigateTo(MoreOptionsPage.DeleteConfirm) }
+                                )
+                                is MoreOptionsPage.EditProfile -> EditProfileSheetContent(
+                                    snackbarHostState = snackbarHostState,
+                                    overlayHost = overlayHost,
+                                    onBack = { pages.navigateBack() },
+                                    onDismiss = { sheetNav.dismiss() }
+                                )
+                                is MoreOptionsPage.DeleteConfirm -> DeleteAccountHiddenContent(
+                                    onConfirm = { pages.navigateTo(MoreOptionsPage.DeleteCooling) },
+                                    onDismiss = { sheetNav.dismiss() }
+                                )
+                                is MoreOptionsPage.DeleteCooling -> DeleteAccountCoolingContent(
+                                    onConfirm = {
+                                        sheetNav.dismiss()
+                                        profileViewModel.deleteAccount()
+                                    },
+                                    onDismiss = { sheetNav.dismiss() }
+                                )
+                            }
+                        }
                     }
                 },
                 size = Theme.dimensions.iconSize
@@ -129,9 +161,9 @@ fun ProfileScreen(
                 isLoggedIn -> {
                     ProfileContent(
                         profileData = profileData,
-                        onNavigateToLeaderboard = onNavigateToLeaderboard,
+                        onNavigateToLeaderboard = { overlayHost.showLeaderboard() },
                         onLogout = {
-                            overlayHost.showDialog(tag = "logout") { nav ->
+                            overlayHost.showSizeToFitBottomSheet(tag = "logout") { nav ->
                                 LogoutDialogContent(
                                     onConfirm = {
                                         nav.dismiss()
@@ -265,93 +297,61 @@ private fun ProfileMoreOptionsSheet(
     onEditProfile: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = Theme.spacing.sectionSpacing)
-    ) {
-        Text(
-            text = stringResource(Res.string.more_options),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(Theme.spacing.sectionSpacing)
-        )
-
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onEditProfile)
-                .padding(
-                    horizontal = Theme.spacing.sectionSpacing,
-                    vertical = Theme.spacing.cardPadding
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.width(Theme.spacing.cardPadding))
-            Text(
-                text = stringResource(Res.string.edit_profile),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onDeleteAccount)
-                .padding(
-                    horizontal = Theme.spacing.sectionSpacing,
-                    vertical = Theme.spacing.cardPadding
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
-                tint = MaterialTheme.colorScheme.error
-            )
-            Spacer(modifier = Modifier.width(Theme.spacing.cardPadding))
-            Text(
-                text = stringResource(Res.string.delete_account),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
-}
-
-private fun showDeleteAccountFlow(
-    overlayHost: OverlayHost,
-    onDeleteAccount: () -> Unit,
-) {
-    overlayHost.showDialog(tag = "delete-account-hidden") { nav ->
-        DeleteAccountHiddenDialogContent(
-            onConfirm = {
-                nav.dismiss()
-                overlayHost.showDialog(tag = "delete-account-cooling") { coolingNav ->
-                    DeleteAccountCoolingDialogContent(
-                        onConfirm = {
-                            coolingNav.dismiss()
-                            onDeleteAccount()
-                        },
-                        onDismiss = { coolingNav.dismiss() }
+    LexiconDialogContent(
+        title = stringResource(Res.string.more_options),
+        content = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onEditProfile)
+                        .padding(vertical = Theme.spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.width(Theme.spacing.md))
+                    Text(
+                        text = stringResource(Res.string.edit_profile),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-            },
-            onDismiss = { nav.dismiss() }
-        )
-    }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onDeleteAccount)
+                        .padding(vertical = Theme.spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(Theme.spacing.md))
+                    Text(
+                        text = stringResource(Res.string.delete_account),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    )
+}
+
+private sealed interface MoreOptionsPage {
+    data object Options : MoreOptionsPage
+    data object EditProfile : MoreOptionsPage
+    data object DeleteConfirm : MoreOptionsPage
+    data object DeleteCooling : MoreOptionsPage
 }

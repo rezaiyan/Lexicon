@@ -1,6 +1,5 @@
 package auth
 
-import com.mmk.kmpauth.google.GoogleAuthProvider
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 

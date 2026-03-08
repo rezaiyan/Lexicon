@@ -10,7 +10,6 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import data.core.database.LexiconQueries
 import data.core.database.WordEntity
-import data.core.database.WordEntityData
 import data.word.mapper.toDomain
 import data.word.mapper.toDomainList
 import data.word.mapper.toEntityData

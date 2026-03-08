@@ -29,7 +29,7 @@ import lexicon.resources.generated.resources.proceed_to_final_confirmation
 import lexicon.resources.generated.resources.ready_to_proceed_deletion
 
 @Composable
-fun DeleteAccountHiddenDialogContent(
+fun DeleteAccountHiddenContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -47,7 +47,7 @@ fun DeleteAccountHiddenDialogContent(
 }
 
 @Composable
-fun DeleteAccountCoolingDialogContent(
+fun DeleteAccountCoolingContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -68,22 +68,22 @@ fun DeleteAccountCoolingDialogContent(
 
     LexiconDialogContent(
         iconState = DialogIconState.Icon(Icons.Default.Timer),
-        title = stringResource(Res.string.delete_account_cooling_period_title),
-        message = coolingPeriodMessage,
-        progressState = if (coolingPeriodRemaining > 0) {
-            DialogProgressState.Circular
-        } else {
-            DialogProgressState.None
-        },
-        primaryButton = ButtonState(
-            text = stringResource(Res.string.proceed_to_final_confirmation),
-            onClick = onConfirm,
-            enabled = coolingPeriodRemaining <= 0,
-            type = ButtonType.Error
-        ),
-        secondaryButton = ButtonState(
-            text = stringResource(Res.string.delete_account_cooling_period_cancel),
-            onClick = onDismiss
+            title = stringResource(Res.string.delete_account_cooling_period_title),
+            message = coolingPeriodMessage,
+            progressState = if (coolingPeriodRemaining > 0) {
+                DialogProgressState.Circular
+            } else {
+                DialogProgressState.None
+            },
+            primaryButton = ButtonState(
+                text = stringResource(Res.string.proceed_to_final_confirmation),
+                onClick = onConfirm,
+                enabled = coolingPeriodRemaining <= 0,
+                type = ButtonType.Error
+            ),
+            secondaryButton = ButtonState(
+                text = stringResource(Res.string.delete_account_cooling_period_cancel),
+                onClick = onDismiss
+            )
         )
-    )
 }

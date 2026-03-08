@@ -6,9 +6,9 @@ tags:
 ---
 # Test: Edit a word from the review flow.
 #
-# Full flow: Study → Start Review → review sheet opens →
-# tap card to flip → tap "Edit" → EditWordDialog opens → modify Original Word →
-# tap "Save" → dialog closes → close review → confirm exit.
+# Full flow: Study → Start Review → review opens →
+# tap card to flip → tap "Edit" → EditWordBottomSheet opens → modify Original Word →
+# tap "Save" → sheet closes → close review → confirm exit.
 #
 # Requires: At least one word exists in the library (import tests or add_test_word
 # must have run before this test).
@@ -43,7 +43,7 @@ tags:
     text: "Edit"
     retryTapIfNoChange: true
 
-# The Edit Word dialog must be visible.
+# The Edit Word bottom sheet must be visible.
 - assertVisible: "Edit Word"
 
 # The "Original Word" field should contain our test word.
@@ -60,17 +60,17 @@ tags:
 # Tap "Save" to save the changes.
 - tapOn: "Save"
 
-# The dialog must close — "Edit Word" title should no longer be visible.
+# The sheet must close — "Edit Word" title should no longer be visible.
 - assertNotVisible: "Edit Word"
 
 # Close the review by tapping the close icon (content description: "Close").
 - tapOn: "Close"
 
-# The exit confirmation dialog must appear.
+# The exit confirmation bottom sheet must appear.
 - assertVisible: "Exit Review?"
 
 # Confirm exit.
-- tapOn: "Yes, Exit"
+- tapOn: "Exit Review?"
 
 # We should be back on the Study screen.
 - assertVisible: "Import Words"

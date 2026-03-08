@@ -1,4 +1,7 @@
 {
+  "env": {
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
+  },
   "permissions": {
     "allow": [
       "Read",
@@ -21,10 +24,10 @@
       "Bash(ls *)",
       "Bash(cd *)",
       "Bash(which *)",
-      "Bash(cat *)",
-      "Bash(head *)",
-      "Bash(tail *)",
       "Bash(wc *)",
+      "Bash(find *)",
+      "Bash(mkdir *)",
+      "Bash(open *)",
       "Bash(adb *)",
       "Bash(xcrun *)",
       "Bash(xcodebuild *)",
@@ -45,7 +48,7 @@
       "Bash(npx *)"
     ]
   },
-  "env": {
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
+  "enabledPlugins": {
+    "everything-claude-code@everything-claude-code": true
   }
 }

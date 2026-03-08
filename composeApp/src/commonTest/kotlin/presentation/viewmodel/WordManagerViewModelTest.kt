@@ -208,47 +208,15 @@ class WordManagerViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `showDeleteConfirmation updates state`() {
-        val vm = createViewModel()
-        vm.showDeleteConfirmation()
-        assertTrue(vm.currentState.showDeleteConfirmation)
-    }
-
-    @Test
-    fun `hideDeleteConfirmation updates state`() {
-        val vm = createViewModel()
-        vm.showDeleteConfirmation()
-        vm.hideDeleteConfirmation()
-        assertFalse(vm.currentState.showDeleteConfirmation)
-    }
-
-    @Test
-    fun `showBatchEditLanguages updates state`() {
-        val vm = createViewModel()
-        vm.showBatchEditLanguages()
-        assertTrue(vm.currentState.showBatchEditLanguages)
-    }
-
-    @Test
-    fun `hideBatchEditLanguages updates state`() {
-        val vm = createViewModel()
-        vm.showBatchEditLanguages()
-        vm.hideBatchEditLanguages()
-        assertFalse(vm.currentState.showBatchEditLanguages)
-    }
-
-    @Test
     fun `resetState clears all transient state`() {
         val vm = createViewModel()
         vm.toggleWordSelection(1)
         vm.updateSearchQuery("test")
-        vm.showDeleteConfirmation()
 
         vm.resetState()
 
         assertEquals(emptySet(), vm.currentState.selectedWordIds)
         assertFalse(vm.currentState.isSelectionMode)
         assertEquals("", vm.currentState.searchQuery)
-        assertFalse(vm.currentState.showDeleteConfirmation)
     }
 }

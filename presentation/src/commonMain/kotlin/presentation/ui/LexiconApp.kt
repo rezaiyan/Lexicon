@@ -19,17 +19,21 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.rememberNavController
 import domain.auth.session.ISessionManager
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
+import expects.LocalSystemBarsController
 import expects.SetSystemBarsColor
+import expects.SystemBarsController
+import expects.SystemBarsState
 import expects.isSystemInDarkTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +70,7 @@ fun LexiconApp() {
     val authState by authViewModel.state()
 
     val systemInDarkTheme = isSystemInDarkTheme()
-    val themeMode by settingsRepository.getThemeMode().collectAsStateWithLifecycle(ThemeMode.AUTO)
+    val themeMode by settingsRepository.getThemeMode().collectAsState(ThemeMode.AUTO)
     val darkMode = when (themeMode) {
         ThemeMode.AUTO -> systemInDarkTheme
         ThemeMode.LIGHT -> false
@@ -97,27 +101,37 @@ fun LexiconApp() {
     }
 
     LexiconTheme(darkTheme = darkMode) {
+        val defaultNavBarColor = if (appUiState is AppUiState.Ready && isBottomNavLayout) {
+            MaterialTheme.colorScheme.surfaceContainer
+        } else {
+            MaterialTheme.colorScheme.background
+        }
+        val controller = remember {
+            SystemBarsController(
+                SystemBarsState(
+                    statusBarColor = defaultNavBarColor,
+                    navigationBarColor = defaultNavBarColor,
+                    darkIcons = !darkMode
+                )
+            )
+        }
+        val defaultStatusBarColor = MaterialTheme.colorScheme.background
+        SideEffect {
+            controller.defaultState = SystemBarsState(
+                statusBarColor = defaultStatusBarColor,
+                navigationBarColor = defaultNavBarColor,
+                darkIcons = !darkMode
+            )
+        }
+
+        val bars = controller.currentState
+        SetSystemBarsColor(bars.statusBarColor, bars.navigationBarColor, bars.darkIcons)
+
         Surface(modifier = Modifier.fillMaxSize()) {
-
-            if (appUiState !is AppUiState.Ready) {
-                SetSystemBarsColor(
-                    statusBarColor = MaterialTheme.colorScheme.background,
-                    navigationBarColor = MaterialTheme.colorScheme.background,
-                    darkIcons = !darkMode
-                )
-            } else {
-                SetSystemBarsColor(
-                    statusBarColor = MaterialTheme.colorScheme.background,
-                    navigationBarColor = if (isBottomNavLayout) {
-                        MaterialTheme.colorScheme.surfaceContainer
-                    } else {
-                        MaterialTheme.colorScheme.background
-                    },
-                    darkIcons = !darkMode
-                )
-            }
-
-        CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+        CompositionLocalProvider(
+            LocalSystemBarsController provides controller,
+            LocalSnackbarHostState provides snackbarHostState
+        ) {
             HandleVocabularyEffects(
                 vocabularyViewModel = vocabularyViewModel,
             )

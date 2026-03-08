@@ -24,11 +24,9 @@ import platform.IAppVersionProvider
 import feature.settings.NotificationPermissionMonitor
 import feature.settings.SettingsViewModel
 import presentation.ViewModelTestBase
-import feature.settings.model.DialogState
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -134,27 +132,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `initial dialog state is None`() {
-        val vm = createViewModel()
-        assertEquals(DialogState.None, vm.currentState.dialog)
-    }
-
-    @Test
-    fun `showDialog sets dialog state`() {
-        val vm = createViewModel()
-        vm.showDialog(DialogState.LanguageSelection)
-        assertEquals(DialogState.LanguageSelection, vm.currentState.dialog)
-    }
-
-    @Test
-    fun `dismissDialog clears dialog state`() {
-        val vm = createViewModel()
-        vm.showDialog(DialogState.ThemeSelection)
-        vm.dismissDialog()
-        assertEquals(DialogState.None, vm.currentState.dialog)
-    }
-
-    @Test
     fun `setLanguage delegates to use case`() = runTest {
         val vm = createViewModel()
         vm.setLanguage(Language.GERMAN)
@@ -183,11 +160,10 @@ class SettingsViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `setNotificationsEnabled when system disabled shows permission dialog`() = runTest {
-        systemNotificationsEnabled = false
+    fun `setNotificationsEnabled delegates to use case`() = runTest {
         val vm = createViewModel()
         vm.setNotificationsEnabled(true)
-        assertEquals(DialogState.NotificationPermission, vm.currentState.dialog)
+        assertEquals(true, lastSetNotificationsEnabled)
     }
 
     @Test

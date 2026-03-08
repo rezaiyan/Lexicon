@@ -66,6 +66,9 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Run detekt
+        run: ./gradlew detekt --stacktrace
+
       - name: Run all tests
         run: ./gradlew composeApp:cleanAllTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
 

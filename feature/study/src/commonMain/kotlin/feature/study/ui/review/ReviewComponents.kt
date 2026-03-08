@@ -1,17 +1,24 @@
-@file:OptIn(InternalResourceApi::class)
-
 package feature.study.ui.review
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,19 +30,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,68 +47,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import components.CounterPill
-import components.EmptyScreen
-import components.ErrorScreen
 import components.GradientProgressBar
-import components.LoadingScreen
 import domain.tts.model.TtsState
 import domain.word.model.Word
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.stringResource
 import feature.study.model.ReviewType
 import feature.study.ui.components.FlashCard
 import feature.study.ui.components.ReviewButton
-import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advance
-import lexicon.resources.generated.resources.back
-import lexicon.resources.generated.resources.browse_your_words
+import lexicon.resources.generated.resources.auto_play
 import lexicon.resources.generated.resources.close
 import lexicon.resources.generated.resources.did_you_remember
 import lexicon.resources.generated.resources.edit
 import lexicon.resources.generated.resources.forgot
-import lexicon.resources.generated.resources.next
-import lexicon.resources.generated.resources.no_words_to_review
 import lexicon.resources.generated.resources.remembered
 import lexicon.resources.generated.resources.restart
-import lexicon.resources.generated.resources.retry
 import lexicon.resources.generated.resources.tap_card_to_reveal
-
-@Composable
-fun LoadingState() {
-    LoadingScreen()
-}
-
-@Composable
-fun ErrorState(
-    message: String,
-    onRetry: () -> Unit
-) {
-    ErrorScreen(
-        message = message,
-        retryLabel = stringResource(Res.string.retry),
-        onRetry = onRetry
-    )
-}
-
-@Composable
-fun EmptyState() {
-    EmptyScreen(
-        title = stringResource(Res.string.no_words_to_review),
-        icon = {
-            Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-    )
-}
+import org.jetbrains.compose.resources.stringResource
+import theme.Theme
 
 /**
  * Compact top bar: close button (left), session title (center), card counter chip (right).
@@ -113,9 +77,10 @@ fun EmptyState() {
  */
 @Composable
 private fun ReviewTopBar(
-    title: String,
     currentIndex: Int,
     totalCount: Int,
+    isAutoPlayEnabled: Boolean,
+    onAutoPlayToggle: (Boolean) -> Unit,
     onClose: () -> Unit
 ) {
     val progress = (currentIndex + 1).toFloat() / totalCount.toFloat()
@@ -130,7 +95,6 @@ private fun ReviewTopBar(
                     top = Theme.spacing.extraSmall3,
                     bottom = Theme.spacing.extraSmall3
                 ),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onClose) {
@@ -141,18 +105,13 @@ private fun ReviewTopBar(
                 )
             }
 
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = Theme.spacing.extraSmall2),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            Spacer(Modifier.weight(1F))
+
+            AutoPlayToggle(
+                enabled = isAutoPlayEnabled,
+                onToggle = onAutoPlayToggle
             )
+            Spacer(Modifier.size(Theme.spacing.md))
 
             CounterPill(text = "${currentIndex + 1} / $totalCount")
         }
@@ -170,6 +129,89 @@ private fun ReviewTopBar(
 }
 
 /**
+ * Auto-play toggle with morphing icon animation.
+ *
+ * - Icon morphs between VolumeOff <-> VolumeUp with a spring-bounced crossfade
+ * - Background transitions to primaryContainer when active
+ * - Subtle breathing scale pulse indicates continuous playback
+ */
+@Composable
+private fun AutoPlayToggle(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val bgColor by animateColorAsState(
+        targetValue = if (enabled) MaterialTheme.colorScheme.primaryContainer
+        else Color.Transparent,
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
+        label = "autoPlayBg"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
+        label = "autoPlayContent"
+    )
+
+    // Breathing pulse cycle — always running, gated by breathAmount
+    val infiniteTransition = rememberInfiniteTransition(label = "autoPlayBreath")
+    val breathCycle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "breathCycle"
+    )
+    val breathAmount by animateFloatAsState(
+        targetValue = if (enabled) 1f else 0f,
+        animationSpec = tween(300),
+        label = "breathAmount"
+    )
+
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                val pulse = 1f + breathCycle * 0.08f * breathAmount
+                scaleX = pulse
+                scaleY = pulse
+            }
+            .clip(CircleShape)
+            .background(bgColor)
+            .clickable { onToggle(!enabled) }
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedContent(
+            targetState = enabled,
+            transitionSpec = {
+                (scaleIn(
+                    initialScale = 0.6f,
+                    animationSpec = spring(dampingRatio = 0.4f, stiffness = 500f)
+                ) + fadeIn(tween(150)))
+                    .togetherWith(
+                        scaleOut(
+                            targetScale = 0.6f,
+                            animationSpec = tween(150)
+                        ) + fadeOut(tween(100))
+                    )
+                    .using(SizeTransform(clip = false))
+            },
+            label = "autoPlayIcon"
+        ) { isEnabled ->
+            Icon(
+                imageVector = if (isEnabled) Icons.AutoMirrored.Filled.VolumeUp
+                else Icons.AutoMirrored.Filled.VolumeOff,
+                contentDescription = stringResource(Res.string.auto_play),
+                modifier = Modifier.size(22.dp),
+                tint = contentColor
+            )
+        }
+    }
+}
+
+/**
  * Main review content area.
  *
  * Animations:
@@ -183,7 +225,6 @@ fun ReviewContent(
     currentIndex: Int,
     isFlipped: Boolean,
     reviewType: ReviewType,
-    title: String,
     onClose: () -> Unit,
     onFlip: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -192,6 +233,8 @@ fun ReviewContent(
     onEdit: (() -> Unit)? = null,
     ttsState: TtsState = TtsState.Idle,
     onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> },
+    isAutoPlayEnabled: Boolean = false,
+    onAutoPlayToggle: (Boolean) -> Unit = {},
 ) {
     // Animate the "tap to reveal" hint alpha outside the nested Box lambda to
     // avoid Kotlin's implicit-receiver overload resolution picking ColumnScope.AnimatedVisibility.
@@ -206,13 +249,14 @@ fun ReviewContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ReviewTopBar(
-            title = title,
             currentIndex = currentIndex,
             totalCount = words.size,
+            isAutoPlayEnabled = isAutoPlayEnabled,
+            onAutoPlayToggle = onAutoPlayToggle,
             onClose = onClose
         )
 
-        // ── Card slot: fills all remaining vertical space ─────────────────────
+        // ── Card slot: fills all remaining vertical space ─────────────────
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -250,9 +294,7 @@ fun ReviewContent(
                 }
             }
 
-            // "Tap to reveal" hint — overlaid at the bottom of the card area.
-            // Uses graphicsLayer alpha so it never affects layout or triggers
-            // scoped-overload resolution issues.
+            // "Tap to reveal" hint
             Text(
                 text = stringResource(Res.string.tap_card_to_reveal),
                 style = MaterialTheme.typography.labelSmall,
@@ -264,7 +306,7 @@ fun ReviewContent(
             )
         }
 
-        // ── Edit word — subtle centered action between card and buttons ─────────
+        // ── Edit word ─────────────────────────────────────────────────────
         if (onEdit != null) {
             Row(
                 modifier = Modifier
@@ -290,7 +332,7 @@ fun ReviewContent(
             }
         }
 
-        // ── Action buttons ─────────────────────────────────────────────────────
+        // ── Action buttons ────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -367,76 +409,6 @@ private fun ReviewRatingArea(
                     enabled = isFlipped,
                     onClick = { onReview(data.rating) }
                 )
-            }
-        }
-    }
-}
-
-/**
- * Browse-mode navigation buttons. Back is outlined, Forward is filled.
- */
-@Composable
-fun NavigationButtons(
-    currentIndex: Int,
-    totalCount: Int,
-    onNavigateBack: () -> Unit,
-    onNavigateForward: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)
-    ) {
-        Text(
-            text = stringResource(Res.string.browse_your_words),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = Theme.spacing.extraSmall3)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedButton(
-                onClick = onNavigateBack,
-                enabled = currentIndex > 0,
-                modifier = Modifier.weight(1f).height(Theme.dimensions.buttonHeight)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(Res.string.back),
-                        modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
-                    )
-                    Spacer(Modifier.width(Theme.spacing.extraSmall2))
-                    Text(stringResource(Res.string.back), fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Button(
-                onClick = onNavigateForward,
-                enabled = currentIndex < totalCount - 1,
-                modifier = Modifier.weight(1f).height(Theme.dimensions.buttonHeight)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(Res.string.next), fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(Theme.spacing.extraSmall2))
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = stringResource(Res.string.next),
-                        modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
-                    )
-                }
             }
         }
     }
