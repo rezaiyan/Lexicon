@@ -22,6 +22,7 @@ import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.word.service.IImportValidationService
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -143,13 +144,14 @@ class ImportViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `addWord disables input while processing`() = runTest {
+        wordRepository.insertGate = CompletableDeferred()
         val vm = createViewModel()
         vm.updateWord("hello")
         vm.updateTranslation("hola")
 
         vm.addWord()
 
-        // addWord synchronously sets isEnabled = false before launching coroutine
+        // Coroutine is suspended at insertGate, so isEnabled should still be false
         assertFalse(vm.currentState.textInputState.isEnabled)
     }
 
@@ -305,6 +307,7 @@ class ImportViewModelTest : ViewModelTestBase() {
 
     private class FakeWordRepo : IWordRepository {
         var insertResult: Try<Int> = Try.success(1)
+        var insertGate: CompletableDeferred<Unit>? = null
 
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
@@ -312,7 +315,10 @@ class ImportViewModelTest : ViewModelTestBase() {
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
-        override suspend fun insertWords(words: List<Word>): Try<Int> = insertResult
+        override suspend fun insertWords(words: List<Word>): Try<Int> {
+            insertGate?.await()
+            return insertResult
+        }
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
@@ -370,7 +376,7 @@ class ImportViewModelTest : ViewModelTestBase() {
             Try.success(AuthUser(1L, "test@test.com", "Test"))
         override suspend fun logout(): Try<Unit> = Try.success(Unit)
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
-        override suspend fun getAccessToken(): String? = "fake-token"
+        override suspend fun getAccessToken(): String = "fake-token"
         override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = featureAccessFlow
     }
 }

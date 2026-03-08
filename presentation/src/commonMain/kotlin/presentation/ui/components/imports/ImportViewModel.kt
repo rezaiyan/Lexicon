@@ -136,44 +136,42 @@ class ImportViewModel(
         }
 
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
-                importWordsUseCase(
-                    csvLine,
-                    currentState.sourceLanguage,
-                    currentState.targetLanguage
-                ).fold(
-                    onSuccess = { count ->
-                        val newCount = currentState.textInputState.wordsAddedCount + count
-                        updateState {
-                            copy(
-                                textInputState = TextInputState(
-                                    wordsAddedCount = newCount,
-                                    showSuccessIndicator = true,
-                                )
+            importWordsUseCase(
+                csvLine,
+                currentState.sourceLanguage,
+                currentState.targetLanguage
+            ).fold(
+                onSuccess = { count ->
+                    val newCount = currentState.textInputState.wordsAddedCount + count
+                    updateState {
+                        copy(
+                            textInputState = TextInputState(
+                                wordsAddedCount = newCount,
+                                showSuccessIndicator = true,
                             )
-                        }
-                        emitEffect(ImportEvent.WordAddedSuccessfully(count))
-                        delay(1500)
-                        updateState {
-                            copy(
-                                textInputState = textInputState.copy(
-                                    showSuccessIndicator = false
-                                )
-                            )
-                        }
-                    },
-                    onFailure = { error ->
-                        updateState {
-                            copy(
-                                textInputState = textInputState.copy(
-                                    isEnabled = true,
-                                    errorMessage = error.message ?: "Failed to add word"
-                                )
-                            )
-                        }
+                        )
                     }
-                )
-            }
+                    emitEffect(ImportEvent.WordAddedSuccessfully(count))
+                    delay(1500)
+                    updateState {
+                        copy(
+                            textInputState = textInputState.copy(
+                                showSuccessIndicator = false
+                            )
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    updateState {
+                        copy(
+                            textInputState = textInputState.copy(
+                                isEnabled = true,
+                                errorMessage = error.message ?: "Failed to add word"
+                            )
+                        )
+                    }
+                }
+            )
         }
     }
 
