@@ -27,13 +27,14 @@ import lexicon.resources.generated.resources.translation_language
 @Composable
 fun LanguageSelectionContent(
     currentLanguage: Language,
-    onLanguageSelected: (Language) -> Unit
+    onLanguageSelected: (Language) -> Unit,
+    title: String = stringResource(Res.string.translation_language),
 ) {
     LexiconDialogContent(
         modifier = Modifier
             .verticalScroll(rememberScrollState()),
         icon = Icons.Default.Language,
-        title = stringResource(Res.string.translation_language),
+        title = title,
         content = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Language.entries.forEach { language ->

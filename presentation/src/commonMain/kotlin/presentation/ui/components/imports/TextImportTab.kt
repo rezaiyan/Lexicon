@@ -56,6 +56,7 @@ import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.original_word
 import lexicon.resources.generated.resources.translation_label
 import lexicon.resources.generated.resources.translation_language
+import lexicon.resources.generated.resources.word_added_count_singular
 import lexicon.resources.generated.resources.words_added_count
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
@@ -116,9 +117,9 @@ internal fun TextImportContent(
             WordsAddedCounter(textInputState)
 
             ErrorMessage(textInputState.errorMessage)
-
-            Spacer(modifier = Modifier.height(Theme.spacing.md))
         }
+
+        Spacer(modifier = Modifier.height(Theme.spacing.sm))
 
         Button(
             onClick = onAddWord,
@@ -324,10 +325,16 @@ private fun WordsAddedCounter(textInputState: TextInputState) {
                             .padding(end = Theme.spacing.xxs)
                     )
                 }
-                val countText = stringResource(Res.string.words_added_count)
-                val placeholder = "%1" + '$' + "d"
+                val count = textInputState.wordsAddedCount
+                val displayText = if (count == 1) {
+                    stringResource(Res.string.word_added_count_singular)
+                } else {
+                    val countText = stringResource(Res.string.words_added_count)
+                    val placeholder = "%1" + '$' + "d"
+                    countText.replace(placeholder, count.toString())
+                }
                 Text(
-                    text = countText.replace(placeholder, textInputState.wordsAddedCount.toString()),
+                    text = displayText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold

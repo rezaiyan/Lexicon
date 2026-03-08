@@ -174,6 +174,7 @@ internal fun LanguagePickerPage(
     currentLanguage: Language,
     onLanguageSelected: (Language) -> Unit,
     onBack: () -> Unit,
+    title: String = stringResource(Res.string.translation_language),
 ) {
     Column{
         IconButton(onClick = onBack) {
@@ -185,6 +186,7 @@ internal fun LanguagePickerPage(
         LanguageSelectionContent(
             currentLanguage = currentLanguage,
             onLanguageSelected = onLanguageSelected,
+            title = title,
         )
     }
 }

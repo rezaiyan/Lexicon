@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import events.OnEvents
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_failed_generic
+import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.success_imported_words
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -90,6 +91,7 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
                 currentLanguage = state.sourceLanguage,
                 onLanguageSelected = { viewModel.selectSourceLanguage(it); currentPage = ImportPage.Main },
                 onBack = { currentPage = ImportPage.Main },
+                title = stringResource(Res.string.original_language),
             )
             ImportPage.MainTargetLanguage -> LanguagePickerPage(
                 currentLanguage = state.targetLanguage,
@@ -103,6 +105,7 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
                     currentPage = ImportPage.LanguageConfirmation
                 },
                 onBack = { currentPage = ImportPage.LanguageConfirmation },
+                title = stringResource(Res.string.original_language),
             )
             ImportPage.ConfirmTargetLanguage -> LanguagePickerPage(
                 currentLanguage = state.sourceLanguage,

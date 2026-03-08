@@ -1,0 +1,348 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - manual-input
+  - screenshot-audit
+  - ux-review
+---
+# Detailed UX Audit: Manual Word Import
+#
+# This flow exercises EVERY interaction of the manual text import flow,
+# taking a screenshot at each meaningful moment so the UI can be evaluated
+# for spacing, alignment, typography, color, and overall UX quality.
+#
+# Run with:
+#   maestro test maestro/flows/import/05_manual_import_detailed.yaml
+#
+# Screenshots are saved to ~/.maestro/tests/ by default.
+#
+# Flow:
+#   1.  Study screen (baseline)
+#   2.  Method selector dialog (AI vs Manual)
+#   3.  Import sheet — initial empty state
+#   4.  Language selectors visible
+#   5.  Tap Original Word field (keyboard appears)
+#   6.  Type a word → field filled state
+#   7.  Tap Translation field (focus change)
+#   8.  Type translation → filled state
+#   9.  Scroll to Description field
+#   10. Type description → all fields filled
+#   11. Full form overview before submit
+#   12. Tap "Add Word" → success counter appears
+#   13. Form cleared & refocused after success
+#   14. Add a second word → counter increments
+#   15. Source language selector → language picker
+#   16. Pick a language → return to form
+#   17. Target language selector → language picker
+#   18. Pick a language → return to form
+#   19. Add Word button disabled state (empty fields)
+#   20. Close import sheet → back to Study
+
+# ──────────────────────────────────────────────────
+# 1. STUDY SCREEN — Baseline
+# ──────────────────────────────────────────────────
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+- waitForAnimationToEnd
+
+- takeScreenshot: 01_study_screen_baseline
+
+# ──────────────────────────────────────────────────
+# 2. METHOD SELECTOR — AI vs Manual dialog
+# ──────────────────────────────────────────────────
+- tapOn: "Import Words"
+
+- waitForAnimationToEnd
+
+# The "Add Words" dialog with AI Assistant and Manually options.
+- assertVisible:
+    text: "Add Words"
+    optional: true
+
+- takeScreenshot: 02_method_selector_dialog
+
+# ──────────────────────────────────────────────────
+# 3. OPEN MANUAL IMPORT — Tap "Manually"
+# ──────────────────────────────────────────────────
+- tapOn:
+    text: "Manually"
+    optional: true
+
+- waitForAnimationToEnd
+
+# The bottom sheet opens with tabs (Type Text, From File, From Image).
+- assertVisible: "Type Text"
+
+- takeScreenshot: 03_import_sheet_initial_state
+
+# ──────────────────────────────────────────────────
+# 4. LANGUAGE SELECTORS — Two compact cards
+# ──────────────────────────────────────────────────
+# Verify both language selector cards are visible.
+- assertVisible: "Original Language"
+- assertVisible: "Translation Language"
+
+- takeScreenshot: 04_language_selectors_visible
+
+# ──────────────────────────────────────────────────
+# 5. TAP ORIGINAL WORD — Focus the first field
+# ──────────────────────────────────────────────────
+- scrollUntilVisible:
+    element: "Original Word"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Original Word"
+
+- takeScreenshot: 05_original_word_field_focused
+
+# ──────────────────────────────────────────────────
+# 6. TYPE WORD — Fill in the Original Word field
+# ──────────────────────────────────────────────────
+- inputText: "Serendipity"
+
+- takeScreenshot: 06_original_word_filled
+
+- hideKeyboard
+
+# ──────────────────────────────────────────────────
+# 7. TAP TRANSLATION — Move focus to Translation field
+# ──────────────────────────────────────────────────
+- tapOn: "Translation"
+
+- takeScreenshot: 07_translation_field_focused
+
+# ──────────────────────────────────────────────────
+# 8. TYPE TRANSLATION — Fill in Translation
+# ──────────────────────────────────────────────────
+- inputText: "The occurrence of events by chance in a happy way"
+
+- takeScreenshot: 08_translation_filled
+
+- hideKeyboard
+
+# ──────────────────────────────────────────────────
+# 9. SCROLL TO DESCRIPTION — Reveal Description field
+# ──────────────────────────────────────────────────
+- scrollUntilVisible:
+    element: "Description (Optional)"
+    direction: DOWN
+
+- takeScreenshot: 09_description_field_visible
+
+# ──────────────────────────────────────────────────
+# 10. TYPE DESCRIPTION — Fill optional description
+# ──────────────────────────────────────────────────
+- tapOn: "Description (Optional)"
+- inputText: "From Persian - making fortunate discoveries by accident"
+
+- takeScreenshot: 10_description_filled
+
+- hideKeyboard
+
+# ──────────────────────────────────────────────────
+# 11. FULL FORM OVERVIEW — All 3 fields filled before submit
+# ──────────────────────────────────────────────────
+# Scroll back up to see the whole form in context.
+- swipe:
+    start: "50%,40%"
+    end: "50%,70%"
+    duration: 800
+
+- waitForAnimationToEnd
+
+- takeScreenshot: 11_full_form_before_submit
+
+# ──────────────────────────────────────────────────
+# 12. TAP ADD WORD — Submit the first word
+# ──────────────────────────────────────────────────
+# Scroll down to the Add Word button.
+- scrollUntilVisible:
+    element: "Add Word"
+    direction: DOWN
+
+- takeScreenshot: 12_add_word_button_enabled
+
+- tapOn: "Add Word"
+
+# Wait for backend response and success animation.
+- waitForAnimationToEnd
+
+- takeScreenshot: 13_after_first_add_success
+
+# ──────────────────────────────────────────────────
+# 13. SUCCESS COUNTER — Verify counter card appears
+# ──────────────────────────────────────────────────
+# Either "X words added" or "already exist" will show.
+- assertVisible:
+    text: "words added"
+    optional: true
+- assertVisible:
+    text: "already exist"
+    optional: true
+
+# Pause to let the success indicator (check icon) display.
+- extendedWaitUntil:
+    visible: "Original Word"
+    timeout: 5000
+
+- takeScreenshot: 14_success_counter_visible
+
+# ──────────────────────────────────────────────────
+# 14. FORM CLEARED — Fields should be empty, word field refocused
+# ──────────────────────────────────────────────────
+# After successful add, the form clears and word field gets focus.
+- scrollUntilVisible:
+    element: "Original Word"
+    direction: UP
+
+- takeScreenshot: 15_form_cleared_after_success
+
+# ──────────────────────────────────────────────────
+# 15. ADD SECOND WORD — Counter should increment to 2
+# ──────────────────────────────────────────────────
+- tapOn: "Original Word"
+- inputText: "Ephemeral"
+- hideKeyboard
+
+- tapOn: "Translation"
+- inputText: "Lasting for a very short time"
+- hideKeyboard
+
+- takeScreenshot: 16_second_word_fields_filled
+
+# Submit second word.
+- scrollUntilVisible:
+    element: "Add Word"
+    direction: DOWN
+
+- tapOn: "Add Word"
+
+- waitForAnimationToEnd
+
+# Counter should now show 2 words added (or already exist).
+- assertVisible:
+    text: "words added"
+    optional: true
+- assertVisible:
+    text: "already exist"
+    optional: true
+
+- takeScreenshot: 17_second_word_added_counter
+
+# ──────────────────────────────────────────────────
+# 16. SOURCE LANGUAGE SELECTOR — Open language picker
+# ──────────────────────────────────────────────────
+# Scroll up to see language selectors.
+- scrollUntilVisible:
+    element: "Original Language"
+    direction: UP
+
+- takeScreenshot: 18_before_language_picker
+
+- tapOn: "Original Language"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: 19_source_language_picker_open
+
+# ──────────────────────────────────────────────────
+# 17. SELECT A LANGUAGE — Pick German
+# ──────────────────────────────────────────────────
+- scrollUntilVisible:
+    element: "Deutsch"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Deutsch"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: 20_language_selected_german
+
+# ──────────────────────────────────────────────────
+# 18. TARGET LANGUAGE SELECTOR — Open and pick a language
+# ──────────────────────────────────────────────────
+- tapOn: "Translation Language"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: 21_target_language_picker_open
+
+# Scroll to find English and select it.
+- scrollUntilVisible:
+    element: "English"
+    direction: UP
+    timeout: 5000
+
+- tapOn: "English"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: 22_target_language_selected
+
+# ──────────────────────────────────────────────────
+# 19. ADD BUTTON DISABLED STATE — Empty fields
+# ──────────────────────────────────────────────────
+# After previous success, form should be cleared.
+# The Add Word button should be disabled with empty fields.
+- scrollUntilVisible:
+    element: "Add Word"
+    direction: DOWN
+
+- takeScreenshot: 23_add_button_disabled_empty_fields
+
+# ──────────────────────────────────────────────────
+# 20. PARTIAL FILL — Only word filled, button should still be disabled
+# ──────────────────────────────────────────────────
+- scrollUntilVisible:
+    element: "Original Word"
+    direction: UP
+
+- tapOn: "Original Word"
+- inputText: "TestPartial"
+- hideKeyboard
+
+- scrollUntilVisible:
+    element: "Add Word"
+    direction: DOWN
+
+- takeScreenshot: 24_add_button_disabled_partial_fill
+
+# ──────────────────────────────────────────────────
+# 21. COMPLETE AND ADD THIRD WORD — Verify continued flow
+# ──────────────────────────────────────────────────
+- scrollUntilVisible:
+    element: "Translation"
+    direction: UP
+
+- tapOn: "Translation"
+- inputText: "Partial fill test"
+- hideKeyboard
+
+- scrollUntilVisible:
+    element: "Add Word"
+    direction: DOWN
+
+- takeScreenshot: 25_add_button_enabled_complete_fill
+
+- tapOn: "Add Word"
+
+- waitForAnimationToEnd
+
+- takeScreenshot: 26_third_word_added
+
+# ──────────────────────────────────────────────────
+# 22. CLOSE IMPORT SHEET — Return to Study screen
+# ──────────────────────────────────────────────────
+- tapOn: "Close"
+
+- waitForAnimationToEnd
+
+# Verify we're back on the Study screen.
+- assertVisible: "Import Words"
+
+- takeScreenshot: 27_back_on_study_screen
