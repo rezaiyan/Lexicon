@@ -250,6 +250,7 @@
     <string name="add_word_description">Add vocabulary words one at a time with translation and optional description</string>
     <string name="add_word">Add Word</string>
     <string name="words_added_count">%1$d words added</string>
+    <string name="word_added_count_singular">1 word added</string>
     <string name="show_format_info">Show format info</string>
     <string name="hide_format_info">Hide format info</string>
     <string name="import_text">Import Text</string>

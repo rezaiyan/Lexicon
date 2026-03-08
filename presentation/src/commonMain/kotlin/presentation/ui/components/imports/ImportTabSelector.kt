@@ -57,11 +57,11 @@ internal fun ImportTabSelector(
         Icon(
             imageVector = tab.icon,
             contentDescription = null,
-            modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+            modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
         )
         Text(
             text = stringResource(tab.title),
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.labelMedium,
             maxLines = 1
         )
     }
