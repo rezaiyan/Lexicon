@@ -18,7 +18,7 @@ data class WordManagerScreenState(
     val selectedWordIds: Set<Int> = emptySet(),
     val errorMessage: String? = null
 ) {
-    val filteredWords: List<Word> by lazy {
+    val filteredWords: List<Word> get() {
         var result = words
 
         // Search filter
@@ -41,7 +41,7 @@ data class WordManagerScreenState(
         }
 
         // Sort
-        when (sortOption) {
+        return when (sortOption) {
             WordSortOption.DATE_ADDED_DESC -> result.sortedByDescending { it.dateAdded }
             WordSortOption.DATE_ADDED_ASC -> result.sortedBy { it.dateAdded }
             WordSortOption.ALPHABETICAL_AZ -> result.sortedBy { it.originalWord.lowercase() }
@@ -51,23 +51,16 @@ data class WordManagerScreenState(
         }
     }
 
-    val availableLanguages: Set<Language> by lazy {
+    val availableLanguages: Set<Language> get() {
         val langs = mutableSetOf<Language>()
         words.forEach { word ->
             langs.add(word.sourceLanguage)
             langs.add(word.targetLanguage)
         }
-        langs
+        return langs
     }
 
-    fun isWordSelected(wordId: Int): Boolean = selectedWordIds.contains(wordId)
-
     val selectedCount: Int get() = selectedWordIds.size
-
-    val areAllSelected: Boolean
-        get() =
-            filteredWords.isNotEmpty() &&
-                filteredWords.all { selectedWordIds.contains(it.id) }
 
     val isFiltered: Boolean
         get() = searchQuery.isNotBlank() || filterLanguage != null || filterLearningStage != null

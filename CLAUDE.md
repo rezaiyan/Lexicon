@@ -29,7 +29,7 @@ Copy `local.defaults.properties` to `local.properties` and fill in backend URL, 
 composeApp        -> App entry, DI (Koin), platform hooks
 presentation      -> Compose screens, ViewModels, navigation
 domain            -> Use cases, domain models, repository interfaces (pure Kotlin)
-data              -> Repository impls, Room DB, Ktor data sources
+data              -> Repository impls, SQLDelight DB, Ktor data sources
 core              -> HTTP client, Try<T>, BaseViewModel, UiState, OnEvents
 platforms         -> expect/actual bridges (Firebase, notifications, secure storage)
 design-system     -> Reusable Compose components and theming
@@ -57,7 +57,7 @@ State flows back via Compose `mutableStateOf` snapshot state.
 - Dependency versions centralized in `gradle/libs.versions.toml`
 - **Android SDK**: minSdk 24, compileSdk/targetSdk 36
 - **DI**: Koin — `composeApp/src/commonMain/kotlin/di/AppModule.kt`
-- **Database**: Room (multiplatform) with KSP, schema v5 with migrations
+- **Database**: SQLDelight (multiplatform)
 - **Networking**: Ktor with auth interceptor + error interceptor + auto token refresh/retry on 401/403
 - **Auth**: KMPAuth + Firebase Auth (Google OAuth, Apple Sign-In)
 - **Subscriptions**: RevenueCat KMP
@@ -83,7 +83,7 @@ Detailed patterns live in `.claude/skills/` — load the relevant skill for impl
 ### Module Boundaries (STRICT)
 
 - `domain` must NEVER import from: `data`, `presentation`, `platforms`, `core`, `composeApp`
-- `domain` must NEVER reference: Room, Ktor, Koin, Compose, Android, iOS APIs
+- `domain` must NEVER reference: SQLDelight, Ktor, Koin, Compose, Android, iOS APIs
 - `presentation` must NEVER import from: `data` (only through `domain`)
 - `design-system` must NEVER import from: `domain`, `data`, `presentation`
 
@@ -101,11 +101,10 @@ Detailed patterns live in `.claude/skills/` — load the relevant skill for impl
 
 ## Testing
 
-Test pyramid: ViewModel (Turbine) -> Repository (fakes) -> DataSource (MockEngine) -> UseCase -> Instrumented
+Test pyramid: ViewModel (Turbine) -> Repository (fakes) -> DataSource (MockEngine) -> UseCase
 
 - Common tests: `composeApp/src/commonTest/kotlin/` — kotlin-test + coroutines-test + Turbine
 - Android tests: `composeApp/src/androidTest/kotlin/` — JUnit 4
-- Instrumented: `composeApp/src/androidInstrumentedTest/kotlin/` — Room DB, SRS
 - **Fakes over mocks** — manual fakes for all dependencies
 - **Shared fakes**: reusable test utilities in `:core:testing`
 - Tests required for all new code: ViewModel + UseCase at minimum

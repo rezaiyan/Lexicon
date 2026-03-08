@@ -1,0 +1,277 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - video
+  - onboarding
+---
+# Showcase: Onboarding flow for advertising video.
+#
+# This flow demonstrates the first-launch experience — welcome screen,
+# language selection, native language, proficiency level, vocabulary
+# generation, and the starter word preview.
+#
+# Run with:
+#   maestro record --format mp4 maestro/flows/showcase/onboarding_showcase.yaml
+#
+# IMPORTANT: This clears app state to trigger onboarding.
+#            Record this FIRST, then record app_demo.yaml separately
+#            (after logging back in) and stitch the clips together.
+#
+# Flow:
+#   1. Fresh launch — splash screen
+#   2. Welcome intro — hero logo, feature highlights, "Get Started"
+#   3. Step 1 — Target language selection (German)
+#   4. Step 2 — Native language selection (English)
+#   5. Step 3 — Proficiency level (Beginner)
+#   6. Loading animation — vocabulary generation
+#   7. Vocabulary preview — curated starter words
+#   8. Accept vocabulary — transitions to auth gate
+#   9. Auth gate — login screen (end of recording)
+
+# ─────────────────────────────────────────────
+# 1. FRESH LAUNCH — Clear state to trigger onboarding
+# ─────────────────────────────────────────────
+- launchApp:
+    clearState: true
+
+# Let the splash animation play fully.
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 2. WELCOME INTRO — Beautiful first impression
+# ─────────────────────────────────────────────
+# The intro screen shows the hero logo, "Welcome to Lexicon",
+# and three feature highlights with staggered animations.
+
+- assertVisible:
+    text: "Welcome to"
+    optional: true
+- assertVisible:
+    text: "Lexicon"
+    optional: true
+
+# Let all intro animations complete (hero logo, text fade-in,
+# feature items slide-up, CTA fade-in).
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Cinematic pause — let the viewer absorb the welcome screen.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# ─────────────────────────────────────────────
+# 3. STEP 1 — Which language are you learning?
+# ─────────────────────────────────────────────
+# Tap "Get Started" to begin personalization.
+- tapOn:
+    text: "Get Started"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# The step transition slides in with the language grid.
+- assertVisible:
+    text: "Which language"
+    optional: true
+- assertVisible:
+    text: "are you learning?"
+    optional: true
+
+# Pause to show the language grid.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Scroll down to show more languages.
+- swipe:
+    start: "50%,70%"
+    end: "50%,40%"
+    duration: 1200
+
+- waitForAnimationToEnd
+
+# Scroll back up.
+- swipe:
+    start: "50%,40%"
+    end: "50%,70%"
+    duration: 1200
+
+# Select German as the target language.
+- tapOn:
+    text: "German"
+    optional: true
+
+# Pause to show the selection animation.
+- waitForAnimationToEnd
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+
+# Tap Continue to proceed.
+- tapOn:
+    text: "Continue"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 4. STEP 2 — What's your native language?
+# ─────────────────────────────────────────────
+- assertVisible:
+    text: "What's your"
+    optional: true
+- assertVisible:
+    text: "native language?"
+    optional: true
+
+# Pause to show the language grid (German is filtered out).
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Select English as native language.
+- tapOn:
+    text: "English"
+    optional: true
+
+# Pause to show the selection.
+- waitForAnimationToEnd
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+
+# Tap Continue.
+- tapOn:
+    text: "Continue"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. STEP 3 — What's your current level?
+# ─────────────────────────────────────────────
+- assertVisible:
+    text: "What's your"
+    optional: true
+- assertVisible:
+    text: "current level?"
+    optional: true
+
+# Pause to show the three level cards (Beginner, Intermediate, Advanced).
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Select Beginner level.
+- tapOn:
+    text: "Beginner"
+    optional: true
+
+# Pause to show the selection animation with border highlight and badge.
+- waitForAnimationToEnd
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+
+# Tap "Let's Go!" to submit and generate vocabulary.
+- tapOn:
+    text: "Let's Go!"
+    optional: true
+
+# ─────────────────────────────────────────────
+# 6. LOADING — Vocabulary generation animation
+# ─────────────────────────────────────────────
+# The loading card shows rotating tips while the API generates words.
+- assertVisible:
+    text: "Generating Your Vocabulary"
+    optional: true
+
+# Wait for the generation to complete (can take 5-15 seconds).
+# Use assertVisible with timeout to wait for the preview screen.
+- assertVisible:
+    text: "Starter Vocabulary"
+    optional: true
+    timeout: 20000
+
+# ─────────────────────────────────────────────
+# 7. VOCABULARY PREVIEW — Starter word pack
+# ─────────────────────────────────────────────
+# The preview screen shows curated words with translations.
+- waitForAnimationToEnd
+
+# Pause to show the vocabulary header with word count.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Scroll through the word list slowly for the video.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Scroll back to the top.
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
+    duration: 2000
+
+# Pause before accepting.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# ─────────────────────────────────────────────
+# 8. ACCEPT — Import the starter vocabulary
+# ─────────────────────────────────────────────
+# Tap Accept to import the curated words.
+- tapOn:
+    text: "Accept"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 9. AUTH GATE — Login screen (end of onboarding demo)
+# ─────────────────────────────────────────────
+# The auth gate shows Google and Apple sign-in buttons.
+# This is the natural end point — the user would sign in here.
+# For the advertising video, cut here and splice with app_demo.yaml.
+- assertVisible:
+    text: "Welcome to Lexicon"
+    optional: true
+- assertVisible:
+    text: "Sign in to start learning vocabulary"
+    optional: true
+
+# Final pause to show the login screen.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000

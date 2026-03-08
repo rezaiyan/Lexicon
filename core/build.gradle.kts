@@ -47,7 +47,19 @@ val generateWasmJsBuildConfig by tasks.registering {
     val outputDir = generatedWasmConfigDir
     outputs.dir(outputDir)
 
+    // Store values as task inputs for configuration cache compatibility
+    // (avoids capturing the build script object in doLast)
+    inputs.property("backendHost", backendHost)
+    inputs.property("googleServerClientId", googleServerClientId)
+    inputs.property("revenuecatAndroidKey", revenuecatAndroidKey)
+    inputs.property("revenuecatIosKey", revenuecatIosKey)
+    inputs.property("firebaseWebApiKey", firebaseWebApiKey)
+    inputs.property("firebaseProjectId", firebaseProjectId)
+
     doLast {
+        fun String.quoted(): String = "\"${replace("\"", "\\\"")}\""
+
+        val props = inputs.properties
         val dir = outputDir.get().asFile.resolve("config")
         dir.mkdirs()
         dir.resolve("WasmBuildConfig.kt").writeText(
@@ -55,12 +67,12 @@ val generateWasmJsBuildConfig by tasks.registering {
             |package config
             |
             |internal object WasmBuildConfig {
-            |    const val VOKAB_BACKEND_HOST: String = ${backendHost.toQuotedLiteral()}
-            |    const val GOOGLE_SERVER_CLIENT_ID: String = ${googleServerClientId.toQuotedLiteral()}
-            |    const val REVENUECAT_ANDROID_KEY: String = ${revenuecatAndroidKey.toQuotedLiteral()}
-            |    const val REVENUECAT_IOS_KEY: String = ${revenuecatIosKey.toQuotedLiteral()}
-            |    const val FIREBASE_WEB_API_KEY: String = ${firebaseWebApiKey.toQuotedLiteral()}
-            |    const val FIREBASE_PROJECT_ID: String = ${firebaseProjectId.toQuotedLiteral()}
+            |    const val VOKAB_BACKEND_HOST: String = ${(props["backendHost"] as String).quoted()}
+            |    const val GOOGLE_SERVER_CLIENT_ID: String = ${(props["googleServerClientId"] as String).quoted()}
+            |    const val REVENUECAT_ANDROID_KEY: String = ${(props["revenuecatAndroidKey"] as String).quoted()}
+            |    const val REVENUECAT_IOS_KEY: String = ${(props["revenuecatIosKey"] as String).quoted()}
+            |    const val FIREBASE_WEB_API_KEY: String = ${(props["firebaseWebApiKey"] as String).quoted()}
+            |    const val FIREBASE_PROJECT_ID: String = ${(props["firebaseProjectId"] as String).quoted()}
             |}
             """.trimMargin()
         )
