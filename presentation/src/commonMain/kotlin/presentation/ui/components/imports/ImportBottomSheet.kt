@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -35,12 +36,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -130,8 +131,9 @@ import lexicon.resources.generated.resources.words_added_count
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.model.ImageImportState
-import components.dialog.BasicAlertDialog
-import presentation.ui.components.LanguageSelectionDialog
+import components.dialog.LexiconDialogContent
+import overlay.bottomsheet.BottomSheetPages
+import presentation.ui.components.LanguageSelectionContent
 import theme.Theme
 import utils.Language
 import utils.rememberCameraLauncher
@@ -139,10 +141,20 @@ import utils.rememberImagePickerLauncher
 import utils.rememberTextFilePickerLauncher
 import utils.toImageBitmap
 
+private enum class ImportPage {
+    Main,
+    LanguageConfirmation,
+    MainSourceLanguage,
+    MainTargetLanguage,
+    ConfirmSourceLanguage,
+    ConfirmTargetLanguage,
+}
+
 @Composable
 fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
     val viewModel = koinInject<ImportViewModel>()
     val state by viewModel.state()
+    var currentPage by remember { mutableStateOf(ImportPage.Main) }
     val errorMessage = stringResource(Res.string.import_failed_generic)
     val successImportedWordsFormat = stringResource(Res.string.success_imported_words)
     val latestErrorMessage = rememberUpdatedState(errorMessage)
@@ -180,89 +192,120 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Theme.spacing.medium)
-                .imePadding()
-        ) {
-            ImportHeader(
-                onDismiss = onDismiss,
-                canDismiss = true,//todo check loading
-            )
-
-            ImportTabSelector(
-                tabs = state.tabs,
-                selectedTab = state.selectedTab,
-                onTabSelected = viewModel::selectTab,
-            )
-
-            TabContainer(
-                modifier = Modifier
-                    .padding(top = Theme.spacing.medium)
-                    .weight(1f, fill = false),
-                selectedTab = state.selectedTab,
-                textInputState = state.textInputState,
-                fileImportState = state.fileImportState,
-                imageImportState = state.imageImportState,
-                sourceLanguage = state.sourceLanguage,
-                targetLanguage = state.targetLanguage,
-                onWordChange = viewModel::updateWord,
-                onTranslationChange = viewModel::updateTranslation,
-                onDescriptionChange = viewModel::updateDescription,
-                onAddWord = viewModel::addWord,
-                onSourceLanguageSelected = viewModel::selectSourceLanguage,
-                onTargetLanguageSelected = viewModel::selectTargetLanguage,
-                importFile = viewModel::importFile,
-                onSelectImage = viewModel::selectImage,
-                onClearSelectedImage = viewModel::clearSelectedImage,
-                onUpdateExtractionOptions = viewModel::updateExtractionOptions,
-                onImportImage = viewModel::importImage,
-                onDismiss = onDismiss,
-            )
+    LaunchedEffect(state.showLanguageConfirmation) {
+        if (state.showLanguageConfirmation) {
+            currentPage = ImportPage.LanguageConfirmation
         }
     }
 
-    if (state.showLanguageConfirmation) {
-        ImportLanguageConfirmationDialog(
-            sourceLanguage = state.targetLanguage,
-            targetLanguage = state.sourceLanguage,
-            onSourceLanguageSelected = viewModel::selectTargetLanguage,
-            onTargetLanguageSelected = viewModel::selectSourceLanguage,
-            onConfirm = viewModel::confirmImport,
-            onDismiss = viewModel::dismissLanguageConfirmation
-        )
-    }
-}
+    BottomSheetPages(currentPage, label = "ImportPages") { page ->
+        when (page) {
+            ImportPage.Main -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm)
+                        .imePadding()
+                ) {
+                    Text(
+                        stringResource(Res.string.import_words),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = Theme.spacing.sm)
+                    )
 
-@Composable
-private fun ImportHeader(
-    onDismiss: () -> Unit,
-    canDismiss: Boolean
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            stringResource(Res.string.import_words),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
-        IconButton(
-            onClick = onDismiss,
-            enabled = canDismiss,
-        ) {
-            Icon(
-                Icons.Filled.Close,
-                contentDescription = stringResource(Res.string.cancel),
-                tint = if (canDismiss)
-                    MaterialTheme.colorScheme.onSurface
-                else
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            )
+                    ImportTabSelector(
+                        tabs = state.tabs,
+                        selectedTab = state.selectedTab,
+                        onTabSelected = viewModel::selectTab,
+                    )
+
+                    TabContainer(
+                        modifier = Modifier
+                            .padding(top = Theme.spacing.md)
+                            .weight(1f, fill = false),
+                        selectedTab = state.selectedTab,
+                        textInputState = state.textInputState,
+                        fileImportState = state.fileImportState,
+                        imageImportState = state.imageImportState,
+                        sourceLanguage = state.sourceLanguage,
+                        targetLanguage = state.targetLanguage,
+                        onWordChange = viewModel::updateWord,
+                        onTranslationChange = viewModel::updateTranslation,
+                        onDescriptionChange = viewModel::updateDescription,
+                        onAddWord = viewModel::addWord,
+                        importFile = viewModel::importFile,
+                        onSelectImage = viewModel::selectImage,
+                        onClearSelectedImage = viewModel::clearSelectedImage,
+                        onUpdateExtractionOptions = viewModel::updateExtractionOptions,
+                        onImportImage = viewModel::importImage,
+                        onDismiss = onDismiss,
+                        onShowSourceLanguage = { currentPage = ImportPage.MainSourceLanguage },
+                        onShowTargetLanguage = { currentPage = ImportPage.MainTargetLanguage },
+                    )
+                }
+            }
+
+            ImportPage.LanguageConfirmation -> {
+                ImportLanguageConfirmationContent(
+                    sourceLanguage = state.targetLanguage,
+                    targetLanguage = state.sourceLanguage,
+                    onConfirm = {
+                        viewModel.confirmImport()
+                        currentPage = ImportPage.Main
+                    },
+                    onDismiss = {
+                        viewModel.dismissLanguageConfirmation()
+                        currentPage = ImportPage.Main
+                    },
+                    onShowSourceLanguage = { currentPage = ImportPage.ConfirmSourceLanguage },
+                    onShowTargetLanguage = { currentPage = ImportPage.ConfirmTargetLanguage },
+                )
+            }
+
+            ImportPage.MainSourceLanguage -> {
+                LanguagePickerPage(
+                    currentLanguage = state.sourceLanguage,
+                    onLanguageSelected = { language ->
+                        viewModel.selectSourceLanguage(language)
+                        currentPage = ImportPage.Main
+                    },
+                    onBack = { currentPage = ImportPage.Main },
+                )
+            }
+
+            ImportPage.MainTargetLanguage -> {
+                LanguagePickerPage(
+                    currentLanguage = state.targetLanguage,
+                    onLanguageSelected = { language ->
+                        viewModel.selectTargetLanguage(language)
+                        currentPage = ImportPage.Main
+                    },
+                    onBack = { currentPage = ImportPage.Main },
+                )
+            }
+
+            ImportPage.ConfirmSourceLanguage -> {
+                LanguagePickerPage(
+                    currentLanguage = state.targetLanguage,
+                    onLanguageSelected = { language ->
+                        viewModel.selectTargetLanguage(language)
+                        currentPage = ImportPage.LanguageConfirmation
+                    },
+                    onBack = { currentPage = ImportPage.LanguageConfirmation },
+                )
+            }
+
+            ImportPage.ConfirmTargetLanguage -> {
+                LanguagePickerPage(
+                    currentLanguage = state.sourceLanguage,
+                    onLanguageSelected = { language ->
+                        viewModel.selectSourceLanguage(language)
+                        currentPage = ImportPage.LanguageConfirmation
+                    },
+                    onBack = { currentPage = ImportPage.LanguageConfirmation },
+                )
+            }
         }
     }
 }
@@ -336,14 +379,14 @@ private fun TabContainer(
     onTranslationChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onAddWord: () -> Unit,
-    onSourceLanguageSelected: (Language) -> Unit,
-    onTargetLanguageSelected: (Language) -> Unit,
     importFile: (String, String?) -> Unit,
     onSelectImage: (ByteArray) -> Unit,
     onClearSelectedImage: () -> Unit,
     onUpdateExtractionOptions: (List<ExtractionOption>) -> Unit,
     onImportImage: () -> Unit,
     onDismiss: () -> Unit,
+    onShowSourceLanguage: () -> Unit,
+    onShowTargetLanguage: () -> Unit,
 ) {
     val isLoading = fileImportState is ImportFileState.Loading
     val isEnabled = fileImportState !is ImportFileState.Loading
@@ -369,8 +412,8 @@ private fun TabContainer(
                     onTranslationChange = onTranslationChange,
                     onDescriptionChange = onDescriptionChange,
                     onAddWord = onAddWord,
-                    onSourceLanguageSelected = onSourceLanguageSelected,
-                    onTargetLanguageSelected = onTargetLanguageSelected,
+                    onShowSourceLanguage = onShowSourceLanguage,
+                    onShowTargetLanguage = onShowTargetLanguage,
                 )
 
                 is ImportTabV2.File -> FileTab(
@@ -472,15 +515,13 @@ private fun TextTab(
     onTranslationChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onAddWord: () -> Unit,
-    onSourceLanguageSelected: (Language) -> Unit,
-    onTargetLanguageSelected: (Language) -> Unit,
+    onShowSourceLanguage: () -> Unit,
+    onShowTargetLanguage: () -> Unit,
 ) {
     val isAddEnabled by derivedStateOf { textInputState.isAddEnabled }
     val wordFocusRequester = remember { FocusRequester() }
     val translationFocusRequester = remember { FocusRequester() }
     val descriptionFocusRequester = remember { FocusRequester() }
-    var showSourceLanguagePicker by remember { mutableStateOf(false) }
-    var showTargetLanguagePicker by remember { mutableStateOf(false) }
     var previousWordsAdded by remember { mutableStateOf(textInputState.wordsAddedCount) }
 
     // Auto-focus word field after successful add
@@ -516,13 +557,13 @@ private fun TextTab(
                 CompactLanguageSelector(
                     label = stringResource(Res.string.original_language),
                     language = sourceLanguage,
-                    onClick = { showSourceLanguagePicker = true },
+                    onClick = onShowSourceLanguage,
                     modifier = Modifier.weight(1f)
                 )
                 CompactLanguageSelector(
                     label = stringResource(Res.string.translation_language),
                     language = targetLanguage,
-                    onClick = { showTargetLanguagePicker = true },
+                    onClick = onShowTargetLanguage,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -647,28 +688,6 @@ private fun TextTab(
             Spacer(modifier = Modifier.width(Theme.spacing.extraSmall3))
             Text(stringResource(Res.string.add_word))
         }
-    }
-
-    if (showSourceLanguagePicker) {
-        LanguageSelectionDialog(
-            currentLanguage = sourceLanguage,
-            onDismiss = { showSourceLanguagePicker = false },
-            onLanguageSelected = { language ->
-                onSourceLanguageSelected(language)
-                showSourceLanguagePicker = false
-            }
-        )
-    }
-
-    if (showTargetLanguagePicker) {
-        LanguageSelectionDialog(
-            currentLanguage = targetLanguage,
-            onDismiss = { showTargetLanguagePicker = false },
-            onLanguageSelected = { language ->
-                onTargetLanguageSelected(language)
-                showTargetLanguagePicker = false
-            }
-        )
     }
 }
 
@@ -1409,19 +1428,19 @@ private fun InfoCard(
 }
 
 @Composable
-private fun ImportLanguageConfirmationDialog(
+private fun ImportLanguageConfirmationContent(
     sourceLanguage: Language,
     targetLanguage: Language,
-    onSourceLanguageSelected: (Language) -> Unit,
-    onTargetLanguageSelected: (Language) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
+    onShowSourceLanguage: () -> Unit,
+    onShowTargetLanguage: () -> Unit,
 ) {
-    var showSourceLanguagePicker by remember { mutableStateOf(false) }
-    var showTargetLanguagePicker by remember { mutableStateOf(false) }
-
-    BasicAlertDialog(
-        onDismissRequest = onDismiss,
+    LexiconDialogContent(
+        modifier = Modifier
+            .navigationBarsPadding()
+            .padding(horizontal = Theme.spacing.lg)
+            .padding(bottom = Theme.spacing.lg),
         icon = Icons.Default.Language,
         title = stringResource(Res.string.confirm_languages),
         content = {
@@ -1432,12 +1451,12 @@ private fun ImportLanguageConfirmationDialog(
                 LanguageRow(
                     label = stringResource(Res.string.original_language),
                     language = sourceLanguage,
-                    onClick = { showSourceLanguagePicker = true }
+                    onClick = onShowSourceLanguage,
                 )
                 LanguageRow(
                     label = stringResource(Res.string.translation_language),
                     language = targetLanguage,
-                    onClick = { showTargetLanguagePicker = true }
+                    onClick = onShowTargetLanguage,
                 )
             }
         },
@@ -1446,28 +1465,6 @@ private fun ImportLanguageConfirmationDialog(
         secondaryButtonText = stringResource(Res.string.cancel),
         secondaryButtonOnClick = onDismiss,
     )
-
-    if (showSourceLanguagePicker) {
-        LanguageSelectionDialog(
-            currentLanguage = sourceLanguage,
-            onDismiss = { showSourceLanguagePicker = false },
-            onLanguageSelected = { language ->
-                onSourceLanguageSelected(language)
-                showSourceLanguagePicker = false
-            }
-        )
-    }
-
-    if (showTargetLanguagePicker) {
-        LanguageSelectionDialog(
-            currentLanguage = targetLanguage,
-            onDismiss = { showTargetLanguagePicker = false },
-            onLanguageSelected = { language ->
-                onTargetLanguageSelected(language)
-                showTargetLanguagePicker = false
-            }
-        )
-    }
 }
 
 @Composable
@@ -1506,5 +1503,29 @@ private fun LanguageRow(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+}
+
+@Composable
+private fun LanguagePickerPage(
+    currentLanguage: Language,
+    onLanguageSelected: (Language) -> Unit,
+    onBack: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Theme.spacing.md)
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+            )
+        }
+        LanguageSelectionContent(
+            currentLanguage = currentLanguage,
+            onLanguageSelected = onLanguageSelected,
+        )
     }
 }

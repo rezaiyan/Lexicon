@@ -53,7 +53,6 @@ class WordBatchEditHandler(
                         stateAccess.update {
                             copy(
                                 isBatchUpdatingLanguages = false,
-                                showBatchEditLanguages = false,
                                 selectedWordIds = emptySet(),
                                 errorMessage = null
                             )
@@ -75,7 +74,6 @@ class WordBatchEditHandler(
                         stateAccess.update {
                             copy(
                                 isBatchUpdatingLanguages = false,
-                                showBatchEditLanguages = false,
                                 errorMessage = result.message
                             )
                         }

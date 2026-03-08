@@ -7,12 +7,13 @@ import androidx.compose.runtime.getValue
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import feature.settings.SettingsViewModel
-import feature.settings.model.DialogState
-import presentation.ui.components.LanguageSelectionDialog
 import components.scaffold.LexiconColumn
-import presentation.ui.components.NotificationPermissionDialog
-import presentation.ui.components.NotificationSettingsDialog
-import presentation.ui.components.ThemeModeDialog
+import overlay.LocalOverlayHost
+import overlay.bottomsheet.showSizeToFitBottomSheet
+import presentation.ui.components.LanguageSelectionContent
+import presentation.ui.components.NotificationPermissionContent
+import presentation.ui.components.NotificationSettingsContent
+import presentation.ui.components.ThemeModeContent
 import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.LanguageSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
@@ -21,23 +22,23 @@ import presentation.ui.components.settings.ThemeSettingsCard
 import presentation.ui.components.settings.WordManagerCard
 import presentation.ui.permissions.rememberNotificationPermissionRequester
 import presentation.ui.permissions.wasNotificationPermissionDenied
+import presentation.ui.screens.settings.showWordManagerSheet
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.settings
 
 @Composable
 fun SettingsScreen(
-    onNavigateToWordManager: () -> Unit,
     onNavigateToSubscription: () -> Unit = {},
 ) {
     val viewModel = koinViewModel<SettingsViewModel>()
     val settingsState by viewModel.state()
     val state = settingsState.screen
-    val dialogState = settingsState.dialog
     val currentLanguage = state.currentLanguage
     val themeMode = state.themeMode
     val notificationsEnabled = state.notificationsEnabled
     val systemNotificationsEnabled = state.systemNotificationsEnabled
+    val overlayHost = LocalOverlayHost.current
 
     LexiconColumn(
         title = stringResource(Res.string.settings),
@@ -49,13 +50,33 @@ fun SettingsScreen(
             if (state.isPremiumFeatureEnabled) {
                 LanguageSettingsCard(
                     currentLanguage = currentLanguage,
-                    onShowLanguageDialog = { viewModel.showDialog(DialogState.LanguageSelection) }
+                    onShowLanguageDialog = {
+                        overlayHost.showSizeToFitBottomSheet(tag = "language-selection") { nav ->
+                            LanguageSelectionContent(
+                                currentLanguage = currentLanguage,
+                                onLanguageSelected = { language ->
+                                    viewModel.setLanguage(language)
+                                    nav.dismiss()
+                                }
+                            )
+                        }
+                    }
                 )
             }
 
             ThemeSettingsCard(
                 themeMode = themeMode,
-                onShowThemeDialog = { viewModel.showDialog(DialogState.ThemeSelection) }
+                onShowThemeDialog = {
+                    overlayHost.showSizeToFitBottomSheet(tag = "theme-selection") { nav ->
+                        ThemeModeContent(
+                            currentThemeMode = themeMode,
+                            onThemeModeSelected = { mode ->
+                                viewModel.setThemeMode(mode)
+                                nav.dismiss()
+                            }
+                        )
+                    }
+                }
             )
 
             NotificationSettingsCard(
@@ -63,76 +84,48 @@ fun SettingsScreen(
                 notificationsEnabled = notificationsEnabled,
                 onEnable = {
                     if (systemNotificationsEnabled) {
-                        viewModel.showDialog(DialogState.NotificationSettings)
+                        overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
+                            val currentState by viewModel.state()
+                            NotificationSettingsContent(
+                                notificationsEnabled = currentState.screen.notificationsEnabled,
+                                systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
+                                onNotificationsToggle = { viewModel.setNotificationsEnabled(it) },
+                                onDismiss = { nav.dismiss() }
+                            )
+                        }
                     } else {
-                        viewModel.showDialog(DialogState.NotificationPermission)
+                        overlayHost.showSizeToFitBottomSheet(tag = "notification-permission") { nav ->
+                            val deniedPreviously = wasNotificationPermissionDenied()
+                            val requestPermission = rememberNotificationPermissionRequester { granted ->
+                                if (granted) {
+                                    viewModel.setNotificationsEnabled(true)
+                                }
+                                viewModel.refreshNotificationPermissionStatus()
+                                nav.dismiss()
+                            }
+                            NotificationPermissionContent(
+                                onDismiss = { nav.dismiss() },
+                                onEnableNotifications = {
+                                    if (deniedPreviously) {
+                                        nav.dismiss()
+                                        viewModel.requestNotificationPermission()
+                                        viewModel.refreshNotificationPermissionStatus()
+                                    } else {
+                                        requestPermission()
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             )
 
-            WordManagerCard(onClick = onNavigateToWordManager)
+            WordManagerCard(onClick = { overlayHost.showWordManagerSheet() })
 
             SubscriptionCard(onClick = onNavigateToSubscription)
 
             AboutSettingsCard(appVersion = state.appVersion)
         }
 
-    }
-
-    if (dialogState is DialogState.LanguageSelection) {
-        LanguageSelectionDialog(
-            currentLanguage = currentLanguage,
-            onDismiss = { viewModel.dismissDialog() },
-            onLanguageSelected = { language ->
-                viewModel.setLanguage(language)
-                viewModel.dismissDialog()
-            }
-        )
-    }
-
-    if (dialogState is DialogState.ThemeSelection) {
-        ThemeModeDialog(
-            currentThemeMode = themeMode,
-            onDismiss = { viewModel.dismissDialog() },
-            onThemeModeSelected = { mode ->
-                viewModel.setThemeMode(mode)
-                viewModel.dismissDialog()
-            }
-        )
-    }
-
-    if (dialogState is DialogState.NotificationPermission) {
-        val deniedPreviously = wasNotificationPermissionDenied()
-        val requestPermission = rememberNotificationPermissionRequester { granted ->
-            if (granted) {
-                viewModel.setNotificationsEnabled(true)
-                viewModel.dismissDialog()
-                viewModel.refreshNotificationPermissionStatus()
-            } else {
-                viewModel.dismissDialog()
-                viewModel.refreshNotificationPermissionStatus()
-            }
-        }
-        NotificationPermissionDialog(
-            onDismiss = { viewModel.dismissDialog() },
-            onEnableNotifications = {
-                if (deniedPreviously) {
-                    viewModel.dismissDialog()
-                    viewModel.requestNotificationPermission()
-                    viewModel.refreshNotificationPermissionStatus()
-                } else {
-                    requestPermission()
-                }
-            }
-        )
-    }
-
-    if (dialogState is DialogState.NotificationSettings) {
-        NotificationSettingsDialog(
-            notificationsEnabled = notificationsEnabled,
-            systemNotificationsEnabled = systemNotificationsEnabled,
-            onNotificationsToggle = { viewModel.setNotificationsEnabled(it) },
-            onDismiss = { viewModel.dismissDialog() }
-        )
     }
 }

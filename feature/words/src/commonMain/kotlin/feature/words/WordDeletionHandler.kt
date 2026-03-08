@@ -46,7 +46,6 @@ class WordDeletionHandler(
                                 isDeletingWords = false,
                                 isSelectionMode = false,
                                 selectedWordIds = emptySet(),
-                                showDeleteConfirmation = false,
                                 errorMessage = null
                             )
                         }
@@ -67,7 +66,6 @@ class WordDeletionHandler(
                         stateAccess.update {
                             copy(
                                 isDeletingWords = false,
-                                showDeleteConfirmation = false,
                                 errorMessage = result.message
                             )
                         }

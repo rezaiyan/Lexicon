@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import platform.IAppVersionProvider
 import core.base.BaseViewModel
-import feature.settings.model.DialogState
 import feature.settings.model.SettingsEffect
 import feature.settings.model.SettingsScreenState
 import domain.settings.model.ThemeMode
@@ -27,7 +26,6 @@ import utils.Language
 
 data class SettingsState(
     val screen: SettingsScreenState = SettingsScreenState(),
-    val dialog: DialogState = DialogState.None,
 )
 
 class SettingsViewModel(
@@ -113,9 +111,6 @@ class SettingsViewModel(
     fun setNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             setNotificationsEnabledUseCase(enabled)
-            if (enabled && !systemNotificationsEnabled.value) {
-                updateState { copy(dialog = DialogState.NotificationPermission) }
-            }
         }
     }
 
@@ -123,7 +118,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             val granted = requestNotificationPermissionUseCase().getOrDefault(false)
             emitEffect(SettingsEffect.NotificationPermissionGranted(granted))
-            updateState { copy(dialog = DialogState.None) }
             if (granted) {
                 setNotificationsEnabledUseCase(true)
             } else {
@@ -138,13 +132,5 @@ class SettingsViewModel(
         viewModelScope.launch {
             notificationPermissionMonitor.refresh()
         }
-    }
-
-    fun showDialog(dialogState: DialogState) {
-        updateState { copy(dialog = dialogState) }
-    }
-
-    fun dismissDialog() {
-        updateState { copy(dialog = DialogState.None) }
     }
 }

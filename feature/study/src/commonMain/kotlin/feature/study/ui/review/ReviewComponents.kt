@@ -1,56 +1,74 @@
-@file:OptIn(InternalResourceApi::class)
+@file:OptIn(InternalResourceApi::class, ExperimentalMaterial3Api::class)
 
 package feature.study.ui.review
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.ui.graphics.graphicsLayer
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
+
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.rememberModalBottomSheetState
+
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,6 +92,7 @@ import feature.study.ui.components.ReviewButton
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advance
+import lexicon.resources.generated.resources.auto_play
 import lexicon.resources.generated.resources.back
 import lexicon.resources.generated.resources.browse_your_words
 import lexicon.resources.generated.resources.cancel
@@ -132,6 +151,8 @@ private fun ReviewTopBar(
     title: String,
     currentIndex: Int,
     totalCount: Int,
+    isAutoPlayEnabled: Boolean,
+    onAutoPlayToggle: (Boolean) -> Unit,
     onClose: () -> Unit
 ) {
     val progress = (currentIndex + 1).toFloat() / totalCount.toFloat()
@@ -146,7 +167,6 @@ private fun ReviewTopBar(
                     top = Theme.spacing.extraSmall3,
                     bottom = Theme.spacing.extraSmall3
                 ),
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onClose) {
@@ -157,18 +177,13 @@ private fun ReviewTopBar(
                 )
             }
 
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = Theme.spacing.extraSmall2),
-                textAlign = TextAlign.Center
+            Spacer(Modifier.weight(1F))
+
+            AutoPlayToggle(
+                enabled = isAutoPlayEnabled,
+                onToggle = onAutoPlayToggle
             )
+            Spacer(Modifier.size(Theme.spacing.md))
 
             CounterPill(text = "${currentIndex + 1} / $totalCount")
         }
@@ -182,6 +197,89 @@ private fun ReviewTopBar(
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
             animationDurationMs = 350
         )
+    }
+}
+
+/**
+ * Auto-play toggle with morphing icon animation.
+ *
+ * - Icon morphs between VolumeOff ↔ VolumeUp with a spring-bounced crossfade
+ * - Background transitions to primaryContainer when active
+ * - Subtle breathing scale pulse indicates continuous playback
+ */
+@Composable
+private fun AutoPlayToggle(
+    enabled: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val bgColor by animateColorAsState(
+        targetValue = if (enabled) MaterialTheme.colorScheme.primaryContainer
+        else Color.Transparent,
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
+        label = "autoPlayBg"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
+        label = "autoPlayContent"
+    )
+
+    // Breathing pulse cycle — always running, gated by breathAmount
+    val infiniteTransition = rememberInfiniteTransition(label = "autoPlayBreath")
+    val breathCycle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "breathCycle"
+    )
+    val breathAmount by animateFloatAsState(
+        targetValue = if (enabled) 1f else 0f,
+        animationSpec = tween(300),
+        label = "breathAmount"
+    )
+
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                val pulse = 1f + breathCycle * 0.08f * breathAmount
+                scaleX = pulse
+                scaleY = pulse
+            }
+            .clip(CircleShape)
+            .background(bgColor)
+            .clickable { onToggle(!enabled) }
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedContent(
+            targetState = enabled,
+            transitionSpec = {
+                (scaleIn(
+                    initialScale = 0.6f,
+                    animationSpec = spring(dampingRatio = 0.4f, stiffness = 500f)
+                ) + fadeIn(tween(150)))
+                    .togetherWith(
+                        scaleOut(
+                            targetScale = 0.6f,
+                            animationSpec = tween(150)
+                        ) + fadeOut(tween(100))
+                    )
+                    .using(SizeTransform(clip = false))
+            },
+            label = "autoPlayIcon"
+        ) { isEnabled ->
+            Icon(
+                imageVector = if (isEnabled) Icons.AutoMirrored.Filled.VolumeUp
+                else Icons.AutoMirrored.Filled.VolumeOff,
+                contentDescription = stringResource(Res.string.auto_play),
+                modifier = Modifier.size(22.dp),
+                tint = contentColor
+            )
+        }
     }
 }
 
@@ -208,9 +306,8 @@ fun ReviewContent(
     onEdit: (() -> Unit)? = null,
     ttsState: TtsState = TtsState.Idle,
     onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> },
-    showExitConfirmation: Boolean = false,
-    onConfirmExit: () -> Unit = {},
-    onCancelExit: () -> Unit = {},
+    isAutoPlayEnabled: Boolean = false,
+    onAutoPlayToggle: (Boolean) -> Unit = {},
 ) {
     // Animate the "tap to reveal" hint alpha outside the nested Box lambda to
     // avoid Kotlin's implicit-receiver overload resolution picking ColumnScope.AnimatedVisibility.
@@ -220,152 +317,111 @@ fun ReviewContent(
         label = "hintAlpha"
     )
 
-    // Dim the content behind the exit sheet
-    val scrimAlpha by animateFloatAsState(
-        targetValue = if (showExitConfirmation) 0.45f else 0f,
-        animationSpec = tween(300),
-        label = "scrimAlpha"
-    )
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        ReviewTopBar(
+            title = title,
+            currentIndex = currentIndex,
+            totalCount = words.size,
+            isAutoPlayEnabled = isAutoPlayEnabled,
+            onAutoPlayToggle = onAutoPlayToggle,
+            onClose = onClose
+        )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        // ── Card slot: fills all remaining vertical space ─────────────────
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = Theme.spacing.medium)
+                .padding(top = Theme.spacing.medium, bottom = Theme.spacing.extraSmall2),
+            contentAlignment = Alignment.Center
         ) {
-            ReviewTopBar(
-                title = title,
-                currentIndex = currentIndex,
-                totalCount = words.size,
-                onClose = onClose
+            AnimatedContent(
+                targetState = currentIndex,
+                transitionSpec = {
+                    val goingForward = targetState > initialState
+                    val enter = slideInHorizontally(
+                        animationSpec = tween(380, easing = FastOutSlowInEasing),
+                        initialOffsetX = { if (goingForward) it else -it }
+                    ) + fadeIn(tween(280, delayMillis = 60))
+                    val exit = slideOutHorizontally(
+                        animationSpec = tween(300, easing = FastOutSlowInEasing),
+                        targetOffsetX = { if (goingForward) -it else it }
+                    ) + fadeOut(tween(200))
+                    enter togetherWith exit
+                },
+                label = "cardSlide",
+                modifier = Modifier.fillMaxSize()
+            ) { index ->
+                val word = words.getOrNull(index)
+                if (word != null) {
+                    FlashCard(
+                        word = word,
+                        isFlipped = isFlipped,
+                        onFlip = onFlip,
+                        ttsState = ttsState,
+                        onSpeakClick = onSpeakClick
+                    )
+                }
+            }
+
+            // "Tap to reveal" hint
+            Text(
+                text = stringResource(Res.string.tap_card_to_reveal),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = Theme.spacing.extraSmall2)
+                    .graphicsLayer { alpha = hintAlpha }
             )
+        }
 
-            // ── Card slot: fills all remaining vertical space ─────────────────
-            Box(
+        // ── Edit word ─────────────────────────────────────────────────────
+        if (onEdit != null) {
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = Theme.spacing.medium)
-                    .padding(top = Theme.spacing.medium, bottom = Theme.spacing.extraSmall2),
-                contentAlignment = Alignment.Center
+                    .padding(vertical = Theme.spacing.extraSmall3)
+                    .clip(RoundedCornerShape(50))
+                    .clickable(onClick = onEdit)
+                    .padding(horizontal = Theme.spacing.sm, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
             ) {
-                AnimatedContent(
-                    targetState = currentIndex,
-                    transitionSpec = {
-                        val goingForward = targetState > initialState
-                        val enter = slideInHorizontally(
-                            animationSpec = tween(380, easing = FastOutSlowInEasing),
-                            initialOffsetX = { if (goingForward) it else -it }
-                        ) + fadeIn(tween(280, delayMillis = 60))
-                        val exit = slideOutHorizontally(
-                            animationSpec = tween(300, easing = FastOutSlowInEasing),
-                            targetOffsetX = { if (goingForward) -it else it }
-                        ) + fadeOut(tween(200))
-                        enter togetherWith exit
-                    },
-                    label = "cardSlide",
-                    modifier = Modifier.fillMaxSize()
-                ) { index ->
-                    val word = words.getOrNull(index)
-                    if (word != null) {
-                        FlashCard(
-                            word = word,
-                            isFlipped = isFlipped,
-                            onFlip = onFlip,
-                            ttsState = ttsState,
-                            onSpeakClick = onSpeakClick
-                        )
-                    }
-                }
-
-                // "Tap to reveal" hint
-                Text(
-                    text = stringResource(Res.string.tap_card_to_reveal),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = Theme.spacing.extraSmall2)
-                        .graphicsLayer { alpha = hintAlpha }
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = stringResource(Res.string.edit),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+                    modifier = Modifier.size(14.dp)
                 )
-            }
-
-            // ── Edit word ─────────────────────────────────────────────────────
-            if (onEdit != null) {
-                Row(
-                    modifier = Modifier
-                        .padding(vertical = Theme.spacing.extraSmall3)
-                        .clip(RoundedCornerShape(50))
-                        .clickable(onClick = onEdit)
-                        .padding(horizontal = Theme.spacing.sm, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(Res.string.edit),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = stringResource(Res.string.edit),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
-                    )
-                }
-            }
-
-            // ── Action buttons ────────────────────────────────────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Theme.spacing.medium)
-                    .padding(bottom = Theme.spacing.medium)
-            ) {
-                when (reviewType) {
-                    ReviewType.REVIEW -> ReviewRatingArea(isFlipped = isFlipped, onReview = onReview)
-                    ReviewType.BROWSE -> NavigationButtons(
-                        currentIndex = currentIndex,
-                        totalCount = words.size,
-                        onNavigateBack = onNavigateBack,
-                        onNavigateForward = onNavigateForward
-                    )
-                }
+                Text(
+                    text = stringResource(Res.string.edit),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                )
             }
         }
 
-        // ── Scrim (always composed, alpha-animated, no ripple) ────────────────
+        // ── Action buttons ────────────────────────────────────────────────
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer { alpha = scrimAlpha }
-                .background(Color.Black)
-                .then(
-                    if (showExitConfirmation) Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onCancelExit
-                    ) else Modifier
-                )
-        )
-
-        // ── Exit confirmation sheet ──────────────────────────────────────────
-        AnimatedVisibility(
-            visible = showExitConfirmation,
-            enter = slideInVertically(
-                animationSpec = tween(350, easing = FastOutSlowInEasing),
-                initialOffsetY = { it }
-            ) + fadeIn(tween(250, delayMillis = 50)),
-            exit = slideOutVertically(
-                animationSpec = tween(250, easing = FastOutSlowInEasing),
-                targetOffsetY = { it }
-            ) + fadeOut(tween(150)),
-            modifier = Modifier.align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = Theme.spacing.medium)
+                .padding(bottom = Theme.spacing.medium)
         ) {
-            ExitConfirmationSheet(
-                onConfirm = onConfirmExit,
-                onCancel = onCancelExit
-            )
+            when (reviewType) {
+                ReviewType.REVIEW -> ReviewRatingArea(isFlipped = isFlipped, onReview = onReview)
+                ReviewType.BROWSE -> NavigationButtons(
+                    currentIndex = currentIndex,
+                    totalCount = words.size,
+                    onNavigateBack = onNavigateBack,
+                    onNavigateForward = onNavigateForward
+                )
+            }
         }
     }
 }
@@ -502,79 +558,97 @@ fun NavigationButtons(
     }
 }
 
-/**
- * Clean exit-confirmation sheet — slides up from the bottom.
- * No drag handle, clear typography hierarchy, stacked full-width buttons.
- */
 @Composable
-private fun ExitConfirmationSheet(
+internal fun ExitConfirmationBottomSheet(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = Theme.elevation.none,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        ExitConfirmationContent(
+            onConfirm = {
+                coroutineScope.launch {
+                    sheetState.hide()
+                    onConfirm()
+                }
+            },
+            onCancel = onDismiss
+        )
+    }
+}
+
+@Composable
+private fun ExitConfirmationContent(
     onConfirm: () -> Unit,
     onCancel: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = Theme.shapes.extraLarge, topEnd = Theme.shapes.extraLarge),
-        tonalElevation = Theme.elevation.high,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = Theme.spacing.lg)
+            .padding(bottom = Theme.spacing.lg),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
     ) {
-        Column(
+        Icon(
+            imageVector = Icons.Default.Warning,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(Theme.dimensions.iconSizeXLarge)
+        )
+
+        Text(
+            text = stringResource(Res.string.exit_review),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Text(
+            text = stringResource(Res.string.exit_review_message),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(Theme.spacing.xs))
+
+        Button(
+            onClick = onConfirm,
             modifier = Modifier
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(
-                    start = Theme.spacing.medium,
-                    end = Theme.spacing.medium,
-                    top = Theme.spacing.lg,
-                    bottom = Theme.spacing.medium
-                ),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .height(Theme.dimensions.buttonHeight),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError
+            ),
+            shape = RoundedCornerShape(Theme.shapes.medium)
         ) {
             Text(
                 text = stringResource(Res.string.exit_review),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.labelLarge
             )
+        }
 
-            Spacer(Modifier.height(Theme.spacing.extraSmall2))
-
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(Theme.dimensions.buttonHeight),
+            shape = RoundedCornerShape(Theme.shapes.medium)
+        ) {
             Text(
-                text = stringResource(Res.string.exit_review_message),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                text = stringResource(Res.string.cancel),
+                style = MaterialTheme.typography.labelLarge
             )
-
-            Spacer(Modifier.height(Theme.spacing.lg))
-
-            Button(
-                onClick = onConfirm,
-                modifier = Modifier.fillMaxWidth().height(Theme.dimensions.buttonHeight),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                ),
-                shape = RoundedCornerShape(Theme.shapes.medium)
-            ) {
-                Text(
-                    text = stringResource(Res.string.exit_review),
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-
-            Spacer(Modifier.height(Theme.spacing.extraSmall2))
-
-            TextButton(
-                onClick = onCancel,
-                modifier = Modifier.fillMaxWidth().height(Theme.dimensions.buttonHeight),
-                shape = RoundedCornerShape(Theme.shapes.medium)
-            ) {
-                Text(
-                    text = stringResource(Res.string.cancel),
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
     }
 }

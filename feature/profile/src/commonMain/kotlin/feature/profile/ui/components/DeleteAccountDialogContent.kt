@@ -1,5 +1,8 @@
 package feature.profile.ui.components
 
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Timer
@@ -17,6 +20,7 @@ import components.dialog.ButtonType
 import components.dialog.DialogIconState
 import components.dialog.DialogProgressState
 import components.dialog.LexiconDialogContent
+import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete_account_cooling_period_cancel
@@ -29,11 +33,15 @@ import lexicon.resources.generated.resources.proceed_to_final_confirmation
 import lexicon.resources.generated.resources.ready_to_proceed_deletion
 
 @Composable
-fun DeleteAccountHiddenDialogContent(
+fun DeleteAccountHiddenContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
     LexiconDialogContent(
+        modifier = Modifier
+            .navigationBarsPadding()
+            .padding(horizontal = Theme.spacing.lg)
+            .padding(bottom = Theme.spacing.lg),
         icon = Icons.Default.Delete,
         iconTint = MaterialTheme.colorScheme.error,
         title = stringResource(Res.string.delete_account_hidden_title),
@@ -47,7 +55,7 @@ fun DeleteAccountHiddenDialogContent(
 }
 
 @Composable
-fun DeleteAccountCoolingDialogContent(
+fun DeleteAccountCoolingContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -67,23 +75,27 @@ fun DeleteAccountCoolingDialogContent(
     }
 
     LexiconDialogContent(
+        modifier = Modifier
+            .navigationBarsPadding()
+            .padding(horizontal = Theme.spacing.lg)
+            .padding(bottom = Theme.spacing.lg),
         iconState = DialogIconState.Icon(Icons.Default.Timer),
-        title = stringResource(Res.string.delete_account_cooling_period_title),
-        message = coolingPeriodMessage,
-        progressState = if (coolingPeriodRemaining > 0) {
-            DialogProgressState.Circular
-        } else {
-            DialogProgressState.None
-        },
-        primaryButton = ButtonState(
-            text = stringResource(Res.string.proceed_to_final_confirmation),
-            onClick = onConfirm,
-            enabled = coolingPeriodRemaining <= 0,
-            type = ButtonType.Error
-        ),
-        secondaryButton = ButtonState(
-            text = stringResource(Res.string.delete_account_cooling_period_cancel),
-            onClick = onDismiss
+            title = stringResource(Res.string.delete_account_cooling_period_title),
+            message = coolingPeriodMessage,
+            progressState = if (coolingPeriodRemaining > 0) {
+                DialogProgressState.Circular
+            } else {
+                DialogProgressState.None
+            },
+            primaryButton = ButtonState(
+                text = stringResource(Res.string.proceed_to_final_confirmation),
+                onClick = onConfirm,
+                enabled = coolingPeriodRemaining <= 0,
+                type = ButtonType.Error
+            ),
+            secondaryButton = ButtonState(
+                text = stringResource(Res.string.delete_account_cooling_period_cancel),
+                onClick = onDismiss
+            )
         )
-    )
 }

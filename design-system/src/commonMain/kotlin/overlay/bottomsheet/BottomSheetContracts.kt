@@ -12,7 +12,8 @@ data class BottomSheetProperties(
     val dismissOnTouchOutside: Boolean = true,
     val dismissOnBackPress: Boolean = true,
     val isNavigationBarsPaddingEnabled: Boolean = false,
-    val sheetGesturesEnabled: Boolean = true
+    val sheetGesturesEnabled: Boolean = true,
+    val showCloseButton: Boolean = false
 )
 
 interface BottomSheetOverlayScope {
@@ -21,6 +22,7 @@ interface BottomSheetOverlayScope {
 
 interface BottomSheetScope {
     val isDragHandleShown: Boolean
+    val isCloseButtonShown: Boolean
     fun dismiss()
 }
 

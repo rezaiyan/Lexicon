@@ -66,7 +66,7 @@ private val Bronze = Color(0xFFCD7F32)
 
 @Composable
 fun LeaderboardScreen(
-    onNavigateBack: () -> Unit
+    onDismiss: () -> Unit
 ) {
     val viewModel = koinViewModel<LeaderboardViewModel>()
     val uiState by viewModel.state()
@@ -74,7 +74,7 @@ fun LeaderboardScreen(
     LexiconColumn(
         title = stringResource(Res.string.leaderboard),
         showNavigationIcon = true,
-        onNavigationClick = onNavigateBack,
+        onNavigationClick = onDismiss,
         actionIcon1 = ActionIconConfig(
             icon = Icons.Default.Refresh,
             contentDescription = stringResource(Res.string.refresh),

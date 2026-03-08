@@ -8,7 +8,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -64,6 +63,7 @@ import lexicon.resources.generated.resources.learning
 import lexicon.resources.generated.resources.mastered
 import lexicon.resources.generated.resources.mature
 import lexicon.resources.generated.resources.new
+import lexicon.resources.generated.resources.repeat_pronunciation
 import lexicon.resources.generated.resources.unknown
 import lexicon.resources.generated.resources.young
 
@@ -147,6 +147,7 @@ fun FlashCard(
                 // Level badge — top-end: always-visible context, never competes with the word
                 MasteryLevelBadge(
                     level = word.level,
+                    isBackFace = rotation > 90f,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(sizes.badgePadding)
@@ -250,7 +251,7 @@ fun FlashCard(
 // ── Mastery level badge — lightweight pill chip ───────────────────────────────
 
 @Composable
-fun MasteryLevelBadge(level: Int, modifier: Modifier = Modifier) {
+fun MasteryLevelBadge(level: Int, isBackFace: Boolean = false, modifier: Modifier = Modifier) {
     val (masteryText, masteryColor) = when (level) {
         0 -> Pair(stringResource(Res.string.new), MaterialTheme.colorScheme.secondary)
         1 -> Pair(stringResource(Res.string.learning), MaterialTheme.colorScheme.tertiary)
@@ -262,21 +263,21 @@ fun MasteryLevelBadge(level: Int, modifier: Modifier = Modifier) {
         else -> Pair(stringResource(Res.string.unknown), MaterialTheme.colorScheme.surfaceVariant)
     }
 
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(50))
-            .border(Theme.dimensions.hairlineThickness, masteryColor.copy(alpha = 0.3f), RoundedCornerShape(50))
-            .background(masteryColor.copy(alpha = 0.12f))
-            .padding(horizontal = 9.dp, vertical = 5.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = masteryText,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = masteryColor
-        )
+    // On the back face (primaryContainer), use onPrimaryContainer so the label
+    // always contrasts with the card background instead of blending with the word text.
+    val displayColor = if (isBackFace) {
+        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.45f)
+    } else {
+        masteryColor.copy(alpha = 0.7f)
     }
+
+    Text(
+        text = masteryText,
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.Medium,
+        color = displayColor,
+        modifier = modifier
+    )
 }
 
 // ── Speaker button ────────────────────────────────────────────────────────────
@@ -292,11 +293,11 @@ private fun SpeakerButton(
 
     Box(
         modifier = modifier
-            .size(36.dp)
+            .size(40.dp)
             .clip(CircleShape)
             .background(
-                if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
             )
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
@@ -305,27 +306,27 @@ private fun SpeakerButton(
             is TtsState.Downloading -> {
                 CircularProgressIndicator(
                     progress = { ttsState.progress },
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+                    modifier = Modifier.size(22.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
 
             is TtsState.Loading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+                    modifier = Modifier.size(22.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
 
             else -> {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = "Speak",
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+                    contentDescription = stringResource(Res.string.repeat_pronunciation),
+                    modifier = Modifier.size(22.dp),
                     tint = if (ttsState is TtsState.Speaking) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
             }
         }

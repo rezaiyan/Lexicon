@@ -62,7 +62,7 @@
     <ID>LongMethod:AuthGateScreen.kt$@Composable fun AuthGateScreen( onLoginWithGoogle: suspend (String) -&gt; Unit, onLoginWithApple: (String, String?, String) -&gt; Unit, isLoading: Boolean = false, error: String? = null )</ID>
     <ID>LongMethod:ComparisonTable.kt$@Composable fun ComparisonTable()</ID>
     <ID>LongMethod:CooldownVisibilityTest.kt$CooldownVisibilityTest$@Test fun criticalTest_wordInCooldown_notInDueCards_butVisibleInBucket()</ID>
-    <ID>LongMethod:EditProfileScreen.kt$@Composable fun EditProfileScreen( snackbarHostState: SnackbarHostState, overlayHost: OverlayHost, onNavigateBack: () -&gt; Unit )</ID>
+
     <ID>LongMethod:EditWordDialog.kt$@Composable fun EditWordDialog( word: Word, onDismiss: () -&gt; Unit, onSave: (Word) -&gt; Unit, onDelete: () -&gt; Unit )</ID>
     <ID>LongMethod:FlashCard.kt$@Composable fun FlashCard( word: Word, isFlipped: Boolean, onFlip: () -&gt; Unit, modifier: Modifier = Modifier, ttsState: TtsState = TtsState.Idle, onSpeakClick: (text: String, langCode: String) -&gt; Unit = { _, _ -&gt; } )</ID>
     <ID>LongMethod:FlashCard.kt$@Composable private fun rememberResponsiveSizes( maxWidth: Dp, maxHeight: Dp, isLandscape: Boolean ): ResponsiveSizes</ID>

@@ -10,15 +10,12 @@ data class WordManagerScreenState(
     val isLoading: Boolean = false,
     val isDeletingWords: Boolean = false,
     val isBatchUpdatingLanguages: Boolean = false,
-    val showBatchEditLanguages: Boolean = false,
     val searchQuery: String = "",
     val sortOption: WordSortOption = WordSortOption.DATE_ADDED_DESC,
     val filterLanguage: Language? = null,
     val filterLearningStage: LearningStage? = null,
     val isSelectionMode: Boolean = false,
     val selectedWordIds: Set<Int> = emptySet(),
-    val detailWord: Word? = null,
-    val showDeleteConfirmation: Boolean = false,
     val errorMessage: String? = null
 ) {
     val filteredWords: List<Word> by lazy {

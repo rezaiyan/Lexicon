@@ -7,10 +7,7 @@ import domain.ai.repository.IAiRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 class ImportFromImageUseCase(
     private val aiRepository: IAiRepository,
@@ -27,7 +24,7 @@ class ImportFromImageUseCase(
         extractSentences: Boolean = false
     ): Flow<ImportImageResult> = flow {
         emit(ImportImageResult.Loading)
-    }.flatMapLatest {
+
         val targetLanguage = getCurrentLanguageUseCase.invoke().getOrThrow()
         val extractionResult = aiRepository.extractVocabularyFromImage(
             imageBytes,
@@ -38,16 +35,13 @@ class ImportFromImageUseCase(
 
         extractionResult.fold(
             onSuccess = { extractedText ->
-                importWordsUseCase.asFlow(extractedText)
-                    .map<Int, ImportImageResult> { count ->
-                        ImportImageResult.Success(count)
-                    }
-                    .catch { error ->
-                        emit(ImportImageResult.Error(error.message ?: "Import failed"))
-                    }
+                importWordsUseCase(extractedText).fold(
+                    onSuccess = { count -> emit(ImportImageResult.Success(count)) },
+                    onFailure = { error -> emit(ImportImageResult.Error(error.message ?: "Import failed")) }
+                )
             },
             onFailure = { error: Throwable ->
-                flow { emit(ImportImageResult.Error(error.message ?: "Failed to extract vocabulary from image")) }
+                emit(ImportImageResult.Error(error.message ?: "Failed to extract vocabulary from image"))
             }
         )
     }

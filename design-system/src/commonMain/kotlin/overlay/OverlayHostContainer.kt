@@ -36,7 +36,7 @@ fun OverlayHostContainer(
 
         overlayData.forEachIndexed { index, overlayDataItem ->
             val isTopMost = index == listSize - 1
-            key(overlayDataItem.overlay, overlayDataItem.tag, index) {
+            key(overlayDataItem.overlay, overlayDataItem.tag) {
                 CompositionLocalProvider(LocalIsTopmostOverlay provides isTopMost) {
                     overlayDataItem.overlay.Content(
                         navigator = {

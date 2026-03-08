@@ -8,6 +8,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":platforms"))
             implementation(project(":utils"))
+            implementation(project(":feature:leaderboard"))
             implementation(libs.coil.compose)
             implementation(libs.kotlinx.datetime)
         }

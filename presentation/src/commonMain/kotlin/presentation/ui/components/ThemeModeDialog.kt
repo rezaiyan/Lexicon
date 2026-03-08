@@ -1,23 +1,17 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package presentation.ui.components
 
-import components.dialog.BasicAlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Brightness4
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -26,8 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import components.dialog.LexiconDialogContent
 import theme.Theme
 import domain.settings.model.ThemeMode
 import lexicon.resources.generated.resources.Res
@@ -37,27 +31,24 @@ import lexicon.resources.generated.resources.theme_dark_desc
 import lexicon.resources.generated.resources.theme_light_desc
 
 @Composable
-fun ThemeModeDialog(
+fun ThemeModeContent(
     currentThemeMode: ThemeMode,
-    onDismiss: () -> Unit,
     onThemeModeSelected: (ThemeMode) -> Unit
 ) {
-    BasicAlertDialog(
-        onDismissRequest = onDismiss,
+    LexiconDialogContent(
+        modifier = Modifier
+            .navigationBarsPadding()
+            .padding(horizontal = Theme.spacing.lg)
+            .padding(bottom = Theme.spacing.lg),
         icon = Icons.Default.DarkMode,
         title = stringResource(Res.string.theme),
         content = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
                 ThemeMode.entries.forEach { mode ->
                     ThemeOptionCard(
                         themeMode = mode,
                         isSelected = currentThemeMode == mode,
-                        onClick = {
-                            onThemeModeSelected(mode)
-                            onDismiss()
-                        }
+                        onClick = { onThemeModeSelected(mode) }
                     )
                 }
             }
@@ -117,4 +108,3 @@ private fun ThemeOptionCard(
         )
     }
 }
-

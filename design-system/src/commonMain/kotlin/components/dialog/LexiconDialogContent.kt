@@ -59,6 +59,7 @@ data class ButtonState(
 
 @Composable
 fun LexiconDialogContent(
+    modifier: Modifier = Modifier,
     iconState: DialogIconState = DialogIconState.None,
     title: String? = null,
     message: String? = null,
@@ -69,7 +70,7 @@ fun LexiconDialogContent(
     negativeButton: ButtonState? = null
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // ── Header: icon circle + title, vertically centered ──────────────────
@@ -288,6 +289,7 @@ fun LexiconDialogContent(
 
 @Composable
 fun LexiconDialogContent(
+    modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     title: String? = null,
     message: String? = null,
@@ -300,6 +302,7 @@ fun LexiconDialogContent(
     iconTint: Color? = null
 ) {
     LexiconDialogContent(
+        modifier = modifier,
         iconState = when {
             icon != null -> DialogIconState.Icon(icon, iconTint)
             else -> DialogIconState.None

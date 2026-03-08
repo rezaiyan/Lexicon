@@ -1,6 +1,5 @@
 package feature.study.ui.review
 
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import domain.tts.model.TtsState
@@ -9,8 +8,9 @@ import feature.study.model.ReviewScreenState
 import feature.study.model.ReviewType
 
 /**
- * Pure UI component for review bottom sheet.
- * Receives state and callbacks from parent ViewModel - does NOT inject its own ViewModel.
+ * Pure UI component for the review screen.
+ * Hosted inside a [overlay.fullscreen.FullScreenOverlay] (not a ModalBottomSheet)
+ * so that child bottom sheets (e.g. EditWordBottomSheet) can open on top without nesting issues.
  */
 @Composable
 fun ReviewBottomSheetContent(
@@ -28,7 +28,6 @@ fun ReviewBottomSheetContent(
     onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> }
 ) {
     ReviewBottomSheet(
-        modifier = Modifier.safeDrawingPadding(),
         state = reviewState.copy(reviewType = reviewType),
         title = title,
         onClose = onClose,

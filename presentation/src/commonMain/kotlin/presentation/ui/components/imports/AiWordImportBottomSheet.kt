@@ -41,7 +41,6 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -68,6 +67,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import components.dialog.ButtonState
+import components.dialog.ButtonType
+import components.dialog.LexiconDialogContent
 import events.OnEvents
 import org.koin.compose.viewmodel.koinViewModel
 import feature.aiimport.AiWordImportViewModel
@@ -95,28 +97,12 @@ fun ImportMethodSelectorContent(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
+            .padding(horizontal = spacing.lg)
+            .padding(bottom = spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(spacing.sm)
     ) {
-        // Drag handle
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = spacing.small),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(width = Theme.spacing.xxl, height = Theme.spacing.xxs)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
-            )
-        }
-
         Column(
-            modifier = Modifier.padding(
-                horizontal = spacing.medium,
-                vertical = spacing.small
-            ),
-            verticalArrangement = Arrangement.spacedBy(spacing.extraSmall3)
+            verticalArrangement = Arrangement.spacedBy(spacing.xxs)
         ) {
             Text(
                 text = "Add Words",
@@ -131,13 +117,10 @@ fun ImportMethodSelectorContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(spacing.extraSmall2))
-
         // AI card — gradient featured option
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = spacing.medium)
                 .clip(RoundedCornerShape(dimensions.cardCornerRadius))
                 .background(
                     Brush.linearGradient(
@@ -207,15 +190,11 @@ fun ImportMethodSelectorContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(spacing.extraSmall2))
-
         // OR divider
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.medium),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.extraSmall2)
+            horizontalArrangement = Arrangement.spacedBy(spacing.xs)
         ) {
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
@@ -226,14 +205,10 @@ fun ImportMethodSelectorContent(
             HorizontalDivider(modifier = Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.height(spacing.extraSmall2))
-
         // Manual card
         Card(
             onClick = onManual,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.medium),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(dimensions.cardCornerRadius),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -283,7 +258,6 @@ fun ImportMethodSelectorContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(spacing.medium))
     }
 }
 
@@ -300,7 +274,7 @@ fun AiWordImportBottomSheet(
     val state by viewModel.state()
     val spacing = Theme.spacing
     val dimensions = Theme.dimensions
-    var showDiscardDialog by remember { mutableStateOf(false) }
+    var showDiscardConfirmation by remember { mutableStateOf(false) }
 
     val handleDismiss = {
         viewModel.reset()
@@ -395,7 +369,13 @@ fun AiWordImportBottomSheet(
             }
 
             IconButton(
-                onClick = { if (isPreview) showDiscardDialog = true else handleDismiss() },
+                onClick = {
+                    if (isPreview) {
+                        showDiscardConfirmation = true
+                    } else {
+                        handleDismiss()
+                    }
+                },
                 enabled = !state.isLoading
             ) {
                 Icon(
@@ -484,43 +464,27 @@ fun AiWordImportBottomSheet(
         }
     }
 
-    if (showDiscardDialog) {
-        AlertDialog(
-            onDismissRequest = { showDiscardDialog = false },
-            title = {
-                Text(
-                    text = "Discard suggestions?",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Text(
-                    text = "Your AI-generated vocabulary list will be lost.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showDiscardDialog = false
+    if (showDiscardConfirmation) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.32f))
+                .pointerInput(Unit) { /* consume touches */ },
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                shape = RoundedCornerShape(Theme.shapes.large),
+                tonalElevation = 6.dp,
+            ) {
+                DiscardConfirmationContent(
+                    onDiscard = {
+                        showDiscardConfirmation = false
                         handleDismiss()
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ),
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Text("Discard")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDiscardDialog = false }) {
-                    Text("Keep")
-                }
+                    onKeep = { showDiscardConfirmation = false }
+                )
             }
-        )
+        }
     }
 }
 
@@ -636,7 +600,7 @@ private fun AiLanguageStep(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.height(spacing.xs))
+            Spacer(modifier = Modifier.height(spacing.md))
         }
     }
 }
@@ -948,8 +912,8 @@ private fun AiWordPreviewStep(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.medium)
-                .padding(bottom = spacing.extraSmall2)
+                .padding(horizontal = spacing.md)
+                .padding(bottom = spacing.xs)
         ) {
             Spacer(modifier = Modifier.height(spacing.small))
 
@@ -1120,11 +1084,10 @@ private fun AiWordPreviewStep(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = spacing.medium)
-                    .navigationBarsPadding(),
+                    .padding(horizontal = spacing.md),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(spacing.small))
+                Spacer(modifier = Modifier.height(spacing.md))
                 if (state.isLoading) {
                     Row(
                         modifier = Modifier.padding(vertical = spacing.small),
@@ -1169,8 +1132,32 @@ private fun AiWordPreviewStep(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(spacing.small))
+                Spacer(modifier = Modifier.height(spacing.md))
             }
         }
     }
+}
+
+@Composable
+private fun DiscardConfirmationContent(
+    onDiscard: () -> Unit,
+    onKeep: () -> Unit,
+) {
+    LexiconDialogContent(
+        modifier = Modifier
+            .navigationBarsPadding()
+            .padding(horizontal = Theme.spacing.lg)
+            .padding(bottom = Theme.spacing.lg),
+        title = "Discard suggestions?",
+        message = "Your AI-generated vocabulary list will be lost.",
+        primaryButton = ButtonState(
+            text = "Discard",
+            onClick = onDiscard,
+            type = ButtonType.Error
+        ),
+        secondaryButton = ButtonState(
+            text = "Keep",
+            onClick = onKeep
+        ),
+    )
 }

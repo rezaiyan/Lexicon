@@ -1,19 +1,21 @@
 package feature.leaderboard.navigation
 
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
 import feature.leaderboard.ui.LeaderboardScreen
-import kotlinx.serialization.Serializable
+import overlay.OverlayHost
+import overlay.bottomsheet.BottomSheetProperties
+import overlay.bottomsheet.showFullscreenBottomSheet
 
-@Serializable
-data object LeaderboardRoute
-
-fun NavGraphBuilder.leaderboardGraph(
-    onNavigateBack: () -> Unit,
-) {
-    composable<LeaderboardRoute> {
+fun OverlayHost.showLeaderboard() {
+    showFullscreenBottomSheet(
+        tag = "leaderboard",
+        properties = BottomSheetProperties(
+            dismissOnTouchOutside = false,
+            dismissOnBackPress = false,
+            sheetGesturesEnabled = false,
+        )
+    ) { navigator ->
         LeaderboardScreen(
-            onNavigateBack = onNavigateBack,
+            onDismiss = { navigator.dismiss() }
         )
     }
 }

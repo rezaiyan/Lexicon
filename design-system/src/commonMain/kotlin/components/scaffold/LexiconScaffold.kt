@@ -37,6 +37,7 @@ import lexicon.resources.generated.resources.navigate_back
 fun LexiconColumn(
     title: String? = null,
     showNavigationIcon: Boolean = false,
+    navigationIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack,
     onNavigationClick: () -> Unit = {},
     actionIcon1: ActionIconConfig? = null,
     actionIcon2: ActionIconConfig? = null,
@@ -58,6 +59,7 @@ fun LexiconColumn(
                 FlexibleTopBar(
                     title = title,
                     showNavigationIcon = showNavigationIcon,
+                    navigationIcon = navigationIcon,
                     onNavigationClick = onNavigationClick,
                     actionIcon1 = actionIcon1,
                     actionIcon2 = actionIcon2,
@@ -79,6 +81,7 @@ fun LexiconColumn(
                 FlexibleTopBar(
                     title = title,
                     showNavigationIcon = showNavigationIcon,
+                    navigationIcon = navigationIcon,
                     onNavigationClick = onNavigationClick,
                     actionIcon1 = actionIcon1,
                     actionIcon2 = actionIcon2,
@@ -104,6 +107,7 @@ fun LexiconColumn(
 private fun FlexibleTopBar(
     title: String?,
     showNavigationIcon: Boolean,
+    navigationIcon: ImageVector,
     onNavigationClick: () -> Unit,
     actionIcon1: ActionIconConfig?,
     actionIcon2: ActionIconConfig?,
@@ -128,7 +132,7 @@ private fun FlexibleTopBar(
             if (showNavigationIcon) {
                 IconButton(onClick = onNavigationClick) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector = navigationIcon,
                         contentDescription = stringResource(Res.string.navigate_back)
                     )
                 }

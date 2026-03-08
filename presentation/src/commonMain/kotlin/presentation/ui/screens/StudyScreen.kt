@@ -38,6 +38,8 @@ import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetProperties
 import overlay.bottomsheet.showFullscreenBottomSheet
 import overlay.bottomsheet.showSizeToFitBottomSheet
+import overlay.fullscreen.FullScreenProperties
+import overlay.fullscreen.showFullScreen
 import feature.study.ui.review.ReviewBottomSheetContent
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -85,13 +87,13 @@ fun StudyScreen() {
 
     val openImportSheet: () -> Unit = {
         if (hasPremiumAccess) {
-            overlayHost.showSizeToFitBottomSheet(tag = "import-method") { selectorNav ->
+            overlayHost.showSizeToFitBottomSheet(tag = "import-method") { _ ->
                 ImportMethodSelectorContent(
                     onManual = {
-                        selectorNav.dismiss()
+                        overlayHost.dismiss("import-method")
                         overlayHost.showFullscreenBottomSheet(
                             tag = "import",
-                            properties = LockedSheetProperties
+                            properties = LockedSheetProperties.copy(showCloseButton = true)
                         ) { nav ->
                             ImportBottomSheet(
                                 onDismiss = { nav.dismiss() },
@@ -100,7 +102,7 @@ fun StudyScreen() {
                         }
                     },
                     onAiAssistant = {
-                        selectorNav.dismiss()
+                        overlayHost.dismiss("import-method")
                         overlayHost.showFullscreenBottomSheet(
                             tag = "ai-import",
                             properties = LockedSheetProperties
@@ -116,7 +118,7 @@ fun StudyScreen() {
         } else {
             overlayHost.showFullscreenBottomSheet(
                 tag = "import",
-                properties = LockedSheetProperties
+                properties = LockedSheetProperties.copy(showCloseButton = true)
             ) { nav ->
                 ImportBottomSheet(
                     onDismiss = { nav.dismiss() },
@@ -168,9 +170,12 @@ fun StudyScreen() {
                         when (event) {
                             is StudyEvent.StartReview -> {
                                 viewModel.startDueReview()
-                                overlayHost.showFullscreenBottomSheet(
+                                overlayHost.showFullScreen(
                                     tag = "review-due",
-                                    properties = LockedSheetProperties
+                                    properties = FullScreenProperties(
+                                        dismissOnBackPress = false,
+                                        isNavigationBarsPaddingEnabled = true,
+                                    )
                                 ) { navigator ->
                                     // Read state inside the composable lambda so the
                                     // overlay host recomposes when the ViewModel updates.
@@ -219,7 +224,7 @@ fun StudyScreen() {
                         stats = loadedStats,
                         onStageClick = { stage, stageName ->
                             viewModel.loadWordsByStage(stage)
-                            overlayHost.showFullscreenBottomSheet(tag = "review-stage-${stage}") { navigator ->
+                            overlayHost.showFullScreen(tag = "review-stage-${stage}") { navigator ->
                                 val sheetState by viewModel.state()
                                 val sheetTts = sheetState.ttsState
 

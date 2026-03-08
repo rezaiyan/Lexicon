@@ -50,6 +50,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +65,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -235,7 +237,6 @@ internal fun SearchBar(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.background
     ) {
         OutlinedTextField(
             value = searchQuery,
@@ -701,76 +702,111 @@ internal fun SelectionActionBar(
             shadowElevation = Theme.elevation.overlay,
             shape = RoundedCornerShape(topStart = Theme.shapes.large, topEnd = Theme.shapes.large)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(
-                        horizontal = Theme.spacing.extraSmall,
-                        vertical = Theme.spacing.extraSmall
-                    ),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // Close button
-                IconButton(onClick = onClose) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = stringResource(Res.string.cancel),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                // Count
-                val countPattern = "%1" + '$' + "d"
-                Text(
-                    text = stringResource(Res.string.selected_format).replace(countPattern, selectedCount.toString()),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Select all
-                IconButton(onClick = onSelectAll) {
-                    Icon(
-                        Icons.Default.SelectAll,
-                        contentDescription = stringResource(Res.string.select_all),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                // Language edit
-                IconButton(onClick = onBatchEditLanguages) {
-                    Icon(
-                        Icons.Default.Language,
-                        contentDescription = stringResource(Res.string.batch_edit_languages),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                // Delete
-                IconButton(onClick = onDelete) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = stringResource(Res.string.delete),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-
-                // Share (premium only)
-                if (isUserSubscribed) {
-                    IconButton(onClick = onShare) {
+                // Header: close + count
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Theme.spacing.xs, vertical = Theme.spacing.xs),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onClose) {
                         Icon(
-                            Icons.Default.FileUpload,
-                            contentDescription = stringResource(Res.string.share),
-                            tint = MaterialTheme.colorScheme.primary
+                            Icons.Default.Close,
+                            contentDescription = stringResource(Res.string.cancel),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    val countPattern = "%1" + '$' + "d"
+                    Text(
+                        text = stringResource(Res.string.selected_format)
+                            .replace(countPattern, selectedCount.toString()),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
+                    )
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+                // Actions row with labels
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Theme.spacing.xs, vertical = Theme.spacing.sm)
+                        .navigationBarsPadding(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SelectionAction(
+                        icon = Icons.Default.SelectAll,
+                        label = stringResource(Res.string.select_all),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        onClick = onSelectAll,
+                        modifier = Modifier.weight(1f)
+                    )
+                    SelectionAction(
+                        icon = Icons.Default.Language,
+                        label = stringResource(Res.string.batch_edit_languages),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        onClick = onBatchEditLanguages,
+                        modifier = Modifier.weight(1f)
+                    )
+                    SelectionAction(
+                        icon = Icons.Default.Delete,
+                        label = stringResource(Res.string.delete),
+                        color = MaterialTheme.colorScheme.error,
+                        onClick = onDelete,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (isUserSubscribed) {
+                        SelectionAction(
+                            icon = Icons.Default.FileUpload,
+                            label = stringResource(Res.string.share),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            onClick = onShare,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SelectionAction(
+    icon: ImageVector,
+    label: String,
+    color: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(Theme.shapes.medium))
+            .combinedClickable(onClick = onClick)
+            .padding(vertical = Theme.spacing.xs),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

@@ -59,7 +59,6 @@ class WordManagerViewModel(
     private val editingHandler = WordEditingHandler(
         updateWordUseCase = updateWordUseCase,
         analyticsTracker = analyticsTracker,
-        stateAccess = stateAccess,
         events = effectsSendChannel,
         scope = viewModelScope
     )
@@ -83,9 +82,6 @@ class WordManagerViewModel(
                 selectedWordIds = emptySet(),
                 isSelectionMode = false,
                 searchQuery = "",
-                detailWord = null,
-                showDeleteConfirmation = false,
-                showBatchEditLanguages = false,
                 isDeletingWords = false,
                 isBatchUpdatingLanguages = false,
                 errorMessage = null
@@ -177,24 +173,8 @@ class WordManagerViewModel(
         updateState { copy(isSelectionMode = false, selectedWordIds = emptySet()) }
     }
 
-    fun openWordDetail(word: Word) {
-        editingHandler.startEditing(word)
-    }
-
-    fun closeWordDetail() {
-        editingHandler.cancelEditing()
-    }
-
     fun updateWord(word: Word) {
         editingHandler.updateWord(word)
-    }
-
-    fun showDeleteConfirmation() {
-        updateState { copy(showDeleteConfirmation = true) }
-    }
-
-    fun hideDeleteConfirmation() {
-        updateState { copy(showDeleteConfirmation = false) }
     }
 
     fun deleteSelectedWords() {
@@ -202,14 +182,6 @@ class WordManagerViewModel(
         viewModelScope.launch {
             deletionHandler.deleteSelectedWords(selectedIds)
         }
-    }
-
-    fun showBatchEditLanguages() {
-        updateState { copy(showBatchEditLanguages = true) }
-    }
-
-    fun hideBatchEditLanguages() {
-        updateState { copy(showBatchEditLanguages = false) }
     }
 
     fun batchUpdateLanguages(sourceLanguage: Language, targetLanguage: Language) {

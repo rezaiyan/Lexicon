@@ -25,6 +25,10 @@ import components.scaffold.ActionIconConfig
 import components.scaffold.TopBarColor
 import components.scaffold.LexiconColumn
 import overlay.LocalOverlayHost
+import overlay.OverlayHost
+import overlay.bottomsheet.BottomSheetProperties
+import overlay.bottomsheet.showFullscreenBottomSheet
+import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.util.shareContentAsFile
 import feature.words.WordManagerViewModel
 import theme.Theme
@@ -42,9 +46,24 @@ import lexicon.resources.generated.resources.word_updated
 import lexicon.resources.generated.resources.words_deleted
 import lexicon.resources.generated.resources.words_language_updated
 
+private val WordManagerSheetProperties = BottomSheetProperties(
+    dismissOnTouchOutside = false,
+    dismissOnBackPress = false,
+    sheetGesturesEnabled = false
+)
+
+fun OverlayHost.showWordManagerSheet() {
+    showFullscreenBottomSheet(
+        tag = "word-manager",
+        properties = WordManagerSheetProperties
+    ) { nav ->
+        WordManagerContent(onDismiss = { nav.dismiss() })
+    }
+}
+
 @Composable
-fun WordManagerScreen(
-    onNavigateBack: () -> Unit
+internal fun WordManagerContent(
+    onDismiss: () -> Unit
 ) {
     val viewModel = koinViewModel<WordManagerViewModel>()
     val state by viewModel.state()
@@ -112,30 +131,17 @@ fun WordManagerScreen(
         }
     }
 
-    // Selection mode: show close icon in top bar; otherwise no action icons
-    val selectionModeCloseAction = if (state.isSelectionMode) {
-        ActionIconConfig(
-            icon = Icons.Default.Close,
-            contentDescription = stringResource(Res.string.cancel),
-            onClick = { viewModel.exitSelectionMode() },
-            tint = MaterialTheme.colorScheme.onSurface,
-            size = Theme.dimensions.iconSizeLarge
-        )
-    } else {
-        null
-    }
-
     LexiconColumn(
         title = stringResource(Res.string.word_manager),
         showNavigationIcon = true,
+        navigationIcon = Icons.Default.Close,
         onNavigationClick = {
             if (state.isSelectionMode) {
                 viewModel.exitSelectionMode()
             } else {
-                onNavigateBack()
+                onDismiss()
             }
         },
-        actionIcon1 = selectionModeCloseAction,
         scrollable = false,
         topBarColor = TopBarColor.Background
     ) {
@@ -159,11 +165,29 @@ fun WordManagerScreen(
                             overlayHost.showWordDetailSheet(
                                 word = word,
                                 onEdit = { w ->
-                                    viewModel.openWordDetail(w)
+                                    overlayHost.showSizeToFitBottomSheet(tag = "edit-word") { nav ->
+                                        EditWordContent(
+                                            word = w,
+                                            onDismiss = { nav.dismiss() },
+                                            onSave = { updatedWord ->
+                                                viewModel.updateWord(updatedWord)
+                                                nav.dismiss()
+                                            }
+                                        )
+                                    }
                                 },
                                 onDelete = { w ->
                                     viewModel.toggleWordSelection(w.id)
-                                    viewModel.showDeleteConfirmation()
+                                    overlayHost.showSizeToFitBottomSheet(tag = "delete-confirmation") { nav ->
+                                        DeleteConfirmationContent(
+                                            count = 1,
+                                            onConfirm = {
+                                                viewModel.deleteSelectedWords()
+                                                nav.dismiss()
+                                            },
+                                            onDismiss = { nav.dismiss() }
+                                        )
+                                    }
                                 }
                             )
                         },
@@ -178,12 +202,42 @@ fun WordManagerScreen(
                         onFilterLearningStageChange = viewModel::setFilterLearningStage,
                         onDeleteSelected = {
                             if (state.selectedCount > 0) {
-                                viewModel.showDeleteConfirmation()
+                                overlayHost.showSizeToFitBottomSheet(tag = "delete-confirmation") { nav ->
+                                    DeleteConfirmationContent(
+                                        count = state.selectedWordIds.size,
+                                        onConfirm = {
+                                            viewModel.deleteSelectedWords()
+                                            nav.dismiss()
+                                        },
+                                        onDismiss = { nav.dismiss() }
+                                    )
+                                }
                             }
                         },
                         onBatchEditLanguages = {
                             if (state.selectedCount > 0) {
-                                viewModel.showBatchEditLanguages()
+                                val selectedWords = state.words.filter { state.selectedWordIds.contains(it.id) }
+                                val mostCommonSource = selectedWords
+                                    .groupingBy { it.sourceLanguage }
+                                    .eachCount()
+                                    .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
+                                val mostCommonTarget = selectedWords
+                                    .groupingBy { it.targetLanguage }
+                                    .eachCount()
+                                    .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
+
+                                overlayHost.showSizeToFitBottomSheet(tag = "batch-edit-languages") { nav ->
+                                    BatchEditLanguagesContent(
+                                        count = selectedWords.size,
+                                        initialSourceLanguage = mostCommonSource,
+                                        initialTargetLanguage = mostCommonTarget,
+                                        onConfirm = { source, target ->
+                                            viewModel.batchUpdateLanguages(source, target)
+                                            nav.dismiss()
+                                        },
+                                        onDismiss = { nav.dismiss() }
+                                    )
+                                }
                             }
                         },
                         onExitSelectionMode = viewModel::exitSelectionMode
@@ -243,46 +297,4 @@ fun WordManagerScreen(
         }
     }
 
-    // Edit Word Dialog (triggered from detail sheet)
-    state.detailWord?.let { word ->
-        EditWordDialog(
-            word = word,
-            onDismiss = viewModel::closeWordDetail,
-            onSave = viewModel::updateWord
-        )
-    }
-
-    // Delete Confirmation Dialog
-    if (state.showDeleteConfirmation) {
-        DeleteConfirmationDialog(
-            isDeleting = state.isDeletingWords,
-            count = state.selectedWordIds.size,
-            onConfirm = viewModel::deleteSelectedWords,
-            onDismiss = viewModel::hideDeleteConfirmation
-        )
-    }
-
-    // Batch Edit Languages Dialog
-    if (state.showBatchEditLanguages) {
-        val selectedWords = state.words.filter { state.selectedWordIds.contains(it.id) }
-        val mostCommonSource = selectedWords
-            .groupingBy { it.sourceLanguage }
-            .eachCount()
-            .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
-        val mostCommonTarget = selectedWords
-            .groupingBy { it.targetLanguage }
-            .eachCount()
-            .maxByOrNull { it.value }?.key ?: utils.Language.ENGLISH
-
-        BatchEditLanguagesDialog(
-            isUpdating = state.isBatchUpdatingLanguages,
-            count = state.selectedWordIds.size,
-            initialSourceLanguage = mostCommonSource,
-            initialTargetLanguage = mostCommonTarget,
-            onConfirm = { source, target ->
-                viewModel.batchUpdateLanguages(source, target)
-            },
-            onDismiss = viewModel::hideBatchEditLanguages
-        )
-    }
 }

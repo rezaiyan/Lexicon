@@ -12,9 +12,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import feature.leaderboard.navigation.LeaderboardRoute
-import feature.leaderboard.navigation.leaderboardGraph
-import feature.profile.navigation.EditProfileRoute
 import feature.profile.navigation.ProfileRoute
 import feature.profile.navigation.profileGraph
 import feature.subscription.navigation.SubscriptionRoute
@@ -22,7 +19,6 @@ import feature.subscription.navigation.subscriptionGraph
 import presentation.model.TabDestination
 import presentation.ui.screens.SettingsScreen
 import presentation.ui.screens.StudyScreen
-import presentation.ui.screens.settings.WordManagerScreen
 
 @Composable
 internal fun NavigationGraph(
@@ -49,13 +45,6 @@ internal fun NavigationGraph(
         // Feature-owned subgraphs
         profileGraph(
             snackbarHostState = snackbarHostState,
-            onNavigateToLeaderboard = { navController.navigate(LeaderboardRoute) },
-            onNavigateToEditProfile = { navController.navigate(EditProfileRoute) },
-            onNavigateBack = { navController.navigateUp() },
-        )
-
-        leaderboardGraph(
-            onNavigateBack = { navController.navigateUp() },
         )
 
         subscriptionGraph(
@@ -70,18 +59,9 @@ internal fun NavigationGraph(
 
         composable<TabDestination.Settings> {
             SettingsScreen(
-                onNavigateToWordManager = {
-                    navController.navigate(TabDestination.WordManager)
-                },
                 onNavigateToSubscription = {
                     navController.navigate(SubscriptionRoute)
                 }
-            )
-        }
-
-        composable<TabDestination.WordManager> {
-            WordManagerScreen(
-                onNavigateBack = { navController.navigateUp() }
             )
         }
     }

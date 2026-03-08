@@ -1,7 +1,5 @@
 package feature.study.ui.review
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,19 +10,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import domain.tts.model.TtsState
 import domain.word.model.Word
 import expects.BackHandler
 import feature.study.model.ReviewScreenState
 import feature.study.model.ReviewType
 import core.common.UiState
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import theme.Theme
+import overlay.LocalOverlayHost
+import overlay.bottomsheet.showSizeToFitBottomSheet
 
 @Composable
 fun ReviewBottomSheet(
@@ -44,62 +39,32 @@ fun ReviewBottomSheet(
     val wordListState = state.wordListState
     val reviewType = state.reviewType
 
+    val overlayHost = LocalOverlayHost.current
+
     var currentIndex by remember { mutableStateOf(0) }
     var isFlipped by remember { mutableStateOf(false) }
-    var editingWord by remember { mutableStateOf<Word?>(null) }
-    var wordToDelete by remember { mutableStateOf<Word?>(null) }
     var initialIndexApplied by remember { mutableStateOf(false) }
     var showCompletion by remember { mutableStateOf(false) }
     var reviewedCount by remember { mutableIntStateOf(0) }
+    var knownCount by remember { mutableIntStateOf(0) }
+    var unknownCount by remember { mutableIntStateOf(0) }
+    var showExitConfirmation by remember { mutableStateOf(false) }
+    var isAutoPlayEnabled by remember { mutableStateOf(false) }
 
     // Track total words at session start for reviewed count
     val initialWordCount = remember(wordListState) {
         if (wordListState is UiState.Loaded) wordListState.value.size else 0
     }
 
-    // Content enter/exit animation — fade + slide for smooth open/close
-    val motion = Theme.motion
-    val coroutineScope = rememberCoroutineScope()
-    var contentVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { contentVisible = true }
-
-    val contentAlpha by animateFloatAsState(
-        targetValue = if (contentVisible) 1f else 0f,
-        animationSpec = if (contentVisible)
-            tween(motion.durationMedium2, delayMillis = motion.durationXShort, easing = motion.easingDecelerate)
-        else
-            tween(motion.durationMedium, easing = motion.easingAccelerate),
-        label = "sheetContentAlpha"
-    )
-    val contentTranslationY by animateFloatAsState(
-        targetValue = if (contentVisible) 0f else 60f,
-        animationSpec = if (contentVisible)
-            tween(motion.durationLong, delayMillis = motion.durationXShort, easing = motion.easingDecelerate)
-        else
-            tween(motion.durationMedium, easing = motion.easingAccelerate),
-        label = "sheetContentSlide"
-    )
-
-    // Animate content out, then invoke the actual dismiss callback
-    val animatedDismiss: (() -> Unit) -> Unit = { callback ->
-        contentVisible = false
-        coroutineScope.launch {
-            delay(motion.durationMedium.toLong())
-            callback()
-        }
-    }
-
-    var showExitConfirmation by remember { mutableStateOf(false) }
-
-    // Close button: browse mode animates out directly;
-    // review mode shows an inline confirmation banner first.
-    val animatedOnClose: () -> Unit = if (reviewType == ReviewType.BROWSE) {
-        { animatedDismiss(onClose) }
+    // Close button: browse mode dismisses directly;
+    // review mode shows exit confirmation bottom sheet.
+    val handleClose: () -> Unit = if (reviewType == ReviewType.BROWSE) {
+        onClose
     } else {
         { showExitConfirmation = true }
     }
 
-    BackHandler(enabled = reviewType == ReviewType.REVIEW && !showCompletion) {
+    BackHandler(enabled = reviewType == ReviewType.REVIEW && !showCompletion && !showExitConfirmation) {
         showExitConfirmation = true
     }
 
@@ -124,8 +89,6 @@ fun ReviewBottomSheet(
                         reviewedCount = initialWordCount
                         showCompletion = true
                     } else {
-                        contentVisible = false
-                        delay(motion.durationMedium.toLong())
                         onReviewComplete()
                     }
                 }
@@ -142,20 +105,28 @@ fun ReviewBottomSheet(
         isFlipped = false
     }
 
+    // Auto-play pronunciation when enabled and card changes
+    LaunchedEffect(currentIndex, isAutoPlayEnabled) {
+        if (isAutoPlayEnabled && wordListState is UiState.Loaded) {
+            val words = wordListState.value
+            val word = words.getOrNull(currentIndex)
+            if (word != null) {
+                onSpeakClick(word.originalWord, word.targetLanguage.code)
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
             .then(modifier)
-            .graphicsLayer {
-                alpha = contentAlpha
-                translationY = contentTranslationY
-            }
     ) {
         if (showCompletion) {
             ReviewCompletionContent(
-                reviewedCount = reviewedCount,
-                onDismiss = { animatedDismiss(onReviewComplete) }
+                knownCount = knownCount,
+                unknownCount = unknownCount,
+                onDismiss = onReviewComplete
             )
         } else {
             when (wordListState) {
@@ -180,7 +151,7 @@ fun ReviewBottomSheet(
                                 isFlipped = isFlipped,
                                 reviewType = reviewType,
                                 title = title,
-                                onClose = animatedOnClose,
+                                onClose = handleClose,
                                 onFlip = { isFlipped = !isFlipped },
                                 onNavigateBack = {
                                     if (currentIndex > 0) {
@@ -195,6 +166,9 @@ fun ReviewBottomSheet(
                                     }
                                 },
                                 onReview = { rating ->
+                                    // Track known/unknown for completion stats
+                                    if (rating >= 1) knownCount++ else unknownCount++
+
                                     handleReview(
                                         words = words,
                                         currentIndex = safeIndex,
@@ -211,60 +185,51 @@ fun ReviewBottomSheet(
                                     )
                                 },
                                 onEdit = {
-                                    editingWord = words[safeIndex]
+                                    val word = words[safeIndex]
+                                    overlayHost.showSizeToFitBottomSheet(tag = "edit-word") { nav ->
+                                        EditWordSheetContent(
+                                            word = word,
+                                            navigator = nav,
+                                            onSave = { updatedWord ->
+                                                onUpdateWord(updatedWord)
+                                            },
+                                            onDelete = {
+                                                val deletedIndex = currentIndex
+                                                val wasLastWord = deletedIndex == words.size - 1
+                                                val wasOnlyWord = words.size == 1
+
+                                                onDeleteWord(word.id) {
+                                                    if (wasOnlyWord) {
+                                                        reviewedCount = initialWordCount
+                                                        showCompletion = true
+                                                    } else if (wasLastWord) {
+                                                        currentIndex = (words.size - 2).coerceAtLeast(0)
+                                                        isFlipped = false
+                                                    } else {
+                                                        isFlipped = false
+                                                    }
+                                                }
+                                            }
+                                        )
+                                    }
                                 },
                                 ttsState = ttsState,
                                 onSpeakClick = onSpeakClick,
-                                showExitConfirmation = showExitConfirmation,
-                                onConfirmExit = { animatedDismiss(onClose) },
-                                onCancelExit = { showExitConfirmation = false },
+                                isAutoPlayEnabled = isAutoPlayEnabled,
+                                onAutoPlayToggle = { isAutoPlayEnabled = it },
                             )
-
-                            editingWord?.let { word ->
-                                EditWordDialog(
-                                    word = word,
-                                    onDismiss = { editingWord = null },
-                                    onSave = { updatedWord ->
-                                        onUpdateWord(updatedWord)
-                                        editingWord = null
-                                    },
-                                    onDelete = {
-                                        editingWord = null
-                                        wordToDelete = word
-                                    }
-                                )
-                            }
-
-                            wordToDelete?.let { word ->
-                                DeleteWordConfirmationDialog(
-                                    word = word,
-                                    onConfirm = {
-                                        val deletedIndex = currentIndex
-                                        val wasLastWord = deletedIndex == words.size - 1
-                                        val wasOnlyWord = words.size == 1
-
-                                        onDeleteWord(word.id) {
-                                            wordToDelete = null
-
-                                            if (wasOnlyWord) {
-                                                reviewedCount = initialWordCount
-                                                showCompletion = true
-                                            } else if (wasLastWord) {
-                                                currentIndex = (words.size - 2).coerceAtLeast(0)
-                                                isFlipped = false
-                                            } else {
-                                                isFlipped = false
-                                            }
-                                        }
-                                    },
-                                    onDismiss = { wordToDelete = null }
-                                )
-                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    if (showExitConfirmation) {
+        ExitConfirmationBottomSheet(
+            onConfirm = onClose,
+            onDismiss = { showExitConfirmation = false }
+        )
     }
 }
 

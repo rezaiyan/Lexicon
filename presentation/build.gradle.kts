@@ -20,7 +20,6 @@ kotlin {
             implementation(project(":platforms"))
             implementation(project(":feature:auth"))
             implementation(project(":feature:subscription"))
-            implementation(project(":feature:leaderboard"))
             implementation(project(":feature:profile"))
             implementation(project(":feature:onboarding"))
             implementation(project(":feature:study"))
