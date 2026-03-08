@@ -36,7 +36,6 @@ import overlay.bottomsheet.showSizeToFitBottomSheet
 fun ReviewBottomSheet(
     modifier: Modifier = Modifier,
     state: ReviewScreenState,
-    title: String,
     onClose: () -> Unit,
     onReviewComplete: () -> Unit,
     onReviewWord: (Word, Int) -> Unit,
@@ -189,7 +188,6 @@ fun ReviewBottomSheet(
                                 currentIndex = safeIndex,
                                 isFlipped = isFlipped,
                                 reviewType = reviewType,
-                                title = title,
                                 onClose = handleClose,
                                 onFlip = { isFlipped = !isFlipped },
                                 onNavigateBack = {

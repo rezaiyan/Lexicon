@@ -113,9 +113,17 @@ class SessionRepositoryImplTest {
     private class FakeAuthDataSource : IAuthDataSource {
         var profileResult: Try<UserDto> = Try.failure(RuntimeException("not set"))
 
-        override suspend fun authenticateWithGoogle(idToken: String): Try<AuthResponse> = Try.failure(RuntimeException("not impl"))
-        override suspend fun authenticateWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthResponse> = Try.failure(RuntimeException("not impl"))
-        override suspend fun refreshTokens(refreshToken: String): Try<AuthResponse> = Try.failure(RuntimeException("not impl"))
+        override suspend fun authenticateWithGoogle(idToken: String): Try<AuthResponse> =
+            Try.failure(RuntimeException("not impl"))
+
+        override suspend fun authenticateWithApple(
+            idToken: String,
+            fullName: String?,
+            appleUserId: String,
+        ): Try<AuthResponse> = Try.failure(RuntimeException("not impl"))
+
+        override suspend fun refreshTokens(refreshToken: String): Try<AuthResponse> =
+            Try.failure(RuntimeException("not impl"))
         override suspend fun logout(refreshToken: String): Try<Unit> = Try.success(Unit)
         override suspend fun getUserProfile(): Try<UserDto> = profileResult
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)

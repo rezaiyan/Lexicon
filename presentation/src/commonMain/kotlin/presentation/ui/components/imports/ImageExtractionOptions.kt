@@ -258,8 +258,18 @@ private fun CaptureButton(
             verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(36.dp))
-            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, maxLines = 2)
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+            )
         }
     }
 }

@@ -1,12 +1,8 @@
 package presentation.ui.components.imports
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,11 +11,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import events.OnEvents
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_failed_generic
-import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.success_imported_words
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -104,12 +98,18 @@ fun ImportBottomSheet(onDismiss: () -> Unit, onShowSnackBar: (String) -> Unit) {
             )
             ImportPage.ConfirmSourceLanguage -> LanguagePickerPage(
                 currentLanguage = state.targetLanguage,
-                onLanguageSelected = { viewModel.selectTargetLanguage(it); currentPage = ImportPage.LanguageConfirmation },
+                onLanguageSelected = {
+                    viewModel.selectTargetLanguage(it)
+                    currentPage = ImportPage.LanguageConfirmation
+                },
                 onBack = { currentPage = ImportPage.LanguageConfirmation },
             )
             ImportPage.ConfirmTargetLanguage -> LanguagePickerPage(
                 currentLanguage = state.sourceLanguage,
-                onLanguageSelected = { viewModel.selectSourceLanguage(it); currentPage = ImportPage.LanguageConfirmation },
+                onLanguageSelected = {
+                    viewModel.selectSourceLanguage(it)
+                    currentPage = ImportPage.LanguageConfirmation
+                },
                 onBack = { currentPage = ImportPage.LanguageConfirmation },
             )
         }

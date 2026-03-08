@@ -69,7 +69,7 @@ internal fun ImagePreviewCard(
     ) {
         PreviewHeader()
 
-        PreviewImage(imageBitmap = imageBitmap, imageBytes = imageBytes)
+        PreviewImage(imageBitmap = imageBitmap)
 
         AnimatedVisibility(
             visible = imageBitmap != null,
@@ -121,7 +121,6 @@ private fun PreviewHeader() {
 @Composable
 private fun PreviewImage(
     imageBitmap: androidx.compose.ui.graphics.ImageBitmap?,
-    imageBytes: ByteArray,
 ) {
     Card(
         modifier = Modifier

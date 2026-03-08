@@ -248,7 +248,10 @@ class AuthRepositoryImplTest {
         var authenticated = false
         val authFlow = MutableStateFlow(false)
         override val isAuthenticatedFlow: StateFlow<Boolean> get() = authFlow
-        override suspend fun setAuthenticated(isAuthenticated: Boolean) { authenticated = isAuthenticated; authFlow.value = isAuthenticated }
+        override suspend fun setAuthenticated(isAuthenticated: Boolean) {
+            authenticated = isAuthenticated
+            authFlow.value = isAuthenticated
+        }
         override suspend fun isAuthenticated(): Boolean = authenticated
         override fun initialize(scope: CoroutineScope) {}
     }
@@ -264,10 +267,22 @@ class AuthRepositoryImplTest {
         var deleteResult: Try<Unit> = Try.success(Unit)
         var lastLogoutRefreshToken: String? = null
 
-        override suspend fun authenticateWithGoogle(idToken: String): Try<AuthResponse> = googleResult
-        override suspend fun authenticateWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthResponse> = appleResult
-        override suspend fun refreshTokens(refreshToken: String): Try<AuthResponse> = Try.failure(RuntimeException("not impl"))
-        override suspend fun logout(refreshToken: String): Try<Unit> { lastLogoutRefreshToken = refreshToken; return Try.success(Unit) }
+        override suspend fun authenticateWithGoogle(idToken: String): Try<AuthResponse> =
+            googleResult
+
+        override suspend fun authenticateWithApple(
+            idToken: String,
+            fullName: String?,
+            appleUserId: String,
+        ): Try<AuthResponse> = appleResult
+
+        override suspend fun refreshTokens(refreshToken: String): Try<AuthResponse> =
+            Try.failure(RuntimeException("not impl"))
+
+        override suspend fun logout(refreshToken: String): Try<Unit> {
+            lastLogoutRefreshToken = refreshToken
+            return Try.success(Unit)
+        }
         override suspend fun getUserProfile(): Try<UserDto> = Try.failure(RuntimeException("not impl"))
         override suspend fun deleteAccount(): Try<Unit> = deleteResult
     }

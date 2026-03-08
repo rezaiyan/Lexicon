@@ -50,8 +50,6 @@ import feature.study.ui.study.WordDistributionBar
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
-import lexicon.resources.generated.resources.review_due_cards
-import lexicon.resources.generated.resources.stage_words_string
 import overlay.bottomsheet.showSizeToFitBottomSheet
 
 /** Non-dismissable sheet configuration reused for import and review flows. */
@@ -192,7 +190,6 @@ fun StudyScreen() {
                                     val sheetTts = sheetState.ttsState
 
                                     ReviewBottomSheetContent(
-                                        title = stringResource(Res.string.review_due_cards),
                                         reviewType = ReviewType.REVIEW,
                                         reviewState = sheetState.review,
                                         initialWord = event.firstWord,
@@ -238,7 +235,6 @@ fun StudyScreen() {
                                 val sheetTts = sheetState.ttsState
 
                                 ReviewBottomSheetContent(
-                                    title = stringResource(Res.string.stage_words_string, stageName),
                                     reviewType = ReviewType.BROWSE,
                                     reviewState = sheetState.review,
                                     onClose = navigator::dismiss,

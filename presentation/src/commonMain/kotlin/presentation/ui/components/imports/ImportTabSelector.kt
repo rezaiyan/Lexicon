@@ -89,7 +89,11 @@ internal fun ImportTabContent(
                     .togetherWith(
                         fadeOut(tween(animDuration / 2, easing = EaseInOut)) +
                             slideOutVertically(tween(animDuration / 2, easing = EaseInOut)) { -it / 16 }
-                    ).using(SizeTransform(clip = false, sizeAnimationSpec = { _, _ -> tween(animDuration, easing = EaseInOut) }))
+                    ).using(
+                        SizeTransform(clip = false) { _, _ ->
+                            tween(animDuration, easing = EaseInOut)
+                        }
+                    )
             },
         ) { _ ->
             when (val tab = state.selectedTab) {

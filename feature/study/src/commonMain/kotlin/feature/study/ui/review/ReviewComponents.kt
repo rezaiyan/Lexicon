@@ -77,7 +77,6 @@ import theme.Theme
  */
 @Composable
 private fun ReviewTopBar(
-    title: String,
     currentIndex: Int,
     totalCount: Int,
     isAutoPlayEnabled: Boolean,
@@ -226,7 +225,6 @@ fun ReviewContent(
     currentIndex: Int,
     isFlipped: Boolean,
     reviewType: ReviewType,
-    title: String,
     onClose: () -> Unit,
     onFlip: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -251,7 +249,6 @@ fun ReviewContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ReviewTopBar(
-            title = title,
             currentIndex = currentIndex,
             totalCount = words.size,
             isAutoPlayEnabled = isAutoPlayEnabled,

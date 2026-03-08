@@ -13,7 +13,6 @@ import feature.study.model.ReviewType
  */
 @Composable
 fun ReviewBottomSheetContent(
-    title: String,
     reviewType: ReviewType,
     reviewState: ReviewScreenState,
     onClose: () -> Unit,
@@ -28,7 +27,6 @@ fun ReviewBottomSheetContent(
 ) {
     ReviewBottomSheet(
         state = reviewState.copy(reviewType = reviewType),
-        title = title,
         onClose = onClose,
         onReviewComplete = onReviewComplete,
         onReviewWord = onReviewWord,

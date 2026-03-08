@@ -12,7 +12,6 @@ import kotlin.test.assertEquals
 class GetFeatureAccessUseCaseTest {
 
     private val repository = FakeAuthRepository()
-    private val useCase = GetFeatureAccessUseCase(repository)
 
     @Test
     fun `emits feature access response from repository`() = runTest {

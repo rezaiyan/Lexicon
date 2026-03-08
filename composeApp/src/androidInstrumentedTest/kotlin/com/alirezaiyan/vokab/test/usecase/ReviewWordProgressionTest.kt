@@ -295,7 +295,10 @@ class ReviewWordProgressionTest {
             reviewUseCase(word, quality = 1)
 
             val updated = repository.getWordById(1)!!
-            println("Review ${i + 1}: Level ${updated.level}, Reps ${updated.repetitions}, Interval ${updated.interval}")
+            println(
+                "Review ${i + 1}: Level ${updated.level}, " +
+                    "Reps ${updated.repetitions}, Interval ${updated.interval}"
+            )
         }
 
         val final = repository.getWordById(1)!!

@@ -35,12 +35,14 @@ tags:
 
 # Pause to let the viewer see the Study screen with stats.
 - waitForAnimationToEnd
-- scroll:
-    direction: DOWN
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
     duration: 1500
 
-- scroll:
-    direction: UP
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
     duration: 1500
 
 # ─────────────────────────────────────────────
@@ -61,8 +63,14 @@ tags:
     optional: true
 
 # The manual import sheet opens with "Type Text" tab.
+- waitForAnimationToEnd
 - assertVisible: "Type Text"
-- assertVisible: "Add a Word"
+
+# Wait for the sheet content to fully render.
+- scrollUntilVisible:
+    element: "Original Word"
+    direction: DOWN
+    timeout: 5000
 
 # Fill in a demo word.
 - tapOn: "Original Word"
@@ -79,7 +87,7 @@ tags:
     direction: DOWN
 
 - tapOn: "Description (Optional)"
-- inputText: "German origin — the joy of exploring new places"
+- inputText: "German origin - the joy of exploring new places"
 - hideKeyboard
 
 # Submit the word.
@@ -107,7 +115,7 @@ tags:
 
 # Back to "Type Text" for a clean exit.
 - tapOn: "Type Text"
-- assertVisible: "Add a Word"
+- waitForAnimationToEnd
 
 # Close the import sheet.
 - tapOn: "Close"
@@ -252,12 +260,14 @@ tags:
 - assertVisible: "Search words..."
 
 # Scroll down to browse words.
-- scroll:
-    direction: DOWN
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
     duration: 1500
 
-- scroll:
-    direction: UP
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
     duration: 1500
 
 # Search for the word we added.
@@ -310,13 +320,15 @@ tags:
 - assertVisible: "Leaderboard"
 
 # Scroll to see weekly activity and stats.
-- scroll:
-    direction: DOWN
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
     duration: 1500
 
 # Scroll back up.
-- scroll:
-    direction: UP
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
     duration: 1500
 
 # Show more options menu.
