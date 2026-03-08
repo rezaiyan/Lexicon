@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package feature.profile.ui
+package feature.profile.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -23,7 +22,6 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,9 +39,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import components.dialog.LexiconDialogContent
 import feature.profile.EditProfileEffect
 import feature.profile.EditProfileViewModel
-import feature.profile.ui.components.ProfileAvatar
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.change_photo
 import lexicon.resources.generated.resources.choose_from_gallery
@@ -63,7 +61,7 @@ import theme.Theme
 import utils.rememberImagePickerLauncher
 
 @Composable
-internal fun EditProfileSheetContent(
+fun EditProfileSheetContent(
     snackbarHostState: SnackbarHostState,
     overlayHost: OverlayHost,
     onBack: () -> Unit,
@@ -247,48 +245,12 @@ private fun AvatarOptionsSheet(
     onChooseFromGallery: () -> Unit,
     onRemovePhoto: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(bottom = Theme.spacing.lg)
-    ) {
-        Text(
-            text = stringResource(Res.string.change_photo),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(Theme.spacing.lg)
-        )
-
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-        )
-
-        Text(
-            text = stringResource(Res.string.choose_from_gallery),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onChooseFromGallery)
-                .padding(
-                    horizontal = Theme.spacing.lg,
-                    vertical = Theme.spacing.md
-                )
-        )
-
-        if (hasExistingAvatar) {
-            Text(
-                text = stringResource(Res.string.remove_photo),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onRemovePhoto)
-                    .padding(
-                        horizontal = Theme.spacing.lg,
-                        vertical = Theme.spacing.md
-                    )
-            )
-        }
-    }
+    LexiconDialogContent(
+        icon = Icons.Default.CameraAlt,
+        title = stringResource(Res.string.change_photo),
+        primaryButtonText = stringResource(Res.string.choose_from_gallery),
+        primaryButtonOnClick = onChooseFromGallery,
+        secondaryButtonText = if (hasExistingAvatar) stringResource(Res.string.remove_photo) else null,
+        secondaryButtonOnClick = if (hasExistingAvatar) onRemovePhoto else null
+    )
 }

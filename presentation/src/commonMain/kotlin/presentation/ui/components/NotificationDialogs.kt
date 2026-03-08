@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -42,10 +41,6 @@ fun NotificationPermissionContent(
     onEnableNotifications: () -> Unit
 ) {
     LexiconDialogContent(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg),
         icon = Icons.Default.Notifications,
         title = stringResource(Res.string.notification_permission_title),
         message = stringResource(Res.string.notification_permission_message),
@@ -64,10 +59,6 @@ fun NotificationSettingsContent(
     onDismiss: () -> Unit
 ) {
     LexiconDialogContent(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg),
         iconState = DialogIconState.Icon(Icons.Default.Notifications),
         title = stringResource(Res.string.notification_settings_title),
         content = {

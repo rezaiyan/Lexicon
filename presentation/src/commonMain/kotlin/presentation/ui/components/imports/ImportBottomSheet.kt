@@ -1,9 +1,10 @@
 package presentation.ui.components.imports
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -125,18 +126,12 @@ private fun ImportMainPage(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm)
+            .padding(Theme.spacing.lg)
             .imePadding()
     ) {
-        Text(
-            stringResource(Res.string.import_words),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = Theme.spacing.sm)
-        )
 
         ImportTabSelector(
+            modifier = Modifier.padding(vertical = Theme.spacing.xl),
             tabs = state.tabs,
             selectedTab = state.selectedTab,
             onTabSelected = viewModel::selectTab,
@@ -144,7 +139,7 @@ private fun ImportMainPage(
 
         ImportTabContent(
             modifier = Modifier
-                .padding(top = Theme.spacing.md)
+                .padding(top = Theme.spacing.lg)
                 .weight(1f, fill = false),
             state = state,
             viewModel = viewModel,

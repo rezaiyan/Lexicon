@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import components.dialog.LexiconDialogContent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -44,6 +43,7 @@ import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
 import feature.profile.ui.components.DeleteAccountCoolingContent
 import feature.profile.ui.components.DeleteAccountHiddenContent
+import feature.profile.ui.components.EditProfileSheetContent
 import feature.profile.ui.components.LogoutDialogContent
 import feature.profile.ui.components.MemberSinceSection
 import feature.profile.ui.components.StreakSection
@@ -53,7 +53,7 @@ import overlay.OverlayHost
 import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.BottomSheetProperties
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
-import overlay.bottomsheet.showFullscreenBottomSheet
+import overlay.bottomsheet.showSizeToFitBottomSheet
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import components.animation.staggeredFadeSlide
 import feature.leaderboard.navigation.showLeaderboard
@@ -98,7 +98,7 @@ fun ProfileScreen(
                 icon = Icons.Default.MoreVert,
                 contentDescription = stringResource(Res.string.more_options),
                 onClick = {
-                    overlayHost.showFullscreenBottomSheet(tag = "more-options") { sheetNav ->
+                    overlayHost.showSizeToFitBottomSheet(tag = "more-options") { sheetNav ->
                         val pages = rememberBottomSheetPageNavigator<MoreOptionsPage>(MoreOptionsPage.Options)
 
                         LaunchedEffect(pages.currentPage) {
@@ -297,73 +297,56 @@ private fun ProfileMoreOptionsSheet(
     onEditProfile: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(bottom = Theme.spacing.lg)
-    ) {
-        Text(
-            text = stringResource(Res.string.more_options),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(Theme.spacing.lg)
-        )
+    LexiconDialogContent(
+        title = stringResource(Res.string.more_options),
+        content = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onEditProfile)
+                        .padding(vertical = Theme.spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.width(Theme.spacing.md))
+                    Text(
+                        text = stringResource(Res.string.edit_profile),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
 
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onEditProfile)
-                .padding(
-                    horizontal = Theme.spacing.lg,
-                    vertical = Theme.spacing.md
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.width(Theme.spacing.md))
-            Text(
-                text = stringResource(Res.string.edit_profile),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onDeleteAccount)
+                        .padding(vertical = Theme.spacing.md),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.width(Theme.spacing.md))
+                    Text(
+                        text = stringResource(Res.string.delete_account),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onDeleteAccount)
-                .padding(
-                    horizontal = Theme.spacing.lg,
-                    vertical = Theme.spacing.md
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
-                tint = MaterialTheme.colorScheme.error
-            )
-            Spacer(modifier = Modifier.width(Theme.spacing.md))
-            Text(
-                text = stringResource(Res.string.delete_account),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.error
-            )
-        }
-    }
+    )
 }
 
 private sealed interface MoreOptionsPage {

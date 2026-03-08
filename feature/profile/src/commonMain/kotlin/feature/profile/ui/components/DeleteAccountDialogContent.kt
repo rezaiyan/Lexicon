@@ -1,8 +1,5 @@
 package feature.profile.ui.components
 
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Timer
@@ -20,7 +17,6 @@ import components.dialog.ButtonType
 import components.dialog.DialogIconState
 import components.dialog.DialogProgressState
 import components.dialog.LexiconDialogContent
-import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete_account_cooling_period_cancel
@@ -38,10 +34,6 @@ fun DeleteAccountHiddenContent(
     onDismiss: () -> Unit
 ) {
     LexiconDialogContent(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg),
         icon = Icons.Default.Delete,
         iconTint = MaterialTheme.colorScheme.error,
         title = stringResource(Res.string.delete_account_hidden_title),
@@ -75,10 +67,6 @@ fun DeleteAccountCoolingContent(
     }
 
     LexiconDialogContent(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg),
         iconState = DialogIconState.Icon(Icons.Default.Timer),
             title = stringResource(Res.string.delete_account_cooling_period_title),
             message = coolingPeriodMessage,

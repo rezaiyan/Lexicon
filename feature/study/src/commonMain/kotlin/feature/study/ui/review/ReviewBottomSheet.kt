@@ -13,11 +13,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import domain.tts.model.TtsState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import domain.word.model.Word
 import expects.BackHandler
 import feature.study.model.ReviewScreenState
 import feature.study.model.ReviewType
 import core.common.UiState
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.exit_review
+import lexicon.resources.generated.resources.exit_review_message
+import org.jetbrains.compose.resources.stringResource
+import components.dialog.ButtonState
+import components.dialog.ButtonType
+import components.dialog.DialogIconState
+import components.dialog.LexiconDialogContent
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.showSizeToFitBottomSheet
 
@@ -48,7 +59,6 @@ fun ReviewBottomSheet(
     var reviewedCount by remember { mutableIntStateOf(0) }
     var knownCount by remember { mutableIntStateOf(0) }
     var unknownCount by remember { mutableIntStateOf(0) }
-    var showExitConfirmation by remember { mutableStateOf(false) }
     var isAutoPlayEnabled by remember { mutableStateOf(false) }
 
     // Track total words at session start for reviewed count
@@ -56,16 +66,45 @@ fun ReviewBottomSheet(
         if (wordListState is UiState.Loaded) wordListState.value.size else 0
     }
 
+    // Exit confirmation via overlay
+    val exitReviewTitle = stringResource(Res.string.exit_review)
+    val exitReviewMessage = stringResource(Res.string.exit_review_message)
+    val cancelText = stringResource(Res.string.cancel)
+    val showExitConfirmation: () -> Unit = {
+        overlayHost.showSizeToFitBottomSheet(tag = "exit-confirmation") { nav ->
+            LexiconDialogContent(
+                iconState = DialogIconState.Icon(
+                    imageVector = Icons.Default.Warning,
+                    tint = MaterialTheme.colorScheme.error
+                ),
+                title = exitReviewTitle,
+                message = exitReviewMessage,
+                primaryButton = ButtonState(
+                    text = exitReviewTitle,
+                    onClick = {
+                        nav.dismiss()
+                        onClose()
+                    },
+                    type = ButtonType.Error
+                ),
+                secondaryButton = ButtonState(
+                    text = cancelText,
+                    onClick = { nav.dismiss() }
+                )
+            )
+        }
+    }
+
     // Close button: browse mode dismisses directly;
     // review mode shows exit confirmation bottom sheet.
     val handleClose: () -> Unit = if (reviewType == ReviewType.BROWSE) {
         onClose
     } else {
-        { showExitConfirmation = true }
+        showExitConfirmation
     }
 
-    BackHandler(enabled = reviewType == ReviewType.REVIEW && !showCompletion && !showExitConfirmation) {
-        showExitConfirmation = true
+    BackHandler(enabled = reviewType == ReviewType.REVIEW && !showCompletion) {
+        showExitConfirmation()
     }
 
     LaunchedEffect(initialWord, wordListState) {
@@ -225,12 +264,6 @@ fun ReviewBottomSheet(
         }
     }
 
-    if (showExitConfirmation) {
-        ExitConfirmationBottomSheet(
-            onConfirm = onClose,
-            onDismiss = { showExitConfirmation = false }
-        )
-    }
 }
 
 

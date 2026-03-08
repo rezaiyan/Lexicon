@@ -9,7 +9,6 @@ import data.core.database.LexiconDao
 import data.core.database.WordEntity
 import com.alirezaiyan.vokab.test.utils.TestConstants
 import com.alirezaiyan.vokab.test.utils.TestUtils
-import com.alirezaiyan.vokab.test.database.WordOrderingTestHelpers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After

@@ -14,6 +14,8 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,8 +51,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.ai_powered_extraction
@@ -110,6 +114,7 @@ internal fun ImageImportContent(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
             ) {
                 if (showPreview && imageTab.selectedImage != null) {
                     ImagePreviewCard(
@@ -146,8 +151,11 @@ internal fun ImageImportContent(
                     onClick = onDismiss,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .height(Theme.dimensions.buttonHeight)
                         .imePadding(),
-                    enabled = isEnabled
+                    enabled = isEnabled,
+                    shape = RoundedCornerShape(Theme.shapes.medium)
                 ) {
                     Text(stringResource(Res.string.cancel))
                 }
@@ -166,27 +174,23 @@ private fun ImageSelectionContent(
     onGalleryClick: () -> Unit,
     isEnabled: Boolean,
 ) {
-    AiExtractionInfoCard()
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+        AiExtractionInfoCard()
 
-    Spacer(modifier = Modifier.height(Theme.spacing.lg))
+        ExtractionOptionsCard(
+            extractWords = extractWords,
+            extractSentences = extractSentences,
+            onExtractWordsChange = onExtractWordsChange,
+            onExtractSentencesChange = onExtractSentencesChange,
+            isEnabled = isEnabled
+        )
 
-    ExtractionOptionsCard(
-        extractWords = extractWords,
-        extractSentences = extractSentences,
-        onExtractWordsChange = onExtractWordsChange,
-        onExtractSentencesChange = onExtractSentencesChange,
-        isEnabled = isEnabled
-    )
-
-    Spacer(modifier = Modifier.height(Theme.spacing.lg))
-
-    CaptureButtons(
-        onCameraClick = onCameraClick,
-        onGalleryClick = onGalleryClick,
-        isEnabled = (extractWords || extractSentences) && isEnabled,
-    )
-
-    Spacer(modifier = Modifier.height(Theme.spacing.lg))
+        CaptureButtons(
+            onCameraClick = onCameraClick,
+            onGalleryClick = onGalleryClick,
+            isEnabled = (extractWords || extractSentences) && isEnabled,
+        )
+    }
 }
 
 // region Info & Options Cards
@@ -196,7 +200,7 @@ private fun AiExtractionInfoCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
         ),
         shape = RoundedCornerShape(Theme.shapes.medium)
     ) {
@@ -216,15 +220,15 @@ private fun AiExtractionInfoCard() {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     stringResource(Res.string.ai_powered_extraction),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
                 Text(
                     stringResource(Res.string.capture_vocab_from_image),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -241,9 +245,10 @@ private fun ExtractionOptionsCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
         shape = RoundedCornerShape(Theme.shapes.medium),
-        border = CardDefaults.outlinedCardBorder()
     ) {
         Column(modifier = Modifier.padding(Theme.spacing.md)) {
             Text(
@@ -263,7 +268,10 @@ private fun ExtractionOptionsCard(
                 subtitle = stringResource(Res.string.individual_words_hint),
             )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = Theme.spacing.xxxs))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = Theme.spacing.xxxs),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
 
             ExtractionCheckbox(
                 checked = extractSentences,
@@ -275,11 +283,16 @@ private fun ExtractionOptionsCard(
         }
     }
 
-    if (!extractWords && !extractSentences) {
-        Spacer(modifier = Modifier.height(Theme.spacing.xs))
+    AnimatedVisibility(
+        visible = !extractWords && !extractSentences,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically()
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = Theme.spacing.xxs),
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
@@ -340,7 +353,7 @@ private fun CaptureButtons(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
     ) {
         CaptureButton(
             onClick = onCameraClick,
@@ -379,7 +392,7 @@ private fun CaptureButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.height(140.dp),
+        modifier = modifier.height(130.dp),
         shape = RoundedCornerShape(Theme.shapes.large),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
@@ -390,7 +403,7 @@ private fun CaptureButton(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(Theme.dimensions.touchTarget))
+            Icon(icon, contentDescription = null, modifier = Modifier.size(36.dp))
             Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center, maxLines = 2)
         }
@@ -413,7 +426,6 @@ private fun ImagePreviewCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.extraLarge))
             .padding(Theme.spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
@@ -452,14 +464,18 @@ private fun PreviewHeader() {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 stringResource(Res.string.preview_selected_image),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 stringResource(Res.string.review_before_processing),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -474,10 +490,13 @@ private fun PreviewImage(
         modifier = Modifier
             .fillMaxWidth()
             .height(240.dp),
-        shape = RoundedCornerShape(Theme.shapes.extraLarge),
-        elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.extraHigh),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+        shape = RoundedCornerShape(Theme.shapes.large),
+        elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.medium),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        border = BorderStroke(
+            Theme.dimensions.hairlineThickness,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -550,15 +569,21 @@ private fun PreviewActions(
     ) {
         OutlinedButton(
             onClick = onCancel,
-            modifier = Modifier.weight(1f),
-            enabled = isEnabled
+            modifier = Modifier
+                .weight(1f)
+                .height(Theme.dimensions.buttonHeight),
+            enabled = isEnabled,
+            shape = RoundedCornerShape(Theme.shapes.medium)
         ) {
             Text(stringResource(Res.string.cancel))
         }
         Button(
             onClick = onConfirm,
-            modifier = Modifier.weight(1f),
-            enabled = isEnabled
+            modifier = Modifier
+                .weight(1f)
+                .height(Theme.dimensions.buttonHeight),
+            enabled = isEnabled,
+            shape = RoundedCornerShape(Theme.shapes.medium)
         ) {
             Text(stringResource(Res.string.confirm_and_extract))
         }

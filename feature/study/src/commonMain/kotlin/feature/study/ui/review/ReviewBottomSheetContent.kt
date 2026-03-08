@@ -1,7 +1,6 @@
 package feature.study.ui.review
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import domain.tts.model.TtsState
 import domain.word.model.Word
 import feature.study.model.ReviewScreenState

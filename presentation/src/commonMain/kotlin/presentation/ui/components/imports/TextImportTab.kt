@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,7 +26,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -32,6 +33,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,11 +48,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.add_a_word
 import lexicon.resources.generated.resources.add_word
-import lexicon.resources.generated.resources.add_word_description
 import lexicon.resources.generated.resources.description_optional
 import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.original_word
@@ -91,24 +91,15 @@ internal fun TextImportContent(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
         ) {
-            ImportInfoCard(
-                title = stringResource(Res.string.add_a_word),
-                description = stringResource(Res.string.add_word_description),
-                icon = Icons.Filled.Edit
-            )
-
-            Spacer(modifier = Modifier.height(Theme.spacing.sm))
-
             LanguageSelectorRow(
                 sourceLanguage = sourceLanguage,
                 targetLanguage = targetLanguage,
                 onShowSourceLanguage = onShowSourceLanguage,
                 onShowTargetLanguage = onShowTargetLanguage,
             )
-
-            Spacer(modifier = Modifier.height(Theme.spacing.sm))
 
             WordInputFields(
                 textInputState = textInputState,
@@ -126,17 +117,25 @@ internal fun TextImportContent(
 
             ErrorMessage(textInputState.errorMessage)
 
-            Spacer(modifier = Modifier.height(Theme.spacing.lg))
+            Spacer(modifier = Modifier.height(Theme.spacing.md))
         }
 
         Button(
             onClick = onAddWord,
             enabled = isAddEnabled,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .height(Theme.dimensions.buttonHeight),
+            shape = RoundedCornerShape(Theme.shapes.medium),
         ) {
-            Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(Theme.spacing.xxxs))
-            Text(stringResource(Res.string.add_word))
+            Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(Theme.dimensions.iconSizeMedium))
+            Spacer(modifier = Modifier.width(Theme.spacing.xs))
+            Text(
+                stringResource(Res.string.add_word),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -177,7 +176,11 @@ private fun CompactLanguageSelector(
     Card(
         modifier = modifier.clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        border = BorderStroke(
+            Theme.dimensions.hairlineThickness,
+            MaterialTheme.colorScheme.outlineVariant
         ),
         shape = RoundedCornerShape(Theme.shapes.medium)
     ) {
@@ -199,12 +202,14 @@ private fun CompactLanguageSelector(
                     text = language.nativeName,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -224,6 +229,14 @@ private fun WordInputFields(
     onDescriptionChange: (String) -> Unit,
     onAddWord: () -> Unit,
 ) {
+    val fieldShape = RoundedCornerShape(Theme.shapes.medium)
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+    )
+
     OutlinedTextField(
         value = textInputState.word,
         onValueChange = onWordChange,
@@ -233,13 +246,13 @@ private fun WordInputFields(
             .focusRequester(wordFocusRequester),
         singleLine = true,
         enabled = textInputState.isEnabled,
+        shape = fieldShape,
+        colors = fieldColors,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { translationFocusRequester.requestFocus() }
         )
     )
-
-    Spacer(modifier = Modifier.height(Theme.spacing.xs))
 
     OutlinedTextField(
         value = textInputState.translation,
@@ -250,13 +263,13 @@ private fun WordInputFields(
             .focusRequester(translationFocusRequester),
         singleLine = true,
         enabled = textInputState.isEnabled,
+        shape = fieldShape,
+        colors = fieldColors,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = { descriptionFocusRequester.requestFocus() }
         )
     )
-
-    Spacer(modifier = Modifier.height(Theme.spacing.xs))
 
     OutlinedTextField(
         value = textInputState.description,
@@ -267,6 +280,8 @@ private fun WordInputFields(
             .focusRequester(descriptionFocusRequester),
         singleLine = true,
         enabled = textInputState.isEnabled,
+        shape = fieldShape,
+        colors = fieldColors,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(
             onDone = { if (isAddEnabled) onAddWord() }
@@ -281,35 +296,43 @@ private fun WordsAddedCounter(textInputState: TextInputState) {
         enter = fadeIn() + expandVertically(),
         exit = fadeOut() + shrinkVertically()
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = Theme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            ),
+            shape = RoundedCornerShape(Theme.shapes.medium)
         ) {
-            AnimatedVisibility(
-                visible = textInputState.showSuccessIndicator,
-                enter = fadeIn() + scaleIn(initialScale = 0.5f),
-                exit = fadeOut()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    Icons.Filled.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(Theme.dimensions.iconSizeMedium)
-                        .padding(end = Theme.spacing.xxs)
+                AnimatedVisibility(
+                    visible = textInputState.showSuccessIndicator,
+                    enter = fadeIn() + scaleIn(initialScale = 0.5f),
+                    exit = fadeOut()
+                ) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .size(Theme.dimensions.iconSizeMedium)
+                            .padding(end = Theme.spacing.xxs)
+                    )
+                }
+                val countText = stringResource(Res.string.words_added_count)
+                val placeholder = "%1" + '$' + "d"
+                Text(
+                    text = countText.replace(placeholder, textInputState.wordsAddedCount.toString()),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-            val countText = stringResource(Res.string.words_added_count)
-            val placeholder = "%1" + '$' + "d"
-            Text(
-                text = countText.replace(placeholder, textInputState.wordsAddedCount.toString()),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium
-            )
         }
     }
 }
@@ -321,11 +344,22 @@ private fun ErrorMessage(errorMessage: String?) {
         enter = fadeIn() + expandVertically(),
         exit = fadeOut() + shrinkVertically()
     ) {
-        Text(
-            text = errorMessage.orEmpty(),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(top = Theme.spacing.xs)
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+            ),
+            shape = RoundedCornerShape(Theme.shapes.medium)
+        ) {
+            Text(
+                text = errorMessage.orEmpty(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(
+                    horizontal = Theme.spacing.md,
+                    vertical = Theme.spacing.sm
+                )
+            )
+        }
     }
 }

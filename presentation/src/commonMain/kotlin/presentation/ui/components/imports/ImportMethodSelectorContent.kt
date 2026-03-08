@@ -1,16 +1,14 @@
 package presentation.ui.components.imports
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -26,10 +24,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import components.animation.staggeredFadeSlide
+import components.dialog.LexiconDialogContent
 import theme.Theme
 
 @Composable
@@ -37,81 +37,65 @@ fun ImportMethodSelectorContent(
     onManual: () -> Unit,
     onAiAssistant: () -> Unit,
 ) {
-    val spacing = Theme.spacing
-    val dimensions = Theme.dimensions
+    LexiconDialogContent(
+        title = "Add Words",
+        message = "Choose how you'd like to build your vocabulary",
+        content = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
+            ) {
+                AiAssistantCard(
+                    onClick = onAiAssistant,
+                    modifier = Modifier.staggeredFadeSlide(0),
+                )
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = spacing.lg)
-            .padding(bottom = spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(spacing.sm)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(spacing.xxs)
-        ) {
-            Text(
-                text = "Add Words",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "Choose how you'd like to build your vocabulary",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                OrDivider(modifier = Modifier.staggeredFadeSlide(1))
+
+                ManualImportCard(
+                    onClick = onManual,
+                    modifier = Modifier.staggeredFadeSlide(2),
+                )
+            }
         }
-
-        AiAssistantCard(onAiAssistant, spacing, dimensions)
-
-        OrDivider(spacing)
-
-        ManualImportCard(onManual, spacing, dimensions)
-    }
+    )
 }
 
 @Composable
 private fun AiAssistantCard(
     onClick: () -> Unit,
-    spacing: theme.AppSpacing,
-    dimensions: theme.AppDimensions,
+    modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(dimensions.cardCornerRadius))
-            .background(
-                Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primary,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
-                    )
-                )
-            )
+            .clip(RoundedCornerShape(Theme.dimensions.cardCornerRadius))
+            .background(Theme.gradients.premiumHero)
     ) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(spacing.small)
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.07f))
-        )
+        Canvas(modifier = Modifier.matchParentSize()) {
+            drawCircle(
+                color = Color.White.copy(alpha = 0.06f),
+                radius = 80.dp.toPx(),
+                center = Offset(x = size.width - 20.dp.toPx(), y = -10.dp.toPx())
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.04f),
+                radius = 50.dp.toPx(),
+                center = Offset(x = 30.dp.toPx(), y = size.height + 20.dp.toPx())
+            )
+        }
         Card(
             onClick = onClick,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(dimensions.cardCornerRadius),
+            shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius),
             colors = CardDefaults.cardColors(containerColor = Color.Transparent),
             elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.none)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(spacing.medium),
+                    .padding(Theme.spacing.md),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(spacing.medium)
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md)
             ) {
                 Box(
                     modifier = Modifier
@@ -152,11 +136,11 @@ private fun AiAssistantCard(
 }
 
 @Composable
-private fun OrDivider(spacing: theme.AppSpacing) {
+private fun OrDivider(modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(spacing.xs)
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
     ) {
         HorizontalDivider(modifier = Modifier.weight(1f))
         Text(
@@ -171,30 +155,28 @@ private fun OrDivider(spacing: theme.AppSpacing) {
 @Composable
 private fun ManualImportCard(
     onClick: () -> Unit,
-    spacing: theme.AppSpacing,
-    dimensions: theme.AppDimensions,
+    modifier: Modifier = Modifier,
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(dimensions.cardCornerRadius),
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        border = BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(spacing.medium),
+                .padding(Theme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.medium)
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md)
         ) {
             Box(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

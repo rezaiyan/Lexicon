@@ -8,7 +8,6 @@ import data.core.database.AppDatabase
 import com.alirezaiyan.vokab.test.utils.TestUtils
 import com.alirezaiyan.vokab.test.utils.createTestReviewSettingsUseCase
 import data.word.repository.WordRepositoryImpl
-import domain.word.model.Word
 import domain.word.usecase.ReviewWordUseCase
 import kotlinx.coroutines.test.runTest
 import org.junit.After

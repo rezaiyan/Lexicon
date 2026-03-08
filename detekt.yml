@@ -17,6 +17,8 @@ complexity:
     thresholdInInterfaces: 10
 
 style:
+  UnusedImports:
+    active: true
   MagicNumber:
     active: false
   ReturnCount:

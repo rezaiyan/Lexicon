@@ -20,7 +20,6 @@ import kotlinx.coroutines.test.runTest
 import utils.Language
 import domain.settings.model.ThemeMode
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 

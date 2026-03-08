@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import feature.words.model.WordManagerEffect
-import feature.words.model.WordManagerScreenState
 
 class WordEditingHandler(
     private val updateWordUseCase: UpdateWordUseCase,

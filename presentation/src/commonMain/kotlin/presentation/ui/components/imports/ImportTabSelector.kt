@@ -1,11 +1,18 @@
 package presentation.ui.components.imports
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -15,16 +22,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import components.TabHost
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.processing_image_with_ai
 import org.jetbrains.compose.resources.stringResource
@@ -35,6 +40,7 @@ import utils.rememberImagePickerLauncher
 
 @Composable
 internal fun ImportTabSelector(
+    modifier: Modifier = Modifier,
     tabs: List<ImportTabV2>,
     selectedTab: ImportTabV2,
     onTabSelected: (ImportTabV2) -> Unit,
@@ -42,40 +48,23 @@ internal fun ImportTabSelector(
     val selectedTabIndex = tabs.indexOfFirst { it::class == selectedTab::class }
         .coerceAtLeast(0)
 
-    PrimaryTabRow(
-        selectedTabIndex = selectedTabIndex,
-        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.medium)),
-        tabs = {
-            tabs.forEach { tab ->
-                val isSelected = tab::class == selectedTab::class
-                Tab(
-                    selected = isSelected,
-                    onClick = { onTabSelected(tab) },
-                    modifier = Modifier.height(Theme.dimensions.buttonHeight)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = tab.icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
-                        )
-                        Text(
-                            stringResource(tab.title),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-        }
-    )
+    TabHost(
+        modifier = modifier,
+        tabs = tabs,
+        selectedIndex = selectedTabIndex,
+        onTabSelected = { _, tab -> onTabSelected(tab) },
+    ) { tab, _ ->
+        Icon(
+            imageVector = tab.icon,
+            contentDescription = null,
+            modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+        )
+        Text(
+            text = stringResource(tab.title),
+            style = MaterialTheme.typography.titleSmall,
+            maxLines = 1
+        )
+    }
 }
 
 @Composable
@@ -93,6 +82,15 @@ internal fun ImportTabContent(
         AnimatedContent(
             targetState = state.selectedTab::class,
             modifier = Modifier.fillMaxWidth(),
+            transitionSpec = {
+                val animDuration = 350
+                (fadeIn(tween(animDuration, easing = EaseInOut)) +
+                    slideInVertically(tween(animDuration, easing = EaseInOut)) { it / 16 })
+                    .togetherWith(
+                        fadeOut(tween(animDuration / 2, easing = EaseInOut)) +
+                            slideOutVertically(tween(animDuration / 2, easing = EaseInOut)) { -it / 16 }
+                    ).using(SizeTransform(clip = false, sizeAnimationSpec = { _, _ -> tween(animDuration, easing = EaseInOut) }))
+            },
         ) { _ ->
             when (val tab = state.selectedTab) {
                 is ImportTabV2.Text -> TextImportContent(

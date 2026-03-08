@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import presentation.ui.components.imports.ExtractionOption
-import presentation.ui.components.imports.ImportFileState
 import presentation.ui.components.imports.ImportTabV2
 import presentation.ui.components.imports.ImportViewModel
 import presentation.ui.components.imports.PendingImportAction

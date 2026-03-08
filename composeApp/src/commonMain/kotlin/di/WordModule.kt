@@ -3,7 +3,6 @@ package di
 import data.ai.remote.AiRemoteDataSource
 import data.ai.remote.IAiRemoteDataSource
 import data.ai.repository.AiRepositoryImpl
-import data.core.database.LexiconQueries
 import data.word.local.IWordLocalDataSource
 import data.word.local.WordLocalDataSource
 import data.word.remote.IWordRemoteDataSource

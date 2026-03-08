@@ -12,7 +12,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import feature.profile.navigation.ProfileRoute
 import feature.profile.navigation.profileGraph
 import feature.subscription.navigation.SubscriptionRoute
 import feature.subscription.navigation.subscriptionGraph
