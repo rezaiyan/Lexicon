@@ -44,8 +44,8 @@ tags:
 # "From Image" content must no longer be shown.
 - assertNotVisible: "AI-Powered Extraction"
 
-# Close the import sheet.
-- tapOn: "Cancel"
+# Close the import sheet via the X icon.
+- tapOn: "Close"
 
 # Verify we are back on the Study screen.
 - assertVisible: "Import Words"

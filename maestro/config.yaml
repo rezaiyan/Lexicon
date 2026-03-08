@@ -21,6 +21,7 @@ flows:
   - "flows/navigation/*.yaml"
   - "flows/import/*.yaml"
   - "flows/study/*.yaml"
+  - "flows/profile/*.yaml"
   - "flows/settings/*.yaml"
   # 02_empty_state excluded: requires zero words but server-synced test account always has data.
   - "flows/word_manager/01_screen_loads.yaml"
@@ -29,6 +30,7 @@ flows:
   - "flows/word_manager/05_edit_word_dialog.yaml"
   - "flows/word_manager/06_delete_flow.yaml"
   - "flows/word_manager/07_back_navigation.yaml"
+  - "flows/word_manager/08_word_detail_sheet.yaml"
 
 executionOrder:
   continueOnFailure: false
@@ -39,13 +41,20 @@ executionOrder:
     - flows/import/01_manual_text_input.yaml
     - flows/import/02_file_import_ui.yaml
     - flows/import/03_import_sheet_tabs.yaml
+    - flows/import/04_import_method_selector.yaml
     # Study/review tests (need words to exist)
     - flows/study/01_study_screen_loads.yaml
     - flows/study/02_edit_word_from_review.yaml
     - flows/study/03_review_rating_buttons.yaml
+    - flows/study/04_review_completion.yaml
+    # Profile tests
+    - flows/profile/01_profile_screen_loads.yaml
+    - flows/profile/02_more_options_sheet.yaml
+    - flows/profile/03_logout_sheet.yaml
     # Settings tests
     - flows/settings/01_settings_screen_loads.yaml
     - flows/settings/02_theme_dialog.yaml
+    - flows/settings/03_notification_settings.yaml
     # Word manager tests run last
     - flows/word_manager/01_screen_loads.yaml
     - flows/word_manager/03_search_functionality.yaml
@@ -53,3 +62,4 @@ executionOrder:
     - flows/word_manager/05_edit_word_dialog.yaml
     - flows/word_manager/06_delete_flow.yaml
     - flows/word_manager/07_back_navigation.yaml
+    - flows/word_manager/08_word_detail_sheet.yaml

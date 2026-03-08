@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import presentation.ui.components.imports.ExtractionOption
-import presentation.ui.components.imports.ImportFileState
 import presentation.ui.components.imports.ImportTabV2
 import presentation.ui.components.imports.ImportViewModel
 import presentation.ui.components.imports.PendingImportAction
@@ -50,7 +49,8 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val importWordsUseCase = ImportWordsUseCase(wordRepository, validationService, getCurrentLanguageUseCase)
     private val importViaFileUseCase = ImportViaFileUseCase(importWordsUseCase)
     private val aiRepository = FakeAiRepo()
-    private val importFromImageUseCase = ImportFromImageUseCase(aiRepository, importWordsUseCase, getCurrentLanguageUseCase)
+    private val importFromImageUseCase =
+        ImportFromImageUseCase(aiRepository, importWordsUseCase, getCurrentLanguageUseCase)
     private val userManager = FakeUserManager()
     private val authRepository = FakeAuthRepo()
     private val getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository)
@@ -277,16 +277,6 @@ class ImportViewModelTest : ViewModelTestBase() {
         assertFalse(hasImageTab)
     }
 
-    private fun testWord(original: String, translation: String) = Word(
-        id = 0,
-        originalWord = original,
-        translation = translation,
-        description = "",
-        sourceLanguage = Language.ENGLISH,
-        targetLanguage = Language.ENGLISH,
-        nextReviewDate = 0L
-    )
-
     // --- Fakes ---
 
     private class FakeSettingsRepo : ISettingsRepository {
@@ -326,7 +316,12 @@ class ImportViewModelTest : ViewModelTestBase() {
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
-        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+        override fun updateWordsLanguages(
+            ids: List<Int>,
+            sourceLanguage: String,
+            targetLanguage: String,
+        ): Flow<UpdateWordsLanguagesProgress> =
+            flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())

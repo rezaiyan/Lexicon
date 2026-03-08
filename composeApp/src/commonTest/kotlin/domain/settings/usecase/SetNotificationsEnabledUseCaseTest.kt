@@ -1,6 +1,5 @@
 package domain.settings.usecase
 
-import core.common.getOrThrow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertFalse

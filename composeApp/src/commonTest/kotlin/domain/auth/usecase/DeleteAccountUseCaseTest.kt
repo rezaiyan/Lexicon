@@ -75,7 +75,12 @@ class DeleteAccountUseCaseTest {
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
-        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+        override fun updateWordsLanguages(
+            ids: List<Int>,
+            sourceLanguage: String,
+            targetLanguage: String,
+        ): Flow<UpdateWordsLanguagesProgress> =
+            flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())

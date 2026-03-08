@@ -1,7 +1,5 @@
 package domain.notifications.repository
 
-import domain.word.model.ProgressStats
-
 interface INotificationRepository {
     suspend fun scheduleReviewReminder(
         dueCount: Int,

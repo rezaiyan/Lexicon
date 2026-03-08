@@ -1,7 +1,6 @@
 package feature.study.ui.review
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import domain.tts.model.TtsState
 import domain.word.model.Word
 import feature.study.model.ReviewScreenState
@@ -14,7 +13,6 @@ import feature.study.model.ReviewType
  */
 @Composable
 fun ReviewBottomSheetContent(
-    title: String,
     reviewType: ReviewType,
     reviewState: ReviewScreenState,
     onClose: () -> Unit,
@@ -29,7 +27,6 @@ fun ReviewBottomSheetContent(
 ) {
     ReviewBottomSheet(
         state = reviewState.copy(reviewType = reviewType),
-        title = title,
         onClose = onClose,
         onReviewComplete = onReviewComplete,
         onReviewWord = onReviewWord,

@@ -157,7 +157,8 @@ class ReviewWordUseCaseTest {
         assertEquals(1, updated0.level)
         // Level 1 interval = 10 minutes → next review is ~10 min from now
         val tenMinutesInMillis = 10 * 60 * 1000L
-        assertTrue(updated0.nextReviewDate - updated0.lastReviewDate in (tenMinutesInMillis - 1000)..(tenMinutesInMillis + 1000))
+        val range0 = (tenMinutesInMillis - 1000)..(tenMinutesInMillis + 1000)
+        assertTrue(updated0.nextReviewDate - updated0.lastReviewDate in range0)
 
         // Level 1 → level 2 (1 day in millis)
         val word1 = createWord(level = 1, repetitions = 0, easeFactor = 2.5f, interval = 10)
@@ -166,7 +167,8 @@ class ReviewWordUseCaseTest {
         assertNotNull(updated1)
         assertEquals(2, updated1.level)
         val oneDayInMillis = 24 * 60 * 60 * 1000L
-        assertTrue(updated1.nextReviewDate - updated1.lastReviewDate in (oneDayInMillis - 1000)..(oneDayInMillis + 1000))
+        val range1 = (oneDayInMillis - 1000)..(oneDayInMillis + 1000)
+        assertTrue(updated1.nextReviewDate - updated1.lastReviewDate in range1)
     }
 
     @Test
@@ -245,6 +247,11 @@ class ReviewWordUseCaseTest {
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
-        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+        override fun updateWordsLanguages(
+            ids: List<Int>,
+            sourceLanguage: String,
+            targetLanguage: String,
+        ): Flow<UpdateWordsLanguagesProgress> =
+            flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     }
 }

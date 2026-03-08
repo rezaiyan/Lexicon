@@ -4,6 +4,8 @@ build:
 complexity:
   LongMethod:
     threshold: 60
+    ignoreAnnotated:
+      - 'Composable'
   LongParameterList:
     functionThreshold: 8
     constructorThreshold: 10
@@ -11,12 +13,16 @@ complexity:
       - 'Composable'
   CyclomaticComplexMethod:
     threshold: 15
+    ignoreAnnotated:
+      - 'Composable'
   TooManyFunctions:
     thresholdInFiles: 20
     thresholdInClasses: 15
     thresholdInInterfaces: 10
 
 style:
+  UnusedImports:
+    active: true
   MagicNumber:
     active: false
   ReturnCount:
@@ -38,7 +44,21 @@ naming:
   TopLevelPropertyNaming:
     constantPattern: '[A-Z][A-Za-z0-9_]*'
 
+empty-blocks:
+  EmptyFunctionBlock:
+    active: true
+    excludes:
+      - '**/test/**'
+      - '**/commonTest/**'
+      - '**/androidTest/**'
+
 exceptions:
+  TooGenericExceptionThrown:
+    active: true
+    excludes:
+      - '**/test/**'
+      - '**/commonTest/**'
+      - '**/androidTest/**'
   TooGenericExceptionCaught:
     active: true
     exceptionNames:

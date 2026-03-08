@@ -43,11 +43,11 @@ tags:
 # Close the review without rating to avoid modifying word state.
 - tapOn: "Close"
 
-# The exit confirmation dialog must appear.
+# The exit confirmation bottom sheet must appear.
 - assertVisible: "Exit Review?"
 
 # Confirm exit.
-- tapOn: "Yes, Exit"
+- tapOn: "Exit Review?"
 
 # We should be back on the Study screen.
 - assertVisible: "Import Words"

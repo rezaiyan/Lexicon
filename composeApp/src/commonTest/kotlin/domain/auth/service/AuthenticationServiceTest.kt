@@ -11,7 +11,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class AuthenticationServiceTest {
 
@@ -98,7 +97,11 @@ class AuthenticationServiceTest {
         var deleteResult: Try<Unit> = Try.success(Unit)
 
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = loginResult
-        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = loginResult
+        override suspend fun loginWithApple(
+            idToken: String,
+            fullName: String?,
+            appleUserId: String,
+        ): Try<AuthUser> = loginResult
         override suspend fun logout(): Try<Unit> = logoutResult
         override suspend fun deleteAccount(): Try<Unit> = deleteResult
         override suspend fun getAccessToken(): String? = null

@@ -20,7 +20,6 @@ import kotlinx.coroutines.test.runTest
 import utils.Language
 import domain.settings.model.ThemeMode
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -89,7 +88,13 @@ class ClearAllUserDataUseCaseTest {
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
-        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+        override fun updateWordsLanguages(
+            ids: List<Int>,
+            sourceLanguage: String,
+            targetLanguage: String,
+        ): Flow<UpdateWordsLanguagesProgress> =
+            flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
@@ -99,7 +104,9 @@ class ClearAllUserDataUseCaseTest {
 
     private class FakeSettingsRepo : ISettingsRepository {
         var clearSettingsCalled = false
-        override suspend fun clearSettings() { clearSettingsCalled = true }
+        override suspend fun clearSettings() {
+            clearSettingsCalled = true
+        }
         override suspend fun clearInsightData() {}
         override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
         override suspend fun setLanguage(language: Language) {}
@@ -133,7 +140,9 @@ class ClearAllUserDataUseCaseTest {
     private class FakeSessionManager : ISessionManager {
         var isAuthenticatedValue = true
         override val isAuthenticatedFlow: StateFlow<Boolean> = MutableStateFlow(false)
-        override suspend fun setAuthenticated(isAuthenticated: Boolean) { isAuthenticatedValue = isAuthenticated }
+        override suspend fun setAuthenticated(isAuthenticated: Boolean) {
+            isAuthenticatedValue = isAuthenticated
+        }
         override suspend fun isAuthenticated(): Boolean = isAuthenticatedValue
         override fun initialize(scope: CoroutineScope) {}
     }

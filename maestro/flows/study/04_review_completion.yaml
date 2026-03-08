@@ -1,0 +1,62 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - review
+  - completion
+---
+# Test: Review completion screen appears after reviewing all cards.
+#
+# Flow: Study → add test word → Start Review → flip → rate "Got it!" →
+# completion screen appears with stats → tap "Done" → back to Study screen.
+#
+# Requires: The add_test_word utility must work to ensure at least one word.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Add a test word so we have exactly one word to review.
+- runFlow: ../utils/add_test_word.yaml
+
+# Start a review session.
+- tapOn: "Start Review"
+
+# Wait for the review card to appear.
+- assertVisible: "Tap card to reveal"
+
+# Flip the card.
+- tapOn:
+    point: "50%,40%"
+
+- waitForAnimationToEnd
+
+# Rate the card as remembered to complete the session.
+- tapOn: "Got it!"
+
+# Wait for animations.
+- waitForAnimationToEnd
+
+# The completion screen should appear with performance stats.
+# One of the tier titles must be visible (depends on performance).
+- assertVisible:
+    text: "Perfect Score!"
+    optional: true
+- assertVisible:
+    text: "Outstanding!"
+    optional: true
+- assertVisible:
+    text: "Solid Session!"
+    optional: true
+
+# The "Remembered" stat label must be visible.
+- assertVisible: "Remembered"
+
+# The "Done" button must be visible.
+- assertVisible: "Done"
+
+# Tap "Done" to dismiss the completion screen.
+- tapOn: "Done"
+
+# We should be back on the Study screen.
+- assertVisible: "Import Words"

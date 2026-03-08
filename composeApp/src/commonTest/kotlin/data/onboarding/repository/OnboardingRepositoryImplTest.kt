@@ -95,7 +95,9 @@ class OnboardingRepositoryImplTest {
     private class FakeOnboardingRemoteDataSource : IOnboardingRemoteDataSource {
         var result: Try<SuggestedVocabularyResponseDto> = Try.failure(RuntimeException("not set"))
 
-        override suspend fun submitPreferences(request: OnboardingPreferencesRequest): Try<SuggestedVocabularyResponseDto> = result
+        override suspend fun submitPreferences(
+            request: OnboardingPreferencesRequest,
+        ): Try<SuggestedVocabularyResponseDto> = result
     }
 
     private class FakeSecureStorage : SecureStorage {

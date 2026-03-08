@@ -150,7 +150,11 @@ class TtsRepositoryImplTest {
         var dataDir = ""
 
         override suspend fun isModelPresent(languageCode: String): Boolean = modelPresent
-        override suspend fun downloadAndExtractModel(archiveUrl: String, languageCode: String, extractedDirName: String): Flow<Float> = flowOf(1.0f)
+        override suspend fun downloadAndExtractModel(
+            archiveUrl: String,
+            languageCode: String,
+            extractedDirName: String,
+        ): Flow<Float> = flowOf(1.0f)
         override fun getModelFilePath(languageCode: String): String = modelPath
         override fun getTokensFilePath(languageCode: String): String = tokensPath
         override fun getDataDir(languageCode: String): String = dataDir

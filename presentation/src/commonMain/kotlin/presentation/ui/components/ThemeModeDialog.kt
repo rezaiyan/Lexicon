@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -36,10 +35,6 @@ fun ThemeModeContent(
     onThemeModeSelected: (ThemeMode) -> Unit
 ) {
     LexiconDialogContent(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg),
         icon = Icons.Default.DarkMode,
         title = stringResource(Res.string.theme),
         content = {

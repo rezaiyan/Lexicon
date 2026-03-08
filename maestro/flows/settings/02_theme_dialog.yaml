@@ -2,21 +2,20 @@ appId: com.alirezaiyan.vokab
 tags:
   - settings
 ---
-# Test: Theme dialog opens and can be dismissed.
+# Test: Theme bottom sheet opens and can be dismissed.
 #
-# Verifies that tapping the Theme card opens the theme selection dialog
-# and that the dialog can be dismissed.
+# Verifies that tapping the Theme card opens the theme selection bottom sheet
+# and that the sheet can be dismissed.
 
 - launchApp:
     clearState: false
 
 - runFlow: ../utils/navigate_to_settings.yaml
 
-# Tap the Theme card to open the theme dialog.
+# Tap the Theme card to open the theme bottom sheet.
 - tapOn: "Theme"
 
-# The dialog should show theme options. "Customize appearance" is the subtitle,
-# so we look for the dialog content instead.
+# The bottom sheet should show theme options with their display names.
 - assertVisible:
     text: "Light"
     optional: true
@@ -24,10 +23,10 @@ tags:
     text: "Dark"
     optional: true
 - assertVisible:
-    text: "Auto"
+    text: "Automatic"
     optional: true
 
-# Dismiss the dialog by pressing back.
+# Dismiss the bottom sheet by pressing back.
 - pressKey: back
 
 # Settings screen should still be visible.

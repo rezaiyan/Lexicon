@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,19 +41,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import domain.tts.model.TtsState
 import domain.word.model.Word
-import theme.Theme
-import org.jetbrains.compose.resources.stringResource
-
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.consolidating
 import lexicon.resources.generated.resources.familiar
@@ -66,6 +58,7 @@ import lexicon.resources.generated.resources.new
 import lexicon.resources.generated.resources.repeat_pronunciation
 import lexicon.resources.generated.resources.unknown
 import lexicon.resources.generated.resources.young
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FlashCard(
@@ -242,7 +235,6 @@ fun FlashCard(
                         )
                     }
                 }
-
             }
         }
     }
@@ -332,207 +324,3 @@ private fun SpeakerButton(
         }
     }
 }
-
-// ── Review action buttons ─────────────────────────────────────────────────────
-
-@Composable
-fun ReviewButton(
-    text: String,
-    subText: String,
-    color: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    onClick: () -> Unit
-) {
-    BoxWithConstraints(modifier = modifier) {
-        val isVerySmall = maxWidth < 70.dp
-        val isSmall = maxWidth < 90.dp
-
-        androidx.compose.material3.Button(
-            onClick = onClick,
-            enabled = enabled,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(if (isVerySmall) 60.dp else 72.dp),
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = color.copy(alpha = 0.2f),
-                contentColor = color
-            ),
-            shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                horizontal = if (isVerySmall) 2.dp else if (isSmall) 4.dp else 8.dp,
-                vertical = 8.dp
-            )
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = text,
-                    fontWeight = FontWeight.Bold,
-                    style = when {
-                        isVerySmall -> MaterialTheme.typography.labelSmall
-                        isSmall -> MaterialTheme.typography.labelMedium
-                        else -> MaterialTheme.typography.labelLarge
-                    },
-                    maxLines = 1,
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = subText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = color.copy(alpha = 0.65f),
-                    maxLines = 1,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
-// ── Responsive sizing ─────────────────────────────────────────────────────────
-
-@Immutable
-private data class ResponsiveSizes(
-    val titleSp: TextUnit,
-    val titleMaxLines: Int,
-    val descMaxLines: Int,
-    val titleWidthFraction: Float,
-    val descWidthFraction: Float,
-    val contentPadding: Dp,
-    val badgePadding: Dp,
-    val afterTitleSpacing: Dp,
-    val cardCornerRadius: Dp,
-    val cardElevation: Dp,
-    val cardHeight: Dp,
-    val cameraDistancePx: Float
-)
-
-@Composable
-private fun rememberResponsiveSizes(
-    maxWidth: Dp,
-    maxHeight: Dp,
-    isLandscape: Boolean
-): ResponsiveSizes {
-    val density = LocalDensity.current
-    val shortest = if (maxWidth < maxHeight) maxWidth else maxHeight
-
-    val bucket = remember(shortest) {
-        when {
-            shortest < 360.dp -> SizeBucket.CompactXS
-            shortest < 480.dp -> SizeBucket.CompactS
-            shortest < 600.dp -> SizeBucket.Compact
-            shortest < 840.dp -> SizeBucket.Medium
-            else -> SizeBucket.Expanded
-        }
-    }
-
-    val targetHeight = when {
-        isLandscape -> maxHeight * 0.75f
-        else -> maxHeight * 0.6f
-    }.coerceIn(280.dp, 520.dp)
-
-    val bucketValues = when (bucket) {
-        SizeBucket.CompactXS -> SizeBucketValues(
-            titleSp = 24.sp,
-            titleLines = 1,
-            descLines = 2,
-            titleWidth = 0.96f,
-            descWidth = 0.96f,
-            contentPadding = 12.dp,
-            badgePadding = 8.dp,
-            afterTitleSpacing = 8.dp,
-            cardCornerRadius = 14.dp,
-            cardElevation = 4.dp
-        )
-
-        SizeBucket.CompactS -> SizeBucketValues(
-            titleSp = 28.sp,
-            titleLines = 1,
-            descLines = 3,
-            titleWidth = 0.94f,
-            descWidth = 0.94f,
-            contentPadding = 14.dp,
-            badgePadding = 10.dp,
-            afterTitleSpacing = 10.dp,
-            cardCornerRadius = 16.dp,
-            cardElevation = 6.dp
-        )
-
-        SizeBucket.Compact -> SizeBucketValues(
-            titleSp = 32.sp,
-            titleLines = 1,
-            descLines = 3,
-            titleWidth = 0.92f,
-            descWidth = 0.92f,
-            contentPadding = 16.dp,
-            badgePadding = 12.dp,
-            afterTitleSpacing = 12.dp,
-            cardCornerRadius = 20.dp,
-            cardElevation = 8.dp
-        )
-
-        SizeBucket.Medium -> SizeBucketValues(
-            titleSp = 40.sp,
-            titleLines = 1,
-            descLines = 4,
-            titleWidth = 0.9f,
-            descWidth = 0.9f,
-            contentPadding = 20.dp,
-            badgePadding = 14.dp,
-            afterTitleSpacing = 14.dp,
-            cardCornerRadius = 24.dp,
-            cardElevation = 10.dp
-        )
-
-        SizeBucket.Expanded -> SizeBucketValues(
-            titleSp = 48.sp,
-            titleLines = 1,
-            descLines = 5,
-            titleWidth = 0.85f,
-            descWidth = 0.85f,
-            contentPadding = 24.dp,
-            badgePadding = 16.dp,
-            afterTitleSpacing = 16.dp,
-            cardCornerRadius = 28.dp,
-            cardElevation = 12.dp
-        )
-    }
-
-    val cameraDistancePx = with(density) { 12.dp.toPx() }
-
-    return ResponsiveSizes(
-        titleSp = bucketValues.titleSp,
-        titleMaxLines = bucketValues.titleLines,
-        descMaxLines = bucketValues.descLines,
-        titleWidthFraction = bucketValues.titleWidth,
-        descWidthFraction = bucketValues.descWidth,
-        contentPadding = bucketValues.contentPadding,
-        badgePadding = bucketValues.badgePadding,
-        afterTitleSpacing = bucketValues.afterTitleSpacing,
-        cardCornerRadius = bucketValues.cardCornerRadius,
-        cardElevation = bucketValues.cardElevation,
-        cardHeight = targetHeight,
-        cameraDistancePx = cameraDistancePx
-    )
-}
-
-private enum class SizeBucket {
-    CompactXS, CompactS, Compact, Medium, Expanded
-}
-
-@Immutable
-private data class SizeBucketValues(
-    val titleSp: TextUnit,
-    val titleLines: Int,
-    val descLines: Int,
-    val titleWidth: Float,
-    val descWidth: Float,
-    val contentPadding: Dp,
-    val badgePadding: Dp,
-    val afterTitleSpacing: Dp,
-    val cardCornerRadius: Dp,
-    val cardElevation: Dp
-)

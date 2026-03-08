@@ -1,0 +1,26 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - profile
+  - smoke
+---
+# Test: Profile screen loads with core UI elements visible.
+#
+# Verifies that navigating to the Profile tab shows user info
+# and profile action buttons when logged in.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_profile.yaml
+
+# The screen title must be visible.
+- assertVisible: "Profile"
+
+# The Leaderboard button must be visible.
+- assertVisible: "Leaderboard"
+
+# The Logout button must be visible.
+- scrollUntilVisible:
+    element: "Logout"
+    direction: DOWN
+    timeout: 3000

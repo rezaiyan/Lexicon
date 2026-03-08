@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -71,9 +70,6 @@ internal fun EditWordContent(
 
     LexiconDialogContent(
         modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg)
             .imePadding(),
         iconState = components.dialog.DialogIconState.Icon(Icons.Default.Edit),
         title = stringResource(Res.string.edit_word),
@@ -151,10 +147,6 @@ internal fun DeleteConfirmationContent(
     onDismiss: () -> Unit
 ) {
     LexiconDialogContent(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg),
         iconState = components.dialog.DialogIconState.Icon(
             imageVector = Icons.Default.Warning,
             tint = MaterialTheme.colorScheme.error
@@ -193,10 +185,6 @@ internal fun BatchEditLanguagesContent(
     val overlayHost = LocalOverlayHost.current
 
     LexiconDialogContent(
-        modifier = Modifier
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg)
-            .padding(bottom = Theme.spacing.lg),
         iconState = components.dialog.DialogIconState.Icon(Icons.Default.Language),
         title = stringResource(Res.string.batch_edit_languages),
             content = {

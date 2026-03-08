@@ -1,0 +1,35 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - settings
+  - notifications
+---
+# Test: Notification settings bottom sheet opens and can be dismissed.
+#
+# Verifies that tapping "Notifications" on the Settings screen opens
+# the notification settings bottom sheet with expected UI elements.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# Tap the Notifications card.
+- tapOn: "Notifications"
+
+# The notification settings sheet must appear with its title.
+- assertVisible: "Notification Settings"
+
+# The subtitle must be visible.
+- assertVisible: "Customize your learning reminders"
+
+# The toggle label must be visible.
+- assertVisible: "Enable Notifications"
+
+# The "Done" button must be present.
+- assertVisible: "Done"
+
+# Dismiss by tapping Done.
+- tapOn: "Done"
+
+# Settings screen should still be visible.
+- assertVisible: "Settings"

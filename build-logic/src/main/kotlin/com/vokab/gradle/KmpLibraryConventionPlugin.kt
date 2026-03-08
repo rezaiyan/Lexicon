@@ -52,6 +52,9 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                     if (segment in JAVA_KEYWORDS) "${segment}_" else segment
                 }
             compileSdk = libs.findVersion("android-compileSdk").get().toString().toInt()
+            defaultConfig {
+                minSdk = libs.findVersion("android-minSdk").get().toString().toInt()
+            }
             compileOptions {
                 sourceCompatibility = JavaVersion.VERSION_11
                 targetCompatibility = JavaVersion.VERSION_11

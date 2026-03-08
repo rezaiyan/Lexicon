@@ -1,0 +1,27 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - profile
+  - more-options
+---
+# Test: More options bottom sheet opens from profile and shows options.
+#
+# Verifies that tapping the "More options" icon opens a bottom sheet
+# with "Edit Profile" and "Delete Account" menu items.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_profile.yaml
+
+# Tap the "More options" icon in the top bar.
+- tapOn: "More options"
+
+# The more options bottom sheet must appear with both options.
+- assertVisible: "Edit Profile"
+- assertVisible: "Delete Account"
+
+# Dismiss the sheet by pressing back.
+- pressKey: back
+
+# We should still be on the Profile screen.
+- assertVisible: "Profile"

@@ -6,7 +6,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import data.core.database.AppDatabase
 import data.core.database.LexiconDao
-import data.core.database.WordEntity
 import com.alirezaiyan.vokab.test.utils.TestUtils
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest

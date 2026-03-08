@@ -98,7 +98,12 @@ class ImportViaFileUseCaseTest {
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
-        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+        override fun updateWordsLanguages(
+            ids: List<Int>,
+            sourceLanguage: String,
+            targetLanguage: String,
+        ): Flow<UpdateWordsLanguagesProgress> =
+            flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
@@ -108,7 +113,11 @@ class ImportViaFileUseCaseTest {
     }
 
     private class FakeImportValidationService : IImportValidationService {
-        override fun validateAndParse(text: String, sourceLanguage: Language, targetLanguage: Language): Try<List<Word>> {
+        override fun validateAndParse(
+            text: String,
+            sourceLanguage: Language,
+            targetLanguage: Language,
+        ): Try<List<Word>> {
             val words = text.split("\n").mapNotNull { line ->
                 val parts = line.split(" - ")
                 if (parts.size == 2) {
@@ -130,7 +139,9 @@ class ImportViaFileUseCaseTest {
     private class FakeSettingsRepo : domain.settings.repository.ISettingsRepository {
         override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
         override suspend fun setLanguage(language: Language) {}
-        override fun getThemeMode(): Flow<domain.settings.model.ThemeMode> = flowOf(domain.settings.model.ThemeMode.AUTO)
+        override fun getThemeMode(): Flow<domain.settings.model.ThemeMode> =
+            flowOf(domain.settings.model.ThemeMode.AUTO)
+
         override suspend fun setThemeMode(mode: domain.settings.model.ThemeMode) {}
         override suspend fun getLastInsightDate(): String? = null
         override suspend fun getCachedInsight(): String? = null
