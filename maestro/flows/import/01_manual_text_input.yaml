@@ -64,8 +64,8 @@ tags:
     text: "already exist"
     optional: true
 
-# Close the import sheet via the X icon (content description: "Cancel").
-- tapOn: "Cancel"
+# Close the import sheet via the X icon (content description: "Close").
+- tapOn: "Close"
 
 # Verify we are back on the Study screen.
 - assertVisible: "Import Words"

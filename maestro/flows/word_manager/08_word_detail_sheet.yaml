@@ -1,0 +1,45 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - detail
+---
+# Test: Word detail bottom sheet shows word info, learning progress, and details.
+#
+# Verifies that tapping a word in the Word Manager opens a detail sheet
+# with the word, translation, learning progress, language details, and action buttons.
+#
+# Requires: At least one word exists (MaestroTest from import tests).
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Verify the word list is showing.
+- assertVisible: "Search words..."
+
+# Tap a word to open the detail sheet.
+- tapOn: "MaestroTest"
+
+# The detail sheet must show the word and translation.
+- assertVisible: "MaestroTest"
+
+# Learning Progress section must be visible.
+- assertVisible: "Learning Progress"
+
+# Detail rows must be visible.
+- assertVisible: "Languages"
+- assertVisible: "Added"
+- assertVisible: "Reviews"
+
+# The Edit icon (content description) must be present.
+- assertVisible: "Edit"
+
+# The Delete button must be present.
+- assertVisible: "Delete"
+
+# Dismiss the detail sheet by pressing back.
+- pressKey: back
+
+# The word list should be visible again.
+- assertVisible: "Search words..."

@@ -1,0 +1,39 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - profile
+  - logout
+---
+# Test: Logout bottom sheet opens and can be dismissed.
+#
+# Verifies that tapping "Logout" on the profile screen opens a
+# confirmation bottom sheet, and that tapping "Cancel" dismisses it
+# without logging out.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_profile.yaml
+
+# Scroll to the Logout button.
+- scrollUntilVisible:
+    element: "Logout"
+    direction: DOWN
+    timeout: 3000
+
+# Tap the Logout button.
+- tapOn: "Logout"
+
+# The logout confirmation sheet must appear.
+- assertVisible: "Are you sure you want to logout?"
+
+# The confirm (Logout) and cancel buttons must be visible.
+- assertVisible:
+    text: "Logout"
+- assertVisible: "Cancel"
+
+# Dismiss without logging out by tapping Cancel.
+- tapOn: "Cancel"
+
+# We should still be on the Profile screen with the user logged in.
+- assertVisible: "Profile"
+- assertVisible: "Leaderboard"
