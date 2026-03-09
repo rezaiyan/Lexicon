@@ -31,11 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.import_from_file
 import lexicon.resources.generated.resources.choose_file
 import lexicon.resources.generated.resources.format_example_1
 import lexicon.resources.generated.resources.format_example_2
 import lexicon.resources.generated.resources.format_example_3
 import lexicon.resources.generated.resources.processing_file
+import lexicon.resources.generated.resources.select_txt_file_description
 import lexicon.resources.generated.resources.supported_format
 import lexicon.resources.generated.resources.txt_format
 import org.jetbrains.compose.resources.stringResource
@@ -66,6 +68,12 @@ internal fun FileImportContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
         ) {
+            ImportInfoCard(
+                title = stringResource(Res.string.import_from_file),
+                description = stringResource(Res.string.select_txt_file_description),
+                icon = Icons.Filled.UploadFile,
+            )
+
             FilePickerButton(
                 onClick = filePickerLauncher,
                 isEnabled = isEnabled && !isLoading,

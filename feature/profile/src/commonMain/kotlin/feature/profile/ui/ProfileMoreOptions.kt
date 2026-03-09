@@ -24,7 +24,6 @@ import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.delete_account
 import lexicon.resources.generated.resources.edit_profile
-import lexicon.resources.generated.resources.more_options
 
 @Composable
 internal fun ProfileMoreOptionsSheet(
@@ -32,7 +31,6 @@ internal fun ProfileMoreOptionsSheet(
     onDeleteAccount: () -> Unit,
 ) {
     LexiconDialogContent(
-        title = stringResource(Res.string.more_options),
         content = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(

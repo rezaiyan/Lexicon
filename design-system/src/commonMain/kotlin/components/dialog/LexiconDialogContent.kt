@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -72,8 +72,8 @@ fun LexiconDialogContent(
 ) {
     Column(
         modifier = modifier.fillMaxWidth()
-            .safeDrawingPadding()
-            .padding(Theme.spacing.lg),
+            .navigationBarsPadding()
+            .padding(start = Theme.spacing.lg, end = Theme.spacing.lg, bottom = Theme.spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // ── Header: icon circle + title, vertically centered ──────────────────

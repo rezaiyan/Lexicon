@@ -4,58 +4,51 @@ tags:
   - demo
   - video
 ---
-# Showcase: Full app demo for video recording.
+# Showcase: Full app demo for promotional video.
 #
-# This flow walks through EVERY feature of Lexicon at a pace suitable for
-# screen recording. It is NOT included in the CI test suite — run it
-# manually with:
+# Pre-requisites:
+#   - CI auth tokens injected (run maestro/run.sh or inject manually)
+#   - Debug APK installed
 #
-#   maestro record maestro/flows/showcase/app_demo.yaml
+# Run with screen recording:
+#   adb shell screenrecord --size 1080x1920 --bit-rate 8M /sdcard/demo.mp4 &
+#   maestro test maestro/flows/showcase/app_demo.yaml
+#   adb shell pkill -INT screenrecord && adb pull /sdcard/demo.mp4
 #
 # Flow:
 #   1.  Study screen — overview, stats, learning stages
-#   2.  Import a word manually — full form experience
-#   3.  Import tabs — From File & From Image (AI-powered)
-#   4.  AI Import wizard — language, level, topics, word generation
-#   5.  Flashcard review — flip card, rate, edit word, completion
-#   6.  Learning stages — browse by mastery level
-#   7.  Settings — theme switching, language selection
-#   8.  Notifications — settings dialog
-#   9.  Subscription — premium features overview
-#   10. Word Manager — browse, search, detail sheet
-#   11. Profile — user info, streak, weekly activity
-#   12. Leaderboard — rankings and stats
-#   13. Edit Profile — username editing
-#   14. Restore & finale
-#
-# Assumes:
-#   - User is authenticated (CI tokens injected or logged in).
-#   - Premium access enabled for AI import demo.
-#   - At least a few words already exist for a richer demo.
+#   2.  Import 10 words manually — vocabulary building
+#   3.  Flashcard review — flip, rate, edit, completion
+#   4.  Word Manager — browse, search, detail sheet
+#   5.  Profile — user info, streak, activity
+#   6.  Leaderboard — rankings
+#   7.  Settings — theme, notifications, subscription
+#   8.  AI Import — smart vocabulary generation (finale)
 
-# ─────────────────────────────────────────────
-# 1. LAUNCH — Study Screen
-# ─────────────────────────────────────────────
+# ═════════════════════════════════════════════
+# 1. STUDY SCREEN — Overview
+# ═════════════════════════════════════════════
+- stopApp
 - launchApp:
     clearState: false
 
 - waitForAnimationToEnd
+- waitForAnimationToEnd
 
 - runFlow: ../utils/navigate_to_study.yaml
 
-# Let the viewer see the Study screen with stats and distribution bar.
+# Let the viewer see the Study screen.
 - waitForAnimationToEnd
 
-# Slow scroll down to reveal learning stages.
+# Scroll down to show learning stages.
 - swipe:
     start: "50%,70%"
     end: "50%,30%"
     duration: 1500
 
-# Pause to show learning stages (Fresh, Learning, Familiar, etc.).
 - waitForAnimationToEnd
 
-# Scroll back up to show the collapsed stats bar animation.
+# Scroll back up.
 - swipe:
     start: "50%,30%"
     end: "50%,70%"
@@ -63,163 +56,592 @@ tags:
 
 - waitForAnimationToEnd
 
-# ─────────────────────────────────────────────
-# 2. IMPORT — Browse tabs, then add a word
-# ─────────────────────────────────────────────
+# ═════════════════════════════════════════════
+# 2. IMPORT 10 WORDS — Manual vocabulary building
+# ═════════════════════════════════════════════
 - tapOn: "Import Words"
-
-# Method selector (premium): show AI Assistant & Manually options.
-- assertVisible:
-    text: "Add Words"
-    optional: true
-
-# Brief pause to show the import options.
 - waitForAnimationToEnd
 
 - tapOn:
     text: "Manually"
     optional: true
 
-# The manual import sheet opens with "Type Text" tab.
 - waitForAnimationToEnd
-- assertVisible: "Type Text"
 
-# --- Show all import tabs BEFORE filling the form ---
-
-# Switch to "From File" tab.
+# Set Original Language to German (default is English).
 - tapOn:
-    text: "From File"
+    text: "Original Language"
     optional: true
-- assertVisible:
-    text: "Choose File"
-    optional: true
-
-# Brief pause to show the file import option.
 - waitForAnimationToEnd
-
-# Switch to "From Image" tab — AI-powered extraction.
 - tapOn:
-    text: "From Image"
+    text: "Deutsch"
     optional: true
-- assertVisible:
-    text: "AI-Powered Extraction"
-    optional: true
-
-# Brief pause to show the image import option.
 - waitForAnimationToEnd
 
-# Switch back to "Type Text" to fill in the manual form.
-- tapOn: "Type Text"
-- waitForAnimationToEnd
-
-# Wait for the sheet content to fully render.
+# --- Word 1: Wanderlust (full experience with description) ---
 - scrollUntilVisible:
     element: "Original Word"
     direction: DOWN
     timeout: 5000
 
-# Fill in a demo word.
 - tapOn: "Original Word"
+- eraseText: 50
 - inputText: "Wanderlust"
 - hideKeyboard
 
 - tapOn: "Translation"
+- eraseText: 50
 - inputText: "A strong desire to travel"
 - hideKeyboard
 
-# Scroll down to reveal description and Add Word button.
 - scrollUntilVisible:
     element: "Description (Optional)"
     direction: DOWN
 
 - tapOn: "Description (Optional)"
-- inputText: "German origin - the joy of exploring new places"
+- eraseText: 50
+- inputText: "German origin - the joy of exploring"
 - hideKeyboard
 
-# Submit the word — the sheet may close after adding.
 - tapOn: "Add Word"
-
-# Wait for success feedback.
 - waitForAnimationToEnd
-- assertVisible:
-    text: "words added"
-    optional: true
-- assertVisible:
-    text: "already exist"
-    optional: true
 
-# Close the import sheet if still open.
+# --- Word 2: Zeitgeist ---
+- scrollUntilVisible:
+    element: "Original Word"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Zeitgeist"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Spirit of the times"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 3: Schadenfreude ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Schadenfreude"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Joy from others' misfortune"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 4: Rucksack ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Rucksack"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Backpack for hiking"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 5: Fernweh ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Fernweh"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Longing for distant places"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 6: Kindergarten ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Kindergarten"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Children's garden"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 7: Poltergeist ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Poltergeist"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "A noisy ghost"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 8: Wunderkind ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Wunderkind"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "A child prodigy"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 9: Angst ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Angst"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Deep anxiety or dread"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# --- Word 10: Weltanschauung ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Weltanschauung"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "A comprehensive world view"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# Close import sheet.
+- pressKey: back
+
+# Re-launch app in case we exited.
+- launchApp:
+    clearState: false
+
+# Back on Study screen.
+- runFlow: ../utils/navigate_to_study.yaml
+- waitForAnimationToEnd
+
+# ═════════════════════════════════════════════
+# 3. FLASHCARD REVIEW — The core learning experience
+# ═════════════════════════════════════════════
+- tapOn: "Start Review"
+- waitForAnimationToEnd
+
+# --- Card 1: flip → Got it! ---
 - tapOn:
-    text: "Close"
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 2: flip → show Edit → Got it! ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+
+# Show Edit feature briefly.
+- tapOn:
+    text: "Edit"
+    retryTapIfNoChange: true
+    optional: true
+- waitForAnimationToEnd
+- pressKey: back
+
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 3: flip → Nope (show both rating options) ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Nope"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 4: flip → Got it! ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 5: flip → Got it! ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 6: flip → Got it! ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 7: flip → Got it! ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 8: flip → Nope ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Nope"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 9: flip → Got it! ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# --- Card 10: flip → Got it! ---
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# Exit review — CI test user may have more cards than 10,
+# so we exit mid-review rather than waiting for completion.
+- waitForAnimationToEnd
+
+# Tap X close button (top-left corner).
+- tapOn:
+    point: "7%,6%"
+- waitForAnimationToEnd
+
+# "Exit Review?" dialog — tap the red button (bottom of dialog).
+- tapOn:
+    point: "50%,78%"
+    optional: true
+- waitForAnimationToEnd
+
+# Ensure we're on Study screen.
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_study.yaml
+- waitForAnimationToEnd
+
+# ═════════════════════════════════════════════
+# 4. WORD MANAGER — Browse, search, detail
+# ═════════════════════════════════════════════
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- tapOn: "Word Manager"
+- waitForAnimationToEnd
+
+# Browse the word list.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 1500
+
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
+    duration: 1500
+
+# Search for a word.
+- tapOn:
+    text: "Search words..."
+    optional: true
+- inputText: "Wanderlust"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Cancel"
     optional: true
 
-# Ensure we're back on Study screen.
-- assertVisible: "Import Words"
+# Tap a word to show detail sheet.
+- tapOn:
+    text: "Wanderlust"
+    optional: true
 
-# ─────────────────────────────────────────────
-# 4. AI IMPORT — Smart vocabulary generation
-# ─────────────────────────────────────────────
-# Open import again for the AI wizard.
+# Show learning progress and details.
+- assertVisible:
+    text: "Learning Progress"
+    optional: true
+- waitForAnimationToEnd
+
+# Scroll in detail sheet.
+- swipe:
+    start: "50%,70%"
+    end: "50%,50%"
+    duration: 800
+
+- waitForAnimationToEnd
+
+# Dismiss detail sheet.
+- pressKey: back
+- waitForAnimationToEnd
+
+# Exit Word Manager reliably.
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+
+# ═════════════════════════════════════════════
+# 5. PROFILE — User info, streak, activity
+# ═════════════════════════════════════════════
+- runFlow: ../utils/navigate_to_profile.yaml
+
+- assertVisible: "Profile"
+- waitForAnimationToEnd
+
+# Scroll to see weekly activity and member since.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+# Scroll back up.
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
+    duration: 1500
+
+# ═════════════════════════════════════════════
+# 6. LEADERBOARD — Rankings and competition
+# ═════════════════════════════════════════════
+- tapOn:
+    text: "Leaderboard"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Scroll through leaderboard.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 1500
+
+- assertVisible:
+    text: "Your Ranking"
+    optional: true
+
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+# Close leaderboard reliably.
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+
+# ═════════════════════════════════════════════
+# 7. SETTINGS — Theme, notifications, subscription
+# ═════════════════════════════════════════════
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# Show settings overview.
+- waitForAnimationToEnd
+
+# Theme — switch to Dark for visual impact.
+- tapOn: "Theme"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Dark"
+    optional: true
+- waitForAnimationToEnd
+
+# After Theme, reliably return to Settings.
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# Notifications.
+- tapOn: "Notifications"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Done"
+    optional: true
+- tapOn:
+    text: "Maybe Later"
+    optional: true
+
+# Subscription.
+- swipe:
+    start: "50%,70%"
+    end: "50%,50%"
+    duration: 800
+
+- tapOn:
+    text: "Subscription"
+    optional: true
+- waitForAnimationToEnd
+
+# Scroll to see premium features.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+# Go back from Subscription.
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_settings.yaml
+- waitForAnimationToEnd
+
+# Restore theme.
+- tapOn: "Theme"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Automatic"
+    optional: true
+- waitForAnimationToEnd
+
+# ═════════════════════════════════════════════
+# 8. AI IMPORT — Smart vocabulary generation (finale)
+# ═════════════════════════════════════════════
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_study.yaml
+
 - tapOn: "Import Words"
 - waitForAnimationToEnd
 
-# Tap AI Assistant option.
+# Tap AI Assistant.
 - tapOn:
     text: "AI Assistant"
     optional: true
-
-# Step 1: Select target language.
-- assertVisible:
-    text: "do you want to learn?"
-    optional: true
 - waitForAnimationToEnd
 
-# Pick a language (e.g., German).
+# Step 1: Target language — German.
 - tapOn:
     text: "German"
     optional: true
-
+- waitForAnimationToEnd
 - tapOn:
     text: "Continue"
     optional: true
-
-# Step 2: Select native language.
-- assertVisible:
-    text: "native language?"
-    optional: true
 - waitForAnimationToEnd
 
-# Pick native language (e.g., English).
+# Step 2: Native language — English.
 - tapOn:
     text: "English"
     optional: true
-
+- waitForAnimationToEnd
 - tapOn:
     text: "Continue"
     optional: true
-
-# Step 3: Select proficiency level.
-- assertVisible:
-    text: "current level?"
-    optional: true
 - waitForAnimationToEnd
 
-# Pick Beginner level.
+# Step 3: Proficiency level — Beginner.
 - tapOn:
     text: "Beginner"
     optional: true
-
+- waitForAnimationToEnd
 - tapOn:
     text: "Continue"
     optional: true
-
-# Step 4: Select topics of interest.
-- assertVisible:
-    text: "interest you?"
-    optional: true
 - waitForAnimationToEnd
 
-# Select a few topics.
+# Step 4: Select topics.
 - tapOn:
     text: "Travel"
     optional: true
@@ -229,8 +651,9 @@ tags:
 - tapOn:
     text: "Food"
     optional: true
+- waitForAnimationToEnd
 
-# Scroll to see more topics.
+# Scroll to show more topics.
 - swipe:
     start: "50%,70%"
     end: "50%,50%"
@@ -238,543 +661,69 @@ tags:
 
 - waitForAnimationToEnd
 
-# Tap Generate Words to call the AI.
+# Generate words.
 - tapOn:
     text: "Generate Words"
     optional: true
 
-# Wait for AI generation — this may take a few seconds.
-- waitForAnimationToEnd
-
-# Step 5: Preview generated words (wait up to 15s for API response).
-- assertVisible:
-    text: "vocabulary"
+# Wait for AI generation (up to 20s).
+- extendedWaitUntil:
+    visible:
+      text: "vocabulary"
+    timeout: 20000
     optional: true
 
-# Scroll through the generated word list.
+- waitForAnimationToEnd
+
+# Scroll through generated words — the grand finale.
 - swipe:
     start: "50%,70%"
     end: "50%,30%"
-    duration: 1500
+    duration: 2000
 
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Scroll back up.
 - swipe:
     start: "50%,30%"
     end: "50%,70%"
-    duration: 1500
+    duration: 2000
 
-# Close the AI wizard without importing (demo only).
+- waitForAnimationToEnd
+
+# Import the AI-generated words.
+- tapOn:
+    text: "Import"
+    optional: true
+- tapOn:
+    text: "Add to My Words"
+    optional: true
+- tapOn:
+    text: "Accept"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Close if still open.
 - tapOn:
     text: "Close"
     optional: true
-
-# Handle discard confirmation if it appears.
 - tapOn:
     text: "Discard"
     optional: true
 
-# Ensure we're back on the Study screen.
+# Final view: Study screen with all words.
 - runFlow: ../utils/navigate_to_study.yaml
-
-# ─────────────────────────────────────────────
-# 5. FLASHCARD REVIEW — The core learning experience
-# ─────────────────────────────────────────────
-# Start a review session.
-- tapOn: "Start Review"
-
-# The review sheet opens with a flashcard.
-- assertVisible: "Tap card to reveal"
-
-# Pause to show the card front.
 - waitForAnimationToEnd
 
-# Flip the card by tapping the card area.
-- tapOn:
-    point: "50%,40%"
-
-# Let the flip animation play out.
-- waitForAnimationToEnd
-
-# Rating buttons appear.
-- assertVisible: "Did you get it?"
-- assertVisible: "Nope"
-- assertVisible: "Got it!"
-
-# Show the Edit feature — tap Edit below the card.
-- tapOn:
-    text: "Edit"
-    retryTapIfNoChange: true
-    optional: true
-
-# The Edit Word bottom sheet must be visible.
-- assertVisible:
-    text: "Edit Word"
-    optional: true
-
-# Show the edit form briefly then close.
-- waitForAnimationToEnd
-- pressKey: back
-
-# Rate the current card as remembered.
-- tapOn:
-    text: "Got it!"
-    optional: true
-
-# Wait for the next card or completion.
-- waitForAnimationToEnd
-
-# If there are more cards, flip and rate one more.
-- tapOn:
-    text: "Tap card to reveal"
-    optional: true
-
-- tapOn:
-    point: "50%,40%"
-    optional: true
-
-- waitForAnimationToEnd
-
-# Rate as "Nope" to show both options.
-- tapOn:
-    text: "Nope"
-    optional: true
-
-- waitForAnimationToEnd
-
-# Continue reviewing — flip and rate a third card.
-- tapOn:
-    text: "Tap card to reveal"
-    optional: true
-
-- tapOn:
-    point: "50%,40%"
-    optional: true
-
-- waitForAnimationToEnd
-
-- tapOn:
-    text: "Got it!"
-    optional: true
-
-- waitForAnimationToEnd
-
-# Completion screen may appear with stats.
-- assertVisible:
-    text: "Remembered"
-    optional: true
-- assertVisible:
-    text: "Perfect Score!"
-    optional: true
-- assertVisible:
-    text: "Outstanding!"
-    optional: true
-- assertVisible:
-    text: "Solid Session!"
-    optional: true
-
-# If completion screen is showing, tap Done.
-- tapOn:
-    text: "Done"
-    optional: true
-
-# If review is still going, close it.
-- tapOn:
-    text: "Close"
-    optional: true
-
-# Handle exit confirmation if it appears.
-- tapOn:
-    text: "Exit Review?"
-    optional: true
-
-# Ensure we're back on Study screen.
-- assertVisible: "Import Words"
-
-# ─────────────────────────────────────────────
-# 6. LEARNING STAGES — Browse vocabulary by mastery
-# ─────────────────────────────────────────────
-# Scroll down to the learning stages section.
-- swipe:
-    start: "50%,70%"
-    end: "50%,30%"
-    duration: 1500
-
-# Tap a learning stage to browse words at that level.
-- tapOn:
-    text: "Fresh"
-    optional: true
-
-- waitForAnimationToEnd
-
-# If the stage review opened, show it briefly then close.
-- tapOn:
-    text: "Close"
-    optional: true
-
-# Handle exit confirmation.
-- tapOn:
-    text: "Exit Review?"
-    optional: true
-
-# Scroll back up.
-- swipe:
-    start: "50%,30%"
-    end: "50%,70%"
-    duration: 1500
-
-# ─────────────────────────────────────────────
-# 7. SETTINGS — Theme & Language
-# ─────────────────────────────────────────────
-- runFlow: ../utils/navigate_to_settings.yaml
-
-# Show all settings cards.
-- assertVisible: "Theme"
-- assertVisible: "Notifications"
-- assertVisible: "Word Manager"
-- assertVisible: "Subscription"
-
-# Scroll to see all settings options.
-- swipe:
-    start: "50%,70%"
-    end: "50%,50%"
-    duration: 800
-
-# Show Translation Language and About cards.
-- assertVisible:
-    text: "Translation Language"
-    optional: true
-- assertVisible:
-    text: "About"
-    optional: true
-
-# Scroll back up.
-- swipe:
-    start: "50%,50%"
-    end: "50%,70%"
-    duration: 800
-
-# Open theme selector.
-- tapOn: "Theme"
-
-# Show theme options.
-- assertVisible:
-    text: "Light"
-    optional: true
-- assertVisible:
-    text: "Dark"
-    optional: true
-- assertVisible:
-    text: "Automatic"
-    optional: true
-
-# Select Dark theme for visual impact.
-- tapOn:
-    text: "Dark"
-    optional: true
-
-# Pause to show the theme change.
-- waitForAnimationToEnd
-
-# Dismiss theme sheet.
-- pressKey: back
-
-# Open language selection.
-- tapOn:
-    text: "Translation Language"
-    optional: true
-
-# Show available languages.
-- assertVisible:
-    text: "Translation Language"
-    optional: true
-- waitForAnimationToEnd
-
-# Scroll through languages to show variety.
-- swipe:
-    start: "50%,70%"
-    end: "50%,30%"
-    duration: 1500
-
-- swipe:
-    start: "50%,30%"
-    end: "50%,70%"
-    duration: 1500
-
-# Dismiss language dialog.
-- pressKey: back
-
-# ─────────────────────────────────────────────
-# 8. NOTIFICATIONS — Settings dialog
-# ─────────────────────────────────────────────
-- tapOn: "Notifications"
-
-- assertVisible:
-    text: "Notification Settings"
-    optional: true
-- assertVisible:
-    text: "Customize your learning reminders"
-    optional: true
-- assertVisible:
-    text: "Enable Notifications"
-    optional: true
-
-# Pause to show the notification settings.
-- waitForAnimationToEnd
-
-# Dismiss notification settings.
-- tapOn:
-    text: "Done"
-    optional: true
-- tapOn:
-    text: "Maybe Later"
-    optional: true
-
-# ─────────────────────────────────────────────
-# 9. SUBSCRIPTION — Premium features overview
-# ─────────────────────────────────────────────
-# Scroll down to find subscription card if needed.
-- swipe:
-    start: "50%,70%"
-    end: "50%,50%"
-    duration: 800
-
-- tapOn:
-    text: "Subscription"
-    optional: true
-
-- waitForAnimationToEnd
-
-# For non-subscribed users: show the premium comparison.
-- assertVisible:
-    text: "Unlock Premium"
-    optional: true
-- assertVisible:
-    text: "Features"
-    optional: true
-
-# For subscribed users: show active subscription.
-- assertVisible:
-    text: "Premium"
-    optional: true
-
-# Scroll to see plan cards and feature comparison.
-- swipe:
-    start: "50%,70%"
-    end: "50%,30%"
-    duration: 1500
-
-- waitForAnimationToEnd
-
-# Show premium feature cards.
-- assertVisible:
-    text: "Unlimited Words"
-    optional: true
-- assertVisible:
-    text: "AI Extraction"
-    optional: true
-
-# Scroll further to see pricing.
-- swipe:
-    start: "50%,70%"
-    end: "50%,30%"
-    duration: 1500
-
-- waitForAnimationToEnd
-
-# Go back to settings.
-- pressKey: back
-- waitForAnimationToEnd
-
-# Scroll back up on settings.
-- swipe:
-    start: "50%,30%"
-    end: "50%,70%"
-    duration: 800
-
-# ─────────────────────────────────────────────
-# 10. WORD MANAGER — Browse, search, detail
-# ─────────────────────────────────────────────
-- tapOn: "Word Manager"
-- assertVisible: "Word Manager"
-
-# Show the word list.
-- assertVisible: "Search words..."
-
-# Scroll down to browse words.
-- swipe:
-    start: "50%,70%"
-    end: "50%,30%"
-    duration: 1500
-
-- swipe:
-    start: "50%,30%"
-    end: "50%,70%"
-    duration: 1500
-
-# Search for the word we added earlier.
-- tapOn: "Search words..."
-- inputText: "Wanderlust"
-
-# Pause to show search results.
-- waitForAnimationToEnd
-
-# Clear search.
-- tapOn: "Cancel"
-
-# Tap a word to show the detail sheet.
-- tapOn:
-    text: "Wanderlust"
-    optional: true
-- tapOn:
-    text: "MaestroTest"
-    optional: true
-
-# Show learning progress and details.
-- assertVisible:
-    text: "Learning Progress"
-    optional: true
-- assertVisible:
-    text: "Languages"
-    optional: true
-- assertVisible:
-    text: "Added"
-    optional: true
-- assertVisible:
-    text: "Reviews"
-    optional: true
-
-# Scroll in the detail sheet to see all info.
-- swipe:
-    start: "50%,70%"
-    end: "50%,50%"
-    duration: 800
-
-- waitForAnimationToEnd
-
-# Dismiss the detail sheet.
-- pressKey: back
-
-# Go back to settings.
-- pressKey: back
-
-# ─────────────────────────────────────────────
-# 11. PROFILE — User info, streak, weekly activity
-# ─────────────────────────────────────────────
-- runFlow: ../utils/navigate_to_profile.yaml
-
-# The profile screen shows user info.
-- assertVisible: "Profile"
-
-# Check for streak and leaderboard button.
-- assertVisible:
-    text: "Leaderboard"
-    optional: true
-
-# Pause to show profile header with avatar and stats.
-- waitForAnimationToEnd
-
-# Scroll to see weekly activity chart and member since.
-- swipe:
-    start: "50%,70%"
-    end: "50%,30%"
-    duration: 1500
-
-# Show weekly activity bars and member since badge.
-- assertVisible:
-    text: "Member since"
-    optional: true
-- assertVisible:
-    text: "Logout"
-    optional: true
-
-# Scroll back up slowly.
-- swipe:
-    start: "50%,30%"
-    end: "50%,70%"
-    duration: 1500
-
-# ─────────────────────────────────────────────
-# 12. LEADERBOARD — Rankings and competition
-# ─────────────────────────────────────────────
-# Open the leaderboard from profile.
-- tapOn:
-    text: "Leaderboard"
-    optional: true
-
-- waitForAnimationToEnd
-
-# Show leaderboard rankings.
-- assertVisible:
-    text: "Leaderboard"
-    optional: true
-
-# Scroll through the leaderboard entries.
-- swipe:
-    start: "50%,70%"
-    end: "50%,30%"
-    duration: 1500
-
-# Show the user's own ranking at the bottom.
-- assertVisible:
-    text: "Your Ranking"
-    optional: true
-
-# Scroll back up to see top ranked users.
-- swipe:
-    start: "50%,30%"
-    end: "50%,70%"
-    duration: 1500
-
-- waitForAnimationToEnd
-
-# Close leaderboard.
-- pressKey: back
-
-# ─────────────────────────────────────────────
-# 13. EDIT PROFILE — Username editing
-# ─────────────────────────────────────────────
-# Open the more options menu.
-- tapOn: "More options"
-
-- assertVisible: "Edit Profile"
-- assertVisible: "Delete Account"
-
-# Open Edit Profile.
-- tapOn: "Edit Profile"
-- waitForAnimationToEnd
-
-# Show the edit profile form.
-- assertVisible:
-    text: "Edit Profile"
-    optional: true
-- assertVisible:
-    text: "Username"
-    optional: true
-
-# Pause to show the profile editing form with avatar.
-- waitForAnimationToEnd
-
-# Go back without making changes.
-- pressKey: back
-
-# Ensure we're back on profile.
-- assertVisible: "Profile"
-
-# ─────────────────────────────────────────────
-# 14. RESTORE — Reset theme and return to Study
-# ─────────────────────────────────────────────
-- runFlow: ../utils/navigate_to_settings.yaml
-
-- tapOn: "Theme"
-- tapOn:
-    text: "Automatic"
-    optional: true
-- pressKey: back
-
-# Final view: back to Study screen.
-- runFlow: ../utils/navigate_to_study.yaml
-- assertVisible: "Import Words"
-
-# Slow final scroll to show the complete Study screen.
+# Grand finale scroll.
 - swipe:
     start: "50%,70%"
     end: "50%,30%"

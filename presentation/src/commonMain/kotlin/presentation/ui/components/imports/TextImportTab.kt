@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -50,7 +51,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.add_a_word
 import lexicon.resources.generated.resources.add_word
+import lexicon.resources.generated.resources.add_word_description
 import lexicon.resources.generated.resources.description_optional
 import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.original_word
@@ -95,6 +98,12 @@ internal fun TextImportContent(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
         ) {
+            ImportInfoCard(
+                title = stringResource(Res.string.add_a_word),
+                description = stringResource(Res.string.add_word_description),
+                icon = Icons.Filled.Edit,
+            )
+
             LanguageSelectorRow(
                 sourceLanguage = sourceLanguage,
                 targetLanguage = targetLanguage,

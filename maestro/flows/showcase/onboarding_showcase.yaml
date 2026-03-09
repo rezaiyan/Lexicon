@@ -202,10 +202,11 @@ tags:
 
 # Wait for the generation to complete (can take 5-15 seconds).
 # Use assertVisible with timeout to wait for the preview screen.
-- assertVisible:
-    text: "Starter Vocabulary"
-    optional: true
+- extendedWaitUntil:
+    visible:
+      text: "Starter Vocabulary"
     timeout: 20000
+    optional: true
 
 # ─────────────────────────────────────────────
 # 7. VOCABULARY PREVIEW — Starter word pack
