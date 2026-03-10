@@ -518,14 +518,24 @@ jobs:
         env:
           GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
 
+      - name: Cache KMP Framework
+        uses: actions/cache@v4
+        with:
+          path: |
+            composeApp/build/bin/iosArm64
+            composeApp/build/classes/kotlin/iosArm64
+          key: kmp-ios-release-${{ runner.os }}-${{ hashFiles('**/*.kt', 'gradle/libs.versions.toml') }}
+          restore-keys: kmp-ios-release-${{ runner.os }}-
+
       - name: Build Kotlin Multiplatform Framework
         run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
 
-      - name: Clean Xcode derived data and SPM cache
-        run: |
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          rm -rf ~/Library/Caches/org.swift.swiftpm
-          rm -rf ~/Library/org.swift.swiftpm
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: iosApp/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'iosApp/iosApp.xcodeproj/project.pbxproj') }}
+          restore-keys: spm-${{ runner.os }}-
 
       - name: Upload to TestFlight
         env:

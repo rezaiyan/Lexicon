@@ -103,7 +103,7 @@ platform :ios do
       export_method: "app-store",
       output_directory: "./build",
       output_name: "Lexicon.ipa",
-      clean: true,
+      clean: false,
       include_bitcode: false,
       cloned_source_packages_path: "./SourcePackages",
       export_options: {
