@@ -135,7 +135,8 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
 
         vm.submit()
 
-        assertEquals(AiWordImportStep.TARGET_LANG, vm.currentState.step)
+        // selectTargetLanguage auto-advances to NATIVE_LANG; submit early-returns
+        assertEquals(AiWordImportStep.NATIVE_LANG, vm.currentState.step)
     }
 
     @Test
