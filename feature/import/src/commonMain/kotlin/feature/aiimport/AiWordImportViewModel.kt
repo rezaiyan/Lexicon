@@ -25,10 +25,12 @@ class AiWordImportViewModel(
 
     fun selectTargetLanguage(language: String) {
         updateState { copy(selectedTargetLanguage = language) }
+        nextStep()
     }
 
     fun selectNativeLanguage(language: String) {
         updateState { copy(selectedNativeLanguage = language) }
+        nextStep()
     }
 
     fun selectLevel(level: String) {

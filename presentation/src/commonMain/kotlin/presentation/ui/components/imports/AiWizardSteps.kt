@@ -19,14 +19,18 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import feature.onboarding.ui.components.LanguageGrid
 import feature.onboarding.ui.components.LevelCards
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.ai_wizard_continue
+import lexicon.resources.generated.resources.ai_wizard_level_highlight
+import lexicon.resources.generated.resources.ai_wizard_level_subtitle
+import lexicon.resources.generated.resources.ai_wizard_level_title
+import org.jetbrains.compose.resources.stringResource
 import theme.AppDimensions
 import theme.AppSpacing
 import theme.Theme
@@ -39,8 +43,6 @@ internal fun AiLanguageStep(
     languages: List<String>,
     selectedLanguage: String?,
     onLanguageSelected: (String) -> Unit,
-    onContinue: () -> Unit,
-    onCancel: () -> Unit,
     spacing: AppSpacing,
     dimensions: AppDimensions,
 ) {
@@ -66,45 +68,6 @@ internal fun AiLanguageStep(
                 onLanguageSelected = onLanguageSelected
             )
         }
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Button(
-                onClick = onContinue,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = Theme.dimensions.contentMaxWidth),
-                enabled = selectedLanguage != null,
-                contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                shape = RoundedCornerShape(50)
-            ) {
-                Text("Continue", style = MaterialTheme.typography.labelLarge)
-                Spacer(modifier = Modifier.size(spacing.xs))
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier.size(dimensions.iconSizeMedium)
-                )
-            }
-            TextButton(
-                onClick = onCancel,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = Theme.dimensions.contentMaxWidth)
-            ) {
-                Text(
-                    "Cancel",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
     }
 }
 
@@ -128,9 +91,9 @@ internal fun AiLevelStep(
                 .padding(bottom = spacing.xs)
         ) {
             AiStepHeader(
-                title = "What's your",
-                highlight = "current level?",
-                subtitle = "We'll match the vocabulary difficulty to your skills.",
+                title = stringResource(Res.string.ai_wizard_level_title),
+                highlight = stringResource(Res.string.ai_wizard_level_highlight),
+                subtitle = stringResource(Res.string.ai_wizard_level_subtitle),
                 spacing = spacing
             )
 
@@ -159,14 +122,14 @@ internal fun AiLevelStep(
                     .fillMaxWidth()
                     .widthIn(max = Theme.dimensions.contentMaxWidth),
                 enabled = selectedLevel != null,
-                contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
+                contentPadding = PaddingValues(vertical = spacing.md, horizontal = spacing.lg),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                shape = RoundedCornerShape(50)
+                shape = RoundedCornerShape(Theme.shapes.pill)
             ) {
-                Text("Continue", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(Res.string.ai_wizard_continue), style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.size(spacing.xs))
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,

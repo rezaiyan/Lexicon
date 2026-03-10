@@ -30,27 +30,33 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import events.OnEvents
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import feature.aiimport.AiWordImportViewModel
 import feature.aiimport.model.AiWordImportStep
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.ai_import_success
+import lexicon.resources.generated.resources.ai_wizard_ai_suggestions
+import lexicon.resources.generated.resources.ai_wizard_native_highlight
+import lexicon.resources.generated.resources.ai_wizard_native_subtitle
+import lexicon.resources.generated.resources.ai_wizard_native_title
+import lexicon.resources.generated.resources.ai_wizard_target_highlight
+import lexicon.resources.generated.resources.ai_wizard_target_subtitle
+import lexicon.resources.generated.resources.ai_wizard_target_title
+import lexicon.resources.generated.resources.content_description_back
+import lexicon.resources.generated.resources.content_description_close
+import overlay.LocalOverlayHost
+import overlay.bottomsheet.showSizeToFitBottomSheet
 import theme.Theme
 
-private const val AiWizardTransitionDuration = 300
 private const val AiWizardTotalSteps = 4
 
 @Composable
@@ -62,17 +68,20 @@ fun AiWordImportBottomSheet(
     val state by viewModel.state()
     val spacing = Theme.spacing
     val dimensions = Theme.dimensions
-    var showDiscardConfirmation by remember { mutableStateOf(false) }
+    val motion = Theme.motion
+    val overlayHost = LocalOverlayHost.current
 
     val handleDismiss = {
         viewModel.reset()
         onDismiss()
     }
 
+    val importSuccessFormat = stringResource(Res.string.ai_import_success)
+
     OnEvents(viewModel.effects) { event ->
         when (event) {
             is AiWordImportViewModel.Event.ImportSuccess -> {
-                onShowSnackBar("Added ${event.count} words to your library!")
+                onShowSnackBar(importSuccessFormat.replace("%1\$d", event.count.toString()))
                 handleDismiss()
             }
 
@@ -80,126 +89,105 @@ fun AiWordImportBottomSheet(
         }
     }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        val stepIndex = state.step.ordinal
-        val isPreview = state.step == AiWordImportStep.PREVIEW
+    Column(modifier = Modifier.fillMaxSize()) {
+            val stepIndex = state.step.ordinal
+            val isPreview = state.step == AiWordImportStep.PREVIEW
 
-        WizardNavigationBar(
-            stepIndex = stepIndex,
-            isPreview = isPreview,
-            isFirstStep = state.step == AiWordImportStep.TARGET_LANG,
-            isLoading = state.isLoading,
-            onBack = { viewModel.previousStep() },
-            onClose = {
-                if (isPreview) {
-                    showDiscardConfirmation = true
-                } else {
-                    handleDismiss()
-                }
-            },
-        )
-
-        AnimatedContent(
-            targetState = state.step,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(spacing.md),
-            transitionSpec = {
-                val forward = targetState.ordinal > initialState.ordinal
-                ContentTransform(
-                    targetContentEnter = slideInHorizontally(
-                        animationSpec = tween(AiWizardTransitionDuration),
-                        initialOffsetX = { if (forward) it else -it }
-                    ) + fadeIn(animationSpec = tween(AiWizardTransitionDuration)),
-                    initialContentExit = slideOutHorizontally(
-                        animationSpec = tween(AiWizardTransitionDuration),
-                        targetOffsetX = { if (forward) -it else it }
-                    ) + fadeOut(animationSpec = tween(AiWizardTransitionDuration))
-                )
-            },
-            label = "ai_wizard_step"
-        ) { step ->
-            when (step) {
-                AiWordImportStep.TARGET_LANG -> AiLanguageStep(
-                    title = "Which language",
-                    highlight = "do you want to learn?",
-                    subtitle = "We'll tailor your vocabulary to your chosen language.",
-                    languages = state.availableLanguages,
-                    selectedLanguage = state.selectedTargetLanguage,
-                    onLanguageSelected = viewModel::selectTargetLanguage,
-                    onContinue = { viewModel.nextStep() },
-                    onCancel = handleDismiss,
-                    spacing = spacing,
-                    dimensions = dimensions
-                )
-
-                AiWordImportStep.NATIVE_LANG -> AiLanguageStep(
-                    title = "What's your",
-                    highlight = "native language?",
-                    subtitle = "We'll use this as the base for translations.",
-                    languages = state.availableLanguages.filter { it != state.selectedTargetLanguage },
-                    selectedLanguage = state.selectedNativeLanguage,
-                    onLanguageSelected = viewModel::selectNativeLanguage,
-                    onContinue = { viewModel.nextStep() },
-                    onCancel = handleDismiss,
-                    spacing = spacing,
-                    dimensions = dimensions
-                )
-
-                AiWordImportStep.LEVEL -> AiLevelStep(
-                    selectedLevel = state.selectedLevel,
-                    error = state.error,
-                    onLevelSelected = viewModel::selectLevel,
-                    onContinue = { viewModel.nextStep() },
-                    spacing = spacing,
-                    dimensions = dimensions
-                )
-
-                AiWordImportStep.TOPICS -> AiTopicsStep(
-                    state = state,
-                    onToggleTopic = viewModel::toggleTopic,
-                    onGenerate = { viewModel.submit() },
-                    spacing = spacing,
-                    dimensions = dimensions
-                )
-
-                AiWordImportStep.PREVIEW -> AiWordPreviewStep(
-                    state = state,
-                    onToggleWord = viewModel::toggleWordSelection,
-                    onImport = { viewModel.importSelected() },
-                    spacing = spacing,
-                    dimensions = dimensions
-                )
-            }
-        }
-    }
-
-    if (showDiscardConfirmation) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.32f))
-                .pointerInput(Unit) { /* consume touches */ },
-            contentAlignment = Alignment.Center
-        ) {
-            Surface(
-                shape = RoundedCornerShape(Theme.shapes.large),
-                tonalElevation = 6.dp,
-            ) {
-                DiscardConfirmationContent(
-                    onDiscard = {
-                        showDiscardConfirmation = false
+            WizardNavigationBar(
+                stepIndex = stepIndex,
+                isPreview = isPreview,
+                isFirstStep = state.step == AiWordImportStep.TARGET_LANG,
+                isLoading = state.isLoading,
+                onBack = { viewModel.previousStep() },
+                onClose = {
+                    if (isPreview || state.isLoading) {
+                        overlayHost.showSizeToFitBottomSheet(tag = "discard-confirm") { nav ->
+                            DiscardConfirmationContent(
+                                onDiscard = {
+                                    nav.dismiss()
+                                    handleDismiss()
+                                },
+                                onKeep = { nav.dismiss() }
+                            )
+                        }
+                    } else {
                         handleDismiss()
-                    },
-                    onKeep = { showDiscardConfirmation = false }
-                )
+                    }
+                },
+            )
+
+            AnimatedContent(
+                targetState = state.step,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(spacing.md),
+                transitionSpec = {
+                    val forward = targetState.ordinal > initialState.ordinal
+                    ContentTransform(
+                        targetContentEnter = slideInHorizontally(
+                            animationSpec = tween(motion.durationMedium),
+                            initialOffsetX = { if (forward) it else -it }
+                        ) + fadeIn(animationSpec = tween(motion.durationMedium)),
+                        initialContentExit = slideOutHorizontally(
+                            animationSpec = tween(motion.durationMedium),
+                            targetOffsetX = { if (forward) -it else it }
+                        ) + fadeOut(animationSpec = tween(motion.durationMedium))
+                    )
+                },
+                label = "ai_wizard_step"
+            ) { step ->
+                when (step) {
+                    AiWordImportStep.TARGET_LANG -> AiLanguageStep(
+                        title = stringResource(Res.string.ai_wizard_target_title),
+                        highlight = stringResource(Res.string.ai_wizard_target_highlight),
+                        subtitle = stringResource(Res.string.ai_wizard_target_subtitle),
+                        languages = state.availableLanguages,
+                        selectedLanguage = state.selectedTargetLanguage,
+                        onLanguageSelected = viewModel::selectTargetLanguage,
+                        spacing = spacing,
+                        dimensions = dimensions
+                    )
+
+                    AiWordImportStep.NATIVE_LANG -> AiLanguageStep(
+                        title = stringResource(Res.string.ai_wizard_native_title),
+                        highlight = stringResource(Res.string.ai_wizard_native_highlight),
+                        subtitle = stringResource(Res.string.ai_wizard_native_subtitle),
+                        languages = state.availableLanguages.filter { it != state.selectedTargetLanguage },
+                        selectedLanguage = state.selectedNativeLanguage,
+                        onLanguageSelected = viewModel::selectNativeLanguage,
+                        spacing = spacing,
+                        dimensions = dimensions
+                    )
+
+                    AiWordImportStep.LEVEL -> AiLevelStep(
+                        selectedLevel = state.selectedLevel,
+                        error = state.error,
+                        onLevelSelected = viewModel::selectLevel,
+                        onContinue = viewModel::nextStep,
+                        spacing = spacing,
+                        dimensions = dimensions
+                    )
+
+                    AiWordImportStep.TOPICS -> AiTopicsStep(
+                        state = state,
+                        onToggleTopic = viewModel::toggleTopic,
+                        onGenerate = viewModel::submit,
+                        spacing = spacing,
+                        dimensions = dimensions
+                    )
+
+                    AiWordImportStep.PREVIEW -> AiWordPreviewStep(
+                        state = state,
+                        onToggleWord = viewModel::toggleWordSelection,
+                        onImport = viewModel::importSelected,
+                        spacing = spacing,
+                        dimensions = dimensions
+                    )
+                }
             }
         }
     }
-}
 
 @Composable
 private fun WizardNavigationBar(
@@ -215,7 +203,7 @@ private fun WizardNavigationBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = spacing.extraSmall2, vertical = spacing.extraSmall2),
+            .padding(horizontal = spacing.xs, vertical = spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -223,7 +211,7 @@ private fun WizardNavigationBar(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(Res.string.content_description_back),
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -231,12 +219,14 @@ private fun WizardNavigationBar(
             Spacer(modifier = Modifier.size(Theme.dimensions.touchTarget))
         }
 
-        if (!isPreview) {
+        if (isLoading) {
+            Spacer(modifier = Modifier.weight(1f))
+        } else if (!isPreview) {
             StepProgressSegments(
                 stepIndex = stepIndex,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = spacing.extraSmall2),
+                    .padding(horizontal = spacing.xs),
             )
         } else {
             Row(
@@ -250,9 +240,9 @@ private fun WizardNavigationBar(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(Theme.dimensions.iconSizeSmall)
                 )
-                Spacer(modifier = Modifier.size(spacing.extraSmall3))
+                Spacer(modifier = Modifier.size(spacing.xxs))
                 Text(
-                    text = "AI Suggestions",
+                    text = stringResource(Res.string.ai_wizard_ai_suggestions),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
@@ -260,17 +250,11 @@ private fun WizardNavigationBar(
             }
         }
 
-        IconButton(
-            onClick = onClose,
-            enabled = !isLoading
-        ) {
+        IconButton(onClick = onClose) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Close",
-                tint = if (isLoading)
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                else
-                    MaterialTheme.colorScheme.onSurface
+                contentDescription = stringResource(Res.string.content_description_close),
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -281,23 +265,25 @@ private fun StepProgressSegments(
     stepIndex: Int,
     modifier: Modifier = Modifier,
 ) {
+    val motion = Theme.motion
+
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3)
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
     ) {
         repeat(AiWizardTotalSteps) { index ->
             val filled = index <= stepIndex
             val segmentColor by animateColorAsState(
                 targetValue = if (filled) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.surfaceVariant,
-                animationSpec = tween(300),
+                animationSpec = tween(motion.durationMedium),
                 label = "segment_$index"
             )
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .height(Theme.spacing.xxs)
-                    .clip(RoundedCornerShape(2.dp))
+                    .clip(RoundedCornerShape(Theme.spacing.xxxs))
                     .background(segmentColor)
             )
         }

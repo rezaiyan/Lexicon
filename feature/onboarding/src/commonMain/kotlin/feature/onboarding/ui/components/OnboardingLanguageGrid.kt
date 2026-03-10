@@ -50,8 +50,23 @@ import lexicon.resources.generated.resources.flag_pt
 import lexicon.resources.generated.resources.flag_ru
 import lexicon.resources.generated.resources.flag_sa
 import lexicon.resources.generated.resources.flag_tr
+import lexicon.resources.generated.resources.language_arabic
+import lexicon.resources.generated.resources.language_chinese
+import lexicon.resources.generated.resources.language_dutch
+import lexicon.resources.generated.resources.language_english
+import lexicon.resources.generated.resources.language_french
+import lexicon.resources.generated.resources.language_german
+import lexicon.resources.generated.resources.language_italian
+import lexicon.resources.generated.resources.language_japanese
+import lexicon.resources.generated.resources.language_korean
+import lexicon.resources.generated.resources.language_persian
+import lexicon.resources.generated.resources.language_portuguese
+import lexicon.resources.generated.resources.language_russian
+import lexicon.resources.generated.resources.language_spanish
+import lexicon.resources.generated.resources.language_turkish
 import lexicon.resources.generated.resources.onboarding_language_flag
 import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
@@ -124,8 +139,27 @@ private val languageColorsDark = mapOf(
     "Persian" to Color(0xFF1A3836),
 )
 
+private val languageDisplayNames: Map<String, StringResource> = mapOf(
+    "English" to Res.string.language_english,
+    "German" to Res.string.language_german,
+    "French" to Res.string.language_french,
+    "Spanish" to Res.string.language_spanish,
+    "Italian" to Res.string.language_italian,
+    "Portuguese" to Res.string.language_portuguese,
+    "Dutch" to Res.string.language_dutch,
+    "Russian" to Res.string.language_russian,
+    "Chinese" to Res.string.language_chinese,
+    "Japanese" to Res.string.language_japanese,
+    "Korean" to Res.string.language_korean,
+    "Arabic" to Res.string.language_arabic,
+    "Turkish" to Res.string.language_turkish,
+    "Persian" to Res.string.language_persian,
+)
+
 private val SelectionBadgeSize = 22.dp
 private val CheckIconSize = 14.dp
+private val FlagContainerSize = 56.dp
+private val FlagImageSize = 44.dp
 
 @Composable
 fun LanguageGrid(
@@ -146,24 +180,28 @@ fun LanguageGrid(
                 horizontalArrangement = Arrangement.spacedBy(spacing.sm)
             ) {
                 val firstIndex = rowIndex * 2
+                val firstKey = languages[firstIndex]
+                val firstDisplayName = languageDisplayNames[firstKey]?.let { stringResource(it) } ?: firstKey
                 LanguageGridCard(
-                    language = languages[firstIndex],
-                    nativeName = languageNativeNames[languages[firstIndex]] ?: languages[firstIndex].uppercase(),
-                    flag = languageFlags[languages[firstIndex]],
-                    selected = selectedLanguage == languages[firstIndex],
-                    onClick = { onLanguageSelected(languages[firstIndex]) },
-                    tileColor = colorMap[languages[firstIndex]] ?: fallback,
+                    language = firstDisplayName,
+                    nativeName = languageNativeNames[firstKey] ?: firstKey.uppercase(),
+                    flag = languageFlags[firstKey],
+                    selected = selectedLanguage == firstKey,
+                    onClick = { onLanguageSelected(firstKey) },
+                    tileColor = colorMap[firstKey] ?: fallback,
                     modifier = Modifier.weight(1f)
                 )
                 val secondIndex = firstIndex + 1
                 if (secondIndex < languages.size) {
+                    val secondKey = languages[secondIndex]
+                    val secondDisplayName = languageDisplayNames[secondKey]?.let { stringResource(it) } ?: secondKey
                     LanguageGridCard(
-                        language = languages[secondIndex],
-                        nativeName = languageNativeNames[languages[secondIndex]] ?: languages[secondIndex].uppercase(),
-                        flag = languageFlags[languages[secondIndex]],
-                        selected = selectedLanguage == languages[secondIndex],
-                        onClick = { onLanguageSelected(languages[secondIndex]) },
-                        tileColor = colorMap[languages[secondIndex]] ?: fallback,
+                        language = secondDisplayName,
+                        nativeName = languageNativeNames[secondKey] ?: secondKey.uppercase(),
+                        flag = languageFlags[secondKey],
+                        selected = selectedLanguage == secondKey,
+                        onClick = { onLanguageSelected(secondKey) },
+                        tileColor = colorMap[secondKey] ?: fallback,
                         modifier = Modifier.weight(1f)
                     )
                 } else {
@@ -241,7 +279,7 @@ internal fun LanguageGridCard(
                 if (flag != null) {
                     Box(
                         modifier = Modifier
-                            .size(56.dp)
+                            .size(FlagContainerSize)
                             .clip(CircleShape)
                             .background(
                                 if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
@@ -253,7 +291,7 @@ internal fun LanguageGridCard(
                             painter = painterResource(flag),
                             contentDescription = stringResource(Res.string.onboarding_language_flag, language),
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(FlagImageSize)
                                 .clip(RoundedCornerShape(Theme.shapes.small)),
                             contentScale = ContentScale.Crop
                         )
