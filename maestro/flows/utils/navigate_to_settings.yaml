@@ -3,16 +3,25 @@
 # Called by settings test flows via:
 #   - runFlow: ../utils/navigate_to_settings.yaml
 #
-# Assumes:
-#   - The app is already running (launched by the calling flow).
-#   - The user is authenticated and the main app is visible (Study/Settings/Profile tabs).
-#   - The device is not in a dialog or overlay state.
+# Handles app restart to clear leftover overlays from prior tests.
 
 appId: com.alirezaiyan.vokab
 ---
+# Restart app to ensure a clean UI state (no leftover overlays from prior tests).
+- stopApp
+- launchApp:
+    clearState: false
+
+# Wait for the bottom navigation bar to load (handles splash + auth startup).
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 15000
+
 # Navigate to the Settings tab via the bottom navigation bar.
 - tapOn:
     text: "Settings"
 
-# Verify the Settings screen is open by checking the title.
-- assertVisible: "Settings"
+# Verify the Settings screen is open by waiting for a Settings-specific element.
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000
