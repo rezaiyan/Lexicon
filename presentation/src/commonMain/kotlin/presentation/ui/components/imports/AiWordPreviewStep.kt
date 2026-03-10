@@ -177,7 +177,11 @@ private fun PreviewHeader(
                 },
                 label = {
                     Text(
-                        text = if (allSelected) stringResource(Res.string.ai_wizard_deselect_all) else stringResource(Res.string.ai_wizard_select_all),
+                        text = if (allSelected) {
+                            stringResource(Res.string.ai_wizard_deselect_all)
+                        } else {
+                            stringResource(Res.string.ai_wizard_select_all)
+                        },
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Medium
                     )

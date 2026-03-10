@@ -143,7 +143,8 @@ private fun AiGeneratingContent(spacing: AppSpacing) {
         AnimatedContent(
             targetState = loadingTips[currentTipIndex],
             transitionSpec = {
-                (fadeIn(animationSpec = tween(motion.durationMedium2)) togetherWith fadeOut(animationSpec = tween(motion.durationMedium2)))
+                (fadeIn(animationSpec = tween(motion.durationMedium2)) togetherWith
+                    fadeOut(animationSpec = tween(motion.durationMedium2)))
                     .using(SizeTransform(clip = false, sizeAnimationSpec = { _, _ -> snap() }))
             },
             label = "loading_tip",

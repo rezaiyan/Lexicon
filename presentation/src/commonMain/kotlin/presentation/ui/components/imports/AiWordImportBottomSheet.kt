@@ -146,7 +146,6 @@ fun AiWordImportBottomSheet(
                         selectedLanguage = state.selectedTargetLanguage,
                         onLanguageSelected = viewModel::selectTargetLanguage,
                         spacing = spacing,
-                        dimensions = dimensions
                     )
 
                     AiWordImportStep.NATIVE_LANG -> AiLanguageStep(
@@ -157,7 +156,6 @@ fun AiWordImportBottomSheet(
                         selectedLanguage = state.selectedNativeLanguage,
                         onLanguageSelected = viewModel::selectNativeLanguage,
                         spacing = spacing,
-                        dimensions = dimensions
                     )
 
                     AiWordImportStep.LEVEL -> AiLevelStep(

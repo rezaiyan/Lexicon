@@ -44,7 +44,6 @@ internal fun AiLanguageStep(
     selectedLanguage: String?,
     onLanguageSelected: (String) -> Unit,
     spacing: AppSpacing,
-    dimensions: AppDimensions,
 ) {
     val scrollState = rememberScrollState()
 
