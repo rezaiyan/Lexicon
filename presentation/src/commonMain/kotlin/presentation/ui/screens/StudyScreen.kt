@@ -58,6 +58,7 @@ private val LockedSheetProperties = BottomSheetProperties(
     dismissOnBackPress = false,
     isNavigationBarsPaddingEnabled = true,
     sheetGesturesEnabled = false,
+    showDragHandle = false,
 )
 
 private sealed interface ImportFlowPage {

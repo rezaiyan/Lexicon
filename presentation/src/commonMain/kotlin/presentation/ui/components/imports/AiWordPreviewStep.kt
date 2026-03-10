@@ -42,10 +42,8 @@ internal fun AiWordPreviewStep(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.md)
                 .padding(bottom = spacing.xs)
         ) {
-            Spacer(modifier = Modifier.height(spacing.small))
 
             PreviewHeader(totalCount, spacing)
 

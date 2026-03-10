@@ -52,8 +52,6 @@ internal fun AiLanguageStep(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.md)
-                .padding(bottom = spacing.xs)
         ) {
             AiStepHeader(
                 title = title,
@@ -70,9 +68,7 @@ internal fun AiLanguageStep(
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.md),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
@@ -108,7 +104,6 @@ internal fun AiLanguageStep(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.height(spacing.md))
         }
     }
 }
@@ -130,7 +125,6 @@ internal fun AiLevelStep(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
-                .padding(horizontal = spacing.md)
                 .padding(bottom = spacing.xs)
         ) {
             AiStepHeader(
@@ -156,9 +150,7 @@ internal fun AiLevelStep(
         }
 
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = spacing.md),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
@@ -182,7 +174,6 @@ internal fun AiLevelStep(
                     modifier = Modifier.size(dimensions.iconSizeMedium)
                 )
             }
-            Spacer(modifier = Modifier.height(spacing.md))
         }
     }
 }
@@ -194,7 +185,6 @@ internal fun AiStepHeader(
     subtitle: String,
     spacing: AppSpacing,
 ) {
-    Spacer(modifier = Modifier.height(spacing.small))
     Text(
         text = title,
         style = MaterialTheme.typography.headlineMedium,
@@ -205,11 +195,11 @@ internal fun AiStepHeader(
         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
         color = MaterialTheme.colorScheme.primary
     )
-    Spacer(modifier = Modifier.height(spacing.extraSmall3))
+    Spacer(modifier = Modifier.height(spacing.xxs))
     Text(
         text = subtitle,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    Spacer(modifier = Modifier.height(spacing.medium))
+    Spacer(modifier = Modifier.height(spacing.md))
 }

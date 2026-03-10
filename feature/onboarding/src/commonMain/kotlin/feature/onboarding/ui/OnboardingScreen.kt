@@ -60,8 +60,6 @@ fun OnboardingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .safeDrawingPadding()
     ) {
         // Segmented step progress — only shown for actual steps (not intro)
         if (state.currentStep > 0) {

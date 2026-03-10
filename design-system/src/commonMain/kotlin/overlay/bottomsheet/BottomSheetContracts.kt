@@ -13,7 +13,8 @@ data class BottomSheetProperties(
     val dismissOnBackPress: Boolean = true,
     val isNavigationBarsPaddingEnabled: Boolean = false,
     val sheetGesturesEnabled: Boolean = true,
-    val showCloseButton: Boolean = false
+    val showCloseButton: Boolean = false,
+    val showDragHandle: Boolean = true
 )
 
 interface BottomSheetOverlayScope {

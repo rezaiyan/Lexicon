@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -82,10 +81,7 @@ fun AiWordImportBottomSheet(
     }
 
     Column(
-        modifier = Modifier
-            .statusBarsPadding()
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier = Modifier.fillMaxSize()
     ) {
         val stepIndex = state.step.ordinal
         val isPreview = state.step == AiWordImportStep.PREVIEW
@@ -109,7 +105,8 @@ fun AiWordImportBottomSheet(
             targetState = state.step,
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(spacing.md),
             transitionSpec = {
                 val forward = targetState.ordinal > initialState.ordinal
                 ContentTransform(

@@ -164,7 +164,7 @@ class BottomSheetOverlay(
                     animatedHide()
                 }
             },
-            dragHandle = if (isFullScreen) {
+            dragHandle = if (isFullScreen || !scopeImpl.properties.showDragHandle) {
                 null
             } else {
                 { BottomSheetDefaults.DragHandle() }
@@ -196,7 +196,7 @@ class BottomSheetOverlay(
                     }
             ) {
                 val internalScope = rememberBottomSheetScopeImpl(
-                    showDragHandle = (mode != BottomSheetMode.FullScreen),
+                    showDragHandle = (mode != BottomSheetMode.FullScreen) && scopeImpl.properties.showDragHandle,
                     showCloseButton = scopeImpl.properties.showCloseButton
                 ) {
                     animatedHide()

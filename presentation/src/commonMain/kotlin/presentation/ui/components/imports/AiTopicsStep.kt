@@ -38,6 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import feature.aiimport.model.AiWordImportUiState
@@ -63,7 +66,6 @@ internal fun AiTopicsStep(
                     .weight(1f)
                     .fillMaxWidth()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = spacing.md)
                     .padding(bottom = spacing.xs)
             ) {
                 AiStepHeader(
@@ -91,9 +93,7 @@ internal fun AiTopicsStep(
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = spacing.md),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (state.isLoading) {
@@ -120,7 +120,6 @@ internal fun AiTopicsStep(
                         Text("Generate Words", style = MaterialTheme.typography.labelLarge)
                     }
                 }
-                Spacer(modifier = Modifier.height(spacing.md))
             }
         }
 
@@ -136,6 +135,32 @@ internal fun AiTopicsStep(
     }
 }
 
+private val topicPalette = listOf(
+    Color(0xFFFFF3E0), // Daily Life — warm amber
+    Color(0xFFE3F2FD), // Travel — sky blue
+    Color(0xFFECEFF1), // Business — cool slate
+    Color(0xFFFBE9E7), // Food — soft orange
+    Color(0xFFEDE7F6), // Technology — lavender
+    Color(0xFFE8F5E9), // Sports — fresh green
+    Color(0xFFFCE4EC), // Health — rose pink
+    Color(0xFFF3E5F5), // Arts — orchid
+    Color(0xFFE0F2F1), // Nature — teal mint
+    Color(0xFFE8EAF6), // Academic — indigo mist
+)
+
+private val topicPaletteDark = listOf(
+    Color(0xFF4E3B24), // Daily Life
+    Color(0xFF1A3A5C), // Travel
+    Color(0xFF2C3440), // Business
+    Color(0xFF4A2C22), // Food
+    Color(0xFF2D1F4E), // Technology
+    Color(0xFF1B3A25), // Sports
+    Color(0xFF3E1F2A), // Health
+    Color(0xFF3A1E42), // Arts
+    Color(0xFF1A3836), // Nature
+    Color(0xFF1F2346), // Academic
+)
+
 @Composable
 private fun TopicGrid(
     topics: List<String>,
@@ -143,6 +168,9 @@ private fun TopicGrid(
     isLoading: Boolean,
     onToggleTopic: (String) -> Unit,
 ) {
+    val isDark = !MaterialTheme.colorScheme.surface.luminance().let { it > 0.5f }
+    val palette = if (isDark) topicPaletteDark else topicPalette
+
     val rows = (topics.size + 1) / 2
     Column(
         verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
@@ -159,6 +187,7 @@ private fun TopicGrid(
                     selected = selectedTopics.contains(topics[firstIndex]),
                     enabled = !isLoading,
                     onClick = { onToggleTopic(topics[firstIndex]) },
+                    tileColor = palette[firstIndex % palette.size],
                     modifier = Modifier.weight(1f)
                 )
                 val secondIndex = firstIndex + 1
@@ -169,6 +198,7 @@ private fun TopicGrid(
                         selected = selectedTopics.contains(topics[secondIndex]),
                         enabled = !isLoading,
                         onClick = { onToggleTopic(topics[secondIndex]) },
+                        tileColor = palette[secondIndex % palette.size],
                         modifier = Modifier.weight(1f)
                     )
                 } else {
@@ -186,11 +216,13 @@ private fun TopicTile(
     selected: Boolean,
     enabled: Boolean,
     onClick: () -> Unit,
+    tileColor: Color,
     modifier: Modifier = Modifier,
 ) {
     val bgColor by animateColorAsState(
-        targetValue = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-        else MaterialTheme.colorScheme.surface,
+        targetValue = if (selected)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f).compositeOver(tileColor)
+        else tileColor,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "tile_bg_$topic"
     )
