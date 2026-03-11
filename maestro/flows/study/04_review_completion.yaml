@@ -31,11 +31,30 @@ tags:
 
 - waitForAnimationToEnd
 
-# Rate the card as remembered to complete the session.
+# Rate the card as remembered.
 - tapOn: "Got it!"
-
-# Wait for animations.
 - waitForAnimationToEnd
+
+# The test account may have multiple words due to server sync.
+# Keep flipping and rating cards until the completion screen ("Done") appears.
+# Commands use optional: true so the loop doesn't fail during the transition
+# from the last card to the completion screen.
+- repeat:
+    times: 30
+    while:
+      notVisible: "Done"
+    commands:
+      - tapOn:
+          point: "50%,40%"
+          optional: true
+      - waitForAnimationToEnd
+      - tapOn:
+          text: "Got it!"
+          optional: true
+      - waitForAnimationToEnd
+
+# The completion screen must now be visible.
+- assertVisible: "Done"
 
 # The completion screen should appear with performance stats.
 # One of the tier titles must be visible (depends on performance).
@@ -52,11 +71,10 @@ tags:
 # The "Remembered" stat label must be visible.
 - assertVisible: "Remembered"
 
-# The "Done" button must be visible.
-- assertVisible: "Done"
-
 # Tap "Done" to dismiss the completion screen.
 - tapOn: "Done"
 
-# We should be back on the Study screen.
-- assertVisible: "Import Words"
+# We should be back on the Study screen (wait for the + icon to render).
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

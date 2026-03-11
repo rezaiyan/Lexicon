@@ -1,0 +1,232 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - video
+  - profile
+  - settings
+---
+# Showcase: Profile & Settings — user stats, leaderboard, theme, subscription.
+#
+# Demonstrates the Profile screen (user info, streak, weekly activity),
+# Leaderboard (rankings), and Settings (theme toggle, notifications,
+# subscription features).
+#
+# Run with:
+#   maestro test maestro/flows/showcase/profile_settings_showcase.yaml
+#
+# Record with:
+#   ./maestro/record_showcase.sh profile_settings_showcase
+#
+# Assumes: User is logged in.
+
+# ─────────────────────────────────────────────
+# 1. PROFILE — User info and stats
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_profile.yaml
+
+- waitForAnimationToEnd
+
+# Pause to show the Profile screen header.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Scroll to show weekly activity and member-since info.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Pause on the activity section.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Scroll back up.
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 2. LEADERBOARD — Rankings
+# ─────────────────────────────────────────────
+- tapOn:
+    text: "Leaderboard"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Pause to show the leaderboard.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Scroll through rankings.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Pause on rankings.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Scroll back up.
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+# Close leaderboard reliably.
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 3. SETTINGS — Theme, Notifications, Subscription
+# ─────────────────────────────────────────────
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# Pause to show Settings screen.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# --- Theme toggle ---
+- tapOn: "Theme"
+- waitForAnimationToEnd
+
+# Pause to show theme options.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Switch to Dark for visual impact.
+- tapOn:
+    text: "Dark"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Pause to show the dark theme applied.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Reliably return to Settings after theme change.
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# --- Notifications ---
+- tapOn: "Notifications"
+- waitForAnimationToEnd
+
+# Pause to show notification settings.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Dismiss notification settings.
+- tapOn:
+    text: "Done"
+    optional: true
+- tapOn:
+    text: "Maybe Later"
+    optional: true
+
+- waitForAnimationToEnd
+
+# --- Subscription ---
+# Scroll to find Subscription option.
+- swipe:
+    start: "50%,70%"
+    end: "50%,50%"
+    duration: 800
+
+- tapOn:
+    text: "Subscription"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Scroll through premium features.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Pause on premium features.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Pause at the bottom.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# ─────────────────────────────────────────────
+# 4. RESTORE — Set theme back to Automatic
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- tapOn: "Theme"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Automatic"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Final pause on Settings in light theme.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000

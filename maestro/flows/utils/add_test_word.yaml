@@ -3,8 +3,10 @@
 # Called by test flows that need at least one word to exist:
 #   - runFlow: ../utils/add_test_word.yaml
 #
-# Adds the word "MaestroTest" with translation "TestTranslation" using the
-# manual text input tab on the import bottom sheet.
+# Adds a word using the manual text input tab on the import bottom sheet.
+# Each invocation generates a unique word name via Date.now(), so the word is
+# always NEW and immediately due for review (not affected by SRS scheduling
+# from previous test runs or other tests in the same suite).
 #
 # Assumes:
 #   - The app is already on the Study screen.
@@ -12,39 +14,62 @@
 
 appId: com.alirezaiyan.vokab
 ---
+# Generate a unique word name for this invocation.
+- evalScript: ${output.word = 'Test' + Date.now()}
+
 # Open the import picker via the "Import Words" button (content description).
 - tapOn: "Import Words"
 
 # The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
 - tapOn: "Manually"
 
-# Wait for the import sheet to appear with the "Type Text" tab selected by default.
+# Wait for the import sheet to fully render (all assertions give Compose TextFields
+# time to become interactive — without these, inputText types nothing).
+- assertVisible: "Type Text"
 - assertVisible: "Add a Word"
+- assertVisible: "Original Word"
+- assertVisible: "Translation"
 
 # Fill in the "Original Word" field.
+# eraseText before inputText ensures Maestro establishes the IME connection
+# with Compose TextFields — without it, inputText intermittently types nothing.
 - tapOn: "Original Word"
-- inputText: "MaestroTest"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "${output.word}"
 - hideKeyboard
 
 # Fill in the "Translation" field.
 - tapOn: "Translation"
+- waitForAnimationToEnd
+- eraseText: 50
 - inputText: "TestTranslation"
 - hideKeyboard
+
+# Scroll to the Add Word button (keyboard may have pushed it off-screen).
+- scrollUntilVisible:
+    element: "Add Word"
+    direction: DOWN
+    timeout: 3000
 
 # Tap "Add Word" to submit.
 - tapOn: "Add Word"
 
-# Wait for the operation to complete. On first run "X words added" appears;
-# on repeated runs "already exist in your collection" (word is still available).
-- assertVisible:
-    text: "words added"
-    optional: true
-- assertVisible:
-    text: "already exist"
-    optional: true
+# After success, the form resets and the first field may auto-focus, showing the
+# keyboard. Dismiss it so the "1 word added" counter is not hidden behind it.
+- hideKeyboard
+
+# Wait for the "1 word added" counter to appear.
+# This text persists (wordsAddedCount stays at 1) — only the checkmark icon
+# fades after 1.5s. If this times out, inputText likely failed to type.
+- extendedWaitUntil:
+    visible: "1 word added"
+    timeout: 8000
 
 # Close the import sheet via the X icon.
 - tapOn: "Close"
 
-# Verify we are back on the Study screen.
-- assertVisible: "Import Words"
+# Verify we are back on the Study screen (wait for the + icon to render).
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

@@ -4,6 +4,65 @@ A Kotlin Multiplatform vocabulary learning app targeting **Android**, **iOS**, a
 
 Built with Compose Multiplatform, Clean Architecture, and MVVM.
 
+## Features
+
+<!--
+  To generate these demo recordings, run:
+    ./maestro/record_showcase.sh
+
+  GIFs will be saved to docs/demos/ and can be committed to the repo.
+  See maestro/flows/showcase/ for the individual flow definitions.
+-->
+
+### Study Dashboard
+Track your learning progress with an interactive dashboard — vocabulary stats, progress ring, distribution bar, and learning stage breakdown.
+
+<p align="center">
+  <img src="docs/demos/study_dashboard_showcase.gif" alt="Study Dashboard" width="300"/>
+</p>
+
+### Flashcard Review
+Master vocabulary through spaced-repetition flashcards — tap to flip, rate your recall (Got it! / Nope), and track performance with completion stats.
+
+<p align="center">
+  <img src="docs/demos/flashcard_review_showcase.gif" alt="Flashcard Review" width="300"/>
+</p>
+
+### Import Words
+Build your vocabulary multiple ways — type words manually with translations and descriptions, or import from a `.txt` file.
+
+<p align="center">
+  <img src="docs/demos/import_words_showcase.gif" alt="Import Words" width="300"/>
+</p>
+
+### AI-Powered Import
+Let AI generate vocabulary for you — choose your target language, proficiency level, and topics, then preview and import curated word packs.
+
+<p align="center">
+  <img src="docs/demos/ai_import_showcase.gif" alt="AI Import Wizard" width="300"/>
+</p>
+
+### Word Manager
+Browse, search, and manage your entire vocabulary — view detailed word cards with learning progress, edit words, and track mastery levels.
+
+<p align="center">
+  <img src="docs/demos/word_manager_showcase.gif" alt="Word Manager" width="300"/>
+</p>
+
+### Profile & Settings
+View your learning streak and weekly activity, compete on the leaderboard, switch between light/dark themes, and manage your subscription.
+
+<p align="center">
+  <img src="docs/demos/profile_settings_showcase.gif" alt="Profile & Settings" width="300"/>
+</p>
+
+### Onboarding
+Beautiful first-launch experience — personalized language selection, proficiency level, and AI-generated starter vocabulary.
+
+<p align="center">
+  <img src="docs/demos/onboarding_showcase.gif" alt="Onboarding" width="300"/>
+</p>
+
 ## Module Architecture
 
 ```

@@ -1,0 +1,100 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - video
+  - study
+---
+# Showcase: Study Dashboard — stats, progress ring, learning stages.
+#
+# Demonstrates the main Study screen with vocabulary statistics,
+# progress visualization, and learning stage distribution.
+#
+# Run with:
+#   maestro test maestro/flows/showcase/study_dashboard_showcase.yaml
+#
+# Record with:
+#   ./maestro/record_showcase.sh study_dashboard_showcase
+#
+# Assumes: User is logged in and has words in their collection.
+
+# ─────────────────────────────────────────────
+# 1. LAUNCH — Clean start on Study screen
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# ─────────────────────────────────────────────
+# 2. STUDY OVERVIEW — Let the viewer absorb the dashboard
+# ─────────────────────────────────────────────
+- waitForAnimationToEnd
+
+# Cinematic pause — show the full Study screen with stats.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# ─────────────────────────────────────────────
+# 3. SCROLL — Reveal learning stages and distribution
+# ─────────────────────────────────────────────
+# Slow scroll down to show learning stage cards.
+- swipe:
+    start: "50%,75%"
+    end: "50%,35%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Pause to show learning stages.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Continue scrolling to show more content.
+- swipe:
+    start: "50%,75%"
+    end: "50%,45%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+# Pause at the bottom.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# ─────────────────────────────────────────────
+# 4. SCROLL BACK — Return to top
+# ─────────────────────────────────────────────
+# Scroll back up smoothly.
+- swipe:
+    start: "50%,30%"
+    end: "50%,75%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Scroll up again to reach the very top.
+- swipe:
+    start: "50%,30%"
+    end: "50%,75%"
+    duration: 1500
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. FINAL PAUSE — Hero shot of the dashboard
+# ─────────────────────────────────────────────
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000

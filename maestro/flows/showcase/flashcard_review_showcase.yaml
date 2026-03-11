@@ -1,0 +1,219 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - video
+  - review
+  - flashcard
+---
+# Showcase: Flashcard Review — card flip, TTS, rating, completion.
+#
+# Demonstrates the core learning experience: flipping flashcards,
+# rating recall (Got it! / Nope), editing a word mid-review,
+# and the completion stats screen.
+#
+# Run with:
+#   maestro test maestro/flows/showcase/flashcard_review_showcase.yaml
+#
+# Record with:
+#   ./maestro/record_showcase.sh flashcard_review_showcase
+#
+# Assumes: User is logged in with at least 1 word to review.
+
+# ─────────────────────────────────────────────
+# 1. SETUP — Ensure a test word exists
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Add a test word to ensure we have something to review.
+- runFlow: ../utils/add_test_word.yaml
+
+# ─────────────────────────────────────────────
+# 2. START REVIEW — Enter the flashcard experience
+# ─────────────────────────────────────────────
+- tapOn: "Start Review"
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Cinematic pause — show the flashcard front.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# ─────────────────────────────────────────────
+# 3. CARD 1 — Flip and rate "Got it!"
+# ─────────────────────────────────────────────
+# Tap to flip the card and reveal the answer.
+- tapOn:
+    point: "50%,40%"
+
+- waitForAnimationToEnd
+
+# Pause to show the revealed answer.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Rate as remembered.
+- tapOn:
+    text: "Got it!"
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 4. CARD 2 — Flip and rate "Nope"
+# ─────────────────────────────────────────────
+# Pause to show the next card front.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Flip the card.
+- tapOn:
+    point: "50%,40%"
+
+- waitForAnimationToEnd
+
+# Pause to show the answer.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Rate as forgotten — shows both rating options.
+- tapOn:
+    text: "Nope"
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. CARD 3 — Flip, show Edit, then rate
+# ─────────────────────────────────────────────
+# Pause on the card front.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Flip the card.
+- tapOn:
+    point: "50%,40%"
+
+- waitForAnimationToEnd
+
+# Open the Edit dialog to show mid-review editing.
+- tapOn:
+    text: "Edit"
+    retryTapIfNoChange: true
+    optional: true
+
+- waitForAnimationToEnd
+
+# Pause to show the Edit Word dialog.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Cancel without saving.
+- pressKey: back
+
+- waitForAnimationToEnd
+
+# Rate as remembered.
+- tapOn:
+    text: "Got it!"
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 6. REMAINING CARDS — Quick review to reach completion
+# ─────────────────────────────────────────────
+# Review remaining cards quickly (may be 0 if only 1 test word).
+# Use optional taps since we don't know exactly how many cards exist.
+
+# Card 4 (if exists)
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# Card 5 (if exists)
+- tapOn:
+    text: "Tap card to reveal"
+    optional: true
+- tapOn:
+    point: "50%,40%"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    text: "Got it!"
+    optional: true
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 7. COMPLETION — Stats screen
+# ─────────────────────────────────────────────
+# Wait for completion screen (may appear after any card).
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 10000
+    optional: true
+
+# Pause to show the completion stats.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Tap Done to return to Study screen.
+- tapOn:
+    text: "Done"
+    optional: true
+
+- waitForAnimationToEnd
+
+# If we exited mid-review (more cards than expected), close review.
+- tapOn:
+    point: "7%,6%"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    point: "50%,78%"
+    optional: true
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 8. FINAL — Back on Study screen
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Final pause on Study screen.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000

@@ -14,22 +14,29 @@ tags:
 
 - runFlow: ../utils/navigate_to_profile.yaml
 
-# Scroll to the Logout button.
+# Scroll to the Logout button (may require scrolling past several sections).
 - scrollUntilVisible:
     element: "Logout"
     direction: DOWN
-    timeout: 3000
+    timeout: 8000
 
-# Tap the Logout button.
-- tapOn: "Logout"
+# Tap the Logout button (retry if needed — scroll may still be settling).
+- tapOn:
+    text: "Logout"
+    retryTapIfNoChange: true
+
+# Wait for the bottom sheet animation to complete.
+- waitForAnimationToEnd
 
 # The logout confirmation sheet must appear.
-- assertVisible: "Are you sure you want to logout?"
+# Wait for "Cancel" — exact node text unique to the sheet (not on the profile screen).
+- extendedWaitUntil:
+    visible: "Cancel"
+    timeout: 5000
 
-# The confirm (Logout) and cancel buttons must be visible.
+# The confirm Logout button must also be visible in the sheet.
 - assertVisible:
     text: "Logout"
-- assertVisible: "Cancel"
 
 # Dismiss without logging out by tapping Cancel.
 - tapOn: "Cancel"

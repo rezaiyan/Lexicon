@@ -3,20 +3,34 @@
 # Called by word manager test flows via:
 #   - runFlow: ../utils/navigate_to_word_manager.yaml
 #
-# Assumes:
-#   - The app is already running (launched by the calling flow).
-#   - The user is authenticated and the main app is visible (Study/Settings/Profile tabs).
-#   - The device is not in a dialog or overlay state.
+# Handles app restart to clear leftover overlays from prior tests.
 
 appId: com.alirezaiyan.vokab
 ---
+# Restart app to ensure a clean UI state (no leftover overlays from prior tests).
+- stopApp
+- launchApp:
+    clearState: false
+
+# Wait for the bottom navigation bar to load (handles splash + auth startup).
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 15000
+
 # Navigate to the Settings tab via the bottom navigation bar.
 - tapOn:
     text: "Settings"
+
+# Wait for the Settings screen to load with the Word Manager card.
+- extendedWaitUntil:
+    visible: "Word Manager"
+    timeout: 5000
 
 # Tap the Word Manager card on the Settings screen.
 - tapOn:
     text: "Word Manager"
 
 # Verify Word Manager screen is open by checking the top bar title.
-- assertVisible: "Word Manager"
+- extendedWaitUntil:
+    visible: "Word Manager"
+    timeout: 5000

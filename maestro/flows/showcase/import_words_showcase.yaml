@@ -1,0 +1,195 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - video
+  - import
+---
+# Showcase: Import Words — method selector, manual import, file import tab.
+#
+# Demonstrates the word import experience: opening the import picker,
+# choosing a method, manually adding vocabulary words with translations
+# and descriptions, and showing the file import UI.
+#
+# Run with:
+#   maestro test maestro/flows/showcase/import_words_showcase.yaml
+#
+# Record with:
+#   ./maestro/record_showcase.sh import_words_showcase
+#
+# Assumes: User is logged in on the Study screen.
+
+# ─────────────────────────────────────────────
+# 1. LAUNCH — Navigate to Study screen
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# ─────────────────────────────────────────────
+# 2. IMPORT PICKER — Show import method options
+# ─────────────────────────────────────────────
+# Open the import picker via the + button.
+- tapOn: "Import Words"
+- waitForAnimationToEnd
+
+# Pause to show the import method selector (Manually, AI Assistant, From File).
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# ─────────────────────────────────────────────
+# 3. MANUAL IMPORT — Add words with full details
+# ─────────────────────────────────────────────
+# Choose manual import.
+- tapOn:
+    text: "Manually"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Pause to show the manual import form.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# --- Word 1: Wanderlust (full experience with description) ---
+- scrollUntilVisible:
+    element: "Original Word"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Wanderlust"
+- hideKeyboard
+
+# Pause to show typed word.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "A strong desire to travel"
+- hideKeyboard
+
+# Add a description to show the optional field.
+- scrollUntilVisible:
+    element: "Description (Optional)"
+    direction: DOWN
+
+- tapOn: "Description (Optional)"
+- eraseText: 50
+- inputText: "German origin - the joy of exploring"
+- hideKeyboard
+
+# Pause to show the fully filled form.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Submit the word.
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# Pause to show success feedback.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# --- Word 2: Zeitgeist (without description — quicker flow) ---
+- scrollUntilVisible:
+    element: "Original Word"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Zeitgeist"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Spirit of the times"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# Pause after second word.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# --- Word 3: Schadenfreude ---
+- tapOn: "Original Word"
+- eraseText: 50
+- inputText: "Schadenfreude"
+- hideKeyboard
+
+- tapOn: "Translation"
+- eraseText: 50
+- inputText: "Joy from others' misfortune"
+- hideKeyboard
+
+- tapOn: "Add Word"
+- waitForAnimationToEnd
+
+# Pause to show success.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# ─────────────────────────────────────────────
+# 4. FILE IMPORT TAB — Show the file import UI
+# ─────────────────────────────────────────────
+# Switch to the "From File" tab.
+- tapOn: "From File"
+- waitForAnimationToEnd
+
+# Pause to show file import UI with format instructions.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Scroll to show supported format examples.
+- swipe:
+    start: "50%,70%"
+    end: "50%,50%"
+    duration: 1000
+
+- waitForAnimationToEnd
+
+# Pause on format examples.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# ─────────────────────────────────────────────
+# 5. CLOSE — Return to Study screen
+# ─────────────────────────────────────────────
+# Close the import sheet.
+- tapOn: "Close"
+
+- waitForAnimationToEnd
+
+# Final pause on Study screen.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000

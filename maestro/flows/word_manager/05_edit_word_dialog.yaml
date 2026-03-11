@@ -13,8 +13,10 @@ tags:
 
 - runFlow: ../utils/navigate_to_word_manager.yaml
 
-# Verify we are in the word list state.
-- assertVisible: "Search words..."
+# Wait for the word list to load (generous timeout for slow emulators).
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 15000
 
 # Tap a word card to open the detail bottom sheet.
 - tapOn: "MaestroTest"
@@ -46,6 +48,17 @@ tags:
 # Dismiss the dialog without saving.
 - tapOn: "Cancel"
 
-# The dialog must be gone; the word list is visible again.
+# The dialog must be gone.
 - assertNotVisible: "Edit Word"
-- assertVisible: "Search words..."
+
+# Close the detail bottom sheet by tapping outside (top area above the sheet).
+- tapOn:
+    point: "50%,10%"
+
+# Wait for the sheet dismiss animation.
+- waitForAnimationToEnd
+
+# The word list is visible again.
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 5000

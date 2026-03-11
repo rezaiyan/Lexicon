@@ -8,25 +8,39 @@ tags:
 # Verifies that tapping each bottom navigation tab loads the corresponding
 # screen. The app has three tabs: Profile, Study, and Settings.
 
+- stopApp
 - launchApp:
     clearState: false
+
+# Wait for the app to fully load and show bottom navigation.
+- extendedWaitUntil:
+    visible: "Study"
+    timeout: 15000
 
 # Navigate to Study tab.
 - tapOn:
     text: "Study"
-- assertVisible: "Import Words"
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000
 
 # Navigate to Settings tab.
 - tapOn:
     text: "Settings"
-- assertVisible: "Settings"
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000
 
 # Navigate to Profile tab.
 - tapOn:
     text: "Profile"
-- assertVisible: "Profile"
+- extendedWaitUntil:
+    visible: "Leaderboard"
+    timeout: 5000
 
 # Navigate back to Study tab to verify round-trip.
 - tapOn:
     text: "Study"
-- assertVisible: "Import Words"
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

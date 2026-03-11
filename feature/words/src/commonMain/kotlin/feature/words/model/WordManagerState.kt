@@ -40,14 +40,26 @@ data class WordManagerScreenState(
             result = result.filter { LearningStage.fromLevel(it.level) == stage }
         }
 
-        // Sort
+        // Sort with tiebreakers for stable, predictable ordering
         return when (sortOption) {
-            WordSortOption.DATE_ADDED_DESC -> result.sortedByDescending { it.dateAdded }
-            WordSortOption.DATE_ADDED_ASC -> result.sortedBy { it.dateAdded }
-            WordSortOption.ALPHABETICAL_AZ -> result.sortedBy { it.originalWord.lowercase() }
-            WordSortOption.ALPHABETICAL_ZA -> result.sortedByDescending { it.originalWord.lowercase() }
-            WordSortOption.LEVEL_ASC -> result.sortedBy { it.level }
-            WordSortOption.LEVEL_DESC -> result.sortedByDescending { it.level }
+            WordSortOption.DATE_ADDED_DESC -> result.sortedWith(
+                compareByDescending<Word> { it.dateAdded }.thenByDescending { it.id }
+            )
+            WordSortOption.DATE_ADDED_ASC -> result.sortedWith(
+                compareBy<Word> { it.dateAdded }.thenBy { it.id }
+            )
+            WordSortOption.ALPHABETICAL_AZ -> result.sortedWith(
+                compareBy<Word> { it.originalWord.lowercase() }.thenBy { it.id }
+            )
+            WordSortOption.ALPHABETICAL_ZA -> result.sortedWith(
+                compareByDescending<Word> { it.originalWord.lowercase() }.thenByDescending { it.id }
+            )
+            WordSortOption.LEVEL_ASC -> result.sortedWith(
+                compareBy<Word> { it.level }.thenByDescending { it.dateAdded }.thenByDescending { it.id }
+            )
+            WordSortOption.LEVEL_DESC -> result.sortedWith(
+                compareByDescending<Word> { it.level }.thenByDescending { it.dateAdded }.thenByDescending { it.id }
+            )
         }
     }
 

@@ -1,0 +1,281 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - video
+  - ai
+  - import
+---
+# Showcase: AI Import Wizard — smart vocabulary generation.
+#
+# Demonstrates the AI-powered import flow: language selection,
+# proficiency level, topic selection, AI word generation,
+# and vocabulary preview/import.
+#
+# Run with:
+#   maestro test maestro/flows/showcase/ai_import_showcase.yaml
+#
+# Record with:
+#   ./maestro/record_showcase.sh ai_import_showcase
+#
+# Assumes: User is logged in. Requires network access for AI generation.
+
+# ─────────────────────────────────────────────
+# 1. LAUNCH — Navigate to Study screen
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# ─────────────────────────────────────────────
+# 2. OPEN AI ASSISTANT — Import method selector
+# ─────────────────────────────────────────────
+- tapOn: "Import Words"
+- waitForAnimationToEnd
+
+# Pause to show the method selector.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Tap AI Assistant.
+- tapOn:
+    text: "AI Assistant"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 3. STEP 1 — Target language selection
+# ─────────────────────────────────────────────
+# Pause to show the language grid.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Select German.
+- tapOn:
+    text: "German"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Pause to show selection animation.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+
+- tapOn:
+    text: "Continue"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 4. STEP 2 — Native language selection
+# ─────────────────────────────────────────────
+# Pause to show native language grid.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Select English.
+- tapOn:
+    text: "English"
+    optional: true
+
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+
+- tapOn:
+    text: "Continue"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. STEP 3 — Proficiency level
+# ─────────────────────────────────────────────
+# Pause to show the three level cards.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Select Beginner level.
+- tapOn:
+    text: "Beginner"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Pause to show selection with border highlight.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+- tapOn:
+    text: "Continue"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 6. STEP 4 — Topic selection
+# ─────────────────────────────────────────────
+# Pause to show the topic grid.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Select three topics with pauses between each.
+- tapOn:
+    text: "Travel"
+    optional: true
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 800
+
+- tapOn:
+    text: "Daily Life"
+    optional: true
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 800
+
+- tapOn:
+    text: "Food"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Scroll to show more topics.
+- swipe:
+    start: "50%,70%"
+    end: "50%,50%"
+    duration: 1000
+
+- waitForAnimationToEnd
+
+# Pause on the full topic selection.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# ─────────────────────────────────────────────
+# 7. GENERATE — AI vocabulary generation
+# ─────────────────────────────────────────────
+- tapOn:
+    text: "Generate Words"
+    optional: true
+
+# Wait for AI generation (can take 5-20 seconds).
+- extendedWaitUntil:
+    visible:
+      text: "vocabulary"
+    timeout: 25000
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 8. PREVIEW — Browse generated words
+# ─────────────────────────────────────────────
+# Pause to show the vocabulary header.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Scroll through the generated word list slowly.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2500
+
+- waitForAnimationToEnd
+
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+    duration: 2500
+
+- waitForAnimationToEnd
+
+# Scroll back to the top.
+- swipe:
+    start: "50%,30%"
+    end: "50%,70%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Pause before importing.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# ─────────────────────────────────────────────
+# 9. IMPORT — Accept the generated vocabulary
+# ─────────────────────────────────────────────
+- tapOn:
+    text: "Import"
+    optional: true
+- tapOn:
+    text: "Add to My Words"
+    optional: true
+- tapOn:
+    text: "Accept"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Close if still open.
+- tapOn:
+    text: "Close"
+    optional: true
+- tapOn:
+    text: "Discard"
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 10. FINAL — Back on Study screen with new words
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+- waitForAnimationToEnd
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Final pause showing the updated Study dashboard.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000

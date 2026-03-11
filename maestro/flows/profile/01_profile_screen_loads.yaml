@@ -19,8 +19,8 @@ tags:
 # The Leaderboard button must be visible.
 - assertVisible: "Leaderboard"
 
-# The Logout button must be visible.
+# The Logout button must be visible (may require scrolling past several sections).
 - scrollUntilVisible:
     element: "Logout"
     direction: DOWN
-    timeout: 3000
+    timeout: 8000

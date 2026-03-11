@@ -98,8 +98,10 @@ sleep 2
 
 # --- 6. Run Maestro tests ---
 info "Running Maestro tests: $TEST_TARGET"
+# Generate a unique test word for each run so new words are always due for review.
+TEST_WORD="Test$(date +%s)"
 MAESTRO_EXIT=0
-maestro test "$TEST_TARGET" || MAESTRO_EXIT=$?
+maestro test --env TEST_WORD="$TEST_WORD" "$TEST_TARGET" || MAESTRO_EXIT=$?
 
 # --- 7. Uninstall app ---
 info "Uninstalling app for clean environment"

@@ -17,11 +17,18 @@ tags:
 # Open the import picker.
 - tapOn: "Import Words"
 
+# Wait for the method selector or import sheet to appear.
+- extendedWaitUntil:
+    visible: "Manually"
+    timeout: 5000
+
 # The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
 - tapOn: "Manually"
 
 # The sheet must open with the "Type Text" tab.
-- assertVisible: "Type Text"
+- extendedWaitUntil:
+    visible: "Type Text"
+    timeout: 5000
 
 # Switch to the "From File" tab.
 - tapOn: "From File"
@@ -41,10 +48,10 @@ tags:
 # The supported format section must be visible.
 - assertVisible: "Supported Format"
 
-# Format examples must be shown (each prefixed with "• " in the UI).
-- assertVisible: "• word,translation"
-- assertVisible: "• word,translation,description"
-- assertVisible: "• Separated by semicolons or new lines"
+# Format examples must be shown.
+- assertVisible: "word,translation"
+- assertVisible: "word,translation,description"
+- assertVisible: "Separated by semicolons or new lines"
 
 # Close the import sheet via the X icon.
 - tapOn: "Close"

@@ -46,8 +46,15 @@ tags:
 # The exit confirmation bottom sheet must appear.
 - assertVisible: "Exit Review?"
 
-# Confirm exit.
-- tapOn: "Exit Review?"
+# Confirm exit (index 1 = the button, not the title which also shows "Exit Review?").
+- tapOn:
+    text: "Exit Review?"
+    index: 1
 
-# We should be back on the Study screen.
-- assertVisible: "Import Words"
+# Wait for the exit animation and navigation to complete.
+- waitForAnimationToEnd
+
+# We should be back on the Study screen (wait for the + icon to render).
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 8000

@@ -1,0 +1,159 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - video
+  - word-manager
+---
+# Showcase: Word Manager — browse, search, word detail sheet.
+#
+# Demonstrates the Word Manager screen: browsing the vocabulary list,
+# searching for words, opening the detail bottom sheet with learning
+# progress, and editing a word.
+#
+# Run with:
+#   maestro test maestro/flows/showcase/word_manager_showcase.yaml
+#
+# Record with:
+#   ./maestro/record_showcase.sh word_manager_showcase
+#
+# Assumes: User is logged in with words in their collection.
+
+# ─────────────────────────────────────────────
+# 1. LAUNCH — Navigate to Word Manager
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# ─────────────────────────────────────────────
+# 2. BROWSE — Scroll through the word list
+# ─────────────────────────────────────────────
+- waitForAnimationToEnd
+
+# Pause to show the full word list.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Scroll down through words.
+- swipe:
+    start: "50%,75%"
+    end: "50%,30%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# Pause at the scrolled position.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Scroll back up.
+- swipe:
+    start: "50%,30%"
+    end: "50%,75%"
+    duration: 2000
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 3. SEARCH — Find a specific word
+# ─────────────────────────────────────────────
+# Tap the search bar.
+- tapOn:
+    text: "Search words..."
+    optional: true
+
+# Type a search query slowly for visual effect.
+- inputText: "Wanderlust"
+- waitForAnimationToEnd
+
+# Pause to show search results.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Clear the search.
+- tapOn:
+    text: "Cancel"
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 4. WORD DETAIL — Open detail bottom sheet
+# ─────────────────────────────────────────────
+# Tap a word to open its detail sheet.
+- tapOn:
+    text: "Wanderlust"
+    optional: true
+- tapOn:
+    text: "MaestroTest"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Pause to show the detail sheet with learning progress.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Scroll in the detail sheet to show more info.
+- swipe:
+    start: "50%,70%"
+    end: "50%,50%"
+    duration: 1000
+
+- waitForAnimationToEnd
+
+# Pause on the learning progress section.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# ─────────────────────────────────────────────
+# 5. EDIT — Show Edit Word dialog
+# ─────────────────────────────────────────────
+# Tap Edit to open the Edit Word dialog.
+- tapOn:
+    text: "Edit"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Pause to show the Edit Word dialog with all fields.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2500
+
+# Cancel without saving.
+- tapOn:
+    text: "Cancel"
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 6. DISMISS — Close the detail sheet
+# ─────────────────────────────────────────────
+- pressKey: back
+- waitForAnimationToEnd
+
+# Final pause on the word list.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
