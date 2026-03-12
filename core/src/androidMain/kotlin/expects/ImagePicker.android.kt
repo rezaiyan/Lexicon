@@ -41,20 +41,22 @@ actual class ImagePicker {
                 createNewFile()
                 deleteOnExit()
             }
-            
-            photoUri = FileProvider.getUriForFile(
+
+            val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",
                 photoFile
             )
-            
+            photoUri = uri
+
             val launcher = activity.activityResultRegistry.register(
                 "camera_capture_${System.currentTimeMillis()}",
                 ActivityResultContracts.TakePicture()
             ) { success: Boolean ->
-                if (success && photoUri != null) {
+                val capturedUri = photoUri
+                if (success && capturedUri != null) {
                     try {
-                        val bytes = context.contentResolver.openInputStream(photoUri!!)?.use { it.readBytes() }
+                        val bytes = context.contentResolver.openInputStream(capturedUri)?.use { it.readBytes() }
                         continuation.resume(bytes)
                     } catch (e: Exception) {
                         continuation.resume(null)
@@ -63,8 +65,8 @@ actual class ImagePicker {
                     continuation.resume(null)
                 }
             }
-            
-            launcher.launch(photoUri!!)
+
+            launcher.launch(uri)
             
             continuation.invokeOnCancellation {
                 photoFile.delete()

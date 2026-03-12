@@ -83,7 +83,8 @@ class AiRemoteDataSourceTest {
         )
 
         assertTrue(result is Try.Failure)
-        assertTrue(result.throwable.message!!.contains("too large"))
+        val message = requireNotNull(result.throwable.message) { "Expected non-null error message" }
+        assertTrue(message.contains("too large"))
     }
 
     @Test
@@ -97,7 +98,8 @@ class AiRemoteDataSourceTest {
         )
 
         assertTrue(result is Try.Failure)
-        assertTrue(result.throwable.message!!.contains("too small"))
+        val message = requireNotNull(result.throwable.message) { "Expected non-null error message" }
+        assertTrue(message.contains("too small"))
     }
 
     @Test
@@ -113,7 +115,8 @@ class AiRemoteDataSourceTest {
         )
 
         assertTrue(result is Try.Failure)
-        assertTrue(result.throwable.message!!.contains("No vocabulary found"))
+        val message = requireNotNull(result.throwable.message) { "Expected non-null error message" }
+        assertTrue(message.contains("No vocabulary found"))
     }
 
     @Test

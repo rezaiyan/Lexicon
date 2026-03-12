@@ -167,17 +167,17 @@ private class KeychainHelper(
 
         return memScoped {
             // Build base query (CoreFoundation dictionary)
-            val baseQuery: CFMutableDictionaryRef = CFDictionaryCreateMutable(
-                kCFAllocatorDefault, 0, null, null
-            )!!
+            val baseQuery: CFMutableDictionaryRef = requireNotNull(
+                CFDictionaryCreateMutable(kCFAllocatorDefault, 0, null, null)
+            ) { "Failed to create CFMutableDictionary for keychain query" }
             CFDictionarySetValue(baseQuery, kSecClass, kSecClassGenericPassword)
             CFDictionarySetValue(baseQuery, kSecAttrService, serviceName.toCFString())
             CFDictionarySetValue(baseQuery, kSecAttrAccount, key.toCFString())
 
             // Try update first
-            val attrsToUpdate: CFMutableDictionaryRef = CFDictionaryCreateMutable(
-                kCFAllocatorDefault, 0, null, null
-            )!!
+            val attrsToUpdate: CFMutableDictionaryRef = requireNotNull(
+                CFDictionaryCreateMutable(kCFAllocatorDefault, 0, null, null)
+            ) { "Failed to create CFMutableDictionary for keychain update" }
             CFDictionarySetValue(attrsToUpdate, kSecValueData, dataCF)
             val updateStatus = SecItemUpdate(baseQuery, attrsToUpdate)
 
@@ -202,9 +202,9 @@ private class KeychainHelper(
     
     fun load(key: String): String? {
         return memScoped {
-            val query: CFMutableDictionaryRef = CFDictionaryCreateMutable(
-                kCFAllocatorDefault, 0, null, null
-            )!!
+            val query: CFMutableDictionaryRef = requireNotNull(
+                CFDictionaryCreateMutable(kCFAllocatorDefault, 0, null, null)
+            ) { "Failed to create CFMutableDictionary for keychain load query" }
             CFDictionarySetValue(query, kSecClass, kSecClassGenericPassword)
             CFDictionarySetValue(query, kSecAttrService, serviceName.toCFString())
             CFDictionarySetValue(query, kSecAttrAccount, key.toCFString())
@@ -223,9 +223,9 @@ private class KeychainHelper(
     }
     
     fun delete(key: String): Boolean {
-        val query: CFMutableDictionaryRef = CFDictionaryCreateMutable(
-            kCFAllocatorDefault, 0, null, null
-        )!!
+        val query: CFMutableDictionaryRef = requireNotNull(
+            CFDictionaryCreateMutable(kCFAllocatorDefault, 0, null, null)
+        ) { "Failed to create CFMutableDictionary for keychain delete query" }
         CFDictionarySetValue(query, kSecClass, kSecClassGenericPassword)
         CFDictionarySetValue(query, kSecAttrService, serviceName.toCFString())
         CFDictionarySetValue(query, kSecAttrAccount, key.toCFString())

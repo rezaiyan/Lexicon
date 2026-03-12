@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 public val Icons.Outlined.AiBook: ImageVector
     get() {
-        if (_aiBook != null) return _aiBook!!
+        _aiBook?.let { return it }
 
         _aiBook = ImageVector.Builder(
             name = "AiBook",
@@ -102,7 +102,7 @@ public val Icons.Outlined.AiBook: ImageVector
 
         }.build()
 
-        return _aiBook!!
+        return requireNotNull(_aiBook) { "AiBook icon was not built" }
     }
 
 private var _aiBook: ImageVector? = null
