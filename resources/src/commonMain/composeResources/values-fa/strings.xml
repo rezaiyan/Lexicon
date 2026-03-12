@@ -92,6 +92,7 @@
     <string name="start_review">شروع مرور</string>
     <string name="learning_stages">مراحل یادگیری</string>
     <string name="import_words">وارد کردن کلمات</string>
+    <string name="choose_import_method">چگونه می‌خواهید کلمات اضافه کنید؟</string>
     <string name="generating_daily_insight">در حال ایجاد بینش روزانه شما...</string>
     
     <!-- Learning Stages (7 Levels) -->
@@ -138,7 +139,6 @@
     <string name="image_import_options">گزینه‌های وارد کردن تصویر:</string>
     <string name="extract_individual_words">استخراج کلمات جداگانه</string>
     <string name="extract_example_sentences">استخراج جملات مثال</string>
-    <string name="select_at_least_one_option">حداقل یک گزینه را انتخاب کنید</string>
     
     <!-- Dialogs -->
     <string name="exit_review">خروج از مرور؟</string>
@@ -485,5 +485,9 @@
     <string name="leaderboard_longest_streak">طولانی‌ترین رکورد</string>
     <string name="leaderboard_mastered">تسلط یافته</string>
     <string name="leaderboard_your_ranking">رتبه شما</string>
+
+    <!-- Import Source Language -->
+    <string name="original_language_question">زبان اصلی کلمات چیست؟</string>
+    <string name="translation_language_hint">ترجمه‌ها به %1$s خواهند بود. می‌توانید این را در تنظیمات تغییر دهید.</string>
 </resources>
 

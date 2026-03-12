@@ -75,6 +75,8 @@ internal class FakeWordLocalDataSource : IWordLocalDataSource {
     override suspend fun deleteAllWords() {
         storedWords.clear()
     }
+
+    override suspend fun getMostCommonSourceLanguage(): String? = null
 }
 
 internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {

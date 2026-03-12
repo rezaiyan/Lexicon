@@ -82,5 +82,6 @@ class SyncRemoteToLocalUseCaseTest {
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 }

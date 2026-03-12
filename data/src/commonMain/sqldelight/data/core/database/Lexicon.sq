@@ -123,6 +123,12 @@ UPDATE WordEntity SET level = :level, easeFactor = :easeFactor, interval = :inte
 deleteAllWords:
 DELETE FROM WordEntity;
 
+getMostCommonSourceLanguage:
+SELECT sourceLanguage FROM WordEntity
+GROUP BY sourceLanguage
+ORDER BY COUNT(*) DESC
+LIMIT 1;
+
 -- Settings queries
 
 insertSettings:

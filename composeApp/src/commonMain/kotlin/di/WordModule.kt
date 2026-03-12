@@ -24,6 +24,7 @@ import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
 import domain.word.usecase.GetAllWordsUseCase
+import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
@@ -86,4 +87,5 @@ fun wordModule() = module {
     singleOf(::DeleteWordsUseCase)
     singleOf(::UpdateWordUseCase)
     singleOf(::ExportWordsUseCase)
+    singleOf(::GetSourceLanguageUseCase)
 }

@@ -64,6 +64,7 @@ class VocabularyViewModelTest : ViewModelTestBase() {
         override fun getProgressStats(): Flow<ProgressStats> = flowOf()
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 
     private fun fakeAnalytics() = object : IAnalyticsTracker {
@@ -178,6 +179,7 @@ class VocabularyViewModelTest : ViewModelTestBase() {
             override fun getProgressStats(): Flow<ProgressStats> = flowOf()
             override suspend fun getTotalCount(): Try<Int> = Try.success(0)
             override suspend fun getDueCount(): Try<Int> = Try.success(0)
+            override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
         }
         val failVm = VocabularyViewModel(
             getDueWordsUseCase = GetDueWordsUseCase(failingRepo),

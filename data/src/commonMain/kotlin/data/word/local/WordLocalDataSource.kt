@@ -41,6 +41,7 @@ interface IWordLocalDataSource {
     suspend fun getTotalCount(): Int
     suspend fun getDueCount(): Int
     suspend fun deleteAllWords(): Unit
+    suspend fun getMostCommonSourceLanguage(): String?
 }
 
 class WordLocalDataSource(
@@ -188,5 +189,9 @@ class WordLocalDataSource(
 
     override suspend fun deleteAllWords() {
         queries.deleteAllWords()
+    }
+
+    override suspend fun getMostCommonSourceLanguage(): String? {
+        return queries.getMostCommonSourceLanguage().awaitAsOneOrNull()
     }
 }

@@ -34,5 +34,3 @@ data class TextInputState(
     val isAddEnabled: Boolean
         get() = word.isNotBlank() && translation.isNotBlank() && isEnabled
 }
-
-enum class ExtractionOption { Word, Sentence }

@@ -20,6 +20,7 @@ import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.word.service.IImportValidationService
+import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.CompletableDeferred
@@ -29,7 +30,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import presentation.ui.components.imports.ExtractionOption
 import presentation.ui.components.imports.ImportTabV2
 import presentation.ui.components.imports.ImportViewModel
 import presentation.ui.components.imports.PendingImportAction
@@ -55,6 +55,7 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val userManager = FakeUserManager()
     private val authRepository = FakeAuthRepo()
     private val getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository)
+    private val getSourceLanguageUseCase = GetSourceLanguageUseCase(wordRepository)
 
     private fun createViewModel() = ImportViewModel(
         getFeatureAccessUseCase = getFeatureAccessUseCase,
@@ -63,6 +64,7 @@ class ImportViewModelTest : ViewModelTestBase() {
         importFromImageUseCase = importFromImageUseCase,
         userManager = userManager,
         getCurrentLanguageUseCase = getCurrentLanguageUseCase,
+        getSourceLanguageUseCase = getSourceLanguageUseCase,
     )
 
     @Test
@@ -214,21 +216,6 @@ class ImportViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `updateExtractionOptions updates image tab options`() = runTest {
-        authRepository.featureAccessFlow = flowOf(
-            FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = true))
-        )
-        userManager.userFlow.value = AuthUser(1L, "test@test.com", "Test")
-        val vm = createViewModel()
-
-        val options = listOf(ExtractionOption.Word, ExtractionOption.Sentence)
-        vm.updateExtractionOptions(options)
-
-        val imageTab = vm.currentState.tabs.filterIsInstance<ImportTabV2.Image>().firstOrNull()
-        assertEquals(options, imageTab?.extractionOption)
-    }
-
-    @Test
     fun `clearSelectedImage clears image from tab`() = runTest {
         authRepository.featureAccessFlow = flowOf(
             FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = true))
@@ -333,6 +320,7 @@ class ImportViewModelTest : ViewModelTestBase() {
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 
     private class FakeValidationService : IImportValidationService {

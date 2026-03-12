@@ -120,6 +120,7 @@ class WordSyncServiceTest {
         override suspend fun getTotalCount(): Try<Int> = Try.success(existingFlow.value.size)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+        override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 }
 

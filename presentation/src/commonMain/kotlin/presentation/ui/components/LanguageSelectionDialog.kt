@@ -29,10 +29,14 @@ fun LanguageSelectionContent(
     currentLanguage: Language,
     onLanguageSelected: (Language) -> Unit,
     title: String = stringResource(Res.string.translation_language),
+    onBack: (() -> Unit)? = null,
+    onClose: (() -> Unit)? = null,
 ) {
     LexiconDialogContent(
         modifier = Modifier
             .verticalScroll(rememberScrollState()),
+        onBack = onBack,
+        onClose = onClose,
         icon = Icons.Default.Language,
         title = title,
         content = {

@@ -61,6 +61,8 @@ data class ButtonState(
 @Composable
 fun LexiconDialogContent(
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
+    onClose: (() -> Unit)? = null,
     iconState: DialogIconState = DialogIconState.None,
     title: String? = null,
     message: String? = null,
@@ -76,6 +78,9 @@ fun LexiconDialogContent(
             .padding(start = Theme.spacing.lg, end = Theme.spacing.lg, bottom = Theme.spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // ── Navigation toolbar: back / close ──────────────────────────────────
+        ContentToolbar(onBack = onBack, onClose = onClose)
+
         // ── Header: icon circle + title, vertically centered ──────────────────
         if (iconState !is DialogIconState.None || title != null) {
             Column(
@@ -293,6 +298,8 @@ fun LexiconDialogContent(
 @Composable
 fun LexiconDialogContent(
     modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
+    onClose: (() -> Unit)? = null,
     icon: ImageVector? = null,
     title: String? = null,
     message: String? = null,
@@ -306,6 +313,8 @@ fun LexiconDialogContent(
 ) {
     LexiconDialogContent(
         modifier = modifier,
+        onBack = onBack,
+        onClose = onClose,
         iconState = when {
             icon != null -> DialogIconState.Icon(icon, iconTint)
             else -> DialogIconState.None

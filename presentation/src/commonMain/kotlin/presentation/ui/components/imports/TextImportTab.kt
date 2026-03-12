@@ -6,8 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +25,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,33 +46,25 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextOverflow
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.add_a_word
 import lexicon.resources.generated.resources.add_word
 import lexicon.resources.generated.resources.add_word_description
 import lexicon.resources.generated.resources.description_optional
-import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.original_word
 import lexicon.resources.generated.resources.translation_label
-import lexicon.resources.generated.resources.translation_language
 import lexicon.resources.generated.resources.word_added_count_singular
 import lexicon.resources.generated.resources.words_added_count
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import utils.Language
 
 @Composable
 internal fun TextImportContent(
     textInputState: TextInputState,
-    sourceLanguage: Language,
-    targetLanguage: Language,
     onWordChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onAddWord: () -> Unit,
-    onShowSourceLanguage: () -> Unit,
-    onShowTargetLanguage: () -> Unit,
 ) {
     val isAddEnabled by derivedStateOf { textInputState.isAddEnabled }
     val wordFocusRequester = remember { FocusRequester() }
@@ -102,13 +91,6 @@ internal fun TextImportContent(
                 title = stringResource(Res.string.add_a_word),
                 description = stringResource(Res.string.add_word_description),
                 icon = Icons.Filled.Edit,
-            )
-
-            LanguageSelectorRow(
-                sourceLanguage = sourceLanguage,
-                targetLanguage = targetLanguage,
-                onShowSourceLanguage = onShowSourceLanguage,
-                onShowTargetLanguage = onShowTargetLanguage,
             )
 
             WordInputFields(
@@ -146,83 +128,6 @@ internal fun TextImportContent(
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold
             )
-        }
-    }
-}
-
-@Composable
-private fun LanguageSelectorRow(
-    sourceLanguage: Language,
-    targetLanguage: Language,
-    onShowSourceLanguage: () -> Unit,
-    onShowTargetLanguage: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
-    ) {
-        CompactLanguageSelector(
-            label = stringResource(Res.string.original_language),
-            language = sourceLanguage,
-            onClick = onShowSourceLanguage,
-            modifier = Modifier.weight(1f)
-        )
-        CompactLanguageSelector(
-            label = stringResource(Res.string.translation_language),
-            language = targetLanguage,
-            onClick = onShowTargetLanguage,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun CompactLanguageSelector(
-    label: String,
-    language: Language,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier.clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        border = BorderStroke(
-            Theme.dimensions.hairlineThickness,
-            MaterialTheme.colorScheme.outlineVariant
-        ),
-        shape = RoundedCornerShape(Theme.shapes.medium)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs)
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = language.nativeName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-                Icon(
-                    Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
     }
 }

@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -173,20 +171,11 @@ private fun LanguageRow(
 internal fun LanguagePickerPage(
     currentLanguage: Language,
     onLanguageSelected: (Language) -> Unit,
-    onBack: () -> Unit,
     title: String = stringResource(Res.string.translation_language),
 ) {
-    Column{
-        IconButton(onClick = onBack) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-            )
-        }
-        LanguageSelectionContent(
-            currentLanguage = currentLanguage,
-            onLanguageSelected = onLanguageSelected,
-            title = title,
-        )
-    }
+    LanguageSelectionContent(
+        currentLanguage = currentLanguage,
+        onLanguageSelected = onLanguageSelected,
+        title = title,
+    )
 }

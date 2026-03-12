@@ -93,6 +93,7 @@
     <string name="start_review">Wiederholung starten</string>
     <string name="learning_stages">Lernphasen</string>
     <string name="import_words">Wörter importieren</string>
+    <string name="choose_import_method">Wie möchten Sie Wörter hinzufügen?</string>
     <string name="generating_daily_insight">Ihre tägliche Einsicht wird generiert...</string>
     
     <!-- Learning Stages (7 Levels) -->
@@ -139,7 +140,6 @@
     <string name="image_import_options">Bildimport-Optionen:</string>
     <string name="extract_individual_words">Einzelne Wörter extrahieren</string>
     <string name="extract_example_sentences">Beispielsätze extrahieren</string>
-    <string name="select_at_least_one_option">Mindestens eine Option wählen</string>
     
     <!-- Dialogs -->
     <string name="exit_review">Wiederholung beenden?</string>
@@ -486,5 +486,9 @@
     <string name="leaderboard_longest_streak">Längste Serie</string>
     <string name="leaderboard_mastered">Gemeistert</string>
     <string name="leaderboard_your_ranking">Deine Platzierung</string>
+
+    <!-- Import Source Language -->
+    <string name="original_language_question">In welcher Sprache sind die Originalwörter?</string>
+    <string name="translation_language_hint">Übersetzungen werden auf %1$s sein. Du kannst dies in den Einstellungen ändern.</string>
 </resources>
 

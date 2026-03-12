@@ -253,5 +253,6 @@ class ReviewWordUseCaseTest {
             targetLanguage: String,
         ): Flow<UpdateWordsLanguagesProgress> =
             flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
+        override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 }

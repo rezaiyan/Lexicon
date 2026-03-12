@@ -104,6 +104,9 @@
     <string name="start_review">Start Review</string>
     <string name="learning_stages">Learning Stages</string>
     <string name="import_words">Import Words</string>
+    <string name="choose_import_method">How would you like to add words?</string>
+    <string name="original_language_question">What language are the original words?</string>
+    <string name="translation_language_hint">Translations will be in %1$s. You can change this in Settings.</string>
     <string name="generating_daily_insight">Generating your daily insight...</string>
     <string name="cards_waiting">%1$d cards waiting for you</string>
     <string name="all_caught_up">All caught up! Well done.</string>
@@ -245,7 +248,6 @@
     <string name="image_import_options">Image Import Options:</string>
     <string name="extract_individual_words">Extract individual words</string>
     <string name="extract_example_sentences">Extract example sentences</string>
-    <string name="select_at_least_one_option">Select at least one option</string>
     <string name="add_a_word">Add a Word</string>
     <string name="add_word_description">Add vocabulary words one at a time with translation and optional description</string>
     <string name="add_word">Add Word</string>

@@ -8,13 +8,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import components.dialog.ContentToolbar
 import expects.BackHandler
 import theme.Theme
 
@@ -77,17 +83,89 @@ private const val SLIDE_OFFSET_DIVISOR = 4
  * System back navigates through the stack before dismissing the sheet.
  * Pages slide horizontally (forward = left-to-right push, back = right-to-left pop)
  * with crossfade, matching the design system's sheet motion language.
+ *
+ * A persistent [ContentToolbar] is rendered above the animated content with
+ * back/close buttons driven by [pageConfig].
+ * When the enclosing overlay provides [LocalBottomSheetOverlayScope], per-page
+ * [BottomSheetPageConfig.properties] are auto-synced — no `LaunchedEffect` needed at call sites.
+ *
+ * **Nesting support:** When a `BottomSheetPages` is rendered inside another
+ * `BottomSheetPages`, the inner instance suppresses its own toolbar and
+ * registers its toolbar state with the outer (root) instance via
+ * [LocalBottomSheetToolbarOwner]. The root toolbar shows the inner state when
+ * present, falling back to its own state. This prevents double toolbars.
  */
 @Composable
 fun <T> BottomSheetPages(
     navigator: BottomSheetPageNavigator<T>,
+    onClose: (() -> Unit)? = null,
     label: String = "BottomSheetPages",
+    pageConfig: (T) -> BottomSheetPageConfig = { BottomSheetPageConfig() },
     content: @Composable (T) -> Unit
 ) {
     BackHandler(enabled = navigator.canNavigateBack) {
         navigator.navigateBack()
     }
 
+    val currentPage = navigator.currentPage
+    val config = pageConfig(currentPage)
+
+    // Auto-sync overlay properties when pageConfig provides them
+    val overlayScope = LocalBottomSheetOverlayScope.current
+    LaunchedEffect(currentPage) {
+        val props = pageConfig(currentPage).properties
+        if (props != null && overlayScope != null) {
+            overlayScope.properties = props
+        }
+    }
+
+    // Resolve toolbar callbacks for this navigator
+    val resolvedBack: (() -> Unit)? =
+        if (navigator.canNavigateBack && config.showBackButton) {{ navigator.navigateBack() }} else null
+    val resolvedClose: (() -> Unit)? =
+        if (config.showCloseButton && onClose != null) onClose else null
+
+    val parentOwner = LocalBottomSheetToolbarOwner.current
+
+    if (parentOwner != null) {
+        // NESTED: update parent owner with our toolbar state, suppress our toolbar
+        SideEffect {
+            parentOwner.innerBack = resolvedBack
+            parentOwner.innerClose = resolvedClose
+        }
+
+        DisposableEffect(Unit) {
+            onDispose {
+                parentOwner.innerBack = null
+                parentOwner.innerClose = null
+            }
+        }
+
+        AnimatedPageContent(navigator, label, content)
+    } else {
+        // ROOT: own the toolbar, provide owner to children
+        val toolbarOwner = remember { BottomSheetToolbarOwner() }
+
+        // Inner state takes priority over outer
+        val finalBack = toolbarOwner.innerBack ?: resolvedBack
+        val finalClose = toolbarOwner.innerClose ?: resolvedClose
+
+        Column {
+            ContentToolbar(onBack = finalBack, onClose = finalClose)
+
+            CompositionLocalProvider(LocalBottomSheetToolbarOwner provides toolbarOwner) {
+                AnimatedPageContent(navigator, label, content)
+            }
+        }
+    }
+}
+
+@Composable
+private fun <T> AnimatedPageContent(
+    navigator: BottomSheetPageNavigator<T>,
+    label: String,
+    content: @Composable (T) -> Unit,
+) {
     val motion = Theme.motion
     val forward = navigator.isNavigatingForward
 

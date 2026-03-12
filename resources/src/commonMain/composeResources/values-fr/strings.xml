@@ -93,6 +93,7 @@
     <string name="start_review">Commencer la révision</string>
     <string name="learning_stages">Étapes d'apprentissage</string>
     <string name="import_words">Importer des mots</string>
+    <string name="choose_import_method">Comment souhaitez-vous ajouter des mots ?</string>
     <string name="generating_daily_insight">Génération de votre aperçu quotidien...</string>
     
     <!-- Learning Stages (7 Levels) -->
@@ -139,7 +140,6 @@
     <string name="image_import_options">Options d'importation d'image :</string>
     <string name="extract_individual_words">Extraire les mots individuels</string>
     <string name="extract_example_sentences">Extraire les phrases d'exemple</string>
-    <string name="select_at_least_one_option">Sélectionnez au moins une option</string>
     
     <!-- Dialogs -->
     <string name="exit_review">Quitter la révision ?</string>
@@ -486,5 +486,9 @@
     <string name="leaderboard_longest_streak">Plus longue série</string>
     <string name="leaderboard_mastered">Maîtrisés</string>
     <string name="leaderboard_your_ranking">Ton classement</string>
+
+    <!-- Import Source Language -->
+    <string name="original_language_question">Dans quelle langue sont les mots originaux ?</string>
+    <string name="translation_language_hint">Les traductions seront en %1$s. Tu peux changer cela dans les Paramètres.</string>
 </resources>
 

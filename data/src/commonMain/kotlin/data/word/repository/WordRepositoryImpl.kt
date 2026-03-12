@@ -225,4 +225,8 @@ class WordRepositoryImpl(
             localDataSource.deleteAllWords()
         }
     }
+
+    override suspend fun getMostCommonSourceLanguage(): Try<String?> {
+        return Try { localDataSource.getMostCommonSourceLanguage() }
+    }
 }

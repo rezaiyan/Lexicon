@@ -8,10 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -38,6 +36,7 @@ import presentation.ui.components.imports.ImportBottomSheet
 import presentation.ui.components.imports.ImportMethodSelectorContent
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetProperties
+import overlay.bottomsheet.BottomSheetPageConfig
 import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.fullscreen.FullScreenProperties
@@ -95,29 +94,46 @@ fun StudyScreen() {
 
     val openImportSheet: () -> Unit = {
         if (hasPremiumAccess) {
-            overlayHost.showSizeToFitBottomSheet(tag = "import") { sheetNav ->
+            overlayHost.showSizeToFitBottomSheet(
+                tag = "import",
+                properties = BottomSheetProperties(dismissOnBackPress = true, dismissOnTouchOutside = true)
+            ) { sheetNav ->
                 val pages = rememberBottomSheetPageNavigator<ImportFlowPage>(ImportFlowPage.Selector)
+                val onClose: () -> Unit = { sheetNav.dismiss() }
 
-                LaunchedEffect(pages.currentPage) {
-                    properties = when (pages.currentPage) {
-                        is ImportFlowPage.Selector -> BottomSheetProperties(showCloseButton = false)
-                        is ImportFlowPage.Manual -> LockedSheetProperties.copy(showCloseButton = true)
-                        is ImportFlowPage.AiAssistant -> LockedSheetProperties
-                    }
-                }
-
-                BottomSheetPages(navigator = pages) { currentPage ->
+                BottomSheetPages(
+                    navigator = pages,
+                    onClose = onClose,
+                    pageConfig = { page ->
+                        when (page) {
+                            is ImportFlowPage.Selector -> BottomSheetPageConfig(
+                                showBackButton = false,
+                                properties = BottomSheetProperties(),
+                            )
+                            is ImportFlowPage.Manual -> BottomSheetPageConfig(
+                                properties = LockedSheetProperties,
+                            )
+                            is ImportFlowPage.AiAssistant -> BottomSheetPageConfig(
+                                showBackButton = false,
+                                showCloseButton = false,
+                                properties = LockedSheetProperties,
+                            )
+                        }
+                    },
+                ) { currentPage ->
                     when (currentPage) {
                         is ImportFlowPage.Selector -> ImportMethodSelectorContent(
                             onManual = { pages.navigateTo(ImportFlowPage.Manual) },
                             onAiAssistant = { pages.navigateTo(ImportFlowPage.AiAssistant) }
                         )
+
                         is ImportFlowPage.Manual -> ImportBottomSheet(
-                            onDismiss = { sheetNav.dismiss() },
+                            onDismiss = onClose,
                             onShowSnackBar = onImportSuccess
                         )
+
                         is ImportFlowPage.AiAssistant -> AiWordImportBottomSheet(
-                            onDismiss = { sheetNav.dismiss() },
+                            onDismiss = onClose,
                             onShowSnackBar = onImportSuccess
                         )
                     }
@@ -126,11 +142,12 @@ fun StudyScreen() {
         } else {
             overlayHost.showSizeToFitBottomSheet(
                 tag = "import",
-                properties = LockedSheetProperties.copy(showCloseButton = true)
+                properties = LockedSheetProperties,
             ) { nav ->
                 ImportBottomSheet(
+                    onClose = { nav.dismiss() },
                     onDismiss = { nav.dismiss() },
-                    onShowSnackBar = onImportSuccess
+                    onShowSnackBar = onImportSuccess,
                 )
             }
         }

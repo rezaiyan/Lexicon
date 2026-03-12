@@ -99,6 +99,7 @@ class AuthViewModelTest : ViewModelTestBase() {
         override fun getProgressStats(): Flow<ProgressStats> = emptyFlow()
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {

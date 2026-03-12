@@ -12,16 +12,15 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import components.animation.staggeredFadeSlide
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import org.jetbrains.compose.resources.stringResource
@@ -33,13 +32,10 @@ internal fun ImageImportContent(
     isEnabled: Boolean,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
-    onUpdateExtractionOptions: (List<ExtractionOption>) -> Unit,
     onImportImage: () -> Unit,
     onClearSelectedImage: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val extractWords = imageTab.extractionOption.contains(ExtractionOption.Word)
-    val extractSentences = imageTab.extractionOption.contains(ExtractionOption.Sentence)
     val hasImage = imageTab.selectedImage != null
 
     AnimatedContent(
@@ -73,20 +69,6 @@ internal fun ImageImportContent(
                     )
                 } else {
                     ImageSelectionContent(
-                        extractWords = extractWords,
-                        extractSentences = extractSentences,
-                        onExtractWordsChange = { checked ->
-                            val options = imageTab.extractionOption.toMutableList()
-                            if (checked) options.addIfAbsent(ExtractionOption.Word)
-                            else options.remove(ExtractionOption.Word)
-                            onUpdateExtractionOptions(options)
-                        },
-                        onExtractSentencesChange = { checked ->
-                            val options = imageTab.extractionOption.toMutableList()
-                            if (checked) options.addIfAbsent(ExtractionOption.Sentence)
-                            else options.remove(ExtractionOption.Sentence)
-                            onUpdateExtractionOptions(options)
-                        },
                         onCameraClick = onCameraClick,
                         onGalleryClick = onGalleryClick,
                         isEnabled = isEnabled,
@@ -95,15 +77,13 @@ internal fun ImageImportContent(
             }
 
             if (!showPreview) {
-                OutlinedButton(
+                TextButton(
                     onClick = onDismiss,
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .height(Theme.dimensions.buttonHeight)
                         .imePadding(),
                     enabled = isEnabled,
-                    shape = RoundedCornerShape(Theme.shapes.medium)
                 ) {
                     Text(stringResource(Res.string.cancel))
                 }
@@ -114,33 +94,20 @@ internal fun ImageImportContent(
 
 @Composable
 private fun ImageSelectionContent(
-    extractWords: Boolean,
-    extractSentences: Boolean,
-    onExtractWordsChange: (Boolean) -> Unit,
-    onExtractSentencesChange: (Boolean) -> Unit,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
     isEnabled: Boolean,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
-        AiExtractionInfoCard()
-
-        ExtractionOptionsCard(
-            extractWords = extractWords,
-            extractSentences = extractSentences,
-            onExtractWordsChange = onExtractWordsChange,
-            onExtractSentencesChange = onExtractSentencesChange,
-            isEnabled = isEnabled
+        ImageSourceHeader(
+            modifier = Modifier.staggeredFadeSlide(0),
         )
 
-        CaptureButtons(
+        ImageSourcePicker(
             onCameraClick = onCameraClick,
             onGalleryClick = onGalleryClick,
-            isEnabled = (extractWords || extractSentences) && isEnabled,
+            isEnabled = isEnabled,
+            modifier = Modifier.staggeredFadeSlide(1),
         )
     }
-}
-
-private fun <T> MutableList<T>.addIfAbsent(element: T) {
-    if (!contains(element)) add(element)
 }

@@ -93,6 +93,7 @@
     <string name="start_review">开始复习</string>
     <string name="learning_stages">学习阶段</string>
     <string name="import_words">导入单词</string>
+    <string name="choose_import_method">您想如何添加单词？</string>
     <string name="generating_daily_insight">正在生成每日洞察...</string>
     
     <!-- Learning Stages (7 Levels) -->
@@ -139,7 +140,6 @@
     <string name="image_import_options">图片导入选项：</string>
     <string name="extract_individual_words">提取单个单词</string>
     <string name="extract_example_sentences">提取示例句子</string>
-    <string name="select_at_least_one_option">至少选择一个选项</string>
     
     <!-- Dialogs -->
     <string name="exit_review">退出复习？</string>
@@ -486,5 +486,9 @@
     <string name="leaderboard_longest_streak">最长连续</string>
     <string name="leaderboard_mastered">已掌握</string>
     <string name="leaderboard_your_ranking">你的排名</string>
+
+    <!-- Import Source Language -->
+    <string name="original_language_question">原始词汇是什么语言？</string>
+    <string name="translation_language_hint">翻译将使用%1$s。你可以在设置中更改。</string>
 </resources>
 

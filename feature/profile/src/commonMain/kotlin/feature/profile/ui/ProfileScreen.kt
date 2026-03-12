@@ -26,6 +26,7 @@ import feature.profile.ui.components.DeleteAccountHiddenContent
 import feature.profile.ui.components.EditProfileSheetContent
 import feature.profile.ui.components.LogoutDialogContent
 import overlay.OverlayHost
+import overlay.bottomsheet.BottomSheetPageConfig
 import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.BottomSheetProperties
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
@@ -71,21 +72,32 @@ fun ProfileScreen(
                     overlayHost.showSizeToFitBottomSheet(tag = "more-options") { sheetNav ->
                         val pages = rememberBottomSheetPageNavigator<MoreOptionsPage>(MoreOptionsPage.Options)
 
-                        LaunchedEffect(pages.currentPage) {
-                            properties = when (pages.currentPage) {
-                                is MoreOptionsPage.EditProfile -> BottomSheetProperties(
-                                    dismissOnTouchOutside = false,
-                                    sheetGesturesEnabled = false
-                                )
-                                is MoreOptionsPage.DeleteCooling -> BottomSheetProperties(
-                                    dismissOnTouchOutside = false,
-                                    sheetGesturesEnabled = false
-                                )
-                                else -> BottomSheetProperties(showCloseButton = false)
-                            }
-                        }
-
-                        BottomSheetPages(navigator = pages) { currentPage ->
+                        BottomSheetPages(
+                            navigator = pages,
+                            onClose = { sheetNav.dismiss() },
+                            pageConfig = { page ->
+                                when (page) {
+                                    is MoreOptionsPage.Options -> BottomSheetPageConfig(
+                                        showBackButton = false,
+                                    )
+                                    is MoreOptionsPage.EditProfile -> BottomSheetPageConfig(
+                                        showBackButton = false,
+                                        showCloseButton = false,
+                                        properties = BottomSheetProperties(
+                                            dismissOnTouchOutside = false,
+                                            sheetGesturesEnabled = false,
+                                        ),
+                                    )
+                                    is MoreOptionsPage.DeleteCooling -> BottomSheetPageConfig(
+                                        properties = BottomSheetProperties(
+                                            dismissOnTouchOutside = false,
+                                            sheetGesturesEnabled = false,
+                                        ),
+                                    )
+                                    else -> BottomSheetPageConfig()
+                                }
+                            },
+                        ) { currentPage ->
                             when (currentPage) {
                                 is MoreOptionsPage.Options -> ProfileMoreOptionsSheet(
                                     onEditProfile = { pages.navigateTo(MoreOptionsPage.EditProfile) },

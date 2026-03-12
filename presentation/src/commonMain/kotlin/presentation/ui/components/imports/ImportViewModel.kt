@@ -8,6 +8,7 @@ import domain.auth.usecase.GetFeatureAccessUseCase
 import core.common.fold
 import core.common.getOrDefault
 import domain.settings.usecase.GetCurrentLanguageUseCase
+import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,7 @@ class ImportViewModel(
     private val importFromImageUseCase: ImportFromImageUseCase,
     private val userManager: IUserManager,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
+    private val getSourceLanguageUseCase: GetSourceLanguageUseCase,
 ) : BaseViewModel<ImportUiState, ImportEvent>() {
 
     override fun initialState() = ImportUiState()
@@ -36,7 +38,8 @@ class ImportViewModel(
     init {
         viewModelScope.launch {
             val targetLanguage = getCurrentLanguageUseCase().getOrDefault(Language.ENGLISH)
-            updateState { copy(targetLanguage = targetLanguage) }
+            val sourceLanguage = getSourceLanguageUseCase().getOrDefault(Language.ENGLISH)
+            updateState { copy(targetLanguage = targetLanguage, sourceLanguage = sourceLanguage) }
         }
         observeFeatureAccess()
     }
@@ -189,20 +192,6 @@ class ImportViewModel(
         }
     }
 
-    fun updateExtractionOptions(options: List<ExtractionOption>) {
-        updateState {
-            val updatedTabs = tabs.map { tab ->
-                if (tab is ImportTabV2.Image) tab.copy(extractionOption = options) else tab
-            }
-            val updatedSelected = when (val selected = selectedTab) {
-                is ImportTabV2.Image -> selected.copy(extractionOption = options)
-                else -> tabs.filterIsInstance<ImportTabV2.Image>()
-                    .firstOrNull() ?: selected
-            }
-            copy(tabs = updatedTabs, selectedTab = updatedSelected)
-        }
-    }
-
     fun importImage() {
         val imageTab = when (val selected = currentState.selectedTab) {
             is ImportTabV2.Image -> selected
@@ -210,9 +199,6 @@ class ImportViewModel(
         } ?: return
 
         val imageBytes = imageTab.selectedImage ?: return
-        val extractWords = imageTab.extractionOption.contains(ExtractionOption.Word)
-        val extractSentences = imageTab.extractionOption.contains(ExtractionOption.Sentence)
-        if (!extractWords && !extractSentences) return
 
         viewModelScope.launch {
             updateState { copy(imageImportState = ImageImportState.Loading) }
@@ -220,8 +206,8 @@ class ImportViewModel(
             withContext(Dispatchers.Default) {
                 importFromImageUseCase(
                     imageBytes = imageBytes,
-                    extractWords = extractWords,
-                    extractSentences = extractSentences
+                    extractWords = true,
+                    extractSentences = true
                 ).collect { result ->
                     when (result) {
                         is ImportImageResult.Loading -> {

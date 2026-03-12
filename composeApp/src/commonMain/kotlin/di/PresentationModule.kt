@@ -53,6 +53,7 @@ fun presentationModule() = module {
             importFromImageUseCase = get(),
             userManager = get(),
             getCurrentLanguageUseCase = get(),
+            getSourceLanguageUseCase = get(),
         )
     }
 

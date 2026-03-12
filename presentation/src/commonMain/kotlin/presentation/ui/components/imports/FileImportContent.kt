@@ -1,7 +1,9 @@
 package presentation.ui.components.imports
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -10,32 +12,36 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import components.animation.staggeredFadeSlide
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
-import lexicon.resources.generated.resources.import_from_file
 import lexicon.resources.generated.resources.choose_file
 import lexicon.resources.generated.resources.format_example_1
 import lexicon.resources.generated.resources.format_example_2
 import lexicon.resources.generated.resources.format_example_3
+import lexicon.resources.generated.resources.import_from_file
 import lexicon.resources.generated.resources.processing_file
 import lexicon.resources.generated.resources.select_txt_file_description
 import lexicon.resources.generated.resources.supported_format
@@ -65,35 +71,31 @@ internal fun FileImportContent(
                 .weight(1f)
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
         ) {
-            ImportInfoCard(
-                title = stringResource(Res.string.import_from_file),
-                description = stringResource(Res.string.select_txt_file_description),
-                icon = Icons.Filled.UploadFile,
+            FileSourceHeader(
+                modifier = Modifier.staggeredFadeSlide(0),
             )
 
-            FilePickerButton(
+            FileDropZone(
                 onClick = filePickerLauncher,
                 isEnabled = isEnabled && !isLoading,
                 isLoading = isLoading,
+                modifier = Modifier.staggeredFadeSlide(1),
             )
 
-            SupportedFormatsCard()
+            SupportedFormatsSection(
+                modifier = Modifier.staggeredFadeSlide(2),
+            )
         }
 
-        Spacer(modifier = Modifier.height(Theme.spacing.sm))
-
-        OutlinedButton(
+        TextButton(
             onClick = onDismiss,
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .height(Theme.dimensions.buttonHeight)
                 .imePadding(),
             enabled = isEnabled,
-            shape = RoundedCornerShape(Theme.shapes.medium)
         ) {
             Text(stringResource(Res.string.cancel))
         }
@@ -101,53 +103,115 @@ internal fun FileImportContent(
 }
 
 @Composable
-private fun FilePickerButton(
+private fun FileSourceHeader(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        ) {
+            Icon(
+                Icons.Filled.UploadFile,
+                contentDescription = null,
+                modifier = Modifier.size(Theme.dimensions.iconSize),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                stringResource(Res.string.import_from_file),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        Text(
+            stringResource(Res.string.select_txt_file_description),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun FileDropZone(
     onClick: () -> Unit,
     isEnabled: Boolean,
     isLoading: Boolean,
+    modifier: Modifier = Modifier,
 ) {
-    Button(
-        onClick = onClick,
-        enabled = isEnabled,
-        modifier = Modifier
+    val borderColor = MaterialTheme.colorScheme.outlineVariant
+    val cornerRadiusDp = Theme.shapes.large
+
+    Column(
+        modifier = modifier
             .fillMaxWidth()
-            .height(130.dp),
-        shape = RoundedCornerShape(Theme.shapes.large),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        )
+            .drawBehind {
+                drawRoundRect(
+                    color = borderColor,
+                    style = Stroke(
+                        width = 1.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(8.dp.toPx(), 5.dp.toPx()),
+                        ),
+                    ),
+                    cornerRadius = CornerRadius(cornerRadiusDp.toPx()),
+                )
+            }
+            .padding(Theme.spacing.lg),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
+        Surface(
+            modifier = Modifier.size(Theme.dimensions.iconSizeHuge),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
         ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(36.dp),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    strokeWidth = 3.dp
-                )
-                Text(
-                    stringResource(Res.string.processing_file),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            } else {
-                Icon(
-                    Icons.Filled.UploadFile,
-                    contentDescription = null,
-                    modifier = Modifier.size(36.dp)
-                )
-                Text(
-                    stringResource(Res.string.choose_file),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
+            Box(contentAlignment = Alignment.Center) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(Theme.dimensions.iconSize),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Icon(
+                        Icons.Filled.UploadFile,
+                        contentDescription = null,
+                        modifier = Modifier.size(Theme.dimensions.iconSize),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+
+        if (isLoading) {
+            Text(
+                stringResource(Res.string.processing_file),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+            ) {
+                Button(
+                    onClick = onClick,
+                    enabled = isEnabled,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(Theme.dimensions.buttonHeightSmall),
+                    shape = RoundedCornerShape(Theme.shapes.small),
+                ) {
+                    Text(stringResource(Res.string.choose_file))
+                }
                 Text(
                     stringResource(Res.string.txt_format),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -155,29 +219,23 @@ private fun FilePickerButton(
 }
 
 @Composable
-private fun SupportedFormatsCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        shape = RoundedCornerShape(Theme.shapes.medium)
+private fun SupportedFormatsSection(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(horizontal = Theme.spacing.xxs),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
     ) {
-        Column(
-            modifier = Modifier.padding(Theme.spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
-        ) {
-            Text(
-                stringResource(Res.string.supported_format),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)) {
-                FormatExample(Res.string.format_example_1)
-                FormatExample(Res.string.format_example_2)
-                FormatExample(Res.string.format_example_3)
-            }
+        Text(
+            stringResource(Res.string.supported_format),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+            FormatExample(Res.string.format_example_1)
+            FormatExample(Res.string.format_example_2)
+            FormatExample(Res.string.format_example_3)
         }
     }
 }
@@ -187,6 +245,6 @@ private fun FormatExample(res: org.jetbrains.compose.resources.StringResource) {
     Text(
         text = stringResource(res),
         style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-        color = MaterialTheme.colorScheme.onSurfaceVariant
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
     )
 }
