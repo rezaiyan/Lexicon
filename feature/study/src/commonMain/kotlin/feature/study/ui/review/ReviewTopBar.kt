@@ -110,9 +110,9 @@ internal fun ReviewTopBar(
 /**
  * Auto-play toggle with morphing icon animation.
  *
- * - Icon morphs between VolumeOff <-> VolumeUp with a spring-bounced crossfade
- * - Background transitions to primaryContainer when active
- * - Subtle breathing scale pulse indicates continuous playback
+ * OFF → muted VolumeOff icon in a transparent circle.
+ * ON  → VolumeUp icon in a filled primaryContainer circle with a subtle breathing
+ *       pulse that signals "active — will pronounce each card automatically".
  */
 @Composable
 private fun AutoPlayToggle(
@@ -132,7 +132,7 @@ private fun AutoPlayToggle(
         label = "autoPlayContent"
     )
 
-    // Breathing pulse cycle — always running, gated by breathAmount
+    // Breathing pulse — always cycling, gated so it fades out when disabled
     val infiniteTransition = rememberInfiniteTransition(label = "autoPlayBreath")
     val breathCycle by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -143,16 +143,16 @@ private fun AutoPlayToggle(
         ),
         label = "breathCycle"
     )
-    val breathAmount by animateFloatAsState(
+    val breathGate by animateFloatAsState(
         targetValue = if (enabled) 1f else 0f,
         animationSpec = tween(300),
-        label = "breathAmount"
+        label = "breathGate"
     )
 
     Box(
         modifier = Modifier
             .graphicsLayer {
-                val pulse = 1f + breathCycle * 0.08f * breathAmount
+                val pulse = 1f + breathCycle * 0.06f * breathGate
                 scaleX = pulse
                 scaleY = pulse
             }

@@ -2,8 +2,12 @@ package feature.study.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.LocalIndication
@@ -272,7 +276,7 @@ fun MasteryLevelBadge(level: Int, isBackFace: Boolean = false, modifier: Modifie
     )
 }
 
-// ── Speaker button ────────────────────────────────────────────────────────────
+// ── Speaker button with pulse & loading overlay ──────────────────────────────
 
 @Composable
 private fun SpeakerButton(
@@ -280,47 +284,107 @@ private fun SpeakerButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val isActive =
-        ttsState is TtsState.Speaking || ttsState is TtsState.Downloading || ttsState is TtsState.Loading
+    val isSpeaking = ttsState is TtsState.Speaking
+    val isLoading = ttsState is TtsState.Loading || ttsState is TtsState.Downloading
+
+    // Press-to-scale feedback
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.85f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+        label = "speakerPress"
+    )
+
+    // Breathing pulse while speaking — always cycling, gated by pulseGate
+    val infiniteTransition = rememberInfiniteTransition(label = "speakerPulse")
+    val pulseRaw by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(700, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseRaw"
+    )
+    val pulseGate by animateFloatAsState(
+        targetValue = if (isSpeaking) 1f else 0f,
+        animationSpec = tween(300),
+        label = "pulseGate"
+    )
+
+    val bgColor by animateColorAsState(
+        targetValue = when {
+            isSpeaking -> MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+            isLoading -> MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        },
+        animationSpec = tween(300),
+        label = "speakerBg"
+    )
+    val iconTint by animateColorAsState(
+        targetValue = when {
+            isSpeaking -> MaterialTheme.colorScheme.primary
+            isLoading -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+        },
+        animationSpec = tween(300),
+        label = "speakerTint"
+    )
+
+    val scale = pressScale * (1f + pulseRaw * 0.10f * pulseGate)
 
     Box(
         modifier = modifier
             .size(40.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .clip(CircleShape)
-            .background(
-                if (isActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
-            )
-            .clickable(onClick = onClick),
+            .background(bgColor)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
+        // Icon — always visible, dimmed when a loading spinner is overlaid
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+            contentDescription = stringResource(Res.string.repeat_pronunciation),
+            modifier = Modifier
+                .size(20.dp)
+                .graphicsLayer {
+                    val s = if (isLoading) 0.75f else 1f
+                    scaleX = s
+                    scaleY = s
+                    alpha = if (isLoading) 0.4f else 1f
+                },
+            tint = iconTint
+        )
+
+        // Loading ring overlaid on the icon
         when (ttsState) {
             is TtsState.Downloading -> {
                 CircularProgressIndicator(
                     progress = { ttsState.progress },
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(34.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
             is TtsState.Loading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(34.dp),
                     strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 
-            else -> {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = stringResource(Res.string.repeat_pronunciation),
-                    modifier = Modifier.size(22.dp),
-                    tint = if (ttsState is TtsState.Speaking) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                )
-            }
+            else -> {}
         }
     }
 }
