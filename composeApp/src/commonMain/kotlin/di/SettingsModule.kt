@@ -1,5 +1,7 @@
 package di
 
+import data.settings.local.ISettingsLocalDataSource
+import data.settings.local.SettingsLocalDataSourceImpl
 import data.settings.repository.SettingsRepositoryImpl
 import data.streak.remote.IStreakRemoteDataSource
 import data.streak.remote.StreakRemoteDataSource
@@ -19,12 +21,15 @@ import org.koin.dsl.module
 
 fun settingsModule() = module {
 
+    // Local Data Sources
+    single<ISettingsLocalDataSource> { SettingsLocalDataSourceImpl(queries = get()) }
+
     // Remote Data Sources
     single<IStreakRemoteDataSource> { StreakRemoteDataSource(apiClient = get()) }
 
     // Repositories
     single {
-        SettingsRepositoryImpl(queries = get())
+        SettingsRepositoryImpl(localDataSource = get())
     } bind ISettingsRepository::class
 
     single<IStreakRepository> {
