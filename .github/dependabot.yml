@@ -4,10 +4,23 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 5
+    groups:
+      kotlin:
+        patterns: ["org.jetbrains.kotlin*", "org.jetbrains.kotlinx*"]
+      compose:
+        patterns: ["org.jetbrains.compose*", "org.jetbrains.androidx*"]
+      firebase:
+        patterns: ["com.google.firebase*", "dev.gitlive:firebase*"]
+      ktor:
+        patterns: ["io.ktor*"]
+      koin:
+        patterns: ["io.insert-koin*"]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
     open-pull-requests-limit: 3

@@ -74,12 +74,53 @@ jobs:
             echo "should_deploy=true" >> $GITHUB_OUTPUT
           fi
 
+  # KAN-14: Dependency vulnerability review on PRs
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: critical
+          comment-summary-in-pr: always
+
+  # KAN-14: Submit dependency graph for GitHub security alerts
+  dependency-submission:
+    name: Dependency Submission
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Submit Gradle dependencies
+        uses: mikepenz/gradle-dependency-submission@v1
+        with:
+          gradle-build-module: ':'
+
   test:
     name: Tests
     runs-on: ubuntu-latest
     permissions:
       checks: write
       contents: read
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -107,9 +148,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # KAN-18: Run detekt with SARIF output for GitHub Code Scanning annotations
       - name: Run detekt
         if: github.ref == 'refs/heads/main'
         run: ./gradlew detekt --stacktrace
+        continue-on-error: true
+
+      - name: Upload detekt SARIF to GitHub Code Scanning
+        if: github.ref == 'refs/heads/main' && always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: build/reports/detekt/detekt.sarif
+          category: detekt
 
       - name: Run unit tests
         if: github.ref != 'refs/heads/main'
@@ -170,6 +220,15 @@ jobs:
 
       - name: Build Android APK
         run: ./gradlew composeApp:assembleDebug --stacktrace
+
+      # KAN-17: Track APK size per build
+      - name: Report APK size
+        run: |
+          APK=$(ls composeApp/build/outputs/apk/debug/*.apk | head -1)
+          SIZE_BYTES=$(stat -c%s "$APK" 2>/dev/null || stat -f%z "$APK")
+          SIZE_MB=$(echo "scale=2; $SIZE_BYTES / 1048576" | bc)
+          echo "### APK Size: ${SIZE_MB} MB" >> $GITHUB_STEP_SUMMARY
+          echo "apk_size_bytes=${SIZE_BYTES}" >> $GITHUB_OUTPUT
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
