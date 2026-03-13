@@ -9,6 +9,19 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
+// Force Kotlin stdlib to match compiler version — prevents Kotlin/Wasm stdlib mismatch
+// when transitive dependencies (e.g. SQLDelight) pull in a newer stdlib.
+val kotlinVersion = libs.versions.kotlin.get()
+subprojects {
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin" && requested.name.startsWith("kotlin-stdlib")) {
+                useVersion(kotlinVersion)
+            }
+        }
+    }
+}
+
 detekt {
     buildUponDefaultConfig = true
     config.setFrom(files("$rootDir/detekt.yml"))
