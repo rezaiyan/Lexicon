@@ -7,6 +7,39 @@ plugins {
     alias(libs.plugins.googleServices) apply false
     alias(libs.plugins.firebaseCrashlytics) apply false
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
+}
+
+kover {
+    merge {
+        allProjects()
+    }
+    reports {
+        filters {
+            excludes {
+                classes(
+                    "*_Factory",
+                    "*_MembersInjector",
+                    "*BuildConfig*",
+                    "*ComposableSingletons*",
+                )
+                packages(
+                    "di",
+                    "theme",
+                    "notification",
+                    "com.alirezaiyan.vokab",
+                )
+                annotatedBy(
+                    "androidx.compose.runtime.Composable",
+                )
+            }
+        }
+        verify {
+            rule("Baseline coverage") {
+                minBound(5)
+            }
+        }
+    }
 }
 
 // Force Kotlin stdlib to match compiler version — prevents Kotlin/Wasm stdlib mismatch

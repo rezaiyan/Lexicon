@@ -119,6 +119,12 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: ./gradlew composeApp:cleanAllTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
 
+      - name: Generate code coverage report
+        run: ./gradlew koverHtmlReport koverXmlReport --stacktrace
+
+      - name: Verify code coverage thresholds
+        run: ./gradlew koverVerify --stacktrace
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
@@ -127,6 +133,24 @@ jobs:
           path: |
             composeApp/build/reports/tests/
             composeApp/build/test-results/
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: |
+            build/reports/kover/
+          retention-days: 14
+
+      - name: Add coverage summary to PR
+        if: github.event_name == 'pull_request'
+        uses: mi-kas/kover-report@v1
+        with:
+          path: build/reports/kover/report.xml
+          title: Code Coverage
+          update-comment: true
+          min-coverage-overall: 5
 
       - name: Test report
         if: always()
