@@ -33,6 +33,46 @@ env:
   FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
 
 jobs:
+  check-version:
+    name: Check unpublished version
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Check for unpublished version tag
+        id: check
+        run: |
+          # On PRs and manual triggers, always run all stages
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "Non-push event — running all stages"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Find the latest mobile version tag
+          LATEST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No version tags found — skipping deploy stages"
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Latest version tag: $LATEST_TAG"
+
+          # Check if this version was already deployed by CI
+          if git tag -l "ci-deployed/$LATEST_TAG" | grep -q .; then
+            echo "Version $LATEST_TAG already deployed — skipping deploy stages"
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version $LATEST_TAG not yet deployed — will run deploy stages"
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          fi
+
   test:
     name: Tests
     runs-on: ubuntu-latest
@@ -92,7 +132,8 @@ jobs:
   build-android:
     name: Build Android
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test, check-version]
+    if: needs.check-version.outputs.should_deploy == 'true'
 
     steps:
       - name: Checkout code
@@ -133,7 +174,8 @@ jobs:
   maestro:
     name: Maestro UI Tests
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test, check-version]
+    if: needs.check-version.outputs.should_deploy == 'true'
     timeout-minutes: 45
     permissions:
       checks: write
@@ -260,8 +302,8 @@ jobs:
   deploy-android:
     name: Deploy Android to Closed Testing
     runs-on: ubuntu-latest
-    needs: [build-android, maestro]
-    if: github.ref == 'refs/heads/main'
+    needs: [build-android, maestro, check-version]
+    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
 
     steps:
       - name: Checkout code
@@ -311,7 +353,8 @@ jobs:
   build-web:
     name: Build Web (wasmJs)
     runs-on: ubuntu-latest
-    needs: [test]
+    needs: [test, check-version]
+    if: needs.check-version.outputs.should_deploy == 'true'
 
     steps:
       - name: Checkout code
@@ -342,8 +385,8 @@ jobs:
   deploy-web:
     name: Deploy Web to VPS
     runs-on: ubuntu-latest
-    needs: [build-web, maestro]
-    if: github.ref == 'refs/heads/main'
+    needs: [build-web, maestro, check-version]
+    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
 
     steps:
       - name: Download web distribution
@@ -423,7 +466,8 @@ jobs:
   build-ios:
     name: Build iOS
     runs-on: macos-26
-    needs: [test]
+    needs: [test, check-version]
+    if: needs.check-version.outputs.should_deploy == 'true'
 
     steps:
       - name: Checkout code
@@ -461,8 +505,8 @@ jobs:
   deploy-ios:
     name: Deploy iOS to TestFlight
     runs-on: macos-26
-    needs: [build-ios, maestro]
-    if: github.ref == 'refs/heads/main'
+    needs: [build-ios, maestro, check-version]
+    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
 
     steps:
       - name: Checkout code
@@ -557,3 +601,30 @@ jobs:
 
           cd iosApp
           bundle exec fastlane beta
+
+  mark-deployed:
+    name: Mark version as deployed
+    runs-on: ubuntu-latest
+    needs: [deploy-android, deploy-ios, deploy-web, check-version]
+    if: |
+      always() &&
+      needs.check-version.outputs.should_deploy == 'true' &&
+      needs.deploy-android.result == 'success' &&
+      needs.deploy-ios.result == 'success' &&
+      needs.deploy-web.result == 'success'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Tag version as deployed
+        run: |
+          LATEST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
+          if [ -n "$LATEST_TAG" ] && ! git tag -l "ci-deployed/$LATEST_TAG" | grep -q .; then
+            git tag "ci-deployed/$LATEST_TAG"
+            git push origin "ci-deployed/$LATEST_TAG"
+            echo "Marked $LATEST_TAG as deployed"
+          fi
