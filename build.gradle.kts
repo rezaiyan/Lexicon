@@ -69,6 +69,13 @@ detekt {
     )
 }
 
+// KAN-18: Enable SARIF output for GitHub Code Scanning annotations
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    reports {
+        sarif.required.set(true)
+    }
+}
+
 tasks.register<Exec>("bumpVersion") {
     group = "lexicon"
     description = "Bump/sync version (versioning.properties + iOS Config.xcconfig). Use script with --hotfix|--minor|--major for bump."
