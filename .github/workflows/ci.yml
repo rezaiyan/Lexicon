@@ -156,7 +156,7 @@ jobs:
 
       - name: Upload detekt SARIF to GitHub Code Scanning
         if: github.ref == 'refs/heads/main' && always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: build/reports/detekt/detekt.sarif
           category: detekt
