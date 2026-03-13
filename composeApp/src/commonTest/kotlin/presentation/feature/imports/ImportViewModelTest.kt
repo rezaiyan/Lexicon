@@ -1,6 +1,7 @@
 package presentation.feature.imports
 
 import core.common.Try
+import fakes.FakePerformanceTracer
 import domain.ai.repository.IAiRepository
 import domain.ai.usecase.ImportFromImageUseCase
 import domain.auth.manager.IUserManager
@@ -56,6 +57,7 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val authRepository = FakeAuthRepo()
     private val getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository)
     private val getSourceLanguageUseCase = GetSourceLanguageUseCase(wordRepository)
+    private val performanceTracer = FakePerformanceTracer()
 
     private fun createViewModel() = ImportViewModel(
         getFeatureAccessUseCase = getFeatureAccessUseCase,
@@ -65,6 +67,7 @@ class ImportViewModelTest : ViewModelTestBase() {
         userManager = userManager,
         getCurrentLanguageUseCase = getCurrentLanguageUseCase,
         getSourceLanguageUseCase = getSourceLanguageUseCase,
+        performanceTracer = performanceTracer,
     )
 
     @Test

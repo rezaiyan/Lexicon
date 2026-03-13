@@ -6,6 +6,7 @@ import data.word.remote.model.RemoteWord
 import core.common.Try
 import domain.word.model.Word
 import org.koin.core.component.KoinComponent
+import performance.IPerformanceTracer
 
 interface IWordRemoteSyncHandler {
     suspend fun syncWordsToRemote(words: List<Word>): Try<Unit>
@@ -22,15 +23,20 @@ interface IWordRemoteSyncHandler {
 }
 
 class WordRemoteSyncHandler(
-    private val wordRemoteDataSource: IWordRemoteDataSource
+    private val wordRemoteDataSource: IWordRemoteDataSource,
+    private val performanceTracer: IPerformanceTracer,
 ) : IWordRemoteSyncHandler, KoinComponent {
 
     override suspend fun syncWordsToRemote(words: List<Word>): Try<Unit> {
         if (words.isEmpty()) return Try.success(Unit)
 
+        val trace = performanceTracer.startTrace("word_sync_to_remote")
+        performanceTracer.putMetric(trace, "word_count", words.size.toLong())
         val remoteWords = words.map { it.toRemote() }
 
-        return wordRemoteDataSource.upsertWords(remoteWords)
+        return wordRemoteDataSource.upsertWords(remoteWords).also {
+            performanceTracer.stopTrace(trace)
+        }
     }
 
     override suspend fun syncWordUpdateToRemote(id: Long, word: Word): Try<Unit> {
@@ -63,7 +69,10 @@ class WordRemoteSyncHandler(
     }
 
     override suspend fun syncFromRemote(): Try<List<RemoteWord>> {
-        return wordRemoteDataSource.getWords()
+        val trace = performanceTracer.startTrace("word_sync_from_remote")
+        return wordRemoteDataSource.getWords().also {
+            performanceTracer.stopTrace(trace)
+        }
     }
 
     private fun Word.toRemote(): RemoteWord = RemoteWord(

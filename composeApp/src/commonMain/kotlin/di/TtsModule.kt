@@ -18,7 +18,8 @@ fun ttsModule() = module {
     single<ITtsRepository> {
         TtsRepositoryImpl(
             ttsEngine = get(),
-            modelFileManager = get()
+            modelFileManager = get(),
+            performanceTracer = get(),
         )
     }
 

@@ -17,8 +17,10 @@ coreKtx = "1.7.0"
 coreSplashscreen = "1.0.1"
 firebaseAnalytics = "23.0.0"
 firebaseAuth = "24.0.1"
+firebaseConfig = "22.1.1"
 firebaseCrashlytics = "20.0.3"
 firebaseMessaging = "25.0.1"
+firebasePerf = "22.0.4"
 junit = "4.13.2"
 kotlin = "2.3.0"
 coilCompose = "3.4.0"
@@ -54,8 +56,10 @@ billing-ktx = { module = "com.android.billingclient:billing-ktx", version.ref = 
 core-ktx = { module = "androidx.test:core-ktx", version.ref = "coreKtx" }
 firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
 google-firebase-analytics = { module = "com.google.firebase:firebase-analytics", version.ref = "firebaseAnalytics" }
+google-firebase-config = { module = "com.google.firebase:firebase-config", version.ref = "firebaseConfig" }
 google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 google-firebase-messaging = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessaging" }
+google-firebase-perf = { module = "com.google.firebase:firebase-perf", version.ref = "firebasePerf" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -161,8 +165,10 @@ composeAppAndroidMainImplementation = [
     "androidx-core-splashscreen",
     "androidx-security-crypto",
     "google-firebase-analytics",
+    "google-firebase-config",
     "google-firebase-crashlytics",
     "google-firebase-messaging",
+    "google-firebase-perf",
     "firebase-auth"
 ]
 composeAppCommonTestImplementation = [
@@ -198,3 +204,4 @@ sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 googleServices = { id = "com.google.gms.google-services", version = "4.4.4" }
 firebaseCrashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }
+firebasePerf = { id = "com.google.firebase.firebase-perf", version = "1.4.2" }

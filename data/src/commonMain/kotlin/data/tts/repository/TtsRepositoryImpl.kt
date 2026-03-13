@@ -10,12 +10,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import performance.IPerformanceTracer
 import tts.IModelFileManager
 import tts.ITtsEngine
 
 class TtsRepositoryImpl(
     private val ttsEngine: ITtsEngine,
-    private val modelFileManager: IModelFileManager
+    private val modelFileManager: IModelFileManager,
+    private val performanceTracer: IPerformanceTracer,
 ) : ITtsRepository {
 
     private val _ttsState = MutableStateFlow<TtsState>(TtsState.Idle)
@@ -70,6 +72,8 @@ class TtsRepositoryImpl(
         }
 
         _ttsState.value = TtsState.Downloading(languageCode, 0f)
+        val trace = performanceTracer.startTrace("tts_model_download")
+        performanceTracer.putAttribute(trace, "language", languageCode)
 
         return modelFileManager.downloadAndExtractModel(
             archiveUrl = modelInfo.archiveUrl,
@@ -78,6 +82,7 @@ class TtsRepositoryImpl(
         ).onEach { progress ->
             _ttsState.value = TtsState.Downloading(languageCode, progress)
         }.onCompletion {
+            performanceTracer.stopTrace(trace)
             _ttsState.value = TtsState.Idle
         }
     }
