@@ -11,6 +11,9 @@ ios-deployment-files/
 iosApp/SourcePackages/
 local.properties
 
+# iOS private config (contains sensitive build settings)
+iosApp/Configuration/Config.private.xcconfig
+
 # Firebase config files (contain OAuth client IDs)
 google-services.json
 GoogleService-Info.plist

@@ -4,6 +4,7 @@ package presentation.ui
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -90,7 +91,11 @@ internal fun AppContent(
         }
     ) {
         Scaffold(
-            contentWindowInsets = WindowInsets(0),
+            contentWindowInsets = if (layoutType != NavigationSuiteType.NavigationBar) {
+                WindowInsets.navigationBars
+            } else {
+                WindowInsets(0)
+            },
             snackbarHost = {
                 SnackbarHost(
                     hostState = snackbarHostState,

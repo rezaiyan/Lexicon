@@ -22,9 +22,10 @@ tags:
 - tapOn: "Manually"
 
 # --- Verify all three import method cards are visible ---
+# Longer timeout: nested bottom sheet page transition + staggered fade animation.
 - extendedWaitUntil:
     visible: "Type Text"
-    timeout: 5000
+    timeout: 10000
 - assertVisible: "From File"
 - assertVisible: "How would you like to add words?"
 

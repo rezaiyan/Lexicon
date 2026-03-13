@@ -18,31 +18,38 @@
 
 ## Screenshots
 
+### Phone
+
 <div align="center">
 <table>
   <tr>
-    <td align="center"><b>Splash</b></td>
-    <td align="center"><b>Onboarding</b></td>
     <td align="center"><b>Study (Light)</b></td>
     <td align="center"><b>Study (Dark)</b></td>
-  </tr>
-  <tr>
-    <td><img src="assets/Screenshot_20260313_102615.png" alt="Splash" width="200"/></td>
-    <td><img src="assets/Screenshot_20260313_102634.png" alt="Onboarding" width="200"/></td>
-    <td><img src="assets/Screenshot_20260313_102948.png" alt="Study Dashboard Light" width="200"/></td>
-    <td><img src="assets/Screenshot_20260313_102959.png" alt="Study Dashboard Dark" width="200"/></td>
-  </tr>
-  <tr>
     <td align="center"><b>Flashcard Review</b></td>
     <td align="center"><b>Word Manager</b></td>
     <td align="center"><b>Settings</b></td>
-    <td align="center"><b>Study (Tablet)</b></td>
   </tr>
   <tr>
-    <td><img src="assets/Screenshot_20260313_103053.png" alt="Flashcard Review" width="200"/></td>
-    <td><img src="assets/Screenshot_20260313_103307.png" alt="Word Manager" width="200"/></td>
-    <td><img src="assets/Screenshot_20260313_103258.png" alt="Settings" width="200"/></td>
-    <td><img src="assets/Screenshot_20260313_102932.png" alt="Study Dashboard Tablet" width="200"/></td>
+    <td><img src="assets/Screenshot_20260313_102948.png" alt="Study Dashboard Light" width="160"/></td>
+    <td><img src="assets/Screenshot_20260313_102959.png" alt="Study Dashboard Dark" width="160"/></td>
+    <td><img src="assets/Screenshot_20260313_103053.png" alt="Flashcard Review" width="160"/></td>
+    <td><img src="assets/Screenshot_20260313_103307.png" alt="Word Manager" width="160"/></td>
+    <td><img src="assets/Screenshot_20260313_103258.png" alt="Settings" width="160"/></td>
+  </tr>
+</table>
+</div>
+
+### Foldable / Tablet
+
+<div align="center">
+<table>
+  <tr>
+    <td align="center"><b>Onboarding</b></td>
+    <td align="center"><b>Study Dashboard</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/Screenshot_20260313_102634.png" alt="Onboarding" width="400"/></td>
+    <td><img src="assets/Screenshot_20260313_102932.png" alt="Study Dashboard Foldable" width="400"/></td>
   </tr>
 </table>
 </div>

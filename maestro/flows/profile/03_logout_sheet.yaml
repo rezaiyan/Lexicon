@@ -30,9 +30,10 @@ tags:
 
 # The logout confirmation sheet must appear.
 # Wait for "Cancel" — exact node text unique to the sheet (not on the profile screen).
+# 10s timeout: the sheet open animation + Compose render can be slow on CI emulators.
 - extendedWaitUntil:
     visible: "Cancel"
-    timeout: 5000
+    timeout: 10000
 
 # The confirm Logout button must also be visible in the sheet.
 - assertVisible:

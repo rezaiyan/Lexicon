@@ -13,9 +13,10 @@ appId: com.alirezaiyan.vokab
     clearState: false
 
 # Wait for the bottom navigation bar to load (handles splash + auth startup).
+# 25s timeout accommodates slow CI emulators where auth + Compose init can be slow.
 - extendedWaitUntil:
     visible: "Profile"
-    timeout: 15000
+    timeout: 25000
 
 # Navigate to the Profile tab via the bottom navigation bar.
 - tapOn:

@@ -59,7 +59,7 @@ The iOS release pipeline has been enhanced with:
 security find-identity -v -p codesigning | grep "Apple Distribution"
 ```
 
-Should show: `Apple Distribution: Ali Rezaiyan (VFCFJC7Y5J)`
+Should show: `Apple Distribution: Your Name (YOUR_TEAM_ID)`
 
 ### 3. App Store Provisioning Profile
 
@@ -91,7 +91,7 @@ APP_STORE_CONNECT_API_KEY_PATH=~/.appstoreconnect/private_keys/AuthKey_ABCD1234.
 
 # Apple Developer
 APPLE_ID=your-apple-id@example.com
-APPLE_TEAM_ID=VFCFJC7Y5J
+APPLE_TEAM_ID=YOUR_TEAM_ID
 APP_STORE_CONNECT_TEAM_ID=123456789
 
 # App identifiers

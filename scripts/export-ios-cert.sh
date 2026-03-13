@@ -3,7 +3,12 @@
 
 set -e
 
-CERT_NAME="Apple Distribution: Ali Rezaiyan (VFCFJC7Y5J)"
+# Auto-detect distribution certificate from keychain
+CERT_NAME=$(security find-identity -v -p codesigning 2>/dev/null | grep '"Apple Distribution' | head -1 | sed 's/.*"\(Apple Distribution[^"]*\)".*/\1/' || "")
+if [[ -z "$CERT_NAME" ]]; then
+    echo " No Apple Distribution certificate found in keychain"
+    exit 1
+fi
 OUTPUT_DIR="$(pwd)/ios-deployment-files"
 P12_FILE="$OUTPUT_DIR/certificate.p12"
 

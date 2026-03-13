@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme -->
-    <style name="Theme.Lexicon" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
-    </style>
+    <!-- Base application theme. enableEdgeToEdge() handles transparent system bars. -->
+    <style name="Theme.Lexicon" parent="android:Theme.Material.Light.NoActionBar" />
 
     <!-- Splash screen theme -->
     <style name="Theme.Lexicon.Starting" parent="Theme.SplashScreen">

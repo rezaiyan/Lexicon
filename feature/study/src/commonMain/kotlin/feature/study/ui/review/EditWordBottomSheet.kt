@@ -80,6 +80,7 @@ fun EditWordSheetContent(
                     )
                     navigator.dismiss()
                 },
+                onCancel = { navigator.dismiss() },
                 onDeleteRequest = {
                     focusManager.clearFocus()
                     pages.navigateTo(EditWordPage.ConfirmDelete)
@@ -109,6 +110,7 @@ private fun EditContent(
     onDescriptionChange: (String) -> Unit,
     isSaveEnabled: Boolean,
     onSave: () -> Unit,
+    onCancel: () -> Unit,
     onDeleteRequest: () -> Unit,
     focusManager: androidx.compose.ui.focus.FocusManager
 ) {
@@ -162,6 +164,10 @@ private fun EditContent(
             text = stringResource(Res.string.save),
             onClick = onSave,
             enabled = isSaveEnabled
+        ),
+        secondaryButton = ButtonState(
+            text = stringResource(Res.string.cancel),
+            onClick = onCancel
         ),
         negativeButton = ButtonState(
             text = stringResource(Res.string.delete),

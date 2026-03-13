@@ -17,10 +17,12 @@ echo " Building and deploying to device via Xcode..."
 cd iosApp
 
 # Get the first connected device UDID
-DEVICE_UDID=$(xcrun xctrace list devices 2>&1 | grep "Ali's iPhone" | grep -v "Offline" | head -1 | sed -E 's/.*\(([A-F0-9-]+)\)/\1/')
+DEVICE_NAME="${IOS_DEVICE_NAME:-iPhone}"
+DEVICE_UDID=$(xcrun xctrace list devices 2>&1 | grep "$DEVICE_NAME" | grep -v "Offline" | head -1 | sed -E 's/.*\(([A-F0-9-]+)\)/\1/')
 
 if [[ -z "$DEVICE_UDID" ]]; then
-    echo " No iPhone connected. Please connect Ali's iPhone and try again."
+    echo " No iPhone connected. Please connect your iPhone and try again."
+    echo "  Tip: set IOS_DEVICE_NAME to match your device (e.g. export IOS_DEVICE_NAME=\"My iPhone\")"
     exit 1
 fi
 
