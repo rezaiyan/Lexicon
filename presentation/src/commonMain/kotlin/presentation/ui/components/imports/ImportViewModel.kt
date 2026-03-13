@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import core.base.BaseViewModel
+import performance.IPerformanceTracer
 import presentation.model.ImageImportState
 import utils.Language
 
@@ -31,6 +32,7 @@ class ImportViewModel(
     private val userManager: IUserManager,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     private val getSourceLanguageUseCase: GetSourceLanguageUseCase,
+    private val performanceTracer: IPerformanceTracer,
 ) : BaseViewModel<ImportUiState, ImportEvent>() {
 
     override fun initialState() = ImportUiState()
@@ -202,6 +204,7 @@ class ImportViewModel(
 
         viewModelScope.launch {
             updateState { copy(imageImportState = ImageImportState.Loading) }
+            val trace = performanceTracer.startTrace("import_image_processing")
 
             withContext(Dispatchers.Default) {
                 importFromImageUseCase(
@@ -219,6 +222,8 @@ class ImportViewModel(
                             updateState {
                                 copy(imageImportState = ImageImportState.Success(result.count))
                             }
+                            performanceTracer.putMetric(trace, "words_imported", result.count.toLong())
+                            performanceTracer.stopTrace(trace)
                             emitEffect(ImportEvent.ImageImportSuccessful(result.count))
                         }
 
@@ -227,6 +232,8 @@ class ImportViewModel(
                             updateState {
                                 copy(imageImportState = ImageImportState.Error(result.message))
                             }
+                            performanceTracer.putAttribute(trace, "error", result.message)
+                            performanceTracer.stopTrace(trace)
                             emitEffect(ImportEvent.Error(result.message))
                         }
                     }
@@ -268,6 +275,7 @@ class ImportViewModel(
             is PendingImportAction.File -> {
                 viewModelScope.launch {
                     updateState { copy(fileImportState = ImportFileState.Loading) }
+                    val trace = performanceTracer.startTrace("import_file_processing")
                     delay(1500)
                     withContext(Dispatchers.Default) {
                         importViaFileUseCase(
@@ -280,6 +288,8 @@ class ImportViewModel(
                                 updateState {
                                     copy(fileImportState = ImportFileState.Success(count))
                                 }
+                                performanceTracer.putMetric(trace, "words_imported", count.toLong())
+                                performanceTracer.stopTrace(trace)
                                 emitEffect(ImportEvent.FileImportSuccessful(count))
                             },
                             onFailure = { error ->
@@ -287,6 +297,8 @@ class ImportViewModel(
                                 updateState {
                                     copy(fileImportState = ImportFileState.Error(message))
                                 }
+                                performanceTracer.putAttribute(trace, "error", message)
+                                performanceTracer.stopTrace(trace)
                                 emitEffect(ImportEvent.Error(message))
                             }
                         )

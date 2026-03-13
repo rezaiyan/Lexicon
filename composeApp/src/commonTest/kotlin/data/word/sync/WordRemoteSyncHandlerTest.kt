@@ -1,6 +1,7 @@
 package data.word.sync
 
 import core.common.Try
+import fakes.FakePerformanceTracer
 import data.word.remote.IWordRemoteDataSource
 import data.word.remote.model.BatchUpdateLanguagesRequest
 import data.word.remote.model.RemoteWord
@@ -58,7 +59,8 @@ class WordRemoteSyncHandlerTest {
     // endregion
 
     private val fakeDataSource = FakeWordRemoteDataSource()
-    private val handler = WordRemoteSyncHandler(fakeDataSource)
+    private val performanceTracer = FakePerformanceTracer()
+    private val handler = WordRemoteSyncHandler(fakeDataSource, performanceTracer)
 
     // region syncWordsToRemote
 

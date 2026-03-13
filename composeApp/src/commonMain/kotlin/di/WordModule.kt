@@ -42,7 +42,7 @@ fun wordModule() = module {
     // Word Data Components
     single<IWordLocalDataSource> { WordLocalDataSource(queries = get(), settingsRepository = get()) }
     single<IWordRemoteSyncHandler> {
-        WordRemoteSyncHandler(wordRemoteDataSource = get())
+        WordRemoteSyncHandler(wordRemoteDataSource = get(), performanceTracer = get())
     }
     single<IWordConflictResolver> { WordConflictResolver() }
 

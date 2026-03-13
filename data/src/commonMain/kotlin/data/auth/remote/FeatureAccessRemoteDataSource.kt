@@ -4,6 +4,7 @@ import data.core.network.client.ApiClient
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
+import domain.featureflag.IFeatureFlagProvider
 import core.common.fold
 import expects.logNetwork
 import kotlinx.coroutines.flow.Flow
@@ -11,7 +12,10 @@ import kotlinx.coroutines.flow.map
 
 
 private const val path = "/users/feature-access"
-class FeatureAccessRemoteDataSource(private val apiClient: ApiClient) : IFeatureAccessRemoteDataSource {
+class FeatureAccessRemoteDataSource(
+    private val apiClient: ApiClient,
+    private val featureFlagProvider: IFeatureFlagProvider,
+) : IFeatureAccessRemoteDataSource {
 
     override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> {
         return apiClient.getFlowNotNull<FeatureAccessResponse>(path)
@@ -34,7 +38,12 @@ class FeatureAccessRemoteDataSource(private val apiClient: ApiClient) : IFeature
 
     private fun defaultFeatureAccess(): FeatureAccessResponse {
         return FeatureAccessResponse(
-            featureFlags = FeatureFlags(pushNotificationsEnabled = true),
+            featureFlags = FeatureFlags(
+                pushNotificationsEnabled = featureFlagProvider.getBoolean(
+                    "push_notifications_enabled",
+                    default = true
+                )
+            ),
             userAccess = UserFeatureAccess(hasPremiumAccess = false)
         )
     }
