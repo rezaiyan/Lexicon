@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/app-icon.png" alt="Lexicon" width="128" height="128" style="border-radius: 24px;" />
+  <img src="docs/app-icon.png" alt="Lexicon" width="80" />
 </p>
 
 <h1 align="center">Lexicon</h1>
@@ -14,31 +14,46 @@
   <a href="https://apps.apple.com/us/app/lexicon-learn-vocabulary/id6753774009"><img src="https://img.shields.io/badge/App_Store-0D96F6?style=for-the-badge&logo=app-store&logoColor=white" alt="App Store"/></a>
 </p>
 
+---
+
 ## Screenshots
 
-<p align="center">
-  <img src="assets/Screenshot_20260313_102615.png" alt="Splash" width="150"/>
-  &nbsp;
-  <img src="assets/Screenshot_20260313_102634.png" alt="Onboarding" width="150"/>
-  &nbsp;
-  <img src="assets/Screenshot_20260313_102948.png" alt="Study Dashboard (Light)" width="150"/>
-  &nbsp;
-  <img src="assets/Screenshot_20260313_102959.png" alt="Study Dashboard (Dark)" width="150"/>
-  &nbsp;
-  <img src="assets/Screenshot_20260313_103053.png" alt="Flashcard Review" width="150"/>
-  &nbsp;
-  <img src="assets/Screenshot_20260313_103307.png" alt="Word Manager" width="150"/>
-  &nbsp;
-  <img src="assets/Screenshot_20260313_103258.png" alt="Settings" width="150"/>
-</p>
+<div align="center">
+<table>
+  <tr>
+    <td align="center"><b>Splash</b></td>
+    <td align="center"><b>Onboarding</b></td>
+    <td align="center"><b>Study (Light)</b></td>
+    <td align="center"><b>Study (Dark)</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/Screenshot_20260313_102615.png" alt="Splash" width="200"/></td>
+    <td><img src="assets/Screenshot_20260313_102634.png" alt="Onboarding" width="200"/></td>
+    <td><img src="assets/Screenshot_20260313_102948.png" alt="Study Dashboard Light" width="200"/></td>
+    <td><img src="assets/Screenshot_20260313_102959.png" alt="Study Dashboard Dark" width="200"/></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Flashcard Review</b></td>
+    <td align="center"><b>Word Manager</b></td>
+    <td align="center"><b>Settings</b></td>
+    <td align="center"><b>Study (Tablet)</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/Screenshot_20260313_103053.png" alt="Flashcard Review" width="200"/></td>
+    <td><img src="assets/Screenshot_20260313_103307.png" alt="Word Manager" width="200"/></td>
+    <td><img src="assets/Screenshot_20260313_103258.png" alt="Settings" width="200"/></td>
+    <td><img src="assets/Screenshot_20260313_102932.png" alt="Study Dashboard Tablet" width="200"/></td>
+  </tr>
+</table>
+</div>
+
+### Demo
 
 <p align="center">
-  <img src="assets/Screenshot_20260313_102932.png" alt="Study Dashboard (Tablet)" width="400"/>
+  <video src="assets/Screen_recording_20260313_103157.webm" width="250" controls></video>
 </p>
 
-<p align="center">
-  <a href="assets/Screen_recording_20260313_103157.webm">Watch demo video</a>
-</p>
+---
 
 ## Features
 
@@ -113,23 +128,23 @@ iosApp            Swift iOS entry point
 
 ## Tech Stack
 
-| Area             | Technology                                                                                                      |
-| ---------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Language**     | [Kotlin](https://kotlinlang.org/) 2.3.0                                                                        |
-| **UI**           | [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/) 1.10.2                                |
-| **Targets**      | Android (minSdk 24), iOS, Web (wasmJs)                                                                          |
-| **DI**           | [Koin](https://insert-koin.io/) 4.1.1                                                                          |
-| **Database**     | [SQLDelight](https://cashapp.github.io/sqldelight/) 2.3.1 (multiplatform)                                      |
-| **Networking**   | [Ktor](https://ktor.io/) 3.4.0 (auth interceptor + auto token refresh on 401/403)                              |
-| **Auth**         | [KMPAuth](https://github.com/nicefivezerofour/KMPAuth) + [Firebase Auth](https://firebase.google.com/docs/auth) (Google OAuth, Apple Sign-In) |
-| **Subscriptions**| [RevenueCat](https://www.revenuecat.com/) KMP                                                                   |
-| **Navigation**   | [androidx.navigation-compose](https://developer.android.com/develop/ui/compose/navigation) with bottom tabs     |
-| **Image Loading**| [Coil](https://coil-kt.github.io/coil/) 3.4.0                                                                  |
-| **TTS**          | [Sherpa ONNX](https://github.com/k2-fsa/sherpa-onnx) (Piper models, 13 languages, offline)                     |
-| **Analytics**    | [Firebase Analytics](https://firebase.google.com/docs/analytics) + [Crashlytics](https://firebase.google.com/docs/crashlytics) |
-| **Testing**      | [Turbine](https://github.com/cashapp/turbine), kotlin-test, coroutines-test                                     |
-| **Static Analysis** | [Detekt](https://detekt.dev/) 1.23.8                                                                        |
-| **CI/CD**        | GitHub Actions (`build.yml`, `test.yml`)                                                                        |
+| Area              | Technology                                                                                                                                    |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Language**      | [Kotlin](https://kotlinlang.org/) 2.3.0                                                                                                      |
+| **UI**            | [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/) 1.10.2                                                              |
+| **Targets**       | Android (minSdk 24), iOS, Web (wasmJs)                                                                                                        |
+| **DI**            | [Koin](https://insert-koin.io/) 4.1.1                                                                                                        |
+| **Database**      | [SQLDelight](https://cashapp.github.io/sqldelight/) 2.3.1 (multiplatform)                                                                    |
+| **Networking**    | [Ktor](https://ktor.io/) 3.4.0 (auth interceptor + auto token refresh on 401/403)                                                            |
+| **Auth**          | [KMPAuth](https://github.com/nicefivezerofour/KMPAuth) + [Firebase Auth](https://firebase.google.com/docs/auth) (Google OAuth, Apple Sign-In) |
+| **Subscriptions** | [RevenueCat](https://www.revenuecat.com/) KMP                                                                                                |
+| **Navigation**    | [androidx.navigation-compose](https://developer.android.com/develop/ui/compose/navigation) with bottom tabs                                   |
+| **Image Loading** | [Coil](https://coil-kt.github.io/coil/) 3.4.0                                                                                               |
+| **TTS**           | [Sherpa ONNX](https://github.com/k2-fsa/sherpa-onnx) (Piper models, 13 languages, offline)                                                   |
+| **Analytics**     | [Firebase Analytics](https://firebase.google.com/docs/analytics) + [Crashlytics](https://firebase.google.com/docs/crashlytics)                |
+| **Testing**       | [Turbine](https://github.com/cashapp/turbine), kotlin-test, coroutines-test                                                                   |
+| **Static Analysis** | [Detekt](https://detekt.dev/) 1.23.8                                                                                                       |
+| **CI/CD**         | GitHub Actions (`build.yml`, `test.yml`)                                                                                                      |
 
 ## App Flow
 
@@ -159,4 +174,3 @@ Detailed docs live in [`doc/`](doc/INDEX.md):
 ./scripts/bump-version.sh --minor    # minor bump
 ./scripts/bump-version.sh --major    # major bump
 ```
-
