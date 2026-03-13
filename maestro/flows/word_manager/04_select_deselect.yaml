@@ -5,11 +5,16 @@ tags:
 ---
 # Test: Multi-select — entering selection mode, Select All, and deselect toggle.
 #
-# Requires: At least one word exists in the library so that WordListContent is rendered.
+# Creates a test word first to ensure at least one word exists in the library.
 
 - launchApp:
     clearState: false
 
+# Navigate to Study screen and add a test word so the library is non-empty.
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# Now navigate to the Word Manager.
 - runFlow: ../utils/navigate_to_word_manager.yaml
 
 # Verify we are in the word list (not empty state).
@@ -19,10 +24,9 @@ tags:
 - assertNotVisible:
     text: ".*selected.*"
 
-# Long press a word card to enter selection mode.
-# This selects one word and shows the bottom SelectionActionBar.
+# Long press the test word card to enter selection mode.
 - longPressOn:
-    text: "MaestroTest"
+    text: "${output.word}"
 
 # The bottom selection bar should appear showing the selected count (e.g. "1 selected").
 - assertVisible:

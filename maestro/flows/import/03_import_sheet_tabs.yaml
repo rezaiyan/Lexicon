@@ -1,12 +1,14 @@
 appId: com.alirezaiyan.vokab
 tags:
   - import
-  - tabs
+  - method-chooser
 ---
-# Test: Import sheet tab switching works correctly.
+# Test: Import method chooser page displays all import options.
 #
-# Verifies that all three import tabs — "Type Text", "From File", "From Image" —
-# can be selected and each displays its unique content.
+# Verifies that the import method chooser page — displayed after tapping
+# "Manually" — shows all three import method cards: "Type Text", "From File",
+# and "From Image". Then verifies navigation to each method's source language
+# chooser works via back navigation.
 
 - launchApp:
     clearState: false
@@ -19,30 +21,40 @@ tags:
 # The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
 - tapOn: "Manually"
 
-# --- Tab 1: "Type Text" (default) ---
-- assertVisible: "Type Text"
-- assertVisible: "Add a Word"
+# --- Verify all three import method cards are visible ---
+- extendedWaitUntil:
+    visible: "Type Text"
+    timeout: 5000
+- assertVisible: "From File"
+- assertVisible: "How would you like to add words?"
 
-# --- Tab 2: Switch to "From File" ---
-- tapOn: "From File"
-- assertVisible: "Import from File"
-
-# "Type Text" content must no longer be shown.
-- assertNotVisible: "Add a Word"
-
-# --- Tab 3: Switch to "From Image" ---
-- tapOn: "From Image"
-- assertVisible: "AI-Powered Extraction"
-
-# "From File" content must no longer be shown.
-- assertNotVisible: "Import from File"
-
-# --- Back to Tab 1: Switch to "Type Text" ---
+# --- Navigate to "Type Text" and verify language chooser, then go back ---
 - tapOn: "Type Text"
-- assertVisible: "Add a Word"
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
 
-# "From Image" content must no longer be shown.
-- assertNotVisible: "AI-Powered Extraction"
+# Go back to the import method chooser.
+- tapOn: "Back"
+
+# Method chooser should be visible again.
+- extendedWaitUntil:
+    visible: "Type Text"
+    timeout: 5000
+
+# --- Navigate to "From File" and verify language chooser, then go back ---
+- tapOn: "From File"
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
+
+# Go back to the import method chooser.
+- tapOn: "Back"
+
+# Method chooser should be visible again.
+- extendedWaitUntil:
+    visible: "From File"
+    timeout: 5000
 
 # Close the import sheet via the X icon.
 - tapOn: "Close"

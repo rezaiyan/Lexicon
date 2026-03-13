@@ -3,7 +3,7 @@
 # Called by test flows that need at least one word to exist:
 #   - runFlow: ../utils/add_test_word.yaml
 #
-# Adds a word using the manual text input tab on the import bottom sheet.
+# Adds a word using the manual text input page on the import bottom sheet.
 # Each invocation generates a unique word name via Date.now(), so the word is
 # always NEW and immediately due for review (not affected by SRS scheduling
 # from previous test runs or other tests in the same suite).
@@ -23,10 +23,22 @@ appId: com.alirezaiyan.vokab
 # The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
 - tapOn: "Manually"
 
-# Wait for the import sheet to fully render (all assertions give Compose TextFields
+# The import method chooser page appears with cards: "Type Text", "From File", "From Image".
+# Tap "Type Text" to enter manual text input flow.
+- tapOn: "Type Text"
+
+# The source language chooser page appears ("What language are the original words?").
+# Select "English" as the source language.
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
+- tapOn: "English"
+
+# Wait for the text import form to fully render (all assertions give Compose TextFields
 # time to become interactive — without these, inputText types nothing).
-- assertVisible: "Type Text"
-- assertVisible: "Add a Word"
+- extendedWaitUntil:
+    visible: "Add a Word"
+    timeout: 5000
 - assertVisible: "Original Word"
 - assertVisible: "Translation"
 

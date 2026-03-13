@@ -31,5 +31,10 @@ tags:
 # Dismiss by tapping Done.
 - tapOn: "Done"
 
+# Wait for the sheet dismiss animation to complete.
+- waitForAnimationToEnd
+
 # Settings screen should still be visible.
-- assertVisible: "Settings"
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000

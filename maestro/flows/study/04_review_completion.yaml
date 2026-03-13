@@ -10,13 +10,15 @@ tags:
 # completion screen appears with stats → tap "Done" → back to Study screen.
 #
 # Requires: The add_test_word utility must work to ensure at least one word.
+# Note: The test account may have accumulated many words from server sync and
+# previous test runs. The loop count must be high enough to exhaust all due cards.
 
 - launchApp:
     clearState: false
 
 - runFlow: ../utils/navigate_to_study.yaml
 
-# Add a test word so we have exactly one word to review.
+# Add a test word so we have at least one word to review.
 - runFlow: ../utils/add_test_word.yaml
 
 # Start a review session.
@@ -37,17 +39,15 @@ tags:
 
 # The test account may have multiple words due to server sync.
 # Keep flipping and rating cards until the completion screen ("Done") appears.
-# Commands use optional: true so the loop doesn't fail during the transition
-# from the last card to the completion screen.
+# Using 100 iterations to handle accounts with many accumulated test words.
 - repeat:
-    times: 30
+    times: 100
     while:
       notVisible: "Done"
     commands:
       - tapOn:
           point: "50%,40%"
           optional: true
-      - waitForAnimationToEnd
       - tapOn:
           text: "Got it!"
           optional: true

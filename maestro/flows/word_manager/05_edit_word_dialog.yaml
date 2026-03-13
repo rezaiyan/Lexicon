@@ -6,11 +6,16 @@ tags:
 # Test: Tapping a word opens the detail bottom sheet, then the Edit button opens
 # the Edit Word dialog with correct fields. Cancel dismisses the dialog.
 #
-# Requires: At least one word exists in the library.
+# Creates a test word first to ensure at least one word exists in the library.
 
 - launchApp:
     clearState: false
 
+# Navigate to Study screen and add a test word so the library is non-empty.
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# Now navigate to the Word Manager.
 - runFlow: ../utils/navigate_to_word_manager.yaml
 
 # Wait for the word list to load (generous timeout for slow emulators).
@@ -18,8 +23,8 @@ tags:
     visible: "Search words..."
     timeout: 15000
 
-# Tap a word card to open the detail bottom sheet.
-- tapOn: "MaestroTest"
+# Tap the test word card to open the detail bottom sheet.
+- tapOn: "${output.word}"
 
 # The detail sheet must appear with the Edit icon (content description "Edit").
 - assertVisible: "Edit"

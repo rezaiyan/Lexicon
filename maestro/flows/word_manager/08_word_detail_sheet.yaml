@@ -8,21 +8,26 @@ tags:
 # Verifies that tapping a word in the Word Manager opens a detail sheet
 # with the word, translation, learning progress, language details, and action buttons.
 #
-# Requires: At least one word exists (MaestroTest from import tests).
+# Creates a test word first to ensure at least one word exists in the library.
 
 - launchApp:
     clearState: false
 
+# Navigate to Study screen and add a test word so the library is non-empty.
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# Now navigate to the Word Manager.
 - runFlow: ../utils/navigate_to_word_manager.yaml
 
 # Verify the word list is showing.
 - assertVisible: "Search words..."
 
-# Tap a word to open the detail sheet.
-- tapOn: "MaestroTest"
+# Tap the test word to open the detail sheet.
+- tapOn: "${output.word}"
 
-# The detail sheet must show the word and translation.
-- assertVisible: "MaestroTest"
+# The detail sheet must show the word.
+- assertVisible: "${output.word}"
 
 # Learning Progress section must be visible.
 - assertVisible: "Learning Progress"

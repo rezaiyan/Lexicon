@@ -5,8 +5,9 @@ tags:
 ---
 # Test: Add a word via manual text input on the import sheet.
 #
-# Verifies the full manual word entry flow: open import sheet → fill in
-# word/translation/description → tap "Add Word" → success counter shown → close.
+# Verifies the full manual word entry flow: open import sheet → choose method →
+# pick source language → fill in word/translation/description → tap "Add Word" →
+# success counter shown → close.
 
 - launchApp:
     clearState: false
@@ -19,11 +20,25 @@ tags:
 # The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
 - tapOn: "Manually"
 
-# The sheet must open with the "Type Text" tab selected by default.
+# The import method chooser page shows cards for each import method.
 - assertVisible: "Type Text"
+- assertVisible: "From File"
+
+# Tap "Type Text" to start the manual text input flow.
+- tapOn: "Type Text"
+
+# The source language chooser appears.
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
+
+# Select "English" as the source language.
+- tapOn: "English"
 
 # The manual entry section header must be visible.
-- assertVisible: "Add a Word"
+- extendedWaitUntil:
+    visible: "Add a Word"
+    timeout: 5000
 
 # The subtitle must be visible.
 - assertVisible: "Add vocabulary words one at a time with translation and optional description"

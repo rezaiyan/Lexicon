@@ -3,11 +3,11 @@ tags:
   - import
   - file-import
 ---
-# Test: File import tab renders correct UI elements.
+# Test: File import page renders correct UI elements.
 #
-# Switches to the "From File" tab and verifies that all static UI elements
-# are displayed. Does NOT automate the system file picker (not possible
-# in Maestro), so this is a UI verification test only.
+# Navigates to the "From File" import page via the multi-page flow and verifies
+# that all static UI elements are displayed. Does NOT automate the system file
+# picker (not possible in Maestro), so this is a UI verification test only.
 
 - launchApp:
     clearState: false
@@ -17,7 +17,7 @@ tags:
 # Open the import picker.
 - tapOn: "Import Words"
 
-# Wait for the method selector or import sheet to appear.
+# Wait for the method selector to appear.
 - extendedWaitUntil:
     visible: "Manually"
     timeout: 5000
@@ -25,16 +25,24 @@ tags:
 # The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
 - tapOn: "Manually"
 
-# The sheet must open with the "Type Text" tab.
+# The import method chooser page shows cards for each import method.
 - extendedWaitUntil:
-    visible: "Type Text"
+    visible: "From File"
     timeout: 5000
 
-# Switch to the "From File" tab.
+# Tap "From File" to navigate to the file import flow.
 - tapOn: "From File"
 
-# The file import section header must be visible.
-- assertVisible: "Import from File"
+# The source language chooser appears. Select "English".
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
+- tapOn: "English"
+
+# The file import page must now be visible.
+- extendedWaitUntil:
+    visible: "Import from File"
+    timeout: 5000
 
 # The description subtitle must be visible.
 - assertVisible: "Select a .txt file containing your vocabulary list"
