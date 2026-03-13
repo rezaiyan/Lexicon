@@ -144,12 +144,6 @@ class ImportViaFileUseCaseTest {
             flowOf(domain.settings.model.ThemeMode.AUTO)
 
         override suspend fun setThemeMode(mode: domain.settings.model.ThemeMode) {}
-        override suspend fun getLastInsightDate(): String? = null
-        override suspend fun getCachedInsight(): String? = null
-        override suspend fun updateDailyInsight(date: String, insight: String) {}
-        override suspend fun getLastInsightDismissedTime(): Long = 0L
-        override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
-        override suspend fun clearInsightData() {}
         override suspend fun clearSettings() {}
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(false)
         override suspend fun setNotificationsEnabled(enabled: Boolean) {}

@@ -107,12 +107,7 @@ class AuthViewModelTest : ViewModelTestBase() {
         override suspend fun setLanguage(language: Language) {}
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode) {}
-        override suspend fun getLastInsightDate(): String? = null
-        override suspend fun getCachedInsight(): String? = null
-        override suspend fun updateDailyInsight(date: String, insight: String) {}
-        override suspend fun getLastInsightDismissedTime(): Long = 0L
-        override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
-        override suspend fun clearInsightData() {}
+
         override suspend fun clearSettings() {}
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
         override suspend fun setNotificationsEnabled(enabled: Boolean) {}
@@ -164,7 +159,6 @@ class AuthViewModelTest : ViewModelTestBase() {
         override fun logWordMastered(level: Int) {}
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
-        override fun logAiInsightGenerated(usedLocal: Boolean, totalWords: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
         override fun logLanguageChanged(language: String) {}
         override fun setUserProperty(name: String, value: String) {}

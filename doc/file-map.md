@@ -239,7 +239,6 @@ commonMain/kotlin/notification/NotificationFilter.kt
 commonMain/kotlin/notification/payload/NotificationPayloadHandlerRegistry.kt
 commonMain/kotlin/notification/payload/AccountDeletionHandler.kt
 commonMain/kotlin/notification/payload/SignOutHandler.kt
-commonMain/kotlin/notification/payload/DailyInsightHandler.kt
 
 androidMain/kotlin/com/alirezaiyan/vokab/LexiconApplication.kt
 androidMain/kotlin/com/alirezaiyan/vokab/MainActivity.kt

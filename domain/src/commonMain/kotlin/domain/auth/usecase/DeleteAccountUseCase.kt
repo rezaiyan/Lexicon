@@ -20,7 +20,6 @@ class DeleteAccountUseCase(
             // Clear all local data after successful account deletion
             wordRepository.deleteAllWords()
             settingsRepository.clearSettings()
-            settingsRepository.clearInsightData()
             emit(Unit)
         }
     }

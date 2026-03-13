@@ -50,7 +50,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.LottieMotionIcon
@@ -230,31 +229,26 @@ private fun AiTopicsContent(
     }
 }
 
-private val topicPalette = listOf(
-    Color(0xFFFFF3E0), // Daily Life — warm amber
-    Color(0xFFE3F2FD), // Travel — sky blue
-    Color(0xFFECEFF1), // Business — cool slate
-    Color(0xFFFBE9E7), // Food — soft orange
-    Color(0xFFEDE7F6), // Technology — lavender
-    Color(0xFFE8F5E9), // Sports — fresh green
-    Color(0xFFFCE4EC), // Health — rose pink
-    Color(0xFFF3E5F5), // Arts — orchid
-    Color(0xFFE0F2F1), // Nature — teal mint
-    Color(0xFFE8EAF6), // Academic — indigo mist
-)
-
-private val topicPaletteDark = listOf(
-    Color(0xFF4E3B24), // Daily Life
-    Color(0xFF1A3A5C), // Travel
-    Color(0xFF2C3440), // Business
-    Color(0xFF4A2C22), // Food
-    Color(0xFF2D1F4E), // Technology
-    Color(0xFF1B3A25), // Sports
-    Color(0xFF3E1F2A), // Health
-    Color(0xFF3A1E42), // Arts
-    Color(0xFF1A3836), // Nature
-    Color(0xFF1F2346), // Academic
-)
+/**
+ * Returns the topic palette from semantic colors as a list, matching the category order:
+ * Daily Life, Travel, Business, Food, Technology, Sports, Health, Arts, Nature, Academic.
+ */
+@Composable
+private fun topicPalette(): List<Color> {
+    val colors = Theme.colors
+    return listOf(
+        colors.topicDailyLife,
+        colors.topicTravel,
+        colors.topicBusiness,
+        colors.topicFood,
+        colors.topicTechnology,
+        colors.topicSports,
+        colors.topicHealth,
+        colors.topicArts,
+        colors.topicNature,
+        colors.topicAcademic,
+    )
+}
 
 @Composable
 private fun TopicGrid(
@@ -263,8 +257,7 @@ private fun TopicGrid(
     isLoading: Boolean,
     onToggleTopic: (String) -> Unit,
 ) {
-    val isDark = !MaterialTheme.colorScheme.surface.luminance().let { it > 0.5f }
-    val palette = if (isDark) topicPaletteDark else topicPalette
+    val palette = topicPalette()
 
     val rows = (topics.size + 1) / 2
     Column(

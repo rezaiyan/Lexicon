@@ -47,12 +47,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
         override suspend fun setLanguage(language: Language) { lastSetLanguage = language }
         override fun getThemeMode(): Flow<ThemeMode> = themeModeFlow
         override suspend fun setThemeMode(mode: ThemeMode) { lastSetThemeMode = mode }
-        override suspend fun getLastInsightDate(): String? = null
-        override suspend fun getCachedInsight(): String? = null
-        override suspend fun updateDailyInsight(date: String, insight: String) {}
-        override suspend fun getLastInsightDismissedTime(): Long = 0L
-        override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
-        override suspend fun clearInsightData() {}
         override suspend fun clearSettings() {}
         override fun getNotificationsEnabled(): Flow<Boolean> = notificationsEnabledFlow
         override suspend fun setNotificationsEnabled(enabled: Boolean) { lastSetNotificationsEnabled = enabled }
@@ -104,7 +98,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
         override fun logWordMastered(level: Int) {}
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
-        override fun logAiInsightGenerated(usedLocal: Boolean, totalWords: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) { loggedEvents += "theme_changed" }
         override fun logLanguageChanged(language: String) { loggedEvents += "language_changed" }
         override fun setUserProperty(name: String, value: String) {}

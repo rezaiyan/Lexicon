@@ -42,7 +42,7 @@ class WasmJsAnalyticsTracker : IAnalyticsTracker {
         println("[Analytics] Daily goal completed: target=$cardsTarget, actual=$cardsActual")
     }
 
-    override fun logAiInsightGenerated(usedLocal: Boolean, totalWords: Int) {
+    fun logAiInsightGenerated(usedLocal: Boolean, totalWords: Int) {
         println("[Analytics] AI insight generated: usedLocal=$usedLocal, totalWords=$totalWords")
     }
 

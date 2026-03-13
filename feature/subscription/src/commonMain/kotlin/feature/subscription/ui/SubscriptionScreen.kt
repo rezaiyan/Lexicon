@@ -21,6 +21,7 @@ import lexicon.resources.generated.resources.subscription_cancelled
 import lexicon.resources.generated.resources.subscription_info_unavailable
 import lexicon.resources.generated.resources.subscription_load_failed
 import lexicon.resources.generated.resources.subscription_screen_title
+import lexicon.resources.generated.resources.web_subscriptions_not_available
 
 @Composable
 fun SubscriptionScreen(
@@ -124,6 +125,7 @@ internal fun getLocalizedErrorMessage(error: String): String {
         "NO_PURCHASES_TO_RESTORE" -> stringResource(Res.string.no_purchases_to_restore)
         "RESTORE_PURCHASES_FAILED" -> stringResource(Res.string.restore_purchases_failed)
         "SUBSCRIPTION_INFO_UNAVAILABLE" -> stringResource(Res.string.subscription_info_unavailable)
+        "WEB_SUBSCRIPTIONS_NOT_AVAILABLE" -> stringResource(Res.string.web_subscriptions_not_available)
         "CANCEL_SUBSCRIPTION_FAILED" -> stringResource(Res.string.subscription_cancelled)
         else -> error
     }

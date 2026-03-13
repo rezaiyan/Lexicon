@@ -50,7 +50,7 @@ import platform.Security.kSecValueData
  */
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
-    
+
     private val keychainHelper = KeychainHelper(SERVICE_NAME)
     private val userDefaults = NSUserDefaults.standardUserDefaults
     private val preferencesHelper = PreferencesHelper(userDefaults, PREFERENCES_PREFIX)
@@ -61,34 +61,31 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
         preferencesHelper = preferencesHelper,
         migrationFlagKey = MIGRATION_FLAG_KEY
     )
-    
+
     override suspend fun saveAccessToken(token: String) {
         ensureMigrationCompleted()
         keychainHelper.save(KEY_ACCESS_TOKEN, token)
     }
-    
+
     override suspend fun saveRefreshToken(token: String) {
         ensureMigrationCompleted()
         keychainHelper.save(KEY_REFRESH_TOKEN, token)
     }
-    
+
     override fun getAccessToken(): String? {
         ensureMigrationCompleted()
         return keychainHelper.load(KEY_ACCESS_TOKEN)
     }
-    
+
     override suspend fun getRefreshToken(): String? {
         ensureMigrationCompleted()
         return keychainHelper.load(KEY_REFRESH_TOKEN)
     }
-    
+
     override suspend fun clearTokens() {
         keychainHelper.delete(KEY_ACCESS_TOKEN)
         keychainHelper.delete(KEY_REFRESH_TOKEN)
         preferencesHelper.remove(KEY_TOKEN_EXPIRES_AT)
-        preferencesHelper.remove(KEY_DAILY_INSIGHT_ID)
-        preferencesHelper.remove(KEY_DAILY_INSIGHT_DATE)
-        preferencesHelper.remove(KEY_DAILY_INSIGHT_TIMESTAMP)
     }
 
     override suspend fun saveTokenExpiresAt(expiresAtMs: Long) {
@@ -97,38 +94,6 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
 
     override fun getTokenExpiresAt(): Long {
         return preferencesHelper.getLong(KEY_TOKEN_EXPIRES_AT)
-    }
-    
-    override suspend fun storeDailyInsightData(
-        insightId: String,
-        date: String,
-        timestamp: Long
-    ) {
-        preferencesHelper.putString(KEY_DAILY_INSIGHT_ID, insightId)
-        preferencesHelper.putString(KEY_DAILY_INSIGHT_DATE, date)
-        preferencesHelper.putLong(KEY_DAILY_INSIGHT_TIMESTAMP, timestamp)
-    }
-    
-    override suspend fun getDailyInsightData(): DailyInsightData? {
-        val insightId = preferencesHelper.getString(KEY_DAILY_INSIGHT_ID)
-        val date = preferencesHelper.getString(KEY_DAILY_INSIGHT_DATE)
-        val timestamp = preferencesHelper.getLong(KEY_DAILY_INSIGHT_TIMESTAMP)
-        
-        return if (insightId != null && date != null && timestamp > 0) {
-            DailyInsightData(
-                insightId = insightId,
-                date = date,
-                timestamp = timestamp
-            )
-        } else {
-            null
-        }
-    }
-    
-    override suspend fun clearDailyInsightData() {
-        preferencesHelper.remove(KEY_DAILY_INSIGHT_ID)
-        preferencesHelper.remove(KEY_DAILY_INSIGHT_DATE)
-        preferencesHelper.remove(KEY_DAILY_INSIGHT_TIMESTAMP)
     }
 
     override suspend fun hasCompletedOnboarding(): Boolean {
@@ -151,9 +116,6 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_TOKEN_EXPIRES_AT = "token_expires_at"
-        private const val KEY_DAILY_INSIGHT_ID = "daily_insight_id"
-        private const val KEY_DAILY_INSIGHT_DATE = "daily_insight_date"
-        private const val KEY_DAILY_INSIGHT_TIMESTAMP = "daily_insight_timestamp"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
     }
 }
@@ -199,7 +161,7 @@ private class KeychainHelper(
             }
         }
     }
-    
+
     fun load(key: String): String? {
         return memScoped {
             val query: CFMutableDictionaryRef = requireNotNull(
@@ -210,7 +172,7 @@ private class KeychainHelper(
             CFDictionarySetValue(query, kSecAttrAccount, key.toCFString())
             CFDictionarySetValue(query, kSecMatchLimit, kSecMatchLimitOne)
             CFDictionarySetValue(query, kSecReturnData, kCFBooleanTrue)
-            
+
             val result = alloc<CFTypeRefVar>()
             val status = SecItemCopyMatching(query as CFDictionaryRef, result.ptr)
             CFRelease(query)
@@ -221,7 +183,7 @@ private class KeychainHelper(
             }
         }
     }
-    
+
     fun delete(key: String): Boolean {
         val query: CFMutableDictionaryRef = requireNotNull(
             CFDictionaryCreateMutable(kCFAllocatorDefault, 0, null, null)
@@ -242,23 +204,23 @@ private class PreferencesHelper(
     fun putString(key: String, value: String) {
         userDefaults.setObject(value, forKey = prefixed(key))
     }
-    
+
     fun getString(key: String): String? {
         return userDefaults.stringForKey(prefixed(key))
     }
-    
+
     fun putLong(key: String, value: Long) {
         userDefaults.setDouble(value.toDouble(), forKey = prefixed(key))
     }
-    
+
     fun getLong(key: String): Long {
         return userDefaults.doubleForKey(prefixed(key)).toLong()
     }
-    
+
     fun remove(key: String) {
         userDefaults.removeObjectForKey(prefixed(key))
     }
-    
+
     private fun prefixed(key: String): String = prefix + key
 }
 
@@ -268,33 +230,33 @@ private class MigrationHelper(
     private val migrationFlagKey: String
 ) {
     private var migrationCompleted = false
-    
+
     fun runIfNeeded() {
         if (migrationCompleted) return
-        
+
         val userDefaults = NSUserDefaults.standardUserDefaults
         if (userDefaults.boolForKey(migrationFlagKey)) {
             migrationCompleted = true
             return
         }
-        
+
         performMigration()
         userDefaults.setBool(true, forKey = migrationFlagKey)
         migrationCompleted = true
     }
-    
+
     private fun performMigration() {
         preferencesHelper.getString(KEY_ACCESS_TOKEN)?.let { token ->
             keychainHelper.save(KEY_ACCESS_TOKEN, token)
             preferencesHelper.remove(KEY_ACCESS_TOKEN)
         }
-        
+
         preferencesHelper.getString(KEY_REFRESH_TOKEN)?.let { token ->
             keychainHelper.save(KEY_REFRESH_TOKEN, token)
             preferencesHelper.remove(KEY_REFRESH_TOKEN)
         }
     }
-    
+
     companion object {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
@@ -305,7 +267,7 @@ private class MigrationHelper(
 private fun NSData.toByteArray(): ByteArray {
     val size = length.toInt()
     if (size == 0) return ByteArray(0)
-    
+
     val result = ByteArray(size)
     result.usePinned { pinned ->
         getBytes(pinned.addressOf(0), size.toULong())

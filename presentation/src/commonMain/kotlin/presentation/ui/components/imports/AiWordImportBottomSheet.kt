@@ -41,6 +41,7 @@ import events.OnEvents
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import feature.aiimport.AiWordImportViewModel
+import feature.aiimport.model.AiWordImportEffect
 import feature.aiimport.model.AiWordImportStep
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.ai_import_success
@@ -80,12 +81,12 @@ fun AiWordImportBottomSheet(
 
     OnEvents(viewModel.effects) { event ->
         when (event) {
-            is AiWordImportViewModel.Event.ImportSuccess -> {
+            is AiWordImportEffect.ImportSuccess -> {
                 onShowSnackBar(importSuccessFormat.replace("%1\$d", event.count.toString()))
                 handleDismiss()
             }
 
-            is AiWordImportViewModel.Event.Dismiss -> handleDismiss()
+            is AiWordImportEffect.Dismiss -> handleDismiss()
         }
     }
 

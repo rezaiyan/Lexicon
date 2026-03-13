@@ -24,7 +24,6 @@ NotificationHandler.processNotificationAsync()
     └── (always) → NotificationPayloadHandlerRegistry.handle(type, data)
          ├── "account_deleted" → AccountDeletionHandler → clearAllUserData()
          ├── "sign_out"       → SignOutHandler → clearAllUserData()
-         ├── "daily_insight"  → DailyInsightHandler → storeDailyInsightData()
          ├── "streak_reminder"     → NoOpHandler
          ├── "review_reminder"     → NoOpHandler
          └── "achievement_unlocked" → NoOpHandler

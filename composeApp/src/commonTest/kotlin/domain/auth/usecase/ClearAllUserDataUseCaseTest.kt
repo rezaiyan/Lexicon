@@ -39,7 +39,6 @@ class ClearAllUserDataUseCaseTest {
         assertTrue(wordRepository.deleteAllWordsCalled)
         assertTrue(settingsRepository.clearSettingsCalled)
         assertTrue(secureStorage.clearTokensCalled)
-        assertTrue(secureStorage.clearDailyInsightDataCalled)
         assertFalse(sessionManager.isAuthenticatedValue)
     }
 
@@ -108,16 +107,10 @@ class ClearAllUserDataUseCaseTest {
         override suspend fun clearSettings() {
             clearSettingsCalled = true
         }
-        override suspend fun clearInsightData() {}
         override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
         override suspend fun setLanguage(language: Language) {}
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode) {}
-        override suspend fun getLastInsightDate(): String? = null
-        override suspend fun getCachedInsight(): String? = null
-        override suspend fun updateDailyInsight(date: String, insight: String) {}
-        override suspend fun getLastInsightDismissedTime(): Long = 0L
-        override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
         override suspend fun setNotificationsEnabled(enabled: Boolean) {}
         override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
@@ -132,10 +125,8 @@ class ClearAllUserDataUseCaseTest {
 
     private class FakeSecureStorage : ISecureStorage {
         var clearTokensCalled = false
-        var clearDailyInsightDataCalled = false
 
         override suspend fun clearTokens() { clearTokensCalled = true }
-        override suspend fun clearDailyInsightData() { clearDailyInsightDataCalled = true }
     }
 
     private class FakeSessionManager : ISessionManager {

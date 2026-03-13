@@ -110,9 +110,6 @@ class OnboardingRepositoryImplTest {
         override suspend fun clearTokens() {}
         override suspend fun saveTokenExpiresAt(expiresAtMs: Long) {}
         override fun getTokenExpiresAt(): Long = 0L
-        override suspend fun storeDailyInsightData(insightId: String, date: String, timestamp: Long) {}
-        override suspend fun getDailyInsightData(): data.storage.DailyInsightData? = null
-        override suspend fun clearDailyInsightData() {}
         override suspend fun hasCompletedOnboarding(): Boolean = onboardingCompleted
         override suspend fun markOnboardingCompleted() { onboardingCompleted = true }
     }

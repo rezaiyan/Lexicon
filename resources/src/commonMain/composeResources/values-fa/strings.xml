@@ -355,6 +355,7 @@
     <string name="manage_subscription_google_play">اشتراک خود را در Google Play مدیریت کنید</string>
     <string name="manage_subscription_app_store">اشتراک خود را در App Store مدیریت کنید</string>
     <string name="subscription_info_unavailable">در دسترسی به اطلاعات اشتراک شما مشکل داریم. لطفاً بعداً دوباره تلاش کنید!</string>
+    <string name="web_subscriptions_not_available">اشتراک فقط از طریق اپلیکیشن موبایل در دسترس است. لطفاً اپلیکیشن را از App Store یا Google Play دانلود کنید!</string>
     <string name="terms_of_use">شرایط استفاده</string>
     <string name="privacy_policy">سیاست حریم خصوصی</string>
 

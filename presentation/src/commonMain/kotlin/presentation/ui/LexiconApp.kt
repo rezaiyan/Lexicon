@@ -44,6 +44,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import feature.auth.AuthViewModel
 import feature.onboarding.OnboardingViewModel
 import feature.onboarding.VocabularyPreviewViewModel
+import feature.onboarding.model.OnboardingEffect
+import feature.onboarding.model.VocabularyPreviewEffect
 import presentation.model.AppUiState
 import presentation.model.TabDestination
 import overlay.OverlayHostContainer
@@ -180,12 +182,12 @@ fun LexiconApp() {
                         LaunchedEffect(Unit) {
                             onboardingViewModel.effects.collect { event ->
                                 when (event) {
-                                    is OnboardingViewModel.Event.NavigateToPreview -> {
+                                    is OnboardingEffect.NavigateToPreview -> {
                                         appNavigationViewModel.onNavigateToVocabularyPreview(
                                             event.response.suggestedVocabulary
                                         )
                                     }
-                                    is OnboardingViewModel.Event.NavigateToMain -> {
+                                    is OnboardingEffect.NavigateToMain -> {
                                         appNavigationViewModel.onNavigateToAuthGate()
                                     }
                                 }
@@ -213,10 +215,10 @@ fun LexiconApp() {
                         LaunchedEffect(Unit) {
                             vocabularyPreviewViewModel.effects.collect { event ->
                                 when (event) {
-                                    is VocabularyPreviewViewModel.Event.ProceedWithSelection -> {
+                                    is VocabularyPreviewEffect.ProceedWithSelection -> {
                                         appNavigationViewModel.onNavigateToAuthGate(event.words)
                                     }
-                                    is VocabularyPreviewViewModel.Event.SkipVocabulary -> {
+                                    is VocabularyPreviewEffect.SkipVocabulary -> {
                                         appNavigationViewModel.onNavigateToAuthGate()
                                     }
                                 }

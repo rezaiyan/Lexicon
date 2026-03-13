@@ -12,14 +12,8 @@ interface ISettingsRepository {
     suspend fun setLanguage(language: Language)
     fun getThemeMode(): Flow<ThemeMode>
     suspend fun setThemeMode(mode: ThemeMode)
-    suspend fun getLastInsightDate(): String?
-    suspend fun getCachedInsight(): String?
-    suspend fun updateDailyInsight(date: String, insight: String)
-    suspend fun getLastInsightDismissedTime(): Long
-    suspend fun setLastInsightDismissedTime(timestamp: Long)
-    suspend fun clearInsightData()
     suspend fun clearSettings()
-    
+
     // Notification settings
     fun getNotificationsEnabled(): Flow<Boolean>
     suspend fun setNotificationsEnabled(enabled: Boolean)

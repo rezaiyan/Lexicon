@@ -28,9 +28,6 @@ class SettingsRepositoryImpl(
         id = id.toInt(),
         languageCode = languageCode,
         themeMode = themeMode,
-        lastInsightDate = lastInsightDate,
-        cachedInsight = cachedInsight,
-        lastInsightDismissedTime = lastInsightDismissedTime,
         notificationsEnabled = notificationsEnabled != 0L,
         reviewReminders = reviewReminders != 0L,
         motivationalMessages = motivationalMessages != 0L,
@@ -43,9 +40,6 @@ class SettingsRepositoryImpl(
             id = data.id.toLong(),
             languageCode = data.languageCode,
             themeMode = data.themeMode,
-            lastInsightDate = data.lastInsightDate,
-            cachedInsight = data.cachedInsight,
-            lastInsightDismissedTime = data.lastInsightDismissedTime,
             notificationsEnabled = if (data.notificationsEnabled) 1L else 0L,
             reviewReminders = if (data.reviewReminders) 1L else 0L,
             motivationalMessages = if (data.motivationalMessages) 1L else 0L,
@@ -124,38 +118,6 @@ class SettingsRepositoryImpl(
         val current = queries.getSettings().awaitAsOneOrNull()?.toData() ?: SettingsEntityData()
         val updated = current.copy(minimumDueCards = count)
         insertSettingsData(updated)
-    }
-
-    override suspend fun updateDailyInsight(date: String, insight: String) {
-        queries.updateDailyInsight(date, insight)
-    }
-
-    override suspend fun getCachedInsight(): String? {
-        return queries.getCachedInsight().awaitAsOneOrNull()?.cachedInsight
-    }
-
-    override suspend fun getLastInsightDate(): String? {
-        return queries.getLastInsightDate().awaitAsOneOrNull()?.lastInsightDate
-    }
-
-    override suspend fun getLastInsightDismissedTime(): Long {
-        return queries.getSettings().awaitAsOneOrNull()?.lastInsightDismissedTime ?: 0L
-    }
-
-    override suspend fun setLastInsightDismissedTime(timestamp: Long) {
-        val current = queries.getSettings().awaitAsOneOrNull()?.toData() ?: SettingsEntityData()
-        insertSettingsData(current.copy(lastInsightDismissedTime = timestamp))
-    }
-
-    override suspend fun clearInsightData() {
-        val current = queries.getSettings().awaitAsOneOrNull()?.toData() ?: SettingsEntityData()
-        insertSettingsData(
-            current.copy(
-                lastInsightDate = null,
-                cachedInsight = null,
-                lastInsightDismissedTime = 0L
-            )
-        )
     }
 
     override suspend fun clearSettings() {

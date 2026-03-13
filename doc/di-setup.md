@@ -67,7 +67,6 @@ Includes all sub-modules.
 - **Payload handlers registry** with 6 handlers:
   - AccountDeletionHandler (type: "account_deleted")
   - SignOutHandler (type: "sign_out")
-  - DailyInsightHandler (type: "daily_insight")
   - NoOpHandler for: "streak_reminder", "review_reminder", "achievement_unlocked"
 - **Data sources**: PushNotificationDataSource
 - **Repositories**: IPushTokenRepository, INotificationRepository

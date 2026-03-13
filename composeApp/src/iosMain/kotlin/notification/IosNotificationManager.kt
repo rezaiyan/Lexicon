@@ -107,16 +107,12 @@ class IosNotificationManager : INotificationManager {
                 trigger = trigger
             )
             
-            center.addNotificationRequest(request) { error ->
-                if (error != null) {
-                    println("Error scheduling notification: ${error.localizedDescription}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Exception scheduling notification: ${e.message}")
+            center.addNotificationRequest(request) { _ -> }
+        } catch (_: Exception) {
+            // Notification scheduling failed silently
         }
     }
-    
+
     override suspend fun scheduleMotivationalNotification(
         title: String,
         message: String,
@@ -159,22 +155,18 @@ class IosNotificationManager : INotificationManager {
                 trigger = trigger
             )
             
-            center.addNotificationRequest(request) { error ->
-                if (error != null) {
-                    println("Error scheduling notification: ${error.localizedDescription}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Exception scheduling notification: ${e.message}")
+            center.addNotificationRequest(request) { _ -> }
+        } catch (_: Exception) {
+            // Notification scheduling failed silently
         }
     }
-    
+
     override suspend fun cancelAllNotifications() {
         try {
             center.removeAllPendingNotificationRequests()
             center.removeAllDeliveredNotifications()
-        } catch (e: Exception) {
-            println("Exception canceling notifications: ${e.message}")
+        } catch (_: Exception) {
+            // Cancellation failed silently
         }
     }
     
@@ -207,13 +199,9 @@ class IosNotificationManager : INotificationManager {
                 trigger = null
             )
             
-            center.addNotificationRequest(request) { error ->
-                if (error != null) {
-                    println("Error showing notification: ${error.localizedDescription}")
-                }
-            }
-        } catch (e: Exception) {
-            println("Exception showing notification: ${e.message}")
+            center.addNotificationRequest(request) { _ -> }
+        } catch (_: Exception) {
+            // Notification display failed silently
         }
     }
     
@@ -223,9 +211,8 @@ class IosNotificationManager : INotificationManager {
             UIApplication.sharedApplication.setApplicationIconBadgeNumber(0)
             // Also clear delivered notifications
             center.removeAllDeliveredNotifications()
-            println(" Badge cleared")
-        } catch (e: Exception) {
-            println("Exception clearing badge: ${e.message}")
+        } catch (_: Exception) {
+            // Badge clearing failed silently
         }
     }
     
@@ -235,12 +222,9 @@ class IosNotificationManager : INotificationManager {
             val settingsUrl = NSURL.URLWithString("app-settings:")
             if (settingsUrl != null && UIApplication.sharedApplication.canOpenURL(settingsUrl)) {
                 UIApplication.sharedApplication.openURL(settingsUrl)
-                println(" Opened notification settings")
-            } else {
-                println(" Cannot open settings URL")
             }
-        } catch (e: Exception) {
-            println(" Failed to open notification settings: ${e.message}")
+        } catch (_: Exception) {
+            // Failed to open settings
         }
     }
 }

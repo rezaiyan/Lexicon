@@ -14,20 +14,15 @@ class IOSAppleAuthStateProvider : IAppleAuthStateProvider {
     
     override suspend fun isSignedInWithApple(): Boolean {
         val userId = getAppleUserIdentifier()
-        val isSignedIn = userId != null
-        println(" [IOSAppleAuth] Checking sign-in state: $isSignedIn (userId: $userId)")
-        return isSignedIn
+        return userId != null
     }
     
     override suspend fun getAppleUserIdentifier(): String? {
-        val userId = NSUserDefaults.standardUserDefaults.stringForKey(APPLE_USER_ID_KEY)
-        println(" [IOSAppleAuth] Retrieved Apple user ID: ${if (userId != null) "exists" else "null"}")
-        return userId
+        return NSUserDefaults.standardUserDefaults.stringForKey(APPLE_USER_ID_KEY)
     }
     
     override suspend fun signOutFromApple() {
         NSUserDefaults.standardUserDefaults.removeObjectForKey(APPLE_USER_ID_KEY)
         NSUserDefaults.standardUserDefaults.synchronize()
-        println(" [IOSAppleAuth] Signed out from Apple (cleared user ID)")
     }
 }

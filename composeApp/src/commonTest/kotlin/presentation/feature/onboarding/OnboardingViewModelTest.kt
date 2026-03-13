@@ -10,6 +10,7 @@ import domain.settings.model.ThemeMode
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.repository.ISettingsRepository
 import feature.onboarding.OnboardingViewModel
+import feature.onboarding.model.OnboardingEffect
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -54,12 +55,6 @@ class OnboardingViewModelTest : ViewModelTestBase() {
             override suspend fun setLanguage(language: Language) { languageSet = language }
             override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
             override suspend fun setThemeMode(mode: ThemeMode) {}
-            override suspend fun getLastInsightDate(): String? = null
-            override suspend fun getCachedInsight(): String? = null
-            override suspend fun updateDailyInsight(date: String, insight: String) {}
-            override suspend fun getLastInsightDismissedTime(): Long = 0L
-            override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
-            override suspend fun clearInsightData() {}
             override suspend fun clearSettings() {}
             override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(false)
             override suspend fun setNotificationsEnabled(enabled: Boolean) {}
@@ -155,7 +150,7 @@ class OnboardingViewModelTest : ViewModelTestBase() {
             vm.submit()
 
             val event = vm.effects.first()
-            assertIs<OnboardingViewModel.Event.NavigateToPreview>(event)
+            assertIs<OnboardingEffect.NavigateToPreview>(event)
             assertEquals(false, vm.currentState.isLoading)
             assertEquals(Language.SPANISH, languageSet)
         }
@@ -192,6 +187,6 @@ class OnboardingViewModelTest : ViewModelTestBase() {
         vm.skip()
 
         val event = vm.effects.first()
-        assertIs<OnboardingViewModel.Event.NavigateToMain>(event)
+        assertIs<OnboardingEffect.NavigateToMain>(event)
     }
 }

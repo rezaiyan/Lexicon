@@ -21,6 +21,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import feature.aiimport.AiWordImportViewModel
+import feature.aiimport.model.AiWordImportEffect
 import feature.aiimport.model.AiWordImportStep
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -181,7 +182,7 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
         vm.importSelected()
 
         val event = vm.effects.first()
-        assertIs<AiWordImportViewModel.Event.ImportSuccess>(event)
+        assertIs<AiWordImportEffect.ImportSuccess>(event)
         assertEquals(2, event.count)
     }
 
@@ -192,7 +193,7 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
         vm.dismiss()
 
         val event = vm.effects.first()
-        assertEquals(AiWordImportViewModel.Event.Dismiss, event)
+        assertEquals(AiWordImportEffect.Dismiss, event)
     }
 
     @Test

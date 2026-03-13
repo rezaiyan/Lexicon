@@ -18,20 +18,7 @@ interface SecureStorage {
     suspend fun saveTokenExpiresAt(expiresAtMs: Long)
     fun getTokenExpiresAt(): Long
 
-    // Daily insight push notification data
-    suspend fun storeDailyInsightData(insightId: String, date: String, timestamp: Long)
-    suspend fun getDailyInsightData(): DailyInsightData?
-    suspend fun clearDailyInsightData()
-
     // Onboarding completion tracking
     suspend fun hasCompletedOnboarding(): Boolean
     suspend fun markOnboardingCompleted()
 }
-
-data class DailyInsightData(
-    val insightId: String,
-    val date: String,
-    val timestamp: Long
-)
-
-

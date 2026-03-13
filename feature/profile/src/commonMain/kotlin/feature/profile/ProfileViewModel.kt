@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalCoroutinesApi::class, ExperimentalTime::class)
+@file:OptIn(ExperimentalTime::class)
 
 package feature.profile
 
@@ -14,14 +14,9 @@ import domain.profile.model.ProfileStats
 import domain.profile.usecase.GetProfileStatsUseCase
 import domain.streak.manager.IStreakManager
 import domain.streak.model.StreakData
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
@@ -37,93 +32,92 @@ import feature.profile.model.ProfileStatsUiModel
 import feature.profile.model.ProfileUiData
 import core.common.UiState
 import core.common.ThrottledAction
-import core.common.stateInEagerly
-import core.common.stateInWhileSubscribed
 import kotlin.time.Duration.Companion.seconds
 
 class ProfileViewModel(
     private val userManager: IUserManager,
-    getFeatureAccessUseCase: GetFeatureAccessUseCase,
-    streakManager: IStreakManager,
+    private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
+    private val streakManager: IStreakManager,
     private val getProfileStatsUseCase: GetProfileStatsUseCase
 ) : BaseViewModel<UiState<ProfileUiData>, Nothing>() {
 
     override fun initialState(): UiState<ProfileUiData> = UiState.Loading
 
-    private val streakRefreshTrigger = MutableStateFlow(0)
-    private val profileStatsRefreshTrigger = MutableStateFlow(0)
+    private var currentUser: AuthUser? = null
+    private var currentStreak: UiState<StreakData> = UiState.Loading
+    private var currentFeatureAccess: UiState<FeatureAccessResponse?> = UiState.Loaded(null)
+    private var currentProfileStats: ProfileStatsUiModel? = null
+
+    private var streakJob: Job? = null
 
     private val throttledProfileStatsRefresh = ThrottledAction(
         scope = viewModelScope,
         interval = 60.seconds,
-        action = { profileStatsRefreshTrigger.value++ }
+        action = { loadProfileStats() }
     )
 
-    private val userFlow: StateFlow<AuthUser?> = userManager.observeUser()
-        .distinctUntilChanged()
-        .catch { error ->
-            error.printStackTrace()
-            emit(null)
-        }
-        .stateInEagerly(viewModelScope, null)
-
-    private val streakFlow: StateFlow<UiState<StreakData>> = streakRefreshTrigger
-        .flatMapLatest { streakManager.getStreak() }
-        .map { state ->
-            when (state) {
-                is IStreakManager.StreakState.Loading -> UiState.Loading
-                is IStreakManager.StreakState.Error -> UiState.Error(state.message)
-                is IStreakManager.StreakState.Loaded -> UiState.Loaded(state.data)
-            }
-        }
-        .catch { error ->
-            error.printStackTrace()
-            emit(UiState.Error(error.message ?: "Failed to load streak"))
-        }
-        .stateInWhileSubscribed(viewModelScope, initialValue = UiState.Loading)
-
-    private val featureAccessFlow: StateFlow<UiState<FeatureAccessResponse?>> =
-        getFeatureAccessUseCase.invoke()
-            .map {
-                UiState.Loaded(it)
-            }
-            .stateInEagerly(viewModelScope, UiState.Loaded(null))
-
-    private val profileStatsFlow: StateFlow<ProfileStatsUiModel?> = profileStatsRefreshTrigger
-        .flatMapLatest {
-            flow {
-                val result = getProfileStatsUseCase()
-                emit(result.getOrNull()?.toUiModel())
-            }
-        }
-        .catch { error ->
-            error.printStackTrace()
-            emit(null)
-        }
-        .stateInWhileSubscribed(viewModelScope, initialValue = null)
-
     init {
-        observeAndCombineState()
+        observeUser()
+        observeStreak()
+        observeFeatureAccess()
+        viewModelScope.launch { loadProfileStats() }
     }
 
-    private fun observeAndCombineState() {
+    private fun observeUser() {
         viewModelScope.launch {
-            combine(
-                userFlow,
-                streakFlow,
-                featureAccessFlow,
-                profileStatsFlow
-            ) { user, streak, featureAccessState, profileStats ->
-                ProfileStateBuilder.createUiState(
-                    user, streak, featureAccessState, profileStats
-                )
-            }
+            userManager.observeUser()
+                .distinctUntilChanged()
+                .catch { emit(null) }
+                .collect { user ->
+                    currentUser = user
+                    rebuildState()
+                }
+        }
+    }
+
+    private fun observeStreak() {
+        streakJob?.cancel()
+        streakJob = viewModelScope.launch {
+            streakManager.getStreak()
+                .map { state ->
+                    when (state) {
+                        is IStreakManager.StreakState.Loading -> UiState.Loading
+                        is IStreakManager.StreakState.Error -> UiState.Error(state.message)
+                        is IStreakManager.StreakState.Loaded -> UiState.Loaded(state.data)
+                    }
+                }
                 .catch { error ->
-                    emit(UiState.Error(error.message ?: "An error occurred"))
+                    emit(UiState.Error(error.message ?: "Failed to load streak"))
                 }
-                .collect { newState ->
-                    updateState { newState }
+                .collect { streak ->
+                    currentStreak = streak
+                    rebuildState()
                 }
+        }
+    }
+
+    private fun observeFeatureAccess() {
+        viewModelScope.launch {
+            getFeatureAccessUseCase.invoke()
+                .map { UiState.Loaded(it) }
+                .collect { featureAccess ->
+                    currentFeatureAccess = featureAccess
+                    rebuildState()
+                }
+        }
+    }
+
+    private suspend fun loadProfileStats() {
+        val result = getProfileStatsUseCase()
+        currentProfileStats = result.getOrNull()?.toUiModel()
+        rebuildState()
+    }
+
+    private fun rebuildState() {
+        updateState {
+            ProfileStateBuilder.createUiState(
+                currentUser, currentStreak, currentFeatureAccess, currentProfileStats
+            )
         }
     }
 
@@ -150,15 +144,8 @@ class ProfileViewModel(
     fun logout() {
         viewModelScope.launch {
             userManager.logout().fold(
-                onSuccess = {
-                    streakRefreshTrigger.value++
-                    profileStatsRefreshTrigger.value++
-                },
-                onFailure = { error ->
-                    error.printStackTrace()
-                    streakRefreshTrigger.value++
-                    profileStatsRefreshTrigger.value++
-                }
+                onSuccess = { refreshAll() },
+                onFailure = { refreshAll() }
             )
         }
     }
@@ -166,17 +153,15 @@ class ProfileViewModel(
     fun deleteAccount() {
         viewModelScope.launch {
             userManager.deleteAccount().fold(
-                onSuccess = {
-                    streakRefreshTrigger.value++
-                    profileStatsRefreshTrigger.value++
-                },
-                onFailure = { error ->
-                    error.printStackTrace()
-                    streakRefreshTrigger.value++
-                    profileStatsRefreshTrigger.value++
-                }
+                onSuccess = { refreshAll() },
+                onFailure = { refreshAll() }
             )
         }
+    }
+
+    private fun refreshAll() {
+        observeStreak()
+        viewModelScope.launch { loadProfileStats() }
     }
 }
 

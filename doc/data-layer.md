@@ -32,9 +32,6 @@ All data layer code in `data/src/commonMain/kotlin/data/`.
 | id | INTEGER | 1 |
 | languageCode | TEXT | 'en' |
 | themeMode | TEXT | 'AUTO' |
-| lastInsightDate | TEXT | null |
-| cachedInsight | TEXT | null |
-| lastInsightDismissedTime | INTEGER | 0 |
 | notificationsEnabled | INTEGER | 1 |
 | reviewReminders | INTEGER | 1 |
 | motivationalMessages | INTEGER | 1 |

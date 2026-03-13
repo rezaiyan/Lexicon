@@ -82,12 +82,6 @@ class SpeakWordUseCaseTest {
         override suspend fun setLanguage(language: Language) {}
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode) {}
-        override suspend fun getLastInsightDate(): String? = null
-        override suspend fun getCachedInsight(): String? = null
-        override suspend fun updateDailyInsight(date: String, insight: String) {}
-        override suspend fun getLastInsightDismissedTime(): Long = 0L
-        override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
-        override suspend fun clearInsightData() {}
         override suspend fun clearSettings() {}
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
         override suspend fun setNotificationsEnabled(enabled: Boolean) {}

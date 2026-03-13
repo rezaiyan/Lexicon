@@ -12,8 +12,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.net.toUri
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 import android.R as AndroidR
 
 class AndroidNotificationManager(
@@ -23,6 +27,7 @@ class AndroidNotificationManager(
     companion object {
         private const val CHANNEL_ID = "lexicon_notifications"
         private const val REVIEW_NOTIFICATION_ID = 1001
+        private const val MOTIVATIONAL_NOTIFICATION_ID = 1002
     }
     
     init {
@@ -138,17 +143,21 @@ class AndroidNotificationManager(
         message: String,
         delayMinutes: Int
     ) = withContext(Dispatchers.Main) {
-        // Explicitly check permissions before scheduling
         if (!areNotificationsEnabled()) return@withContext
-        
+
         try {
-            // For immediate notifications (will implement WorkManager for scheduled ones)
-            if (delayMinutes == 0) {
+            if (delayMinutes <= 0) {
                 showImmediateNotification(title, message)
+            } else {
+                scheduleWithWorkManager(
+                    title = title,
+                    message = message,
+                    delayMinutes = delayMinutes,
+                    tag = NotificationWorker.TAG_REVIEW_REMINDER,
+                    notificationId = REVIEW_NOTIFICATION_ID
+                )
             }
-            // TODO: Implement WorkManager for delayed notifications
         } catch (_: SecurityException) {
-            // Handle case where permission was revoked
             // Silently fail - don't crash the app
         }
     }
@@ -158,20 +167,48 @@ class AndroidNotificationManager(
         message: String,
         delayMinutes: Int
     ) = withContext(Dispatchers.Main) {
-        // Explicitly check permissions before scheduling
         if (!areNotificationsEnabled()) return@withContext
-        
+
         try {
-            if (delayMinutes == 0) {
+            if (delayMinutes <= 0) {
                 showImmediateNotification(title, message)
+            } else {
+                scheduleWithWorkManager(
+                    title = title,
+                    message = message,
+                    delayMinutes = delayMinutes,
+                    tag = NotificationWorker.TAG_MOTIVATIONAL,
+                    notificationId = MOTIVATIONAL_NOTIFICATION_ID
+                )
             }
-            // TODO: Implement WorkManager for delayed notifications
         } catch (_: SecurityException) {
-            // Handle case where permission was revoked
             // Silently fail - don't crash the app
         }
     }
     
+    private fun scheduleWithWorkManager(
+        title: String,
+        message: String,
+        delayMinutes: Int,
+        tag: String,
+        notificationId: Int
+    ) {
+        val data = workDataOf(
+            NotificationWorker.KEY_TITLE to title,
+            NotificationWorker.KEY_MESSAGE to message,
+            NotificationWorker.KEY_NOTIFICATION_ID to notificationId
+        )
+
+        val request = OneTimeWorkRequestBuilder<NotificationWorker>()
+            .setInitialDelay(delayMinutes.toLong(), TimeUnit.MINUTES)
+            .setInputData(data)
+            .addTag(tag)
+            .build()
+
+        WorkManager.getInstance(context)
+            .enqueue(request)
+    }
+
     @SuppressLint("MissingPermission")
     override suspend fun showImmediateNotification(
         title: String,
@@ -208,14 +245,15 @@ class AndroidNotificationManager(
         }
     }
     
-    override suspend fun cancelAllNotifications() = withContext(Dispatchers.Main) {
+    override suspend fun cancelAllNotifications(): Unit = withContext(Dispatchers.Main) {
         try {
-            // Canceling notifications doesn't require permission, but wrap in try-catch for safety
             NotificationManagerCompat.from(context).cancelAll()
-        } catch (_: SecurityException) {
-            // Handle edge case where something goes wrong
+            WorkManager.getInstance(context).cancelAllWorkByTag(NotificationWorker.TAG_REVIEW_REMINDER)
+            WorkManager.getInstance(context).cancelAllWorkByTag(NotificationWorker.TAG_MOTIVATIONAL)
+        } catch (_: Exception) {
             // Silently fail - don't crash the app
         }
+        Unit
     }
     
     override suspend fun clearBadge() = withContext(Dispatchers.Main) {

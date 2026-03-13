@@ -15,7 +15,4 @@ class SecureStorageAdapter(
         platformStorage.clearTokens()
     }
 
-    override suspend fun clearDailyInsightData() {
-        platformStorage.clearDailyInsightData()
-    }
 }

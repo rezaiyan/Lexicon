@@ -10,8 +10,4 @@ interface ISecureStorage {
      */
     suspend fun clearTokens()
 
-    /**
-     * Clears daily insight push notification data.
-     */
-    suspend fun clearDailyInsightData()
 }

@@ -162,6 +162,15 @@ class SubscriptionViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `loadOfferings with web unsupported error shows specific message`() = runTest {
+        offeringsResult = Try.failure(UnsupportedOperationException("WEB_SUBSCRIPTIONS_NOT_AVAILABLE"))
+        val vm = createViewModel()
+        val state = vm.currentState.content
+        assertIs<UiState.Error>(state)
+        assertEquals("WEB_SUBSCRIPTIONS_NOT_AVAILABLE", state.message)
+    }
+
+    @Test
     fun `retry reloads offerings`() = runTest {
         offeringsResult = Try.failure(RuntimeException("error"))
         val vm = createViewModel()

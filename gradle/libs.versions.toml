@@ -42,6 +42,7 @@ compottie = "2.0.2"
 profileinstaller = "1.4.1"
 commonsCompress = "1.28.0"
 turbine = "1.2.0"
+workRuntime = "2.10.0"
 detekt = "1.23.7"
 
 [libraries]
@@ -125,6 +126,7 @@ purchases-kmp-result = { module = "com.revenuecat.purchases:purchases-kmp-result
 androidx-profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commonsCompress" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntime" }
 
 
 

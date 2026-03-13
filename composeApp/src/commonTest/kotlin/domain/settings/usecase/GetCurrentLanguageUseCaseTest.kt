@@ -54,18 +54,11 @@ internal class FakeSettingsRepository : ISettingsRepository {
     var dailyReminderTime = "09:00"
     var minimumDueCards = 5
     var clearSettingsCalled = false
-    var clearInsightDataCalled = false
 
     override fun getLanguage(): Flow<Language> = flowOf(language)
     override suspend fun setLanguage(language: Language) { this.language = language }
     override fun getThemeMode(): Flow<ThemeMode> = flowOf(themeMode)
     override suspend fun setThemeMode(mode: ThemeMode) { themeMode = mode }
-    override suspend fun getLastInsightDate(): String? = null
-    override suspend fun getCachedInsight(): String? = null
-    override suspend fun updateDailyInsight(date: String, insight: String) {}
-    override suspend fun getLastInsightDismissedTime(): Long = 0L
-    override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
-    override suspend fun clearInsightData() { clearInsightDataCalled = true }
     override suspend fun clearSettings() { clearSettingsCalled = true }
     override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(notificationsEnabled)
     override suspend fun setNotificationsEnabled(enabled: Boolean) { notificationsEnabled = enabled }

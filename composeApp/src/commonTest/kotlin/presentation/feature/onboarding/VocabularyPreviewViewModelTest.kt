@@ -2,6 +2,7 @@ package presentation.feature.onboarding
 
 import domain.onboarding.model.SuggestedVocabulary
 import feature.onboarding.VocabularyPreviewViewModel
+import feature.onboarding.model.VocabularyPreviewEffect
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -51,7 +52,7 @@ class VocabularyPreviewViewModelTest : ViewModelTestBase() {
             vm.proceedWithSelected()
 
             val event = vm.effects.first()
-            assertIs<VocabularyPreviewViewModel.Event.ProceedWithSelection>(event)
+            assertIs<VocabularyPreviewEffect.ProceedWithSelection>(event)
             assertEquals(words, event.words)
         }
 
@@ -62,6 +63,6 @@ class VocabularyPreviewViewModelTest : ViewModelTestBase() {
         vm.skip()
 
         val event = vm.effects.first()
-        assertEquals(VocabularyPreviewViewModel.Event.SkipVocabulary, event)
+        assertEquals(VocabularyPreviewEffect.SkipVocabulary, event)
     }
 }

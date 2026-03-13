@@ -1,19 +1,14 @@
 package feature.onboarding
 
-import domain.onboarding.model.SuggestedVocabulary
 import core.base.BaseViewModel
+import feature.onboarding.model.VocabularyPreviewEffect
 import feature.onboarding.model.VocabularyPreviewUiState
 
-class VocabularyPreviewViewModel : BaseViewModel<VocabularyPreviewUiState, VocabularyPreviewViewModel.Event>() {
-
-    sealed interface Event {
-        data class ProceedWithSelection(val words: List<SuggestedVocabulary>) : Event
-        data object SkipVocabulary : Event
-    }
+class VocabularyPreviewViewModel : BaseViewModel<VocabularyPreviewUiState, VocabularyPreviewEffect>() {
 
     override fun initialState() = VocabularyPreviewUiState()
 
-    fun setWords(words: List<SuggestedVocabulary>) {
+    fun setWords(words: List<domain.onboarding.model.SuggestedVocabulary>) {
         updateState {
             copy(
                 words = words,
@@ -25,10 +20,10 @@ class VocabularyPreviewViewModel : BaseViewModel<VocabularyPreviewUiState, Vocab
     fun proceedWithSelected() {
         val state = currentState
         val selectedWords = state.selectedIndices.map { state.words[it] }
-        emitEffect(Event.ProceedWithSelection(selectedWords))
+        emitEffect(VocabularyPreviewEffect.ProceedWithSelection(selectedWords))
     }
 
     fun skip() {
-        emitEffect(Event.SkipVocabulary)
+        emitEffect(VocabularyPreviewEffect.SkipVocabulary)
     }
 }

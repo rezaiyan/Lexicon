@@ -73,10 +73,6 @@ Local-only repository (no remote sync). Settings stored in SQLDelight singleton 
 | `setDailyReminderTime(time)` | Unit |
 | `getMinimumDueCards()` | `Int` |
 | `setMinimumDueCards(count)` | Unit |
-| `updateDailyInsight(date, insight)` | Unit |
-| `getCachedInsight()` | `String?` |
-| `getLastInsightDate()` | `String?` |
-| `clearInsightData()` | Unit |
 | `clearSettings()` | Unit |
 
 ## IStreakRepository

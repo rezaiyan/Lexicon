@@ -8,18 +8,14 @@ import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
+import feature.aiimport.model.AiWordImportEffect
 import feature.aiimport.model.AiWordImportStep
 import feature.aiimport.model.AiWordImportUiState
 
 class AiWordImportViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val importSuggestedVocabularyUseCase: ImportSuggestedVocabularyUseCase,
-) : BaseViewModel<AiWordImportUiState, AiWordImportViewModel.Event>() {
-
-    sealed interface Event {
-        data class ImportSuccess(val count: Int) : Event
-        data object Dismiss : Event
-    }
+) : BaseViewModel<AiWordImportUiState, AiWordImportEffect>() {
 
     override fun initialState() = AiWordImportUiState()
 
@@ -131,7 +127,7 @@ class AiWordImportViewModel(
             importSuggestedVocabularyUseCase(wordsToImport)
                 .onSuccess { count ->
                     updateState { copy(isLoading = false) }
-                    emitEffect(Event.ImportSuccess(count))
+                    emitEffect(AiWordImportEffect.ImportSuccess(count))
                 }
                 .onFailure { error ->
                     updateState { copy(isLoading = false, error = error.message) }
@@ -140,7 +136,7 @@ class AiWordImportViewModel(
     }
 
     fun dismiss() {
-        emitEffect(Event.Dismiss)
+        emitEffect(AiWordImportEffect.Dismiss)
     }
 
     fun reset() {

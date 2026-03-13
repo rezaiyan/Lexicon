@@ -15,12 +15,7 @@ class OnboardingRepositoryImpl(
     private val secureStorage: SecureStorage
 ) : IOnboardingRepository {
 
-    // TODO: Remove fake response after testing
-    private val useFakeResponse = false
-
     override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> {
-        if (useFakeResponse) return Try.success(createFakeResponse(preferences))
-
         val request = OnboardingPreferencesRequest(
             targetLanguage = preferences.targetLanguage,
             nativeLanguage = preferences.nativeLanguage,
@@ -50,24 +45,6 @@ class OnboardingRepositoryImpl(
             }
         )
     }
-
-    private fun createFakeResponse(preferences: OnboardingPreferences) = SuggestedVocabularyResponse(
-        targetLanguage = preferences.targetLanguage,
-        nativeLanguage = preferences.nativeLanguage,
-        currentLevel = preferences.level,
-        suggestedVocabulary = listOf(
-            SuggestedVocabulary("Hallo", "hello", "a greeting", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Guten Morgen", "good morning", "formal morning greeting", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Danke", "thank you", "expression of gratitude", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Bitte", "please / you're welcome", "polite request or response", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Ja", "yes", "affirmation", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Nein", "no", "negation", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Entschuldigung", "excuse me / sorry", "apology or getting attention", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Wasser", "water", "a drink", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Essen", "food / to eat", "noun or verb for eating", preferences.nativeLanguage, preferences.targetLanguage),
-            SuggestedVocabulary("Freund", "friend", "a close person", preferences.nativeLanguage, preferences.targetLanguage),
-        )
-    )
 
     override suspend fun hasCompletedOnboarding(): Boolean {
         return secureStorage.hasCompletedOnboarding()

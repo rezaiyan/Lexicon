@@ -14,9 +14,6 @@ interface SecureStorage {
     suspend fun clearTokens()
     suspend fun saveTokenExpiresAt(expiresAt: Long)
     suspend fun getTokenExpiresAt(): Long
-    suspend fun storeDailyInsightData(insightId: String, date: String)
-    suspend fun getDailyInsightData(): DailyInsightData?
-    suspend fun clearDailyInsightData()
     suspend fun hasCompletedOnboarding(): Boolean
     suspend fun markOnboardingCompleted()
 }
@@ -37,7 +34,7 @@ interface SecureStorage {
 ### IAnalyticsTracker (`analytics/IAnalyticsTracker.kt`)
 - logScreenView, logEvent, logWordReviewed, logWordMastered
 - logReviewSessionStart/Complete, logWordsImported
-- logStreakUpdated, logDailyGoalCompleted, logAiInsightGenerated
+- logStreakUpdated, logDailyGoalCompleted
 - logThemeChanged, logLanguageChanged
 - setUserProperty, updateUserProgress, logError, logNonFatalError
 

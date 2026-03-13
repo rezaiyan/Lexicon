@@ -2,7 +2,6 @@ package feature.onboarding
 
 import androidx.lifecycle.viewModelScope
 import domain.onboarding.model.OnboardingPreferences
-import domain.onboarding.model.SuggestedVocabularyResponse
 import core.common.onFailure
 import core.common.onSuccess
 import domain.onboarding.usecase.SubmitPreferencesUseCase
@@ -10,17 +9,13 @@ import domain.settings.usecase.SetLanguageUseCase
 import utils.Language
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
+import feature.onboarding.model.OnboardingEffect
 import feature.onboarding.model.OnboardingUiState
 
 class OnboardingViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val setLanguageUseCase: SetLanguageUseCase
-) : BaseViewModel<OnboardingUiState, OnboardingViewModel.Event>() {
-
-    sealed interface Event {
-        data class NavigateToPreview(val response: SuggestedVocabularyResponse) : Event
-        data object NavigateToMain : Event
-    }
+) : BaseViewModel<OnboardingUiState, OnboardingEffect>() {
 
     override fun initialState() = OnboardingUiState()
 
@@ -70,7 +65,7 @@ class OnboardingViewModel(
                 .onSuccess { response ->
                     setLanguageUseCase(Language.fromCodeOrName(targetLang))
                     updateState { copy(isLoading = false) }
-                    emitEffect(Event.NavigateToPreview(response))
+                    emitEffect(OnboardingEffect.NavigateToPreview(response))
                 }
                 .onFailure { error ->
                     updateState { copy(isLoading = false, error = error.message) }
@@ -79,6 +74,6 @@ class OnboardingViewModel(
     }
 
     fun skip() {
-        emitEffect(Event.NavigateToMain)
+        emitEffect(OnboardingEffect.NavigateToMain)
     }
 }

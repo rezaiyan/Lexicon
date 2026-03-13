@@ -65,6 +65,7 @@ kotlin {
             implementation(libs.google.firebase.messaging)
             implementation(files("libs/sherpa-onnx-1.12.26.aar"))
             implementation(libs.commons.compress)
+            implementation(libs.work.runtime)
         }
 
         iosMain.dependencies {

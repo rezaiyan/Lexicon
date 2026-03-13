@@ -21,6 +21,14 @@ object AppColors {
     val subscriptionPremiumAccent = Color(0xFF7C3AED)
     val subscriptionStandard = Color(0xFF10B981)
 
+    // Settings icon colors — fixed across light/dark themes
+    val settingsLanguageIcon = Color(0xFF9C27B0)
+    val settingsThemeIcon = Color(0xFFE91E63)
+    val settingsSubscriptionIcon = Color(0xFFE91E63)
+    val settingsAboutIcon = Color(0xFF78909C)
+    val settingsWordManagerIcon = Color(0xFFFF9800)
+    val settingsNotificationIcon = Color(0xFF5C6BC0)
+
     @Deprecated(
         "Use MaterialTheme.colorScheme.background",
         ReplaceWith(
@@ -72,6 +80,18 @@ data class AppSemanticColors(
 
     // Backgrounds
     val background: Color,
+
+    // AI topic tile palette — 10 category tints
+    val topicDailyLife: Color,
+    val topicTravel: Color,
+    val topicBusiness: Color,
+    val topicFood: Color,
+    val topicTechnology: Color,
+    val topicSports: Color,
+    val topicHealth: Color,
+    val topicArts: Color,
+    val topicNature: Color,
+    val topicAcademic: Color,
 )
 
 internal val LightSemanticColors = AppSemanticColors(
@@ -99,6 +119,17 @@ internal val LightSemanticColors = AppSemanticColors(
     scrim = Color(0xFF000000),
 
     background = Color(0xFFF8F6F7),
+
+    topicDailyLife = Color(0xFFFFF3E0),
+    topicTravel = Color(0xFFE3F2FD),
+    topicBusiness = Color(0xFFECEFF1),
+    topicFood = Color(0xFFFBE9E7),
+    topicTechnology = Color(0xFFEDE7F6),
+    topicSports = Color(0xFFE8F5E9),
+    topicHealth = Color(0xFFFCE4EC),
+    topicArts = Color(0xFFF3E5F5),
+    topicNature = Color(0xFFE0F2F1),
+    topicAcademic = Color(0xFFE8EAF6),
 )
 
 internal val DarkSemanticColors = AppSemanticColors(
@@ -126,4 +157,15 @@ internal val DarkSemanticColors = AppSemanticColors(
     scrim = Color(0xFF000000),
 
     background = Color(0xFF16161A),
+
+    topicDailyLife = Color(0xFF4E3B24),
+    topicTravel = Color(0xFF1A3A5C),
+    topicBusiness = Color(0xFF2C3440),
+    topicFood = Color(0xFF4A2C22),
+    topicTechnology = Color(0xFF2D1F4E),
+    topicSports = Color(0xFF1B3A25),
+    topicHealth = Color(0xFF3E1F2A),
+    topicArts = Color(0xFF3A1E42),
+    topicNature = Color(0xFF1A3836),
+    topicAcademic = Color(0xFF1F2346),
 )

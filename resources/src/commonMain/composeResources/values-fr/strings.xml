@@ -356,6 +356,7 @@
     <string name="manage_subscription_google_play">Gérez votre abonnement sur Google Play</string>
     <string name="manage_subscription_app_store">Gérez votre abonnement sur l'App Store</string>
     <string name="subscription_info_unavailable">Nous avons des difficultés à accéder aux informations de votre abonnement. Veuillez réessayer plus tard !</string>
+    <string name="web_subscriptions_not_available">Les abonnements sont uniquement disponibles via l\'application mobile. Téléchargez l\'application depuis l\'App Store ou Google Play pour vous abonner !</string>
     <string name="terms_of_use">Conditions d'utilisation</string>
     <string name="privacy_policy">Politique de confidentialité</string>
 

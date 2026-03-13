@@ -29,7 +29,7 @@ class IOSAccountDeletionHandler(
             println("[IOSAccountDeletionHandler] Cleared all words")
             NSLog("[IOSAccountDeletionHandler] Cleared all words")
 
-            // Clear settings (including insight data)
+            // Clear settings
             queries.clearSettings()
             println("[IOSAccountDeletionHandler] Cleared settings")
             NSLog("[IOSAccountDeletionHandler] Cleared settings")

@@ -23,7 +23,6 @@ class ClearAllUserDataUseCase(
         wordRepository.deleteAllWords()
         settingsRepository.clearSettings()
         secureStorage.clearTokens()
-        secureStorage.clearDailyInsightData()
         sessionManager.setAuthenticated(false)
     }
 }

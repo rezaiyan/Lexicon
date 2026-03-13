@@ -8,16 +8,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import expects.openUrl
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.SettingsCard
+import theme.AppColors
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.about
 import lexicon.resources.generated.resources.version_format
-
-private val AboutIconColor = Color(0xFF78909C)
 
 @Composable
 fun AboutSettingsCard(appVersion: String) {
@@ -33,7 +31,7 @@ fun AboutSettingsCard(appVersion: String) {
         icon = Icons.Default.Info,
         title = stringResource(Res.string.about),
         subtitle = stringResource(Res.string.version_format, appVersion),
-        iconBackgroundColor = AboutIconColor,
+        iconBackgroundColor = AppColors.settingsAboutIcon,
         showTrailingArrow = false,
         onClick = {
             clickCount++

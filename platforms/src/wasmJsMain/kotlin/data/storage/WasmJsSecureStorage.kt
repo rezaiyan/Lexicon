@@ -14,9 +14,6 @@ class WasmJsSecureStorage : SecureStorage {
         const val KEY_ACCESS_TOKEN = "lexicon_access_token"
         const val KEY_REFRESH_TOKEN = "lexicon_refresh_token"
         const val KEY_TOKEN_EXPIRES_AT = "lexicon_token_expires_at"
-        const val KEY_INSIGHT_ID = "lexicon_insight_id"
-        const val KEY_INSIGHT_DATE = "lexicon_insight_date"
-        const val KEY_INSIGHT_TIMESTAMP = "lexicon_insight_timestamp"
         const val KEY_ONBOARDING_COMPLETED = "lexicon_onboarding_completed"
     }
 
@@ -48,25 +45,6 @@ class WasmJsSecureStorage : SecureStorage {
 
     override fun getTokenExpiresAt(): Long {
         return getItem(KEY_TOKEN_EXPIRES_AT)?.toLongOrNull() ?: 0L
-    }
-
-    override suspend fun storeDailyInsightData(insightId: String, date: String, timestamp: Long) {
-        setItem(KEY_INSIGHT_ID, insightId)
-        setItem(KEY_INSIGHT_DATE, date)
-        setItem(KEY_INSIGHT_TIMESTAMP, timestamp.toString())
-    }
-
-    override suspend fun getDailyInsightData(): DailyInsightData? {
-        val insightId = getItem(KEY_INSIGHT_ID) ?: return null
-        val date = getItem(KEY_INSIGHT_DATE) ?: return null
-        val timestamp = getItem(KEY_INSIGHT_TIMESTAMP)?.toLongOrNull() ?: return null
-        return DailyInsightData(insightId, date, timestamp)
-    }
-
-    override suspend fun clearDailyInsightData() {
-        removeItem(KEY_INSIGHT_ID)
-        removeItem(KEY_INSIGHT_DATE)
-        removeItem(KEY_INSIGHT_TIMESTAMP)
     }
 
     override suspend fun hasCompletedOnboarding(): Boolean {

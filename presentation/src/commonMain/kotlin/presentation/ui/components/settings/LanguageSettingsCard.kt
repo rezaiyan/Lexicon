@@ -3,14 +3,12 @@ package presentation.ui.components.settings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import org.jetbrains.compose.resources.stringResource
 import presentation.ui.components.SettingsCard
+import theme.AppColors
 import utils.Language
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.translation_language
-
-private val LanguageIconColor = Color(0xFF9C27B0)
 
 @Composable
 fun LanguageSettingsCard(
@@ -21,7 +19,7 @@ fun LanguageSettingsCard(
         icon = Icons.Default.Language,
         title = stringResource(Res.string.translation_language),
         subtitle = currentLanguage.nativeName,
-        iconBackgroundColor = LanguageIconColor,
+        iconBackgroundColor = AppColors.settingsLanguageIcon,
         onClick = onShowLanguageDialog
     )
 }

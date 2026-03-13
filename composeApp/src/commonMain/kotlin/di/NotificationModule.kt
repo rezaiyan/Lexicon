@@ -38,9 +38,6 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
             notification.payload.SignOutHandler(
                 clearAllUserDataUseCase = get()
             ),
-            notification.payload.DailyInsightHandler(
-                secureStorage = get()
-            ),
             notification.payload.NoOpHandler("streak_reminder"),
             notification.payload.NoOpHandler("review_reminder"),
             notification.payload.NoOpHandler("achievement_unlocked"),

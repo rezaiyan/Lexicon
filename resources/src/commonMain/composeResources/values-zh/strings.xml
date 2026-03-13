@@ -356,6 +356,7 @@
     <string name="manage_subscription_google_play">在 Google Play 管理您的订阅</string>
     <string name="manage_subscription_app_store">在 App Store 管理您的订阅</string>
     <string name="subscription_info_unavailable">我们无法访问您的订阅信息。请稍后再试！</string>
+    <string name="web_subscriptions_not_available">订阅仅通过移动应用提供。请从 App Store 或 Google Play 下载应用进行订阅！</string>
     <string name="terms_of_use">使用条款</string>
     <string name="privacy_policy">隐私政策</string>
 

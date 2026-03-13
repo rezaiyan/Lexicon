@@ -13,8 +13,13 @@ import kotlinx.coroutines.flow.map
 
 /**
  * Web implementation of ISubscriptionManager.
- * Currently a stub — subscriptions are not yet supported on web.
- * TODO: Integrate RevenueCat JS SDK (@revenuecat/purchases-js) when web billing is enabled.
+ *
+ * Subscriptions are handled through native app stores (Google Play / App Store) via RevenueCat.
+ * The web platform does not support in-app purchases. Users are directed to the mobile apps
+ * for subscription management.
+ *
+ * When RevenueCat releases their Web Billing SDK as stable, this can be replaced with a
+ * real implementation using @revenuecat/purchases-js.
  */
 class WebSubscriptionManager : ISubscriptionManager {
 
@@ -22,7 +27,7 @@ class WebSubscriptionManager : ISubscriptionManager {
     override val customerInfo: StateFlow<SubscriptionCustomerInfo?> = _customerInfo.asStateFlow()
 
     override suspend fun getOfferings(): Try<SubscriptionOffering> {
-        return Try.success(SubscriptionOffering(availablePackages = emptyList()))
+        return Try.failure(UnsupportedOperationException("WEB_SUBSCRIPTIONS_NOT_AVAILABLE"))
     }
 
     override suspend fun purchase(packageToPurchase: SubscriptionPackage): Try<SubscriptionCustomerInfo> {

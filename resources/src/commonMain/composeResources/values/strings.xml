@@ -478,6 +478,7 @@
     <string name="manage_subscription_google_play">Manage your subscription on Google Play</string>
     <string name="manage_subscription_app_store">Manage your subscription on the App Store</string>
     <string name="subscription_info_unavailable">We're having trouble accessing your subscription information. Please try again later!</string>
+    <string name="web_subscriptions_not_available">Subscriptions are only available through the mobile app. Please download the app from the App Store or Google Play to subscribe!</string>
     <string name="feature_unlimited_words">Unlimited Words</string>
     <string name="feature_unlimited_words_desc">Add as many words as your heart desires - no limits!</string>
     <string name="feature_ai_extraction">AI Extraction</string>

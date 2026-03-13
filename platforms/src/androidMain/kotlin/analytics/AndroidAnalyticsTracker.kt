@@ -110,14 +110,14 @@ class AndroidAnalyticsTracker : IAnalyticsTracker {
         analytics.logEvent("daily_goal_completed", bundle)
     }
     
-    override fun logAiInsightGenerated(usedLocal: Boolean, totalWords: Int) {
+    fun logAiInsightGenerated(usedLocal: Boolean, totalWords: Int) {
         val bundle = Bundle().apply {
             putBoolean("used_local_phrase", usedLocal)
             putInt("total_words", totalWords)
         }
         analytics.logEvent("ai_insight_generated", bundle)
     }
-    
+
     override fun logThemeChanged(themeMode: String, isDark: Boolean) {
         val bundle = Bundle().apply {
             putString("theme_mode", themeMode)

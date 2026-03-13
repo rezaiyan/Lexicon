@@ -34,7 +34,6 @@ class LogoutUseCaseTest {
         assertTrue(results.isNotEmpty())
         assertTrue(wordRepository.deleteAllWordsCalled)
         assertTrue(settingsRepository.clearSettingsCalled)
-        assertTrue(settingsRepository.clearInsightDataCalled)
     }
 
     @Test
@@ -107,18 +106,11 @@ class LogoutUseCaseTest {
 
     private class FakeSettingsRepo : ISettingsRepository {
         var clearSettingsCalled = false
-        var clearInsightDataCalled = false
         override suspend fun clearSettings() { clearSettingsCalled = true }
-        override suspend fun clearInsightData() { clearInsightDataCalled = true }
         override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
         override suspend fun setLanguage(language: Language) {}
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode) {}
-        override suspend fun getLastInsightDate(): String? = null
-        override suspend fun getCachedInsight(): String? = null
-        override suspend fun updateDailyInsight(date: String, insight: String) {}
-        override suspend fun getLastInsightDismissedTime(): Long = 0L
-        override suspend fun setLastInsightDismissedTime(timestamp: Long) {}
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
         override suspend fun setNotificationsEnabled(enabled: Boolean) {}
         override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)

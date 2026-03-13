@@ -4,7 +4,6 @@ import components.icons.LexiconIcons
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.collectAsState
 import components.Pill
 import domain.auth.manager.IUserManager
@@ -12,12 +11,11 @@ import domain.subscription.ISubscriptionManager
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.ui.components.SettingsCard
+import theme.AppColors
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.subscription
 import lexicon.resources.generated.resources.upgrade
 import lexicon.resources.generated.resources.upgrade_to_premium
-
-private val SubscriptionIconColor = Color(0xFFE91E63)
 
 @Composable
 fun SubscriptionCard(
@@ -37,7 +35,7 @@ fun SubscriptionCard(
             } else {
                 null
             },
-            iconBackgroundColor = SubscriptionIconColor,
+            iconBackgroundColor = AppColors.settingsSubscriptionIcon,
             solidIconBackground = true,
             onClick = onClick,
             trailingContent = if (isSubscribed.not()) {

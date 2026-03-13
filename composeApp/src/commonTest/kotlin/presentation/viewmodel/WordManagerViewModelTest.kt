@@ -92,7 +92,6 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override fun logWordMastered(level: Int) {}
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
-        override fun logAiInsightGenerated(usedLocal: Boolean, totalWords: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
         override fun logLanguageChanged(language: String) {}
         override fun setUserProperty(name: String, value: String) {}
