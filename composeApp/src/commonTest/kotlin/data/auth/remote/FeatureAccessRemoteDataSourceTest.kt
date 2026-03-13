@@ -1,6 +1,5 @@
 package data.auth.remote
 
-import core.common.Try
 import data.core.network.client.ApiClient
 import data.core.network.mapper.ApiResponseMapper
 import io.ktor.client.HttpClient
@@ -41,7 +40,9 @@ class FeatureAccessRemoteDataSourceTest {
     fun `getFeatureAccessAsFlow emits feature access data on success`() = runTest {
         val mockEngine = MockEngine {
             respond(
-                successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":false},"userAccess":{"hasPremiumAccess":true}}"""),
+                successEnvelope(
+                    """{"featureFlags":{"pushNotificationsEnabled":false},"userAccess":{"hasPremiumAccess":true}}"""
+                ),
                 HttpStatusCode.OK,
                 jsonHeaders()
             )
@@ -58,7 +59,9 @@ class FeatureAccessRemoteDataSourceTest {
         val mockEngine = MockEngine { request ->
             capturedPath = request.url.encodedPath
             respond(
-                successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":true},"userAccess":{"hasPremiumAccess":false}}"""),
+                successEnvelope(
+                    """{"featureFlags":{"pushNotificationsEnabled":true},"userAccess":{"hasPremiumAccess":false}}"""
+                ),
                 HttpStatusCode.OK,
                 jsonHeaders()
             )
