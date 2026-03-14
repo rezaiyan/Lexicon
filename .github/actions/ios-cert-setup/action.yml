@@ -12,10 +12,19 @@ inputs:
     description: "Base64-encoded provisioning profile"
     required: true
 
+outputs:
+  profile_name:
+    description: "Name of the installed provisioning profile"
+    value: ${{ steps.install.outputs.profile_name }}
+  profile_uuid:
+    description: "UUID of the installed provisioning profile"
+    value: ${{ steps.install.outputs.profile_uuid }}
+
 runs:
   using: "composite"
   steps:
     - name: Import certificate and provisioning profile
+      id: install
       shell: bash
       env:
         CERT_BASE64: ${{ inputs.certificate_base64 }}
@@ -42,10 +51,16 @@ runs:
         # Allow codesign to access the keychain without prompts
         security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
-        # Decode provisioning profile and extract its UUID dynamically
+        # Decode provisioning profile and extract UUID and Name
         echo "$PROFILE_BASE64" | base64 --decode > /tmp/profile.mobileprovision
-        PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision | plutil -extract UUID raw -)
-        echo "Installing provisioning profile: $PROFILE_UUID"
+        PROFILE_PLIST=$(security cms -D -i /tmp/profile.mobileprovision)
+        PROFILE_UUID=$(echo "$PROFILE_PLIST" | plutil -extract UUID raw -)
+        PROFILE_NAME=$(echo "$PROFILE_PLIST" | plutil -extract Name raw -)
+        echo "Installing provisioning profile: $PROFILE_NAME ($PROFILE_UUID)"
+
+        # Export outputs for downstream steps
+        echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
+        echo "profile_name=$PROFILE_NAME" >> "$GITHUB_OUTPUT"
 
         mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
         cp /tmp/profile.mobileprovision \
