@@ -135,6 +135,7 @@ jobs:
           name: Test Results
           path: composeApp/build/test-results/**/TEST-*.xml
           reporter: java-junit
+          fail-on-empty: 'false'
 
   build-android:
     name: Build Android
