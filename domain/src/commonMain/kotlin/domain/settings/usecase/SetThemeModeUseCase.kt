@@ -11,7 +11,6 @@ import domain.settings.repository.ISettingsRepository
 class SetThemeModeUseCase(
     private val settingsRepository: ISettingsRepository
 ) : UseCase<ThemeMode, Unit> {
-    override suspend operator fun invoke(params: ThemeMode): Try<Unit> = Try {
+    override suspend operator fun invoke(params: ThemeMode): Try<Unit> =
         settingsRepository.setThemeMode(params)
-    }
 }

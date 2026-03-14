@@ -9,7 +9,6 @@ class StopSpeakingUseCase(
 ) : NoParamUseCase<Unit> {
     override suspend operator fun invoke(params: Unit) = invoke()
 
-    suspend operator fun invoke(): Try<Unit> = Try {
+    suspend operator fun invoke(): Try<Unit> =
         ttsRepository.stop()
-    }
 }

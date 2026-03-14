@@ -1,5 +1,6 @@
 package data.tts.repository
 
+import core.common.Try
 import data.tts.LanguageModelMapping
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
@@ -25,7 +26,7 @@ class TtsRepositoryImpl(
 
     private var currentLoadedLanguage: String? = null
 
-    override suspend fun speak(text: String, languageCode: String) {
+    override suspend fun speak(text: String, languageCode: String): Try<Unit> = Try {
         if (currentLoadedLanguage != languageCode || !ttsEngine.isInitialized()) {
             _ttsState.value = TtsState.Loading
 
@@ -35,7 +36,7 @@ class TtsRepositoryImpl(
 
             if (modelPath.isEmpty() || tokensPath.isEmpty()) {
                 _ttsState.value = TtsState.Error("Model files not found for $languageCode")
-                return
+                return@Try
             }
 
             ttsEngine.release()
@@ -44,7 +45,7 @@ class TtsRepositoryImpl(
             if (!ttsEngine.isInitialized()) {
                 _ttsState.value = TtsState.Error("Failed to initialize TTS engine for $languageCode")
                 currentLoadedLanguage = null
-                return
+                return@Try
             }
 
             currentLoadedLanguage = languageCode
@@ -55,13 +56,13 @@ class TtsRepositoryImpl(
         _ttsState.value = TtsState.Idle
     }
 
-    override suspend fun stop() {
+    override suspend fun stop(): Try<Unit> = Try {
         ttsEngine.stop()
         _ttsState.value = TtsState.Idle
     }
 
-    override suspend fun isModelDownloaded(languageCode: String): Boolean {
-        return modelFileManager.isModelPresent(languageCode)
+    override suspend fun isModelDownloaded(languageCode: String): Try<Boolean> = Try {
+        modelFileManager.isModelPresent(languageCode)
     }
 
     override suspend fun downloadModel(languageCode: String): Flow<Float> {

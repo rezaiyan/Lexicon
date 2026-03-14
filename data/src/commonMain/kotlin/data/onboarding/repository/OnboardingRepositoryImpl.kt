@@ -46,11 +46,11 @@ class OnboardingRepositoryImpl(
         )
     }
 
-    override suspend fun hasCompletedOnboarding(): Boolean {
-        return secureStorage.hasCompletedOnboarding()
+    override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try {
+        secureStorage.hasCompletedOnboarding()
     }
 
-    override suspend fun markOnboardingCompleted() {
+    override suspend fun markOnboardingCompleted(): Try<Unit> = Try {
         secureStorage.markOnboardingCompleted()
     }
 }

@@ -2,6 +2,7 @@ package domain.tts.usecase
 
 import core.common.Try
 import core.common.UseCase
+import core.common.flatMap
 import core.common.getOrThrow
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.tts.repository.ITtsRepository
@@ -27,12 +28,12 @@ class SpeakWordUseCase(
             return@Try
         }
 
-        if (!ttsRepository.isModelDownloaded(code)) {
+        if (!ttsRepository.isModelDownloaded(code).getOrThrow()) {
             println("SpeakWordUseCase: downloading model for '$code'")
             ttsRepository.downloadModel(code).collect { }
         }
 
         println("SpeakWordUseCase: speaking '$text' in '$code'")
-        ttsRepository.speak(text, code)
+        ttsRepository.speak(text, code).getOrThrow()
     }
 }

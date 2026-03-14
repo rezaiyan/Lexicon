@@ -1,5 +1,6 @@
 package data.notification.repository
 
+import core.common.Try
 import domain.notifications.repository.INotificationRepository
 import notification.INotificationManager
 
@@ -12,7 +13,7 @@ class NotificationRepositoryImpl(
         title: String,
         message: String,
         delayMinutes: Int
-    ) {
+    ): Try<Unit> = Try {
         notificationManager.scheduleReviewReminder(
             dueCount = dueCount,
             title = title,
@@ -21,19 +22,19 @@ class NotificationRepositoryImpl(
         )
     }
 
-    override suspend fun areNotificationsEnabled(): Boolean {
-        return notificationManager.areNotificationsEnabled()
+    override suspend fun areNotificationsEnabled(): Try<Boolean> = Try {
+        notificationManager.areNotificationsEnabled()
     }
 
-    override suspend fun requestNotificationPermission(): Boolean {
-        return notificationManager.requestNotificationPermission()
+    override suspend fun requestNotificationPermission(): Try<Boolean> = Try {
+        notificationManager.requestNotificationPermission()
     }
 
-    override suspend fun wasNotificationPermissionDenied(): Boolean {
-        return notificationManager.wasNotificationPermissionDenied()
+    override suspend fun wasNotificationPermissionDenied(): Try<Boolean> = Try {
+        notificationManager.wasNotificationPermissionDenied()
     }
 
-    override suspend fun openNotificationSettings() {
+    override suspend fun openNotificationSettings(): Try<Unit> = Try {
         notificationManager.openNotificationSettings()
     }
 }

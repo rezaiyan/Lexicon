@@ -11,7 +11,6 @@ import utils.Language
 class SetLanguageUseCase(
     private val settingsRepository: ISettingsRepository
 ) : UseCase<Language, Unit> {
-    override suspend operator fun invoke(params: Language): Try<Unit> = Try {
+    override suspend operator fun invoke(params: Language): Try<Unit> =
         settingsRepository.setLanguage(params)
-    }
 }

@@ -6,6 +6,6 @@ import domain.onboarding.model.SuggestedVocabularyResponse
 
 interface IOnboardingRepository {
     suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse>
-    suspend fun hasCompletedOnboarding(): Boolean
-    suspend fun markOnboardingCompleted()
+    suspend fun hasCompletedOnboarding(): Try<Boolean>
+    suspend fun markOnboardingCompleted(): Try<Unit>
 }
