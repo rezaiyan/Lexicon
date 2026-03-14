@@ -27,6 +27,11 @@ import config.AppConfig
 import di.androidPlatformModule
 import di.appModule
 import di.mobileModule
+import domain.featureflag.IFeatureFlagProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
@@ -92,6 +97,18 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory {
             )
         }
         
+        // Fetch remote feature flags
+        val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        appScope.launch {
+            try {
+                val featureFlagProvider = org.koin.java.KoinJavaComponent.getKoin().get<IFeatureFlagProvider>()
+                featureFlagProvider.fetchAndActivate()
+                Log.d(TAG, "Feature flags fetched and activated")
+            } catch (e: Exception) {
+                Log.w(TAG, "Feature flags fetch failed — using defaults", e)
+            }
+        }
+
         // Log app start event
         analytics.logEvent("app_start", null)
     }

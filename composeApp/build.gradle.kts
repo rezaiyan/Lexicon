@@ -10,7 +10,9 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.googleServices)
     alias(libs.plugins.firebaseCrashlytics)
+    alias(libs.plugins.firebasePerf)
     id("lexicon.compose-app")
+
 }
 
 configurations.configureEach {
@@ -400,3 +402,4 @@ tasks.configureEach {
 tasks.named("wasmJsProcessResources", Copy::class) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+

@@ -20,6 +20,7 @@ fun studyModule() = module {
             speakWordUseCase = get(),
             ttsRepository = get(),
             analyticsTracker = get(),
+            performanceTracer = get(),
         )
     }
 }
