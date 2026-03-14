@@ -6,6 +6,25 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build and deploy'
+        type: choice
+        default: 'all'
+        options:
+          - all
+          - android
+          - ios
+          - web
+      version_bump:
+        description: 'Bump version before build (commits and pushes tag)'
+        type: choice
+        default: 'none'
+        options:
+          - none
+          - hotfix
+          - minor
+          - major
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -114,6 +133,33 @@ jobs:
         with:
           gradle-build-module: ':'
 
+  bump-version:
+    name: Bump Version
+    if: github.event.inputs.version_bump != 'none' && github.event.inputs.version_bump != null
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        run: ./scripts/bump-version.sh --${{ github.event.inputs.version_bump }}
+
+      - name: Push version bump
+        run: |
+          git push origin main
+          TAG=$(git describe --tags --abbrev=0)
+          git push origin "$TAG"
+
   test:
     name: Tests
     runs-on: ubuntu-latest
@@ -215,7 +261,10 @@ jobs:
     name: Build Android
     runs-on: ubuntu-latest
     needs: [test, check-version]
-    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
+    if: |
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
 
     steps:
       - name: Checkout code
@@ -266,7 +315,10 @@ jobs:
     name: Maestro UI Tests
     runs-on: ubuntu-latest
     needs: [test, check-version]
-    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
+    if: |
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     timeout-minutes: 45
     permissions:
       checks: write
@@ -394,7 +446,10 @@ jobs:
     name: Deploy Android to Closed Testing
     runs-on: ubuntu-latest
     needs: [build-android, maestro, check-version]
-    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
+    if: |
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
 
     steps:
       - name: Checkout code
@@ -445,7 +500,10 @@ jobs:
     name: Build Web (wasmJs)
     runs-on: ubuntu-latest
     needs: [test, check-version]
-    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
+    if: |
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'web')
 
     steps:
       - name: Checkout code
@@ -477,7 +535,13 @@ jobs:
     name: Deploy Web to VPS
     runs-on: ubuntu-latest
     needs: [build-web, maestro, check-version]
-    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      needs.build-web.result == 'success' &&
+      (needs.maestro.result == 'success' || needs.maestro.result == 'skipped') &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'web')
 
     steps:
       - name: Download web distribution
@@ -558,7 +622,10 @@ jobs:
     name: Build iOS
     runs-on: macos-26
     needs: [test, check-version]
-    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
+    if: |
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
 
     steps:
       - name: Checkout code
@@ -597,7 +664,13 @@ jobs:
     name: Deploy iOS to TestFlight
     runs-on: macos-26
     needs: [build-ios, maestro, check-version]
-    if: github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true'
+    if: |
+      always() &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      needs.build-ios.result == 'success' &&
+      (needs.maestro.result == 'success' || needs.maestro.result == 'skipped') &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
 
     steps:
       - name: Checkout code
@@ -706,6 +779,8 @@ jobs:
     if: |
       always() &&
       needs.check-version.outputs.should_deploy == 'true' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all') &&
       needs.deploy-android.result == 'success' &&
       needs.deploy-ios.result == 'success' &&
       needs.deploy-web.result == 'success'
