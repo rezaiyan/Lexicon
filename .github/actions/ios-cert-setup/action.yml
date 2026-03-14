@@ -23,7 +23,7 @@ runs:
         PROFILE_BASE64: ${{ inputs.provisioning_profile_base64 }}
       run: |
         # Decode certificate to a temp file
-        echo "$CERT_BASE64" | base64 -d > /tmp/certificate.p12
+        echo "$CERT_BASE64" | base64 --decode > /tmp/certificate.p12
 
         # Create and configure a dedicated build keychain
         security create-keychain -p "" build.keychain
@@ -43,7 +43,7 @@ runs:
         security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
         # Decode provisioning profile and extract its UUID dynamically
-        echo "$PROFILE_BASE64" | base64 -d > /tmp/profile.mobileprovision
+        echo "$PROFILE_BASE64" | base64 --decode > /tmp/profile.mobileprovision
         PROFILE_UUID=$(security cms -D -i /tmp/profile.mobileprovision | plutil -extract UUID raw -)
         echo "Installing provisioning profile: $PROFILE_UUID"
 
