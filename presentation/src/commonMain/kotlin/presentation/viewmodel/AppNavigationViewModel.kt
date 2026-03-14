@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
 import domain.word.repository.IWordRepository
+import core.common.getOrDefault
 import core.common.getOrElse
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
@@ -21,7 +22,7 @@ class AppNavigationViewModel(
 
     fun onSplashComplete(isAuthenticated: Boolean) {
         viewModelScope.launch {
-            val onboardingCompleted = onboardingRepository.hasCompletedOnboarding()
+            val onboardingCompleted = onboardingRepository.hasCompletedOnboarding().getOrDefault(false)
             when {
                 onboardingCompleted && isAuthenticated -> updateState { AppUiState.Ready }
                 onboardingCompleted -> updateState { AppUiState.AuthGate() }

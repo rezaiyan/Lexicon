@@ -1,6 +1,7 @@
 package domain.auth.usecase
 
 import core.common.NoParamFlowUseCase
+import core.common.getOrThrow
 import domain.auth.service.IAuthenticationService
 import domain.settings.repository.ISettingsRepository
 import domain.word.repository.IWordRepository
@@ -18,8 +19,8 @@ class DeleteAccountUseCase(
     fun invoke(): Flow<Unit> = flow {
         authenticationService.deleteAccount().collect {
             // Clear all local data after successful account deletion
-            wordRepository.deleteAllWords()
-            settingsRepository.clearSettings()
+            wordRepository.deleteAllWords().getOrThrow()
+            settingsRepository.clearSettings().getOrThrow()
             emit(Unit)
         }
     }
