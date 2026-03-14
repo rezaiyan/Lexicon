@@ -30,8 +30,8 @@ data class ReviewState(
     val ttsState: TtsState = TtsState.Idle,
 )
 
-sealed class ReviewEvent {
-    data class StartReview(val firstWord: Word) : ReviewEvent()
+sealed class ReviewEffect {
+    data class StartReview(val firstWord: Word) : ReviewEffect()
 }
 
 class ReviewViewModel(
@@ -44,7 +44,7 @@ class ReviewViewModel(
     private val speakWordUseCase: SpeakWordUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     ttsRepository: ITtsRepository,
-) : BaseViewModel<ReviewState, ReviewEvent>() {
+) : BaseViewModel<ReviewState, ReviewEffect>() {
 
     override fun initialState() = ReviewState()
 
@@ -66,7 +66,7 @@ class ReviewViewModel(
                 .catch { /* review unavailable */ }
                 .firstOrNull()
                 ?.firstOrNull()
-                ?.let { emitEffect(ReviewEvent.StartReview(it)) }
+                ?.let { emitEffect(ReviewEffect.StartReview(it)) }
         }
     }
 

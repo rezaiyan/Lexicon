@@ -71,19 +71,19 @@ fun ImportBottomSheet(
     val latestErrorMessage = rememberUpdatedState(errorMessage)
     val latestSuccessFormat = rememberUpdatedState(successFormat)
 
-    OnEvents(viewModel.effects) { event ->
-        when (event) {
-            is ImportEvent.WordAddedSuccessfully -> Unit
-            is ImportEvent.FileImportSuccessful -> {
-                onShowSnackBar(formatCount(latestSuccessFormat.value, event.count))
+    OnEvents(viewModel.effects) { effect ->
+        when (effect) {
+            is ImportEffect.WordAddedSuccessfully -> Unit
+            is ImportEffect.FileImportSuccessful -> {
+                onShowSnackBar(formatCount(latestSuccessFormat.value, effect.count))
                 onDismiss()
             }
-            is ImportEvent.ImageImportSuccessful -> {
-                onShowSnackBar(formatCount(latestSuccessFormat.value, event.count))
+            is ImportEffect.ImageImportSuccessful -> {
+                onShowSnackBar(formatCount(latestSuccessFormat.value, effect.count))
                 onDismiss()
             }
-            is ImportEvent.Error -> {
-                val message = if (event.message.isNotEmpty()) "[Error] ${event.message}"
+            is ImportEffect.Error -> {
+                val message = if (effect.message.isNotEmpty()) "[Error] ${effect.message}"
                 else latestErrorMessage.value
                 onShowSnackBar(message)
                 onDismiss()

@@ -24,7 +24,7 @@ import events.OnEvents
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import feature.study.ReviewEvent
+import feature.study.ReviewEffect
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
 import feature.study.model.ReviewType
@@ -193,9 +193,9 @@ fun StudyScreen() {
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
 
-                    OnEvents(reviewViewModel.effects) { event ->
-                        when (event) {
-                            is ReviewEvent.StartReview -> {
+                    OnEvents(reviewViewModel.effects) { effect ->
+                        when (effect) {
+                            is ReviewEffect.StartReview -> {
                                 reviewViewModel.startDueReview()
                                 overlayHost.showFullScreen(
                                     tag = "review-due",
@@ -210,7 +210,7 @@ fun StudyScreen() {
                                     ReviewBottomSheetContent(
                                         reviewType = ReviewType.REVIEW,
                                         reviewState = reviewState.review,
-                                        initialWord = event.firstWord,
+                                        initialWord = effect.firstWord,
                                         onClose = { navigator.dismiss() },
                                         onReviewComplete = {
                                             reviewViewModel.onReviewSessionComplete()

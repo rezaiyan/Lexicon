@@ -33,7 +33,7 @@ class ImportViewModel(
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     private val getSourceLanguageUseCase: GetSourceLanguageUseCase,
     private val performanceTracer: IPerformanceTracer,
-) : BaseViewModel<ImportUiState, ImportEvent>() {
+) : BaseViewModel<ImportUiState, ImportEffect>() {
 
     override fun initialState() = ImportUiState()
 
@@ -156,7 +156,7 @@ class ImportViewModel(
                             )
                         )
                     }
-                    emitEffect(ImportEvent.WordAddedSuccessfully(count))
+                    emitEffect(ImportEffect.WordAddedSuccessfully(count))
                     delay(1500)
                     updateState {
                         copy(
@@ -224,7 +224,7 @@ class ImportViewModel(
                             }
                             performanceTracer.putMetric(trace, "words_imported", result.count.toLong())
                             performanceTracer.stopTrace(trace)
-                            emitEffect(ImportEvent.ImageImportSuccessful(result.count))
+                            emitEffect(ImportEffect.ImageImportSuccessful(result.count))
                         }
 
                         is ImportImageResult.Error -> {
@@ -234,7 +234,7 @@ class ImportViewModel(
                             }
                             performanceTracer.putAttribute(trace, "error", result.message)
                             performanceTracer.stopTrace(trace)
-                            emitEffect(ImportEvent.Error(result.message))
+                            emitEffect(ImportEffect.Error(result.message))
                         }
                     }
                 }
@@ -290,7 +290,7 @@ class ImportViewModel(
                                 }
                                 performanceTracer.putMetric(trace, "words_imported", count.toLong())
                                 performanceTracer.stopTrace(trace)
-                                emitEffect(ImportEvent.FileImportSuccessful(count))
+                                emitEffect(ImportEffect.FileImportSuccessful(count))
                             },
                             onFailure = { error ->
                                 val message = error.message ?: "Import failed"
@@ -299,7 +299,7 @@ class ImportViewModel(
                                 }
                                 performanceTracer.putAttribute(trace, "error", message)
                                 performanceTracer.stopTrace(trace)
-                                emitEffect(ImportEvent.Error(message))
+                                emitEffect(ImportEffect.Error(message))
                             }
                         )
                     }
