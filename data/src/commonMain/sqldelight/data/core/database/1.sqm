@@ -1,0 +1,27 @@
+-- Migration from version 1 to version 2
+-- Removes: successesToAdvance, forgotPenalty, lastInsightDate, cachedInsight, lastInsightDismissedTime from SettingsEntity
+-- Drops: DownloadedCollectionEntity table
+
+-- Step 1: Recreate SettingsEntity without removed columns
+-- (SQLite < 3.35.0 does not support ALTER TABLE DROP COLUMN)
+CREATE TABLE SettingsEntity_new (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    languageCode TEXT NOT NULL DEFAULT 'en',
+    themeMode TEXT NOT NULL DEFAULT 'AUTO',
+    notificationsEnabled INTEGER NOT NULL DEFAULT 1,
+    reviewReminders INTEGER NOT NULL DEFAULT 1,
+    motivationalMessages INTEGER NOT NULL DEFAULT 1,
+    dailyReminderTime TEXT NOT NULL DEFAULT '18:00',
+    minimumDueCards INTEGER NOT NULL DEFAULT 5
+);
+
+INSERT INTO SettingsEntity_new (id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards)
+SELECT id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards
+FROM SettingsEntity;
+
+DROP TABLE SettingsEntity;
+
+ALTER TABLE SettingsEntity_new RENAME TO SettingsEntity;
+
+-- Step 2: Drop DownloadedCollectionEntity (no longer used)
+DROP TABLE IF EXISTS DownloadedCollectionEntity;
