@@ -19,18 +19,19 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import theme.AppColors
 
 private val ConfettiColors = listOf(
-    Color(0xFF7F5AF0), // primary purple
-    Color(0xFFA78BFA), // light purple
-    Color(0xFF2CB67D), // secondary green
-    Color(0xFF34D399), // emerald
-    Color(0xFFFF8906), // tertiary orange
-    Color(0xFFFBBF24), // warning yellow
-    Color(0xFFE53170), // error red
-    Color(0xFFEC4899), // pink
-    Color(0xFF60A5FA), // info blue
-    Color(0xFF818CF8), // indigo
+    AppColors.primary,          // purple
+    AppColors.accentLavender,   // light purple
+    AppColors.secondary,        // green
+    AppColors.accentEmerald,    // emerald
+    AppColors.tertiary,         // orange
+    AppColors.accentAmber,      // warning yellow
+    AppColors.error,            // red
+    AppColors.accentPink,       // pink
+    AppColors.accentSkyBlue,    // info blue
+    AppColors.accentIndigo,     // indigo
 )
 
 private data class ConfettiParticle(

@@ -21,6 +21,19 @@ object AppColors {
     val subscriptionPremiumAccent = Color(0xFF7C3AED)
     val subscriptionStandard = Color(0xFF10B981)
 
+    // Leaderboard medal colors
+    val leaderboardGold = Color(0xFFFFD700)
+    val leaderboardSilver = Color(0xFFC0C0C0)
+    val leaderboardBronze = Color(0xFFCD7F32)
+
+    // Accent palette — gradient endpoints for study completion, confetti, etc.
+    val accentEmerald = Color(0xFF34D399)
+    val accentLavender = Color(0xFFA78BFA)
+    val accentSkyBlue = Color(0xFF60A5FA)
+    val accentAmber = Color(0xFFFBBF24)
+    val accentPink = Color(0xFFEC4899)
+    val accentIndigo = Color(0xFF818CF8)
+
     // Settings icon colors — fixed across light/dark themes
     val settingsLanguageIcon = Color(0xFF9C27B0)
     val settingsThemeIcon = Color(0xFFE91E63)
@@ -93,6 +106,46 @@ data class AppSemanticColors(
     val topicNature: Color,
     val topicAcademic: Color,
 )
+
+/**
+ * Language tile background colors, split by light/dark mode.
+ * Keyed by English language name (e.g. "English", "German").
+ */
+object LanguageColors {
+    val light: Map<String, Color> = mapOf(
+        "English" to Color(0xFFE8EEF4),
+        "German" to Color(0xFFFFF8E1),
+        "French" to Color(0xFFE8F0FE),
+        "Spanish" to Color(0xFFFFF0E8),
+        "Italian" to Color(0xFFE8F5E9),
+        "Portuguese" to Color(0xFFE0F2E9),
+        "Dutch" to Color(0xFFFFF3E0),
+        "Russian" to Color(0xFFE3E8F0),
+        "Chinese" to Color(0xFFFFEBEE),
+        "Japanese" to Color(0xFFFCE4EC),
+        "Korean" to Color(0xFFEDE7F6),
+        "Arabic" to Color(0xFFFAF3E0),
+        "Turkish" to Color(0xFFFBE9E7),
+        "Persian" to Color(0xFFE0F2F1),
+    )
+
+    val dark: Map<String, Color> = mapOf(
+        "English" to Color(0xFF1F2A38),
+        "German" to Color(0xFF3A3420),
+        "French" to Color(0xFF1A2840),
+        "Spanish" to Color(0xFF3A2820),
+        "Italian" to Color(0xFF1B3A25),
+        "Portuguese" to Color(0xFF1A3828),
+        "Dutch" to Color(0xFF3A3020),
+        "Russian" to Color(0xFF282838),
+        "Chinese" to Color(0xFF3A1F1F),
+        "Japanese" to Color(0xFF3A1E2A),
+        "Korean" to Color(0xFF2D1F4E),
+        "Arabic" to Color(0xFF38321A),
+        "Turkish" to Color(0xFF3A2420),
+        "Persian" to Color(0xFF1A3836),
+    )
+}
 
 internal val LightSemanticColors = AppSemanticColors(
     success = Color(0xFF2CB67D),

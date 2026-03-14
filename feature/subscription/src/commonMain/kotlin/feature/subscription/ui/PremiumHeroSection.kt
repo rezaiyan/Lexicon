@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import theme.AppColors
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
@@ -74,8 +75,8 @@ fun PremiumHeroSection() {
                 .background(
                     Brush.linearGradient(
                         listOf(
-                            Color(0xFF9F7AEA),
-                            Color(0xFF7C3AED)
+                            AppColors.subscriptionRecommended,
+                            AppColors.subscriptionPremiumAccent
                         )
                     )
                 ),

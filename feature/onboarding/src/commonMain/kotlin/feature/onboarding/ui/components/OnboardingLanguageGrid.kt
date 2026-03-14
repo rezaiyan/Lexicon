@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
+import theme.LanguageColors
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
@@ -105,39 +106,8 @@ internal val languageFlags = mapOf(
     "Persian" to Res.drawable.flag_ir
 )
 
-private val languageColorsLight = mapOf(
-    "English" to Color(0xFFE8EEF4),    // slate blue
-    "German" to Color(0xFFFFF8E1),     // amber gold
-    "French" to Color(0xFFE8F0FE),     // soft blue
-    "Spanish" to Color(0xFFFFF0E8),    // warm coral
-    "Italian" to Color(0xFFE8F5E9),    // sage green
-    "Portuguese" to Color(0xFFE0F2E9), // fresh green
-    "Dutch" to Color(0xFFFFF3E0),      // soft orange
-    "Russian" to Color(0xFFE3E8F0),    // cool blue-gray
-    "Chinese" to Color(0xFFFFEBEE),    // warm red
-    "Japanese" to Color(0xFFFCE4EC),   // sakura pink
-    "Korean" to Color(0xFFEDE7F6),     // soft violet
-    "Arabic" to Color(0xFFFAF3E0),     // sand
-    "Turkish" to Color(0xFFFBE9E7),    // soft red-orange
-    "Persian" to Color(0xFFE0F2F1),    // teal mint
-)
-
-private val languageColorsDark = mapOf(
-    "English" to Color(0xFF1F2A38),
-    "German" to Color(0xFF3A3420),
-    "French" to Color(0xFF1A2840),
-    "Spanish" to Color(0xFF3A2820),
-    "Italian" to Color(0xFF1B3A25),
-    "Portuguese" to Color(0xFF1A3828),
-    "Dutch" to Color(0xFF3A3020),
-    "Russian" to Color(0xFF282838),
-    "Chinese" to Color(0xFF3A1F1F),
-    "Japanese" to Color(0xFF3A1E2A),
-    "Korean" to Color(0xFF2D1F4E),
-    "Arabic" to Color(0xFF38321A),
-    "Turkish" to Color(0xFF3A2420),
-    "Persian" to Color(0xFF1A3836),
-)
+private val languageColorsLight = LanguageColors.light
+private val languageColorsDark = LanguageColors.dark
 
 private val languageDisplayNames: Map<String, StringResource> = mapOf(
     "English" to Res.string.language_english,

@@ -172,22 +172,22 @@ internal enum class PerformanceTier(
     PERFECT(
         titleRes = Res.string.completion_perfect_title,
         messageRes = Res.string.completion_perfect_message,
-        gradientColors = listOf(AppColors.secondary, Color(0xFF34D399)),
+        gradientColors = listOf(AppColors.secondary, AppColors.accentEmerald),
     ),
     GREAT(
         titleRes = Res.string.completion_great_title,
         messageRes = Res.string.completion_great_message,
-        gradientColors = listOf(AppColors.primary, Color(0xFFA78BFA)),
+        gradientColors = listOf(AppColors.primary, AppColors.accentLavender),
     ),
     GOOD(
         titleRes = Res.string.completion_good_title,
         messageRes = Res.string.completion_good_message,
-        gradientColors = listOf(AppColors.primary, Color(0xFF60A5FA)),
+        gradientColors = listOf(AppColors.primary, AppColors.accentSkyBlue),
     ),
     OKAY(
         titleRes = Res.string.completion_okay_title,
         messageRes = Res.string.completion_okay_message,
-        gradientColors = listOf(AppColors.tertiary, Color(0xFFFBBF24)),
+        gradientColors = listOf(AppColors.tertiary, AppColors.accentAmber),
     ),
     TOUGH(
         titleRes = Res.string.completion_tough_title,

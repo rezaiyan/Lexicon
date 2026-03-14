@@ -186,7 +186,7 @@ private fun SubscriptionStatusCard(
                         } else {
                             Surface(
                                 shape = RoundedCornerShape(Theme.spacing.extraSmall),
-                                color = Color(0xFF10B981).copy(alpha = 0.2f)
+                                color = AppColors.subscriptionStandard.copy(alpha = 0.2f)
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -199,13 +199,13 @@ private fun SubscriptionStatusCard(
                                     Icon(
                                         imageVector = Icons.Default.Check,
                                         contentDescription = null,
-                                        tint = Color(0xFF10B981),
+                                        tint = AppColors.subscriptionStandard,
                                         modifier = Modifier.size(12.dp)
                                     )
                                     Text(
                                         text = stringResource(Res.string.subscription_active),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = Color(0xFF10B981),
+                                        color = AppColors.subscriptionStandard,
                                         fontWeight = FontWeight.Medium
                                     )
                                 }

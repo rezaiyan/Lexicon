@@ -45,11 +45,12 @@ import lexicon.resources.generated.resources.leaderboard_current_streak
 import lexicon.resources.generated.resources.leaderboard_mastered
 import lexicon.resources.generated.resources.leaderboard_your_ranking
 import org.jetbrains.compose.resources.stringResource
+import theme.AppColors
 import theme.Theme
 
-internal val Gold = Color(0xFFFFD700)
-internal val Silver = Color(0xFFC0C0C0)
-internal val Bronze = Color(0xFFCD7F32)
+internal val Gold = AppColors.leaderboardGold
+internal val Silver = AppColors.leaderboardSilver
+internal val Bronze = AppColors.leaderboardBronze
 
 @Composable
 internal fun LeaderboardEntryCard(entry: LeaderboardEntryUiModel) {
