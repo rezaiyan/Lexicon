@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import okio.Path.Companion.toPath
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import org.koin.java.KoinJavaComponent.getKoin
 
 /**
  * Application class for Lexicon
@@ -100,8 +101,9 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory {
         // Fetch remote feature flags
         val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         appScope.launch {
+            @Suppress("TooGenericExceptionCaught")
             try {
-                val featureFlagProvider = org.koin.java.KoinJavaComponent.getKoin().get<IFeatureFlagProvider>()
+                val featureFlagProvider = getKoin().get<IFeatureFlagProvider>()
                 featureFlagProvider.fetchAndActivate()
                 Log.d(TAG, "Feature flags fetched and activated")
             } catch (e: Exception) {

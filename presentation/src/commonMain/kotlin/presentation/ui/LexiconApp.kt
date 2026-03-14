@@ -234,6 +234,7 @@ fun LexiconApp() {
 
                     is AppUiState.AuthGate -> {
                         val pendingVocabulary = state.pendingVocabulary
+                        val needsOnboardingCheck = state.needsOnboardingCheck
                         val importUseCase: ImportSuggestedVocabularyUseCase = koinInject()
 
                         AuthGateScreen(
@@ -247,13 +248,19 @@ fun LexiconApp() {
                             error = authState.error
                         )
 
-                        // When auth succeeds, import pending vocabulary and navigate to main
-                        LaunchedEffect(authState.isAuthenticated) {
-                            if (authState.isAuthenticated) {
-                                if (pendingVocabulary.isNotEmpty()) {
-                                    importUseCase(pendingVocabulary)
+                        // When auth succeeds and sync is done (isLoading = false):
+                        // - needsOnboardingCheck: check if user has existing data to decide onboarding
+                        // - otherwise: import pending vocabulary and go to main
+                        LaunchedEffect(authState.isAuthenticated, authState.isLoading) {
+                            if (authState.isAuthenticated && !authState.isLoading) {
+                                if (needsOnboardingCheck) {
+                                    appNavigationViewModel.onAuthCompleteCheckingData()
+                                } else {
+                                    if (pendingVocabulary.isNotEmpty()) {
+                                        importUseCase(pendingVocabulary)
+                                    }
+                                    appNavigationViewModel.onAuthComplete()
                                 }
-                                appNavigationViewModel.onAuthComplete()
                             }
                         }
                     }

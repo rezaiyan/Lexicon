@@ -336,9 +336,9 @@
     <string name="vokab_pro">Lexicon Pro</string>
     <string name="subscription_active">Actif</string>
     <string name="subscription_cancelling">Expire bientôt</string>
-    <string name="subscription_access_until">Accès jusqu\'au : %1$s</string>
-    <string name="subscription_cancelled_access_note">Votre abonnement a été annulé. Vous avez toujours accès à toutes les fonctionnalités premium jusqu\'à la date d\'expiration.</string>
-    <string name="subscription_expires_today">Expire aujourd\'hui</string>
+    <string name="subscription_access_until">Accès jusqu'au : %1$s</string>
+    <string name="subscription_cancelled_access_note">Votre abonnement a été annulé. Vous avez toujours accès à toutes les fonctionnalités premium jusqu'à la date d'expiration.</string>
+    <string name="subscription_expires_today">Expire aujourd'hui</string>
     <string name="subscription_day_remaining">1 jour restant</string>
     <string name="subscription_days_remaining">%1$d jours restants</string>
     <string name="subscription_resubscribe">Se réabonner</string>
@@ -356,12 +356,12 @@
     <string name="manage_subscription_google_play">Gérez votre abonnement sur Google Play</string>
     <string name="manage_subscription_app_store">Gérez votre abonnement sur l'App Store</string>
     <string name="subscription_info_unavailable">Nous avons des difficultés à accéder aux informations de votre abonnement. Veuillez réessayer plus tard !</string>
-    <string name="web_subscriptions_not_available">Les abonnements sont uniquement disponibles via l\'application mobile. Téléchargez l\'application depuis l\'App Store ou Google Play pour vous abonner !</string>
+    <string name="web_subscriptions_not_available">Les abonnements sont uniquement disponibles via l'application mobile. Téléchargez l'application depuis l'App Store ou Google Play pour vous abonner !</string>
     <string name="terms_of_use">Conditions d'utilisation</string>
     <string name="privacy_policy">Politique de confidentialité</string>
 
     <!-- AI Word Import -->
-    <string name="import_with_ai">Importer avec l\'IA</string>
+    <string name="import_with_ai">Importer avec l'IA</string>
     <string name="import_manually">Manuellement</string>
     <string name="ai_assistant">Assistant IA</string>
     <string name="ai_wizard_target_title">Quelle langue</string>
@@ -369,13 +369,13 @@
     <string name="ai_wizard_target_subtitle">Nous adapterons ton vocabulaire à la langue choisie.</string>
     <string name="ai_wizard_native_title">Quelle est ta</string>
     <string name="ai_wizard_native_highlight">langue maternelle ?</string>
-    <string name="ai_wizard_native_subtitle">Nous l\'utiliserons comme base pour les traductions.</string>
+    <string name="ai_wizard_native_subtitle">Nous l'utiliserons comme base pour les traductions.</string>
     <string name="ai_wizard_level_title">Quel est ton</string>
     <string name="ai_wizard_level_highlight">niveau actuel ?</string>
     <string name="ai_wizard_level_subtitle">Nous adapterons la difficulté du vocabulaire à tes compétences.</string>
     <string name="ai_wizard_continue">Continuer</string>
     <string name="ai_wizard_topics_title">Quels sujets</string>
-    <string name="ai_wizard_topics_highlight">t\'intéressent ?</string>
+    <string name="ai_wizard_topics_highlight">t'intéressent ?</string>
     <string name="ai_wizard_topics_subtitle">Choisis ce qui te plaît. Nous les mélangerons pour créer un pack de vocabulaire varié.</string>
     <string name="ai_wizard_generate_words">Générer des mots</string>
     <string name="ai_wizard_add_to_library">Ajouter à la bibliothèque</string>
@@ -388,7 +388,7 @@
     <string name="ai_wizard_deselect_all">Tout désélectionner</string>
     <string name="ai_wizard_ai_suggestions">Suggestions IA</string>
     <string name="ai_wizard_discard_title">Supprimer les suggestions ?</string>
-    <string name="ai_wizard_discard_message">Ta liste de vocabulaire générée par l\'IA sera perdue.</string>
+    <string name="ai_wizard_discard_message">Ta liste de vocabulaire générée par l'IA sera perdue.</string>
     <string name="ai_wizard_discard">Supprimer</string>
     <string name="ai_wizard_keep">Garder</string>
     <string name="ai_import_success">%1$d mots ajoutés à ta bibliothèque !</string>
@@ -421,7 +421,7 @@
 
     <!-- Onboarding -->
     <string name="onboarding_title">Définir vos préférences</string>
-    <string name="onboarding_subtitle">Aidez-nous à personnaliser votre expérience d\'apprentissage</string>
+    <string name="onboarding_subtitle">Aidez-nous à personnaliser votre expérience d'apprentissage</string>
     <string name="select_target_language">Je veux apprendre :</string>
     <string name="select_native_language">Je parle :</string>
     <string name="select_level">Mon niveau :</string>
@@ -434,9 +434,9 @@
     <string name="import_selected">Importer la sélection</string>
     <string name="skip_import">Passer</string>
     <string name="onboarding_welcome_to">Bienvenue sur</string>
-    <string name="onboarding_personalize_subtitle">Personnalisons ton expérience d\'apprentissage du vocabulaire</string>
+    <string name="onboarding_personalize_subtitle">Personnalisons ton expérience d'apprentissage du vocabulaire</string>
     <string name="onboarding_personalized_setup">Configuration personnalisée</string>
-    <string name="onboarding_personalized_setup_desc">Choisis ta langue cible et ton niveau d\'apprentissage</string>
+    <string name="onboarding_personalized_setup_desc">Choisis ta langue cible et ton niveau d'apprentissage</string>
     <string name="onboarding_starter_vocabulary_feature">Vocabulaire de départ</string>
     <string name="onboarding_starter_vocabulary_desc">Reçois un pack de mots essentiels pour commencer</string>
     <string name="onboarding_smart_learning">Apprentissage intelligent</string>
@@ -449,7 +449,7 @@
     <string name="onboarding_continue">Continuer</string>
     <string name="onboarding_whats_your">Quelle est ta</string>
     <string name="onboarding_native_language_question">langue maternelle ?</string>
-    <string name="onboarding_native_language_subtitle">Nous l\'utiliserons comme base pour les traductions et les indices.</string>
+    <string name="onboarding_native_language_subtitle">Nous l'utiliserons comme base pour les traductions et les indices.</string>
     <string name="onboarding_current_level">niveau actuel ?</string>
     <string name="onboarding_level_subtitle">Nous adapterons tes ensembles de vocabulaire à ton niveau actuel.</string>
     <string name="onboarding_beginner_desc">Tu débutes. Apprends des phrases de base et des mots du quotidien.</string>
@@ -473,8 +473,8 @@
 
     <!-- Edit Profile -->
     <string name="edit_profile">Modifier le profil</string>
-    <string name="username">Nom d\'utilisateur</string>
-    <string name="username_hint">Choisis un nom d\'utilisateur</string>
+    <string name="username">Nom d'utilisateur</string>
+    <string name="username_hint">Choisis un nom d'utilisateur</string>
     <string name="username_description">2-30 caractères : lettres, chiffres, espaces, tirets bas, tirets</string>
     <string name="change_photo">Changer la photo</string>
     <string name="remove_photo">Supprimer la photo</string>

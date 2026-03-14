@@ -29,9 +29,28 @@ private fun parseHost(url: String): String =
         .removePrefix("http://")
         .substringBefore('/')
 
-private val backendHost: String = getConfigValue("vokab.backend.host")
+private fun validateBackendHost(host: String) {
+    check(host.isNotBlank()) {
+        "Backend host resolved to blank. Check '${readableKeyName("vokab.backend.host")}' or '${readableKeyName("vokab.backend.url")}'."
+    }
+    check(host.contains('.')) {
+        "Backend host '$host' does not look like a valid domain (missing '.'). " +
+            "Expected format: 'your-domain.com'. Check '${readableKeyName("vokab.backend.url")}'."
+    }
+    check(!host.contains("://")) {
+        "Backend host '$host' should not contain a scheme ('://'). " +
+            "The scheme is added automatically. Provide just the hostname, e.g. 'your-domain.com'."
+    }
+    check(!host.contains('/')) {
+        "Backend host '$host' should not contain path segments ('/'). " +
+            "Provide just the hostname, e.g. 'your-domain.com'."
+    }
+}
+
+private val backendHost: String = (getConfigValue("vokab.backend.host")
     ?: getConfigValue("vokab.backend.url")?.let(::parseHost)
-    ?: error("Missing '${readableKeyName("vokab.backend.host")}' or '${readableKeyName("vokab.backend.url")}'. Provide one of them.")
+    ?: error("Missing '${readableKeyName("vokab.backend.host")}' or '${readableKeyName("vokab.backend.url")}'. Provide one of them."))
+    .also(::validateBackendHost)
 private val googleServerClientId: String = requireConfigValue("GOOGLE_SERVER_CLIENT_ID")
 private val revenuecatAndroidKey: String = requireConfigValue("REVENUECAT_ANDROID_KEY")
 private val revenuecatIosKey: String = requireConfigValue("REVENUECAT_IOS_KEY")

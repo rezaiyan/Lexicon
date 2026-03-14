@@ -24,8 +24,9 @@ import events.OnEvents
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import feature.study.StudyEvent
-import feature.study.StudyViewModel
+import feature.study.ReviewEvent
+import feature.study.ReviewViewModel
+import feature.study.StudyProgressViewModel
 import feature.study.model.ReviewType
 import core.common.UiState
 import presentation.ui.LocalSnackbarHostState
@@ -68,14 +69,15 @@ private sealed interface ImportFlowPage {
 
 @Composable
 fun StudyScreen() {
-    val viewModel = koinViewModel<StudyViewModel>()
+    val progressViewModel = koinViewModel<StudyProgressViewModel>()
+    val reviewViewModel = koinViewModel<ReviewViewModel>()
     val overlayHost = LocalOverlayHost.current
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
 
-    val screenState by viewModel.state()
-    val uiState = screenState.progress
-    val hasPremiumAccess = screenState.hasPremiumAccess
+    val progressState by progressViewModel.state()
+    val uiState = progressState.progress
+    val hasPremiumAccess = progressState.hasPremiumAccess
 
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
@@ -86,7 +88,7 @@ fun StudyScreen() {
     val progressStats = (uiState as? UiState.Loaded)?.value?.progressStats
 
     val onImportSuccess: (String) -> Unit = { message ->
-        viewModel.refreshStats()
+        progressViewModel.refreshStats()
         coroutineScope.launch {
             snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Short)
         }
@@ -191,10 +193,10 @@ fun StudyScreen() {
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
 
-                    OnEvents(viewModel.effects) { event ->
+                    OnEvents(reviewViewModel.effects) { event ->
                         when (event) {
-                            is StudyEvent.StartReview -> {
-                                viewModel.startDueReview()
+                            is ReviewEvent.StartReview -> {
+                                reviewViewModel.startDueReview()
                                 overlayHost.showFullScreen(
                                     tag = "review-due",
                                     properties = FullScreenProperties(
@@ -202,29 +204,27 @@ fun StudyScreen() {
                                         isNavigationBarsPaddingEnabled = true,
                                     )
                                 ) { navigator ->
-                                    // Read state inside the composable lambda so the
-                                    // overlay host recomposes when the ViewModel updates.
-                                    val sheetState by viewModel.state()
-                                    val sheetTts = sheetState.ttsState
+                                    val reviewState by reviewViewModel.state()
+                                    val sheetTts = reviewState.ttsState
 
                                     ReviewBottomSheetContent(
                                         reviewType = ReviewType.REVIEW,
-                                        reviewState = sheetState.review,
+                                        reviewState = reviewState.review,
                                         initialWord = event.firstWord,
                                         onClose = { navigator.dismiss() },
                                         onReviewComplete = {
-                                            viewModel.onReviewSessionComplete()
+                                            reviewViewModel.onReviewSessionComplete()
                                             navigator.dismiss()
                                         },
-                                        onReviewWord = viewModel::reviewWord,
-                                        onLoadWords = viewModel::loadWords,
-                                        onUpdateWord = viewModel::updateWord,
+                                        onReviewWord = reviewViewModel::reviewWord,
+                                        onLoadWords = reviewViewModel::loadWords,
+                                        onUpdateWord = reviewViewModel::updateWord,
                                         onDeleteWord = { wordId, onComplete ->
-                                            viewModel.deleteWord(wordId)
+                                            reviewViewModel.deleteWord(wordId)
                                             onComplete()
                                         },
                                         ttsState = sheetTts,
-                                        onSpeakClick = viewModel::speakWord
+                                        onSpeakClick = reviewViewModel::speakWord
                                     )
                                 }
                             }
@@ -239,7 +239,7 @@ fun StudyScreen() {
                         evaluation = evaluation,
                         dueCards = loadedStats.dueCards,
                         onImportWords = openImportSheet,
-                        onStartReview = { viewModel.startReview() }
+                        onStartReview = { reviewViewModel.startReview() }
                     )
 
                     WordDistributionBar(stats = loadedStats)
@@ -247,28 +247,28 @@ fun StudyScreen() {
                     LearningStagesSection(
                         stats = loadedStats,
                         onStageClick = { stage, stageName ->
-                            viewModel.loadWordsByStage(stage)
+                            reviewViewModel.loadWordsByStage(stage)
                             overlayHost.showFullScreen(tag = "review-stage-${stage}") { navigator ->
-                                val sheetState by viewModel.state()
-                                val sheetTts = sheetState.ttsState
+                                val reviewState by reviewViewModel.state()
+                                val sheetTts = reviewState.ttsState
 
                                 ReviewBottomSheetContent(
                                     reviewType = ReviewType.BROWSE,
-                                    reviewState = sheetState.review,
+                                    reviewState = reviewState.review,
                                     onClose = navigator::dismiss,
                                     onReviewComplete = navigator::dismiss,
-                                    onReviewWord = viewModel::reviewWord,
-                                    onLoadWords = viewModel::loadWords,
-                                    onUpdateWord = viewModel::updateWord,
+                                    onReviewWord = reviewViewModel::reviewWord,
+                                    onLoadWords = reviewViewModel::loadWords,
+                                    onUpdateWord = reviewViewModel::updateWord,
                                     onDeleteWord = { wordId, onComplete ->
-                                        viewModel.deleteWord(wordId)
+                                        reviewViewModel.deleteWord(wordId)
                                         onComplete()
                                     },
                                     ttsState = sheetTts,
-                                    onSpeakClick = viewModel::speakWord
+                                    onSpeakClick = reviewViewModel::speakWord
                                 )
                             }
-                            viewModel.startStageReview(stage)
+                            reviewViewModel.startStageReview(stage)
                         }
                     )
                 }

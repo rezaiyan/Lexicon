@@ -61,7 +61,7 @@
     
     <!-- Profile Screen -->
     <string name="logout_title">Logout</string>
-    <string name="logout_message">Are you sure you want to logout? You'll need to login again to use AI features.</string>
+    <string name="logout_message">Are you sure you want to logout?</string>
     <string name="delete_account">Delete Account</string>
     <string name="delete_account_title">Delete Account</string>
     <string name="delete_account_message">Are you sure you want to delete your account? This action cannot be undone. All your data will be permanently deleted.</string>
@@ -505,17 +505,17 @@
     <string name="ai_assistant">AI Assistant</string>
     <string name="ai_wizard_target_title">Which language</string>
     <string name="ai_wizard_target_highlight">do you want to learn?</string>
-    <string name="ai_wizard_target_subtitle">We\'ll tailor your vocabulary to your chosen language.</string>
-    <string name="ai_wizard_native_title">What\'s your</string>
+    <string name="ai_wizard_target_subtitle">We'll tailor your vocabulary to your chosen language.</string>
+    <string name="ai_wizard_native_title">What's your</string>
     <string name="ai_wizard_native_highlight">native language?</string>
-    <string name="ai_wizard_native_subtitle">We\'ll use this as the base for translations.</string>
-    <string name="ai_wizard_level_title">What\'s your</string>
+    <string name="ai_wizard_native_subtitle">We'll use this as the base for translations.</string>
+    <string name="ai_wizard_level_title">What's your</string>
     <string name="ai_wizard_level_highlight">current level?</string>
-    <string name="ai_wizard_level_subtitle">We\'ll match the vocabulary difficulty to your skills.</string>
+    <string name="ai_wizard_level_subtitle">We'll match the vocabulary difficulty to your skills.</string>
     <string name="ai_wizard_continue">Continue</string>
     <string name="ai_wizard_topics_title">What topics</string>
     <string name="ai_wizard_topics_highlight">interest you?</string>
-    <string name="ai_wizard_topics_subtitle">Pick any that appeal to you. We\'ll mix them to create a varied vocabulary pack.</string>
+    <string name="ai_wizard_topics_subtitle">Pick any that appeal to you. We'll mix them to create a varied vocabulary pack.</string>
     <string name="ai_wizard_generate_words">Generate Words</string>
     <string name="ai_wizard_add_to_library">Add to Library</string>
     <string name="ai_wizard_adding_to_library">Adding to your library…</string>

@@ -2,16 +2,7 @@ package presentation.feature.study
 
 import analytics.IAnalyticsTracker
 import core.common.Try
-import fakes.FakePerformanceTracer
-import feature.study.StudyViewModel
-import domain.auth.model.FeatureAccessResponse
-import domain.auth.model.FeatureFlags
-import domain.auth.model.UserFeatureAccess
-import domain.auth.repository.IAuthRepository
-import domain.auth.model.AuthUser
-import domain.auth.usecase.GetFeatureAccessUseCase
-import domain.notifications.repository.INotificationRepository
-import domain.notifications.usecase.ScheduleNotificationsUseCase
+import feature.study.ReviewViewModel
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
@@ -29,9 +20,7 @@ import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.word.usecase.DeleteWordUseCase
-import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.GetDueWordsUseCase
-import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
@@ -50,7 +39,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class StudyViewModelTest : ViewModelTestBase() {
+class ReviewViewModelTest : ViewModelTestBase() {
 
     private fun testWord(id: Int) = Word(
         id = id,
@@ -78,28 +67,18 @@ class StudyViewModelTest : ViewModelTestBase() {
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
-        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flowOf()
+        override fun updateWordsLanguages(
+            ids: List<Int>,
+            sourceLanguage: String,
+            targetLanguage: String,
+        ): Flow<UpdateWordsLanguagesProgress> = flowOf()
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
-        // Return emptyFlow to avoid triggering getString() in startObservingProgress
         override fun getProgressStats(): Flow<ProgressStats> = emptyFlow()
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
-    }
-
-    private fun fakeAuthRepo() = object : IAuthRepository {
-        override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = Try.failure(RuntimeException(""))
-        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = Try.failure(RuntimeException(""))
-        override suspend fun logout(): Try<Unit> = Try.success(Unit)
-        override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
-        override suspend fun getAccessToken(): String? = null
-        override suspend fun isAuthenticated(): Boolean = false
-        override fun isAuthenticatedAsFlow(): Flow<Boolean> = flowOf(false)
-        override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(
-            FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = false))
-        )
     }
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
@@ -120,14 +99,6 @@ class StudyViewModelTest : ViewModelTestBase() {
         override suspend fun setMinimumDueCards(count: Int) {}
     }
 
-    private fun fakeNotifRepo() = object : INotificationRepository {
-        override suspend fun scheduleReviewReminder(dueCount: Int, title: String, message: String, delayMinutes: Int) {}
-        override suspend fun areNotificationsEnabled(): Boolean = true
-        override suspend fun requestNotificationPermission(): Boolean = true
-        override suspend fun wasNotificationPermissionDenied(): Boolean = false
-        override suspend fun openNotificationSettings() {}
-    }
-
     private fun fakeStreakRepo() = object : IStreakRepository {
         override suspend fun getStreak(): Try<StreakData> = Try.success(StreakData(0))
         override suspend fun recordActivity(count: Int): Try<StreakData> = Try.success(StreakData(1))
@@ -144,10 +115,20 @@ class StudyViewModelTest : ViewModelTestBase() {
 
     private fun fakeAnalytics() = object : IAnalyticsTracker {
         override fun logScreenView(screenName: String) {}
-        override fun logEvent(eventName: String, parameters: Map<String, Any>?) { loggedEvents += eventName }
-        override fun logWordReviewed(rating: Int, wordLevel: Int, wasCorrect: Boolean) { loggedEvents += "word_reviewed" }
-        override fun logReviewSessionStart(cardCount: Int) { loggedEvents += "review_session_start" }
-        override fun logReviewSessionComplete(cardsReviewed: Int, durationMs: Long, perfectCount: Int) {}
+        override fun logEvent(eventName: String, parameters: Map<String, Any>?) {
+            loggedEvents += eventName
+        }
+        override fun logWordReviewed(rating: Int, wordLevel: Int, wasCorrect: Boolean) {
+            loggedEvents += "word_reviewed"
+        }
+        override fun logReviewSessionStart(cardCount: Int) {
+            loggedEvents += "review_session_start"
+        }
+        override fun logReviewSessionComplete(
+            cardsReviewed: Int,
+            durationMs: Long,
+            perfectCount: Int,
+        ) {}
         override fun logWordsImported(count: Int, method: String) {}
         override fun logWordMastered(level: Int) {}
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
@@ -160,15 +141,11 @@ class StudyViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
-    private fun createViewModel(): StudyViewModel {
+    private fun createViewModel(): ReviewViewModel {
         val wordRepo = fakeWordRepo()
         val settingsRepo = fakeSettingsRepo()
-        val notifRepo = fakeNotifRepo()
         val ttsRepo = fakeTtsRepo()
-        return StudyViewModel(
-            getProgressStatsUseCase = GetProgressStatsUseCase(wordRepo),
-            evaluateProgressUseCase = EvaluateProgressUseCase(),
-            scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
+        return ReviewViewModel(
             getDueWordsUseCase = GetDueWordsUseCase(wordRepo),
             getWordsByStageUseCase = GetWordsByStageUseCase(wordRepo),
             reviewWordUseCase = ReviewWordUseCase(wordRepo, GetReviewSettingsUseCase()),
@@ -177,16 +154,8 @@ class StudyViewModelTest : ViewModelTestBase() {
             recordStreakActivityUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
             analyticsTracker = fakeAnalytics(),
-            performanceTracer = FakePerformanceTracer(),
-            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),
-            ttsRepository = ttsRepo
+            ttsRepository = ttsRepo,
         )
-    }
-
-    @Test
-    fun `initial progress state is Loading`() {
-        val vm = createViewModel()
-        assertIs<UiState.Loading>(vm.currentState.progress)
     }
 
     @Test
@@ -294,11 +263,5 @@ class StudyViewModelTest : ViewModelTestBase() {
     fun `initial ttsState is Idle`() {
         val vm = createViewModel()
         assertEquals(TtsState.Idle, vm.currentState.ttsState)
-    }
-
-    @Test
-    fun `initial hasPremiumAccess is false`() = runTest {
-        val vm = createViewModel()
-        assertEquals(false, vm.currentState.hasPremiumAccess)
     }
 }

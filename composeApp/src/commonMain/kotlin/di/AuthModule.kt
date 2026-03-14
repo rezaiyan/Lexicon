@@ -52,8 +52,12 @@ fun authModule(backendUrl: String) = module {
     }
 
     // Data Sources
-    single<IAuthDataSource> { AuthDataSource(backendUrl, get<HttpClient>()) }
-    single<IFeatureAccessRemoteDataSource> { FeatureAccessRemoteDataSource(apiClient = get(), featureFlagProvider = get()) }
+    single<IAuthDataSource> {
+        AuthDataSource(backendUrl, get<HttpClient>())
+    }
+    single<IFeatureAccessRemoteDataSource> {
+        FeatureAccessRemoteDataSource(apiClient = get(), featureFlagProvider = get())
+    }
 
     // Repositories
     single<IAuthRepository> {

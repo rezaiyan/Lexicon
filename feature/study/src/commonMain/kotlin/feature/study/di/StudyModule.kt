@@ -1,16 +1,23 @@
 package feature.study.di
 
-import feature.study.StudyViewModel
+import feature.study.ReviewViewModel
+import feature.study.StudyProgressViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 fun studyModule() = module {
     viewModel {
-        StudyViewModel(
+        StudyProgressViewModel(
             getProgressStatsUseCase = get(),
             evaluateProgressUseCase = get(),
-            getFeatureAccessUseCase = get(),
             scheduleNotificationsUseCase = get(),
+            getFeatureAccessUseCase = get(),
+            analyticsTracker = get(),
+            performanceTracer = get(),
+        )
+    }
+    viewModel {
+        ReviewViewModel(
             getDueWordsUseCase = get(),
             getWordsByStageUseCase = get(),
             reviewWordUseCase = get(),
@@ -18,9 +25,8 @@ fun studyModule() = module {
             deleteWordUseCase = get(),
             recordStreakActivityUseCase = get(),
             speakWordUseCase = get(),
-            ttsRepository = get(),
             analyticsTracker = get(),
-            performanceTracer = get(),
+            ttsRepository = get(),
         )
     }
 }
