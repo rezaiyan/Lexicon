@@ -14,7 +14,6 @@ class RequestNotificationPermissionUseCase(
 
     override suspend operator fun invoke(params: Unit) = invoke()
 
-    suspend operator fun invoke(): Try<Boolean> = Try {
+    suspend operator fun invoke(): Try<Boolean> =
         notificationRepository.requestNotificationPermission()
-    }
 }

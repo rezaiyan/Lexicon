@@ -1,6 +1,7 @@
 package domain.auth.usecase
 
 import core.common.NoParamFlowUseCase
+import core.common.getOrThrow
 import domain.auth.service.IAuthenticationService
 import domain.settings.repository.ISettingsRepository
 import domain.word.repository.IWordRepository
@@ -18,8 +19,8 @@ class LogoutUseCase(
 
     fun invoke(): Flow<Unit> = flow {
         // Clear all user data first
-        wordRepository.deleteAllWords()
-        settingsRepository.clearSettings()
+        wordRepository.deleteAllWords().getOrThrow()
+        settingsRepository.clearSettings().getOrThrow()
 
         // Then perform logout (which clears tokens)
         authenticationService.logout()

@@ -2,6 +2,7 @@ package domain.auth.usecase
 
 import core.common.NoParamUseCase
 import core.common.Try
+import core.common.getOrThrow
 import domain.auth.session.ISessionManager
 import domain.auth.storage.ISecureStorage
 import domain.settings.repository.ISettingsRepository
@@ -20,8 +21,8 @@ class ClearAllUserDataUseCase(
     override suspend operator fun invoke(params: Unit) = invoke()
 
     suspend operator fun invoke(): Try<Unit> = Try {
-        wordRepository.deleteAllWords()
-        settingsRepository.clearSettings()
+        wordRepository.deleteAllWords().getOrThrow()
+        settingsRepository.clearSettings().getOrThrow()
         secureStorage.clearTokens()
         sessionManager.setAuthenticated(false)
     }

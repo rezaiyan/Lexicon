@@ -12,7 +12,6 @@ import domain.settings.repository.ISettingsRepository
 class SetNotificationsEnabledUseCase(
     private val settingsRepository: ISettingsRepository
 ) : UseCase<Boolean, Unit> {
-    override suspend operator fun invoke(params: Boolean): Try<Unit> = Try {
+    override suspend operator fun invoke(params: Boolean): Try<Unit> =
         settingsRepository.setNotificationsEnabled(params)
-    }
 }

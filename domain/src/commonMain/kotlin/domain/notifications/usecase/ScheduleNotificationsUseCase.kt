@@ -2,6 +2,7 @@ package domain.notifications.usecase
 
 import core.common.Try
 import core.common.UseCase
+import core.common.getOrThrow
 import domain.word.model.ProgressStats
 import domain.notifications.repository.INotificationRepository
 import domain.settings.repository.ISettingsRepository
@@ -28,7 +29,7 @@ class ScheduleNotificationsUseCase(
         messageProvider: (Int) -> String
     ): Try<Unit> = Try {
         val enabled = settingsRepository.getReviewRemindersEnabled().first()
-        val minimumCards = settingsRepository.getMinimumDueCards()
+        val minimumCards = settingsRepository.getMinimumDueCards().getOrThrow()
 
         if (enabled && stats.dueCards >= minimumCards && !hasScheduled) {
             val title = titleProvider(stats.dueCards)
@@ -39,7 +40,7 @@ class ScheduleNotificationsUseCase(
                 title = title,
                 message = message,
                 delayMinutes = 24 * 60
-            )
+            ).getOrThrow()
 
             hasScheduled = true
         }
