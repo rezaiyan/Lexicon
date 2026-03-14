@@ -20,6 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import domain.word.model.ProgressStats
@@ -125,7 +130,10 @@ private fun MiniProgressRing(
     ProgressRing(
         progress = progressFraction,
         progressColor = accentColor,
-        modifier = Modifier.size(36.dp),
+        modifier = Modifier.size(36.dp)
+            .semantics {
+                stateDescription = "Progress: $progressPercent%"
+            },
         strokeWidth = 3.5.dp,
         trackColor = MaterialTheme.colorScheme.outlineVariant,
     ) {
