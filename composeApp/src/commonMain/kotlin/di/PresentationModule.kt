@@ -3,9 +3,13 @@ package di
 import analytics.IAnalyticsTracker
 import analytics.createAnalyticsTracker
 import domain.auth.manager.IUserManager
+import domain.featureflag.IFeatureFlagProvider
 import domain.streak.manager.IStreakManager
+import featureflag.createFeatureFlagProvider
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import performance.IPerformanceTracer
+import performance.createPerformanceTracer
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import presentation.ui.components.imports.ImportViewModel
@@ -24,6 +28,12 @@ fun presentationModule() = module {
 
     // Analytics Tracker (platform-specific)
     single<IAnalyticsTracker> { createAnalyticsTracker() }
+
+    // KAN-15: Performance Tracer (platform-specific)
+    single<IPerformanceTracer> { createPerformanceTracer() }
+
+    // KAN-20: Feature Flag Provider (platform-specific)
+    single<IFeatureFlagProvider> { createFeatureFlagProvider() }
 
     // User Manager
     single<IUserManager> {
@@ -54,6 +64,7 @@ fun presentationModule() = module {
             userManager = get(),
             getCurrentLanguageUseCase = get(),
             getSourceLanguageUseCase = get(),
+            performanceTracer = get(),
         )
     }
 

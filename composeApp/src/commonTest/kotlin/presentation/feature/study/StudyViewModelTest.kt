@@ -2,6 +2,7 @@ package presentation.feature.study
 
 import analytics.IAnalyticsTracker
 import core.common.Try
+import fakes.FakePerformanceTracer
 import feature.study.StudyViewModel
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
@@ -176,6 +177,7 @@ class StudyViewModelTest : ViewModelTestBase() {
             recordStreakActivityUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
             analyticsTracker = fakeAnalytics(),
+            performanceTracer = FakePerformanceTracer(),
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),
             ttsRepository = ttsRepo
         )

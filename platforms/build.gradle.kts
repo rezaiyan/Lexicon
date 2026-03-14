@@ -53,6 +53,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":core"))
+            implementation(project(":domain"))
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
         }
@@ -61,8 +62,10 @@ kotlin {
             implementation(project(":core"))
             implementation(libs.androidx.security.crypto)
             implementation(libs.google.firebase.analytics)
+            implementation(libs.google.firebase.config)
             implementation(libs.google.firebase.crashlytics)
             implementation(libs.google.firebase.messaging)
+            implementation(libs.google.firebase.perf)
             implementation(files("libs/sherpa-onnx-1.12.26.aar"))
             implementation(libs.commons.compress)
             implementation(libs.work.runtime)

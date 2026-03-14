@@ -1,6 +1,7 @@
 package data.tts.repository
 
 import domain.tts.model.TtsState
+import fakes.FakePerformanceTracer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -16,8 +17,9 @@ class TtsRepositoryImplTest {
 
     private val ttsEngine = FakeTtsEngine()
     private val modelFileManager = FakeModelFileManager()
+    private val performanceTracer = FakePerformanceTracer()
 
-    private fun createRepo() = TtsRepositoryImpl(ttsEngine, modelFileManager)
+    private fun createRepo() = TtsRepositoryImpl(ttsEngine, modelFileManager, performanceTracer)
 
     @Test
     fun `speak initializes engine and plays when not initialized`() = runTest {

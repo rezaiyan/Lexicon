@@ -31,8 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
-class RevenueCatSubscriptionManager(
-) : ISubscriptionManager, PurchasesDelegate {
+class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -164,10 +163,10 @@ class RevenueCatSubscriptionManager(
 
     override fun onCustomerInfoUpdated(customerInfo: CustomerInfo) {
         val requestDate = customerInfo.requestDate.toEpochMilliseconds()
-        val isNewUpdate = requestDate != lastSyncedRequestDate
 
         _customerInfo.value = customerInfo.toDomain()
 
+        val isNewUpdate = requestDate != lastSyncedRequestDate
         if (isNewUpdate) {
             coroutineScope.launch {
                 lastSyncedRequestDate = requestDate

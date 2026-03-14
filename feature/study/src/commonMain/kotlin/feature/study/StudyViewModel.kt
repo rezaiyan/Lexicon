@@ -35,6 +35,7 @@ import feature.study.model.ProgressScreenState
 import feature.study.model.ReviewScreenState
 import core.common.UiState
 import feature.study.util.NotificationStringHelper
+import performance.IPerformanceTracer
 import kotlin.time.ExperimentalTime
 
 data class StudyScreenState(
@@ -56,6 +57,7 @@ class StudyViewModel(
     private val recordStreakActivityUseCase: RecordStreakActivityUseCase,
     private val speakWordUseCase: SpeakWordUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val performanceTracer: IPerformanceTracer,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
     ttsRepository: ITtsRepository
 ) : BaseViewModel<StudyScreenState, StudyEvent>() {
@@ -96,6 +98,7 @@ class StudyViewModel(
 
     private fun startObservingProgress() {
         progressObservationJob = viewModelScope.launch {
+            val trace = performanceTracer.startTrace("study_session_load")
             getProgressStatsUseCase.invoke()
                 .collect { stats ->
                     val screenState = ProgressScreenState(
@@ -104,6 +107,9 @@ class StudyViewModel(
                         messageState = null
                     )
                     updateState { copy(progress = UiState.Loaded(screenState)) }
+                    performanceTracer.putMetric(trace, "total_words", stats.totalWords.toLong())
+                    performanceTracer.putMetric(trace, "due_cards", stats.dueCards.toLong())
+                    performanceTracer.stopTrace(trace)
 
                     analyticsTracker.updateUserProgress(
                         totalWords = stats.totalWords,

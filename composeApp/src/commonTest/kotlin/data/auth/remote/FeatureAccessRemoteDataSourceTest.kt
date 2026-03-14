@@ -2,6 +2,7 @@ package data.auth.remote
 
 import data.core.network.client.ApiClient
 import data.core.network.mapper.ApiResponseMapper
+import fakes.FakeFeatureFlagProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -30,8 +31,10 @@ class FeatureAccessRemoteDataSourceTest {
         return ApiClient("https://api.test", httpClient, ApiResponseMapper())
     }
 
+    private val featureFlagProvider = FakeFeatureFlagProvider()
+
     private fun buildDataSource(mockEngine: MockEngine) =
-        FeatureAccessRemoteDataSource(buildApiClient(mockEngine))
+        FeatureAccessRemoteDataSource(buildApiClient(mockEngine), featureFlagProvider)
 
     private fun successEnvelope(data: String) = """{"success":true,"data":$data}"""
     private fun jsonHeaders() = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
