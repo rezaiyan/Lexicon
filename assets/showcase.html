@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexicon - App Store Screenshots</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+  }
+
+  .instructions {
+    text-align: center;
+    padding: 30px 20px;
+    color: #888;
+    font-size: 13px;
+    border-bottom: 1px solid #222;
+  }
+  .instructions strong { color: #bbb; }
+
+  /* Wrapper for phone slides */
+  .slide-wrapper {
+    width: 208px;
+    height: 380px;
+    margin: 24px auto;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: inset(0 round 24px);
+  }
+
+  /* Wider wrapper for tablet slides */
+  .slide-wrapper.tablet {
+    width: 340px;
+    height: 320px;
+    margin: 24px auto;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: inset(0 round 24px);
+  }
+
+  /* Actual slide is App Store 6.7" resolution, scaled to 1/5 */
+  .slide {
+    width: 1290px;
+    height: 2796px;
+    transform: scale(0.2);
+    transform-origin: center center;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+
+  /* Tablet slide: wider aspect, fits 340x320 wrapper */
+  .slide.tablet-slide {
+    width: 1536px;
+    height: 1736px;
+    transform: scale(0.166);
+    border-radius: 144px;
+  }
+
+  /* ===== PHONE FRAME (1080x2424 ratio) ===== */
+  .phone-frame {
+    position: relative;
+    width: 560px;
+    height: 1255px;
+    border-radius: 52px;
+    background: #1a1a1a;
+    box-shadow:
+      0 0 0 3px #333,
+      0 0 0 6px #1a1a1a,
+      0 40px 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .phone-frame::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 32px;
+    background: #1a1a1a;
+    border-radius: 0 0 18px 18px;
+    z-index: 10;
+  }
+
+  .phone-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 52px;
+  }
+
+  /* ===== TABLET FRAME (2076x2152 ratio) ===== */
+  .tablet-frame {
+    position: relative;
+    width: 1000px;
+    height: 1037px;
+    border-radius: 36px;
+    background: #1a1a1a;
+    box-shadow:
+      0 0 0 3px #333,
+      0 0 0 6px #1a1a1a,
+      0 40px 80px rgba(0,0,0,0.6);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .tablet-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 36px;
+  }
+
+  /* ===== TEXT ===== */
+  .slide-title {
+    font-size: 88px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1.05;
+    text-align: center;
+    max-width: 1100px;
+    padding: 0 60px;
+  }
+
+  .slide-subtitle {
+    font-size: 42px;
+    font-weight: 500;
+    text-align: center;
+    max-width: 950px;
+    line-height: 1.4;
+    padding: 0 60px;
+    opacity: 0.75;
+  }
+
+  /* ===== Decorations ===== */
+  .glow-orb {
+    position: absolute !important;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .slide > *:not(.glow-orb) { position: relative; z-index: 1; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 14px 32px;
+    border-radius: 100px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .features-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .feature-pill {
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-size: 28px;
+    font-weight: 600;
+  }
+
+  /* ===== SLIDE 1 - Hero ===== */
+  .slide.tablet-slide.slide-1 {
+    background: linear-gradient(160deg, #7C3AED 0%, #4F46E5 40%, #2563EB 100%);
+  }
+  .slide-1 .slide-title { font-size: 72px; color: #fff; }
+  .slide-1 .slide-subtitle { font-size: 36px; color: rgba(255,255,255,0.85); }
+  .slide-1 .tablet-frame {
+    width: 800px;
+    height: 830px;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.15), 0 0 0 6px rgba(255,255,255,0.05), 0 60px 120px rgba(0,0,0,0.4);
+  }
+
+  /* ===== SLIDE 2 - Onboarding ===== */
+  .slide-2 {
+    background: linear-gradient(170deg, #F8F5FF 0%, #EDE9FE 50%, #DDD6FE 100%);
+  }
+  .slide-2 .slide-title { color: #1e1b4b; }
+  .slide-2 .slide-subtitle { color: #4338ca; opacity: 0.7; }
+  .slide-2 .badge { background: rgba(99,102,241,0.1); color: #4338ca; border: 2px solid rgba(99,102,241,0.2); }
+  .slide-2 .feature-pill { background: rgba(99,102,241,0.1); color: #4338ca; border: 2px solid rgba(99,102,241,0.15); }
+  .slide-2 .tablet-frame {
+    background: #f5f5f5;
+    box-shadow: 0 0 0 3px #d4d4d8, 0 0 0 6px #e4e4e7, 0 60px 120px rgba(79,70,229,0.2);
+  }
+
+  /* ===== SLIDE 3 - Spaced Repetition ===== */
+  .slide-3 {
+    background: linear-gradient(160deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%);
+  }
+  .slide-3 .slide-title { color: #fff; }
+  .slide-3 .slide-subtitle { color: rgba(255,255,255,0.7); }
+  .slide-3 .badge { background: rgba(139,92,246,0.15); color: #a78bfa; border: 2px solid rgba(139,92,246,0.25); }
+  .slide-3 .phone-frame {
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.3), 0 0 0 6px rgba(139,92,246,0.1), 0 60px 120px rgba(0,0,0,0.5), 0 0 200px rgba(139,92,246,0.15);
+  }
+
+  /* ===== SLIDE 4 - Light & Dark ===== */
+  .slide-4 {
+    background: linear-gradient(170deg, #09090b 0%, #18181b 40%, #1c1917 100%);
+    transform: scale(0.18);
+  }
+  .slide-4 .slide-title { color: #fff; }
+  .slide-4 .slide-subtitle { color: rgba(255,255,255,0.6); }
+  .slide-4 .badge { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 2px solid rgba(255,255,255,0.12); }
+  .slide-4 .dual-phones { display: flex; gap: 50px; align-items: flex-start; }
+  .slide-4 .dual-phones .phone-frame { width: 480px; height: 1075px; }
+  .slide-4 .phone-label {
+    text-align: center; font-size: 30px; font-weight: 600; margin-top: 24px;
+    opacity: 0.5; letter-spacing: 3px; text-transform: uppercase; color: #fff;
+  }
+  .slide-4 .phone-frame { box-shadow: 0 0 0 3px #333, 0 0 0 6px #222, 0 60px 120px rgba(0,0,0,0.6); }
+
+  /* ===== SLIDE 5 - Flashcard ===== */
+  .slide-5 {
+    background: linear-gradient(155deg, #FDF4FF 0%, #FAE8FF 30%, #F0ABFC 100%);
+  }
+  .slide-5 .slide-title { color: #4a044e; }
+  .slide-5 .slide-subtitle { color: #86198f; opacity: 0.7; }
+  .slide-5 .badge { background: rgba(168,85,247,0.1); color: #7e22ce; border: 2px solid rgba(168,85,247,0.2); }
+  .slide-5 .phone-frame {
+    background: #fafafa;
+    box-shadow: 0 0 0 3px #e4e4e7, 0 0 0 6px #f4f4f5, 0 60px 120px rgba(168,85,247,0.25);
+  }
+
+  /* ===== SLIDE 6 - Word Manager ===== */
+  .slide-6 {
+    background: linear-gradient(160deg, #ECFDF5 0%, #D1FAE5 40%, #A7F3D0 100%);
+  }
+  .slide-6 .slide-title { color: #064e3b; }
+  .slide-6 .slide-subtitle { color: #047857; opacity: 0.7; }
+  .slide-6 .badge { background: rgba(16,185,129,0.12); color: #059669; border: 2px solid rgba(16,185,129,0.2); }
+  .slide-6 .phone-frame {
+    background: #f5f5f5;
+    box-shadow: 0 0 0 3px #d4d4d8, 0 0 0 6px #e4e4e7, 0 60px 120px rgba(16,185,129,0.2);
+  }
+
+  /* ===== SLIDE 7 - Settings ===== */
+  .slide-7 {
+    background: linear-gradient(160deg, #FFF7ED 0%, #FFEDD5 40%, #FED7AA 100%);
+  }
+  .slide-7 .slide-title { color: #7c2d12; }
+  .slide-7 .slide-subtitle { color: #c2410c; opacity: 0.7; }
+  .slide-7 .badge { background: rgba(234,88,12,0.08); color: #c2410c; border: 2px solid rgba(234,88,12,0.15); }
+  .slide-7 .phone-frame {
+    background: #fafafa;
+    box-shadow: 0 0 0 3px #e4e4e7, 0 0 0 6px #f4f4f5, 0 60px 120px rgba(251,146,60,0.2);
+  }
+
+  /* ===== SLIDE 8 - Tablet ===== */
+  .slide-8 {
+    background: linear-gradient(160deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+  }
+  .slide-8 .slide-title { color: #fff; }
+  .slide-8 .slide-subtitle { color: rgba(255,255,255,0.75); }
+  .slide-8 .badge { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: 2px solid rgba(255,255,255,0.15); }
+  .slide-8 .tablet-frame {
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.3), 0 0 0 6px rgba(139,92,246,0.1), 0 60px 120px rgba(0,0,0,0.5), 0 0 200px rgba(139,92,246,0.12);
+  }
+
+  /* ===== Landscape wrapper ===== */
+  .slide-wrapper.landscape {
+    width: 420px;
+    height: 194px;
+    margin: 24px auto;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    clip-path: inset(0 round 18px);
+  }
+
+  /* Landscape slide: 2778x1284 (App Store 6.7" landscape) */
+  .slide.landscape-slide {
+    width: 2778px;
+    height: 1284px;
+    transform: scale(0.151);
+    border-radius: 80px;
+  }
+
+  /* ===== SLIDE 9 - Panorama ===== */
+  .slide-9 {
+    background:
+      radial-gradient(ellipse 50% 70% at 10% 40%, rgba(139,92,246,0.2) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 60% at 55% 80%, rgba(99,102,241,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 55% at 90% 30%, rgba(139,92,246,0.15) 0%, transparent 50%),
+      linear-gradient(135deg, #12102e 0%, #1a1445 30%, #1e1650 60%, #161240 100%);
+    display: block !important;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Floating phone device */
+  .pano-phone {
+    position: absolute;
+    width: 380px;
+    height: 780px;
+    border-radius: 44px;
+    background: #f8f8f8;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 2px rgba(255,255,255,0.12),
+      0 30px 70px rgba(0,0,0,0.45),
+      0 0 100px rgba(99,102,241,0.08);
+  }
+  .pano-phone::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 20px;
+    background: #f8f8f8;
+    border-radius: 0 0 14px 14px;
+    z-index: 2;
+  }
+  .pano-phone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 44px;
+  }
+
+  /* Phone positions — scattered panorama style */
+  .pano-phone-1 {
+    left: 80px; top: 340px;
+    transform: rotate(-3deg);
+  }
+  .pano-phone-2 {
+    left: 820px; top: 220px;
+    width: 420px; height: 862px;
+    transform: rotate(2deg);
+  }
+  .pano-phone-3 {
+    left: 1580px; top: 180px;
+    width: 400px; height: 820px;
+    transform: rotate(-4deg);
+  }
+  .pano-phone-4 {
+    left: 2200px; top: 260px;
+    width: 370px; height: 760px;
+    transform: rotate(3deg);
+  }
+
+  /* Floating text blocks */
+  .pano-text {
+    position: absolute;
+    z-index: 2;
+  }
+
+  .pano-text-1 {
+    left: 100px; top: 100px;
+    width: 460px;
+  }
+  .pano-text-1 .pano-heading {
+    font-size: 82px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.05;
+    letter-spacing: -2px;
+  }
+
+  .pano-text-2 {
+    left: 530px; top: 100px;
+    width: 480px;
+  }
+  .pano-text-2 .pano-heading {
+    font-size: 68px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .pano-text-2 .pano-heading .accent { color: #a78bfa; }
+  .pano-text-2 .pano-body {
+    font-size: 30px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.5;
+    margin-top: 16px;
+  }
+
+  .pano-text-3 {
+    left: 1320px; top: 560px;
+    width: 360px;
+    text-align: right;
+  }
+  .pano-text-3 .pano-heading {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .pano-text-3 .pano-heading .accent { color: #4ade80; }
+
+  .pano-text-4 {
+    right: 100px; top: 80px;
+    width: 400px;
+    text-align: right;
+  }
+  .pano-text-4 .pano-heading {
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .pano-text-4 .pano-heading .accent { color: #f472b6; }
+
+  /* App icon */
+  .pano-icon {
+    position: absolute;
+    left: 100px; top: 80px;
+    width: 100px; height: 100px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #7C3AED, #4F46E5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 30px rgba(99,102,241,0.4);
+    z-index: 2;
+  }
+  .pano-icon svg {
+    width: 56px; height: 56px;
+  }
+</style>
+</head>
+<body>
+
+<div class="instructions">
+  <p><strong>Lexicon App Store Screenshots</strong> &mdash; Previews at 1/3 scale. Full resolution: 1290&times;2796px (iPhone 6.7&Prime;).</p>
+  <p>To capture full-res: DevTools &rarr; inspect the inner <code>.slide</code> div &rarr; right-click node &rarr; "Capture node screenshot"</p>
+</div>
+
+<!-- SLIDE 1 -->
+<div class="slide-wrapper tablet">
+  <div class="slide tablet-slide slide-1" id="slide-1">
+    <div class="glow-orb" style="width:600px;height:600px;background:rgba(167,139,250,0.3);top:100px;right:-100px;"></div>
+    <div class="glow-orb" style="width:500px;height:500px;background:rgba(59,130,246,0.3);bottom:200px;left:-100px;"></div>
+    <div class="slide-title">Remember<br>Every Word</div>
+    <div class="slide-subtitle">The vocabulary app that makes new words stick</div>
+    <div class="tablet-frame">
+      <img src="Screenshot_20260313_102615.png" alt="Lexicon splash screen">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2 -->
+<div class="slide-wrapper tablet">
+  <div class="slide tablet-slide slide-2" id="slide-2">
+    <div class="glow-orb" style="width:700px;height:700px;background:rgba(139,92,246,0.08);top:-100px;left:50%;transform:translateX(-50%);"></div>
+    <div class="badge">Quick Start</div>
+    <div class="slide-title">Ready in<br>Seconds</div>
+    <div class="slide-subtitle">Pick your language and start learning with built-in starter words</div>
+    <div class="features-row">
+      <div class="feature-pill">13 Languages</div>
+      <div class="feature-pill">Starter Words</div>
+      <div class="feature-pill">Any Level</div>
+    </div>
+    <div class="tablet-frame">
+      <img src="Screenshot_20260313_102634.png" alt="Onboarding">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3 -->
+<div class="slide-wrapper">
+  <div class="slide slide-3" id="slide-3">
+    <div class="glow-orb" style="width:800px;height:800px;background:rgba(139,92,246,0.15);top:400px;left:50%;transform:translateX(-50%);"></div>
+    <div class="badge">Smart Review</div>
+    <div class="slide-title">Words<br>That Stick</div>
+    <div class="slide-subtitle">Seven stages take each word from new to fully memorized</div>
+    <div class="phone-frame">
+      <img src="Screenshot_20260313_102948.png" alt="Study dashboard light">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4 -->
+<div class="slide-wrapper">
+  <div class="slide slide-4" id="slide-4">
+    <div class="glow-orb" style="width:600px;height:600px;background:rgba(139,92,246,0.12);top:300px;left:50%;transform:translateX(-50%);"></div>
+    <div class="badge">Day &amp; Night</div>
+    <div class="slide-title">Light &amp; Dark<br>Mode</div>
+    <div class="slide-subtitle">Comfortable studying, any time of day</div>
+    <div class="dual-phones">
+      <div>
+        <div class="phone-frame"><img src="Screenshot_20260313_102948.png" alt="Light mode"></div>
+        <div class="phone-label">Light</div>
+      </div>
+      <div>
+        <div class="phone-frame"><img src="Screenshot_20260313_102959.png" alt="Dark mode"></div>
+        <div class="phone-label">Dark</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5 -->
+<div class="slide-wrapper">
+  <div class="slide slide-5" id="slide-5">
+    <div class="glow-orb" style="width:700px;height:700px;background:rgba(232,121,249,0.15);bottom:100px;right:-100px;"></div>
+    <div class="badge">Study Mode</div>
+    <div class="slide-title">Learn<br>by Doing</div>
+    <div class="slide-subtitle">Flip cards, hear pronunciation,<br>and track what you know</div>
+    <div class="phone-frame">
+      <img src="Screenshot_20260313_103053.png" alt="Flashcard review">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6 -->
+<div class="slide-wrapper">
+  <div class="slide slide-6" id="slide-6">
+    <div class="glow-orb" style="width:600px;height:600px;background:rgba(16,185,129,0.1);top:200px;left:-100px;"></div>
+    <div class="badge">Word Manager</div>
+    <div class="slide-title">All Your Words,<br>One Place</div>
+    <div class="slide-subtitle">Search and filter by language or level — find any word instantly</div>
+    <div class="phone-frame">
+      <img src="Screenshot_20260313_103307.png" alt="Word Manager">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7 -->
+<div class="slide-wrapper">
+  <div class="slide slide-7" id="slide-7">
+    <div class="glow-orb" style="width:600px;height:600px;background:rgba(251,146,60,0.1);bottom:200px;right:-100px;"></div>
+    <div class="badge">Settings</div>
+    <div class="slide-title">Your Way<br>of Learning</div>
+    <div class="slide-subtitle">Language, theme, and notifications — set up once, learn your way</div>
+    <div class="phone-frame">
+      <img src="Screenshot_20260313_103258.png" alt="Settings">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8 -->
+<div class="slide-wrapper tablet">
+  <div class="slide tablet-slide slide-8" id="slide-8">
+    <div class="glow-orb" style="width:700px;height:700px;background:rgba(99,102,241,0.15);bottom:100px;left:-100px;"></div>
+    <div class="badge">Tablet</div>
+    <div class="slide-title">Learn on<br>Any Screen</div>
+    <div class="slide-subtitle">Full tablet layout with everything visible at a glance</div>
+    <div class="tablet-frame">
+      <img src="Screenshot_20260313_102932.png" alt="Tablet study dashboard">
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9 - Panorama (Landscape 2778x1284) -->
+<div class="slide-wrapper landscape">
+  <div class="slide landscape-slide slide-9" id="slide-9">
+
+    <!-- App icon -->
+    <div class="pano-icon">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 3L4 9v12h16V9l-8-6z" fill="rgba(255,255,255,0.9)"/>
+        <path d="M12 3L4 9l8 6 8-6-8-6z" fill="rgba(255,255,255,0.5)"/>
+      </svg>
+    </div>
+
+    <!-- Text block 1: Hero headline -->
+    <div class="pano-text pano-text-1">
+      <div class="pano-heading">Master<br>languages<br>naturally.</div>
+    </div>
+
+    <!-- Text block 2: Feature callout -->
+    <div class="pano-text pano-text-2">
+      <div class="pano-heading"><span class="accent">Organize</span> your entire vocabulary</div>
+      <div class="pano-body">Smart categories and custom lists make review sessions a breeze.</div>
+    </div>
+
+    <!-- Text block 3: Progress callout -->
+    <div class="pano-text pano-text-3">
+      <div class="pano-heading"><span class="accent">Track</span> progress every single day</div>
+    </div>
+
+    <!-- Text block 4: CTA -->
+    <div class="pano-text pano-text-4">
+      <div class="pano-heading"><span class="accent">Fluency</span><br>starts here</div>
+    </div>
+
+    <!-- Floating phones -->
+    <div class="pano-phone pano-phone-1">
+      <img src="Screenshot_20260313_103053.png" alt="Flashcard">
+    </div>
+    <div class="pano-phone pano-phone-2">
+      <img src="Screenshot_20260313_103307.png" alt="Word Manager">
+    </div>
+    <div class="pano-phone pano-phone-3">
+      <img src="Screenshot_20260313_102948.png" alt="Study dashboard">
+    </div>
+    <div class="pano-phone pano-phone-4">
+      <img src="Screenshot_20260313_102959.png" alt="Dark mode">
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
