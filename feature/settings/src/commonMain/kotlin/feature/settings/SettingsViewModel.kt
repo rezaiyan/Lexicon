@@ -11,6 +11,7 @@ import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
 import core.common.getOrDefault
+import core.common.getOrElse
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -83,7 +84,7 @@ class SettingsViewModel(
 
     private fun initializeNotificationState() {
         viewModelScope.launch {
-            val systemEnabled = notificationRepository.areNotificationsEnabled()
+            val systemEnabled = notificationRepository.areNotificationsEnabled().getOrDefault(true)
             if (!systemEnabled) {
                 setNotificationsEnabledUseCase(false)
             }

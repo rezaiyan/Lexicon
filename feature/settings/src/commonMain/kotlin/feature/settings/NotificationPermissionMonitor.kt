@@ -1,5 +1,6 @@
 package feature.settings
 
+import core.common.getOrDefault
 import domain.notifications.repository.INotificationRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +20,7 @@ class NotificationPermissionMonitor(
         .onStart { emit(Unit) }
         .flatMapLatest {
             flow {
-                emit(notificationRepository.areNotificationsEnabled())
+                emit(notificationRepository.areNotificationsEnabled().getOrDefault(false))
             }
         }
         .catch { emit(false) }
