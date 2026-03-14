@@ -141,19 +141,23 @@ fun ErrorScreen(
 }
 
 /**
- * Full-screen centered empty state with an emoji/icon slot, title, and subtitle.
+ * Full-screen centered empty state with an emoji/icon slot, title, subtitle, and optional CTA button.
  *
  * @param title The main heading text.
  * @param modifier Optional modifier.
  * @param subtitle Optional secondary text.
  * @param icon Optional content slot displayed above the title (typically an emoji Text or an Icon).
+ * @param actionLabel Optional label for a CTA button. When non-null, a button is shown below the subtitle.
+ * @param onAction Callback for the CTA button.
  */
 @Composable
 fun EmptyScreen(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    icon: (@Composable () -> Unit)? = null
+    icon: (@Composable () -> Unit)? = null,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null,
 ) {
     Box(
         modifier = modifier
@@ -184,6 +188,19 @@ fun EmptyScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
+            }
+            if (actionLabel != null && onAction != null) {
+                Button(
+                    onClick = onAction,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = actionLabel,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -29,6 +29,8 @@ import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
 import feature.study.model.ReviewType
 import core.common.UiState
+import components.ErrorScreen
+import components.LoadingScreen
 import presentation.ui.LocalSnackbarHostState
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
@@ -176,16 +178,27 @@ fun StudyScreen() {
         Column(Modifier.padding(bottom = Theme.spacing.xs)) {
             when (uiState) {
                 is UiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                    LoadingScreen(message = "Preparing your study session...")
                 }
 
                 is UiState.Error -> {
-                    // Error state handled by snackbar if needed
+                    val errorMessage = (uiState as UiState.Error).message
+                    val isNetworkError = errorMessage.contains("timeout", ignoreCase = true) ||
+                        errorMessage.contains("connect", ignoreCase = true) ||
+                        errorMessage.contains("network", ignoreCase = true) ||
+                        errorMessage.contains("internet", ignoreCase = true)
+
+                    ErrorScreen(
+                        message = if (isNetworkError) {
+                            "You're offline -- changes will sync when reconnected."
+                        } else {
+                            errorMessage.ifEmpty { "Something went wrong loading your progress." }
+                        },
+                        title = if (isNetworkError) "No Connection" else "Oops!",
+                        icon = if (isNetworkError) Icons.Default.WifiOff else null,
+                        retryLabel = "Try Again",
+                        onRetry = { progressViewModel.refreshStats() }
+                    )
                 }
 
                 is UiState.Loaded -> {
