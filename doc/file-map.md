@@ -186,7 +186,7 @@ ui/screens/subscription/ComparisonTable.kt
 ui/components/imports/ImportBottomSheet.kt
 ui/components/imports/ImportViewModel.kt
 ui/components/imports/ImportUiState.kt
-ui/components/imports/ImportEvent.kt
+ui/components/imports/ImportEffect.kt
 ui/components/imports/AiWordImportBottomSheet.kt
 ui/components/imports/ImportMethodSelectorContent.kt
 
