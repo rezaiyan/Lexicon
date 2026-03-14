@@ -25,6 +25,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import domain.word.model.ProgressEvaluation
@@ -80,7 +84,7 @@ fun StatsSection(
     ) {
         Box {
             // Decorative blob in top-right corner
-            Canvas(modifier = Modifier.matchParentSize()) {
+            Canvas(modifier = Modifier.matchParentSize().clearAndSetSemantics { }) {
                 drawCircle(
                     color = AppColors.primary.copy(alpha = 0.06f),
                     radius = 100.dp.toPx(),
@@ -101,7 +105,14 @@ fun StatsSection(
                 ProgressRing(
                     progress = evaluation.progressFraction,
                     progressColor = accentColor,
-                    modifier = Modifier.size(110.dp),
+                    modifier = Modifier.size(110.dp)
+                        .semantics {
+                            stateDescription = if (evaluation.tier == ProgressTier.EMPTY) {
+                                "No progress yet"
+                            } else {
+                                "Overall progress: ${evaluation.progressPercent}%"
+                            }
+                        },
                     trackColor = trackColor,
                 ) {
                     Box(
@@ -145,7 +156,8 @@ fun StatsSection(
                         text = tierTitle(evaluation.tier),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = accentColor
+                        color = accentColor,
+                        modifier = Modifier.semantics { heading() }
                     )
 
                     Spacer(Modifier.height(Theme.spacing.xxs))

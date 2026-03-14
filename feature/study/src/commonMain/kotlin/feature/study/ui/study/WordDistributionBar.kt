@@ -17,6 +17,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import domain.word.model.ProgressStats
 import theme.AppColors
 import theme.Theme
@@ -50,12 +52,18 @@ fun WordDistributionBar(
         label = "distributionBar"
     )
 
+    val masteredCount = stats.level5Count + stats.level6Count
+    val distributionDescription = "Word distribution: ${stats.totalWords} total words, " +
+        "${stats.level0Count} new, ${stats.level1Count + stats.level2Count} learning, " +
+        "${stats.level3Count + stats.level4Count} intermediate, $masteredCount mastered"
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(Theme.spacing.xs)
             .padding(bottom = Theme.spacing.small)
             .clip(RoundedCornerShape(Theme.shapes.extraSmall))
+            .semantics { contentDescription = distributionDescription }
     ) {
         segments.forEach { segment ->
             val fraction = if (segment.count > 0) {
