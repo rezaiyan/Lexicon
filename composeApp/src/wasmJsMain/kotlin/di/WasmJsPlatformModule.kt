@@ -11,6 +11,7 @@ import data.storage.SecureStorage
 import data.storage.WasmJsSecureStorage
 import data.subscription.WebSubscriptionManager
 import domain.subscription.ISubscriptionManager
+import domain.widget.IWidgetRefresher
 import org.koin.dsl.module
 import platform.IAppVersionProvider
 import platform.WasmJsAppVersionProvider
@@ -30,6 +31,9 @@ fun wasmJsPlatformModule() = module {
     // Auth State Providers
     single<IAppleAuthStateProvider> { WasmJsAppleAuthStateProvider() }
     single<IGoogleAuthStateProvider> { WasmJsGoogleAuthStateProvider() }
+
+    // Widget Refresher (no-op on web)
+    single<IWidgetRefresher> { widget.NoOpWidgetRefresher }
 
     // Subscription Manager (web stub)
     single<ISubscriptionManager> { WebSubscriptionManager() }

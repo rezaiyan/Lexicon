@@ -24,7 +24,11 @@ import kotlin.test.assertTrue
 class DeleteWordsUseCaseTest {
     
     private val fakeRepository = FakeWordRepositoryForDelete()
-    private val useCase = DeleteWordsUseCase(fakeRepository)
+    private val useCase = DeleteWordsUseCase(
+        fakeRepository,
+        fakes.FakeWidgetRefresher(),
+        fakes.fakeGetDailyWidgetDataUseCase(fakeRepository),
+    )
     
     @Test
     fun `empty word list should return error`() = runTest {

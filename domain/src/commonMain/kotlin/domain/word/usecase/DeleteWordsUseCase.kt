@@ -1,50 +1,56 @@
 package domain.word.usecase
 
 import core.common.FlowUseCase
+import domain.widget.IWidgetRefresher
+import domain.widget.usecase.GetDailyWidgetDataUseCase
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 
 /**
- * Use case for deleting multiple words at once using batch operation
- * Uses Flow for reactive state management and proper sequential execution
- *
- * Flow sequence:
- * 1. Deleting (initial state)
- * 2. DeletingFromBackend (backend deletion in progress)
- * 3. DeletingFromLocal (local database deletion in progress)
- * 4. Success/Error (final state)
+ * Use case for deleting multiple words at once using batch operation.
+ * If any deleted word is the one currently displayed on the widget,
+ * refreshes the widget with a new word.
  */
 class DeleteWordsUseCase(
-    private val wordRepository: IWordRepository
+    private val wordRepository: IWordRepository,
+    private val widgetRefresher: IWidgetRefresher,
+    private val getDailyWidgetDataUseCase: GetDailyWidgetDataUseCase,
 ) : FlowUseCase<List<Int>, DeleteWordsResult> {
     override operator fun invoke(wordIds: List<Int>): Flow<DeleteWordsResult> {
         if (wordIds.isEmpty()) {
             return flowOf(DeleteWordsResult.Error("No words selected"))
         }
-        
-        // Chain repository Flow and map progress to result states
+
         return wordRepository.deleteWords(wordIds)
             .map { progress ->
                 when (progress) {
-                    is DeleteWordsProgress.DeletingFromBackend -> 
+                    is DeleteWordsProgress.DeletingFromBackend ->
                         DeleteWordsResult.DeletingBackend(progress.count)
-                    
-                    is DeleteWordsProgress.DeletingFromLocal -> 
+
+                    is DeleteWordsProgress.DeletingFromLocal ->
                         DeleteWordsResult.DeletingLocal(progress.count)
-                    
-                    is DeleteWordsProgress.Completed -> 
+
+                    is DeleteWordsProgress.Completed ->
                         DeleteWordsResult.Success(progress.count)
-                    
-                    is DeleteWordsProgress.Failed -> 
+
+                    is DeleteWordsProgress.Failed ->
                         DeleteWordsResult.Error(progress.error)
                 }
             }
+            .onEach { result ->
+                if (result is DeleteWordsResult.Success) {
+                    val displayedId = widgetRefresher.getDisplayedWordId()
+                    if (displayedId != null && displayedId in wordIds) {
+                        getDailyWidgetDataUseCase(Unit)
+                    }
+                }
+            }
             .onStart {
-                // Emit initial deleting state
                 emit(DeleteWordsResult.Deleting(wordIds.size))
             }
     }
@@ -57,4 +63,3 @@ sealed class DeleteWordsResult {
     data class Success(val count: Int) : DeleteWordsResult()
     data class Error(val message: String) : DeleteWordsResult()
 }
-

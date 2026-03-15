@@ -5,6 +5,7 @@ package domain.widget.model
  * Contains the word to display and the user's current streak.
  */
 data class DailyWidgetData(
+    val wordId: Int,
     val word: String,
     val translation: String,
     val streakCount: Int,

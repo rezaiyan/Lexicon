@@ -12,8 +12,10 @@ import data.storage.IOSPlatformSecureStorage
 import data.storage.SecureStorage
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import domain.widget.IWidgetRefresher
 import platform.IAppVersionProvider
 import platform.IOSAppVersionProvider
+import widget.IosWidgetRefresher
 
 /**
  * iOS platform-specific module
@@ -42,6 +44,9 @@ fun iosPlatformModule(): Module = module {
     single<IGoogleAuthStateProvider> {
         IOSGoogleAuthStateProvider()
     }
+
+    // Widget Refresher
+    single<IWidgetRefresher> { IosWidgetRefresher() }
 
     // Account Deletion Handler
     single {

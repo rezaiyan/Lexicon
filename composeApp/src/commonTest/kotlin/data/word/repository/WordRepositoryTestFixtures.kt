@@ -114,10 +114,11 @@ internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
     override suspend fun syncWordDeletionToRemote(id: Long): Try<Unit> {
         syncWordDeletionCallCount++
         lastSyncedDeletionId = id
-        if (shouldFailSyncWordDeletion) {
-            throw RuntimeException("Remote deletion sync failed")
+        return if (shouldFailSyncWordDeletion) {
+            Try.failure(RuntimeException("Remote deletion sync failed"))
+        } else {
+            Try.success(Unit)
         }
-        return Try.success(Unit)
     }
 
     override suspend fun syncWordsDeletionToRemote(ids: List<Long>): Try<Unit> =

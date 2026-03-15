@@ -18,7 +18,11 @@ import kotlin.test.assertTrue
 class DeleteWordUseCaseTest {
 
     private val repository = FakeWordRepository()
-    private val useCase = DeleteWordUseCase(repository)
+    private val useCase = DeleteWordUseCase(
+        repository,
+        fakes.FakeWidgetRefresher(),
+        fakes.fakeGetDailyWidgetDataUseCase(repository),
+    )
 
     @Test
     fun `successful deletion returns success result`() = runTest {

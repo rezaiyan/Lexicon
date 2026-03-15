@@ -6,6 +6,7 @@ import core.common.flatMap
 import core.common.getOrDefault
 import core.common.map
 import domain.streak.repository.IStreakRepository
+import domain.widget.IWidgetRefresher
 import domain.widget.model.DailyWidgetData
 import domain.word.repository.IWordRepository
 import kotlin.random.Random
@@ -16,10 +17,15 @@ import kotlin.random.Random
  * Selects a word deterministically per day (using the day-of-epoch as seed)
  * so the widget shows the same word throughout the day, and pairs it with
  * the user's current streak count and due-card count.
+ *
+ * After selecting, pushes the data to the platform widget and records
+ * the displayed word ID so the widget can be refreshed when that word
+ * is deleted or updated.
  */
 class GetDailyWidgetDataUseCase(
     private val wordRepository: IWordRepository,
-    private val streakRepository: IStreakRepository
+    private val streakRepository: IStreakRepository,
+    private val widgetRefresher: IWidgetRefresher,
 ) : NoParamUseCase<DailyWidgetData> {
 
     override suspend operator fun invoke(params: Unit): Try<DailyWidgetData> {
@@ -39,14 +45,17 @@ class GetDailyWidgetDataUseCase(
 
             val dueCount = wordRepository.getDueCount().getOrDefault(0)
 
-            Try.success(
-                DailyWidgetData(
-                    word = selectedWord.originalWord,
-                    translation = selectedWord.translation,
-                    streakCount = streakCount,
-                    dueCardCount = dueCount
-                )
+            val data = DailyWidgetData(
+                wordId = selectedWord.id,
+                word = selectedWord.originalWord,
+                translation = selectedWord.translation,
+                streakCount = streakCount,
+                dueCardCount = dueCount
             )
+
+            widgetRefresher.push(data)
+
+            Try.success(data)
         }
     }
 

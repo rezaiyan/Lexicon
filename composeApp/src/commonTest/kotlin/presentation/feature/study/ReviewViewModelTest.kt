@@ -154,7 +154,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             getWordsByStageUseCase = GetWordsByStageUseCase(wordRepo),
             reviewWordUseCase = ReviewWordUseCase(wordRepo, GetReviewSettingsUseCase()),
             updateWordUseCase = UpdateWordUseCase(wordRepo),
-            deleteWordUseCase = DeleteWordUseCase(wordRepo),
+            deleteWordUseCase = DeleteWordUseCase(wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)),
             recordStreakActivityUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
             analyticsTracker = fakeAnalytics(),

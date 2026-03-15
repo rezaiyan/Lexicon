@@ -75,10 +75,11 @@ class WordRepositoryImpl(
     }
 
     override suspend fun deleteWord(id: Int): Try<Unit> {
-        return Try {
-            localDataSource.deleteWord(id)
-            remoteSyncHandler.syncWordDeletionToRemote(id.toLong())
-        }
+        return remoteSyncHandler.syncWordDeletionToRemote(id.toLong())
+            .fold(
+                onSuccess = { Try { localDataSource.deleteWord(id) } },
+                onFailure = { Try.failure(it) }
+            )
     }
 
     override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> {
@@ -88,32 +89,21 @@ class WordRepositoryImpl(
 
         return flow {
             emit(DeleteWordsProgress.DeletingFromBackend(ids.size))
+
+            val remoteResult = remoteSyncHandler.syncWordsDeletionToRemote(ids.map { it.toLong() })
+            remoteResult.fold(
+                onSuccess = {
+                    emit(DeleteWordsProgress.DeletingFromLocal(ids.size))
+                    val deletedCount = localDataSource.deleteWords(ids)
+                    emit(DeleteWordsProgress.Completed(deletedCount))
+                },
+                onFailure = { error ->
+                    emit(DeleteWordsProgress.Failed(error.message ?: "Failed to delete from server"))
+                }
+            )
+        }.catch { error ->
+            emit(DeleteWordsProgress.Failed(error.message ?: "Failed to delete words"))
         }
-            .flatMapConcat {
-                flow {
-                    val result =
-                        remoteSyncHandler.syncWordsDeletionToRemote(ids.map { it.toLong() })
-                    result.fold(
-                        onSuccess = { emit(DeleteWordsProgress.DeletingFromLocal(ids.size)) },
-                        onFailure = { emit(DeleteWordsProgress.DeletingFromLocal(ids.size)) }
-                    )
-                }
-            }
-            .flatMapConcat { deletingLocalState ->
-                flow {
-                    emit(deletingLocalState)
-                    val deletedCount = localDataSource.deleteWords(ids)
-                    emit(DeleteWordsProgress.Completed(deletedCount))
-                }
-            }
-            .catch { error ->
-                Try {
-                    val deletedCount = localDataSource.deleteWords(ids)
-                    emit(DeleteWordsProgress.Completed(deletedCount))
-                }.onFailure {
-                    emit(DeleteWordsProgress.Failed(error.message ?: "Failed to delete words"))
-                }
-            }
     }
 
     override fun updateWordsLanguages(

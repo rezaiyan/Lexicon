@@ -1,6 +1,5 @@
 package widget
 
-import core.common.getOrNull
 import domain.widget.usecase.GetDailyWidgetDataUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +22,7 @@ object IosWidgetUpdater {
             @Suppress("TooGenericExceptionCaught")
             try {
                 val useCase: GetDailyWidgetDataUseCase = koin.get()
-                val data = useCase(Unit).getOrNull() ?: return@launch
-                IosWidgetDataWriter.write(data)
+                useCase(Unit)
             } catch (_: Exception) {
                 // Silently fail - widget will show empty/stale state
             }

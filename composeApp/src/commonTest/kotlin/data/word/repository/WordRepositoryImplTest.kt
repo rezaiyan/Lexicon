@@ -162,7 +162,7 @@ class WordRepositoryImplTest {
     }
 
     // -------------------------------------------------------------------------
-    // deleteWord — deletes local then syncs to remote
+    // deleteWord — remote first, local on success
     // -------------------------------------------------------------------------
 
     @Test
@@ -191,7 +191,7 @@ class WordRepositoryImplTest {
     }
 
     @Test
-    fun `deleteWord with remote failure returns failure but local delete still applied`() = runTest {
+    fun `deleteWord with remote failure returns failure and does not delete locally`() = runTest {
         val local = FakeWordLocalDataSource()
         val remote = FakeWordRemoteSyncHandler().apply { shouldFailSyncWordDeletion = true }
         val repo = makeRepository(local = local, remote = remote)
@@ -199,7 +199,7 @@ class WordRepositoryImplTest {
         val result = repo.deleteWord(15)
 
         assertTrue(result.isFailure)
-        assertTrue(local.deletedIds.contains(15))
+        assertTrue(local.deletedIds.isEmpty())
     }
 
     // -------------------------------------------------------------------------

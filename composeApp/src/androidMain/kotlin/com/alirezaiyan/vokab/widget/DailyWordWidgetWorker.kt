@@ -1,13 +1,14 @@
 package com.alirezaiyan.vokab.widget
 
 import android.content.Context
-import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import domain.widget.usecase.GetDailyWidgetDataUseCase
 import java.util.concurrent.TimeUnit
+import org.koin.java.KoinJavaComponent.getKoin
 
 /**
  * WorkManager worker that triggers a daily refresh of the [DailyWordWidget].
@@ -22,8 +23,13 @@ class DailyWordWidgetWorker(
 ) : CoroutineWorker(appContext, params) {
 
     override suspend fun doWork(): Result {
-        DailyWordWidget().updateAll(applicationContext)
-        return Result.success()
+        return try {
+            val useCase: GetDailyWidgetDataUseCase = getKoin().get()
+            useCase(Unit) // picks new word and pushes to widget via IWidgetRefresher
+            Result.success()
+        } catch (_: Exception) {
+            Result.retry()
+        }
     }
 
     companion object {

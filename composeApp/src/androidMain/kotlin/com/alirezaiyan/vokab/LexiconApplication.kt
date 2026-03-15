@@ -52,28 +52,28 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
 
     override val workManagerConfiguration: androidx.work.Configuration
         get() = androidx.work.Configuration.Builder()
-            .setMinimumLoggingLevel(android.util.Log.INFO)
+            .setMinimumLoggingLevel(Log.INFO)
             .build()
-    
+
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var crashlytics: FirebaseCrashlytics
-    
+
     override fun onCreate() {
         super.onCreate()
-        
+
         // Initialize Firebase
         FirebaseApp.initializeApp(this)
-        
+
         // Initialize Firebase Analytics
         analytics = Firebase.analytics
         analytics.setAnalyticsCollectionEnabled(true)
         Log.d(TAG, "Firebase Analytics initialized")
-        
+
         // Initialize Firebase Crashlytics
         crashlytics = FirebaseCrashlytics.getInstance()
         crashlytics.isCrashlyticsCollectionEnabled = true
         Log.d(TAG, "Firebase Crashlytics initialized")
-        
+
         // Initialize KMPAuth GoogleAuthProvider
         GoogleAuthProvider.create(
             credentials = GoogleAuthCredentials(
@@ -81,17 +81,17 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
             )
         )
         Log.d(TAG, "GoogleAuthProvider initialized")
-        
+
         // Initialize RevenueCat
         Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.INFO
         Purchases.configure(
             PurchasesConfiguration(AppConfig.REVENUECAT_ANDROID_KEY)
         )
         Log.d(TAG, "RevenueCat initialized")
-        
+
         // Create notification channel
         createNotificationChannel()
-        
+
         // Initialize Koin
         startKoin {
             androidContext(this@LexiconApplication)
@@ -104,7 +104,7 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
                 )
             )
         }
-        
+
         // Fetch remote feature flags
         val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         appScope.launch {
@@ -118,13 +118,22 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
             }
         }
 
-        // Schedule daily widget updates
+        // Schedule daily widget updates + push initial data
         DailyWordWidgetWorker.enqueue(this)
+        appScope.launch {
+            @Suppress("TooGenericExceptionCaught")
+            try {
+                val widgetUseCase = getKoin().get<domain.widget.usecase.GetDailyWidgetDataUseCase>()
+                widgetUseCase(Unit)
+            } catch (_: Exception) {
+                // Widget data push is best-effort
+            }
+        }
 
         // Log app start event
         analytics.logEvent("app_start", null)
     }
-    
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -137,13 +146,13 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
                 enableVibration(true)
                 setShowBadge(true)
             }
-            
+
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
             Log.d(TAG, "Notification channel created")
         }
     }
-    
+
     // Coil ImageLoader factory
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         return ImageLoader.Builder(context)
@@ -165,7 +174,7 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
             .logger(DebugLogger())
             .build()
     }
-    
+
     companion object {
         private const val TAG = "LexiconApp"
     }
