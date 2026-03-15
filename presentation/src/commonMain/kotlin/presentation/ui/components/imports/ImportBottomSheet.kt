@@ -25,11 +25,17 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import events.OnEvents
 import feature.onboarding.ui.components.LanguageGrid
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.import_error_file_format
+import lexicon.resources.generated.resources.import_error_image_hint
+import lexicon.resources.generated.resources.import_error_network
 import lexicon.resources.generated.resources.import_failed_generic
 import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.original_language_question
@@ -66,9 +72,15 @@ fun ImportBottomSheet(
     val viewModel = koinInject<ImportViewModel>()
     val state by viewModel.state()
     val pages = rememberBottomSheetPageNavigator<ImportPage>(ImportPage.MethodChooser)
-    val errorMessage = stringResource(Res.string.import_failed_generic)
+    val errorMessageGeneric = stringResource(Res.string.import_failed_generic)
+    val errorMessageNetwork = stringResource(Res.string.import_error_network)
+    val errorMessageImage = stringResource(Res.string.import_error_image_hint)
+    val errorMessageFileFormat = stringResource(Res.string.import_error_file_format)
     val successFormat = stringResource(Res.string.success_imported_words)
-    val latestErrorMessage = rememberUpdatedState(errorMessage)
+    val latestErrorGeneric = rememberUpdatedState(errorMessageGeneric)
+    val latestErrorNetwork = rememberUpdatedState(errorMessageNetwork)
+    val latestErrorImage = rememberUpdatedState(errorMessageImage)
+    val latestErrorFileFormat = rememberUpdatedState(errorMessageFileFormat)
     val latestSuccessFormat = rememberUpdatedState(successFormat)
 
     OnEvents(viewModel.effects) { effect ->
@@ -83,8 +95,26 @@ fun ImportBottomSheet(
                 onDismiss()
             }
             is ImportEffect.Error -> {
-                val message = if (effect.message.isNotEmpty()) "[Error] ${effect.message}"
-                else latestErrorMessage.value
+                val raw = effect.message
+                val isNetwork = raw.contains("timeout", ignoreCase = true) ||
+                    raw.contains("connect", ignoreCase = true) ||
+                    raw.contains("network", ignoreCase = true) ||
+                    raw.contains("internet", ignoreCase = true) ||
+                    raw.contains("offline", ignoreCase = true)
+                val isImageError = raw.contains("image", ignoreCase = true) ||
+                    raw.contains("extract", ignoreCase = true) ||
+                    raw.contains("recognition", ignoreCase = true)
+                val isFileError = raw.contains("parse", ignoreCase = true) ||
+                    raw.contains("format", ignoreCase = true) ||
+                    raw.contains("csv", ignoreCase = true)
+
+                val message = when {
+                    isNetwork -> latestErrorNetwork.value
+                    isImageError -> latestErrorImage.value
+                    isFileError -> latestErrorFileFormat.value
+                    raw.isNotEmpty() -> raw
+                    else -> latestErrorGeneric.value
+                }
                 onShowSnackBar(message)
                 onDismiss()
             }
@@ -311,13 +341,14 @@ private fun ImageProcessingOverlay() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .pointerInput(Unit) { detectTapGestures { } },
+            .pointerInput(Unit) { detectTapGestures { } }
+            .semantics { liveRegion = LiveRegionMode.Assertive },
         contentAlignment = Alignment.Center
     ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp),
+                .height(140.dp),
             shape = RoundedCornerShape(Theme.shapes.large),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -340,6 +371,11 @@ private fun ImageProcessingOverlay() {
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    "Extracting vocabulary from your image...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 )
             }
         }

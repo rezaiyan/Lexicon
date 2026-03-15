@@ -189,7 +189,7 @@
     <string name="next">Next</string>
     <string name="show_answer">Show Answer</string>
     <string name="think_of_answer_first">Take a moment to think first</string>
-    <string name="no_words_to_review">No words to review</string>
+    <string name="no_words_to_review">All caught up!</string>
     <string name="less_than_1m">&lt;1m</string>
     <string name="less_than_10m">&lt;10m</string>
     <string name="less_than_1d">&lt;1d</string>
@@ -208,7 +208,7 @@
     <string name="original_language">Original Language</string>
     <string name="translation">Translation: %1$d</string>
     <string name="processing_image_with_ai">Processing image with AI...</string>
-    <string name="processing_file">Processing file...</string>
+    <string name="processing_file">Importing words from file...</string>
     <string name="enter_words">Enter words</string>
     <string name="import_from_image">Import from Image (AI)</string>
     
@@ -309,7 +309,7 @@
     <string name="save">Save</string>
     <string name="share">Share</string>
     <string name="loading_words">Loading words...</string>
-    <string name="no_results_found">No results found</string>
+    <string name="no_results_found">No matching words</string>
     <string name="no_words_match">No words match "%1$d"</string>
     <string name="empty_library">Your word library is empty</string>
     <string name="start_by_importing">Tap the + button on the Study screen to add words via text, file, or AI assistant.</string>
@@ -416,9 +416,13 @@
     <!-- Vocabulary Import/Review Messages -->
     <string name="please_login_for_ai">Please login to extract vocabulary from images</string>
     <string name="import_failed">Import failed: %1$d</string>
-    <string name="import_failed_generic">Import failed</string>
+    <string name="import_failed_generic">Import failed -- check your file format (word,translation per line).</string>
     <string name="image_import_failed">Image import failed: %1$d</string>
     <string name="image_import_failed_generic">Image import failed</string>
+    <string name="import_error_network">You're offline -- please check your connection and try again.</string>
+    <string name="import_error_image_hint">Image extraction failed -- try a clearer photo with visible text.</string>
+    <string name="import_error_file_empty">No words found in this file. Use the format: word,translation (one pair per line).</string>
+    <string name="import_error_file_format">Could not parse the file. Make sure each line has: word,translation</string>
     
     <!-- Share/Export -->
     <string name="vokab_export_filename">lexicon_words_%1$d.txt</string>
@@ -427,8 +431,8 @@
     <string name="preview_selected_image">Preview Selected Image</string>
     <string name="review_before_processing">Review before processing</string>
     <string name="selected_image">Selected Image</string>
-    <string name="failed_to_load_image">Failed to load image</string>
-    <string name="try_another_image">Please try selecting another image</string>
+    <string name="failed_to_load_image">Could not load this image</string>
+    <string name="try_another_image">Try a different photo -- JPEG and PNG work best.</string>
     <string name="confirm_and_extract">Confirm &amp; Extract</string>
     <string name="confirm_image_help_text">Make sure the text is clearly visible for optimal recognition</string>
     
@@ -454,7 +458,7 @@
     <string name="unlock_now">Unlock Now</string>
     <string name="subscribe_now">Subscribe Now</string>
     <string name="subscribe">Subscribe</string>
-    <string name="subscription_unable_to_load">Oops! We couldn't load subscriptions</string>
+    <string name="subscription_unable_to_load">Couldn't load subscriptions -- check your connection and try again.</string>
     <string name="subscription_terms">Payment will be charged to your account. Your subscription will automatically renew unless you cancel at least 24 hours before the end of the current period. You can manage your subscription anytime in your account settings.</string>
     <string name="subscription_active">Active</string>
     <string name="subscription_cancelling">Expires Soon</string>
@@ -619,6 +623,21 @@
     <string name="remove_photo">Remove Photo</string>
     <string name="choose_from_gallery">Choose from Gallery</string>
     <string name="profile_updated">Profile updated</string>
+
+    <!-- TTS Model Cache -->
+    <string name="tts_models">TTS Models</string>
+    <string name="tts_models_subtitle">Manage offline voice models</string>
+    <string name="tts_models_total_size">Total: %1$s</string>
+    <string name="tts_models_downloaded_count">%1$d downloaded</string>
+    <string name="tts_model_downloaded">Downloaded</string>
+    <string name="tts_model_not_downloaded">Not downloaded</string>
+    <string name="tts_model_delete">Delete</string>
+    <string name="tts_model_delete_title">Delete TTS Model?</string>
+    <string name="tts_model_delete_message">The %1$s voice model will be removed. It will be re-downloaded automatically when you next use TTS for this language.</string>
+    <string name="tts_models_delete_all">Delete All</string>
+    <string name="tts_models_delete_all_title">Delete All TTS Models?</string>
+    <string name="tts_models_delete_all_message">All downloaded voice models will be removed. They will be re-downloaded automatically when needed.</string>
+    <string name="tts_models_none_downloaded">No models downloaded</string>
 
     <!-- Leaderboard -->
     <string name="leaderboard">Leaderboard</string>

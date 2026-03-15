@@ -125,8 +125,16 @@ internal fun WordManagerContent(
                 }
 
                 is WordManagerEffect.Error -> {
-                    val errorMsg = event.message.ifEmpty {
-                        failedToUpdateWord
+                    val raw = event.message
+                    val isNetwork = raw.contains("timeout", ignoreCase = true) ||
+                        raw.contains("connect", ignoreCase = true) ||
+                        raw.contains("network", ignoreCase = true) ||
+                        raw.contains("internet", ignoreCase = true)
+
+                    val errorMsg = when {
+                        isNetwork -> "You're offline -- changes will sync when reconnected."
+                        raw.isEmpty() -> failedToUpdateWord
+                        else -> raw
                     }
                     snackbarHostState.showSnackbar("$errorPrefix $errorMsg")
                 }

@@ -167,11 +167,22 @@ class ImportViewModel(
                     }
                 },
                 onFailure = { error ->
+                    val raw = error.message.orEmpty()
+                    val isNetwork = raw.contains("timeout", ignoreCase = true) ||
+                        raw.contains("connect", ignoreCase = true) ||
+                        raw.contains("network", ignoreCase = true)
+
+                    val friendlyMessage = when {
+                        isNetwork -> "You're offline -- the word will be saved when you reconnect."
+                        raw.isNotEmpty() -> raw
+                        else -> "Failed to add word. Please try again."
+                    }
+
                     updateState {
                         copy(
                             textInputState = textInputState.copy(
                                 isEnabled = true,
-                                errorMessage = error.message ?: "Failed to add word"
+                                errorMessage = friendlyMessage
                             )
                         )
                     }
@@ -229,12 +240,26 @@ class ImportViewModel(
 
                         is ImportImageResult.Error -> {
                             clearSelectedImage()
-                            updateState {
-                                copy(imageImportState = ImageImportState.Error(result.message))
+                            val raw = result.message
+                            val isNetwork = raw.contains("timeout", ignoreCase = true) ||
+                                raw.contains("connect", ignoreCase = true) ||
+                                raw.contains("network", ignoreCase = true)
+
+                            val friendlyMessage = when {
+                                isNetwork -> "You're offline -- please check your connection and try again."
+                                raw.contains("empty", ignoreCase = true) ||
+                                    raw.contains("no words", ignoreCase = true) ||
+                                    raw.contains("no text", ignoreCase = true) ->
+                                    "No vocabulary found in this image. Try a photo with clearer, larger text."
+                                else -> "Image extraction failed -- try a clearer photo with visible text."
                             }
-                            performanceTracer.putAttribute(trace, "error", result.message)
+
+                            updateState {
+                                copy(imageImportState = ImageImportState.Error(friendlyMessage))
+                            }
+                            performanceTracer.putAttribute(trace, "error", raw)
                             performanceTracer.stopTrace(trace)
-                            emitEffect(ImportEffect.Error(result.message))
+                            emitEffect(ImportEffect.Error(friendlyMessage))
                         }
                     }
                 }
@@ -285,12 +310,22 @@ class ImportViewModel(
                             targetLanguage
                         ).fold(
                             onSuccess = { count ->
-                                updateState {
-                                    copy(fileImportState = ImportFileState.Success(count))
+                                if (count == 0) {
+                                    val message = "No words found in this file. Use the format: word,translation (one pair per line)."
+                                    updateState {
+                                        copy(fileImportState = ImportFileState.Error(message))
+                                    }
+                                    performanceTracer.putAttribute(trace, "error", "empty_result")
+                                    performanceTracer.stopTrace(trace)
+                                    emitEffect(ImportEffect.Error(message))
+                                } else {
+                                    updateState {
+                                        copy(fileImportState = ImportFileState.Success(count))
+                                    }
+                                    performanceTracer.putMetric(trace, "words_imported", count.toLong())
+                                    performanceTracer.stopTrace(trace)
+                                    emitEffect(ImportEffect.FileImportSuccessful(count))
                                 }
-                                performanceTracer.putMetric(trace, "words_imported", count.toLong())
-                                performanceTracer.stopTrace(trace)
-                                emitEffect(ImportEffect.FileImportSuccessful(count))
                             },
                             onFailure = { error ->
                                 val message = error.message ?: "Import failed"

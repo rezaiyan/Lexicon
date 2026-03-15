@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -26,6 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import feature.aiimport.model.AiWordImportUiState
 import lexicon.resources.generated.resources.Res
@@ -88,14 +92,35 @@ internal fun AiWordPreviewStep(
                 )
             }
 
-            state.error?.let { error ->
+            state.error?.let { errorText ->
                 item {
-                    Text(
-                        text = error,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = spacing.xs)
-                    )
+                    val isNetworkError = errorText.contains("timeout", ignoreCase = true) ||
+                        errorText.contains("connect", ignoreCase = true) ||
+                        errorText.contains("network", ignoreCase = true) ||
+                        errorText.contains("internet", ignoreCase = true)
+
+                    val displayMessage = when {
+                        isNetworkError -> "You're offline -- check your connection and try again."
+                        else -> errorText.ifEmpty { "Import failed -- please try again." }
+                    }
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+                        ),
+                        shape = RoundedCornerShape(Theme.shapes.medium)
+                    ) {
+                        Text(
+                            text = displayMessage,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(
+                                horizontal = spacing.md,
+                                vertical = spacing.sm,
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -127,7 +152,8 @@ private fun PreviewHeader(
         Text(
             text = stringResource(Res.string.ai_wizard_preview_title),
             style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.semantics { heading() }
         )
         Text(
             text = stringResource(Res.string.ai_wizard_preview_highlight),

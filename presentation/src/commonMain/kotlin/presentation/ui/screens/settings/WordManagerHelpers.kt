@@ -50,10 +50,20 @@ internal fun LoadingView() {
 
 @Composable
 internal fun ErrorView(message: String) {
+    val isNetworkError = message.contains("timeout", ignoreCase = true) ||
+        message.contains("connect", ignoreCase = true) ||
+        message.contains("network", ignoreCase = true) ||
+        message.contains("internet", ignoreCase = true)
+
     ErrorScreen(
-        message = message,
-        title = stringResource(Res.string.error),
-        icon = Icons.Default.Error
+        message = if (isNetworkError) {
+            "You're offline -- your word library couldn't be loaded. Check your connection and try again."
+        } else {
+            message.ifEmpty { "Something went wrong loading your words." }
+        },
+        title = if (isNetworkError) "No Connection" else stringResource(Res.string.error),
+        icon = Icons.Default.Error,
+        retryLabel = "Try Again",
     )
 }
 
@@ -80,7 +90,7 @@ internal fun EmptySearchView() {
             .fillMaxWidth()
             .padding(vertical = Theme.spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
     ) {
         Icon(
             Icons.Default.Search,
@@ -92,6 +102,12 @@ internal fun EmptySearchView() {
             text = stringResource(Res.string.no_results_found),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            text = "Try a different spelling or search by translation.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }

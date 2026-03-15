@@ -50,6 +50,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.LottieMotionIcon
@@ -118,7 +122,8 @@ private fun AiGeneratingContent(spacing: AppSpacing) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = spacing.md),
+            .padding(horizontal = spacing.md)
+            .semantics { liveRegion = LiveRegionMode.Polite },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -191,13 +196,39 @@ private fun AiTopicsContent(
                 onToggleTopic = onToggleTopic,
             )
 
-            state.error?.let {
+            state.error?.let { errorText ->
                 Spacer(modifier = Modifier.height(spacing.xs))
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
+
+                val isNetworkError = errorText.contains("timeout", ignoreCase = true) ||
+                    errorText.contains("connect", ignoreCase = true) ||
+                    errorText.contains("network", ignoreCase = true) ||
+                    errorText.contains("internet", ignoreCase = true)
+
+                val displayMessage = when {
+                    isNetworkError -> "You're offline -- check your connection and try again."
+                    errorText.contains("limit", ignoreCase = true) ||
+                        errorText.contains("quota", ignoreCase = true) ->
+                        errorText
+                    else -> "Generation failed -- please try again or pick different topics."
+                }
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+                    ),
+                    shape = RoundedCornerShape(Theme.shapes.medium)
+                ) {
+                    Text(
+                        text = displayMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(
+                            horizontal = spacing.md,
+                            vertical = spacing.sm
+                        )
+                    )
+                }
             }
         }
 
