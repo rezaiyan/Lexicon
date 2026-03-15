@@ -1,0 +1,648 @@
+<resources>
+    <!-- App Info -->
+    <string name="app_name">LEXICON</string>
+    <string name="app_tagline">어휘력을 키워보세요</string>
+    <string name="app_description">Lexicon - 어휘 학습 앱</string>
+    <string name="version">버전 %1$d</string>
+
+    <!-- Time-based Greetings -->
+    <string name="greeting_midnight">밤늦게까지 공부 중이세요?</string>
+    <string name="greeting_morning">좋은 아침이에요!</string>
+    <string name="greeting_afternoon">좋은 오후예요!</string>
+    <string name="greeting_evening">좋은 저녁이에요!</string>
+    <string name="greeting_night">좋은 밤 되세요!</string>
+
+    <!-- Common -->
+    <string name="cancel">취소</string>
+    <string name="done">완료</string>
+    <string name="close">닫기</string>
+    <string name="auto_play">자동 재생</string>
+    <string name="repeat_pronunciation">발음 반복</string>
+    <string name="retry">재시도</string>
+    <string name="change">변경</string>
+    <string name="logout">로그아웃</string>
+
+    <!-- Navigation -->
+    <string name="profile">프로필</string>
+    <string name="study">학습</string>
+    <string name="settings">설정</string>
+
+    <!-- Settings Screen -->
+    <string name="theme">테마</string>
+    <string name="translation_language">번역 언어</string>
+    <string name="notifications">알림</string>
+    <string name="about">앱 정보</string>
+    <string name="customize_appearance">외관 사용자 지정</string>
+    <string name="notification_on_alerts_enabled">켜짐 - 알림 활성화</string>
+    <string name="upgrade">업그레이드</string>
+    <string name="version_format">버전 %1$s</string>
+
+    <!-- Notifications -->
+    <string name="notification_enabled">활성화됨</string>
+    <string name="notification_disabled">비활성화됨</string>
+    <string name="notification_disabled_system">시스템 설정에서 비활성화됨</string>
+    <string name="notification_permission_required">권한이 부여되지 않았습니다</string>
+    <string name="notification_permission_title">단어와 함께하세요!</string>
+    <string name="notification_permission_message">학습 파트너로서 연습할 시간이 되면 친근한 알림을 보내드려요!</string>
+    <string name="notification_features_title">받게 될 알림:</string>
+    <string name="notification_feature_reminders">부드러운 복습 알림</string>
+    <string name="notification_feature_motivation">동기 부여 메시지</string>
+    <string name="notification_feature_timing">스마트 타이밍 - 필요할 때만</string>
+    <string name="notification_no_spam_message">스팸 없이 친근한 알림만! 아래 버튼을 탭하여 기기 설정에서 알림을 활성화하세요.</string>
+    <string name="notification_open_settings">활성화</string>
+    <string name="notification_enable_button">시작해 볼까요!</string>
+    <string name="notification_maybe_later">나중에</string>
+    <string name="notification_settings_title">알림 설정</string>
+    <string name="notification_settings_subtitle">학습 알림 사용자 지정</string>
+    <string name="notification_enable_notifications">알림 활성화</string>
+    <string name="notification_stay_motivated">친근한 알림으로 동기 부여 유지</string>
+    <string name="notification_missing_nudges">학습 알림을 놓치고 있어요</string>
+    <string name="notification_gentle_reminders">복습할 단어가 있을 때 부드럽게 알려드려요. 딱 맞는 타이밍에, 스팸 없이!</string>
+
+    <!-- Profile Screen -->
+    <string name="logout_title">로그아웃</string>
+    <string name="logout_message">로그아웃하시겠습니까?</string>
+    <string name="delete_account">계정 삭제</string>
+    <string name="delete_account_title">계정 삭제</string>
+    <string name="delete_account_message">정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다. 모든 데이터가 영구적으로 삭제됩니다.</string>
+    <string name="delete_account_confirm">삭제</string>
+    <string name="profile_picture">프로필 사진</string>
+    <string name="sign_in_to_vokab">Lexicon에 로그인</string>
+    <string name="sign_in_description">로그인하여 AI 기능을 이용하세요:\n• 이미지에서 어휘 추출\n• 매일 인사이트 받기</string>
+    <string name="offline_usage_info">로그인 없이 오프라인으로 사용할 수 있지만, AI 기능은 계정이 필요합니다.</string>
+    <string name="premium_member">프리미엄 회원</string>
+    <string name="trial_active">체험판 사용 중</string>
+    <string name="free_plan">무료 플랜</string>
+    <string name="subscription_cancelled">구독 취소됨</string>
+    <string name="subscription_expired">구독 만료됨</string>
+    <string name="expires">만료: %1$s</string>
+
+    <!-- Enhanced Delete Account Flow -->
+    <string name="delete_account_hidden_title">계정 삭제</string>
+    <string name="delete_account_hidden_message">계정을 영구적으로 삭제하려고 합니다. 이 작업은 되돌릴 수 없으며 모든 데이터가 삭제됩니다.</string>
+    <string name="delete_account_hidden_continue">삭제 절차로 진행</string>
+    <string name="delete_account_cooling_period_title">숙려 기간</string>
+    <string name="delete_account_cooling_period_message">진행하기 전에 %1$d초 동안 기다려 주세요. 재고할 시간입니다.</string>
+    <string name="delete_account_cooling_period_cancel">삭제 취소</string>
+    <string name="delete_account_final_title">최종 확인</string>
+    <string name="delete_account_final_message">다음이 영구적으로 삭제됩니다:\n\n• 모든 어휘 단어\n• 학습 진행 상황 및 연속 기록\n• AI 생성 인사이트\n• 계정 설정\n\n이 작업은 되돌릴 수 없습니다!</string>
+    <string name="delete_account_final_confirm">네, 계정을 삭제합니다</string>
+    <string name="delete_account_long_press_hint">프로필 사진을 길게 눌러 계정 삭제에 접근</string>
+    <string name="proceed_to_final_confirmation">최종 확인으로 진행</string>
+    <string name="ready_to_proceed_deletion">계정 삭제를 진행할 준비가 되었습니다. 아래에서 확인해 주세요.</string>
+    <string name="day_streak">연속 일수</string>
+    <string name="best_streak">최고 기록</string>
+    <string name="words">%1$d 단어</string>
+    <string name="weekly_activity">주간 활동</string>
+    <string name="total_reviews_format">%1$d 회 복습</string>
+    <string name="languages">언어</string>
+    <string name="member_since">가입일: %1$s</string>
+
+    <!-- Progress Screen -->
+    <string name="total_words">전체 단어</string>
+    <string name="cards_due_for_review">복습 대기 카드 %1$d장</string>
+    <string name="start_review">복습 시작</string>
+    <string name="learning_stages">학습 단계</string>
+    <string name="import_words">단어 가져오기</string>
+    <string name="choose_import_method">단어를 어떻게 추가할까요?</string>
+    <string name="original_language_question">원래 단어의 언어는 무엇인가요?</string>
+    <string name="translation_language_hint">번역은 %1$s(으)로 됩니다. 설정에서 변경할 수 있어요.</string>
+    <string name="generating_daily_insight">일일 인사이트 생성 중...</string>
+    <string name="cards_waiting">%1$d장의 카드가 기다리고 있어요</string>
+    <string name="all_caught_up">모두 완료! 잘하셨어요.</string>
+    <string name="greeting_subtitle">더 많은 단어를 마스터할 준비 됐나요?</string>
+    <string name="making_great_progress">순조로워요!</string>
+    <string name="progress_subtitle">매 세션마다 어휘력이 강해지고 있어요.</string>
+    <string name="view_stats">통계 보기</string>
+    <string name="ready_to_learn">학습할 준비 됐나요?</string>
+    <string name="ready_to_learn_subtitle">5개 이상의 단어를 가져와서 첫 복습 세션을 시작하세요!</string>
+    <string name="lets_go">시작해요!</string>
+    <string name="almost_a_master">거의 다 왔어요!</string>
+    <string name="almost_a_master_subtitle">완전 마스터까지 몇 단어만 더!</string>
+    <string name="getting_started">좋은 시작이에요!</string>
+    <string name="getting_started_subtitle">가장 어려운 건 시작하는 것 — 이미 해냈어요!</string>
+    <string name="building_foundation">탄력이 붙고 있어요!</string>
+    <string name="building_foundation_subtitle">연습의 효과가 나타나고 있어요. 단어가 기억에 남기 시작해요!</string>
+    <string name="over_halfway">절반 달성!</string>
+    <string name="over_halfway_subtitle">절반 이상 마스터했어요. 더 좋은 결과가 기다리고 있어요!</string>
+    <string name="strong_knowledge">대단해요!</string>
+    <string name="strong_knowledge_subtitle">마지막 구간이에요 — 마스터가 눈앞에!</string>
+    <string name="fully_mastered">단어 마스터!</string>
+    <string name="fully_mastered_subtitle">모든 단어를 마스터했어요. 정말 대단해요!</string>
+    <string name="queue_is_empty">대기열이 비어 있어요</string>
+    <string name="everything_reviewed">모든 복습을 완료했어요!</string>
+    <string name="refresh">새로고침</string>
+    <string name="queue_ready_subtitle">복습 준비 완료</string>
+    <string name="add_words_to_start">단어를 추가하여 학습을 시작하세요</string>
+    <string name="session_complete">세션 완료!</string>
+    <string name="you_reviewed_cards">%1$d장의 카드를 복습했어요</string>
+
+    <!-- Review Completion - Performance Tiers -->
+    <string name="completion_perfect_title">만점!</string>
+    <string name="completion_perfect_message">완벽한 기억력. 모든 단어를 맞혔어요.</string>
+    <string name="completion_great_title">훌륭해요!</string>
+    <string name="completion_great_message">기억력이 날카로워요. 이 기세를 이어가세요.</string>
+    <string name="completion_good_title">좋은 세션!</string>
+    <string name="completion_good_message">좋은 회상력이에요. 틀린 단어는 다음에 기억될 거예요.</string>
+    <string name="completion_okay_title">발전하고 있어요!</string>
+    <string name="completion_okay_message">복습할 때마다 기억이 강화돼요. 차근차근 쌓아가는 중이에요.</string>
+    <string name="completion_tough_title">모든 복습이 중요해요!</string>
+    <string name="completion_tough_message">어려운 단어는 시간이 걸려요. 도전한 것 자체가 중요해요.</string>
+    <string name="completion_remembered">기억함</string>
+    <string name="completion_forgot">잊음</string>
+    <string name="completion_score_percent">%1$d%%</string>
+    <string name="completion_cards_reviewed">%1$d장 복습</string>
+
+    <!-- Learning Stages (7 Levels) -->
+    <string name="level_0_fresh">첫 만남</string>
+    <string name="level_0_description">레벨 1 • 방금 발견</string>
+    <string name="level_1_learning">익숙해지는 중</string>
+    <string name="level_1_description">레벨 2 • 10분마다</string>
+    <string name="level_2_familiar">기억에 남기 시작</string>
+    <string name="level_2_description">레벨 3 • 매일 연습</string>
+    <string name="level_3_building">자신감 형성 중</string>
+    <string name="level_3_description">레벨 4 • 3일마다</string>
+    <string name="level_4_almost">거의 마스터</string>
+    <string name="level_4_description">레벨 5 • 매주 복습</string>
+    <string name="level_5_strong">완전히 마스터</string>
+    <string name="level_5_description">레벨 6 • 격주 복습</string>
+    <string name="level_6_mastered">완벽히 마스터</string>
+    <string name="level_6_description">레벨 7 • 월간 복습</string>
+    <string name="level_format">Lv.%1$d</string>
+
+    <!-- Review Screen -->
+    <string name="review_due_cards">복습 카드 확인</string>
+    <string name="stage_words">%1$d 단어</string>
+    <string name="stage_words_string">%1$s 단어</string>
+    <string name="how_well_did_you_know">얼마나 잘 알고 있었나요?</string>
+    <string name="again">다시</string>
+    <string name="hard">어려움</string>
+    <string name="good">좋음</string>
+    <string name="easy">쉬움</string>
+    <string name="forgot">몰랐어요</string>
+    <string name="remembered">알았어요!</string>
+    <string name="did_you_remember">기억했나요?</string>
+    <string name="restart">처음부터</string>
+    <string name="advance">계속하기</string>
+    <string name="browse_your_words">단어 둘러보기</string>
+    <string name="back">뒤로</string>
+    <string name="next">다음</string>
+    <string name="show_answer">답 보기</string>
+    <string name="think_of_answer_first">먼저 생각해 보세요</string>
+    <string name="no_words_to_review">복습할 단어가 없습니다</string>
+    <string name="less_than_1m">&lt;1분</string>
+    <string name="less_than_10m">&lt;10분</string>
+    <string name="less_than_1d">&lt;1일</string>
+    <string name="less_than_4d">&lt;4일</string>
+
+    <!-- Dialogs -->
+    <string name="exit_review">복습을 종료할까요?</string>
+    <string name="exit_review_message">복습을 중단하시겠습니까? 진행 상황은 저장됩니다.</string>
+    <string name="yes_exit">네, 종료</string>
+    <string name="continue_reviewing">복습 계속</string>
+    <string name="review_complete">복습 완료!</string>
+    <string name="review_complete_message">잘하셨어요! 어휘를 마스터하기 위해 계속 연습하세요.</string>
+
+    <!-- Import Dialog -->
+    <string name="confirm_languages">언어 확인</string>
+    <string name="original_language">원래 언어</string>
+    <string name="translation">번역: %1$d</string>
+    <string name="processing_image_with_ai">AI로 이미지 처리 중...</string>
+    <string name="processing_file">파일 처리 중...</string>
+    <string name="enter_words">단어 입력</string>
+    <string name="import_from_image">이미지에서 가져오기 (AI)</string>
+
+    <!-- Import Bottom Sheet - Redesigned -->
+    <string name="type_text">텍스트 입력</string>
+    <string name="from_file">파일에서</string>
+    <string name="from_image">이미지에서</string>
+    <string name="type_or_paste_words">단어 입력 또는 붙여넣기</string>
+    <string name="enter_words_manually_description">어휘를 직접 입력하거나 클립보드에서 붙여넣으세요</string>
+    <string name="import_from_file">파일에서 가져오기</string>
+    <string name="select_txt_file_description">어휘 목록이 포함된 .txt 파일을 선택하세요</string>
+    <string name="choose_file">파일 선택</string>
+    <string name="txt_format">.txt 형식</string>
+    <string name="supported_format">지원 형식</string>
+    <string name="format_example_1">단어,번역</string>
+    <string name="format_example_2">단어,번역,설명</string>
+    <string name="format_example_3">세미콜론 또는 줄 바꿈으로 구분</string>
+    <string name="format_hint_comma_separated">형식: 단어,번역</string>
+    <string name="ai_powered_extraction">AI 추출</string>
+    <string name="capture_vocab_from_image">사진이나 스크린샷에서 어휘를 추출하세요</string>
+    <string name="ai_extractions">AI 추출</string>
+    <string name="remaining_extractions">남은 추출 횟수</string>
+    <string name="extraction_options">추출 옵션</string>
+    <string name="individual_words_hint">개별 단어와 짧은 구문 추출</string>
+    <string name="sentences_hint">완전한 문장과 예문 추출</string>
+    <string name="take_or_choose_photo">촬영 또는 사진 선택</string>
+    <string name="camera">카메라</string>
+    <string name="gallery">갤러리</string>
+    <string name="choose_image_source">이미지 소스 선택</string>
+    <string name="take_new_photo">새 사진 촬영</string>
+    <string name="choose_from_library">라이브러리에서 선택</string>
+    <string name="premium_feature">프리미엄 기능</string>
+    <string name="upgrade_for_ai_extraction">프리미엄으로 업그레이드하여 AI 이미지 추출을 사용하세요</string>
+    <string name="login_required">로그인 필요</string>
+    <string name="login_for_ai_features">로그인하여 AI 기능을 이용하세요</string>
+    <string name="go_to_profile">프로필로 이동</string>
+    <string name="image_import_options">이미지 가져오기 옵션:</string>
+    <string name="extract_individual_words">개별 단어 추출</string>
+    <string name="extract_example_sentences">예문 추출</string>
+    <string name="add_a_word">단어 추가</string>
+    <string name="add_word_description">번역과 선택적 설명을 포함하여 어휘를 하나씩 추가</string>
+    <string name="add_word">단어 추가</string>
+    <string name="words_added_count">%1$d개 단어 추가됨</string>
+    <string name="word_added_count_singular">1개 단어 추가됨</string>
+    <string name="show_format_info">형식 정보 보기</string>
+    <string name="hide_format_info">형식 정보 숨기기</string>
+    <string name="import_text">텍스트 가져오기</string>
+    <string name="upgrade_to_premium">프리미엄으로 업그레이드</string>
+    <string name="ai_image_extraction_description">AI 인식으로 이미지에서 어휘 추출</string>
+
+    <!-- Success/Error Messages -->
+    <string name="success_imported_words">%1$d개 단어를 성공적으로 가져왔습니다</string>
+    <string name="success_imported_from_image">이미지에서 %1$d개 단어를 성공적으로 가져왔습니다</string>
+    <string name="error_message">[오류] %1$d</string>
+    <string name="error_prefix">[오류]</string>
+    <string name="error">오류</string>
+    <string name="error_with_message">오류: %1$d</string>
+
+    <!-- Progress Screen -->
+    <string name="no_words_yet">• 아직 단어가 없습니다</string>
+
+    <!-- AI Daily Insights -->
+    <string name="welcome_insight">환영합니다! 첫 단어를 추가하여 어휘 학습 여정을 시작하세요!</string>
+    <string name="fallback_many_due">%1$d장의 카드가 준비됐어요! 실력을 키울 시간이에요!</string>
+    <string name="fallback_mostly_mastered">대단해요! 어휘의 절반 이상을 마스터했어요! 진정한 전문가에요!</string>
+    <string name="fallback_learning">계속 화이팅! %1$d개의 단어가 훈련 중이에요. 복습할 때마다 강해져요!</string>
+    <string name="fallback_some_due">완벽한 타이밍! %1$d장의 카드가 기다리고 있어요. 이번 세션을 잘 해봐요!</string>
+    <string name="fallback_all_caught_up">모두 끝냈어요! 새 단어를 추가하고 레벨 업하세요!</string>
+    <string name="subscriptions_coming_soon_message">전체 접근을 위한 구독은 곧 출시 예정입니다. 기대해 주세요! 제한된 크레딧으로 기능을 일시적으로 사용할 수 있습니다.</string>
+
+    <!-- Mastery Levels (for badge) -->
+    <string name="new">새로운</string>
+    <string name="learning">학습 중</string>
+    <string name="familiar">익숙함</string>
+    <string name="consolidating">자신 있음</string>
+    <string name="young">거의 다 됨</string>
+    <string name="mature">잘 알고 있음</string>
+    <string name="mastered">마스터</string>
+    <string name="unknown">알 수 없음</string>
+
+    <!-- Theme Descriptions -->
+    <string name="theme_light_desc">항상 라이트 테마 사용</string>
+    <string name="theme_dark_desc">항상 다크 테마 사용</string>
+    <string name="theme_auto_desc">시스템 설정을 따름</string>
+
+    <!-- Word Manager Screen -->
+    <string name="word_manager">단어 관리</string>
+    <string name="word_manager_subtitle">어휘를 관리하세요</string>
+    <string name="search_words">단어 검색...</string>
+    <string name="clear">지우기</string>
+    <string name="selected_count">%1$d개 선택됨</string>
+    <string name="select_all">모두 선택</string>
+    <string name="deselect_all">모두 선택 해제</string>
+    <string name="delete">삭제</string>
+    <string name="more_options">더 많은 옵션</string>
+    <string name="more">더 보기</string>
+    <string name="edit">편집</string>
+    <string name="save">저장</string>
+    <string name="share">공유</string>
+    <string name="loading_words">단어 불러오는 중...</string>
+    <string name="no_results_found">결과를 찾을 수 없습니다</string>
+    <string name="no_words_match">"%1$d"에 일치하는 단어가 없습니다</string>
+    <string name="empty_library">단어 라이브러리가 비어 있습니다</string>
+    <string name="start_by_importing">학습 화면의 + 버튼을 탭하여 텍스트, 파일 또는 AI 어시스턴트로 단어를 추가하세요.</string>
+    <string name="total_words_count">라이브러리에 %1$d개 단어</string>
+    <string name="edit_word">단어 편집</string>
+    <string name="original_word">원래 단어</string>
+    <string name="translation_label">번역</string>
+    <string name="description_optional">설명 (선택 사항)</string>
+    <string name="delete_words_title">단어를 삭제할까요?</string>
+    <string name="delete_words_message">%1$d개 단어를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="deleting_words">단어 삭제 중</string>
+    <string name="deleting_words_message">%1$d개 단어 삭제 중…</string>
+    <string name="deleting_words_please_wait">단어 삭제 중, 잠시 기다려 주세요…</string>
+    <string name="deleting">삭제 중…</string>
+    <string name="please_wait">잠시 기다려 주세요…</string>
+    <string name="word_deleted">단어가 삭제되었습니다</string>
+    <string name="words_deleted">%1$d개 단어가 삭제되었습니다</string>
+    <string name="word_updated">단어가 성공적으로 업데이트되었습니다</string>
+    <string name="export_words">내보내기</string>
+    <string name="words_exported">%1$d개 단어를 클립보드에 내보냈습니다</string>
+    <string name="export_all">전체 내보내기</string>
+    <string name="export_selected">선택 내보내기</string>
+
+    <!-- Batch Language Edit -->
+    <string name="batch_edit_languages">언어 편집</string>
+    <string name="update_languages">언어 업데이트</string>
+    <string name="updating_languages">언어 업데이트 중…</string>
+    <string name="words_language_updated">%1$d개 단어의 언어를 업데이트했습니다</string>
+    <string name="word_language">단어 언어</string>
+    <string name="translation_language_label">번역 언어</string>
+    <string name="updating_words_please_wait">단어 업데이트 중, 잠시 기다려 주세요…</string>
+
+    <!-- Word Manager Messages -->
+    <string name="failed_to_update_word">단어 업데이트에 실패했습니다</string>
+    <string name="failed_to_delete_word">단어 삭제에 실패했습니다</string>
+    <string name="failed_to_delete_words">단어 삭제에 실패했습니다</string>
+    <string name="no_words_selected">삭제할 단어를 선택하세요</string>
+    <string name="no_words_to_share">공유할 단어가 없습니다</string>
+    <string name="failed_to_share_words">단어 공유에 실패했습니다</string>
+    <string name="share_title_format">Lexicon - %1$d개 단어</string>
+
+    <!-- Word Manager Sort & Filter -->
+    <string name="sort_newest">최신순</string>
+    <string name="sort_oldest">오래된 순</string>
+    <string name="sort_newest_first">최신순</string>
+    <string name="sort_oldest_first">오래된 순</string>
+    <string name="sort_a_to_z">A → Z</string>
+    <string name="sort_z_to_a">Z → A</string>
+    <string name="sort_level_low_high">레벨 (낮음 → 높음)</string>
+    <string name="sort_level_high_low">레벨 (높음 → 낮음)</string>
+    <string name="sort_level_asc">레벨 ↑</string>
+    <string name="sort_level_desc">레벨 ↓</string>
+    <string name="filter_language">언어</string>
+    <string name="filter_all_languages">모든 언어</string>
+    <string name="filter_level">레벨</string>
+    <string name="filter_all_levels">모든 레벨</string>
+    <string name="word_count_format">%1$d개 단어</string>
+    <string name="word_count_filtered_format">%1$d / %2$d개 단어</string>
+    <string name="selected_format">%1$d개 선택됨</string>
+
+    <!-- Word Detail Sheet -->
+    <string name="learning_progress">학습 진행</string>
+    <string name="detail_languages">언어</string>
+    <string name="detail_added">추가일</string>
+    <string name="detail_next_review">다음 복습</string>
+    <string name="detail_reviews">복습 횟수</string>
+    <string name="delete_word">단어 삭제</string>
+    <string name="delete_word_title">단어를 삭제할까요?</string>
+    <string name="delete_word_message">"%1$s"이(가) 영구적으로 삭제됩니다. 되돌릴 수 없습니다.</string>
+    <string name="update_words_count">%1$d개 단어 업데이트</string>
+
+    <!-- Learning Mode Settings -->
+    <string name="learning_mode">학습 모드</string>
+    <string name="learning_mode_settings">성공 횟수: %1$d | 페널티: %2$d 레벨</string>
+    <string name="choose_learning_pace">학습 속도를 선택하세요</string>
+    <string name="apply_button">적용</string>
+
+    <!-- Learning Mode Options -->
+    <string name="mode_easy">쉬움</string>
+    <string name="mode_easy_subtitle">빠른 진도</string>
+    <string name="mode_easy_description">1회 성공으로 진급 · 잊으면 1레벨 하락</string>
+
+    <string name="mode_balanced">균형</string>
+    <string name="mode_balanced_subtitle">대부분의 학습자에게 추천</string>
+    <string name="mode_balanced_description">1회 성공으로 진급 · 잊으면 2레벨 하락</string>
+
+    <string name="mode_rigorous">엄격</string>
+    <string name="mode_rigorous_subtitle">깊은 기억 유지</string>
+    <string name="mode_rigorous_description">2회 성공으로 진급 · 잊으면 3레벨 하락</string>
+
+    <!-- Notification Reminder Messages -->
+    <string name="notification_title_one_word">간단히 복습할까요?</string>
+    <string name="notification_title_few_words">매일 연습 시간이에요</string>
+    <string name="notification_title_many_words">%1$d개 단어가 준비됐어요</string>
+    <string name="notification_title_daily">매일 복습 시간</string>
+
+    <string name="notification_message_one_word">오늘 복습할 단어는 1개뿐이에요. 1분도 안 걸려요!</string>
+    <string name="notification_message_few_words">%1$d개 단어가 기다리고 있어요. %1$d분 빠른 세션</string>
+    <string name="notification_message_several_words">%1$d개 단어가 복습 준비됐어요. 잠깐 연습하기 딱 좋은 시간이에요!</string>
+    <string name="notification_message_many_words">오늘 %1$d개 단어를 복습하세요. 할 수 있어요!</string>
+    <string name="notification_message_large_session">%1$d개 단어가 준비됐어요. 알찬 세션이 될 거예요!</string>
+    <string name="notification_message_very_large">%1$d개 단어를 복습하세요. 여유롭게 즐기면서 연습하세요!</string>
+
+    <!-- Vocabulary Import/Review Messages -->
+    <string name="please_login_for_ai">이미지에서 어휘를 추출하려면 로그인하세요</string>
+    <string name="import_failed">가져오기 실패: %1$d</string>
+    <string name="import_failed_generic">가져오기 실패 -- 파일 형식을 확인하세요 (한 줄에 단어,번역).</string>
+    <string name="image_import_failed">이미지 가져오기 실패: %1$d</string>
+    <string name="image_import_failed_generic">이미지 가져오기에 실패했습니다</string>
+    <string name="import_error_network">오프라인 상태입니다 -- 연결을 확인하고 다시 시도하세요.</string>
+    <string name="import_error_image_hint">이미지 추출에 실패했습니다 -- 텍스트가 보이는 선명한 사진으로 시도하세요.</string>
+    <string name="import_error_file_empty">이 파일에서 단어를 찾을 수 없습니다. 형식: 단어,번역 (한 줄에 한 쌍).</string>
+    <string name="import_error_file_format">파일을 분석할 수 없습니다. 각 줄이 단어,번역 형식인지 확인하세요</string>
+
+    <!-- Share/Export -->
+    <string name="vokab_export_filename">lexicon_words_%1$d.txt</string>
+
+    <!-- Image Preview -->
+    <string name="preview_selected_image">선택한 이미지 미리보기</string>
+    <string name="review_before_processing">처리 전 확인</string>
+    <string name="selected_image">선택한 이미지</string>
+    <string name="failed_to_load_image">이미지를 불러오지 못했습니다</string>
+    <string name="try_another_image">다른 이미지를 선택해 주세요</string>
+    <string name="confirm_and_extract">확인 후 추출</string>
+    <string name="confirm_image_help_text">최적의 인식을 위해 텍스트가 선명하게 보이는지 확인하세요</string>
+
+    <!-- Navigation -->
+    <string name="navigate_back">뒤로 이동</string>
+    <string name="open">열기</string>
+
+    <!-- Subscription -->
+    <string name="subscription">구독</string>
+    <string name="subscription_screen_title">프리미엄 시작</string>
+    <string name="restore_purchases">구매 복원</string>
+    <string name="cancel_anytime_prices_in_usd">언제든지 취소 가능, 질문 없이! 가격은 USD 기준입니다.</string>
+    <string name="premium_unlocked">모든 준비 완료!</string>
+    <string name="premium_unlocked_message">프리미엄에 오신 것을 환영합니다! 모든 놀라운 기능을 무제한으로 즐기며 학습을 강화하세요!</string>
+    <string name="unlock_premium">프리미엄 잠금 해제</string>
+    <string name="premium_subtitle">강력한 기능으로 어휘 학습을 강화하세요!</string>
+    <string name="compare_plans">무료 vs 프리미엄</string>
+    <string name="free_label">무료</string>
+    <string name="premium_label">프리미엄</string>
+    <string name="everything_you_get">모든 혜택</string>
+    <string name="most_popular_badge">가장 인기</string>
+    <string name="processing_ellipsis">잠시만요...</string>
+    <string name="unlock_now">지금 잠금 해제</string>
+    <string name="subscribe_now">지금 구독</string>
+    <string name="subscribe">구독</string>
+    <string name="subscription_unable_to_load">구독을 불러올 수 없습니다</string>
+    <string name="subscription_terms">결제는 계정에 청구됩니다. 현재 기간 종료 24시간 전까지 취소하지 않으면 구독이 자동 갱신됩니다. 계정 설정에서 언제든지 구독을 관리할 수 있습니다.</string>
+    <string name="subscription_active">활성</string>
+    <string name="subscription_cancelling">곧 만료</string>
+    <string name="subscription_access_until">이용 가능: %1$s까지</string>
+    <string name="subscription_cancelled_access_note">구독이 취소되었습니다. 만료일까지 모든 프리미엄 기능을 계속 이용할 수 있습니다.</string>
+    <string name="subscription_expires_today">오늘 만료</string>
+    <string name="subscription_day_remaining">1일 남음</string>
+    <string name="subscription_days_remaining">%1$d일 남음</string>
+    <string name="subscription_resubscribe">재구독</string>
+    <string name="manage_subscription">구독 관리</string>
+    <string name="cancel_subscription">구독 취소</string>
+    <string name="billing_period_monthly">월간</string>
+    <string name="billing_period_annual">연간</string>
+    <string name="premium_plan_name">프리미엄</string>
+    <string name="subscription_load_failed">구독 옵션을 불러올 수 없습니다. 다시 시도해 주세요!</string>
+    <string name="purchase_failed">구매가 완료되지 않았습니다. 다시 시도해 주세요!</string>
+    <string name="purchases_restored_success">구매가 성공적으로 복원되었습니다!</string>
+    <string name="no_purchases_to_restore">복원할 활성 구매를 찾을 수 없습니다. 같은 계정으로 로그인했는지 확인하세요.</string>
+    <string name="restore_purchases_failed">구매를 복원할 수 없습니다. 연결을 확인하고 다시 시도하세요!</string>
+    <string name="manage_subscription_device_settings">기기 설정에서 언제든지 구독을 관리할 수 있습니다</string>
+    <string name="manage_subscription_google_play">Google Play에서 구독 관리</string>
+    <string name="manage_subscription_app_store">App Store에서 구독 관리</string>
+    <string name="subscription_info_unavailable">구독 정보에 접근할 수 없습니다. 나중에 다시 시도해 주세요!</string>
+    <string name="web_subscriptions_not_available">구독은 모바일 앱에서만 사용할 수 있습니다. App Store 또는 Google Play에서 앱을 다운로드하여 구독하세요!</string>
+    <string name="feature_unlimited_words">무제한 단어</string>
+    <string name="feature_unlimited_words_desc">원하는 만큼 단어를 추가하세요 - 제한 없이!</string>
+    <string name="feature_ai_extraction">AI 추출</string>
+    <string name="feature_ai_extraction_desc">이미지에서 순식간에 단어를 추출하세요 - 손끝의 마법!</string>
+    <string name="feature_ai_image_extraction">AI 이미지 추출</string>
+    <string name="feature_advanced_analytics">고급 분석</string>
+    <string name="feature_advanced_analytics_desc">진행 상황을 추적하고 얼마나 성장하고 있는지 확인하세요!</string>
+    <string name="feature_export_data">데이터 내보내기</string>
+    <string name="feature_export_data_desc">어디서든 어휘를 가져가세요 - 당신의 단어, 당신의 방법으로!</string>
+    <string name="feature_export_backup">내보내기 &amp; 백업</string>
+    <string name="feature_priority_support">우선 지원</string>
+    <string name="feature_priority_support_desc">필요할 때 언제든지 도움을 받으세요!</string>
+    <string name="feature_ad_free">광고 없음</string>
+    <string name="feature_ad_free_desc">방해 없이 학습에 집중하세요!</string>
+    <string name="feature_basic_vocabulary_lists">기본 어휘 목록</string>
+    <string name="features">기능</string>
+    <string name="vokab_pro">Lexicon Pro</string>
+    <string name="terms_of_use">이용약관</string>
+    <string name="privacy_policy">개인정보 처리방침</string>
+
+    <!-- AI Word Import -->
+    <string name="import_with_ai">AI로 가져오기</string>
+    <string name="import_manually">수동</string>
+    <string name="ai_assistant">AI 어시스턴트</string>
+    <string name="ai_wizard_target_title">어떤 언어를</string>
+    <string name="ai_wizard_target_highlight">배우고 싶으세요?</string>
+    <string name="ai_wizard_target_subtitle">선택한 언어에 맞게 어휘를 맞춤 설정합니다.</string>
+    <string name="ai_wizard_native_title">당신의</string>
+    <string name="ai_wizard_native_highlight">모국어는?</string>
+    <string name="ai_wizard_native_subtitle">번역의 기반으로 사용합니다.</string>
+    <string name="ai_wizard_level_title">당신의</string>
+    <string name="ai_wizard_level_highlight">현재 레벨은?</string>
+    <string name="ai_wizard_level_subtitle">실력에 맞게 어휘 난이도를 조정합니다.</string>
+    <string name="ai_wizard_continue">계속</string>
+    <string name="ai_wizard_topics_title">어떤 주제에</string>
+    <string name="ai_wizard_topics_highlight">관심이 있으세요?</string>
+    <string name="ai_wizard_topics_subtitle">마음에 드는 것을 선택하세요. 다양한 어휘 팩을 만들어 드려요.</string>
+    <string name="ai_wizard_generate_words">단어 생성</string>
+    <string name="ai_wizard_add_to_library">라이브러리에 추가</string>
+    <string name="ai_wizard_adding_to_library">라이브러리에 추가 중…</string>
+    <string name="ai_wizard_preview_title">맞춤형</string>
+    <string name="ai_wizard_preview_highlight">어휘</string>
+    <string name="ai_wizard_all_selected">%1$d개 전체 선택</string>
+    <string name="ai_wizard_selection_count">%1$d / %2$d개 선택됨</string>
+    <string name="ai_wizard_select_all">모두 선택</string>
+    <string name="ai_wizard_deselect_all">모두 선택 해제</string>
+    <string name="ai_wizard_ai_suggestions">AI 제안</string>
+    <string name="ai_wizard_discard_title">제안을 삭제할까요?</string>
+    <string name="ai_wizard_discard_message">AI가 생성한 어휘 목록이 삭제됩니다.</string>
+    <string name="ai_wizard_discard">삭제</string>
+    <string name="ai_wizard_keep">유지</string>
+    <string name="ai_import_success">%1$d개 단어를 라이브러리에 추가했습니다!</string>
+    <string name="content_description_back">뒤로</string>
+    <string name="content_description_close">닫기</string>
+    <string name="language_english">영어</string>
+    <string name="language_german">독일어</string>
+    <string name="language_french">프랑스어</string>
+    <string name="language_spanish">스페인어</string>
+    <string name="language_italian">이탈리아어</string>
+    <string name="language_portuguese">포르투갈어</string>
+    <string name="language_dutch">네덜란드어</string>
+    <string name="language_russian">러시아어</string>
+    <string name="language_chinese">중국어</string>
+    <string name="language_japanese">일본어</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_arabic">아랍어</string>
+    <string name="language_turkish">터키어</string>
+    <string name="language_persian">페르시아어</string>
+    <string name="topic_daily_life">일상생활</string>
+    <string name="topic_travel">여행</string>
+    <string name="topic_business">비즈니스</string>
+    <string name="topic_food">음식</string>
+    <string name="topic_technology">기술</string>
+    <string name="topic_sports">스포츠</string>
+    <string name="topic_health">건강</string>
+    <string name="topic_arts">예술</string>
+    <string name="topic_nature">자연</string>
+    <string name="topic_academic">학문</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">설정 사용자 지정</string>
+    <string name="onboarding_subtitle">학습 경험을 맞춤 설정하세요</string>
+    <string name="select_target_language">배우고 싶은 언어:</string>
+    <string name="select_native_language">사용하는 언어:</string>
+    <string name="select_level">나의 레벨:</string>
+    <string name="beginner">초급</string>
+    <string name="intermediate">중급</string>
+    <string name="advanced">고급</string>
+    <string name="skip_preferences">건너뛰기</string>
+    <string name="submit_preferences">제출</string>
+    <string name="vocabulary_preview_title">추천 어휘</string>
+    <string name="import_selected">선택 가져오기</string>
+    <string name="skip_import">건너뛰기</string>
+    <string name="onboarding_welcome_to">환영합니다</string>
+    <string name="onboarding_personalize_subtitle">어휘 학습 경험을 맞춤 설정하세요</string>
+    <string name="onboarding_personalized_setup">맞춤 설정</string>
+    <string name="onboarding_personalized_setup_desc">목표 언어와 학습 레벨을 선택하세요</string>
+    <string name="onboarding_starter_vocabulary_feature">스타터 어휘</string>
+    <string name="onboarding_starter_vocabulary_desc">필수 단어의 큐레이션 팩으로 시작하세요</string>
+    <string name="onboarding_smart_learning">스마트 학습</string>
+    <string name="onboarding_smart_learning_desc">간격 반복으로 진행 상황 추적</string>
+    <string name="onboarding_get_started">시작하기</string>
+    <string name="onboarding_start_blank">빈 앱으로 시작</string>
+    <string name="onboarding_which_language">어떤 언어를</string>
+    <string name="onboarding_are_you_learning">배우고 있나요?</string>
+    <string name="onboarding_target_language_subtitle">선택에 따라 어휘 세트를 맞춤 설정합니다. 나중에 변경할 수 있어요.</string>
+    <string name="onboarding_continue">계속</string>
+    <string name="onboarding_whats_your">당신의</string>
+    <string name="onboarding_native_language_question">모국어는?</string>
+    <string name="onboarding_native_language_subtitle">번역과 힌트의 기반으로 사용합니다.</string>
+    <string name="onboarding_current_level">현재 레벨은?</string>
+    <string name="onboarding_level_subtitle">현재 실력에 맞게 어휘 세트를 맞춤 설정합니다.</string>
+    <string name="onboarding_beginner_desc">막 시작했어요. 기본 구문과 일상 단어를 배웁니다.</string>
+    <string name="onboarding_intermediate_desc">기본 대화가 가능해요. 어휘와 문법 패턴을 확장합니다.</string>
+    <string name="onboarding_advanced_desc">유창하게 말해요. 뉘앙스, 관용구, 전문 주제를 마스터합니다.</string>
+    <string name="onboarding_generating_vocabulary">어휘 생성 중</string>
+    <string name="onboarding_loading_tip_1">맞춤 어휘 큐레이팅 중…</string>
+    <string name="onboarding_loading_tip_2">레벨에 맞는 단어 선정 중…</string>
+    <string name="onboarding_loading_tip_3">스타터 팩 구성 중…</string>
+    <string name="onboarding_loading_tip_4">거의 다 됐어요…</string>
+    <string name="onboarding_language_flag">%1$s 국기</string>
+    <string name="login_required_title">Lexicon에 오신 것을 환영합니다</string>
+    <string name="login_required_subtitle">로그인하여 어휘 학습을 시작하세요</string>
+    <string name="sign_in_google">Google로 로그인</string>
+    <string name="sign_in_apple">Apple로 로그인</string>
+    <string name="sign_in_failed">로그인에 실패했습니다. 다시 시도해 주세요.</string>
+    <string name="tap_card_to_reveal">카드를 탭하여 확인</string>
+    <string name="starter_vocabulary">스타터 어휘</string>
+    <string name="accept">수락</string>
+    <string name="deny">거부</string>
+
+    <!-- Edit Profile -->
+    <string name="edit_profile">프로필 편집</string>
+    <string name="username">사용자 이름</string>
+    <string name="username_hint">사용자 이름을 선택하세요</string>
+    <string name="username_description">2-30자: 문자, 숫자, 공백, 밑줄, 하이픈</string>
+    <string name="change_photo">사진 변경</string>
+    <string name="remove_photo">사진 제거</string>
+    <string name="choose_from_gallery">갤러리에서 선택</string>
+    <string name="profile_updated">프로필이 업데이트되었습니다</string>
+
+    <!-- Leaderboard -->
+    <string name="leaderboard">리더보드</string>
+    <string name="leaderboard_current_streak">현재 연속 기록</string>
+    <string name="leaderboard_longest_streak">최장 연속 기록</string>
+    <string name="leaderboard_mastered">마스터 완료</string>
+    <string name="leaderboard_your_ranking">나의 순위</string>
+
+    <!-- TTS Models -->
+    <string name="tts_models">TTS 모델</string>
+    <string name="tts_models_subtitle">오프라인 음성 모델 관리</string>
+    <string name="tts_models_total_size">합계: %1$s</string>
+    <string name="tts_models_downloaded_count">%1$d개 다운로드됨</string>
+    <string name="tts_model_downloaded">다운로드됨</string>
+    <string name="tts_model_not_downloaded">다운로드되지 않음</string>
+    <string name="tts_model_delete">삭제</string>
+    <string name="tts_model_delete_title">TTS 모델을 삭제할까요?</string>
+    <string name="tts_model_delete_message">%1$s 음성 모델이 삭제됩니다. 다음에 이 언어의 TTS를 사용할 때 자동으로 다시 다운로드됩니다.</string>
+    <string name="tts_models_delete_all">모두 삭제</string>
+    <string name="tts_models_delete_all_title">모든 TTS 모델을 삭제할까요?</string>
+    <string name="tts_models_delete_all_message">다운로드된 모든 음성 모델이 삭제됩니다. 필요할 때 자동으로 다시 다운로드됩니다.</string>
+    <string name="tts_models_none_downloaded">다운로드된 모델 없음</string>
+</resources>

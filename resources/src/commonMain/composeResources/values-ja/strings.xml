@@ -1,0 +1,648 @@
+<resources>
+    <!-- App Info -->
+    <string name="app_name">LEXICON</string>
+    <string name="app_tagline">語彙力を磨こう</string>
+    <string name="app_description">Lexicon - 語彙学習アプリ</string>
+    <string name="version">バージョン %1$d</string>
+
+    <!-- Time-based Greetings -->
+    <string name="greeting_midnight">夜更かしですか？</string>
+    <string name="greeting_morning">おはようございます！</string>
+    <string name="greeting_afternoon">こんにちは！</string>
+    <string name="greeting_evening">こんばんは！</string>
+    <string name="greeting_night">おやすみなさい！</string>
+
+    <!-- Common -->
+    <string name="cancel">キャンセル</string>
+    <string name="done">完了</string>
+    <string name="close">閉じる</string>
+    <string name="auto_play">自動再生</string>
+    <string name="repeat_pronunciation">発音を繰り返す</string>
+    <string name="retry">再試行</string>
+    <string name="change">変更</string>
+    <string name="logout">ログアウト</string>
+
+    <!-- Navigation -->
+    <string name="profile">プロフィール</string>
+    <string name="study">学習</string>
+    <string name="settings">設定</string>
+
+    <!-- Settings Screen -->
+    <string name="theme">テーマ</string>
+    <string name="translation_language">翻訳言語</string>
+    <string name="notifications">通知</string>
+    <string name="about">アプリについて</string>
+    <string name="customize_appearance">外観をカスタマイズ</string>
+    <string name="notification_on_alerts_enabled">オン - 通知有効</string>
+    <string name="upgrade">アップグレード</string>
+    <string name="version_format">バージョン %1$s</string>
+
+    <!-- Notifications -->
+    <string name="notification_enabled">有効</string>
+    <string name="notification_disabled">無効</string>
+    <string name="notification_disabled_system">システム設定で無効</string>
+    <string name="notification_permission_required">権限が付与されていません</string>
+    <string name="notification_permission_title">単語とつながろう！</string>
+    <string name="notification_permission_message">学習のパートナーとして、練習の時間になったらやさしくお知らせします！</string>
+    <string name="notification_features_title">届くもの：</string>
+    <string name="notification_feature_reminders">やさしい復習リマインダー</string>
+    <string name="notification_feature_motivation">モチベーションアップ</string>
+    <string name="notification_feature_timing">スマートなタイミング - 必要な時だけ</string>
+    <string name="notification_no_spam_message">スパムなし、やさしいお知らせだけ！下のボタンをタップしてデバイス設定で通知を有効にしてください。</string>
+    <string name="notification_open_settings">有効にする</string>
+    <string name="notification_enable_button">はじめよう！</string>
+    <string name="notification_maybe_later">また後で</string>
+    <string name="notification_settings_title">通知設定</string>
+    <string name="notification_settings_subtitle">学習リマインダーをカスタマイズ</string>
+    <string name="notification_enable_notifications">通知を有効にする</string>
+    <string name="notification_stay_motivated">やさしいリマインダーでモチベーション維持</string>
+    <string name="notification_missing_nudges">学習のお知らせを見逃しています</string>
+    <string name="notification_gentle_reminders">復習する単語があるとき、やさしくお知らせします。ちょうどいいタイミングで、スパムなし！</string>
+
+    <!-- Profile Screen -->
+    <string name="logout_title">ログアウト</string>
+    <string name="logout_message">ログアウトしてもよろしいですか？</string>
+    <string name="delete_account">アカウント削除</string>
+    <string name="delete_account_title">アカウント削除</string>
+    <string name="delete_account_message">アカウントを削除してもよろしいですか？この操作は取り消せません。すべてのデータが完全に削除されます。</string>
+    <string name="delete_account_confirm">削除</string>
+    <string name="profile_picture">プロフィール画像</string>
+    <string name="sign_in_to_vokab">Lexiconにサインイン</string>
+    <string name="sign_in_description">サインインしてAI機能を利用：\n• 画像から語彙を抽出\n• 毎日のインサイトを取得</string>
+    <string name="offline_usage_info">サインインなしでオフラインで利用できますが、AI機能にはアカウントが必要です。</string>
+    <string name="premium_member">プレミアム会員</string>
+    <string name="trial_active">トライアル中</string>
+    <string name="free_plan">無料プラン</string>
+    <string name="subscription_cancelled">サブスクリプション解約済み</string>
+    <string name="subscription_expired">サブスクリプション期限切れ</string>
+    <string name="expires">有効期限: %1$s</string>
+
+    <!-- Enhanced Delete Account Flow -->
+    <string name="delete_account_hidden_title">アカウント削除</string>
+    <string name="delete_account_hidden_message">アカウントを完全に削除しようとしています。この操作は取り消せず、すべてのデータが削除されます。</string>
+    <string name="delete_account_hidden_continue">削除手続きへ進む</string>
+    <string name="delete_account_cooling_period_title">クーリングオフ期間</string>
+    <string name="delete_account_cooling_period_message">続行する前に%1$d秒お待ちください。再考の時間です。</string>
+    <string name="delete_account_cooling_period_cancel">削除をキャンセル</string>
+    <string name="delete_account_final_title">最終確認</string>
+    <string name="delete_account_final_message">以下が完全に削除されます：\n\n• すべての語彙\n• 学習の進捗と連続記録\n• AIが生成したインサイト\n• アカウント設定\n\nこの操作は取り消せません！</string>
+    <string name="delete_account_final_confirm">はい、アカウントを削除します</string>
+    <string name="delete_account_long_press_hint">プロフィール画像を長押しでアカウント削除にアクセス</string>
+    <string name="proceed_to_final_confirmation">最終確認へ進む</string>
+    <string name="ready_to_proceed_deletion">アカウント削除の準備ができました。以下で確認してください。</string>
+    <string name="day_streak">連続日数</string>
+    <string name="best_streak">最高記録</string>
+    <string name="words">%1$d 語</string>
+    <string name="weekly_activity">週間アクティビティ</string>
+    <string name="total_reviews_format">%1$d 回復習</string>
+    <string name="languages">言語</string>
+    <string name="member_since">登録日: %1$s</string>
+
+    <!-- Progress Screen -->
+    <string name="total_words">総単語数</string>
+    <string name="cards_due_for_review">%1$d 枚のカードが復習待ち</string>
+    <string name="start_review">復習を始める</string>
+    <string name="learning_stages">学習ステージ</string>
+    <string name="import_words">単語をインポート</string>
+    <string name="choose_import_method">単語の追加方法を選んでください</string>
+    <string name="original_language_question">元の単語はどの言語ですか？</string>
+    <string name="translation_language_hint">翻訳は%1$sになります。設定で変更できます。</string>
+    <string name="generating_daily_insight">デイリーインサイトを生成中...</string>
+    <string name="cards_waiting">%1$d 枚のカードが待っています</string>
+    <string name="all_caught_up">すべて完了！よくできました。</string>
+    <string name="greeting_subtitle">もっと単語をマスターしませんか？</string>
+    <string name="making_great_progress">絶好調！</string>
+    <string name="progress_subtitle">語彙力は毎回のセッションで着実に伸びています。</string>
+    <string name="view_stats">統計を見る</string>
+    <string name="ready_to_learn">学習の準備はできましたか？</string>
+    <string name="ready_to_learn_subtitle">5語以上インポートして最初の復習セッションを始めましょう！</string>
+    <string name="lets_go">はじめよう！</string>
+    <string name="almost_a_master">もう少し！</string>
+    <string name="almost_a_master_subtitle">あと少しで完全マスターです！</string>
+    <string name="getting_started">好スタート！</string>
+    <string name="getting_started_subtitle">一番難しいのは始めること — もうクリアしました！</string>
+    <string name="building_foundation">勢いがついてきた！</string>
+    <string name="building_foundation_subtitle">練習の成果が出ています。単語が定着し始めています！</string>
+    <string name="over_halfway">半分達成！</string>
+    <string name="over_halfway_subtitle">半分以上マスターしました。最高の結果はこれからです！</string>
+    <string name="strong_knowledge">素晴らしい！</string>
+    <string name="strong_knowledge_subtitle">ラストスパートです — マスターはもう目の前！</string>
+    <string name="fully_mastered">語彙マスター！</string>
+    <string name="fully_mastered_subtitle">すべての単語をマスターしました。お見事です！</string>
+    <string name="queue_is_empty">キューが空です</string>
+    <string name="everything_reviewed">すべて復習済みです！</string>
+    <string name="refresh">更新</string>
+    <string name="queue_ready_subtitle">復習の準備ができています</string>
+    <string name="add_words_to_start">単語を追加して学習を始めましょう</string>
+    <string name="session_complete">セッション完了！</string>
+    <string name="you_reviewed_cards">%1$d 枚のカードを復習しました</string>
+
+    <!-- Review Completion - Performance Tiers -->
+    <string name="completion_perfect_title">満点！</string>
+    <string name="completion_perfect_message">完璧な記憶力。すべての単語を正解しました。</string>
+    <string name="completion_great_title">素晴らしい！</string>
+    <string name="completion_great_message">記憶力が冴えています。この勢いを続けましょう。</string>
+    <string name="completion_good_title">良いセッション！</string>
+    <string name="completion_good_message">良い思い出し力です。間違えた単語は次回定着します。</string>
+    <string name="completion_okay_title">進歩しています！</string>
+    <string name="completion_okay_message">復習するたびに記憶が強化されます。着実に積み上げています。</string>
+    <string name="completion_tough_title">復習は力なり！</string>
+    <string name="completion_tough_message">難しい単語には時間がかかります。取り組んだことが大切です。</string>
+    <string name="completion_remembered">覚えていた</string>
+    <string name="completion_forgot">忘れた</string>
+    <string name="completion_score_percent">%1$d%%</string>
+    <string name="completion_cards_reviewed">%1$d 枚復習</string>
+
+    <!-- Learning Stages (7 Levels) -->
+    <string name="level_0_fresh">初めての出会い</string>
+    <string name="level_0_description">レベル1 • 出会ったばかり</string>
+    <string name="level_1_learning">慣れ始め</string>
+    <string name="level_1_description">レベル2 • 10分ごと</string>
+    <string name="level_2_familiar">定着し始め</string>
+    <string name="level_2_description">レベル3 • 毎日の練習</string>
+    <string name="level_3_building">自信がついてきた</string>
+    <string name="level_3_description">レベル4 • 3日ごと</string>
+    <string name="level_4_almost">もうすぐマスター</string>
+    <string name="level_4_description">レベル5 • 毎週の復習</string>
+    <string name="level_5_strong">しっかりマスター</string>
+    <string name="level_5_description">レベル6 • 隔週の復習</string>
+    <string name="level_6_mastered">完全マスター</string>
+    <string name="level_6_description">レベル7 • 月1回の復習</string>
+    <string name="level_format">Lv.%1$d</string>
+
+    <!-- Review Screen -->
+    <string name="review_due_cards">復習カードの確認</string>
+    <string name="stage_words">%1$d 語</string>
+    <string name="stage_words_string">%1$s 語</string>
+    <string name="how_well_did_you_know">どのくらい覚えていましたか？</string>
+    <string name="again">もう一度</string>
+    <string name="hard">難しい</string>
+    <string name="good">良い</string>
+    <string name="easy">簡単</string>
+    <string name="forgot">ダメだった</string>
+    <string name="remembered">覚えてた！</string>
+    <string name="did_you_remember">思い出せましたか？</string>
+    <string name="restart">最初から</string>
+    <string name="advance">続ける</string>
+    <string name="browse_your_words">単語を閲覧する</string>
+    <string name="back">戻る</string>
+    <string name="next">次へ</string>
+    <string name="show_answer">答えを見る</string>
+    <string name="think_of_answer_first">まず考えてみましょう</string>
+    <string name="no_words_to_review">復習する単語がありません</string>
+    <string name="less_than_1m">&lt;1分</string>
+    <string name="less_than_10m">&lt;10分</string>
+    <string name="less_than_1d">&lt;1日</string>
+    <string name="less_than_4d">&lt;4日</string>
+
+    <!-- Dialogs -->
+    <string name="exit_review">復習を終了しますか？</string>
+    <string name="exit_review_message">復習をやめてもよろしいですか？進捗は保存されます。</string>
+    <string name="yes_exit">はい、終了</string>
+    <string name="continue_reviewing">復習を続ける</string>
+    <string name="review_complete">復習完了！</string>
+    <string name="review_complete_message">お疲れさまでした！語彙をマスターするために練習を続けましょう。</string>
+
+    <!-- Import Dialog -->
+    <string name="confirm_languages">言語を確認</string>
+    <string name="original_language">元の言語</string>
+    <string name="translation">翻訳: %1$d</string>
+    <string name="processing_image_with_ai">AIで画像を処理中...</string>
+    <string name="processing_file">ファイルを処理中...</string>
+    <string name="enter_words">単語を入力</string>
+    <string name="import_from_image">画像からインポート (AI)</string>
+
+    <!-- Import Bottom Sheet - Redesigned -->
+    <string name="type_text">テキスト入力</string>
+    <string name="from_file">ファイルから</string>
+    <string name="from_image">画像から</string>
+    <string name="type_or_paste_words">単語を入力またはペースト</string>
+    <string name="enter_words_manually_description">語彙を手入力するか、クリップボードからペーストしてください</string>
+    <string name="import_from_file">ファイルからインポート</string>
+    <string name="select_txt_file_description">語彙リストを含む.txtファイルを選択してください</string>
+    <string name="choose_file">ファイルを選択</string>
+    <string name="txt_format">.txt形式</string>
+    <string name="supported_format">対応フォーマット</string>
+    <string name="format_example_1">単語,翻訳</string>
+    <string name="format_example_2">単語,翻訳,説明</string>
+    <string name="format_example_3">セミコロンまたは改行で区切り</string>
+    <string name="format_hint_comma_separated">形式: 単語,翻訳</string>
+    <string name="ai_powered_extraction">AI抽出</string>
+    <string name="capture_vocab_from_image">写真やスクリーンショットから語彙を取り込む</string>
+    <string name="ai_extractions">AI抽出</string>
+    <string name="remaining_extractions">残りの抽出回数</string>
+    <string name="extraction_options">抽出オプション</string>
+    <string name="individual_words_hint">単語と短いフレーズを抽出</string>
+    <string name="sentences_hint">完全な文と例文を抽出</string>
+    <string name="take_or_choose_photo">撮影または写真を選択</string>
+    <string name="camera">カメラ</string>
+    <string name="gallery">ギャラリー</string>
+    <string name="choose_image_source">画像ソースを選択</string>
+    <string name="take_new_photo">新しい写真を撮る</string>
+    <string name="choose_from_library">ライブラリから選択</string>
+    <string name="premium_feature">プレミアム機能</string>
+    <string name="upgrade_for_ai_extraction">プレミアムにアップグレードしてAI画像抽出を利用しましょう</string>
+    <string name="login_required">ログインが必要です</string>
+    <string name="login_for_ai_features">サインインしてAI機能を利用しましょう</string>
+    <string name="go_to_profile">プロフィールへ</string>
+    <string name="image_import_options">画像インポートオプション：</string>
+    <string name="extract_individual_words">個別の単語を抽出</string>
+    <string name="extract_example_sentences">例文を抽出</string>
+    <string name="add_a_word">単語を追加</string>
+    <string name="add_word_description">翻訳と任意の説明付きで語彙を1つずつ追加</string>
+    <string name="add_word">単語を追加</string>
+    <string name="words_added_count">%1$d 語追加されました</string>
+    <string name="word_added_count_singular">1語追加されました</string>
+    <string name="show_format_info">フォーマット情報を表示</string>
+    <string name="hide_format_info">フォーマット情報を非表示</string>
+    <string name="import_text">テキストをインポート</string>
+    <string name="upgrade_to_premium">プレミアムにアップグレード</string>
+    <string name="ai_image_extraction_description">AIによる認識で画像から語彙を抽出</string>
+
+    <!-- Success/Error Messages -->
+    <string name="success_imported_words">%1$d 語を正常にインポートしました</string>
+    <string name="success_imported_from_image">画像から%1$d 語を正常にインポートしました</string>
+    <string name="error_message">[エラー] %1$d</string>
+    <string name="error_prefix">[エラー]</string>
+    <string name="error">エラー</string>
+    <string name="error_with_message">エラー: %1$d</string>
+
+    <!-- Progress Screen -->
+    <string name="no_words_yet">• まだ単語がありません</string>
+
+    <!-- AI Daily Insights -->
+    <string name="welcome_insight">ようこそ！最初の単語を追加して語彙学習の旅を始めましょう！</string>
+    <string name="fallback_many_due">%1$d 枚のカードが準備完了！スキルをパワーアップしましょう！</string>
+    <string name="fallback_mostly_mastered">すごい！語彙の半分以上をマスターしました！あなたは語彙の達人です！</string>
+    <string name="fallback_learning">頑張って！%1$d 語がトレーニング中。復習するたびに力がつきます！</string>
+    <string name="fallback_some_due">ちょうどいいタイミング！%1$d 枚のカードが待っています。このセッションを頑張りましょう！</string>
+    <string name="fallback_all_caught_up">全部完了！新しい単語を追加してレベルアップしましょう！</string>
+    <string name="subscriptions_coming_soon_message">フルアクセスのサブスクリプションはまもなく提供開始予定です。お楽しみに！一時的に限定クレジットで機能をお試しいただけます。</string>
+
+    <!-- Mastery Levels (for badge) -->
+    <string name="new">新規</string>
+    <string name="learning">学習中</string>
+    <string name="familiar">馴染み</string>
+    <string name="consolidating">自信あり</string>
+    <string name="young">もう少し</string>
+    <string name="mature">よく知っている</string>
+    <string name="mastered">マスター</string>
+    <string name="unknown">不明</string>
+
+    <!-- Theme Descriptions -->
+    <string name="theme_light_desc">常にライトテーマを使用</string>
+    <string name="theme_dark_desc">常にダークテーマを使用</string>
+    <string name="theme_auto_desc">システム設定に従う</string>
+
+    <!-- Word Manager Screen -->
+    <string name="word_manager">単語マネージャー</string>
+    <string name="word_manager_subtitle">語彙を管理</string>
+    <string name="search_words">単語を検索...</string>
+    <string name="clear">クリア</string>
+    <string name="selected_count">%1$d 件選択中</string>
+    <string name="select_all">すべて選択</string>
+    <string name="deselect_all">すべて選択解除</string>
+    <string name="delete">削除</string>
+    <string name="more_options">その他のオプション</string>
+    <string name="more">もっと見る</string>
+    <string name="edit">編集</string>
+    <string name="save">保存</string>
+    <string name="share">共有</string>
+    <string name="loading_words">単語を読み込み中...</string>
+    <string name="no_results_found">結果が見つかりません</string>
+    <string name="no_words_match">「%1$d」に一致する単語がありません</string>
+    <string name="empty_library">単語ライブラリは空です</string>
+    <string name="start_by_importing">学習画面の＋ボタンをタップして、テキスト、ファイル、またはAIアシスタントで単語を追加しましょう。</string>
+    <string name="total_words_count">ライブラリに%1$d 語</string>
+    <string name="edit_word">単語を編集</string>
+    <string name="original_word">元の単語</string>
+    <string name="translation_label">翻訳</string>
+    <string name="description_optional">説明（任意）</string>
+    <string name="delete_words_title">単語を削除しますか？</string>
+    <string name="delete_words_message">%1$d 語を削除してもよろしいですか？この操作は取り消せません。</string>
+    <string name="deleting_words">単語を削除中</string>
+    <string name="deleting_words_message">%1$d 語を削除中…</string>
+    <string name="deleting_words_please_wait">単語を削除中、お待ちください…</string>
+    <string name="deleting">削除中…</string>
+    <string name="please_wait">お待ちください…</string>
+    <string name="word_deleted">単語が削除されました</string>
+    <string name="words_deleted">%1$d 語が削除されました</string>
+    <string name="word_updated">単語が更新されました</string>
+    <string name="export_words">エクスポート</string>
+    <string name="words_exported">%1$d 語をクリップボードにエクスポートしました</string>
+    <string name="export_all">すべてエクスポート</string>
+    <string name="export_selected">選択をエクスポート</string>
+
+    <!-- Batch Language Edit -->
+    <string name="batch_edit_languages">言語を編集</string>
+    <string name="update_languages">言語を更新</string>
+    <string name="updating_languages">言語を更新中…</string>
+    <string name="words_language_updated">%1$d 語の言語を更新しました</string>
+    <string name="word_language">単語の言語</string>
+    <string name="translation_language_label">翻訳言語</string>
+    <string name="updating_words_please_wait">単語を更新中、お待ちください…</string>
+
+    <!-- Word Manager Messages -->
+    <string name="failed_to_update_word">単語の更新に失敗しました</string>
+    <string name="failed_to_delete_word">単語の削除に失敗しました</string>
+    <string name="failed_to_delete_words">単語の削除に失敗しました</string>
+    <string name="no_words_selected">削除する単語を選択してください</string>
+    <string name="no_words_to_share">共有する単語がありません</string>
+    <string name="failed_to_share_words">単語の共有に失敗しました</string>
+    <string name="share_title_format">Lexicon - %1$d 語</string>
+
+    <!-- Word Manager Sort & Filter -->
+    <string name="sort_newest">新しい順</string>
+    <string name="sort_oldest">古い順</string>
+    <string name="sort_newest_first">新しい順</string>
+    <string name="sort_oldest_first">古い順</string>
+    <string name="sort_a_to_z">A → Z</string>
+    <string name="sort_z_to_a">Z → A</string>
+    <string name="sort_level_low_high">レベル（低→高）</string>
+    <string name="sort_level_high_low">レベル（高→低）</string>
+    <string name="sort_level_asc">レベル ↑</string>
+    <string name="sort_level_desc">レベル ↓</string>
+    <string name="filter_language">言語</string>
+    <string name="filter_all_languages">すべての言語</string>
+    <string name="filter_level">レベル</string>
+    <string name="filter_all_levels">すべてのレベル</string>
+    <string name="word_count_format">%1$d 語</string>
+    <string name="word_count_filtered_format">%1$d / %2$d 語</string>
+    <string name="selected_format">%1$d 件選択中</string>
+
+    <!-- Word Detail Sheet -->
+    <string name="learning_progress">学習進捗</string>
+    <string name="detail_languages">言語</string>
+    <string name="detail_added">追加日</string>
+    <string name="detail_next_review">次の復習</string>
+    <string name="detail_reviews">復習回数</string>
+    <string name="delete_word">単語を削除</string>
+    <string name="delete_word_title">単語を削除しますか？</string>
+    <string name="delete_word_message">「%1$s」は完全に削除されます。この操作は取り消せません。</string>
+    <string name="update_words_count">%1$d 語を更新</string>
+
+    <!-- Learning Mode Settings -->
+    <string name="learning_mode">学習モード</string>
+    <string name="learning_mode_settings">成功回数: %1$d | ペナルティ: %2$d レベル</string>
+    <string name="choose_learning_pace">学習ペースを選んでください</string>
+    <string name="apply_button">適用</string>
+
+    <!-- Learning Mode Options -->
+    <string name="mode_easy">やさしい</string>
+    <string name="mode_easy_subtitle">速い進度</string>
+    <string name="mode_easy_description">1回の成功で進級 · 忘れたら1レベル降格</string>
+
+    <string name="mode_balanced">バランス</string>
+    <string name="mode_balanced_subtitle">ほとんどの学習者におすすめ</string>
+    <string name="mode_balanced_description">1回の成功で進級 · 忘れたら2レベル降格</string>
+
+    <string name="mode_rigorous">厳格</string>
+    <string name="mode_rigorous_subtitle">しっかり定着</string>
+    <string name="mode_rigorous_description">2回の成功で進級 · 忘れたら3レベル降格</string>
+
+    <!-- Notification Reminder Messages -->
+    <string name="notification_title_one_word">ちょっと復習しませんか？</string>
+    <string name="notification_title_few_words">毎日の練習の時間です</string>
+    <string name="notification_title_many_words">%1$d 語の復習準備ができました</string>
+    <string name="notification_title_daily">毎日の復習タイム</string>
+
+    <string name="notification_message_one_word">今日の復習は1語だけ。1分もかかりません！</string>
+    <string name="notification_message_few_words">%1$d 語が待っています。%1$d分のクイックセッション</string>
+    <string name="notification_message_several_words">%1$d 語の復習準備ができました。ちょっと練習するのに最適なタイミング！</string>
+    <string name="notification_message_many_words">今日は%1$d 語の復習があります。頑張りましょう！</string>
+    <string name="notification_message_large_session">%1$d 語の準備ができました。充実したセッションになりそう！</string>
+    <string name="notification_message_very_large">%1$d 語の復習があります。ゆっくり楽しんで練習しましょう！</string>
+
+    <!-- Vocabulary Import/Review Messages -->
+    <string name="please_login_for_ai">画像から語彙を抽出するにはログインしてください</string>
+    <string name="import_failed">インポート失敗: %1$d</string>
+    <string name="import_failed_generic">インポート失敗 -- ファイル形式を確認してください（1行に 単語,翻訳）。</string>
+    <string name="image_import_failed">画像インポート失敗: %1$d</string>
+    <string name="image_import_failed_generic">画像インポートに失敗しました</string>
+    <string name="import_error_network">オフラインです -- 接続を確認して再試行してください。</string>
+    <string name="import_error_image_hint">画像抽出に失敗しました -- テキストが見える鮮明な写真でお試しください。</string>
+    <string name="import_error_file_empty">このファイルに単語が見つかりません。形式: 単語,翻訳（1行に1組）。</string>
+    <string name="import_error_file_format">ファイルを解析できませんでした。各行が 単語,翻訳 の形式か確認してください</string>
+
+    <!-- Share/Export -->
+    <string name="vokab_export_filename">lexicon_words_%1$d.txt</string>
+
+    <!-- Image Preview -->
+    <string name="preview_selected_image">選択した画像のプレビュー</string>
+    <string name="review_before_processing">処理前に確認</string>
+    <string name="selected_image">選択した画像</string>
+    <string name="failed_to_load_image">画像の読み込みに失敗しました</string>
+    <string name="try_another_image">別の画像を選択してください</string>
+    <string name="confirm_and_extract">確認して抽出</string>
+    <string name="confirm_image_help_text">最適な認識のためにテキストがはっきり見えることを確認してください</string>
+
+    <!-- Navigation -->
+    <string name="navigate_back">戻る</string>
+    <string name="open">開く</string>
+
+    <!-- Subscription -->
+    <string name="subscription">サブスクリプション</string>
+    <string name="subscription_screen_title">プレミアムにする</string>
+    <string name="restore_purchases">購入を復元</string>
+    <string name="cancel_anytime_prices_in_usd">いつでもキャンセル可能、質問なし！価格はUSD表示です。</string>
+    <string name="premium_unlocked">準備完了！</string>
+    <string name="premium_unlocked_message">プレミアムへようこそ！すべての素晴らしい機能を無制限に利用して、学習をパワーアップしましょう！</string>
+    <string name="unlock_premium">プレミアムを解除</string>
+    <string name="premium_subtitle">強力な機能で語彙学習をパワーアップ！</string>
+    <string name="compare_plans">無料 vs プレミアム</string>
+    <string name="free_label">無料</string>
+    <string name="premium_label">プレミアム</string>
+    <string name="everything_you_get">すべての特典</string>
+    <string name="most_popular_badge">人気No.1</string>
+    <string name="processing_ellipsis">少々お待ちください...</string>
+    <string name="unlock_now">今すぐ解除</string>
+    <string name="subscribe_now">今すぐ登録</string>
+    <string name="subscribe">登録</string>
+    <string name="subscription_unable_to_load">サブスクリプションを読み込めませんでした</string>
+    <string name="subscription_terms">お支払いはアカウントに請求されます。サブスクリプションは、現在の期間の終了24時間前までにキャンセルしない限り自動更新されます。アカウント設定でいつでもサブスクリプションを管理できます。</string>
+    <string name="subscription_active">有効</string>
+    <string name="subscription_cancelling">まもなく終了</string>
+    <string name="subscription_access_until">利用可能: %1$s まで</string>
+    <string name="subscription_cancelled_access_note">サブスクリプションはキャンセルされました。有効期限まで引き続きすべてのプレミアム機能をご利用いただけます。</string>
+    <string name="subscription_expires_today">本日期限切れ</string>
+    <string name="subscription_day_remaining">残り1日</string>
+    <string name="subscription_days_remaining">残り%1$d日</string>
+    <string name="subscription_resubscribe">再登録</string>
+    <string name="manage_subscription">サブスクリプション管理</string>
+    <string name="cancel_subscription">サブスクリプションをキャンセル</string>
+    <string name="billing_period_monthly">月額</string>
+    <string name="billing_period_annual">年額</string>
+    <string name="premium_plan_name">プレミアム</string>
+    <string name="subscription_load_failed">サブスクリプションのオプションを読み込めませんでした。もう一度お試しください！</string>
+    <string name="purchase_failed">購入が完了しませんでした。もう一度お試しください！</string>
+    <string name="purchases_restored_success">購入が正常に復元されました！</string>
+    <string name="no_purchases_to_restore">復元できるアクティブな購入が見つかりませんでした。同じアカウントでサインインしていることを確認してください。</string>
+    <string name="restore_purchases_failed">購入を復元できませんでした。接続を確認して再試行してください！</string>
+    <string name="manage_subscription_device_settings">デバイス設定からいつでもサブスクリプションを管理できます</string>
+    <string name="manage_subscription_google_play">Google Playでサブスクリプションを管理</string>
+    <string name="manage_subscription_app_store">App Storeでサブスクリプションを管理</string>
+    <string name="subscription_info_unavailable">サブスクリプション情報にアクセスできません。後でもう一度お試しください！</string>
+    <string name="web_subscriptions_not_available">サブスクリプションはモバイルアプリからのみ利用可能です。App StoreまたはGoogle Playからアプリをダウンロードして登録してください！</string>
+    <string name="feature_unlimited_words">単語数無制限</string>
+    <string name="feature_unlimited_words_desc">好きなだけ単語を追加 - 制限なし！</string>
+    <string name="feature_ai_extraction">AI抽出</string>
+    <string name="feature_ai_extraction_desc">画像から瞬時に単語を抽出 - 指先に魔法を！</string>
+    <string name="feature_ai_image_extraction">AI画像抽出</string>
+    <string name="feature_advanced_analytics">高度な分析</string>
+    <string name="feature_advanced_analytics_desc">進捗を追跡して、どれだけ成長しているか確認！</string>
+    <string name="feature_export_data">データエクスポート</string>
+    <string name="feature_export_data_desc">語彙をどこにでも持ち出せます - あなたの単語、あなたの方法で！</string>
+    <string name="feature_export_backup">エクスポート &amp; バックアップ</string>
+    <string name="feature_priority_support">優先サポート</string>
+    <string name="feature_priority_support_desc">いつでもサポートを受けられます！</string>
+    <string name="feature_ad_free">広告なし</string>
+    <string name="feature_ad_free_desc">邪魔なく学習に集中！</string>
+    <string name="feature_basic_vocabulary_lists">基本的な語彙リスト</string>
+    <string name="features">機能</string>
+    <string name="vokab_pro">Lexicon Pro</string>
+    <string name="terms_of_use">利用規約</string>
+    <string name="privacy_policy">プライバシーポリシー</string>
+
+    <!-- AI Word Import -->
+    <string name="import_with_ai">AIでインポート</string>
+    <string name="import_manually">手動</string>
+    <string name="ai_assistant">AIアシスタント</string>
+    <string name="ai_wizard_target_title">どの言語を</string>
+    <string name="ai_wizard_target_highlight">学びたいですか？</string>
+    <string name="ai_wizard_target_subtitle">選んだ言語に合わせて語彙をカスタマイズします。</string>
+    <string name="ai_wizard_native_title">あなたの</string>
+    <string name="ai_wizard_native_highlight">母語は？</string>
+    <string name="ai_wizard_native_subtitle">翻訳のベースとして使用します。</string>
+    <string name="ai_wizard_level_title">あなたの</string>
+    <string name="ai_wizard_level_highlight">現在のレベルは？</string>
+    <string name="ai_wizard_level_subtitle">スキルに合わせて語彙の難易度を調整します。</string>
+    <string name="ai_wizard_continue">続ける</string>
+    <string name="ai_wizard_topics_title">どんなトピックに</string>
+    <string name="ai_wizard_topics_highlight">興味がありますか？</string>
+    <string name="ai_wizard_topics_subtitle">気になるものを選んでください。ミックスしてバラエティ豊かな語彙パックを作ります。</string>
+    <string name="ai_wizard_generate_words">単語を生成</string>
+    <string name="ai_wizard_add_to_library">ライブラリに追加</string>
+    <string name="ai_wizard_adding_to_library">ライブラリに追加中…</string>
+    <string name="ai_wizard_preview_title">あなた専用の</string>
+    <string name="ai_wizard_preview_highlight">語彙</string>
+    <string name="ai_wizard_all_selected">%1$d 語すべて選択</string>
+    <string name="ai_wizard_selection_count">%1$d / %2$d 語選択中</string>
+    <string name="ai_wizard_select_all">すべて選択</string>
+    <string name="ai_wizard_deselect_all">すべて選択解除</string>
+    <string name="ai_wizard_ai_suggestions">AIの提案</string>
+    <string name="ai_wizard_discard_title">提案を破棄しますか？</string>
+    <string name="ai_wizard_discard_message">AI生成の語彙リストが失われます。</string>
+    <string name="ai_wizard_discard">破棄</string>
+    <string name="ai_wizard_keep">保持</string>
+    <string name="ai_import_success">%1$d 語をライブラリに追加しました！</string>
+    <string name="content_description_back">戻る</string>
+    <string name="content_description_close">閉じる</string>
+    <string name="language_english">英語</string>
+    <string name="language_german">ドイツ語</string>
+    <string name="language_french">フランス語</string>
+    <string name="language_spanish">スペイン語</string>
+    <string name="language_italian">イタリア語</string>
+    <string name="language_portuguese">ポルトガル語</string>
+    <string name="language_dutch">オランダ語</string>
+    <string name="language_russian">ロシア語</string>
+    <string name="language_chinese">中国語</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_korean">韓国語</string>
+    <string name="language_arabic">アラビア語</string>
+    <string name="language_turkish">トルコ語</string>
+    <string name="language_persian">ペルシア語</string>
+    <string name="topic_daily_life">日常生活</string>
+    <string name="topic_travel">旅行</string>
+    <string name="topic_business">ビジネス</string>
+    <string name="topic_food">食べ物</string>
+    <string name="topic_technology">テクノロジー</string>
+    <string name="topic_sports">スポーツ</string>
+    <string name="topic_health">健康</string>
+    <string name="topic_arts">芸術</string>
+    <string name="topic_nature">自然</string>
+    <string name="topic_academic">学術</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">設定をカスタマイズ</string>
+    <string name="onboarding_subtitle">学習体験をパーソナライズしましょう</string>
+    <string name="select_target_language">学びたい言語:</string>
+    <string name="select_native_language">話す言語:</string>
+    <string name="select_level">レベル:</string>
+    <string name="beginner">初級</string>
+    <string name="intermediate">中級</string>
+    <string name="advanced">上級</string>
+    <string name="skip_preferences">スキップ</string>
+    <string name="submit_preferences">送信</string>
+    <string name="vocabulary_preview_title">おすすめの語彙</string>
+    <string name="import_selected">選択をインポート</string>
+    <string name="skip_import">スキップ</string>
+    <string name="onboarding_welcome_to">ようこそ</string>
+    <string name="onboarding_personalize_subtitle">あなたの語彙学習体験をパーソナライズしましょう</string>
+    <string name="onboarding_personalized_setup">パーソナライズ設定</string>
+    <string name="onboarding_personalized_setup_desc">目標言語と学習レベルを選択</string>
+    <string name="onboarding_starter_vocabulary_feature">スターター語彙</string>
+    <string name="onboarding_starter_vocabulary_desc">基本的な単語のキュレーションパックで始めましょう</string>
+    <string name="onboarding_smart_learning">スマート学習</string>
+    <string name="onboarding_smart_learning_desc">間隔反復で進捗を追跡</string>
+    <string name="onboarding_get_started">はじめる</string>
+    <string name="onboarding_start_blank">空のアプリで始める</string>
+    <string name="onboarding_which_language">どの言語を</string>
+    <string name="onboarding_are_you_learning">学んでいますか？</string>
+    <string name="onboarding_target_language_subtitle">選択に基づいて語彙セットをカスタマイズします。後で変更できます。</string>
+    <string name="onboarding_continue">続ける</string>
+    <string name="onboarding_whats_your">あなたの</string>
+    <string name="onboarding_native_language_question">母語は？</string>
+    <string name="onboarding_native_language_subtitle">翻訳とヒントのベースとして使用します。</string>
+    <string name="onboarding_current_level">現在のレベルは？</string>
+    <string name="onboarding_level_subtitle">現在のスキルに合わせて語彙セットをカスタマイズします。</string>
+    <string name="onboarding_beginner_desc">始めたばかり。基本フレーズや日常の単語を学びます。</string>
+    <string name="onboarding_intermediate_desc">基本的な会話ができる。語彙と文法パターンを広げます。</string>
+    <string name="onboarding_advanced_desc">流暢に話せる。ニュアンス、慣用句、専門的な話題をマスターします。</string>
+    <string name="onboarding_generating_vocabulary">語彙を生成中</string>
+    <string name="onboarding_loading_tip_1">パーソナライズされた語彙を厳選中…</string>
+    <string name="onboarding_loading_tip_2">レベルに合わせて単語を選定中…</string>
+    <string name="onboarding_loading_tip_3">スターターパックを構築中…</string>
+    <string name="onboarding_loading_tip_4">もうすぐです…</string>
+    <string name="onboarding_language_flag">%1$sの旗</string>
+    <string name="login_required_title">Lexiconへようこそ</string>
+    <string name="login_required_subtitle">サインインして語彙学習を始めましょう</string>
+    <string name="sign_in_google">Googleでサインイン</string>
+    <string name="sign_in_apple">Appleでサインイン</string>
+    <string name="sign_in_failed">サインインに失敗しました。もう一度お試しください。</string>
+    <string name="tap_card_to_reveal">カードをタップして表示</string>
+    <string name="starter_vocabulary">スターター語彙</string>
+    <string name="accept">承認</string>
+    <string name="deny">拒否</string>
+
+    <!-- Edit Profile -->
+    <string name="edit_profile">プロフィールを編集</string>
+    <string name="username">ユーザー名</string>
+    <string name="username_hint">ユーザー名を選んでください</string>
+    <string name="username_description">2〜30文字：英数字、スペース、アンダースコア、ハイフン</string>
+    <string name="change_photo">写真を変更</string>
+    <string name="remove_photo">写真を削除</string>
+    <string name="choose_from_gallery">ギャラリーから選択</string>
+    <string name="profile_updated">プロフィールが更新されました</string>
+
+    <!-- Leaderboard -->
+    <string name="leaderboard">リーダーボード</string>
+    <string name="leaderboard_current_streak">現在の連続日数</string>
+    <string name="leaderboard_longest_streak">最長連続日数</string>
+    <string name="leaderboard_mastered">マスター済み</string>
+    <string name="leaderboard_your_ranking">あなたの順位</string>
+
+    <!-- TTS Models -->
+    <string name="tts_models">TTSモデル</string>
+    <string name="tts_models_subtitle">オフライン音声モデルを管理</string>
+    <string name="tts_models_total_size">合計: %1$s</string>
+    <string name="tts_models_downloaded_count">%1$d ダウンロード済み</string>
+    <string name="tts_model_downloaded">ダウンロード済み</string>
+    <string name="tts_model_not_downloaded">未ダウンロード</string>
+    <string name="tts_model_delete">削除</string>
+    <string name="tts_model_delete_title">TTSモデルを削除しますか？</string>
+    <string name="tts_model_delete_message">%1$sの音声モデルが削除されます。次回この言語のTTSを使用する際に自動的に再ダウンロードされます。</string>
+    <string name="tts_models_delete_all">すべて削除</string>
+    <string name="tts_models_delete_all_title">すべてのTTSモデルを削除しますか？</string>
+    <string name="tts_models_delete_all_message">ダウンロード済みのすべての音声モデルが削除されます。必要に応じて自動的に再ダウンロードされます。</string>
+    <string name="tts_models_none_downloaded">ダウンロード済みのモデルはありません</string>
+</resources>
