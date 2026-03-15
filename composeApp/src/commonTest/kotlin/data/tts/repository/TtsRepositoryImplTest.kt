@@ -161,5 +161,6 @@ class TtsRepositoryImplTest {
         override fun getTokensFilePath(languageCode: String): String = tokensPath
         override fun getDataDir(languageCode: String): String = dataDir
         override suspend fun deleteModelFiles(languageCode: String) {}
+        override suspend fun getModelDirectorySize(languageCode: String): Long = 0L
     }
 }

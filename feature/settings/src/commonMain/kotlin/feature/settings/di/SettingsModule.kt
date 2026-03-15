@@ -21,6 +21,8 @@ fun settingsModule() = module {
             authRepository = get(),
             notificationPermissionMonitor = get(),
             appVersionProvider = get(),
+            getTtsModelsInfoUseCase = get(),
+            deleteTtsModelUseCase = get(),
         )
     }
 }

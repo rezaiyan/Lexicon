@@ -10,8 +10,12 @@ import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
+import domain.tts.model.TtsModelInfo
+import domain.tts.usecase.DeleteTtsModelUseCase
+import domain.tts.usecase.GetTtsModelsInfoUseCase
 import core.common.getOrDefault
 import core.common.getOrElse
+import core.common.fold
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -27,6 +31,10 @@ import utils.Language
 
 data class SettingsState(
     val screen: SettingsScreenState = SettingsScreenState(),
+    val ttsModels: List<TtsModelInfo> = emptyList(),
+    val ttsModelsLoading: Boolean = false,
+    val ttsTotalSizeBytes: Long = 0L,
+    val ttsDownloadedCount: Int = 0,
 )
 
 class SettingsViewModel(
@@ -38,6 +46,8 @@ class SettingsViewModel(
     private val openNotificationSettingsUseCase: OpenNotificationSettingsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val notificationPermissionMonitor: NotificationPermissionMonitor,
+    private val getTtsModelsInfoUseCase: GetTtsModelsInfoUseCase,
+    private val deleteTtsModelUseCase: DeleteTtsModelUseCase,
     settingsRepository: ISettingsRepository,
     authRepository: IAuthRepository,
     appVersionProvider: IAppVersionProvider,
@@ -132,6 +142,36 @@ class SettingsViewModel(
     fun refreshNotificationPermissionStatus() {
         viewModelScope.launch {
             notificationPermissionMonitor.refresh()
+        }
+    }
+
+    fun loadTtsModels() {
+        viewModelScope.launch {
+            updateState { copy(ttsModelsLoading = true) }
+            getTtsModelsInfoUseCase().fold(
+                onSuccess = { models ->
+                    updateState {
+                        copy(
+                            ttsModels = models,
+                            ttsModelsLoading = false,
+                            ttsTotalSizeBytes = models.filter { it.isDownloaded }.sumOf { it.sizeBytes },
+                            ttsDownloadedCount = models.count { it.isDownloaded },
+                        )
+                    }
+                },
+                onFailure = {
+                    updateState { copy(ttsModelsLoading = false) }
+                }
+            )
+        }
+    }
+
+    fun deleteTtsModel(languageCode: String) {
+        viewModelScope.launch {
+            deleteTtsModelUseCase(languageCode).fold(
+                onSuccess = { loadTtsModels() },
+                onFailure = { /* silent failure — model list will reflect current state on next load */ }
+            )
         }
     }
 }

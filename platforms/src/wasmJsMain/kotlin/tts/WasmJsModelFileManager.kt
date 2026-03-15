@@ -21,4 +21,6 @@ class WasmJsModelFileManager : IModelFileManager {
     override suspend fun deleteModelFiles(languageCode: String) {
         // No-op
     }
+
+    override suspend fun getModelDirectorySize(languageCode: String): Long = 0L
 }

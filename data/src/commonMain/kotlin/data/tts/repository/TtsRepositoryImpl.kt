@@ -2,6 +2,7 @@ package data.tts.repository
 
 import core.common.Try
 import data.tts.LanguageModelMapping
+import domain.tts.model.TtsModelInfo
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
 import kotlinx.coroutines.flow.Flow
@@ -90,5 +91,33 @@ class TtsRepositoryImpl(
 
     override fun isLanguageSupported(languageCode: String): Boolean {
         return LanguageModelMapping.isSupported(languageCode)
+    }
+
+    override fun getSupportedLanguageCodes(): Set<String> {
+        return LanguageModelMapping.supportedLanguages
+    }
+
+    override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> = Try {
+        val isDownloaded = modelFileManager.isModelPresent(languageCode)
+        val sizeBytes = if (isDownloaded) {
+            modelFileManager.getModelDirectorySize(languageCode)
+        } else {
+            0L
+        }
+        TtsModelInfo(
+            languageCode = languageCode,
+            languageDisplayName = displayName,
+            isDownloaded = isDownloaded,
+            sizeBytes = sizeBytes,
+        )
+    }
+
+    override suspend fun deleteModel(languageCode: String): Try<Unit> = Try {
+        // If the currently loaded language is being deleted, release the engine
+        if (currentLoadedLanguage == languageCode) {
+            ttsEngine.release()
+            currentLoadedLanguage = null
+        }
+        modelFileManager.deleteModelFiles(languageCode)
     }
 }

@@ -257,6 +257,29 @@ class IosModelFileManager : IModelFileManager {
         fileManager.removeItemAtPath(languageDir(languageCode), error = null)
     }
 
+    override suspend fun getModelDirectorySize(languageCode: String): Long {
+        val dir = languageDir(languageCode)
+        if (!fileManager.fileExistsAtPath(dir)) return 0L
+        return calculateDirectorySize(dir)
+    }
+
+    private fun calculateDirectorySize(path: String): Long {
+        val contents = fileManager.contentsOfDirectoryAtPath(path, error = null) ?: return 0L
+        var totalSize = 0L
+        for (item in contents) {
+            val name = item as? String ?: continue
+            val fullPath = "$path/$name"
+            if (isDirectory(fullPath)) {
+                totalSize += calculateDirectorySize(fullPath)
+            } else {
+                val attrs = fileManager.attributesOfItemAtPath(fullPath, error = null)
+                val fileSize = (attrs?.get(platform.Foundation.NSFileSize) as? Number)?.toLong() ?: 0L
+                totalSize += fileSize
+            }
+        }
+        return totalSize
+    }
+
     private fun findFile(directory: String, extension: String): String? {
         val contents = fileManager.contentsOfDirectoryAtPath(directory, error = null) ?: return null
         for (item in contents) {

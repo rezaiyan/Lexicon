@@ -15,9 +15,15 @@ import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
+import domain.tts.model.TtsModelInfo
+import domain.tts.repository.ITtsRepository
+import domain.tts.model.TtsState
+import domain.tts.usecase.DeleteTtsModelUseCase
+import domain.tts.usecase.GetTtsModelsInfoUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import platform.IAppVersionProvider
@@ -44,28 +50,28 @@ class SettingsViewModelTest : ViewModelTestBase() {
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
         override fun getLanguage(): Flow<Language> = languageFlow
-        override suspend fun setLanguage(language: Language) { lastSetLanguage = language }
+        override suspend fun setLanguage(language: Language): Try<Unit> { lastSetLanguage = language; return Try.success(Unit) }
         override fun getThemeMode(): Flow<ThemeMode> = themeModeFlow
-        override suspend fun setThemeMode(mode: ThemeMode) { lastSetThemeMode = mode }
-        override suspend fun clearSettings() {}
+        override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> { lastSetThemeMode = mode; return Try.success(Unit) }
+        override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
         override fun getNotificationsEnabled(): Flow<Boolean> = notificationsEnabledFlow
-        override suspend fun setNotificationsEnabled(enabled: Boolean) { lastSetNotificationsEnabled = enabled }
+        override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> { lastSetNotificationsEnabled = enabled; return Try.success(Unit) }
         override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setReviewRemindersEnabled(enabled: Boolean) {}
+        override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
         override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean) {}
-        override suspend fun getDailyReminderTime(): String = "09:00"
-        override suspend fun setDailyReminderTime(time: String) {}
-        override suspend fun getMinimumDueCards(): Int = 5
-        override suspend fun setMinimumDueCards(count: Int) {}
+        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+        override suspend fun getDailyReminderTime(): Try<String> = Try.success("09:00")
+        override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
+        override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
+        override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeNotificationRepo() = object : INotificationRepository {
-        override suspend fun scheduleReviewReminder(dueCount: Int, title: String, message: String, delayMinutes: Int) {}
-        override suspend fun areNotificationsEnabled(): Boolean = systemNotificationsEnabled
-        override suspend fun requestNotificationPermission(): Boolean = requestPermissionResult
-        override suspend fun wasNotificationPermissionDenied(): Boolean = false
-        override suspend fun openNotificationSettings() {}
+        override suspend fun scheduleReviewReminder(dueCount: Int, title: String, message: String, delayMinutes: Int): Try<Unit> = Try.success(Unit)
+        override suspend fun areNotificationsEnabled(): Try<Boolean> = Try.success(systemNotificationsEnabled)
+        override suspend fun requestNotificationPermission(): Try<Boolean> = Try.success(requestPermissionResult)
+        override suspend fun wasNotificationPermissionDenied(): Try<Boolean> = Try.success(false)
+        override suspend fun openNotificationSettings(): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeAuthRepo() = object : IAuthRepository {
@@ -106,9 +112,23 @@ class SettingsViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
+    private fun fakeTtsRepo() = object : ITtsRepository {
+        override val ttsState: StateFlow<TtsState> = MutableStateFlow(TtsState.Idle)
+        override suspend fun speak(text: String, languageCode: String): Try<Unit> = Try.success(Unit)
+        override suspend fun stop(): Try<Unit> = Try.success(Unit)
+        override suspend fun isModelDownloaded(languageCode: String): Try<Boolean> = Try.success(false)
+        override suspend fun downloadModel(languageCode: String): Flow<Float> = flowOf(1.0f)
+        override fun isLanguageSupported(languageCode: String): Boolean = true
+        override fun getSupportedLanguageCodes(): Set<String> = setOf("en")
+        override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> =
+            Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
+        override suspend fun deleteModel(languageCode: String): Try<Unit> = Try.success(Unit)
+    }
+
     private fun createViewModel(): SettingsViewModel {
         val settingsRepo = fakeSettingsRepo()
         val notifRepo = fakeNotificationRepo()
+        val ttsRepo = fakeTtsRepo()
         return SettingsViewModel(
             notificationRepository = notifRepo,
             setLanguageUseCase = SetLanguageUseCase(settingsRepo),
@@ -118,6 +138,8 @@ class SettingsViewModelTest : ViewModelTestBase() {
             openNotificationSettingsUseCase = OpenNotificationSettingsUseCase(notifRepo),
             analyticsTracker = fakeAnalytics(),
             notificationPermissionMonitor = NotificationPermissionMonitor(notifRepo),
+            getTtsModelsInfoUseCase = GetTtsModelsInfoUseCase(ttsRepo),
+            deleteTtsModelUseCase = DeleteTtsModelUseCase(ttsRepo),
             settingsRepository = settingsRepo,
             authRepository = fakeAuthRepo(),
             appVersionProvider = fakeAppVersionProvider()

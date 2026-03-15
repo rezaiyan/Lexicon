@@ -9,4 +9,5 @@ interface IModelFileManager {
     fun getTokensFilePath(languageCode: String): String
     fun getDataDir(languageCode: String): String
     suspend fun deleteModelFiles(languageCode: String)
+    suspend fun getModelDirectorySize(languageCode: String): Long
 }

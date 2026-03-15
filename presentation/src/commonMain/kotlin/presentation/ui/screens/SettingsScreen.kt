@@ -19,6 +19,10 @@ import presentation.ui.components.settings.LanguageSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
 import presentation.ui.components.settings.SubscriptionCard
 import presentation.ui.components.settings.ThemeSettingsCard
+import presentation.ui.components.settings.TtsModelCacheCard
+import presentation.ui.components.settings.TtsModelCacheContent
+import presentation.ui.components.settings.TtsModelDeleteAllConfirmationContent
+import presentation.ui.components.settings.TtsModelDeleteConfirmationContent
 import presentation.ui.components.settings.WordManagerCard
 import presentation.ui.permissions.rememberNotificationPermissionRequester
 import presentation.ui.permissions.wasNotificationPermissionDenied
@@ -121,6 +125,49 @@ fun SettingsScreen(
             )
 
             WordManagerCard(onClick = { overlayHost.showWordManagerSheet() })
+
+            TtsModelCacheCard(
+                onClick = {
+                    viewModel.loadTtsModels()
+                    overlayHost.showSizeToFitBottomSheet(tag = "tts-model-cache") { nav ->
+                        val currentState by viewModel.state()
+                        TtsModelCacheContent(
+                            models = currentState.ttsModels,
+                            isLoading = currentState.ttsModelsLoading,
+                            totalSizeBytes = currentState.ttsTotalSizeBytes,
+                            downloadedCount = currentState.ttsDownloadedCount,
+                            onDeleteModel = { languageCode ->
+                                val model = currentState.ttsModels.find { it.languageCode == languageCode }
+                                val displayName = model?.languageDisplayName ?: languageCode
+                                overlayHost.showSizeToFitBottomSheet(tag = "tts-delete-confirm") { confirmNav ->
+                                    TtsModelDeleteConfirmationContent(
+                                        languageDisplayName = displayName,
+                                        onConfirm = {
+                                            viewModel.deleteTtsModel(languageCode)
+                                            confirmNav.dismiss()
+                                        },
+                                        onDismiss = { confirmNav.dismiss() },
+                                    )
+                                }
+                            },
+                            onDeleteAllModels = {
+                                overlayHost.showSizeToFitBottomSheet(tag = "tts-delete-all-confirm") { confirmNav ->
+                                    TtsModelDeleteAllConfirmationContent(
+                                        onConfirm = {
+                                            currentState.ttsModels
+                                                .filter { it.isDownloaded }
+                                                .forEach { viewModel.deleteTtsModel(it.languageCode) }
+                                            confirmNav.dismiss()
+                                        },
+                                        onDismiss = { confirmNav.dismiss() },
+                                    )
+                                }
+                            },
+                            onDismiss = { nav.dismiss() },
+                        )
+                    }
+                }
+            )
 
             SubscriptionCard(onClick = onNavigateToSubscription)
 

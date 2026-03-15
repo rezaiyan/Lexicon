@@ -157,6 +157,12 @@ class AndroidModelFileManager(
         languageDir(languageCode).deleteRecursively()
     }
 
+    override suspend fun getModelDirectorySize(languageCode: String): Long {
+        val dir = languageDir(languageCode)
+        if (!dir.exists()) return 0L
+        return dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+    }
+
     companion object {
         private const val TAG = "TtsModelManager"
     }
