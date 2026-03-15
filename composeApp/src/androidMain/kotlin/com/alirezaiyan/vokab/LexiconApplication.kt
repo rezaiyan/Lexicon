@@ -47,7 +47,13 @@ import org.koin.java.KoinJavaComponent.getKoin
  * - Google Auth initialization
  * - Coil image loading configuration
  */
-class LexiconApplication : Application(), SingletonImageLoader.Factory {
+class LexiconApplication : Application(), SingletonImageLoader.Factory,
+    androidx.work.Configuration.Provider {
+
+    override val workManagerConfiguration: androidx.work.Configuration
+        get() = androidx.work.Configuration.Builder()
+            .setMinimumLoggingLevel(android.util.Log.INFO)
+            .build()
     
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var crashlytics: FirebaseCrashlytics

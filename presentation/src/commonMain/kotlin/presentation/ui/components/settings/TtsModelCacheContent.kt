@@ -65,7 +65,6 @@ fun TtsModelCacheContent(
     downloadedCount: Int,
     onDeleteModel: (String) -> Unit,
     onDeleteAllModels: () -> Unit,
-    onDismiss: () -> Unit,
 ) {
     Column(
         modifier = Modifier

@@ -23,8 +23,8 @@ import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
-import android.graphics.Color
+import androidx.compose.ui.graphics.Color
+import androidx.glance.color.ColorProvider
 import androidx.glance.appwidget.cornerRadius
 import com.alirezaiyan.vokab.MainActivity
 import core.common.getOrNull
@@ -72,7 +72,7 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(ColorProvider(Color.WHITE, Color.parseColor("#1C1B1F")))
+            .background(ColorProvider(Color.White, Color(0xFF1C1B1F)))
             .cornerRadius(16.dp)
             .padding(16.dp)
             .clickable(actionStartActivity<MainActivity>()),
@@ -89,8 +89,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                     text = "Lexicon",
                     style = TextStyle(
                         color = ColorProvider(
-                            Color.parseColor("#6C21DC"),
-                            Color.parseColor("#B388FF")
+                            Color(0xFF6C21DC),
+                            Color(0xFFB388FF)
                         ),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -101,8 +101,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                     text = "\uD83D\uDD25 ${data.streakCount}",
                     style = TextStyle(
                         color = ColorProvider(
-                            Color.parseColor("#333333"),
-                            Color.parseColor("#E0E0E0")
+                            Color(0xFF333333),
+                            Color(0xFFE0E0E0)
                         ),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
@@ -117,8 +117,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                 text = "Word of the Day",
                 style = TextStyle(
                     color = ColorProvider(
-                        Color.parseColor("#888888"),
-                        Color.parseColor("#9E9E9E")
+                        Color(0xFF888888),
+                        Color(0xFF9E9E9E)
                     ),
                     fontSize = 11.sp
                 )
@@ -130,7 +130,7 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
             Text(
                 text = data.word,
                 style = TextStyle(
-                    color = ColorProvider(Color.BLACK, Color.WHITE),
+                    color = ColorProvider(Color.Black, Color.White),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 ),
@@ -144,8 +144,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                 text = data.translation,
                 style = TextStyle(
                     color = ColorProvider(
-                        Color.parseColor("#555555"),
-                        Color.parseColor("#BDBDBD")
+                        Color(0xFF555555),
+                        Color(0xFFBDBDBD)
                     ),
                     fontSize = 16.sp
                 ),
@@ -160,8 +160,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                     text = "${data.dueCardCount} cards due for review",
                     style = TextStyle(
                         color = ColorProvider(
-                            Color.parseColor("#6C21DC"),
-                            Color.parseColor("#B388FF")
+                            Color(0xFF6C21DC),
+                            Color(0xFFB388FF)
                         ),
                         fontSize = 12.sp
                     )
@@ -171,8 +171,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                     text = "All caught up!",
                     style = TextStyle(
                         color = ColorProvider(
-                            Color.parseColor("#4CAF50"),
-                            Color.parseColor("#81C784")
+                            Color(0xFF4CAF50),
+                            Color(0xFF81C784)
                         ),
                         fontSize = 12.sp
                     )
@@ -189,8 +189,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                     text = "Lexicon",
                     style = TextStyle(
                         color = ColorProvider(
-                            Color.parseColor("#6C21DC"),
-                            Color.parseColor("#B388FF")
+                            Color(0xFF6C21DC),
+                            Color(0xFFB388FF)
                         ),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
@@ -201,8 +201,8 @@ private fun DailyWordWidgetContent(data: DailyWidgetData?) {
                     text = "Open app to set up your words",
                     style = TextStyle(
                         color = ColorProvider(
-                            Color.parseColor("#888888"),
-                            Color.parseColor("#9E9E9E")
+                            Color(0xFF888888),
+                            Color(0xFF9E9E9E)
                         ),
                         fontSize = 12.sp
                     )

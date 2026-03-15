@@ -181,4 +181,7 @@ Detailed docs live in [`doc/`](doc/INDEX.md):
 ./scripts/bump-version.sh --hotfix   # patch bump
 ./scripts/bump-version.sh --minor    # minor bump
 ./scripts/bump-version.sh --major    # major bump
+
+# Trigger CI build/deploy via GitHub CLI
+gh workflow run ci.yml -f platform=ios -f version_bump=none
 ```

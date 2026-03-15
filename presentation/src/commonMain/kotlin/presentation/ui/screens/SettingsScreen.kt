@@ -163,7 +163,6 @@ fun SettingsScreen(
                                     )
                                 }
                             },
-                            onDismiss = { nav.dismiss() },
                         )
                     }
                 }
