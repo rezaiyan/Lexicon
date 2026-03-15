@@ -104,7 +104,9 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         val wordRepo = fakeWordRepo()
         return WordManagerViewModel(
             getAllWordsUseCase = GetAllWordsUseCase(wordRepo),
-            deleteWordsUseCase = DeleteWordsUseCase(wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)),
+            deleteWordsUseCase = DeleteWordsUseCase(
+                wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)
+            ),
             batchUpdateLanguagesUseCase = BatchUpdateLanguagesUseCase(wordRepo),
             updateWordUseCase = UpdateWordUseCase(wordRepo),
             exportWordsUseCase = ExportWordsUseCase(),

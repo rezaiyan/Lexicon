@@ -120,6 +120,7 @@ class ImportViewModel(
         }
     }
 
+    @Suppress("LongMethod")
     fun addWord() {
         val textState = currentState.textInputState
         val word = textState.word.trim().replace(",", " ")
@@ -205,6 +206,7 @@ class ImportViewModel(
         }
     }
 
+    @Suppress("CyclomaticComplexMethod")
     fun importImage() {
         val imageTab = when (val selected = currentState.selectedTab) {
             is ImportTabV2.Image -> selected
@@ -311,7 +313,8 @@ class ImportViewModel(
                         ).fold(
                             onSuccess = { count ->
                                 if (count == 0) {
-                                    val message = "No words found in this file. Use the format: word,translation (one pair per line)."
+                                    val message = "No words found in this file. " +
+                                        "Use the format: word,translation (one pair per line)."
                                     updateState {
                                         copy(fileImportState = ImportFileState.Error(message))
                                     }

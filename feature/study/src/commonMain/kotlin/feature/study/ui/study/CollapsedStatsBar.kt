@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
@@ -107,7 +106,6 @@ private fun Pill(
 @Composable
 private fun MiniProgressRing(
     stats: ProgressStats,
-    modifier: Modifier = Modifier,
 ) {
     val progressFraction = if (stats.totalWords > 0) {
         val weightedScore = (
@@ -119,7 +117,9 @@ private fun MiniProgressRing(
                         stats.level6Count * 6
                 ).toFloat()
         weightedScore / (stats.totalWords * 6f)
-    } else 0f
+    } else {
+        0f
+    }
 
     val progressPercent = (progressFraction * 100).toInt()
 

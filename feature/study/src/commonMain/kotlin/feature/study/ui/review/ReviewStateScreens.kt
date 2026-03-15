@@ -33,7 +33,8 @@ fun ErrorState(
 
     ErrorScreen(
         message = if (isNetworkError) {
-            "You're offline -- your words are stored locally, but we couldn't load them right now. Check your connection and try again."
+            "You're offline -- your words are stored locally, " +
+                "but we couldn't load them right now. Check your connection and try again."
         } else {
             message.ifEmpty { "Something went wrong loading your words." }
         },

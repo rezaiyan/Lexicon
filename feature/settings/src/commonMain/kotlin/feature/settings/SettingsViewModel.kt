@@ -14,7 +14,6 @@ import domain.tts.model.TtsModelInfo
 import domain.tts.usecase.DeleteTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
 import core.common.getOrDefault
-import core.common.getOrElse
 import core.common.fold
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +36,7 @@ data class SettingsState(
     val ttsDownloadedCount: Int = 0,
 )
 
+@Suppress("LongParameterList")
 class SettingsViewModel(
     private val notificationRepository: INotificationRepository,
     private val setLanguageUseCase: SetLanguageUseCase,

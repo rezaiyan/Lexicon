@@ -139,21 +139,30 @@ class ImportViaFileUseCaseTest {
 
     private class FakeSettingsRepo : domain.settings.repository.ISettingsRepository {
         override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): core.common.Try<Unit> = core.common.Try.success(Unit)
+        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<domain.settings.model.ThemeMode> =
             flowOf(domain.settings.model.ThemeMode.AUTO)
 
-        override suspend fun setThemeMode(mode: domain.settings.model.ThemeMode): core.common.Try<Unit> = core.common.Try.success(Unit)
-        override suspend fun clearSettings(): core.common.Try<Unit> = core.common.Try.success(Unit)
+        override suspend fun setThemeMode(
+            mode: domain.settings.model.ThemeMode,
+        ): Try<Unit> = Try.success(Unit)
+        override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(false)
-        override suspend fun setNotificationsEnabled(enabled: Boolean): core.common.Try<Unit> = core.common.Try.success(Unit)
+        override suspend fun setNotificationsEnabled(
+            enabled: Boolean,
+        ): Try<Unit> = Try.success(Unit)
         override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(false)
-        override suspend fun setReviewRemindersEnabled(enabled: Boolean): core.common.Try<Unit> = core.common.Try.success(Unit)
+        override suspend fun setReviewRemindersEnabled(
+            enabled: Boolean,
+        ): Try<Unit> = Try.success(Unit)
         override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(false)
-        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): core.common.Try<Unit> = core.common.Try.success(Unit)
-        override suspend fun getDailyReminderTime(): core.common.Try<String> = core.common.Try.success("09:00")
-        override suspend fun setDailyReminderTime(time: String): core.common.Try<Unit> = core.common.Try.success(Unit)
-        override suspend fun getMinimumDueCards(): core.common.Try<Int> = core.common.Try.success(5)
-        override suspend fun setMinimumDueCards(count: Int): core.common.Try<Unit> = core.common.Try.success(Unit)
+        override suspend fun setMotivationalMessagesEnabled(
+            enabled: Boolean,
+        ): Try<Unit> = Try.success(Unit)
+        override suspend fun getDailyReminderTime(): Try<String> =
+            Try.success("09:00")
+        override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
+        override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
+        override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
     }
 }

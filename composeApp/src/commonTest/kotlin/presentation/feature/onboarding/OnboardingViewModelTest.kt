@@ -41,8 +41,9 @@ class OnboardingViewModelTest : ViewModelTestBase() {
 
     private fun fakeSubmitUseCase(): SubmitPreferencesUseCase {
         val repo = object : IOnboardingRepository {
-            override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> =
-                submitResult
+            override suspend fun submitPreferences(
+                preferences: OnboardingPreferences,
+            ): Try<SuggestedVocabularyResponse> = submitResult
             override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(false)
             override suspend fun markOnboardingCompleted(): Try<Unit> = Try.success(Unit)
         }
@@ -52,7 +53,10 @@ class OnboardingViewModelTest : ViewModelTestBase() {
     private fun fakeSetLanguageUseCase(): SetLanguageUseCase {
         val repo = object : ISettingsRepository {
             override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-            override suspend fun setLanguage(language: Language): Try<Unit> { languageSet = language; return Try.success(Unit) }
+            override suspend fun setLanguage(language: Language): Try<Unit> {
+                languageSet = language
+                return Try.success(Unit)
+            }
             override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
             override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
             override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)

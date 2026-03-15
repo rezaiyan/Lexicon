@@ -91,7 +91,9 @@ class VocabularyViewModelTest : ViewModelTestBase() {
             getDueWordsUseCase = GetDueWordsUseCase(repo),
             getWordsByStageUseCase = GetWordsByStageUseCase(repo),
             updateWordUseCase = UpdateWordUseCase(repo),
-            deleteWordUseCase = DeleteWordUseCase(repo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(repo)),
+            deleteWordUseCase = DeleteWordUseCase(
+                repo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(repo)
+            ),
             analyticsTracker = fakeAnalytics()
         )
     }
@@ -184,7 +186,9 @@ class VocabularyViewModelTest : ViewModelTestBase() {
             getDueWordsUseCase = GetDueWordsUseCase(failingRepo),
             getWordsByStageUseCase = GetWordsByStageUseCase(failingRepo),
             updateWordUseCase = UpdateWordUseCase(failingRepo),
-            deleteWordUseCase = DeleteWordUseCase(failingRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(failingRepo)),
+            deleteWordUseCase = DeleteWordUseCase(
+                failingRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(failingRepo)
+            ),
             analyticsTracker = fakeAnalytics()
         )
         failVm.loadWords()

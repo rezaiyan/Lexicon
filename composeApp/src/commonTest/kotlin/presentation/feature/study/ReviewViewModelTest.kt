@@ -113,7 +113,11 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override suspend fun downloadModel(languageCode: String): Flow<Float> = flowOf(1f)
         override fun isLanguageSupported(languageCode: String): Boolean = true
         override fun getSupportedLanguageCodes(): Set<String> = setOf("en")
-        override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> = Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
+        override suspend fun getModelInfo(
+            languageCode: String,
+            displayName: String,
+        ): Try<TtsModelInfo> =
+            Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
         override suspend fun deleteModel(languageCode: String): Try<Unit> = Try.success(Unit)
     }
 
@@ -154,7 +158,9 @@ class ReviewViewModelTest : ViewModelTestBase() {
             getWordsByStageUseCase = GetWordsByStageUseCase(wordRepo),
             reviewWordUseCase = ReviewWordUseCase(wordRepo, GetReviewSettingsUseCase()),
             updateWordUseCase = UpdateWordUseCase(wordRepo),
-            deleteWordUseCase = DeleteWordUseCase(wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)),
+            deleteWordUseCase = DeleteWordUseCase(
+                wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)
+            ),
             recordStreakActivityUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
             analyticsTracker = fakeAnalytics(),

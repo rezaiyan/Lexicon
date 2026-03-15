@@ -50,12 +50,21 @@ class SettingsViewModelTest : ViewModelTestBase() {
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
         override fun getLanguage(): Flow<Language> = languageFlow
-        override suspend fun setLanguage(language: Language): Try<Unit> { lastSetLanguage = language; return Try.success(Unit) }
+        override suspend fun setLanguage(language: Language): Try<Unit> {
+            lastSetLanguage = language
+            return Try.success(Unit)
+        }
         override fun getThemeMode(): Flow<ThemeMode> = themeModeFlow
-        override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> { lastSetThemeMode = mode; return Try.success(Unit) }
+        override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> {
+            lastSetThemeMode = mode
+            return Try.success(Unit)
+        }
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
         override fun getNotificationsEnabled(): Flow<Boolean> = notificationsEnabledFlow
-        override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> { lastSetNotificationsEnabled = enabled; return Try.success(Unit) }
+        override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> {
+            lastSetNotificationsEnabled = enabled
+            return Try.success(Unit)
+        }
         override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
         override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
         override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
@@ -67,7 +76,12 @@ class SettingsViewModelTest : ViewModelTestBase() {
     }
 
     private fun fakeNotificationRepo() = object : INotificationRepository {
-        override suspend fun scheduleReviewReminder(dueCount: Int, title: String, message: String, delayMinutes: Int): Try<Unit> = Try.success(Unit)
+        override suspend fun scheduleReviewReminder(
+            dueCount: Int,
+            title: String,
+            message: String,
+            delayMinutes: Int,
+        ): Try<Unit> = Try.success(Unit)
         override suspend fun areNotificationsEnabled(): Try<Boolean> = Try.success(systemNotificationsEnabled)
         override suspend fun requestNotificationPermission(): Try<Boolean> = Try.success(requestPermissionResult)
         override suspend fun wasNotificationPermissionDenied(): Try<Boolean> = Try.success(false)

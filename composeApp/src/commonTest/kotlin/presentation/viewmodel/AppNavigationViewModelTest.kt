@@ -29,7 +29,10 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> =
             Try.failure(UnsupportedOperationException())
         override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(hasCompleted)
-        override suspend fun markOnboardingCompleted(): Try<Unit> { markCompletedCalled = true; return Try.success(Unit) }
+        override suspend fun markOnboardingCompleted(): Try<Unit> {
+            markCompletedCalled = true
+            return Try.success(Unit)
+        }
     }
 
     private fun fakeWordRepo(
@@ -45,7 +48,12 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
-        override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flowOf(UpdateWordsLanguagesProgress.Completed(0))
+        override fun updateWordsLanguages(
+            ids: List<Int>,
+            sourceLanguage: String,
+            targetLanguage: String,
+        ): Flow<UpdateWordsLanguagesProgress> =
+            flowOf(UpdateWordsLanguagesProgress.Completed(0))
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
         override suspend fun syncWithRemote(): Try<Unit> = Try.success(Unit)
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
@@ -83,16 +91,17 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `onSplashComplete with authenticated but onboarding not completed marks completed and goes to Ready`() = runTest {
-        val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo())
-        vm.onSplashComplete(isAuthenticated = true)
-        assertIs<AppUiState.Ready>(vm.currentState)
-        assertEquals(true, onboardingRepo.markCompletedCalled)
-    }
+    fun `onSplashComplete with auth but onboarding not completed marks completed`() =
+        runTest {
+            val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
+            val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo())
+            vm.onSplashComplete(isAuthenticated = true)
+            assertIs<AppUiState.Ready>(vm.currentState)
+            assertEquals(true, onboardingRepo.markCompletedCalled)
+        }
 
     @Test
-    fun `onSplashComplete with not authenticated and onboarding not completed goes to AuthGate with needsOnboardingCheck`() = runTest {
+    fun `onSplashComplete unauthenticated and onboarding not completed goes to AuthGate`() = runTest {
         val vm = createViewModel(hasCompleted = false)
         vm.onSplashComplete(isAuthenticated = false)
         val state = assertIs<AppUiState.AuthGate>(vm.currentState)

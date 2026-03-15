@@ -64,14 +64,19 @@ internal class FakeNotificationRepository : INotificationRepository {
     var openSettingsCalled = false
 
     override suspend fun requestNotificationPermission(): Try<Boolean> {
-        if (shouldThrow) throw RuntimeException("Permission error")
+        if (shouldThrow) return Try.failure(RuntimeException("Permission error"))
         return Try.success(permissionGranted)
     }
 
     override suspend fun areNotificationsEnabled(): Try<Boolean> = Try.success(true)
     override suspend fun wasNotificationPermissionDenied(): Try<Boolean> = Try.success(false)
 
-    override suspend fun scheduleReviewReminder(dueCount: Int, title: String, message: String, delayMinutes: Int): Try<Unit> {
+    override suspend fun scheduleReviewReminder(
+        dueCount: Int,
+        title: String,
+        message: String,
+        delayMinutes: Int,
+    ): Try<Unit> {
         scheduledReminder = true
         lastScheduledDueCount = dueCount
         lastScheduledTitle = title
@@ -81,7 +86,7 @@ internal class FakeNotificationRepository : INotificationRepository {
     }
 
     override suspend fun openNotificationSettings(): Try<Unit> {
-        if (shouldThrow) throw RuntimeException("Settings error")
+        if (shouldThrow) return Try.failure(RuntimeException("Settings error"))
         openSettingsCalled = true
         return Try.success(Unit)
     }

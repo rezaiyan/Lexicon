@@ -55,7 +55,7 @@ internal class FakeTtsRepository : ITtsRepository {
     override val ttsState: StateFlow<TtsState> = MutableStateFlow(TtsState.Idle)
 
     override suspend fun speak(text: String, languageCode: String): Try<Unit> {
-        if (shouldThrow) throw RuntimeException("TTS error")
+        if (shouldThrow) return Try.failure(RuntimeException("TTS error"))
         speakCalled = true
         lastSpokenText = text
         lastSpokenLanguageCode = languageCode
@@ -63,7 +63,7 @@ internal class FakeTtsRepository : ITtsRepository {
     }
 
     override suspend fun stop(): Try<Unit> {
-        if (shouldThrow) throw RuntimeException("Stop error")
+        if (shouldThrow) return Try.failure(RuntimeException("Stop error"))
         stopCalled = true
         return Try.success(Unit)
     }
@@ -72,6 +72,10 @@ internal class FakeTtsRepository : ITtsRepository {
     override suspend fun downloadModel(languageCode: String): Flow<Float> = flowOf(1.0f)
     override fun isLanguageSupported(languageCode: String): Boolean = languageSupported
     override fun getSupportedLanguageCodes(): Set<String> = setOf("en")
-    override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> = Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
+    override suspend fun getModelInfo(
+        languageCode: String,
+        displayName: String,
+    ): Try<TtsModelInfo> =
+        Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
     override suspend fun deleteModel(languageCode: String): Try<Unit> = Try.success(Unit)
 }
