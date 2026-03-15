@@ -70,7 +70,7 @@ class OnboardingRepositoryImplTest {
         secureStorage.onboardingCompleted = true
         val repo = createRepo()
 
-        assertTrue(repo.hasCompletedOnboarding())
+        assertTrue(repo.hasCompletedOnboarding().getOrThrow())
     }
 
     @Test
@@ -78,7 +78,7 @@ class OnboardingRepositoryImplTest {
         secureStorage.onboardingCompleted = false
         val repo = createRepo()
 
-        assertFalse(repo.hasCompletedOnboarding())
+        assertFalse(repo.hasCompletedOnboarding().getOrThrow())
     }
 
     @Test

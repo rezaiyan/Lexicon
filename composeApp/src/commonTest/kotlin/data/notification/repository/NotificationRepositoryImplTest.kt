@@ -1,5 +1,6 @@
 package data.notification.repository
 
+import core.common.getOrThrow
 import notification.INotificationManager
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -35,7 +36,7 @@ class NotificationRepositoryImplTest {
         notificationManager.notificationsEnabled = true
         val repo = createRepo()
 
-        assertTrue(repo.areNotificationsEnabled())
+        assertTrue(repo.areNotificationsEnabled().getOrThrow())
     }
 
     @Test
@@ -43,7 +44,7 @@ class NotificationRepositoryImplTest {
         notificationManager.notificationsEnabled = false
         val repo = createRepo()
 
-        assertFalse(repo.areNotificationsEnabled())
+        assertFalse(repo.areNotificationsEnabled().getOrThrow())
     }
 
     @Test
@@ -51,7 +52,7 @@ class NotificationRepositoryImplTest {
         notificationManager.permissionResult = true
         val repo = createRepo()
 
-        assertTrue(repo.requestNotificationPermission())
+        assertTrue(repo.requestNotificationPermission().getOrThrow())
     }
 
     @Test
@@ -59,7 +60,7 @@ class NotificationRepositoryImplTest {
         notificationManager.permissionResult = false
         val repo = createRepo()
 
-        assertFalse(repo.requestNotificationPermission())
+        assertFalse(repo.requestNotificationPermission().getOrThrow())
     }
 
     @Test
@@ -67,7 +68,7 @@ class NotificationRepositoryImplTest {
         notificationManager.permissionDenied = true
         val repo = createRepo()
 
-        assertTrue(repo.wasNotificationPermissionDenied())
+        assertTrue(repo.wasNotificationPermissionDenied().getOrThrow())
     }
 
     // --- Fakes ---

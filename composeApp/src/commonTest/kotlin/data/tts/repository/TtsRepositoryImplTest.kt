@@ -1,5 +1,6 @@
 package data.tts.repository
 
+import core.common.getOrThrow
 import domain.tts.model.TtsState
 import fakes.FakePerformanceTracer
 import kotlinx.coroutines.flow.Flow
@@ -105,7 +106,7 @@ class TtsRepositoryImplTest {
         modelFileManager.modelPresent = true
         val repo = createRepo()
 
-        assertTrue(repo.isModelDownloaded("en"))
+        assertTrue(repo.isModelDownloaded("en").getOrThrow())
     }
 
     @Test
@@ -113,7 +114,7 @@ class TtsRepositoryImplTest {
         modelFileManager.modelPresent = false
         val repo = createRepo()
 
-        assertFalse(repo.isModelDownloaded("en"))
+        assertFalse(repo.isModelDownloaded("en").getOrThrow())
     }
 
     @Test

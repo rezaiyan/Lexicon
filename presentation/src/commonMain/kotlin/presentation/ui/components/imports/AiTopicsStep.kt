@@ -355,7 +355,7 @@ private fun TopicTile(
     Card(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier,
+        modifier = modifier.semantics { this.selected = selected },
         shape = RoundedCornerShape(Theme.shapes.large),
         colors = CardDefaults.cardColors(containerColor = bgColor),
         border = BorderStroke(
