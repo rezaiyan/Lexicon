@@ -19,6 +19,7 @@ import org.koin.core.context.startKoin
 import platform.Foundation.NSLog
 import presentation.ui.LexiconApp
 import pushnotification.IOSPushTokenManager
+import widget.IosWidgetUpdater
 
 object NotificationCategoryConstants {
     const val STREAK_REMINDER = "STREAK_REMINDER"
@@ -81,6 +82,9 @@ private fun startKoinIfNeeded() {
     if (accountDeletionHandler == null) {
         koinInstance?.let { accountDeletionHandler = it.get() }
     }
+
+    // Update widget data on app launch
+    koinInstance?.let { IosWidgetUpdater.update(it) }
 }
 
 fun clearUserData() {

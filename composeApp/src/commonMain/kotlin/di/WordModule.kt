@@ -33,6 +33,7 @@ import domain.word.usecase.ImportWordsUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import domain.word.usecase.UpdateWordUseCase
+import domain.widget.usecase.GetDailyWidgetDataUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -88,4 +89,7 @@ fun wordModule() = module {
     singleOf(::UpdateWordUseCase)
     singleOf(::ExportWordsUseCase)
     singleOf(::GetSourceLanguageUseCase)
+
+    // Use Cases - Widget
+    singleOf(::GetDailyWidgetDataUseCase)
 }

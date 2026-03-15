@@ -23,6 +23,7 @@ import com.mmk.kmpauth.google.GoogleAuthProvider
 import com.revenuecat.purchases.kmp.LogLevel
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesConfiguration
+import com.alirezaiyan.vokab.widget.DailyWordWidgetWorker
 import config.AppConfig
 import di.androidPlatformModule
 import di.appModule
@@ -110,6 +111,9 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory {
                 Log.w(TAG, "Feature flags fetch failed — using defaults", e)
             }
         }
+
+        // Schedule daily widget updates
+        DailyWordWidgetWorker.enqueue(this)
 
         // Log app start event
         analytics.logEvent("app_start", null)

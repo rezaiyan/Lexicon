@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Lexicon</string>
+    <string name="widget_description">Shows your daily vocabulary word and study streak</string>
 </resources>
