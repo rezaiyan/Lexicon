@@ -70,6 +70,8 @@ kotlin {
         }
     }
 
+    val iosTestStubDir = layout.buildDirectory.dir("ios-test-stub-frameworks")
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -88,6 +90,14 @@ kotlin {
                 }
             }
         }
+
+        // KAN-27: Point iOS test binary linker at stub frameworks so it can
+        // resolve GoogleSignIn, FBSDKCoreKit, FBSDKLoginKit, FirebaseAuth,
+        // FirebaseCore, and PurchasesHybridCommon without the real SDKs.
+        iosTarget.binaries.getTest("debug").linkerOpts(
+            "-F${iosTestStubDir.get().asFile.absolutePath}"
+        )
+
         @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
@@ -397,12 +407,25 @@ tasks.configureEach {
     }
 }
 
-// Disable iOS test tasks to avoid GoogleSignIn framework linking issues in CI
+// KAN-27: Generate stub frameworks so iOS test binaries can link without
+// the real GoogleSignIn / Facebook / Firebase / RevenueCat frameworks.
+val generateIosTestStubs by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Generates empty stub frameworks for iOS test linking"
+
+    val stubDir = layout.buildDirectory.dir("ios-test-stub-frameworks")
+    outputs.dir(stubDir)
+
+    // Only meaningful on macOS; skip gracefully elsewhere.
+    onlyIf { System.getProperty("os.name").contains("Mac", ignoreCase = true) }
+
+    commandLine("bash", rootProject.file("scripts/generate-ios-test-stubs.sh").absolutePath, stubDir.get().asFile.absolutePath)
+}
+
+// Wire stub generation into iOS test link tasks and add -F search path
 tasks.configureEach {
-    if (name.contains("Test", ignoreCase = true) &&
-        name.contains("Ios", ignoreCase = true) &&
-        (name.contains("link", ignoreCase = true) || name.contains("compile", ignoreCase = true))) {
-        enabled = false
+    if (name.startsWith("linkDebugTest") && name.contains("Ios", ignoreCase = true)) {
+        dependsOn(generateIosTestStubs)
     }
 }
 
