@@ -28,8 +28,8 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         var markCompletedCalled = false
         override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> =
             Try.failure(UnsupportedOperationException())
-        override suspend fun hasCompletedOnboarding(): Boolean = hasCompleted
-        override suspend fun markOnboardingCompleted() { markCompletedCalled = true }
+        override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(hasCompleted)
+        override suspend fun markOnboardingCompleted(): Try<Unit> { markCompletedCalled = true; return Try.success(Unit) }
     }
 
     private fun fakeWordRepo(

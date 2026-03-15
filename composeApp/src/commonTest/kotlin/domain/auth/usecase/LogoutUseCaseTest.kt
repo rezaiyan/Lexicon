@@ -106,20 +106,20 @@ class LogoutUseCaseTest {
 
     private class FakeSettingsRepo : ISettingsRepository {
         var clearSettingsCalled = false
-        override suspend fun clearSettings() { clearSettingsCalled = true }
+        override suspend fun clearSettings(): Try<Unit> { clearSettingsCalled = true; return Try.success(Unit) }
         override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language) {}
+        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
-        override suspend fun setThemeMode(mode: ThemeMode) {}
+        override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setNotificationsEnabled(enabled: Boolean) {}
+        override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
         override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setReviewRemindersEnabled(enabled: Boolean) {}
+        override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
         override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean) {}
-        override suspend fun getDailyReminderTime(): String = "09:00"
-        override suspend fun setDailyReminderTime(time: String) {}
-        override suspend fun getMinimumDueCards(): Int = 5
-        override suspend fun setMinimumDueCards(count: Int) {}
+        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+        override suspend fun getDailyReminderTime(): Try<String> = Try.success("09:00")
+        override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
+        override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
+        override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
     }
 }

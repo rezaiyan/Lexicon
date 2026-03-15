@@ -1,5 +1,6 @@
 package domain.notifications.usecase
 
+import core.common.Try
 import core.common.getOrThrow
 import domain.notifications.repository.INotificationRepository
 import kotlinx.coroutines.test.runTest
@@ -62,24 +63,26 @@ internal class FakeNotificationRepository : INotificationRepository {
     var lastScheduledDelayMinutes: Int? = null
     var openSettingsCalled = false
 
-    override suspend fun requestNotificationPermission(): Boolean {
+    override suspend fun requestNotificationPermission(): Try<Boolean> {
         if (shouldThrow) throw RuntimeException("Permission error")
-        return permissionGranted
+        return Try.success(permissionGranted)
     }
 
-    override suspend fun areNotificationsEnabled(): Boolean = true
-    override suspend fun wasNotificationPermissionDenied(): Boolean = false
+    override suspend fun areNotificationsEnabled(): Try<Boolean> = Try.success(true)
+    override suspend fun wasNotificationPermissionDenied(): Try<Boolean> = Try.success(false)
 
-    override suspend fun scheduleReviewReminder(dueCount: Int, title: String, message: String, delayMinutes: Int) {
+    override suspend fun scheduleReviewReminder(dueCount: Int, title: String, message: String, delayMinutes: Int): Try<Unit> {
         scheduledReminder = true
         lastScheduledDueCount = dueCount
         lastScheduledTitle = title
         lastScheduledMessage = message
         lastScheduledDelayMinutes = delayMinutes
+        return Try.success(Unit)
     }
 
-    override suspend fun openNotificationSettings() {
+    override suspend fun openNotificationSettings(): Try<Unit> {
         if (shouldThrow) throw RuntimeException("Settings error")
         openSettingsCalled = true
+        return Try.success(Unit)
     }
 }

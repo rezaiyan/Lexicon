@@ -1,5 +1,7 @@
 package domain.tts.usecase
 
+import core.common.Try
+import domain.tts.model.TtsModelInfo
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
 import kotlinx.coroutines.flow.Flow
@@ -52,19 +54,24 @@ internal class FakeTtsRepository : ITtsRepository {
 
     override val ttsState: StateFlow<TtsState> = MutableStateFlow(TtsState.Idle)
 
-    override suspend fun speak(text: String, languageCode: String) {
+    override suspend fun speak(text: String, languageCode: String): Try<Unit> {
         if (shouldThrow) throw RuntimeException("TTS error")
         speakCalled = true
         lastSpokenText = text
         lastSpokenLanguageCode = languageCode
+        return Try.success(Unit)
     }
 
-    override suspend fun stop() {
+    override suspend fun stop(): Try<Unit> {
         if (shouldThrow) throw RuntimeException("Stop error")
         stopCalled = true
+        return Try.success(Unit)
     }
 
-    override suspend fun isModelDownloaded(languageCode: String): Boolean = modelDownloaded
+    override suspend fun isModelDownloaded(languageCode: String): Try<Boolean> = Try.success(modelDownloaded)
     override suspend fun downloadModel(languageCode: String): Flow<Float> = flowOf(1.0f)
     override fun isLanguageSupported(languageCode: String): Boolean = languageSupported
+    override fun getSupportedLanguageCodes(): Set<String> = setOf("en")
+    override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> = Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
+    override suspend fun deleteModel(languageCode: String): Try<Unit> = Try.success(Unit)
 }

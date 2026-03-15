@@ -1,5 +1,6 @@
 package data.settings.repository
 
+import core.common.getOrThrow
 import data.core.database.SettingsEntityData
 import data.settings.local.ISettingsLocalDataSource
 import domain.settings.model.ThemeMode
@@ -183,7 +184,7 @@ class SettingsRepositoryImplTest {
     fun `getDailyReminderTime returns default when no settings exist`() = runTest {
         val repo = createRepo()
 
-        val time = repo.getDailyReminderTime()
+        val time = repo.getDailyReminderTime().getOrThrow()
 
         assertEquals("18:00", time)
     }
@@ -193,7 +194,7 @@ class SettingsRepositoryImplTest {
         localDataSource.settings = SettingsEntityData(dailyReminderTime = "09:30")
         val repo = createRepo()
 
-        val time = repo.getDailyReminderTime()
+        val time = repo.getDailyReminderTime().getOrThrow()
 
         assertEquals("09:30", time)
     }
@@ -213,7 +214,7 @@ class SettingsRepositoryImplTest {
     fun `getMinimumDueCards returns default when no settings exist`() = runTest {
         val repo = createRepo()
 
-        val count = repo.getMinimumDueCards()
+        val count = repo.getMinimumDueCards().getOrThrow()
 
         assertEquals(5, count)
     }
@@ -223,7 +224,7 @@ class SettingsRepositoryImplTest {
         localDataSource.settings = SettingsEntityData(minimumDueCards = 10)
         val repo = createRepo()
 
-        val count = repo.getMinimumDueCards()
+        val count = repo.getMinimumDueCards().getOrThrow()
 
         assertEquals(10, count)
     }

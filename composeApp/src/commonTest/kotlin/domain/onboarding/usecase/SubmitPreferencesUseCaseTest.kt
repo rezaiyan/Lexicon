@@ -80,10 +80,11 @@ class SubmitPreferencesUseCaseTest {
         override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> =
             submitResult
 
-        override suspend fun hasCompletedOnboarding(): Boolean = onboardingCompleted
+        override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(onboardingCompleted)
 
-        override suspend fun markOnboardingCompleted() {
+        override suspend fun markOnboardingCompleted(): Try<Unit> {
             onboardingCompleted = true
+            return Try.success(Unit)
         }
     }
 }

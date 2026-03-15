@@ -84,20 +84,20 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
         override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language) {}
+        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
-        override suspend fun setThemeMode(mode: ThemeMode) {}
-        override suspend fun clearSettings() {}
+        override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
+        override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setNotificationsEnabled(enabled: Boolean) {}
+        override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
         override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setReviewRemindersEnabled(enabled: Boolean) {}
+        override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
         override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean) {}
-        override suspend fun getDailyReminderTime(): String = "09:00"
-        override suspend fun setDailyReminderTime(time: String) {}
-        override suspend fun getMinimumDueCards(): Int = 5
-        override suspend fun setMinimumDueCards(count: Int) {}
+        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+        override suspend fun getDailyReminderTime(): Try<String> = Try.success("09:00")
+        override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
+        override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
+        override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeNotifRepo() = object : INotificationRepository {
@@ -106,11 +106,11 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             title: String,
             message: String,
             delayMinutes: Int,
-        ) {}
-        override suspend fun areNotificationsEnabled(): Boolean = true
-        override suspend fun requestNotificationPermission(): Boolean = true
-        override suspend fun wasNotificationPermissionDenied(): Boolean = false
-        override suspend fun openNotificationSettings() {}
+        ): Try<Unit> = Try.success(Unit)
+        override suspend fun areNotificationsEnabled(): Try<Boolean> = Try.success(true)
+        override suspend fun requestNotificationPermission(): Try<Boolean> = Try.success(true)
+        override suspend fun wasNotificationPermissionDenied(): Try<Boolean> = Try.success(false)
+        override suspend fun openNotificationSettings(): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeAnalytics() = object : IAnalyticsTracker {
