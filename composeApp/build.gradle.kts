@@ -137,7 +137,11 @@ kotlin {
             export(libs.koin.compose)
             export(libs.koin.compose.viewmodel)
 
-            transitiveExport = true
+            // Disabled: transitiveExport pulls all transitive iOS platform frameworks
+            // (MediaPlayer, MetalKit, VisionKit, etc.) into DevirtualizationAnalysis,
+            // causing OOM with K/N 2.3.10. The explicit exports above are sufficient
+            // for Swift interop.
+            // transitiveExport = true
         }
     }
 
