@@ -299,9 +299,16 @@ private fun formatFileSize(bytes: Long): String {
     val mb = kb / 1024.0
     val gb = mb / 1024.0
     return when {
-        gb >= 1.0 -> "%.1f GB".format(gb)
-        mb >= 1.0 -> "%.1f MB".format(mb)
-        kb >= 1.0 -> "%.1f KB".format(kb)
+        gb >= 1.0 -> "${roundToOneDecimal(gb)} GB"
+        mb >= 1.0 -> "${roundToOneDecimal(mb)} MB"
+        kb >= 1.0 -> "${roundToOneDecimal(kb)} KB"
         else -> "$bytes B"
     }
+}
+
+private fun roundToOneDecimal(value: Double): String {
+    val rounded = kotlin.math.round(value * 10) / 10.0
+    val whole = rounded.toLong()
+    val decimal = kotlin.math.round((rounded - whole) * 10).toInt()
+    return "$whole.$decimal"
 }

@@ -2,7 +2,6 @@ package widget
 
 import domain.widget.model.DailyWidgetData
 import platform.Foundation.NSUserDefaults
-import platform.WidgetKit.WidgetCenter
 
 /**
  * Writes widget data into the shared App Group UserDefaults so the
@@ -13,6 +12,11 @@ import platform.WidgetKit.WidgetCenter
  *
  * Requires the App Group "group.com.alirezaiyan.vokab" to be configured
  * on both the main app target and the widget extension target.
+ *
+ * Note: WidgetCenter.shared.reloadAllTimelines() must be called from
+ * Swift because WidgetCenter is a Swift-only API not exposed to ObjC.
+ * The SwiftUI host app should observe UserDefaults changes or call
+ * reloadAllTimelines() after invoking [write].
  */
 object IosWidgetDataWriter {
 
@@ -29,8 +33,5 @@ object IosWidgetDataWriter {
         defaults.setInteger(data.streakCount.toLong(), forKey = KEY_STREAK)
         defaults.setInteger(data.dueCardCount.toLong(), forKey = KEY_DUE_COUNT)
         defaults.synchronize()
-
-        // Tell WidgetKit to refresh the widget timeline
-        WidgetCenter.shared.reloadAllTimelines()
     }
 }

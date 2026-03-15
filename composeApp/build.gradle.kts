@@ -93,9 +93,13 @@ kotlin {
 
         // KAN-27: Point iOS test binary linker at stub frameworks so it can
         // resolve GoogleSignIn, FBSDKCoreKit, FBSDKLoginKit, FirebaseAuth,
-        // FirebaseCore, and PurchasesHybridCommon without the real SDKs.
+        // FirebaseCore, PurchasesHybridCommon and their transitive dependencies
+        // without the real SDKs.  -undefined dynamic_lookup allows the linker
+        // to proceed despite missing symbols from these third-party frameworks;
+        // the test code never calls them at runtime (all dependencies are faked).
         iosTarget.binaries.getTest("debug").linkerOpts(
-            "-F${iosTestStubDir.get().asFile.absolutePath}"
+            "-F${iosTestStubDir.get().asFile.absolutePath}",
+            "-undefined", "dynamic_lookup",
         )
 
         @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)

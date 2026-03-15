@@ -322,7 +322,7 @@ class AuthDataSourceTest {
     }
 
     @Test
-    fun `logout returns success even on HTTP 500 (best-effort)`() = runTest {
+    fun `logout returns success even on HTTP 500 - best-effort`() = runTest {
         val mockEngine = MockEngine {
             respond("Server error", HttpStatusCode.InternalServerError, jsonHeaders())
         }
@@ -332,7 +332,7 @@ class AuthDataSourceTest {
     }
 
     @Test
-    fun `logout returns success even on HTTP 401 (best-effort)`() = runTest {
+    fun `logout returns success even on HTTP 401 - best-effort`() = runTest {
         val mockEngine = MockEngine {
             respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeaders())
         }
@@ -454,7 +454,7 @@ class AuthDataSourceTest {
     }
 
     @Test
-    fun `deleteAccount succeeds even on HTTP error (no body parsing)`() = runTest {
+    fun `deleteAccount succeeds even on HTTP error - no body parsing`() = runTest {
         val mockEngine = MockEngine {
             respond("Internal Server Error", HttpStatusCode.InternalServerError, jsonHeaders())
         }

@@ -65,3 +65,7 @@ runs:
         REVENUECAT_IOS_KEY=${REVENUECAT_IOS_KEY}
         FIREBASE_WEB_API_KEY=${FIREBASE_WEB_API_KEY}
         EOF
+
+    - name: Generate iOS config (Config.private.xcconfig)
+      shell: bash
+      run: ./scripts/sync-ios-config.sh

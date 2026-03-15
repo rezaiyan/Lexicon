@@ -148,7 +148,7 @@ class ReviewWordUseCaseTest {
     }
 
     @Test
-    fun `level 0 and 1 use minutes for next review, level 2 plus uses days`() = runTest {
+    fun `level 0 and 1 use minutes for next review - level 2 plus uses days`() = runTest {
         // Level 0 → level 1 (10 minutes in millis)
         val word0 = createWord(level = 0, repetitions = 0, easeFactor = 2.5f, interval = 1)
         useCase(word0, quality = 1)
