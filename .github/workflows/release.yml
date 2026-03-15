@@ -238,6 +238,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - name: Resolve version tag
+        id: version
+        run: |
+          VERSION=$(grep '^versionName=' versioning.properties | cut -d= -f2)
+          TAG="v${VERSION}"
+          if git rev-parse "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "tag=${TAG}" >> $GITHUB_OUTPUT
+            echo "Found tag: ${TAG}"
+          else
+            echo "::error::Tag ${TAG} does not exist — create a version tag before releasing"
+            exit 1
+          fi
 
       - name: Download Android APK
         if: needs.release-android.result == 'success'
@@ -256,6 +271,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
           files: |
             android/**/*.apk
