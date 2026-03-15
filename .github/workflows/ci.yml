@@ -801,7 +801,7 @@ jobs:
           restore-keys: kmp-ios-release-${{ runner.os }}-
 
       - name: Build Kotlin Multiplatform Framework
-        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
+        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace --no-daemon
 
       - name: Cache SPM packages
         uses: actions/cache@v4
