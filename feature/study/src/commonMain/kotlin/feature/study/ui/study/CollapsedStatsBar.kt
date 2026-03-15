@@ -57,7 +57,9 @@ fun CollapsedStatsBar(
         modifier = modifier,
     ) {
         Row(
-            modifier = Modifier.padding(vertical = Theme.spacing.xxs),
+            modifier = Modifier
+                .padding(vertical = Theme.spacing.xxs)
+                .semantics { liveRegion = LiveRegionMode.Polite },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
         ) {

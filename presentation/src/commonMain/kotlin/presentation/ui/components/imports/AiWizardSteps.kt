@@ -22,6 +22,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import feature.onboarding.ui.components.LanguageGrid
 import feature.onboarding.ui.components.LevelCards
@@ -150,7 +152,8 @@ internal fun AiStepHeader(
     Text(
         text = title,
         style = MaterialTheme.typography.headlineMedium,
-        color = MaterialTheme.colorScheme.onBackground
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.semantics { heading() }
     )
     Text(
         text = highlight,

@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import components.animation.rememberAnimatedCounter
@@ -49,7 +51,11 @@ internal fun ScoreRing(
     val gradientBrush = Brush.sweepGradient(gradientColors)
 
     Box(
-        modifier = modifier.size(180.dp),
+        modifier = modifier
+            .size(180.dp)
+            .semantics {
+                contentDescription = "Score: $scorePercent percent"
+            },
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {

@@ -46,6 +46,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -136,9 +140,18 @@ fun FlashCard(
             Box(
                 Modifier
                     .fillMaxSize()
+                    .semantics {
+                        contentDescription = if (isFlipped) {
+                            "${word.translation}. Tap to show original word"
+                        } else {
+                            "${word.originalWord}. Tap to reveal translation"
+                        }
+                    }
                     .clickable(
                         interactionSource = interactionSource,
-                        indication = LocalIndication.current
+                        indication = LocalIndication.current,
+                        role = Role.Button,
+                        onClickLabel = if (isFlipped) "Show original word" else "Reveal translation"
                     ) { onFlip() }
             ) {
                 // Level badge — top-end: always-visible context, never competes with the word
@@ -346,6 +359,8 @@ private fun SpeakerButton(
             .clickable(
                 interactionSource = interactionSource,
                 indication = LocalIndication.current,
+                role = Role.Button,
+                onClickLabel = "Play pronunciation",
                 onClick = onClick
             ),
         contentAlignment = Alignment.Center

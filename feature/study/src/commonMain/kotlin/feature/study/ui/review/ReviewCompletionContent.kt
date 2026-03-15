@@ -21,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import components.animation.ConfettiOverlay
@@ -113,7 +115,9 @@ fun ReviewCompletionContent(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.staggeredFadeSlide(index = 1),
+                modifier = Modifier
+                    .staggeredFadeSlide(index = 1)
+                    .semantics { heading() },
             )
 
             Spacer(Modifier.height(Theme.spacing.xs))

@@ -23,6 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import components.dialog.ButtonState
 import components.dialog.ButtonType
@@ -55,7 +58,9 @@ internal fun PreviewBottomBar(
     ) {
         if (isLoading) {
             Row(
-                modifier = Modifier.padding(vertical = spacing.md),
+                modifier = Modifier
+                    .padding(vertical = spacing.md)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {

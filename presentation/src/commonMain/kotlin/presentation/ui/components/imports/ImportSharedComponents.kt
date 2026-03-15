@@ -158,7 +158,7 @@ private fun LanguageRow(
                 )
                 Icon(
                     Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
+                    contentDescription = "Change language",
                     modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

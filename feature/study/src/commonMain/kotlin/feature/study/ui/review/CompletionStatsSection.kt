@@ -19,6 +19,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import components.animation.rememberAnimatedCounter
@@ -93,13 +95,17 @@ private fun ProportionalBar(
     if (total == 0) return
 
     val knownFraction = knownCount.toFloat() / total
+    val knownPercent = (knownFraction * 100).toInt()
     val successColor = Theme.colors.success
     val errorColor = MaterialTheme.colorScheme.error
 
     Row(
         modifier = modifier
             .height(8.dp)
-            .clip(RoundedCornerShape(4.dp)),
+            .clip(RoundedCornerShape(4.dp))
+            .semantics {
+                contentDescription = "Results: $knownCount remembered ($knownPercent%), $unknownCount forgot"
+            },
     ) {
         if (knownCount > 0) {
             Box(

@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import domain.tts.model.TtsState
@@ -143,7 +144,7 @@ fun ReviewContent(
                 modifier = Modifier
                     .padding(vertical = Theme.spacing.extraSmall3)
                     .clip(RoundedCornerShape(50))
-                    .clickable(onClick = onEdit)
+                    .clickable(role = Role.Button, onClick = onEdit)
                     .padding(horizontal = Theme.spacing.sm, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)

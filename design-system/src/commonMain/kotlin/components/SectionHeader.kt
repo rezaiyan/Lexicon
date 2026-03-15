@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 
 import theme.Theme
@@ -33,7 +35,7 @@ fun SectionHeader(
     badgeColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.semantics { heading() },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
     ) {

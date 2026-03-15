@@ -40,6 +40,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import components.CounterPill
 import components.GradientProgressBar
@@ -158,7 +165,13 @@ private fun AutoPlayToggle(
             }
             .clip(CircleShape)
             .background(bgColor)
-            .clickable { onToggle(!enabled) }
+            .semantics {
+                role = Role.Switch
+                contentDescription = "Auto-play pronunciation"
+                stateDescription = if (enabled) "On" else "Off"
+                toggleableState = if (enabled) ToggleableState.On else ToggleableState.Off
+            }
+            .clickable(role = Role.Switch) { onToggle(!enabled) }
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {

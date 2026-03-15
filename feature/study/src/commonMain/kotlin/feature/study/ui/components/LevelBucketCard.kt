@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,8 +45,12 @@ fun LevelBucketCard(
 ) {
     val isEmpty = count == 0
 
+    val wordLabel = if (count == 1) "word" else "words"
     Card(
         modifier = modifier
+            .semantics {
+                contentDescription = "$level: $count $wordLabel. $description"
+            }
             .drawBehind {
                 // Left accent bracket drawn directly on the card
                 val strokeWidth = 3.5.dp.toPx()

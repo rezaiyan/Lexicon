@@ -36,6 +36,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import events.OnEvents
 import org.jetbrains.compose.resources.stringResource
@@ -267,7 +269,9 @@ private fun StepProgressSegments(
     val motion = Theme.motion
 
     Row(
-        modifier = modifier,
+        modifier = modifier.semantics {
+            contentDescription = "Step ${stepIndex + 1} of $AiWizardTotalSteps"
+        },
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
     ) {
         repeat(AiWizardTotalSteps) { index ->

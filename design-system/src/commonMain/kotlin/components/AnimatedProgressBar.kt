@@ -12,6 +12,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -40,7 +43,12 @@ fun GradientProgressBar(
         label = "gradientProgress"
     )
 
-    Box(modifier = modifier.fillMaxWidth().height(height)) {
+    Box(modifier = modifier.fillMaxWidth().height(height).semantics {
+        progressBarRangeInfo = ProgressBarRangeInfo(
+            current = progress.coerceIn(0f, 1f),
+            range = 0f..1f,
+        )
+    }) {
         if (trackColor != Color.Unspecified) {
             Box(
                 modifier = Modifier
