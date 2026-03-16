@@ -1,0 +1,142 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - image
+  - import
+  - loading
+---
+# Showcase: Image Import AI Scan Overlay
+#
+# Demonstrates the new AI scan wave overlay when importing vocabulary
+# from an image. Shows the animated gradient wave on the image thumbnail
+# while the backend processes the extraction.
+#
+# Run with:
+#   maestro test maestro/flows/showcase/image_import_loading_showcase.yaml
+#
+# Assumes: User is logged in with premium access. Device has camera/gallery.
+
+# ─────────────────────────────────────────────
+# 1. LAUNCH — Navigate to Study screen
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# ─────────────────────────────────────────────
+# 2. OPEN IMPORT — Method selector
+# ─────────────────────────────────────────────
+- tapOn: "Import Words"
+- waitForAnimationToEnd
+
+# Pause to show the method selector.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# ─────────────────────────────────────────────
+# 3. SELECT IMAGE IMPORT
+# ─────────────────────────────────────────────
+- tapOn:
+    text: "From Image"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 4. SELECT SOURCE LANGUAGE
+# ─────────────────────────────────────────────
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+
+- tapOn:
+    text: "German"
+    optional: true
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. IMAGE SELECTION — Camera / Gallery picker
+# ─────────────────────────────────────────────
+# Pause to show the image source picker UI.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Take screenshot of the image selection UI.
+- takeScreenshot: maestro/recordings/image_import_01_picker
+
+# Select Gallery to pick an image.
+- tapOn:
+    text: "Gallery"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 6. IMAGE PREVIEW — Show thumbnail + confirm
+# ─────────────────────────────────────────────
+# Pause to show the image preview card.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Take screenshot of the image preview.
+- takeScreenshot: maestro/recordings/image_import_02_preview
+
+# ─────────────────────────────────────────────
+# 7. CONFIRM — Trigger AI processing overlay
+# ─────────────────────────────────────────────
+- tapOn:
+    text: "Confirm and extract"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Pause to show the AI scan overlay animation on the thumbnail.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Take screenshot of the AI scan overlay.
+- takeScreenshot: maestro/recordings/image_import_03_ai_scan_overlay
+
+# Wait a bit more to capture the wave at a different position.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+- takeScreenshot: maestro/recordings/image_import_04_ai_scan_wave
+
+# ─────────────────────────────────────────────
+# 8. WAIT FOR RESULT
+# ─────────────────────────────────────────────
+# Wait for processing to complete (success or error).
+- extendedWaitUntil:
+    visible:
+      text: ".*"
+    timeout: 30000
+    optional: true
+
+- waitForAnimationToEnd
+
+# Final pause.
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000

@@ -1,35 +1,21 @@
 package presentation.ui.components.imports
 
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import events.OnEvents
 import feature.onboarding.ui.components.LanguageGrid
 import lexicon.resources.generated.resources.Res
@@ -39,7 +25,6 @@ import lexicon.resources.generated.resources.import_error_network
 import lexicon.resources.generated.resources.import_failed_generic
 import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.original_language_question
-import lexicon.resources.generated.resources.processing_image_with_ai
 import lexicon.resources.generated.resources.success_imported_words
 import lexicon.resources.generated.resources.translation_language_hint
 import org.jetbrains.compose.resources.stringResource
@@ -274,21 +259,16 @@ private fun ImageContentPage(
             .padding(Theme.spacing.lg)
             .imePadding()
     ) {
-        Box {
-            ImageImportContent(
-                imageTab = imageTab,
-                isEnabled = !isImageLoading && state.fileImportState !is ImportFileState.Loading,
-                onCameraClick = cameraLauncher,
-                onGalleryClick = imagePickerLauncher,
-                onImportImage = viewModel::importImage,
-                onClearSelectedImage = viewModel::clearSelectedImage,
-                onDismiss = onDismiss,
-            )
-
-            if (isImageLoading) {
-                ImageProcessingOverlay()
-            }
-        }
+        ImageImportContent(
+            imageTab = imageTab,
+            isEnabled = !isImageLoading && state.fileImportState !is ImportFileState.Loading,
+            isLoading = isImageLoading,
+            onCameraClick = cameraLauncher,
+            onGalleryClick = imagePickerLauncher,
+            onImportImage = viewModel::importImage,
+            onClearSelectedImage = viewModel::clearSelectedImage,
+            onDismiss = onDismiss,
+        )
     }
 }
 
@@ -332,52 +312,6 @@ private fun SourceLanguageChooserPage(
             )
 
             Spacer(Modifier.height(Theme.spacing.lg))
-        }
-    }
-}
-
-@Composable
-private fun ImageProcessingOverlay() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .pointerInput(Unit) { detectTapGestures { } }
-            .semantics { liveRegion = LiveRegionMode.Assertive },
-        contentAlignment = Alignment.Center
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp),
-            shape = RoundedCornerShape(Theme.shapes.large),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(
-                    Theme.spacing.xxs,
-                    Alignment.CenterVertically
-                )
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(Theme.dimensions.touchTarget),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    stringResource(Res.string.processing_image_with_ai),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    "Extracting vocabulary from your image...",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                )
-            }
         }
     }
 }

@@ -30,6 +30,7 @@ import theme.Theme
 internal fun ImageImportContent(
     imageTab: ImportTabV2.Image,
     isEnabled: Boolean,
+    isLoading: Boolean,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
     onImportImage: () -> Unit,
@@ -63,9 +64,10 @@ internal fun ImageImportContent(
                 if (showPreview && imageTab.selectedImage != null) {
                     ImagePreviewCard(
                         imageBytes = imageTab.selectedImage,
+                        isLoading = isLoading,
                         onConfirm = onImportImage,
                         onCancel = onClearSelectedImage,
-                        isEnabled = isEnabled
+                        isEnabled = isEnabled,
                     )
                 } else {
                     ImageSelectionContent(
