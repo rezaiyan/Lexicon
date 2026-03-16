@@ -42,7 +42,6 @@ import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.confirm_and_extract
 import lexicon.resources.generated.resources.failed_to_load_image
 import lexicon.resources.generated.resources.preview_selected_image
-import lexicon.resources.generated.resources.processing_image_with_ai
 import lexicon.resources.generated.resources.try_another_image
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
@@ -91,7 +90,6 @@ internal fun ImagePreviewCard(
                     exit = fadeOut(tween(300)),
                 ) {
                     AiScanOverlay(
-                        label = stringResource(Res.string.processing_image_with_ai),
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(aspectRatio),
