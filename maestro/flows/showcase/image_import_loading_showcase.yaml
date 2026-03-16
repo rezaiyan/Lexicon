@@ -1,0 +1,144 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - showcase
+  - demo
+  - image
+  - import
+  - loading
+---
+# Showcase: Image Import AI Scan Overlay
+#
+# Demonstrates the new AI scan wave overlay when importing vocabulary
+# from an image. Shows the animated gradient wave on the image thumbnail
+# while the backend processes the extraction.
+#
+# Run with:
+#   ./maestro/run.sh maestro/flows/showcase/image_import_loading_showcase.yaml
+#
+# Or record with:
+#   ./maestro/record_showcase.sh image_import_loading
+
+# ─────────────────────────────────────────────
+# 1. LAUNCH — Navigate to Study screen
+# ─────────────────────────────────────────────
+- stopApp
+- launchApp:
+    clearState: false
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# ─────────────────────────────────────────────
+# 2. OPEN IMPORT — Tap + icon to open import picker
+# ─────────────────────────────────────────────
+- tapOn: "Import Words"
+
+# Wait for the import method selector bottom sheet to appear.
+- extendedWaitUntil:
+    visible: "Manually"
+    timeout: 10000
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 3. TAP MANUALLY — Opens method chooser with image option
+# ─────────────────────────────────────────────
+- tapOn: "Manually"
+
+# Wait for the method chooser to show import method cards.
+- extendedWaitUntil:
+    visible: "From Image"
+    timeout: 10000
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 4. SELECT IMAGE IMPORT
+# ─────────────────────────────────────────────
+- tapOn: "From Image"
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. SELECT SOURCE LANGUAGE
+# ─────────────────────────────────────────────
+- extendedWaitUntil:
+    visible: "German"
+    timeout: 5000
+
+- tapOn: "German"
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 6. IMAGE CAPTURE — Use Camera
+# ─────────────────────────────────────────────
+- extendedWaitUntil:
+    visible: "Camera"
+    timeout: 5000
+
+- tapOn: "Camera"
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Camera app opens — take a photo by tapping the shutter button.
+# Wait for the camera viewfinder to load.
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Tap the shutter button (center-bottom of camera UI).
+- tapOn:
+    point: "50%,90%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Confirm the photo (checkmark / OK button — typically bottom-right).
+- tapOn:
+    point: "75%,90%"
+    optional: true
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 7. IMAGE PREVIEW — Show thumbnail + confirm
+# ─────────────────────────────────────────────
+# Wait for image preview to appear back in the app.
+- extendedWaitUntil:
+    visible: "Confirm & Extract"
+    timeout: 15000
+
+- waitForAnimationToEnd
+
+# Take screenshot of the image preview.
+- takeScreenshot: maestro/recordings/image_import_01_preview
+
+# ─────────────────────────────────────────────
+# 8. CONFIRM — Trigger AI processing overlay
+# ─────────────────────────────────────────────
+- tapOn: "Confirm & Extract"
+
+- waitForAnimationToEnd
+
+# Take screenshot of the AI scan overlay (wave animating on thumbnail).
+- takeScreenshot: maestro/recordings/image_import_02_ai_scan_overlay
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+- takeScreenshot: maestro/recordings/image_import_03_ai_scan_wave
+
+# ─────────────────────────────────────────────
+# 9. WAIT FOR RESULT
+# ─────────────────────────────────────────────
+# Wait for processing to complete (success or error dismisses the sheet).
+- extendedWaitUntil:
+    visible:
+      text: ".*"
+    timeout: 30000
+    optional: true
+
+- waitForAnimationToEnd

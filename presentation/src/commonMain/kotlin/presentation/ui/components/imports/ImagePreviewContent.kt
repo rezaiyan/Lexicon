@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import components.animation.AiScanOverlay
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.confirm_and_extract
@@ -49,6 +50,7 @@ import utils.toImageBitmap
 @Composable
 internal fun ImagePreviewCard(
     imageBytes: ByteArray,
+    isLoading: Boolean,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     isEnabled: Boolean,
@@ -68,15 +70,32 @@ internal fun ImagePreviewCard(
                     .coerceIn(0.5f, 2.5f)
             }
 
-            Image(
-                bitmap = imageBitmap,
-                contentDescription = stringResource(Res.string.preview_selected_image),
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(aspectRatio)
                     .clip(RoundedCornerShape(Theme.shapes.medium)),
-                contentScale = ContentScale.Fit,
-            )
+            ) {
+                Image(
+                    bitmap = imageBitmap,
+                    contentDescription = stringResource(Res.string.preview_selected_image),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(aspectRatio),
+                    contentScale = ContentScale.Fit,
+                )
+
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isLoading,
+                    enter = fadeIn(tween(400)),
+                    exit = fadeOut(tween(300)),
+                ) {
+                    AiScanOverlay(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(aspectRatio),
+                    )
+                }
+            }
         } else {
             Card(
                 modifier = Modifier
@@ -97,7 +116,7 @@ internal fun ImagePreviewCard(
         }
 
         AnimatedVisibility(
-            visible = imageBitmap != null,
+            visible = imageBitmap != null && !isLoading,
             enter = fadeIn(tween(300, 150)) + expandVertically(tween(300, 150)),
             exit = fadeOut(tween(200)) + shrinkVertically(tween(200)),
         ) {
