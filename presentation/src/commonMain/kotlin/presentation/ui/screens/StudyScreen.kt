@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
@@ -67,7 +68,9 @@ private sealed interface ImportFlowPage {
 }
 
 @Composable
-fun StudyScreen() {
+fun StudyScreen(
+    onNavigateToInsights: () -> Unit = {},
+) {
     val progressViewModel = koinViewModel<StudyProgressViewModel>()
     val reviewViewModel = koinViewModel<ReviewViewModel>()
     val overlayHost = LocalOverlayHost.current
@@ -165,6 +168,12 @@ fun StudyScreen() {
             )
         },
         actionIcon1 = ActionIconConfig(
+            icon = Icons.Default.Insights,
+            contentDescription = "Study Insights",
+            onClick = onNavigateToInsights,
+            size = Theme.dimensions.iconSize
+        ),
+        actionIcon2 = ActionIconConfig(
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),
             onClick = openImportSheet,

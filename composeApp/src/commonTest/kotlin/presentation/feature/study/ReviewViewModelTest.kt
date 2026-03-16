@@ -2,6 +2,11 @@ package presentation.feature.study
 
 import analytics.IAnalyticsTracker
 import core.common.Try
+import domain.analytics.repository.IAnalyticsRecorder
+import domain.analytics.repository.IAnalyticsRepository
+import domain.analytics.usecase.EndStudySessionUseCase
+import domain.analytics.usecase.RecordReviewEventUseCase
+import domain.analytics.usecase.StartStudySessionUseCase
 import feature.study.ReviewViewModel
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
@@ -149,10 +154,17 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
+    private fun fakeAnalyticsRecorder() = object : IAnalyticsRecorder {
+        override suspend fun startSession(sessionId: String, reviewType: String, startedAt: Long) = Try.success(Unit)
+        override suspend fun endSession(sessionId: String, endedAt: Long, durationMs: Long, totalCards: Int, correctCount: Int, incorrectCount: Int, completedNormally: Boolean) = Try.success(Unit)
+        override suspend fun recordReviewEvent(sessionId: String, wordId: Int, wordText: String, wordTranslation: String, sourceLanguage: String, targetLanguage: String, rating: Int, previousLevel: Int, newLevel: Int, responseTimeMs: Long, reviewedAt: Long) = Try.success(Unit)
+    }
+
     private fun createViewModel(): ReviewViewModel {
         val wordRepo = fakeWordRepo()
         val settingsRepo = fakeSettingsRepo()
         val ttsRepo = fakeTtsRepo()
+        val recorder = fakeAnalyticsRecorder()
         return ReviewViewModel(
             getDueWordsUseCase = GetDueWordsUseCase(wordRepo),
             getWordsByStageUseCase = GetWordsByStageUseCase(wordRepo),
@@ -164,6 +176,25 @@ class ReviewViewModelTest : ViewModelTestBase() {
             recordStreakActivityUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
             analyticsTracker = fakeAnalytics(),
+            startStudySessionUseCase = StartStudySessionUseCase(recorder),
+            endStudySessionUseCase = EndStudySessionUseCase(recorder, object : IAnalyticsRepository {
+                override suspend fun getStudyInsights() = Try.success(domain.analytics.model.StudyInsights(0, 0, 0.0, 0, 0, 0, 0, null, null, 0))
+                override suspend fun getDailyStats(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.DailyStudyStats>())
+                override suspend fun getDifficultWords(minReviews: Int, limit: Int) = Try.success(emptyList<domain.analytics.model.WordDifficulty>())
+                override suspend fun getMostReviewedWords(limit: Int) = Try.success(emptyList<domain.analytics.model.MostReviewedWord>())
+                override suspend fun getAccuracyByLevel() = Try.success(emptyList<domain.analytics.model.AccuracyByLevel>())
+                override suspend fun getAccuracyByHourOfDay() = Try.success(emptyList<domain.analytics.model.HourlyAccuracy>())
+                override suspend fun getAccuracyByDayOfWeek() = Try.success(emptyList<domain.analytics.model.DayOfWeekAccuracy>())
+                override suspend fun getRecentSessions(limit: Int) = Try.success(emptyList<domain.analytics.model.StudySession>())
+                override suspend fun getStudyHeatmap(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.StudyHeatmapDay>())
+                override suspend fun getWordsMastered(limit: Int) = Try.success(emptyList<domain.analytics.model.MasteredWord>())
+                override suspend fun getLanguagePairStats() = Try.success(emptyList<domain.analytics.model.LanguagePairStats>())
+                override suspend fun getMonthlyStats() = Try.success(emptyList<domain.analytics.model.MonthlyStats>())
+                override suspend fun getComebackWords() = Try.success(emptyList<domain.analytics.model.ComebackWord>())
+                override suspend fun syncToBackend() = Try.success(0)
+            }),
+            recordReviewEventUseCase = RecordReviewEventUseCase(recorder),
+            getReviewSettingsUseCase = GetReviewSettingsUseCase(),
             ttsRepository = ttsRepo,
         )
     }

@@ -26,6 +26,10 @@ fun studyModule() = module {
             recordStreakActivityUseCase = get(),
             speakWordUseCase = get(),
             analyticsTracker = get(),
+            startStudySessionUseCase = get(),
+            endStudySessionUseCase = get(),
+            recordReviewEventUseCase = get(),
+            getReviewSettingsUseCase = get(),
             ttsRepository = get(),
         )
     }

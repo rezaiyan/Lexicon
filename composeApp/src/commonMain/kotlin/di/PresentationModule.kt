@@ -23,6 +23,7 @@ import feature.onboarding.di.onboardingModule
 import feature.subscription.di.subscriptionModule
 import feature.leaderboard.di.leaderboardModule
 import feature.aiimport.di.importModule
+import feature.insights.di.insightsModule
 
 fun presentationModule() = module {
 
@@ -79,5 +80,6 @@ fun presentationModule() = module {
         subscriptionModule(),
         leaderboardModule(),
         importModule(),
+        insightsModule(),
     )
 }

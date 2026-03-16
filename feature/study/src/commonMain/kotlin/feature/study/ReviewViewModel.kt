@@ -4,8 +4,13 @@ import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.UiState
+import core.common.fold
 import core.common.onFailure
 import core.common.onSuccess
+import domain.analytics.usecase.EndStudySessionUseCase
+import domain.analytics.usecase.RecordReviewEventUseCase
+import domain.analytics.usecase.StartStudySessionUseCase
+import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
@@ -24,6 +29,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 
 data class ReviewState(
     val review: ReviewScreenState = ReviewScreenState(),
@@ -43,10 +49,21 @@ class ReviewViewModel(
     private val recordStreakActivityUseCase: RecordStreakActivityUseCase,
     private val speakWordUseCase: SpeakWordUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val startStudySessionUseCase: StartStudySessionUseCase,
+    private val endStudySessionUseCase: EndStudySessionUseCase,
+    private val recordReviewEventUseCase: RecordReviewEventUseCase,
+    private val getReviewSettingsUseCase: GetReviewSettingsUseCase,
     ttsRepository: ITtsRepository,
 ) : BaseViewModel<ReviewState, ReviewEffect>() {
 
     override fun initialState() = ReviewState()
+
+    private var currentSessionId: String? = null
+    private var sessionStartTime: Long = 0L
+    private var cardShownTimestamp: Long = 0L
+    private var reviewedCardCount: Int = 0
+    private var correctCardCount: Int = 0
+    private var incorrectCardCount: Int = 0
 
     init {
         observeTtsState(ttsRepository)
@@ -72,6 +89,7 @@ class ReviewViewModel(
 
     fun startDueReview() {
         viewModelScope.launch {
+            beginAnalyticsSession("REVIEW")
             updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
             getDueWordsUseCase()
                 .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
@@ -79,6 +97,7 @@ class ReviewViewModel(
                 .first()
                 .let { state ->
                     updateState { copy(review = review.copy(wordListState = state)) }
+                    markCardShown()
                 }
         }
     }
@@ -98,6 +117,8 @@ class ReviewViewModel(
 
     fun startStageReview(stage: LearningStage) {
         loadWordsByStage(stage)
+        beginAnalyticsSession("BROWSE")
+        markCardShown()
         val wordListState = currentState.review.wordListState
         val cardCount = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         analyticsTracker.logReviewSessionStart(cardCount = cardCount)
@@ -105,11 +126,41 @@ class ReviewViewModel(
 
     fun reviewWord(word: Word, quality: Int) {
         viewModelScope.launch {
+            val previousLevel = word.level
+            val responseTime = Clock.System.now().toEpochMilliseconds() - cardShownTimestamp
             reviewWordUseCase(word, quality)
+
+            // Compute new level matching ReviewWordUseCase's SRS logic
+            val wasCorrect = quality >= 1
+            if (wasCorrect) correctCardCount++ else incorrectCardCount++
+            reviewedCardCount++
+
+            val newLevel = computeNewLevel(previousLevel, quality)
+
+            currentSessionId?.let { sid ->
+                recordReviewEventUseCase(
+                    RecordReviewEventUseCase.Params(
+                        sessionId = sid,
+                        wordId = word.id,
+                        wordText = word.originalWord,
+                        wordTranslation = word.translation,
+                        sourceLanguage = word.sourceLanguage.code,
+                        targetLanguage = word.targetLanguage.code,
+                        rating = quality,
+                        previousLevel = previousLevel,
+                        newLevel = newLevel,
+                        responseTimeMs = responseTime,
+                        reviewedAt = Clock.System.now().toEpochMilliseconds(),
+                    )
+                )
+            }
+
+            markCardShown()
+
             analyticsTracker.logWordReviewed(
                 rating = quality,
                 wordLevel = word.level,
-                wasCorrect = quality >= 1
+                wasCorrect = wasCorrect
             )
         }
     }
@@ -164,6 +215,7 @@ class ReviewViewModel(
         val wordListState = currentState.review.wordListState
         val count = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         viewModelScope.launch {
+            endAnalyticsSession(completedNormally = true)
             if (count > 0) recordActivity(count)
             updateState { copy(review = ReviewScreenState()) }
         }
@@ -185,6 +237,67 @@ class ReviewViewModel(
                 logNetwork("TTS", "Error: ${error.message}")
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // End session as abandoned if still active when ViewModel is cleared
+        if (currentSessionId != null) {
+            // Cannot launch coroutine from onCleared since viewModelScope is cancelled.
+            // The session will remain unfinished in the DB — the next sync or app
+            // launch can detect and close orphaned sessions. This is acceptable for
+            // a best-effort analytics system.
+            currentSessionId = null
+        }
+    }
+
+    private suspend fun computeNewLevel(previousLevel: Int, quality: Int): Int {
+        val settings = getReviewSettingsUseCase(Unit)
+        val forgotPenalty = settings.fold(onSuccess = { it.forgotPenalty }, onFailure = { 2 })
+        val successesToAdvance = settings.fold(onSuccess = { it.successesToAdvance }, onFailure = { 1 })
+        return when {
+            quality == 0 -> maxOf(0, previousLevel - forgotPenalty)
+            // With default successesToAdvance=1, always advances on first success
+            successesToAdvance <= 1 && previousLevel < 6 -> minOf(6, previousLevel + 1)
+            // With higher thresholds, we can't know the repetition count here,
+            // so conservatively assume level stays the same
+            previousLevel < 6 -> previousLevel
+            else -> previousLevel // Already at max
+        }
+    }
+
+    private fun beginAnalyticsSession(reviewType: String) {
+        val sessionId = kotlinx.datetime.Clock.System.now().toEpochMilliseconds().toString() +
+            "-" + (0..999999).random().toString().padStart(6, '0')
+        currentSessionId = sessionId
+        sessionStartTime = Clock.System.now().toEpochMilliseconds()
+        reviewedCardCount = 0
+        correctCardCount = 0
+        incorrectCardCount = 0
+        viewModelScope.launch {
+            startStudySessionUseCase(StartStudySessionUseCase.Params(sessionId, reviewType))
+        }
+    }
+
+    private suspend fun endAnalyticsSession(completedNormally: Boolean) {
+        val sid = currentSessionId ?: return
+        val now = Clock.System.now().toEpochMilliseconds()
+        endStudySessionUseCase(
+            EndStudySessionUseCase.Params(
+                sessionId = sid,
+                endedAt = now,
+                durationMs = now - sessionStartTime,
+                totalCards = reviewedCardCount,
+                correctCount = correctCardCount,
+                incorrectCount = incorrectCardCount,
+                completedNormally = completedNormally,
+            )
+        )
+        currentSessionId = null
+    }
+
+    private fun markCardShown() {
+        cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
     }
 
     private fun resolveLanguageCode(text: String, languageCode: String): String {
