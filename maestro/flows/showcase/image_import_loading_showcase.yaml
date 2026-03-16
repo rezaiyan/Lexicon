@@ -13,9 +13,10 @@ tags:
 # while the backend processes the extraction.
 #
 # Run with:
-#   maestro test maestro/flows/showcase/image_import_loading_showcase.yaml
+#   ./maestro/run.sh maestro/flows/showcase/image_import_loading_showcase.yaml
 #
-# Assumes: User is logged in with premium access. Device has camera/gallery.
+# Or record with:
+#   ./maestro/record_showcase.sh image_import_loading
 
 # ─────────────────────────────────────────────
 # 1. LAUNCH — Navigate to Study screen
@@ -30,103 +31,110 @@ tags:
 - runFlow: ../utils/navigate_to_study.yaml
 
 # ─────────────────────────────────────────────
-# 2. OPEN IMPORT — Method selector
+# 2. OPEN IMPORT — Tap + icon to open import picker
 # ─────────────────────────────────────────────
 - tapOn: "Import Words"
+
+# Wait for the import method selector bottom sheet to appear.
+- extendedWaitUntil:
+    visible: "Manually"
+    timeout: 10000
+
 - waitForAnimationToEnd
 
-# Pause to show the method selector.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 1500
+# ─────────────────────────────────────────────
+# 3. TAP MANUALLY — Opens method chooser with image option
+# ─────────────────────────────────────────────
+- tapOn: "Manually"
+
+# Wait for the method chooser to show import method cards.
+- extendedWaitUntil:
+    visible: "From Image"
+    timeout: 10000
+
+- waitForAnimationToEnd
 
 # ─────────────────────────────────────────────
-# 3. SELECT IMAGE IMPORT
+# 4. SELECT IMAGE IMPORT
 # ─────────────────────────────────────────────
+- tapOn: "From Image"
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. SELECT SOURCE LANGUAGE
+# ─────────────────────────────────────────────
+- extendedWaitUntil:
+    visible: "German"
+    timeout: 5000
+
+- tapOn: "German"
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 6. IMAGE CAPTURE — Use Camera
+# ─────────────────────────────────────────────
+- extendedWaitUntil:
+    visible: "Camera"
+    timeout: 5000
+
+- tapOn: "Camera"
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Camera app opens — take a photo by tapping the shutter button.
+# Wait for the camera viewfinder to load.
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Tap the shutter button (center-bottom of camera UI).
 - tapOn:
-    text: "From Image"
+    point: "50%,90%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# Confirm the photo (checkmark / OK button — typically bottom-right).
+- tapOn:
+    point: "75%,90%"
     optional: true
 
 - waitForAnimationToEnd
 - waitForAnimationToEnd
 
 # ─────────────────────────────────────────────
-# 4. SELECT SOURCE LANGUAGE
+# 7. IMAGE PREVIEW — Show thumbnail + confirm
 # ─────────────────────────────────────────────
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 1000
-
-- tapOn:
-    text: "German"
-    optional: true
+# Wait for image preview to appear back in the app.
+- extendedWaitUntil:
+    visible: "Confirm & Extract"
+    timeout: 15000
 
 - waitForAnimationToEnd
-
-# ─────────────────────────────────────────────
-# 5. IMAGE SELECTION — Camera / Gallery picker
-# ─────────────────────────────────────────────
-# Pause to show the image source picker UI.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 2000
-
-# Take screenshot of the image selection UI.
-- takeScreenshot: maestro/recordings/image_import_01_picker
-
-# Select Gallery to pick an image.
-- tapOn:
-    text: "Gallery"
-    optional: true
-
-- waitForAnimationToEnd
-- waitForAnimationToEnd
-
-# ─────────────────────────────────────────────
-# 6. IMAGE PREVIEW — Show thumbnail + confirm
-# ─────────────────────────────────────────────
-# Pause to show the image preview card.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 2000
 
 # Take screenshot of the image preview.
-- takeScreenshot: maestro/recordings/image_import_02_preview
+- takeScreenshot: maestro/recordings/image_import_01_preview
 
 # ─────────────────────────────────────────────
-# 7. CONFIRM — Trigger AI processing overlay
+# 8. CONFIRM — Trigger AI processing overlay
 # ─────────────────────────────────────────────
-- tapOn:
-    text: "Confirm and extract"
-    optional: true
+- tapOn: "Confirm & Extract"
 
 - waitForAnimationToEnd
 
-# Pause to show the AI scan overlay animation on the thumbnail.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 1500
+# Take screenshot of the AI scan overlay (wave animating on thumbnail).
+- takeScreenshot: maestro/recordings/image_import_02_ai_scan_overlay
 
-# Take screenshot of the AI scan overlay.
-- takeScreenshot: maestro/recordings/image_import_03_ai_scan_overlay
+- waitForAnimationToEnd
+- waitForAnimationToEnd
 
-# Wait a bit more to capture the wave at a different position.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 1500
-
-- takeScreenshot: maestro/recordings/image_import_04_ai_scan_wave
+- takeScreenshot: maestro/recordings/image_import_03_ai_scan_wave
 
 # ─────────────────────────────────────────────
-# 8. WAIT FOR RESULT
+# 9. WAIT FOR RESULT
 # ─────────────────────────────────────────────
-# Wait for processing to complete (success or error).
+# Wait for processing to complete (success or error dismisses the sheet).
 - extendedWaitUntil:
     visible:
       text: ".*"
@@ -134,9 +142,3 @@ tags:
     optional: true
 
 - waitForAnimationToEnd
-
-# Final pause.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 2000
