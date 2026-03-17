@@ -99,7 +99,7 @@ class FullScreenOverlay(
                 }
                 .background(surfaceColor)
                 .then(
-                    if (properties.isNavigationBarsPaddingEnabled)
+                    if (properties.isStatusBarsPaddingEnabled)
                         Modifier.statusBarsPadding()
                     else Modifier
                 )
