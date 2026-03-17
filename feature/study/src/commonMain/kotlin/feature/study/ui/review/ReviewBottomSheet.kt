@@ -1,6 +1,8 @@
 package feature.study.ui.review
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -158,6 +160,10 @@ fun ReviewBottomSheet(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { /* consume clicks to prevent pass-through to content behind */ }
             .then(modifier)
     ) {
         if (showCompletion) {

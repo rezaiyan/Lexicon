@@ -274,7 +274,10 @@ fun StudyScreen() {
                         stats = loadedStats,
                         onStageClick = { stage, stageName ->
                             reviewViewModel.loadWordsByStage(stage)
-                            overlayHost.showFullScreen(tag = "review-stage-${stage}") { navigator ->
+                            overlayHost.showFullScreen(
+                        tag = "review-stage-${stage}",
+                        properties = FullScreenProperties(dismissOnSwipe = true),
+                    ) { navigator ->
                                 val reviewState by reviewViewModel.state()
                                 val sheetTts = reviewState.ttsState
 

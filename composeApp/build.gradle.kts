@@ -129,13 +129,10 @@ kotlin {
                 "-lc++",
             )
 
-            export(libs.lifecycle.viewmodel)
-            export(libs.lifecycle.runtime.compose)
-            export(libs.lifecycle.viewmodel.compose)
-            export(libs.navigation.compose)
-            export(libs.koin.core)
-            export(libs.koin.compose)
-            export(libs.koin.compose.viewmodel)
+            // Exports removed: Swift only calls MainViewControllerKt top-level functions
+            // and never references ViewModel/Koin/Navigation types directly from Swift.
+            // Exporting these libraries was inflating DevirtualizationAnalysis graph size,
+            // causing OOM in K/N release builds as the codebase grew.
 
             // Disabled: transitiveExport pulls all transitive iOS platform frameworks
             // (MediaPlayer, MetalKit, VisionKit, etc.) into DevirtualizationAnalysis,

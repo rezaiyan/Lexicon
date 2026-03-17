@@ -1,8 +1,15 @@
 package overlay.fullscreen
 
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -18,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.onSizeChanged
 import expects.BackHandler
 import expects.OverrideSystemBars
 import kotlinx.coroutines.delay
@@ -26,6 +34,8 @@ import overlay.LocalIsTopmostOverlay
 import overlay.Overlay
 import overlay.OverlayNavigator
 import theme.Theme
+
+private enum class SheetValue { Open, Dismissed }
 
 /**
  * Full-screen overlay that visually resembles a bottom sheet but is NOT a ModalBottomSheet.
@@ -56,7 +66,7 @@ class FullScreenOverlay(
                 tween(motion.durationMedium, easing = motion.easingAccelerate),
             label = "fullScreenAlpha"
         )
-        val translationY by animateFloatAsState(
+        val enterTranslationY by animateFloatAsState(
             targetValue = if (visible) 0f else 300f,
             animationSpec = if (visible)
                 tween(motion.durationLong, easing = motion.easingDecelerate)
@@ -65,8 +75,12 @@ class FullScreenOverlay(
             label = "fullScreenSlide"
         )
 
+        var isDismissing by remember { mutableStateOf(false) }
+
+        // Normal dismiss (back press / close button): original fade + slide animation
         val animatedDismiss: () -> Unit = {
-            if (visible) {
+            if (!isDismissing) {
+                isDismissing = true
                 visible = false
                 coroutineScope.launch {
                     delay(motion.durationMedium.toLong())
@@ -75,11 +89,36 @@ class FullScreenOverlay(
             }
         }
 
+        // Swipe-to-dismiss: AnchoredDraggableState for natural bottom-sheet feel.
+        // The gesture coroutine stays alive throughout the drag so fling physics
+        // kick in immediately on release — no coroutine scheduling gap.
+        val swipeState = remember { AnchoredDraggableState(initialValue = SheetValue.Open) }
+
+        // Configures physics on the state and returns a fling behavior for anchoredDraggable.
+        // positionalThreshold: 40% of sheet height triggers dismiss on release.
+        // snapAnimationSpec: spring used when settling to an anchor (spring-back or snap-dismiss).
+        val flingBehavior = AnchoredDraggableDefaults.flingBehavior(
+            state = swipeState,
+            positionalThreshold = { totalDistance -> totalDistance * 0.4f },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioNoBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        )
+
+        // Dismiss once the sheet fully settles at the Dismissed anchor.
+        // settledValue (not currentValue) — currentValue updates mid-drag to the nearest anchor,
+        // which would dismiss while the finger is still on screen.
+        LaunchedEffect(swipeState.settledValue) {
+            if (swipeState.settledValue == SheetValue.Dismissed && !isDismissing) {
+                isDismissing = true
+                navigator.dismiss()
+            }
+        }
+
         val isTopMost = LocalIsTopmostOverlay.current
         BackHandler(enabled = isTopMost) {
-            if (properties.dismissOnBackPress) {
-                animatedDismiss()
-            }
+            if (properties.dismissOnBackPress) animatedDismiss()
         }
 
         // System bars: match sheet surface color
@@ -93,11 +132,29 @@ class FullScreenOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .onSizeChanged { size ->
+                    swipeState.updateAnchors(
+                        DraggableAnchors {
+                            SheetValue.Open at 0f
+                            SheetValue.Dismissed at size.height.toFloat()
+                        }
+                    )
+                }
                 .graphicsLayer {
                     this.alpha = alpha
-                    this.translationY = translationY
+                    val swipeOffset = if (swipeState.offset.isNaN()) 0f else swipeState.offset
+                    this.translationY = enterTranslationY + swipeOffset
                 }
                 .background(surfaceColor)
+                .then(
+                    if (properties.dismissOnSwipe && isTopMost && !isDismissing)
+                        Modifier.anchoredDraggable(
+                            state = swipeState,
+                            orientation = Orientation.Vertical,
+                            flingBehavior = flingBehavior,
+                        )
+                    else Modifier
+                )
                 .then(
                     if (properties.isStatusBarsPaddingEnabled)
                         Modifier.statusBarsPadding()
