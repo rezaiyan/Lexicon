@@ -2,6 +2,9 @@ package presentation.feature.study
 
 import analytics.IAnalyticsTracker
 import core.common.Try
+import domain.analytics.model.WeeklyReport
+import domain.analytics.repository.IAnalyticsRepository
+import domain.analytics.usecase.GetWeeklyReportUseCase
 import fakes.FakePerformanceTracer
 import feature.study.StudyProgressViewModel
 import domain.auth.model.FeatureAccessResponse
@@ -135,6 +138,24 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
+    private fun fakeAnalyticsRepo() = object : IAnalyticsRepository {
+        override suspend fun getStudyInsights() = Try.success(domain.analytics.model.StudyInsights(0, 0, 0.0, 0, 0, 0, 0, null, null, 0))
+        override suspend fun getDailyStats(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.DailyStudyStats>())
+        override suspend fun getDifficultWords(minReviews: Int, limit: Int) = Try.success(emptyList<domain.analytics.model.WordDifficulty>())
+        override suspend fun getMostReviewedWords(limit: Int) = Try.success(emptyList<domain.analytics.model.MostReviewedWord>())
+        override suspend fun getAccuracyByLevel() = Try.success(emptyList<domain.analytics.model.AccuracyByLevel>())
+        override suspend fun getAccuracyByHourOfDay() = Try.success(emptyList<domain.analytics.model.HourlyAccuracy>())
+        override suspend fun getAccuracyByDayOfWeek() = Try.success(emptyList<domain.analytics.model.DayOfWeekAccuracy>())
+        override suspend fun getRecentSessions(limit: Int) = Try.success(emptyList<domain.analytics.model.StudySession>())
+        override suspend fun getStudyHeatmap(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.StudyHeatmapDay>())
+        override suspend fun getWordsMastered(limit: Int) = Try.success(emptyList<domain.analytics.model.MasteredWord>())
+        override suspend fun getLanguagePairStats() = Try.success(emptyList<domain.analytics.model.LanguagePairStats>())
+        override suspend fun getMonthlyStats() = Try.success(emptyList<domain.analytics.model.MonthlyStats>())
+        override suspend fun getComebackWords() = Try.success(emptyList<domain.analytics.model.ComebackWord>())
+        override suspend fun getWeeklyReport() = Try.success(WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", ""))
+        override suspend fun syncToBackend() = Try.success(0)
+    }
+
     private fun createViewModel(): StudyProgressViewModel {
         val wordRepo = fakeWordRepo()
         val settingsRepo = fakeSettingsRepo()
@@ -143,6 +164,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             getProgressStatsUseCase = GetProgressStatsUseCase(wordRepo),
             evaluateProgressUseCase = EvaluateProgressUseCase(),
             scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
+            getWeeklyReportUseCase = GetWeeklyReportUseCase(fakeAnalyticsRepo()),
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),

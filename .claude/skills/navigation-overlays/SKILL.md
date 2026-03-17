@@ -128,6 +128,48 @@ Existing utilities in `StudyAnimations.kt`:
 - `rememberAnimatedCounter(target, durationMs)` — number counting
 - Screen transitions (fade + slide) already configured in NavHost
 
+## Bottom Sheet & Dialog Visual Style
+
+- Bottom sheets: rounded top corners `Theme.shapes.large` (16dp), content padding `Theme.spacing.md` (16dp)
+- Dialog surfaces: `Theme.shapes.medium` (12dp) radius, subtle `Theme.elevation.modal` (12dp) shadow
+- Scrim: black at 32% opacity — dark enough to focus attention, light enough to see context
+- Sheet/dialog content follows same card-like internal padding and typography hierarchy
+- Primary action button in sheets: pill shape, full width, at bottom with `Theme.spacing.md` (16dp) above
+
+## Search Bar Pattern
+
+For screens with search/filter:
+```kotlin
+// Pill-shaped search bar — prominent at top, collapses on scroll
+OutlinedTextField(
+    shape = RoundedCornerShape(Theme.shapes.pill),  // fully rounded
+    colors = OutlinedTextFieldDefaults.colors(
+        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    ),
+    modifier = Modifier.fillMaxWidth().height(48.dp),
+)
+```
+
+## Filter Chips
+
+Horizontal scrolling row for filter categories:
+```kotlin
+LazyRow(
+    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+    contentPadding = PaddingValues(horizontal = Theme.spacing.md),
+) {
+    items(filters) { filter ->
+        FilterChip(
+            selected = filter.isSelected,
+            onClick = { onFilterToggle(filter) },
+            label = { Text(filter.name) },
+            shape = RoundedCornerShape(Theme.shapes.pill),  // pill-shaped chips
+        )
+    }
+}
+```
+
 ## Checklist
 
 1. Routes defined as `@Serializable` data classes/objects

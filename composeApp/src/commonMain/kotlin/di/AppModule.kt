@@ -19,5 +19,6 @@ fun appModule(
         profileModule(),
         leaderboardModule(),
         presentationModule(),
+        analyticsModule(),
     )
 }

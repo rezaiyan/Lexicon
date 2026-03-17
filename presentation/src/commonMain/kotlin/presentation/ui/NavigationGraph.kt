@@ -12,6 +12,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import feature.insights.navigation.insightsGraph
 import feature.profile.navigation.profileGraph
 import feature.subscription.navigation.SubscriptionRoute
 import feature.subscription.navigation.subscriptionGraph
@@ -51,9 +52,14 @@ internal fun NavigationGraph(
             onNavigateBack = { navController.navigateUp() },
         )
 
+        insightsGraph(
+            onNavigateBack = { navController.navigateUp() },
+        )
+
         // Presentation-owned routes (screens still in :presentation)
         composable<TabDestination.Study> {
-            StudyScreen()
+            StudyScreen(
+            )
         }
 
         composable<TabDestination.Settings> {

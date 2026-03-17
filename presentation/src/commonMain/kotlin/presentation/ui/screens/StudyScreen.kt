@@ -1,6 +1,8 @@
 package presentation.ui.screens
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -45,6 +47,9 @@ import feature.study.ui.review.ReviewBottomSheetContent
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
 import feature.study.ui.study.StatsSection
+import feature.insights.navigation.showInsightsSheet
+import feature.study.model.WeeklyReportUiModel
+import feature.study.ui.study.WeeklyReportCard
 import feature.study.ui.study.WordDistributionBar
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -164,7 +169,7 @@ fun StudyScreen() {
                 stats = progressStats ?: return@LexiconColumn,
             )
         },
-        actionIcon1 = ActionIconConfig(
+        actionIcon2 = ActionIconConfig(
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),
             onClick = openImportSheet,
@@ -251,6 +256,17 @@ fun StudyScreen() {
                         onImportWords = openImportSheet,
                         onStartReview = { reviewViewModel.startReview() }
                     )
+
+                    val weeklyReport = (progressState.weeklyReport as? UiState.Loaded)?.value
+                    if (weeklyReport is WeeklyReportUiModel.Content) {
+                        Spacer(Modifier.height(Theme.spacing.sm))
+                        WeeklyReportCard(
+                            report = weeklyReport,
+                            onViewInsights = {
+                                overlayHost.showInsightsSheet()
+                            },
+                        )
+                    }
 
                     WordDistributionBar(stats = loadedStats)
 

@@ -7,11 +7,14 @@ import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.UiState
 import core.common.getOrThrow
+import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.GetProgressStatsUseCase
+import feature.study.formatter.WeeklyReportFormatter
 import feature.study.model.ProgressScreenState
+import feature.study.model.WeeklyReportUiModel
 import feature.study.util.NotificationStringHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
@@ -24,12 +27,14 @@ import kotlin.time.ExperimentalTime
 data class StudyProgressState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,
     val hasPremiumAccess: Boolean = false,
+    val weeklyReport: UiState<WeeklyReportUiModel> = UiState.Loading,
 )
 
 class StudyProgressViewModel(
     private val getProgressStatsUseCase: GetProgressStatsUseCase,
     private val evaluateProgressUseCase: EvaluateProgressUseCase,
     private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase,
+    private val getWeeklyReportUseCase: GetWeeklyReportUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val performanceTracer: IPerformanceTracer,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
@@ -42,6 +47,7 @@ class StudyProgressViewModel(
     init {
         observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
+        loadWeeklyReport()
     }
 
     private fun observeFeatureAccess(getFeatureAccessUseCase: GetFeatureAccessUseCase) {
@@ -58,6 +64,16 @@ class StudyProgressViewModel(
     fun refreshStats() {
         progressObservationJob?.cancel()
         startObservingProgress()
+        loadWeeklyReport()
+    }
+
+    private fun loadWeeklyReport() {
+        viewModelScope.launch {
+            getWeeklyReportUseCase(Unit).reduce(
+                onSuccess = { copy(weeklyReport = UiState.Loaded(WeeklyReportFormatter.format(it))) },
+                onFailure = { copy(weeklyReport = UiState.Loaded(WeeklyReportUiModel.Empty)) },
+            )
+        }
     }
 
     private fun startObservingProgress() {
