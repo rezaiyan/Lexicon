@@ -17,5 +17,6 @@ interface IAnalyticsRepository {
     suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>>
     suspend fun getMonthlyStats(): Try<List<MonthlyStats>>
     suspend fun getComebackWords(): Try<List<ComebackWord>>
+    suspend fun getWeeklyReport(): Try<WeeklyReport>
     suspend fun syncToBackend(): Try<Int>
 }

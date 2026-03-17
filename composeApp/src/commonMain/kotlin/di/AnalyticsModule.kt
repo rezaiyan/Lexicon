@@ -13,6 +13,7 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
 import org.koin.core.module.dsl.singleOf
@@ -40,4 +41,5 @@ fun analyticsModule() = module {
     singleOf(::GetAccuracyByLevelUseCase)
     singleOf(::GetStudyHeatmapUseCase)
     singleOf(::GetBestStudyTimeUseCase)
+    singleOf(::GetWeeklyReportUseCase)
 }

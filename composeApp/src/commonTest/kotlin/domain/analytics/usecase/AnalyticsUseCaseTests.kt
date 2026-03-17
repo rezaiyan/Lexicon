@@ -14,6 +14,7 @@ import domain.analytics.model.MostReviewedWord
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.StudySession
+import domain.analytics.model.WeeklyReport
 import domain.analytics.model.WordDifficulty
 import domain.analytics.repository.IAnalyticsRecorder
 import domain.analytics.repository.IAnalyticsRepository
@@ -124,6 +125,9 @@ class AnalyticsUseCaseTests {
         override suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>> = languagePairStatsResult
         override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = monthlyStatsResult
         override suspend fun getComebackWords(): Try<List<ComebackWord>> = comebackWordsResult
+        override suspend fun getWeeklyReport(): Try<WeeklyReport> = Try.success(
+            WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
+        )
         override suspend fun syncToBackend(): Try<Int> {
             syncCallCount++
             return syncResult

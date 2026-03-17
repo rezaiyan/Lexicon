@@ -19,27 +19,37 @@ class AnalyticsRepositoryImpl(
 ) : IAnalyticsRepository {
 
     override suspend fun getStudyInsights(): Try<StudyInsights> =
-        remoteDataSource.getInsights().map { r ->
+        remoteDataSource.getInsights().map { response ->
             StudyInsights(
-                totalCardsReviewed = r.totalCardsReviewed,
-                totalCorrect = r.totalCorrect,
-                accuracyPercent = r.accuracyPercent,
-                totalStudyTimeMs = r.totalStudyTimeMs,
-                totalSessions = r.totalSessions,
-                daysStudied = r.daysStudied,
-                uniqueWordsReviewed = r.uniqueWordsReviewed,
-                averageResponseTimeMs = r.averageResponseTimeMs,
-                averageSessionDurationMs = r.averageSessionDurationMs,
-                wordsMasteredCount = r.wordsMasteredCount,
+                totalCardsReviewed = response.totalCardsReviewed,
+                totalCorrect = response.totalCorrect,
+                accuracyPercent = response.accuracyPercent,
+                totalStudyTimeMs = response.totalStudyTimeMs,
+                totalSessions = response.totalSessions,
+                daysStudied = response.daysStudied,
+                uniqueWordsReviewed = response.uniqueWordsReviewed,
+                averageResponseTimeMs = response.averageResponseTimeMs,
+                averageSessionDurationMs = response.averageSessionDurationMs,
+                wordsMasteredCount = response.wordsMasteredCount,
             )
         }
 
-    override suspend fun getDailyStats(startDate: String, endDate: String): Try<List<DailyStudyStats>> {
-        // Backend daily-stats endpoint expects date strings
-        // For now, derive from heatmap + sessions if needed, or use insights
-        // The backend has /daily-stats?start=&end= but returns DailyStatsResponse
-        return Try.success(emptyList())
-    }
+    override suspend fun getDailyStats(startDate: String, endDate: String): Try<List<DailyStudyStats>> =
+        remoteDataSource.getDailyStats(startDate, endDate).map { list ->
+            list.map { r ->
+                DailyStudyStats(
+                    date = r.date,
+                    sessionsCount = r.sessionsCount,
+                    cardsReviewed = r.cardsReviewed,
+                    correctCount = r.correctCount,
+                    incorrectCount = r.incorrectCount,
+                    studyTimeMs = r.studyTimeMs,
+                    uniqueWordsReviewed = 0,
+                    wordsLeveledUp = 0,
+                    wordsLeveledDown = 0,
+                )
+            }
+        }
 
     override suspend fun getDifficultWords(minReviews: Int, limit: Int): Try<List<WordDifficulty>> =
         remoteDataSource.getDifficultWords(minReviews, limit).map { list ->
@@ -185,6 +195,28 @@ class AnalyticsRepositoryImpl(
                     wordTranslation = r.wordTranslation,
                 )
             }
+        }
+
+    override suspend fun getWeeklyReport(): Try<WeeklyReport> =
+        remoteDataSource.getWeeklyReport().map { response ->
+            WeeklyReport(
+                cardsReviewed = response.cardsReviewed,
+                previousWeekCardsReviewed = response.previousWeekCardsReviewed,
+                changePercent = response.changePercent,
+                accuracyPercent = response.accuracyPercent,
+                wordsMastered = response.wordsMastered,
+                totalStudyTimeMs = response.totalStudyTimeMs,
+                sessionsCount = response.sessionsCount,
+                bestDay = response.bestDay?.let { bestDayRemoteResponse ->
+                    BestDay(
+                        dayName = bestDayRemoteResponse.dayName,
+                        cardsReviewed = bestDayRemoteResponse.cardsReviewed,
+                        accuracyPercent = bestDayRemoteResponse.accuracyPercent,
+                    )
+                },
+                weekStartDate = response.weekStartDate,
+                weekEndDate = response.weekEndDate,
+            )
         }
 
     override suspend fun syncToBackend(): Try<Int> =

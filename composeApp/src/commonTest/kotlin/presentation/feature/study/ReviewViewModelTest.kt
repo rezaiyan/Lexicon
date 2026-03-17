@@ -191,6 +191,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
                 override suspend fun getLanguagePairStats() = Try.success(emptyList<domain.analytics.model.LanguagePairStats>())
                 override suspend fun getMonthlyStats() = Try.success(emptyList<domain.analytics.model.MonthlyStats>())
                 override suspend fun getComebackWords() = Try.success(emptyList<domain.analytics.model.ComebackWord>())
+                override suspend fun getWeeklyReport() = Try.success(domain.analytics.model.WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", ""))
                 override suspend fun syncToBackend() = Try.success(0)
             }),
             recordReviewEventUseCase = RecordReviewEventUseCase(recorder),

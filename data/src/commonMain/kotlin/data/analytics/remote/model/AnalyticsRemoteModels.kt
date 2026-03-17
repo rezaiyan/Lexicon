@@ -155,3 +155,38 @@ data class ComebackWordResponse(
     val wordText: String,
     val wordTranslation: String,
 )
+
+// === Daily Stats ===
+
+@Serializable
+data class DailyStatsRemoteResponse(
+    val date: String = "",
+    val sessionsCount: Int = 0,
+    val cardsReviewed: Int = 0,
+    val correctCount: Int = 0,
+    val incorrectCount: Int = 0,
+    val studyTimeMs: Long = 0,
+)
+
+// === Weekly Report ===
+
+@Serializable
+data class WeeklyReportRemoteResponse(
+    val cardsReviewed: Int = 0,
+    val previousWeekCardsReviewed: Int = 0,
+    val changePercent: Double? = null,
+    val accuracyPercent: Double = 0.0,
+    val wordsMastered: Int = 0,
+    val totalStudyTimeMs: Long = 0,
+    val sessionsCount: Int = 0,
+    val bestDay: BestDayRemoteResponse? = null,
+    val weekStartDate: String = "",
+    val weekEndDate: String = "",
+)
+
+@Serializable
+data class BestDayRemoteResponse(
+    val dayName: String = "",
+    val cardsReviewed: Int = 0,
+    val accuracyPercent: Double = 0.0,
+)

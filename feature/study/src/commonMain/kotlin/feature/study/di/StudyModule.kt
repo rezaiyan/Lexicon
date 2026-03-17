@@ -11,6 +11,7 @@ fun studyModule() = module {
             getProgressStatsUseCase = get(),
             evaluateProgressUseCase = get(),
             scheduleNotificationsUseCase = get(),
+            getWeeklyReportUseCase = get(),
             getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
             performanceTracer = get(),

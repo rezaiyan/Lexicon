@@ -31,6 +31,8 @@ class AnalyticsRecorderImplTest {
         override suspend fun getLanguageStats() = Try.success(emptyList<LanguagePairStatsResponse>())
         override suspend fun getMonthlyStats() = Try.success(emptyList<MonthlyStatsResponse>())
         override suspend fun getComebackWords() = Try.success(emptyList<ComebackWordResponse>())
+        override suspend fun getDailyStats(start: String, end: String) = Try.success(emptyList<DailyStatsRemoteResponse>())
+        override suspend fun getWeeklyReport() = Try.success(WeeklyReportRemoteResponse())
     }
 
     @Test

@@ -51,4 +51,10 @@ class AnalyticsRemoteDataSource(
 
     override suspend fun getComebackWords(): Try<List<ComebackWordResponse>> =
         apiClient.getNotNull("/analytics/comeback-words")
+
+    override suspend fun getDailyStats(start: String, end: String): Try<List<DailyStatsRemoteResponse>> =
+        apiClient.getNotNull("/analytics/daily-stats?start=$start&end=$end")
+
+    override suspend fun getWeeklyReport(): Try<WeeklyReportRemoteResponse> =
+        apiClient.getNotNull("/analytics/weekly-report")
 }

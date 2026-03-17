@@ -17,4 +17,6 @@ interface IAnalyticsRemoteDataSource {
     suspend fun getLanguageStats(): Try<List<LanguagePairStatsResponse>>
     suspend fun getMonthlyStats(): Try<List<MonthlyStatsResponse>>
     suspend fun getComebackWords(): Try<List<ComebackWordResponse>>
+    suspend fun getDailyStats(start: String, end: String): Try<List<DailyStatsRemoteResponse>>
+    suspend fun getWeeklyReport(): Try<WeeklyReportRemoteResponse>
 }

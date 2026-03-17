@@ -30,7 +30,9 @@ data class InsightsState(
     val heatmap: UiState<List<StudyHeatmapDay>> = UiState.Loading,
     val bestStudyTime: UiState<HourlyAccuracy?> = UiState.Loading,
     val selectedTab: InsightsTab = InsightsTab.OVERVIEW,
-)
+) {
+    val availability: InsightsAvailability get() = InsightsAvailability.from(this)
+}
 
 enum class InsightsTab { OVERVIEW, TRENDS, WORDS }
 
@@ -50,7 +52,10 @@ class InsightsViewModel(
     }
 
     fun selectTab(tab: InsightsTab) {
-        updateState { copy(selectedTab = tab) }
+        updateState {
+            val allowed = availability.visibleTabs
+            copy(selectedTab = if (tab in allowed) tab else allowed.firstOrNull() ?: InsightsTab.OVERVIEW)
+        }
     }
 
     fun refresh() {
