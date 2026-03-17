@@ -3,6 +3,7 @@ package feature.study.formatter
 import domain.analytics.model.WeeklyReport
 import feature.study.model.BestDayUiModel
 import feature.study.model.WeeklyReportUiModel
+import kotlinx.datetime.LocalDate
 import kotlin.math.roundToInt
 
 object WeeklyReportFormatter {
@@ -33,23 +34,16 @@ object WeeklyReportFormatter {
 
     private fun formatWeekRange(startDate: String, endDate: String): String {
         if (startDate.isEmpty() || endDate.isEmpty()) return ""
-        val startParts = startDate.split("-")
-        val endParts = endDate.split("-")
-        if (startParts.size != 3 || endParts.size != 3) return "$startDate \u2013 $endDate"
+        val start = runCatching { LocalDate.parse(startDate) }.getOrNull() ?: return "$startDate \u2013 $endDate"
+        val end = runCatching { LocalDate.parse(endDate) }.getOrNull() ?: return "$startDate \u2013 $endDate"
 
-        val months = listOf(
-            "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-        )
-        val startMonth = startParts[1].toIntOrNull()?.let { months.getOrNull(it) } ?: startParts[1]
-        val endMonth = endParts[1].toIntOrNull()?.let { months.getOrNull(it) } ?: endParts[1]
-        val startDay = startParts[2].toIntOrNull()?.toString() ?: startParts[2]
-        val endDay = endParts[2].toIntOrNull()?.toString() ?: endParts[2]
+        val startMonth = start.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
+        val endMonth = end.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
 
         return if (startMonth == endMonth) {
-            "$startMonth $startDay\u2013$endDay"
+            "$startMonth ${start.dayOfMonth}\u2013${end.dayOfMonth}"
         } else {
-            "$startMonth $startDay \u2013 $endMonth $endDay"
+            "$startMonth ${start.dayOfMonth} \u2013 $endMonth ${end.dayOfMonth}"
         }
     }
 

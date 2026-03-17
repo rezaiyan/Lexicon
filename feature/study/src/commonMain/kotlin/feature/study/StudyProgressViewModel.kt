@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.UiState
 import core.common.getOrThrow
-import core.common.fold
 import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
@@ -70,13 +69,9 @@ class StudyProgressViewModel(
 
     private fun loadWeeklyReport() {
         viewModelScope.launch {
-            getWeeklyReportUseCase(Unit).fold(
-                onSuccess = { report ->
-                    updateState { copy(weeklyReport = UiState.Loaded(WeeklyReportFormatter.format(report))) }
-                },
-                onFailure = {
-                    updateState { copy(weeklyReport = UiState.Loaded(WeeklyReportUiModel.Empty)) }
-                },
+            getWeeklyReportUseCase(Unit).reduce(
+                onSuccess = { copy(weeklyReport = UiState.Loaded(WeeklyReportFormatter.format(it))) },
+                onFailure = { copy(weeklyReport = UiState.Loaded(WeeklyReportUiModel.Empty)) },
             )
         }
     }

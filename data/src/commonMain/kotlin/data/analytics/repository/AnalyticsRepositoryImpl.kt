@@ -2,6 +2,7 @@ package data.analytics.repository
 
 import core.common.Try
 import core.common.map
+import data.analytics.mapper.toDomain
 import data.analytics.remote.IAnalyticsRemoteDataSource
 import domain.analytics.model.*
 import domain.analytics.repository.IAnalyticsRepository
@@ -36,19 +37,7 @@ class AnalyticsRepositoryImpl(
 
     override suspend fun getDailyStats(startDate: String, endDate: String): Try<List<DailyStudyStats>> =
         remoteDataSource.getDailyStats(startDate, endDate).map { list ->
-            list.map { r ->
-                DailyStudyStats(
-                    date = r.date,
-                    sessionsCount = r.sessionsCount,
-                    cardsReviewed = r.cardsReviewed,
-                    correctCount = r.correctCount,
-                    incorrectCount = r.incorrectCount,
-                    studyTimeMs = r.studyTimeMs,
-                    uniqueWordsReviewed = 0,
-                    wordsLeveledUp = 0,
-                    wordsLeveledDown = 0,
-                )
-            }
+            list.map { it.toDomain() }
         }
 
     override suspend fun getDifficultWords(minReviews: Int, limit: Int): Try<List<WordDifficulty>> =
@@ -198,26 +187,7 @@ class AnalyticsRepositoryImpl(
         }
 
     override suspend fun getWeeklyReport(): Try<WeeklyReport> =
-        remoteDataSource.getWeeklyReport().map { response ->
-            WeeklyReport(
-                cardsReviewed = response.cardsReviewed,
-                previousWeekCardsReviewed = response.previousWeekCardsReviewed,
-                changePercent = response.changePercent,
-                accuracyPercent = response.accuracyPercent,
-                wordsMastered = response.wordsMastered,
-                totalStudyTimeMs = response.totalStudyTimeMs,
-                sessionsCount = response.sessionsCount,
-                bestDay = response.bestDay?.let { bestDayRemoteResponse ->
-                    BestDay(
-                        dayName = bestDayRemoteResponse.dayName,
-                        cardsReviewed = bestDayRemoteResponse.cardsReviewed,
-                        accuracyPercent = bestDayRemoteResponse.accuracyPercent,
-                    )
-                },
-                weekStartDate = response.weekStartDate,
-                weekEndDate = response.weekEndDate,
-            )
-        }
+        remoteDataSource.getWeeklyReport().map { it.toDomain() }
 
     override suspend fun syncToBackend(): Try<Int> =
         Try.success(0) // No local data to sync — everything goes directly to backend
