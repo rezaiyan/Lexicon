@@ -37,6 +37,114 @@ val gradients = Theme.gradients   // premiumHero, primaryWash, surfaceFade
 - Tertiary: `#FF8906` (Orange)
 - Error: `#E53170` (Red)
 
+## Visual Style Philosophy
+
+### Content-First
+
+The UI chrome stays calm and neutral — user content (words, progress, achievements) is the visual focus:
+- Accent colors used **sparingly** — primary color appears almost exclusively on the single primary CTA per screen
+- Background and surface colors do the heavy lifting; color is reserved for meaning
+- Let imagery, data, and user content carry the visual richness — not the interface frame
+
+### Whitespace as Design Element
+
+Whitespace is a first-class design element, not empty filler. Every content block needs breathing room:
+- `Theme.spacing.lg` (24dp) between content sections
+- `Theme.spacing.md` (16dp) within cards and between related items
+- Screen horizontal margins: `Theme.spacing.md` (16dp) on phone, `Theme.spacing.lg` (24dp) on tablet
+- Between heading and its content: `Theme.spacing.xs` (8dp) to `Theme.spacing.sm` (12dp)
+- Generous spacing reduces cognitive load — users scan content quickly without fatigue
+
+### Surface Hierarchy
+
+Layer surfaces with distinct background/elevation to communicate depth:
+
+| Layer | Background | Elevation | Usage |
+|-------|-----------|-----------|-------|
+| **Base** | `colorScheme.background` | none | Page background |
+| **Surface** | `colorScheme.surface` | `Theme.elevation.low` (1dp) | Cards, content areas |
+| **Raised** | `colorScheme.surface` | `Theme.elevation.high` (4dp) | Bottom sheets, floating search |
+| **Overlay** | `colorScheme.surface` | `Theme.elevation.modal` (12dp) | Modals, dialogs |
+| **Scrim** | Black at 32% opacity | — | Behind modals/sheets |
+
+Shadows are **soft and subtle** — never harsh or dramatic. Cards at rest use very subtle shadows (1dp). Shadows deepen on interaction (press/focus) to provide feedback.
+
+### Card Design
+
+Cards are the primary content container — the signature building block:
+
+```kotlin
+Card(
+    shape = RoundedCornerShape(Theme.shapes.medium),     // 12dp — friendly, consistent
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.low),
+    modifier = Modifier.padding(horizontal = Theme.spacing.md),
+) {
+    Column(modifier = Modifier.padding(Theme.spacing.md)) {   // 16dp internal padding
+        // content
+    }
+}
+```
+
+Rules:
+- Internal padding: `Theme.spacing.md` (16dp)
+- Border radius: `Theme.shapes.medium` (12dp) — all cards use the same radius
+- Shadow: `Theme.elevation.low` (1dp) at rest — subtle, not dramatic
+- Space between cards in lists: `Theme.spacing.md` (16dp) to `Theme.spacing.lg` (24dp)
+- Images inside cards: clip with same 12dp radius, `ContentScale.Crop`
+- Pressed state: slight scale reduction (0.96-0.98x) via `graphicsLayer` for tactile feedback
+
+### Button Hierarchy
+
+| Type | Style | When |
+|------|-------|------|
+| **Primary** | Filled, pill shape (`Theme.shapes.pill`), primary color | Single most important action per screen |
+| **Secondary** | Outlined, pill shape, `onSurface` border | Alternative actions |
+| **Tertiary** | Filled tonal, pill shape | Less prominent actions |
+| **Text** | Underlined or plain text, no background | Inline links, minor actions |
+
+Rules:
+- **Only ONE primary (filled) CTA per screen** — color scarcity directs attention
+- Minimum touch target: `Theme.dimensions.touchTarget` (48dp)
+- Pill shape (`Theme.shapes.pill`) for all buttons — visually distinct from content cards
+- Vertical padding: 14dp, horizontal padding: 24dp
+- Pressed state: darken + scale(0.97f) via `graphicsLayer`
+
+### Typography Usage
+
+Use hierarchy through weight and color, not excessive size jumps:
+
+| Role | Style | Weight | Color | Max per screen |
+|------|-------|--------|-------|---------------|
+| **Page title** | `headlineLarge`/`headlineMedium` | Bold/ExtraBold | `onSurface` | 1 |
+| **Section header** | `titleLarge`/`titleMedium` | Bold | `onSurface` | 2-3 |
+| **Card title** | `titleSmall`/`bodyLarge` | SemiBold/Medium | `onSurface` | Per card |
+| **Body text** | `bodyLarge` (16sp) / `bodyMedium` (14sp) | Normal | `onSurface` | — |
+| **Secondary text** | `bodySmall`/`labelMedium` | Normal | `onSurfaceVariant` | — |
+| **Caption** | `labelSmall` (11sp) | Normal | `onSurfaceVariant` | — |
+
+Rule: Maximum 3 distinct font sizes per visible screen section. Create hierarchy through **weight** and **color** before reaching for size changes.
+
+### Dividers
+
+- Hairline: `Theme.dimensions.dividerHairline` (0.5dp), `outlineVariant` color
+- Space above and below: `Theme.spacing.lg` (24dp) — dividers are visual breaths, not just lines
+- Never stack heavy visual elements — dividers are subtle separators between content sections
+
+### Image Treatment
+
+- Clip all images: `Modifier.clip(RoundedCornerShape(Theme.shapes.medium))` (12dp)
+- Use `ContentScale.Crop` for card/listing images
+- Preferred aspect ratios: 3:2 (cards), 16:9 (hero/cover)
+- Loading state: shimmer placeholder animation (see motion skill)
+
+### Loading & Empty States
+
+- Shimmer placeholders match the shape of the content they replace (cards, text lines)
+- Empty states: centered icon + title + subtitle — never bare text
+- Loading spinners: centered with optional message, no jarring layout shifts
+- Skeleton screens preferred over spinners for content-heavy screens
+
 ## Available Components
 
 - `LoadingScreen(modifier, message?)` — centered spinner

@@ -49,6 +49,43 @@ fun FeatureScreen(
 }
 ```
 
+## Layout Rhythm
+
+Apply consistent spacing rhythm for a calm, scannable UI:
+
+```kotlin
+LexiconColumn(title = "Screen Title") {
+    // Section 1 — hero or summary
+    HeroCard(...)
+
+    Spacer(Modifier.height(Theme.spacing.lg))  // 24dp between sections
+
+    // Section 2 — content list
+    SectionHeader(title = "Recent")
+    Spacer(Modifier.height(Theme.spacing.sm))  // 12dp heading → content
+    items.forEach { item ->
+        ItemCard(item)
+        Spacer(Modifier.height(Theme.spacing.md))  // 16dp between cards
+    }
+}
+```
+
+Key spacing rules:
+- **Screen horizontal margins**: handled by `LexiconColumn` — `Theme.spacing.md` (16dp)
+- **Between content sections**: `Theme.spacing.lg` (24dp) — major visual breaks
+- **Between related items** (cards in a list): `Theme.spacing.md` (16dp)
+- **Between heading and its content**: `Theme.spacing.xs` (8dp) to `Theme.spacing.sm` (12dp)
+- **Card internal padding**: `Theme.spacing.md` (16dp)
+- **Bottom clearance from nav bar**: `Theme.spacing.lg` (24dp) minimum
+
+### Content Organization
+
+- Group related content into **cards** — cards provide visual containment and scanability
+- **One primary CTA per screen** — use accent color sparingly for maximum attention direction
+- Empty space is intentional — resist filling every pixel
+- Use **surface hierarchy**: base background → card surface → raised elements → overlays
+- Typography hierarchy through **weight and color** before size changes — max 3 font sizes per section
+
 ## State Reading
 
 Use `viewModel.state()` which returns Compose `State<S>` directly — **no `collectAsStateWithLifecycle()`** needed:
@@ -124,6 +161,47 @@ OnEvents(viewModel.effects) { effect ->
         is FeatureEffect.NavigateBack -> onNavigateBack()
     }
 }
+```
+
+## Visual Patterns
+
+### Stat / Summary Cards
+
+For data display (analytics, progress, profile stats):
+
+```kotlin
+Card(
+    shape = RoundedCornerShape(Theme.shapes.medium),
+    elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.low),
+) {
+    Column(Modifier.padding(Theme.spacing.md)) {
+        Text("Cards Reviewed", style = MaterialTheme.typography.labelMedium, color = onSurfaceVariant)
+        Spacer(Modifier.height(Theme.spacing.xxs))
+        Text("2,847", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(Theme.spacing.xxs))
+        Text("23% vs last month", style = MaterialTheme.typography.bodySmall, color = secondary)
+    }
+}
+```
+
+### Press Feedback
+
+Add tactile press feedback to interactive cards:
+
+```kotlin
+val interactionSource = remember { MutableInteractionSource() }
+val isPressed by interactionSource.collectIsPressedAsState()
+val scale by animateFloatAsState(
+    targetValue = if (isPressed) 0.97f else 1f,
+    animationSpec = spring(stiffness = Spring.StiffnessMediumHigh),
+    label = "press-scale"
+)
+
+Card(
+    modifier = Modifier.graphicsLayer { scaleX = scale; scaleY = scale },
+    interactionSource = interactionSource,
+    onClick = { ... }
+)
 ```
 
 ## Rules

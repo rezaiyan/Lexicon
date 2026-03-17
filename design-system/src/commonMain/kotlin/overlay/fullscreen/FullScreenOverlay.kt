@@ -98,7 +98,11 @@ class FullScreenOverlay(
                     this.translationY = translationY
                 }
                 .background(surfaceColor)
-                .statusBarsPadding()
+                .then(
+                    if (properties.isNavigationBarsPaddingEnabled)
+                        Modifier.statusBarsPadding()
+                    else Modifier
+                )
                 .then(
                     if (properties.isNavigationBarsPaddingEnabled)
                         Modifier.navigationBarsPadding()

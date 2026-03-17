@@ -136,24 +136,65 @@ New ViewModel → feature's `di/` module + include in `PresentationModule.kt`.
 
 ## Data Visualization Patterns
 
+### Visual Style for Analytics
+
+Analytics screens must feel **calm and informative** — data should be easy to scan without visual noise:
+- Use generous whitespace between stat cards and sections
+- Neutral surface colors as base — accent color only for key metrics or positive trends
+- Numbers are the hero content — use `headlineMedium` Bold for primary values, `bodySmall` for labels
+- Green (`Theme.semanticColors.success`) for positive trends, `onSurfaceVariant` for neutral
+- Cards with `Theme.elevation.low` (1dp) subtle shadow — data-heavy screens stay calm with minimal elevation
+- Maximum 4 stat cards visible at once — avoid overwhelming the user
+
 ### Stat Cards
 
 Use the `StatCard` composable from InsightsScreen as the base pattern:
 ```kotlin
-StatCard(
-    icon = Icons.Default.MenuBook,
-    title = "Cards Reviewed",
-    value = "2,847",
-    subtitle = "↑ 23% vs last month",
-)
+// Clean stat card — label on top, large value, optional trend subtitle
+Card(
+    shape = RoundedCornerShape(Theme.shapes.medium),  // 12dp
+    elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.low),
+) {
+    Column(Modifier.padding(Theme.spacing.md)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(Theme.dimensions.iconMedium))
+            Spacer(Modifier.width(Theme.spacing.xs))
+            Text(title, style = MaterialTheme.typography.labelMedium, color = onSurfaceVariant)
+        }
+        Spacer(Modifier.height(Theme.spacing.xs))
+        Text(value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        subtitle?.let {
+            Spacer(Modifier.height(Theme.spacing.xxs))
+            Text(it, style = MaterialTheme.typography.bodySmall, color = semanticColors.success)
+        }
+    }
+}
+```
+
+### Stat Card Grid
+
+Arrange stat cards in a 2-column grid with consistent spacing:
+```kotlin
+// 2-column grid with 16dp gap
+Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+    StatCard(modifier = Modifier.weight(1f), ...)
+    StatCard(modifier = Modifier.weight(1f), ...)
+}
+Spacer(Modifier.height(Theme.spacing.md))
+Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+    StatCard(modifier = Modifier.weight(1f), ...)
+    StatCard(modifier = Modifier.weight(1f), ...)
+}
 ```
 
 ### Progress Bars (accuracy, completion)
 
 ```kotlin
+// Rounded progress bar matching card radius
 LinearProgressIndicator(
     progress = { (accuracyPercent / 100.0).toFloat() },
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(Theme.shapes.small)),
+    trackColor = MaterialTheme.colorScheme.surfaceVariant,
 )
 ```
 
@@ -163,6 +204,13 @@ For richer charts (line, bar, heatmap), evaluate:
 1. **Compose Canvas** — custom drawing for simple charts (bar charts, sparklines)
 2. **Vico** (`com.patrykandpatrick.vico`) — KMP charting library if complex charts needed
 3. **Custom Compose** — heatmap grids, streak calendars using `LazyVerticalGrid`
+
+Chart visual rules:
+- Minimal gridlines — use light `outlineVariant` color, no heavy borders
+- Data points and lines in `primary` color — keep charts monochromatic unless comparing categories
+- Axis labels in `labelSmall`, `onSurfaceVariant` color
+- Generous padding around charts: `Theme.spacing.md` (16dp) inside the card
+- Wrap charts in cards with same 12dp radius as all other cards
 
 ### Shareable Image Cards
 
