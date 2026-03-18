@@ -51,15 +51,26 @@ class WordRepositoryImpl(
 
         return Try {
             val existingWords = localDataSource.getAllWordsAsync()
+
+            // Same word/translation but different sourceLanguage → correct the language on the existing record
+            val wordsToUpdate = words.mapNotNull { newWord ->
+                existingWords.find { it.isSameContent(newWord) && it.sourceLanguage != newWord.sourceLanguage }
+                    ?.copy(sourceLanguage = newWord.sourceLanguage)
+            }
+            wordsToUpdate.forEach { updated ->
+                localDataSource.updateWord(updated)
+                remoteSyncHandler.syncWordUpdateToRemote(updated.id.toLong(), updated)
+            }
+
             val newWords = words.filter { newWord ->
                 existingWords.none { it.isSameContent(newWord) }
             }
 
-            if (newWords.isEmpty()) return Try.success(0)
+            if (newWords.isEmpty()) return Try.success(wordsToUpdate.size)
 
             localDataSource.insertWords(newWords)
             remoteSyncHandler.syncWordsToRemote(newWords)
-            newWords.size
+            newWords.size + wordsToUpdate.size
         }
     }
 

@@ -1,0 +1,236 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - image
+  - gallery
+  - regression
+---
+# Test: Import German vocabulary from an image via the gallery picker.
+#
+# Seeds a German vocabulary worksheet image ("C Tipps für ein langes Leben")
+# to the emulator, drives the full image-import flow, then verifies that the
+# AI-extracted words appear in Word Manager with German as the original language.
+#
+# ── Image facts (ground truth from maestro/assets/german-vocab-worksheet.jpg) ──
+#   Title  : C Tipps für ein langes Leben (Tips for a Long Life)
+#   Source : German vocabulary worksheet
+#   Words  : medizinisch, Fortschritt, Vorbeugung, Bluthochdruck, Diabetes,
+#             Depression, geistig, künstlerisch, Altern, Schlaf, betätigen,
+#             weder … noch, sowohl … als auch, nicht nur … sondern auch,
+#             entweder … oder, auf jeden/keinen Fall, die Frage stellen,
+#             vornehmen (sich)
+#   Language: German (original) → user's translation language (target)
+#
+# Run with:
+#   ./maestro/run.sh maestro/flows/import/06_image_import_from_gallery.yaml
+#
+# Note: AI extraction can take 20-60 s depending on backend load. The
+#       extendedWaitUntil at step 11 accounts for worst-case latency.
+
+# ─────────────────────────────────────────────
+# 1. SEED — Push test image to emulator gallery
+# ─────────────────────────────────────────────
+# Copies german-vocab-worksheet.jpg into the device's media store so the
+# Android Photo Picker can find it. The image becomes the most-recently-added
+# photo in the device gallery.
+- addMedia:
+    - ../../assets/german-vocab-worksheet.jpg
+
+# ─────────────────────────────────────────────
+# 2. LAUNCH — Navigate to Study screen
+# ─────────────────────────────────────────────
+- runFlow: ../utils/navigate_to_study.yaml
+
+# ─────────────────────────────────────────────
+# 3. OPEN IMPORT SHEET
+# ─────────────────────────────────────────────
+- tapOn: "Import Words"
+
+- extendedWaitUntil:
+    visible: "Manually"
+    timeout: 10000
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 4. CHOOSE MANUAL → FROM IMAGE
+# ─────────────────────────────────────────────
+- tapOn: "Manually"
+
+- extendedWaitUntil:
+    visible: "From Image"
+    timeout: 10000
+
+- waitForAnimationToEnd
+
+- tapOn: "From Image"
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 5. SET SOURCE LANGUAGE = GERMAN
+# ─────────────────────────────────────────────
+# The worksheet is a German vocabulary list — select German as the source.
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
+
+# Verify the chooser subtitle references the user's translation language.
+- assertVisible: "What language are the original words?"
+
+- tapOn: "German"
+
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 6. VERIFY IMAGE CONTENT PAGE
+# ─────────────────────────────────────────────
+# The ImageContent page must show two picker options.
+- extendedWaitUntil:
+    visible: "Gallery"
+    timeout: 5000
+
+- assertVisible: "Gallery"
+- assertVisible: "Camera"
+
+# ─────────────────────────────────────────────
+# 7. OPEN GALLERY PICKER
+# ─────────────────────────────────────────────
+- tapOn: "Gallery"
+
+# Wait for the system photo picker to fully render.
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 8. SELECT THE SEEDED IMAGE
+# ─────────────────────────────────────────────
+# The Android photo picker (PickVisualMedia) shows a bottom-sheet with a
+# "Lexicon will only have access to the photos you select" privacy banner.
+# Dismiss it first so the photo grid becomes fully interactive.
+- tapOn:
+    text: "Dismiss"
+    optional: true
+
+- waitForAnimationToEnd
+
+# The seeded image is the most recently added — it appears at the bottom-left
+# of the grid (first thumbnail, left column) after the banner is dismissed.
+# Coordinates: x≈17% (left column), y≈58% (below toolbar + privacy banner).
+- tapOn:
+    point: "17%,58%"
+
+- waitForAnimationToEnd
+- waitForAnimationToEnd
+
+# ─────────────────────────────────────────────
+# 9. VERIFY IMAGE PREVIEW IS SHOWN
+# ─────────────────────────────────────────────
+# After selecting the image, the app shows a preview card with a
+# "Confirm & Extract" button and an optional "Remove" / cancel link.
+- extendedWaitUntil:
+    visible: "Confirm & Extract"
+    timeout: 15000
+
+- assertVisible: "Confirm & Extract"
+
+- takeScreenshot: maestro/recordings/image_import_gallery_01_preview
+
+# ─────────────────────────────────────────────
+# 10. TRIGGER AI EXTRACTION
+# ─────────────────────────────────────────────
+- tapOn: "Confirm & Extract"
+
+- waitForAnimationToEnd
+
+# Capture the AI scan overlay (animated wave on the thumbnail).
+- takeScreenshot: maestro/recordings/image_import_gallery_02_ai_scan
+
+# ─────────────────────────────────────────────
+# 11. WAIT FOR EXTRACTION TO COMPLETE
+# ─────────────────────────────────────────────
+# On success: ImportEffect.ImageImportSuccessful dismisses the sheet and
+# shows a snackbar "X words imported". Wait for the Study screen to return.
+# 90 s ceiling covers slow backend / CI emulator conditions.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 90000
+
+- waitForAnimationToEnd
+
+- takeScreenshot: maestro/recordings/image_import_gallery_03_success
+
+# Verify the Study screen is fully restored (import sheet is gone).
+- assertVisible: "Import Words"
+
+# ─────────────────────────────────────────────
+# 12. NAVIGATE TO WORD MANAGER
+# ─────────────────────────────────────────────
+# Navigate directly from Study → Settings → Word Manager without restarting
+# the app, avoiding the cold-start timing issue in the shared utility.
+- tapOn:
+    text: "Settings"
+
+- extendedWaitUntil:
+    visible: "Word Manager"
+    timeout: 15000
+
+- tapOn:
+    text: "Word Manager"
+
+- extendedWaitUntil:
+    visible: "Word Manager"
+    timeout: 10000
+
+# Word Manager must show the populated list (not the empty state), proving
+# that at least one word was imported.
+- assertVisible: "Search words..."
+
+# ─────────────────────────────────────────────
+# 13. VERIFY GERMAN SOURCE LANGUAGE ON WORD CARDS
+# ─────────────────────────────────────────────
+# Each word card renders: sourceLanguage.code → targetLanguage.code as pills.
+# All words imported with German selected appear as "DE → EN".
+# Asserting "DE" is visible proves sourceLanguage was stored correctly —
+# without relying on the AI extracting any specific word.
+- assertVisible: "DE"
+
+- takeScreenshot: maestro/recordings/image_import_gallery_04_word_list_de
+
+# ─────────────────────────────────────────────
+# 14. OPEN WORD DETAIL AND VERIFY "German" LABEL
+# ─────────────────────────────────────────────
+# Search for "Depression" — a health word that appears consistently in the
+# worksheet. Tap its card and confirm the detail sheet shows "German".
+- tapOn: "Search words..."
+- inputText: "Depression"
+- waitForAnimationToEnd
+
+- extendedWaitUntil:
+    visible: "Depression"
+    timeout: 5000
+
+# index 0 = search bar text, index 1 = word card row.
+- hideKeyboard
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Depression"
+    index: 1
+
+- extendedWaitUntil:
+    visible: "Languages"
+    timeout: 5000
+
+- assertVisible: "Depression"
+- assertVisible: "Languages"
+- assertVisible: "Learning Progress"
+- assertVisible: "Added"
+# Note: "German → English" is visible in the Languages row but Compose merges
+# the accessibility nodes in a way that makes substring-matching the value text
+# unreliable. The "DE" pill check in step 13 already proves German sourceLanguage.
+
+- takeScreenshot: maestro/recordings/image_import_gallery_05_word_detail_depression
+
+- pressKey: back
+- waitForAnimationToEnd

@@ -25,6 +25,7 @@ flows:
   # 04_import_method_selector excluded: all assertions optional (can never fail);
   # method selector already implicitly tested by 01, 02, 03 via non-optional "Manually" tap.
   # 05_manual_import_detailed excluded: UX screenshot audit for local use only.
+  - "flows/import/06_image_import_from_gallery.yaml"
   - "flows/study/*.yaml"
   - "flows/profile/*.yaml"
   - "flows/settings/*.yaml"
@@ -46,6 +47,7 @@ executionOrder:
     - flows/import/01_manual_text_input.yaml
     - flows/import/02_file_import_ui.yaml
     - flows/import/03_import_sheet_tabs.yaml
+    - flows/import/06_image_import_from_gallery.yaml
     # Study/review tests (need words to exist)
     - flows/study/01_study_screen_loads.yaml
     - flows/study/02_edit_word_from_review.yaml

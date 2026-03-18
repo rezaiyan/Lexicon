@@ -22,9 +22,11 @@ appId: com.alirezaiyan.vokab
     text: "Settings"
 
 # Wait for the Settings screen to load with the Word Manager card.
+# 15 s ceiling: after a cold-start relaunch the Settings screen does async
+# loading (subscription status, feature flags) which can take several seconds.
 - extendedWaitUntil:
     visible: "Word Manager"
-    timeout: 5000
+    timeout: 15000
 
 # Tap the Word Manager card on the Settings screen.
 - tapOn:

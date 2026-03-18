@@ -144,8 +144,8 @@ class ImportViewModel(
         viewModelScope.launch {
             importWordsUseCase(
                 csvLine,
-                currentState.sourceLanguage,
-                currentState.targetLanguage
+                currentState.targetLanguage,
+                currentState.sourceLanguage
             ).fold(
                 onSuccess = { count ->
                     val newCount = currentState.textInputState.wordsAddedCount + count
@@ -223,7 +223,8 @@ class ImportViewModel(
                 importFromImageUseCase(
                     imageBytes = imageBytes,
                     extractWords = true,
-                    extractSentences = true
+                    extractSentences = true,
+                    sourceLanguage = currentState.sourceLanguage,
                 ).collect { result ->
                     when (result) {
                         is ImportImageResult.Loading -> {
@@ -308,8 +309,8 @@ class ImportViewModel(
                         importViaFileUseCase(
                             pendingAction.content,
                             pendingAction.fileName,
-                            sourceLanguage,
-                            targetLanguage
+                            targetLanguage,
+                            sourceLanguage
                         ).fold(
                             onSuccess = { count ->
                                 if (count == 0) {

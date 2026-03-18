@@ -8,20 +8,32 @@ import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.word.usecase.ImportWordsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import utils.Language
 
 class ImportFromImageUseCase(
     private val aiRepository: IAiRepository,
     private val importWordsUseCase: ImportWordsUseCase,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     ) : FlowUseCase<ImportFromImageUseCase.Params, ImportImageResult> {
-    data class Params(val imageBytes: ByteArray, val extractWords: Boolean = true, val extractSentences: Boolean = false)
+    data class Params(
+        val imageBytes: ByteArray,
+        val extractWords: Boolean = true,
+        val extractSentences: Boolean = false,
+        val sourceLanguage: Language? = null,
+    )
 
-    override operator fun invoke(params: Params) = invoke(params.imageBytes, params.extractWords, params.extractSentences)
+    override operator fun invoke(params: Params) = invoke(
+        params.imageBytes,
+        params.extractWords,
+        params.extractSentences,
+        params.sourceLanguage,
+    )
 
     operator fun invoke(
         imageBytes: ByteArray,
         extractWords: Boolean = true,
-        extractSentences: Boolean = false
+        extractSentences: Boolean = false,
+        sourceLanguage: Language? = null,
     ): Flow<ImportImageResult> = flow {
         emit(ImportImageResult.Loading)
 
@@ -35,7 +47,7 @@ class ImportFromImageUseCase(
 
         extractionResult.fold(
             onSuccess = { extractedText ->
-                importWordsUseCase(extractedText).fold(
+                importWordsUseCase(extractedText, sourceLanguage = targetLanguage, targetLanguage = sourceLanguage).fold(
                     onSuccess = { count -> emit(ImportImageResult.Success(count)) },
                     onFailure = { error -> emit(ImportImageResult.Error(error.message ?: "Import failed")) }
                 )

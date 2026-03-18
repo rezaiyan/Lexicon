@@ -110,6 +110,38 @@ class ImportFromImageUseCaseTest {
         assertEquals(Language.ENGLISH, aiRepository.lastTargetLanguage)
     }
 
+    @Test
+    fun `passes explicit source language as target language to import use case`() = runTest {
+        aiRepository.extractResult = Try.success("medizinisch,medical")
+        validationService.parseResult = Try.success(
+            listOf(testWord("medizinisch", "medical"))
+        )
+        wordRepository.insertResult = Try.success(1)
+
+        useCase(
+            imageBytes = byteArrayOf(1, 2, 3),
+            sourceLanguage = Language.GERMAN,
+        ).toList()
+
+        // The "original words language" (German) becomes Word.targetLanguage (language being learned).
+        // The user's translation language (English) becomes Word.sourceLanguage.
+        assertEquals(Language.GERMAN, validationService.lastTargetLanguage)
+        assertEquals(Language.ENGLISH, validationService.lastSourceLanguage)
+    }
+
+    @Test
+    fun `defaults source language to English when not provided`() = runTest {
+        aiRepository.extractResult = Try.success("hello,hola")
+        validationService.parseResult = Try.success(
+            listOf(testWord("hello", "hola"))
+        )
+        wordRepository.insertResult = Try.success(1)
+
+        useCase(byteArrayOf(1, 2, 3)).toList()
+
+        assertEquals(Language.ENGLISH, validationService.lastSourceLanguage)
+    }
+
     private fun testWord(original: String, translation: String) = Word(
         id = 0, originalWord = original, translation = translation,
         description = "", sourceLanguage = Language.ENGLISH,
@@ -164,12 +196,18 @@ class ImportFromImageUseCaseTest {
 
     private class FakeValidationService : IImportValidationService {
         var parseResult: Try<List<Word>> = Try.success(emptyList())
+        var lastSourceLanguage: Language? = null
+        var lastTargetLanguage: Language? = null
 
         override fun validateAndParse(
             text: String,
             sourceLanguage: Language,
             targetLanguage: Language
-        ): Try<List<Word>> = parseResult
+        ): Try<List<Word>> {
+            lastSourceLanguage = sourceLanguage
+            lastTargetLanguage = targetLanguage
+            return parseResult
+        }
     }
 
     private class FakeSettingsRepo : ISettingsRepository {
