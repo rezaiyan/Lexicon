@@ -1,7 +1,20 @@
 package domain.analytics.repository
 
 import core.common.Try
-import domain.analytics.model.*
+import domain.analytics.model.AccuracyByLevel
+import domain.analytics.model.ComebackWord
+import domain.analytics.model.DailyStudyStats
+import domain.analytics.model.DayOfWeekAccuracy
+import domain.analytics.model.HourlyAccuracy
+import domain.analytics.model.LanguagePairStats
+import domain.analytics.model.MasteredWord
+import domain.analytics.model.MonthlyStats
+import domain.analytics.model.MostReviewedWord
+import domain.analytics.model.StudyHeatmapDay
+import domain.analytics.model.StudyInsights
+import domain.analytics.model.StudySession
+import domain.analytics.model.WeeklyReport
+import domain.analytics.model.WordDifficulty
 
 interface IAnalyticsRepository {
     suspend fun getStudyInsights(): Try<StudyInsights>

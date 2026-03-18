@@ -3,7 +3,22 @@ package data.analytics.remote
 import core.common.Try
 import core.common.doOnFailure
 import core.common.doOnSuccess
-import data.analytics.remote.model.*
+import data.analytics.remote.model.AccuracyByLevelResponse
+import data.analytics.remote.model.ComebackWordResponse
+import data.analytics.remote.model.DailyStatsRemoteResponse
+import data.analytics.remote.model.DayOfWeekAccuracyResponse
+import data.analytics.remote.model.DifficultWordResponse
+import data.analytics.remote.model.HeatmapDayResponse
+import data.analytics.remote.model.HourlyAccuracyResponse
+import data.analytics.remote.model.LanguagePairStatsResponse
+import data.analytics.remote.model.MasteredWordResponse
+import data.analytics.remote.model.MonthlyStatsResponse
+import data.analytics.remote.model.MostReviewedWordResponse
+import data.analytics.remote.model.StudyInsightsResponse
+import data.analytics.remote.model.StudySessionResponse
+import data.analytics.remote.model.SyncAnalyticsRequest
+import data.analytics.remote.model.SyncAnalyticsResponse
+import data.analytics.remote.model.WeeklyReportRemoteResponse
 import data.core.network.client.ApiClient
 import expects.logNetwork
 

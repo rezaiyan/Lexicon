@@ -20,7 +20,24 @@ class ImportFromImageUseCase(
         val extractWords: Boolean = true,
         val extractSentences: Boolean = false,
         val sourceLanguage: Language? = null,
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Params) return false
+            return imageBytes.contentEquals(other.imageBytes) &&
+                extractWords == other.extractWords &&
+                extractSentences == other.extractSentences &&
+                sourceLanguage == other.sourceLanguage
+        }
+
+        override fun hashCode(): Int {
+            var result = imageBytes.contentHashCode()
+            result = 31 * result + extractWords.hashCode()
+            result = 31 * result + extractSentences.hashCode()
+            result = 31 * result + (sourceLanguage?.hashCode() ?: 0)
+            return result
+        }
+    }
 
     override operator fun invoke(params: Params) = invoke(
         params.imageBytes,

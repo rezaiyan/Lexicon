@@ -32,6 +32,10 @@ style:
   MaxLineLength:
     maxLineLength: 120
     excludeCommentStatements: true
+    excludes:
+      - '**/commonTest/**'
+      - '**/androidTest/**'
+      - '**/test/**'
   UnusedPrivateMember:
     active: true
     ignoreAnnotated:

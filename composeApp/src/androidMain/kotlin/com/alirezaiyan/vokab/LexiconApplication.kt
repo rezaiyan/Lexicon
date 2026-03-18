@@ -108,12 +108,11 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
         // Fetch remote feature flags
         val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         appScope.launch {
-            @Suppress("TooGenericExceptionCaught")
             try {
                 val featureFlagProvider = getKoin().get<IFeatureFlagProvider>()
                 featureFlagProvider.fetchAndActivate()
                 Log.d(TAG, "Feature flags fetched and activated")
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 Log.w(TAG, "Feature flags fetch failed — using defaults", e)
             }
         }

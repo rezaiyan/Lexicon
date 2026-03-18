@@ -16,7 +16,6 @@ import domain.tts.usecase.GetTtsModelsInfoUseCase
 import core.common.getOrDefault
 import core.common.fold
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -55,7 +54,7 @@ class SettingsViewModel(
 
     override fun initialState() = SettingsState()
 
-    private val systemNotificationsEnabled: StateFlow<Boolean> =
+    private val systemNotificationsEnabled =
         notificationPermissionMonitor.systemNotificationsEnabled
             .stateIn(
                 scope = viewModelScope,

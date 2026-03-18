@@ -7,9 +7,6 @@ import data.analytics.remote.model.SyncReviewEventRequest
 import data.analytics.remote.model.SyncSessionRequest
 import domain.analytics.repository.IAnalyticsRecorder
 import expects.logNetwork
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 
 /**
  * In-memory analytics recorder that buffers events during a session

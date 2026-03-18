@@ -49,7 +49,6 @@ import core.common.onLoading
 import domain.analytics.model.AccuracyByLevel
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.WordDifficulty
-import feature.insights.InsightsAvailability
 import feature.insights.InsightsState
 import feature.insights.InsightsTab
 import feature.insights.InsightsViewModel
@@ -134,7 +133,11 @@ private fun InsightsContent(
                                 Text(
                                     tabLabel(tab),
                                     style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = if (state.selectedTab == tab) FontWeight.SemiBold else FontWeight.Normal,
+                                    fontWeight = if (state.selectedTab == tab) {
+                                        FontWeight.SemiBold
+                                    } else {
+                                        FontWeight.Normal
+                                    },
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
