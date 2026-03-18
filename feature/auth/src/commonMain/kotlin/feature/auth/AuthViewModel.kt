@@ -49,6 +49,10 @@ class AuthViewModel(
         viewModelScope.launch {
             isAuthenticatedUseCase.asFlow().collect { isAuthenticated ->
                 if (!isAuthenticated && currentState.isAuthenticated) {
+                    analyticsTracker.logEvent(
+                        "auto_logout",
+                        mapOf("reason" to "auth_state_revoked", "source" to "auth_viewmodel")
+                    )
                     userManager.setUser(null)
                     updateState {
                         AuthState(
@@ -86,6 +90,10 @@ class AuthViewModel(
                 onComplete()
             }
             is SessionVerificationResult.Expired -> {
+                analyticsTracker.logEvent(
+                    "auto_logout",
+                    mapOf("reason" to "session_verify_expired", "source" to "auth_viewmodel")
+                )
                 updateState { copy(isLoading = false) }
                 onComplete()
             }

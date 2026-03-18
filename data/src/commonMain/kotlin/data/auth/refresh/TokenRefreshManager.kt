@@ -1,5 +1,6 @@
 package data.auth.refresh
 
+import analytics.IAnalyticsTracker
 import data.auth.remote.IAuthDataSource
 import data.auth.state.IAuthenticationStateManager
 import data.auth.token.ITokenManager
@@ -24,7 +25,8 @@ import kotlinx.coroutines.sync.withLock
 class TokenRefreshManager(
     private val tokenManager: ITokenManager,
     private val authDataSource: IAuthDataSource,
-    private val authenticationStateManager: IAuthenticationStateManager
+    private val authenticationStateManager: IAuthenticationStateManager,
+    private val analyticsTracker: IAnalyticsTracker
 ) : ITokenRefreshManager {
 
     private val refreshMutex = Mutex()
@@ -45,6 +47,10 @@ class TokenRefreshManager(
             val refreshToken = tokenManager.getRefreshToken()
             if (refreshToken == null) {
                 logNetwork("TokenRefresh", "No refresh token available")
+                analyticsTracker.logEvent(
+                    "auto_logout",
+                    mapOf("reason" to "no_refresh_token", "source" to "token_refresh_manager")
+                )
                 tokenManager.clearTokens()
                 authenticationStateManager.setAuthenticated(false)
                 return@withLock Try.failure(AuthenticationException("No refresh token available"))
@@ -72,6 +78,10 @@ class TokenRefreshManager(
                     // destroy the user's session — the refresh token may still be valid.
                     if (error is AuthenticationException) {
                         logNetwork("TokenRefresh", "Auth rejection — clearing session")
+                        analyticsTracker.logEvent(
+                            "auto_logout",
+                            mapOf("reason" to "refresh_token_rejected", "source" to "token_refresh_manager")
+                        )
                         tokenManager.clearTokens()
                         authenticationStateManager.setAuthenticated(false)
                     } else {
@@ -85,6 +95,10 @@ class TokenRefreshManager(
 
     override suspend fun clearSession() {
         logNetwork("TokenRefresh", "Clearing session (account invalid after refresh)")
+        analyticsTracker.logEvent(
+            "auto_logout",
+            mapOf("reason" to "retry_rejected_after_refresh", "source" to "token_refresh_manager")
+        )
         tokenManager.clearTokens()
         authenticationStateManager.setAuthenticated(false)
     }

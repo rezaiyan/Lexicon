@@ -1,5 +1,6 @@
 package data.session.repository
 
+import analytics.IAnalyticsTracker
 import core.common.Try
 import data.auth.remote.IAuthDataSource
 import data.auth.remote.model.AuthResponse
@@ -18,8 +19,25 @@ class SessionRepositoryImplTest {
 
     private val authDataSource = FakeAuthDataSource()
     private val secureStorage = FakeSecureStorage()
+    private val analyticsTracker = object : IAnalyticsTracker {
+        override fun logScreenView(screenName: String) {}
+        override fun logEvent(eventName: String, parameters: Map<String, Any>?) {}
+        override fun logWordReviewed(rating: Int, wordLevel: Int, wasCorrect: Boolean) {}
+        override fun logReviewSessionStart(cardCount: Int) {}
+        override fun logReviewSessionComplete(cardsReviewed: Int, durationMs: Long, perfectCount: Int) {}
+        override fun logWordsImported(count: Int, method: String) {}
+        override fun logWordMastered(level: Int) {}
+        override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
+        override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
+        override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
+        override fun logLanguageChanged(language: String) {}
+        override fun setUserProperty(name: String, value: String) {}
+        override fun updateUserProgress(totalWords: Int, matureWords: Int, currentStreak: Int) {}
+        override fun logError(error: Throwable, context: String?) {}
+        override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
+    }
 
-    private fun createRepo() = SessionRepositoryImpl(authDataSource, secureStorage)
+    private fun createRepo() = SessionRepositoryImpl(authDataSource, secureStorage, analyticsTracker)
 
     private val testUserDto = UserDto(
         id = 1L, email = "test@test.com", name = "Test",

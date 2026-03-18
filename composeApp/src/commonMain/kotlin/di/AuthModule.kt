@@ -47,7 +47,8 @@ fun authModule(backendUrl: String) = module {
         TokenRefreshManager(
             tokenManager = get(),
             authDataSource = get<IAuthDataSource>(),
-            authenticationStateManager = get()
+            authenticationStateManager = get(),
+            analyticsTracker = get()
         )
     }
 
@@ -74,7 +75,8 @@ fun authModule(backendUrl: String) = module {
     single<ISessionRepository> {
         SessionRepositoryImpl(
             authDataSource = get(),
-            secureStorage = get()
+            secureStorage = get(),
+            analyticsTracker = get()
         )
     }
 

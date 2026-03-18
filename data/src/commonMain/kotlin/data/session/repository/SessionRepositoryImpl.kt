@@ -1,5 +1,6 @@
 package data.session.repository
 
+import analytics.IAnalyticsTracker
 import data.auth.mapper.toDomain
 import data.auth.remote.IAuthDataSource
 import data.core.network.error.AuthenticationException
@@ -16,7 +17,8 @@ import core.common.fold
  */
 class SessionRepositoryImpl(
     private val authDataSource: IAuthDataSource,
-    private val secureStorage: SecureStorage
+    private val secureStorage: SecureStorage,
+    private val analyticsTracker: IAnalyticsTracker
 ) : ISessionRepository {
 
     override suspend fun verifySession(): SessionVerificationResult {
@@ -36,6 +38,10 @@ class SessionRepositoryImpl(
             onFailure = { error ->
                 when (error) {
                     is AuthenticationException -> {
+                        analyticsTracker.logEvent(
+                            "auto_logout",
+                            mapOf("reason" to "session_expired", "source" to "session_repository")
+                        )
                         secureStorage.clearTokens()
                         SessionVerificationResult.Expired
                     }
