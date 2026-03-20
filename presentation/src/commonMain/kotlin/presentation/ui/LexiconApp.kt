@@ -4,6 +4,7 @@ package presentation.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -148,11 +149,23 @@ fun LexiconApp() {
                         val toPreview = target is AppUiState.VocabularyPreview && initial is AppUiState.Onboarding
                         val fromPreview = initial is AppUiState.VocabularyPreview && target is AppUiState.AuthGate
                         val isLogout = initial is AppUiState.Ready && target is AppUiState.AuthGate
+                        val isAuthToReady = initial is AppUiState.AuthGate && target is AppUiState.Ready
+                        val fromSplash = initial is AppUiState.Splash
                         val slideForward = toPreview || fromPreview
                         when {
                             isLogout -> ContentTransform(
                                 targetContentEnter = fadeIn(animationSpec = tween(400)),
                                 initialContentExit = fadeOut(animationSpec = tween(300))
+                            )
+                            isAuthToReady -> ContentTransform(
+                                targetContentEnter = EnterTransition.None,
+                                initialContentExit = fadeOut(animationSpec = tween(300)),
+                                targetContentZIndex = 1f
+                            )
+                            fromSplash -> ContentTransform(
+                                targetContentEnter = fadeIn(animationSpec = tween(400)),
+                                initialContentExit = fadeOut(animationSpec = tween(200)),
+                                targetContentZIndex = 1f
                             )
                             else -> ContentTransform(
                                 targetContentEnter = slideInHorizontally(

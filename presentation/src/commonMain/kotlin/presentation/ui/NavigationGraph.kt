@@ -3,8 +3,6 @@ package presentation.ui
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -33,14 +31,8 @@ internal fun NavigationGraph(
         modifier = modifier.fillMaxSize(),
         enterTransition = { fadeIn(animationSpec = tween(300)) },
         exitTransition = { fadeOut(animationSpec = tween(300)) },
-        popEnterTransition = {
-            slideInHorizontally(animationSpec = tween(300), initialOffsetX = { -it }) +
-                fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutHorizontally(animationSpec = tween(300), targetOffsetX = { it }) +
-                fadeOut(animationSpec = tween(300))
-        }
+        popEnterTransition = { fadeIn(animationSpec = tween(300)) },
+        popExitTransition = { fadeOut(animationSpec = tween(300)) }
     ) {
         // Feature-owned subgraphs
         profileGraph(
