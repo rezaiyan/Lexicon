@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package domain.onboarding.usecase
 
 import core.common.Try
@@ -9,7 +7,6 @@ import domain.word.model.Word
 import domain.word.repository.IWordRepository
 import utils.Language
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 class ImportSuggestedVocabularyUseCase(
     private val wordRepository: IWordRepository

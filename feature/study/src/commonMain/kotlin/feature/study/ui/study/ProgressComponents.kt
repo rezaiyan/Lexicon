@@ -1,5 +1,3 @@
-@file:OptIn(InternalResourceApi::class)
-
 package feature.study.ui.study
 
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
-import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.stringResource
 import components.animation.staggeredFadeSlide
 import feature.study.ui.components.LevelBucketCard

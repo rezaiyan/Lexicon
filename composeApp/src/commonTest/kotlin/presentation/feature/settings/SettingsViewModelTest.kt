@@ -20,7 +20,6 @@ import domain.tts.repository.ITtsRepository
 import domain.tts.model.TtsState
 import domain.tts.usecase.DeleteTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +34,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest : ViewModelTestBase() {
 
     private var languageFlow = MutableStateFlow(Language.ENGLISH)

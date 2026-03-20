@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package feature.words
 
 import analytics.IAnalyticsTracker
@@ -11,7 +9,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import feature.words.model.WordManagerEffect
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 class WordExportHandler(
     private val exportWordsUseCase: ExportWordsUseCase,

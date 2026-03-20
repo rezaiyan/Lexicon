@@ -1,8 +1,5 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
-
 package expects
 
-import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.*
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication

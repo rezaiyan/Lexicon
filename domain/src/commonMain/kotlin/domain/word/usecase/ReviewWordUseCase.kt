@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package domain.word.usecase
 
 import core.common.Try
@@ -12,7 +10,6 @@ import domain.word.repository.IWordRepository
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 /**
  * 7-Bucket Spaced Repetition System

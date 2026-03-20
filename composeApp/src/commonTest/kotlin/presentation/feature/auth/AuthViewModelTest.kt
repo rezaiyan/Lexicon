@@ -34,7 +34,6 @@ import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.word.usecase.SyncRemoteToLocalUseCase
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,7 +49,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class AuthViewModelTest : ViewModelTestBase() {
 
     // --- Fakes ---

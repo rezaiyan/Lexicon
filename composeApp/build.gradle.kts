@@ -59,14 +59,6 @@ kotlin {
         @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
-            freeCompilerArgs.addAll(listOf(
-                "-opt-in=kotlin.RequiresOptIn",
-                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
-                "-opt-in=kotlin.time.ExperimentalTime",
-                "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
-                "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
-                "-opt-in=kotlin.io.encoding.ExperimentalEncodingApi"
-            ))
         }
     }
 
@@ -76,21 +68,6 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
-        iosTarget.compilations.configureEach {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.addAll(listOf(
-                        "-opt-in=kotlin.RequiresOptIn",
-                        "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
-                        "-opt-in=kotlin.time.ExperimentalTime",
-                        "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
-                        "-opt-in=androidx.compose.ui.ExperimentalComposeUiApi",
-                        "-opt-in=kotlin.io.encoding.ExperimentalEncodingApi"
-                    ))
-                }
-            }
-        }
-
         // KAN-27: Point iOS test binary linker at stub frameworks so it can
         // resolve GoogleSignIn, FBSDKCoreKit, FBSDKLoginKit, FirebaseAuth,
         // FirebaseCore, PurchasesHybridCommon and their transitive dependencies
@@ -159,6 +136,18 @@ kotlin {
     sourceSets.configureEach {
         languageSettings {
             optIn("kotlin.time.ExperimentalTime")
+            optIn("kotlin.io.encoding.ExperimentalEncodingApi")
+            optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
+            optIn("androidx.compose.material3.ExperimentalMaterial3Api")
+            optIn("androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi")
+            optIn("androidx.compose.ui.ExperimentalComposeUiApi")
+            optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+            optIn("kotlinx.cinterop.ExperimentalForeignApi")
+            optIn("kotlinx.cinterop.BetaInteropApi")
+            optIn("kotlin.js.ExperimentalWasmJsInterop")
+            optIn("androidx.compose.foundation.ExperimentalFoundationApi")
+            optIn("androidx.compose.animation.ExperimentalAnimationApi")
+            optIn("org.jetbrains.compose.resources.InternalResourceApi")
         }
     }
 

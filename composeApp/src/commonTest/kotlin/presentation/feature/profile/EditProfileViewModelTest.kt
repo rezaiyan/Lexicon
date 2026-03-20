@@ -7,7 +7,6 @@ import domain.profile.repository.IProfileRepository
 import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.UpdateProfileUseCase
 import domain.profile.usecase.UploadAvatarUseCase
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -21,7 +20,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class EditProfileViewModelTest : ViewModelTestBase() {
 
     private val testUser = AuthUser(

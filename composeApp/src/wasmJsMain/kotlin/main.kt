@@ -1,6 +1,5 @@
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.ComposeViewport
 import app.cash.sqldelight.async.coroutines.awaitCreate
@@ -18,12 +17,10 @@ import kotlinx.coroutines.launch
 import lexicon.design_system.generated.resources.Res
 import lexicon.design_system.generated.resources.noto_sans_medium
 import lexicon.design_system.generated.resources.noto_sans_regular
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.preloadFont
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalResourceApi::class, kotlin.js.ExperimentalWasmJsInterop::class)
 fun main() {
     jsFirebaseInit(
         apiKey = FirebaseWebConfig.API_KEY,
@@ -59,6 +56,5 @@ fun main() {
     }
 }
 
-@OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
 private fun jsHideLoader(): JsAny? =
     js("window._hideLoader && window._hideLoader()")

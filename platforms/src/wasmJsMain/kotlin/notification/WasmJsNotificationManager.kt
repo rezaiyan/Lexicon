@@ -1,5 +1,3 @@
-@file:OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
-
 package notification
 
 import kotlinx.coroutines.suspendCancellableCoroutine

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package feature.profile
 
 import androidx.lifecycle.viewModelScope
@@ -20,7 +18,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone

@@ -32,7 +32,6 @@ import domain.word.usecase.UpdateWordUseCase
 import feature.study.ReviewSessionUseCases
 import feature.study.ReviewViewModel
 import feature.study.ReviewWordUseCases
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
@@ -46,7 +45,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ReviewViewModelTest : ViewModelTestBase() {
 
     private fun testWord(id: Int) = Word(

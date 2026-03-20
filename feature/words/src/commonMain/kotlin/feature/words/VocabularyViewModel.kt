@@ -1,5 +1,3 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package feature.words
 
 import analytics.IAnalyticsTracker

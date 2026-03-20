@@ -1,5 +1,3 @@
-@file:OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-
 package data.word.repository
 
 import data.word.local.IWordLocalDataSource

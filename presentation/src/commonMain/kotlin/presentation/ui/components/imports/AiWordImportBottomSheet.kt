@@ -1,10 +1,7 @@
-@file:OptIn(ExperimentalAnimationApi::class)
-
 package presentation.ui.components.imports
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn

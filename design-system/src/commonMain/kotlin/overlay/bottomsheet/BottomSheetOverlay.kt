@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
@@ -37,7 +36,6 @@ import overlay.Overlay
 import overlay.OverlayNavigator
 import theme.Theme
 
-@OptIn(ExperimentalMaterial3Api::class)
 class BottomSheetOverlay(
     private val mode: BottomSheetMode,
     private var properties: BottomSheetProperties = BottomSheetProperties(),
@@ -204,7 +202,6 @@ class BottomSheetOverlay(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun rememberSheetStateFor(
     mode: BottomSheetMode,

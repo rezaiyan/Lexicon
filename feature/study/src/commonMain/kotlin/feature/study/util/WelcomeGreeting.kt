@@ -1,11 +1,8 @@
-@file:OptIn(ExperimentalTime::class, InternalResourceApi::class)
-
 package feature.study.util
 
 import androidx.compose.runtime.Composable
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import lexicon.resources.generated.resources.Res
@@ -15,7 +12,6 @@ import lexicon.resources.generated.resources.greeting_midnight
 import lexicon.resources.generated.resources.greeting_morning
 import lexicon.resources.generated.resources.greeting_night
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 fun getGreetingStringResource(): StringResource {
     val now = Clock.System.now()

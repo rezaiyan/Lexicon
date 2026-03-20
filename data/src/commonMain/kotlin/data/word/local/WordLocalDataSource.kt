@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package data.word.local
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
@@ -23,7 +21,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 interface IWordLocalDataSource {
     suspend fun getAllWordsAsync(): List<Word>

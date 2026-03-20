@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package feature.study
 
 import analytics.IAnalyticsTracker
@@ -22,7 +20,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import performance.IPerformanceTracer
-import kotlin.time.ExperimentalTime
 
 data class StudyProgressState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,

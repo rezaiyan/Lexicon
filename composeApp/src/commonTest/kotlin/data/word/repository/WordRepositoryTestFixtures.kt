@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package data.word.repository
 
 import core.common.Try
@@ -15,8 +13,6 @@ import domain.word.model.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import utils.Language
-import kotlin.time.ExperimentalTime
-
 internal class FakeWordLocalDataSource : IWordLocalDataSource {
     val insertedWords = mutableListOf<Word>()
     val updatedWords = mutableListOf<Word>()

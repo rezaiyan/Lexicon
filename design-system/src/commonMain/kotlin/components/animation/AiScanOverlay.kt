@@ -16,15 +16,12 @@ import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import lexicon.resources.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-
 /**
  * AI-style scanning overlay using a Lottie scanner animation.
  * Designed to overlay image thumbnails during AI processing.
  *
  * @param modifier Modifier for the root Box.
  */
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun AiScanOverlay(
     modifier: Modifier = Modifier,

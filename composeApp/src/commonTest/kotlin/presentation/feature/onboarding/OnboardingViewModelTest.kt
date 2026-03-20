@@ -11,7 +11,6 @@ import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.repository.ISettingsRepository
 import feature.onboarding.OnboardingViewModel
 import feature.onboarding.model.OnboardingEffect
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -24,7 +23,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class OnboardingViewModelTest : ViewModelTestBase() {
 
     private var submitResult: Try<SuggestedVocabularyResponse> = Try.success(testResponse())

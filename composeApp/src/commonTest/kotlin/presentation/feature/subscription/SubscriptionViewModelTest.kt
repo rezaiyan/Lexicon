@@ -8,7 +8,6 @@ import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
 import domain.subscription.model.SubscriptionProduct
 import domain.subscription.model.PackagePeriod
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -22,7 +21,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class SubscriptionViewModelTest : ViewModelTestBase() {
 
     private val testPackage = SubscriptionPackage(

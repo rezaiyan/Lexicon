@@ -13,7 +13,6 @@ import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.UpdateWordUseCase
 import events.VocabularyEffect
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -29,7 +28,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class VocabularyViewModelTest : ViewModelTestBase() {
 
     private var dueWords: List<Word> = listOf(testWord(1), testWord(2))

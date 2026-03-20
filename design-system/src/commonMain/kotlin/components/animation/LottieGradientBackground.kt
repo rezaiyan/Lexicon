@@ -17,8 +17,6 @@ import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
 import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import lexicon.resources.generated.resources.Res
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-
 /**
  * Ambient gradient background using a Lottie animation.
  *
@@ -26,7 +24,6 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
  * @param tint Optional color tinted over the animation via [BlendMode.SrcAtop].
  *             Pass [Color.Unspecified] (default) for no tint.
  */
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun LottieGradientBackground(
     modifier: Modifier = Modifier,

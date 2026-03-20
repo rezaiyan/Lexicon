@@ -1,12 +1,9 @@
-@file:OptIn(ExperimentalTime::class)
-
 package domain.word.service
 
 import core.common.Try
 import domain.word.model.Word
 import utils.Language
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 interface IImportValidationService {
     fun validateAndParse(
@@ -81,7 +78,6 @@ class ImportValidationService : IImportValidationService {
             val description = if (parts.size > 2) parts[2] else ""
 
             if (originalWord.isNotBlank() && translation.isNotBlank()) {
-                @OptIn(ExperimentalTime::class)
                 val nextReviewTime = Clock.System.now().toEpochMilliseconds() - 1000
                 words.add(
                     Word(

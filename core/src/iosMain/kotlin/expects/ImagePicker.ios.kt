@@ -1,8 +1,5 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
-
 package expects
 
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.suspendCancellableCoroutine

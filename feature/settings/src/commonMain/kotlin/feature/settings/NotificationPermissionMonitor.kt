@@ -2,7 +2,6 @@ package feature.settings
 
 import core.common.getOrDefault
 import domain.notifications.repository.INotificationRepository
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.catch
@@ -15,7 +14,6 @@ class NotificationPermissionMonitor(
 ) {
     private val refreshTrigger = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     val systemNotificationsEnabled: Flow<Boolean> = refreshTrigger
         .onStart { emit(Unit) }
         .flatMapLatest {

@@ -1,5 +1,3 @@
-@file:OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
-
 package presentation.ui.permissions
 
 import androidx.compose.runtime.Composable

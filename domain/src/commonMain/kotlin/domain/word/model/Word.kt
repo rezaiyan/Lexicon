@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalTime::class)
-
 package domain.word.model
 
 import utils.Language
-import kotlin.time.ExperimentalTime
 
 /**
  * Domain model for a vocabulary word

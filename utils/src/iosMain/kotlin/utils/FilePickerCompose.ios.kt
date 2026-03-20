@@ -1,10 +1,7 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
-
 package utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.*
 import platform.UIKit.*
 import platform.UniformTypeIdentifiers.UTTypeText

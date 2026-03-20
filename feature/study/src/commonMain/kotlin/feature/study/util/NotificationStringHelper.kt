@@ -1,8 +1,5 @@
-@file:OptIn(InternalResourceApi::class)
-
 package feature.study.util
 
-import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.StringResource
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.notification_message_few_words

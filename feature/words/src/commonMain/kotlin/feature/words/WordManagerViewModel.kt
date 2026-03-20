@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package feature.words
 
 import analytics.IAnalyticsTracker
@@ -19,8 +17,6 @@ import feature.words.model.WordManagerEffect
 import feature.words.model.WordManagerScreenState
 import feature.words.model.WordSortOption
 import utils.Language
-import kotlin.time.ExperimentalTime
-
 class WordManagerViewModel(
     private val getAllWordsUseCase: GetAllWordsUseCase,
     deleteWordsUseCase: DeleteWordsUseCase,

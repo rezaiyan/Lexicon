@@ -25,7 +25,6 @@ import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.GetProgressStatsUseCase
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -37,7 +36,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class StudyProgressViewModelTest : ViewModelTestBase() {
 
     private fun fakeWordRepo() = object : IWordRepository {

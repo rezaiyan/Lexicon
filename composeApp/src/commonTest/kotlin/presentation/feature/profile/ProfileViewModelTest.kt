@@ -15,7 +15,6 @@ import domain.profile.repository.IProfileStatsRepository
 import domain.profile.usecase.GetProfileStatsUseCase
 import domain.streak.manager.IStreakManager
 import domain.streak.model.StreakData
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -29,7 +28,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ProfileViewModelTest : ViewModelTestBase() {
 
     // --- Test fixtures ---

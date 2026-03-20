@@ -1,12 +1,8 @@
-@file:OptIn(ExperimentalTime::class)
-
 package data.word.sync
 
 import data.core.database.WordEntity
 import data.core.database.WordEntityData
 import data.word.remote.model.RemoteWord
-import kotlin.time.ExperimentalTime
-
 interface IWordConflictResolver {
     fun resolveConflicts(
         localWords: List<WordEntity>,

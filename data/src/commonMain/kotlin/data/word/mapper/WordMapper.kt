@@ -1,13 +1,9 @@
-@file:OptIn(ExperimentalTime::class)
-
 package data.word.mapper
 
 import data.core.database.WordEntity
 import data.core.database.WordEntityData
 import domain.word.model.Word
 import utils.Language
-import kotlin.time.ExperimentalTime
-
 fun WordEntity.toDomain(fallbackLanguage: Language = Language.ENGLISH): Word {
     return Word(
         id = id.toInt(),

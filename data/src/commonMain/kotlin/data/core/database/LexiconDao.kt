@@ -1,9 +1,6 @@
-@file:OptIn(ExperimentalTime::class)
-
 package data.core.database
 
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
 
 /**
  * Data mapping types used between the SQLDelight-generated types and the domain layer.

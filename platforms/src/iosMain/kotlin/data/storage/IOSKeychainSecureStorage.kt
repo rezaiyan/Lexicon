@@ -1,8 +1,5 @@
-@file:OptIn(BetaInteropApi::class)
-
 package data.storage
 
-import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
@@ -48,7 +45,6 @@ import platform.Security.kSecValueData
 /**
  * Keychain-backed iOS implementation.
  */
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
 
     private val keychainHelper = KeychainHelper(SERVICE_NAME)
@@ -120,7 +116,6 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
     }
 }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 private class KeychainHelper(
     private val serviceName: String
 ) {
@@ -263,7 +258,6 @@ private class MigrationHelper(
     }
 }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 private fun NSData.toByteArray(): ByteArray {
     val size = length.toInt()
     if (size == 0) return ByteArray(0)
@@ -275,13 +269,11 @@ private fun NSData.toByteArray(): ByteArray {
     return result
 }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 private fun ByteArray.toNSData(): NSData =
     usePinned { pinned ->
         NSData.create(bytes = pinned.addressOf(0), length = size.toULong())
     }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 private fun String.toCFString(): CFStringRef? = memScoped {
     CFStringCreateWithCString(
         kCFAllocatorDefault,
@@ -290,7 +282,6 @@ private fun String.toCFString(): CFStringRef? = memScoped {
     )
 }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 private fun ByteArray.toCFData(): CFDataRef? = this.toUByteArray().usePinned { pinned ->
     CFDataCreate(
         kCFAllocatorDefault,
@@ -299,7 +290,6 @@ private fun ByteArray.toCFData(): CFDataRef? = this.toUByteArray().usePinned { p
     )
 }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 private fun COpaquePointer?.toByteArray(): ByteArray {
     if (this == null) return ByteArray(0)
     val cfDataRef = this as CFDataRef
@@ -311,7 +301,6 @@ private fun COpaquePointer?.toByteArray(): ByteArray {
     return out.toByteArray()
 }
 
-@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 private fun CFDataRef.toByteArray(): ByteArray {
     val length = CFDataGetLength(this)
     val out = UByteArray(length.toInt())

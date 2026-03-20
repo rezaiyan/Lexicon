@@ -3,7 +3,6 @@ package presentation.feature.onboarding
 import domain.onboarding.model.SuggestedVocabulary
 import feature.onboarding.VocabularyPreviewViewModel
 import feature.onboarding.model.VocabularyPreviewEffect
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -12,7 +11,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class VocabularyPreviewViewModelTest : ViewModelTestBase() {
 
     private fun createViewModel() = VocabularyPreviewViewModel()

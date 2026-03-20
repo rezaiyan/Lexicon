@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalTime::class)
-
 package data.word.repository
 
 import core.common.Try
@@ -8,8 +6,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.ExperimentalTime
-
 class WordRepositoryImplTest {
 
     // -------------------------------------------------------------------------
