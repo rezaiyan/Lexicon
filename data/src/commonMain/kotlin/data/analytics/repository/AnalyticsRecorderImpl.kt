@@ -1,19 +1,22 @@
 package data.analytics.repository
 
 import core.common.Try
-import data.analytics.remote.IAnalyticsRemoteDataSource
+import data.analytics.remote.IAnalyticsStatsDataSource
 import data.analytics.remote.model.SyncAnalyticsRequest
 import data.analytics.remote.model.SyncReviewEventRequest
 import data.analytics.remote.model.SyncSessionRequest
+import domain.analytics.model.ReviewEventParams
 import domain.analytics.repository.IAnalyticsRecorder
 import expects.logNetwork
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * In-memory analytics recorder that buffers events during a session
  * and sends everything to the backend when the session ends.
  */
 class AnalyticsRecorderImpl(
-    private val remoteDataSource: IAnalyticsRemoteDataSource,
+    private val remoteDataSource: IAnalyticsStatsDataSource,
 ) : IAnalyticsRecorder {
 
     private data class SessionData(
@@ -23,18 +26,22 @@ class AnalyticsRecorderImpl(
         val events: MutableList<SyncReviewEventRequest> = mutableListOf(),
     )
 
-    private var activeSession: SessionData? = null
+    private val mutex = Mutex()
+    private val sessions: MutableMap<String, SessionData> = mutableMapOf()
 
     override suspend fun startSession(
         sessionId: String,
         reviewType: String,
         startedAt: Long,
-    ): Try<Unit> = Try {
-        activeSession = SessionData(
-            sessionId = sessionId,
-            reviewType = reviewType,
-            startedAt = startedAt,
-        )
+    ): Try<Unit> {
+        mutex.withLock {
+            sessions[sessionId] = SessionData(
+                sessionId = sessionId,
+                reviewType = reviewType,
+                startedAt = startedAt,
+            )
+        }
+        return Try.success(Unit)
     }
 
     override suspend fun endSession(
@@ -46,8 +53,8 @@ class AnalyticsRecorderImpl(
         incorrectCount: Int,
         completedNormally: Boolean,
     ): Try<Unit> {
-        val session = activeSession ?: return Try.success(Unit)
-        activeSession = null
+        val session = mutex.withLock { sessions.remove(sessionId) }
+            ?: return Try.success(Unit)
 
         val request = SyncAnalyticsRequest(
             sessions = listOf(
@@ -81,32 +88,23 @@ class AnalyticsRecorderImpl(
         }
     }
 
-    override suspend fun recordReviewEvent(
-        sessionId: String,
-        wordId: Int,
-        wordText: String,
-        wordTranslation: String,
-        sourceLanguage: String,
-        targetLanguage: String,
-        rating: Int,
-        previousLevel: Int,
-        newLevel: Int,
-        responseTimeMs: Long,
-        reviewedAt: Long,
-    ): Try<Unit> = Try {
-        activeSession?.events?.add(
-            SyncReviewEventRequest(
-                wordId = wordId.toLong(),
-                wordText = wordText,
-                wordTranslation = wordTranslation,
-                sourceLanguage = sourceLanguage,
-                targetLanguage = targetLanguage,
-                rating = rating,
-                previousLevel = previousLevel,
-                newLevel = newLevel,
-                responseTimeMs = responseTimeMs,
-                reviewedAt = reviewedAt,
+    override suspend fun recordReviewEvent(params: ReviewEventParams): Try<Unit> {
+        mutex.withLock {
+            sessions[params.sessionId]?.events?.add(
+                SyncReviewEventRequest(
+                    wordId = params.wordId.toLong(),
+                    wordText = params.wordText,
+                    wordTranslation = params.wordTranslation,
+                    sourceLanguage = params.sourceLanguage,
+                    targetLanguage = params.targetLanguage,
+                    rating = params.rating,
+                    previousLevel = params.previousLevel,
+                    newLevel = params.newLevel,
+                    responseTimeMs = params.responseTimeMs,
+                    reviewedAt = params.reviewedAt,
+                )
             )
-        )
+        }
+        return Try.success(Unit)
     }
 }

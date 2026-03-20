@@ -3,11 +3,9 @@ package domain.analytics.usecase
 import core.common.Try
 import core.common.UseCase
 import domain.analytics.repository.IAnalyticsRecorder
-import domain.analytics.repository.IAnalyticsRepository
 
 class EndStudySessionUseCase(
     private val analyticsRecorder: IAnalyticsRecorder,
-    private val analyticsRepository: IAnalyticsRepository,
 ) : UseCase<EndStudySessionUseCase.Params, Unit> {
 
     data class Params(
@@ -20,8 +18,8 @@ class EndStudySessionUseCase(
         val completedNormally: Boolean,
     )
 
-    override suspend fun invoke(params: Params): Try<Unit> {
-        val result = analyticsRecorder.endSession(
+    override suspend fun invoke(params: Params): Try<Unit> =
+        analyticsRecorder.endSession(
             sessionId = params.sessionId,
             endedAt = params.endedAt,
             durationMs = params.durationMs,
@@ -30,8 +28,4 @@ class EndStudySessionUseCase(
             incorrectCount = params.incorrectCount,
             completedNormally = params.completedNormally,
         )
-        // Best-effort sync — don't fail the session end if sync fails
-        analyticsRepository.syncToBackend()
-        return result
-    }
 }

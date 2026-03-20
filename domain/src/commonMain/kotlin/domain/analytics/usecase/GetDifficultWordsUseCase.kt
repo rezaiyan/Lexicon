@@ -3,10 +3,10 @@ package domain.analytics.usecase
 import core.common.Try
 import core.common.UseCase
 import domain.analytics.model.WordDifficulty
-import domain.analytics.repository.IAnalyticsRepository
+import domain.analytics.repository.IAnalyticsWordRepository
 
 class GetDifficultWordsUseCase(
-    private val analyticsRepository: IAnalyticsRepository,
+    private val analyticsRepository: IAnalyticsWordRepository,
 ) : UseCase<GetDifficultWordsUseCase.Params, List<WordDifficulty>> {
 
     data class Params(val minReviews: Int = 3, val limit: Int = 20)

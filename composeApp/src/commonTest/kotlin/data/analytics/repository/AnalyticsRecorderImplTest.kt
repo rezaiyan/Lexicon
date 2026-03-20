@@ -1,8 +1,16 @@
 package data.analytics.repository
 
 import core.common.Try
-import data.analytics.remote.IAnalyticsRemoteDataSource
-import data.analytics.remote.model.*
+import data.analytics.remote.IAnalyticsStatsDataSource
+import data.analytics.remote.model.DailyStatsRemoteResponse
+import data.analytics.remote.model.HeatmapDayResponse
+import data.analytics.remote.model.MonthlyStatsResponse
+import data.analytics.remote.model.StudyInsightsResponse
+import data.analytics.remote.model.StudySessionResponse
+import data.analytics.remote.model.SyncAnalyticsRequest
+import data.analytics.remote.model.SyncAnalyticsResponse
+import data.analytics.remote.model.WeeklyReportRemoteResponse
+import domain.analytics.model.ReviewEventParams
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,7 +18,7 @@ import kotlin.test.assertTrue
 
 class AnalyticsRecorderImplTest {
 
-    private class FakeRemoteDataSource : IAnalyticsRemoteDataSource {
+    private class FakeStatsDataSource : IAnalyticsStatsDataSource {
         var syncResult: Try<SyncAnalyticsResponse> = Try.success(SyncAnalyticsResponse(emptyList()))
         val syncRequests = mutableListOf<SyncAnalyticsRequest>()
 
@@ -20,24 +28,42 @@ class AnalyticsRecorderImplTest {
         }
 
         override suspend fun getInsights() = Try.success(StudyInsightsResponse())
-        override suspend fun getDifficultWords(minReviews: Int, limit: Int) = Try.success(emptyList<DifficultWordResponse>())
-        override suspend fun getMostReviewedWords(limit: Int) = Try.success(emptyList<MostReviewedWordResponse>())
-        override suspend fun getAccuracyByLevel() = Try.success(emptyList<AccuracyByLevelResponse>())
-        override suspend fun getAccuracyByHour() = Try.success(emptyList<HourlyAccuracyResponse>())
-        override suspend fun getAccuracyByDayOfWeek() = Try.success(emptyList<DayOfWeekAccuracyResponse>())
         override suspend fun getRecentSessions(limit: Int) = Try.success(emptyList<StudySessionResponse>())
         override suspend fun getHeatmap(startMs: Long, endMs: Long) = Try.success(emptyList<HeatmapDayResponse>())
-        override suspend fun getWordsMastered(limit: Int) = Try.success(emptyList<MasteredWordResponse>())
-        override suspend fun getLanguageStats() = Try.success(emptyList<LanguagePairStatsResponse>())
         override suspend fun getMonthlyStats() = Try.success(emptyList<MonthlyStatsResponse>())
-        override suspend fun getComebackWords() = Try.success(emptyList<ComebackWordResponse>())
         override suspend fun getDailyStats(start: String, end: String) = Try.success(emptyList<DailyStatsRemoteResponse>())
         override suspend fun getWeeklyReport() = Try.success(WeeklyReportRemoteResponse())
     }
 
+    private fun reviewEventParams(
+        sessionId: String = "s-1",
+        wordId: Int = 42,
+        wordText: String = "hello",
+        wordTranslation: String = "hola",
+        sourceLanguage: String = "EN",
+        targetLanguage: String = "ES",
+        rating: Int = 1,
+        previousLevel: Int = 2,
+        newLevel: Int = 3,
+        responseTimeMs: Long = 1500,
+        reviewedAt: Long = 2000L,
+    ) = ReviewEventParams(
+        sessionId = sessionId,
+        wordId = wordId,
+        wordText = wordText,
+        wordTranslation = wordTranslation,
+        sourceLanguage = sourceLanguage,
+        targetLanguage = targetLanguage,
+        rating = rating,
+        previousLevel = previousLevel,
+        newLevel = newLevel,
+        responseTimeMs = responseTimeMs,
+        reviewedAt = reviewedAt,
+    )
+
     @Test
     fun `startSession buffers session in memory`() = runTest {
-        val remote = FakeRemoteDataSource()
+        val remote = FakeStatsDataSource()
         val recorder = AnalyticsRecorderImpl(remote)
 
         val result = recorder.startSession("s-1", "REVIEW", 1000L)
@@ -49,11 +75,11 @@ class AnalyticsRecorderImplTest {
 
     @Test
     fun `recordReviewEvent buffers events in memory`() = runTest {
-        val remote = FakeRemoteDataSource()
+        val remote = FakeStatsDataSource()
         val recorder = AnalyticsRecorderImpl(remote)
         recorder.startSession("s-1", "REVIEW", 1000L)
 
-        recorder.recordReviewEvent("s-1", 42, "hello", "hola", "EN", "ES", 1, 2, 3, 1500, 2000L)
+        recorder.recordReviewEvent(reviewEventParams())
 
         // Still nothing sent
         assertTrue(remote.syncRequests.isEmpty())
@@ -61,13 +87,13 @@ class AnalyticsRecorderImplTest {
 
     @Test
     fun `endSession sends buffered session and events to backend`() = runTest {
-        val remote = FakeRemoteDataSource()
+        val remote = FakeStatsDataSource()
         remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
         val recorder = AnalyticsRecorderImpl(remote)
 
         recorder.startSession("s-1", "REVIEW", 1000L)
-        recorder.recordReviewEvent("s-1", 42, "hello", "hola", "EN", "ES", 1, 2, 3, 1500, 2000L)
-        recorder.recordReviewEvent("s-1", 43, "world", "mundo", "EN", "ES", 0, 1, 0, 2000, 3000L)
+        recorder.recordReviewEvent(reviewEventParams(rating = 1, previousLevel = 2, newLevel = 3))
+        recorder.recordReviewEvent(reviewEventParams(wordId = 43, wordText = "world", wordTranslation = "mundo", rating = 0, previousLevel = 1, newLevel = 0, responseTimeMs = 2000, reviewedAt = 3000L))
         val result = recorder.endSession("s-1", 5000L, 4000L, 2, 1, 1, true)
 
         assertTrue(result.isSuccess)
@@ -96,7 +122,7 @@ class AnalyticsRecorderImplTest {
 
     @Test
     fun `endSession succeeds even when remote fails`() = runTest {
-        val remote = FakeRemoteDataSource()
+        val remote = FakeStatsDataSource()
         remote.syncResult = Try.failure(RuntimeException("Network error"))
         val recorder = AnalyticsRecorderImpl(remote)
 
@@ -109,7 +135,7 @@ class AnalyticsRecorderImplTest {
 
     @Test
     fun `endSession without startSession is no-op`() = runTest {
-        val remote = FakeRemoteDataSource()
+        val remote = FakeStatsDataSource()
         val recorder = AnalyticsRecorderImpl(remote)
 
         val result = recorder.endSession("s-unknown", 5000L, 4000L, 0, 0, 0, false)

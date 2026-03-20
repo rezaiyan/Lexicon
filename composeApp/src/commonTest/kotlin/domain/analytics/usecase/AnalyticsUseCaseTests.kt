@@ -11,13 +11,15 @@ import domain.analytics.model.LanguagePairStats
 import domain.analytics.model.MasteredWord
 import domain.analytics.model.MonthlyStats
 import domain.analytics.model.MostReviewedWord
+import domain.analytics.model.ReviewEventParams
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.StudySession
 import domain.analytics.model.WeeklyReport
 import domain.analytics.model.WordDifficulty
 import domain.analytics.repository.IAnalyticsRecorder
-import domain.analytics.repository.IAnalyticsRepository
+import domain.analytics.repository.IAnalyticsStatsRepository
+import domain.analytics.repository.IAnalyticsWordRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -62,26 +64,14 @@ class AnalyticsUseCaseTests {
             return endSessionResult
         }
 
-        override suspend fun recordReviewEvent(
-            sessionId: String,
-            wordId: Int,
-            wordText: String,
-            wordTranslation: String,
-            sourceLanguage: String,
-            targetLanguage: String,
-            rating: Int,
-            previousLevel: Int,
-            newLevel: Int,
-            responseTimeMs: Long,
-            reviewedAt: Long,
-        ): Try<Unit> {
-            lastRecordSessionId = sessionId
-            lastRecordWordId = wordId
+        override suspend fun recordReviewEvent(params: ReviewEventParams): Try<Unit> {
+            lastRecordSessionId = params.sessionId
+            lastRecordWordId = params.wordId
             return recordReviewEventResult
         }
     }
 
-    private class FakeAnalyticsRepository : IAnalyticsRepository {
+    private class FakeAnalyticsRepository : IAnalyticsStatsRepository, IAnalyticsWordRepository {
         var studyInsightsResult: Try<StudyInsights> = Try.success(
             StudyInsights(
                 totalCardsReviewed = 100,
@@ -108,30 +98,26 @@ class AnalyticsUseCaseTests {
         var languagePairStatsResult: Try<List<LanguagePairStats>> = Try.success(emptyList())
         var monthlyStatsResult: Try<List<MonthlyStats>> = Try.success(emptyList())
         var comebackWordsResult: Try<List<ComebackWord>> = Try.success(emptyList())
-        var syncResult: Try<Int> = Try.success(0)
-
-        var syncCallCount = 0
-
+        // IAnalyticsStatsRepository
         override suspend fun getStudyInsights(): Try<StudyInsights> = studyInsightsResult
         override suspend fun getDailyStats(startDate: String, endDate: String): Try<List<DailyStudyStats>> = dailyStatsResult
+        override suspend fun getRecentSessions(limit: Int): Try<List<StudySession>> = recentSessionsResult
+        override suspend fun getStudyHeatmap(startDate: String, endDate: String): Try<List<StudyHeatmapDay>> = heatmapResult
+        override suspend fun getWeeklyReport(): Try<WeeklyReport> = Try.success(
+            WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
+        )
+        override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = monthlyStatsResult
+        override suspend fun syncToBackend(): Try<Int> = Try.success(0)
+
+        // IAnalyticsWordRepository
         override suspend fun getDifficultWords(minReviews: Int, limit: Int): Try<List<WordDifficulty>> = difficultWordsResult
         override suspend fun getMostReviewedWords(limit: Int): Try<List<MostReviewedWord>> = mostReviewedWordsResult
         override suspend fun getAccuracyByLevel(): Try<List<AccuracyByLevel>> = accuracyByLevelResult
         override suspend fun getAccuracyByHourOfDay(): Try<List<HourlyAccuracy>> = accuracyByHourResult
         override suspend fun getAccuracyByDayOfWeek(): Try<List<DayOfWeekAccuracy>> = accuracyByDayOfWeekResult
-        override suspend fun getRecentSessions(limit: Int): Try<List<StudySession>> = recentSessionsResult
-        override suspend fun getStudyHeatmap(startDate: String, endDate: String): Try<List<StudyHeatmapDay>> = heatmapResult
         override suspend fun getWordsMastered(limit: Int): Try<List<MasteredWord>> = wordsMasteredResult
         override suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>> = languagePairStatsResult
-        override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = monthlyStatsResult
         override suspend fun getComebackWords(): Try<List<ComebackWord>> = comebackWordsResult
-        override suspend fun getWeeklyReport(): Try<WeeklyReport> = Try.success(
-            WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
-        )
-        override suspend fun syncToBackend(): Try<Int> {
-            syncCallCount++
-            return syncResult
-        }
     }
 
     // endregion
@@ -167,10 +153,9 @@ class AnalyticsUseCaseTests {
     // region EndStudySessionUseCase
 
     @Test
-    fun `EndStudySessionUseCase - success ends session and triggers sync`() = runTest {
+    fun `EndStudySessionUseCase - success ends session`() = runTest {
         val recorder = FakeAnalyticsRecorder()
-        val repository = FakeAnalyticsRepository()
-        val useCase = EndStudySessionUseCase(recorder, repository)
+        val useCase = EndStudySessionUseCase(recorder)
 
         val result = useCase(
             EndStudySessionUseCase.Params(
@@ -186,38 +171,13 @@ class AnalyticsUseCaseTests {
 
         assertTrue(result.isSuccess)
         assertEquals("session-1", recorder.lastEndSessionId)
-        assertEquals(1, repository.syncCallCount)
-    }
-
-    @Test
-    fun `EndStudySessionUseCase - sync failure does not propagate`() = runTest {
-        val recorder = FakeAnalyticsRecorder()
-        val repository = FakeAnalyticsRepository()
-        repository.syncResult = Try.failure(RuntimeException("Network error"))
-        val useCase = EndStudySessionUseCase(recorder, repository)
-
-        val result = useCase(
-            EndStudySessionUseCase.Params(
-                sessionId = "session-1",
-                endedAt = 1000L,
-                durationMs = 500L,
-                totalCards = 10,
-                correctCount = 8,
-                incorrectCount = 2,
-                completedNormally = true,
-            )
-        )
-
-        // The end session itself succeeds even though sync failed
-        assertTrue(result.isSuccess)
     }
 
     @Test
     fun `EndStudySessionUseCase - recorder failure propagates`() = runTest {
         val recorder = FakeAnalyticsRecorder()
         recorder.endSessionResult = Try.failure(RuntimeException("DB error"))
-        val repository = FakeAnalyticsRepository()
-        val useCase = EndStudySessionUseCase(recorder, repository)
+        val useCase = EndStudySessionUseCase(recorder)
 
         val result = useCase(
             EndStudySessionUseCase.Params(
@@ -244,7 +204,7 @@ class AnalyticsUseCaseTests {
         val useCase = RecordReviewEventUseCase(recorder)
 
         val result = useCase(
-            RecordReviewEventUseCase.Params(
+            ReviewEventParams(
                 sessionId = "session-1",
                 wordId = 42,
                 wordText = "hello",
@@ -271,7 +231,7 @@ class AnalyticsUseCaseTests {
         val useCase = RecordReviewEventUseCase(recorder)
 
         val result = useCase(
-            RecordReviewEventUseCase.Params(
+            ReviewEventParams(
                 sessionId = "session-1",
                 wordId = 42,
                 wordText = "hello",

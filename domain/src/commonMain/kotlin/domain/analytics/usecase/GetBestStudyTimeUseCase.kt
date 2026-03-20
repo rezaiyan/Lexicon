@@ -4,10 +4,10 @@ import core.common.NoParamUseCase
 import core.common.Try
 import core.common.map
 import domain.analytics.model.HourlyAccuracy
-import domain.analytics.repository.IAnalyticsRepository
+import domain.analytics.repository.IAnalyticsWordRepository
 
 class GetBestStudyTimeUseCase(
-    private val analyticsRepository: IAnalyticsRepository,
+    private val analyticsRepository: IAnalyticsWordRepository,
 ) : NoParamUseCase<HourlyAccuracy?> {
     override suspend fun invoke(params: Unit): Try<HourlyAccuracy?> =
         analyticsRepository.getAccuracyByHourOfDay().map { hours ->

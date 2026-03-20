@@ -184,7 +184,7 @@ fun StudyScreen() {
                 }
 
                 is UiState.Error -> {
-                    val errorMessage = (uiState as UiState.Error).message
+                    val errorMessage = uiState.message
                     val isNetworkError = errorMessage.contains("timeout", ignoreCase = true) ||
                         errorMessage.contains("connect", ignoreCase = true) ||
                         errorMessage.contains("network", ignoreCase = true) ||
@@ -204,7 +204,7 @@ fun StudyScreen() {
                 }
 
                 is UiState.Loaded -> {
-                    val loadedState = (uiState as UiState.Loaded).value
+                    val loadedState = uiState.value
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
 
@@ -232,7 +232,7 @@ fun StudyScreen() {
                                             navigator.dismiss()
                                         },
                                         onReviewWord = reviewViewModel::reviewWord,
-                                        onLoadWords = reviewViewModel::loadWords,
+                                        onLoadWords = reviewViewModel::startDueReview,
                                         onUpdateWord = reviewViewModel::updateWord,
                                         onDeleteWord = { wordId, onComplete ->
                                             reviewViewModel.deleteWord(wordId)
@@ -272,7 +272,7 @@ fun StudyScreen() {
 
                     LearningStagesSection(
                         stats = loadedStats,
-                        onStageClick = { stage, stageName ->
+                        onStageClick = { stage, _ ->
                             reviewViewModel.loadWordsByStage(stage)
                             overlayHost.showFullScreen(
                         tag = "review-stage-${stage}",
@@ -287,7 +287,7 @@ fun StudyScreen() {
                                     onClose = navigator::dismiss,
                                     onReviewComplete = navigator::dismiss,
                                     onReviewWord = reviewViewModel::reviewWord,
-                                    onLoadWords = reviewViewModel::loadWords,
+                                    onLoadWords = reviewViewModel::startDueReview,
                                     onUpdateWord = reviewViewModel::updateWord,
                                     onDeleteWord = { wordId, onComplete ->
                                         reviewViewModel.deleteWord(wordId)

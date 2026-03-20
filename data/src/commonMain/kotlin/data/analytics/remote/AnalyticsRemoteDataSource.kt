@@ -24,7 +24,7 @@ import expects.logNetwork
 
 class AnalyticsRemoteDataSource(
     private val apiClient: ApiClient,
-) : IAnalyticsRemoteDataSource {
+) : IAnalyticsStatsDataSource, IAnalyticsWordDataSource {
 
     override suspend fun syncSessions(request: SyncAnalyticsRequest): Try<SyncAnalyticsResponse> =
         apiClient.postNotNull<SyncAnalyticsResponse>("/analytics/sync", body = request)

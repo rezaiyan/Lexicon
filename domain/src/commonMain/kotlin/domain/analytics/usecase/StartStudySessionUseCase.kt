@@ -3,7 +3,7 @@ package domain.analytics.usecase
 import core.common.Try
 import core.common.UseCase
 import domain.analytics.repository.IAnalyticsRecorder
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 class StartStudySessionUseCase(
     private val analyticsRecorder: IAnalyticsRecorder,

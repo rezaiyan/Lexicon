@@ -1,6 +1,7 @@
 package domain.analytics.repository
 
 import core.common.Try
+import domain.analytics.model.ReviewEventParams
 
 interface IAnalyticsRecorder {
     suspend fun startSession(
@@ -19,17 +20,5 @@ interface IAnalyticsRecorder {
         completedNormally: Boolean,
     ): Try<Unit>
 
-    suspend fun recordReviewEvent(
-        sessionId: String,
-        wordId: Int,
-        wordText: String,
-        wordTranslation: String,
-        sourceLanguage: String,
-        targetLanguage: String,
-        rating: Int,
-        previousLevel: Int,
-        newLevel: Int,
-        responseTimeMs: Long,
-        reviewedAt: Long,
-    ): Try<Unit>
+    suspend fun recordReviewEvent(params: ReviewEventParams): Try<Unit>
 }

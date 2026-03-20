@@ -1,6 +1,8 @@
 package feature.study.di
 
+import feature.study.ReviewSessionUseCases
 import feature.study.ReviewViewModel
+import feature.study.ReviewWordUseCases
 import feature.study.StudyProgressViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -19,18 +21,22 @@ fun studyModule() = module {
     }
     viewModel {
         ReviewViewModel(
-            getDueWordsUseCase = get(),
-            getWordsByStageUseCase = get(),
-            reviewWordUseCase = get(),
-            updateWordUseCase = get(),
-            deleteWordUseCase = get(),
-            recordStreakActivityUseCase = get(),
+            wordUseCases = ReviewWordUseCases(
+                getDueWords = get(),
+                getWordsByStage = get(),
+                reviewWord = get(),
+                updateWord = get(),
+                deleteWord = get(),
+            ),
+            sessionUseCases = ReviewSessionUseCases(
+                startSession = get(),
+                endSession = get(),
+                recordEvent = get(),
+                recordStreak = get(),
+                getSettings = get(),
+            ),
             speakWordUseCase = get(),
             analyticsTracker = get(),
-            startStudySessionUseCase = get(),
-            endStudySessionUseCase = get(),
-            recordReviewEventUseCase = get(),
-            getReviewSettingsUseCase = get(),
             ttsRepository = get(),
         )
     }

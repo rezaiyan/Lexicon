@@ -7,9 +7,11 @@ import core.common.UiState
 import core.common.fold
 import core.common.onFailure
 import core.common.onSuccess
+import domain.analytics.model.ReviewEventParams
 import domain.analytics.usecase.EndStudySessionUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
+import domain.settings.model.ReviewSettings
 import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
 import domain.tts.model.TtsState
@@ -29,7 +31,23 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+
+data class ReviewWordUseCases(
+    val getDueWords: GetDueWordsUseCase,
+    val getWordsByStage: GetWordsByStageUseCase,
+    val reviewWord: ReviewWordUseCase,
+    val updateWord: UpdateWordUseCase,
+    val deleteWord: DeleteWordUseCase,
+)
+
+data class ReviewSessionUseCases(
+    val startSession: StartStudySessionUseCase,
+    val endSession: EndStudySessionUseCase,
+    val recordEvent: RecordReviewEventUseCase,
+    val recordStreak: RecordStreakActivityUseCase,
+    val getSettings: GetReviewSettingsUseCase,
+)
 
 data class ReviewState(
     val review: ReviewScreenState = ReviewScreenState(),
@@ -41,18 +59,10 @@ sealed class ReviewEffect {
 }
 
 class ReviewViewModel(
-    private val getDueWordsUseCase: GetDueWordsUseCase,
-    private val getWordsByStageUseCase: GetWordsByStageUseCase,
-    private val reviewWordUseCase: ReviewWordUseCase,
-    private val updateWordUseCase: UpdateWordUseCase,
-    private val deleteWordUseCase: DeleteWordUseCase,
-    private val recordStreakActivityUseCase: RecordStreakActivityUseCase,
+    private val wordUseCases: ReviewWordUseCases,
+    private val sessionUseCases: ReviewSessionUseCases,
     private val speakWordUseCase: SpeakWordUseCase,
     private val analyticsTracker: IAnalyticsTracker,
-    private val startStudySessionUseCase: StartStudySessionUseCase,
-    private val endStudySessionUseCase: EndStudySessionUseCase,
-    private val recordReviewEventUseCase: RecordReviewEventUseCase,
-    private val getReviewSettingsUseCase: GetReviewSettingsUseCase,
     ttsRepository: ITtsRepository,
 ) : BaseViewModel<ReviewState, ReviewEffect>() {
 
@@ -64,6 +74,7 @@ class ReviewViewModel(
     private var reviewedCardCount: Int = 0
     private var correctCardCount: Int = 0
     private var incorrectCardCount: Int = 0
+    private var sessionSettings: ReviewSettings = ReviewSettings.BALANCED
 
     init {
         observeTtsState(ttsRepository)
@@ -79,7 +90,7 @@ class ReviewViewModel(
 
     fun startReview() {
         viewModelScope.launch {
-            getDueWordsUseCase()
+            wordUseCases.getDueWords()
                 .catch { /* review unavailable */ }
                 .firstOrNull()
                 ?.firstOrNull()
@@ -91,13 +102,13 @@ class ReviewViewModel(
         viewModelScope.launch {
             beginAnalyticsSession("REVIEW")
             updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
-            getDueWordsUseCase()
+            wordUseCases.getDueWords()
                 .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
                 .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
                 .first()
                 .let { state ->
                     updateState { copy(review = review.copy(wordListState = state)) }
-                    markCardShown()
+                    cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
                 }
         }
     }
@@ -105,7 +116,7 @@ class ReviewViewModel(
     fun loadWordsByStage(stage: LearningStage) {
         viewModelScope.launch {
             updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
-            getWordsByStageUseCase(stage)
+            wordUseCases.getWordsByStage(stage)
                 .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
                 .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
                 .first()
@@ -118,7 +129,7 @@ class ReviewViewModel(
     fun startStageReview(stage: LearningStage) {
         loadWordsByStage(stage)
         beginAnalyticsSession("BROWSE")
-        markCardShown()
+        cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
         val wordListState = currentState.review.wordListState
         val cardCount = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         analyticsTracker.logReviewSessionStart(cardCount = cardCount)
@@ -128,18 +139,17 @@ class ReviewViewModel(
         viewModelScope.launch {
             val previousLevel = word.level
             val responseTime = Clock.System.now().toEpochMilliseconds() - cardShownTimestamp
-            reviewWordUseCase(word, quality)
+            wordUseCases.reviewWord(word, quality)
 
-            // Compute new level matching ReviewWordUseCase's SRS logic
             val wasCorrect = quality >= 1
             if (wasCorrect) correctCardCount++ else incorrectCardCount++
             reviewedCardCount++
 
-            val newLevel = computeNewLevel(previousLevel, quality)
+            val newLevel = computeNewLevel(previousLevel, quality, sessionSettings)
 
             currentSessionId?.let { sid ->
-                recordReviewEventUseCase(
-                    RecordReviewEventUseCase.Params(
+                sessionUseCases.recordEvent(
+                    ReviewEventParams(
                         sessionId = sid,
                         wordId = word.id,
                         wordText = word.originalWord,
@@ -155,7 +165,7 @@ class ReviewViewModel(
                 )
             }
 
-            markCardShown()
+            cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
 
             analyticsTracker.logWordReviewed(
                 rating = quality,
@@ -167,7 +177,7 @@ class ReviewViewModel(
 
     fun updateWord(word: Word) {
         viewModelScope.launch {
-            updateWordUseCase(word).onSuccess { updatedWord ->
+            wordUseCases.updateWord(word).onSuccess { updatedWord ->
                 val wordListState = currentState.review.wordListState
                 if (wordListState is UiState.Loaded) {
                     val updatedWords = wordListState.value.map {
@@ -189,7 +199,7 @@ class ReviewViewModel(
 
     fun deleteWord(wordId: Int) {
         viewModelScope.launch {
-            deleteWordUseCase(wordId).onSuccess {
+            wordUseCases.deleteWord(wordId).onSuccess {
                 val wordListState = currentState.review.wordListState
                 if (wordListState is UiState.Loaded) {
                     val updatedWords = wordListState.value.filterNot { it.id == wordId }
@@ -207,29 +217,23 @@ class ReviewViewModel(
         }
     }
 
-    fun loadWords() {
-        startDueReview()
-    }
-
     fun onReviewSessionComplete() {
         val wordListState = currentState.review.wordListState
         val count = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         viewModelScope.launch {
             endAnalyticsSession(completedNormally = true)
-            if (count > 0) recordActivity(count)
+            if (count > 0) {
+                sessionUseCases.recordStreak(count)
+                    .onSuccess { logNetwork("RecordActivity", "Success, count=$count") }
+                    .onFailure { logNetwork("RecordActivity", "Failed, count=$count") }
+            }
             updateState { copy(review = ReviewScreenState()) }
         }
     }
 
-    private suspend fun recordActivity(count: Int) {
-        recordStreakActivityUseCase(count)
-            .onSuccess { logNetwork("RecordActivity", "Success, count=$count") }
-            .onFailure { logNetwork("RecordActivity", "Failed, count=$count") }
-    }
-
     fun speakWord(text: String, languageCode: String) {
         viewModelScope.launch {
-            val resolvedCode = resolveLanguageCode(text, languageCode)
+            val resolvedCode = resolveLanguageCode(text, languageCode, currentState)
             logNetwork("TTS", "speakWord: text='$text' wordLang='$languageCode' resolved='$resolvedCode'")
             speakWordUseCase(text, resolvedCode)
         }.invokeOnCompletion { error ->
@@ -241,33 +245,13 @@ class ReviewViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        // End session as abandoned if still active when ViewModel is cleared
         if (currentSessionId != null) {
-            // Cannot launch coroutine from onCleared since viewModelScope is cancelled.
-            // The session will remain unfinished in the DB — the next sync or app
-            // launch can detect and close orphaned sessions. This is acceptable for
-            // a best-effort analytics system.
-            currentSessionId = null
-        }
-    }
-
-    private suspend fun computeNewLevel(previousLevel: Int, quality: Int): Int {
-        val settings = getReviewSettingsUseCase(Unit)
-        val forgotPenalty = settings.fold(onSuccess = { it.forgotPenalty }, onFailure = { 2 })
-        val successesToAdvance = settings.fold(onSuccess = { it.successesToAdvance }, onFailure = { 1 })
-        return when {
-            quality == 0 -> maxOf(0, previousLevel - forgotPenalty)
-            // With default successesToAdvance=1, always advances on first success
-            successesToAdvance <= 1 && previousLevel < 6 -> minOf(6, previousLevel + 1)
-            // With higher thresholds, we can't know the repetition count here,
-            // so conservatively assume level stays the same
-            previousLevel < 6 -> previousLevel
-            else -> previousLevel // Already at max
+            viewModelScope.launch { endAnalyticsSession(completedNormally = false) }
         }
     }
 
     private fun beginAnalyticsSession(reviewType: String) {
-        val sessionId = kotlinx.datetime.Clock.System.now().toEpochMilliseconds().toString() +
+        val sessionId = Clock.System.now().toEpochMilliseconds().toString() +
             "-" + (0..999999).random().toString().padStart(6, '0')
         currentSessionId = sessionId
         sessionStartTime = Clock.System.now().toEpochMilliseconds()
@@ -275,14 +259,16 @@ class ReviewViewModel(
         correctCardCount = 0
         incorrectCardCount = 0
         viewModelScope.launch {
-            startStudySessionUseCase(StartStudySessionUseCase.Params(sessionId, reviewType))
+            sessionSettings = sessionUseCases.getSettings(Unit)
+                .fold(onSuccess = { it }, onFailure = { ReviewSettings.BALANCED })
+            sessionUseCases.startSession(StartStudySessionUseCase.Params(sessionId, reviewType))
         }
     }
 
     private suspend fun endAnalyticsSession(completedNormally: Boolean) {
         val sid = currentSessionId ?: return
         val now = Clock.System.now().toEpochMilliseconds()
-        endStudySessionUseCase(
+        sessionUseCases.endSession(
             EndStudySessionUseCase.Params(
                 sessionId = sid,
                 endedAt = now,
@@ -295,28 +281,37 @@ class ReviewViewModel(
         )
         currentSessionId = null
     }
+}
 
-    private fun markCardShown() {
-        cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
+private fun computeNewLevel(
+    previousLevel: Int,
+    quality: Int,
+    settings: ReviewSettings,
+): Int {
+    return when {
+        quality == 0 -> maxOf(0, previousLevel - settings.forgotPenalty)
+        settings.successesToAdvance <= 1 && previousLevel < 6 -> minOf(6, previousLevel + 1)
+        previousLevel < 6 -> previousLevel
+        else -> previousLevel
+    }
+}
+
+private fun resolveLanguageCode(text: String, languageCode: String, state: ReviewState): String {
+    if (languageCode.isNotBlank()) return languageCode
+
+    val words = (state.review.wordListState as? UiState.Loaded<List<Word>>)?.value
+        ?: return languageCode
+
+    val isTargetSide = words.any { it.originalWord == text }
+
+    val languageCodes = words.map { word ->
+        if (isTargetSide) word.targetLanguage.code else word.sourceLanguage.code
     }
 
-    private fun resolveLanguageCode(text: String, languageCode: String): String {
-        if (languageCode.isNotBlank()) return languageCode
-
-        val words = (currentState.review.wordListState as? UiState.Loaded<List<Word>>)?.value
-            ?: return languageCode
-
-        val isTargetSide = words.any { it.originalWord == text }
-
-        val languageCodes = words.map { word ->
-            if (isTargetSide) word.targetLanguage.code else word.sourceLanguage.code
-        }
-
-        return languageCodes
-            .groupingBy { it }
-            .eachCount()
-            .maxByOrNull { it.value }
-            ?.key
-            ?: languageCode
-    }
+    return languageCodes
+        .groupingBy { it }
+        .eachCount()
+        .maxByOrNull { it.value }
+        ?.key
+        ?: languageCode
 }

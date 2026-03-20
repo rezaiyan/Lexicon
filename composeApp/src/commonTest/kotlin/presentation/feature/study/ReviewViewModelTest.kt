@@ -2,12 +2,11 @@ package presentation.feature.study
 
 import analytics.IAnalyticsTracker
 import core.common.Try
+import domain.analytics.model.ReviewEventParams
 import domain.analytics.repository.IAnalyticsRecorder
-import domain.analytics.repository.IAnalyticsRepository
 import domain.analytics.usecase.EndStudySessionUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
-import feature.study.ReviewViewModel
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
@@ -30,6 +29,9 @@ import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
+import feature.study.ReviewSessionUseCases
+import feature.study.ReviewViewModel
+import feature.study.ReviewWordUseCases
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -157,8 +159,9 @@ class ReviewViewModelTest : ViewModelTestBase() {
     private fun fakeAnalyticsRecorder() = object : IAnalyticsRecorder {
         override suspend fun startSession(sessionId: String, reviewType: String, startedAt: Long) = Try.success(Unit)
         override suspend fun endSession(sessionId: String, endedAt: Long, durationMs: Long, totalCards: Int, correctCount: Int, incorrectCount: Int, completedNormally: Boolean) = Try.success(Unit)
-        override suspend fun recordReviewEvent(sessionId: String, wordId: Int, wordText: String, wordTranslation: String, sourceLanguage: String, targetLanguage: String, rating: Int, previousLevel: Int, newLevel: Int, responseTimeMs: Long, reviewedAt: Long) = Try.success(Unit)
+        override suspend fun recordReviewEvent(params: ReviewEventParams) = Try.success(Unit)
     }
+
 
     private fun createViewModel(): ReviewViewModel {
         val wordRepo = fakeWordRepo()
@@ -166,36 +169,24 @@ class ReviewViewModelTest : ViewModelTestBase() {
         val ttsRepo = fakeTtsRepo()
         val recorder = fakeAnalyticsRecorder()
         return ReviewViewModel(
-            getDueWordsUseCase = GetDueWordsUseCase(wordRepo),
-            getWordsByStageUseCase = GetWordsByStageUseCase(wordRepo),
-            reviewWordUseCase = ReviewWordUseCase(wordRepo, GetReviewSettingsUseCase()),
-            updateWordUseCase = UpdateWordUseCase(wordRepo),
-            deleteWordUseCase = DeleteWordUseCase(
-                wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)
+            wordUseCases = ReviewWordUseCases(
+                getDueWords = GetDueWordsUseCase(wordRepo),
+                getWordsByStage = GetWordsByStageUseCase(wordRepo),
+                reviewWord = ReviewWordUseCase(wordRepo, GetReviewSettingsUseCase()),
+                updateWord = UpdateWordUseCase(wordRepo),
+                deleteWord = DeleteWordUseCase(
+                    wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)
+                ),
             ),
-            recordStreakActivityUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
+            sessionUseCases = ReviewSessionUseCases(
+                startSession = StartStudySessionUseCase(recorder),
+                endSession = EndStudySessionUseCase(recorder),
+                recordEvent = RecordReviewEventUseCase(recorder),
+                recordStreak = RecordStreakActivityUseCase(fakeStreakRepo()),
+                getSettings = GetReviewSettingsUseCase(),
+            ),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
             analyticsTracker = fakeAnalytics(),
-            startStudySessionUseCase = StartStudySessionUseCase(recorder),
-            endStudySessionUseCase = EndStudySessionUseCase(recorder, object : IAnalyticsRepository {
-                override suspend fun getStudyInsights() = Try.success(domain.analytics.model.StudyInsights(0, 0, 0.0, 0, 0, 0, 0, null, null, 0))
-                override suspend fun getDailyStats(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.DailyStudyStats>())
-                override suspend fun getDifficultWords(minReviews: Int, limit: Int) = Try.success(emptyList<domain.analytics.model.WordDifficulty>())
-                override suspend fun getMostReviewedWords(limit: Int) = Try.success(emptyList<domain.analytics.model.MostReviewedWord>())
-                override suspend fun getAccuracyByLevel() = Try.success(emptyList<domain.analytics.model.AccuracyByLevel>())
-                override suspend fun getAccuracyByHourOfDay() = Try.success(emptyList<domain.analytics.model.HourlyAccuracy>())
-                override suspend fun getAccuracyByDayOfWeek() = Try.success(emptyList<domain.analytics.model.DayOfWeekAccuracy>())
-                override suspend fun getRecentSessions(limit: Int) = Try.success(emptyList<domain.analytics.model.StudySession>())
-                override suspend fun getStudyHeatmap(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.StudyHeatmapDay>())
-                override suspend fun getWordsMastered(limit: Int) = Try.success(emptyList<domain.analytics.model.MasteredWord>())
-                override suspend fun getLanguagePairStats() = Try.success(emptyList<domain.analytics.model.LanguagePairStats>())
-                override suspend fun getMonthlyStats() = Try.success(emptyList<domain.analytics.model.MonthlyStats>())
-                override suspend fun getComebackWords() = Try.success(emptyList<domain.analytics.model.ComebackWord>())
-                override suspend fun getWeeklyReport() = Try.success(domain.analytics.model.WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", ""))
-                override suspend fun syncToBackend() = Try.success(0)
-            }),
-            recordReviewEventUseCase = RecordReviewEventUseCase(recorder),
-            getReviewSettingsUseCase = GetReviewSettingsUseCase(),
             ttsRepository = ttsRepo,
         )
     }
@@ -289,16 +280,6 @@ class ReviewViewModelTest : ViewModelTestBase() {
         val state = vm.currentState.review.wordListState
         assertIs<UiState.Loaded<List<Word>>>(state)
         assertEquals("word1", state.value.first { it.id == 1 }.originalWord)
-    }
-
-    @Test
-    fun `loadWords delegates to startDueReview`() = runTest {
-        val vm = createViewModel()
-        vm.loadWords()
-
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertEquals(2, state.value.size)
     }
 
     @Test

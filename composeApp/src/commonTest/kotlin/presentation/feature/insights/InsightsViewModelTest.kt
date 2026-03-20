@@ -16,7 +16,8 @@ import domain.analytics.model.StudyInsights
 import domain.analytics.model.StudySession
 import domain.analytics.model.WeeklyReport
 import domain.analytics.model.WordDifficulty
-import domain.analytics.repository.IAnalyticsRepository
+import domain.analytics.repository.IAnalyticsStatsRepository
+import domain.analytics.repository.IAnalyticsWordRepository
 import domain.analytics.usecase.GetAccuracyByLevelUseCase
 import domain.analytics.usecase.GetAccuracyTrendUseCase
 import domain.analytics.usecase.GetBestStudyTimeUseCase
@@ -43,29 +44,32 @@ class InsightsViewModelTest : ViewModelTestBase() {
         var accuracyByLevelResult: Try<List<AccuracyByLevel>> = Try.success(defaultAccuracyByLevel()),
         var heatmapResult: Try<List<StudyHeatmapDay>> = Try.success(defaultHeatmap()),
         var accuracyByHourResult: Try<List<HourlyAccuracy>> = Try.success(defaultHourlyAccuracy()),
-    ) : IAnalyticsRepository {
+    ) : IAnalyticsStatsRepository, IAnalyticsWordRepository {
         var insightsCallCount = 0
 
+        // IAnalyticsStatsRepository
         override suspend fun getStudyInsights(): Try<StudyInsights> {
             insightsCallCount++
             return studyInsightsResult
         }
         override suspend fun getDailyStats(startDate: String, endDate: String): Try<List<DailyStudyStats>> = dailyStatsResult
+        override suspend fun getRecentSessions(limit: Int): Try<List<StudySession>> = Try.success(emptyList())
+        override suspend fun getStudyHeatmap(startDate: String, endDate: String): Try<List<StudyHeatmapDay>> = heatmapResult
+        override suspend fun getWeeklyReport(): Try<WeeklyReport> = Try.success(
+            WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
+        )
+        override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = Try.success(emptyList())
+        override suspend fun syncToBackend(): Try<Int> = Try.success(0)
+
+        // IAnalyticsWordRepository
         override suspend fun getDifficultWords(minReviews: Int, limit: Int): Try<List<WordDifficulty>> = difficultWordsResult
         override suspend fun getMostReviewedWords(limit: Int): Try<List<MostReviewedWord>> = Try.success(emptyList())
         override suspend fun getAccuracyByLevel(): Try<List<AccuracyByLevel>> = accuracyByLevelResult
         override suspend fun getAccuracyByHourOfDay(): Try<List<HourlyAccuracy>> = accuracyByHourResult
         override suspend fun getAccuracyByDayOfWeek(): Try<List<DayOfWeekAccuracy>> = Try.success(emptyList())
-        override suspend fun getRecentSessions(limit: Int): Try<List<StudySession>> = Try.success(emptyList())
-        override suspend fun getStudyHeatmap(startDate: String, endDate: String): Try<List<StudyHeatmapDay>> = heatmapResult
         override suspend fun getWordsMastered(limit: Int): Try<List<MasteredWord>> = Try.success(emptyList())
         override suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>> = Try.success(emptyList())
-        override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = Try.success(emptyList())
         override suspend fun getComebackWords(): Try<List<ComebackWord>> = Try.success(emptyList())
-        override suspend fun getWeeklyReport(): Try<WeeklyReport> = Try.success(
-            WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
-        )
-        override suspend fun syncToBackend(): Try<Int> = Try.success(0)
     }
 
     // endregion

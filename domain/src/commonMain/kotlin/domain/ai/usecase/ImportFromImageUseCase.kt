@@ -64,7 +64,11 @@ class ImportFromImageUseCase(
 
         extractionResult.fold(
             onSuccess = { extractedText ->
-                importWordsUseCase(extractedText, sourceLanguage = targetLanguage, targetLanguage = sourceLanguage).fold(
+                importWordsUseCase(
+                    extractedText,
+                    sourceLanguage = targetLanguage,
+                    targetLanguage = sourceLanguage,
+                ).fold(
                     onSuccess = { count -> emit(ImportImageResult.Success(count)) },
                     onFailure = { error -> emit(ImportImageResult.Error(error.message ?: "Import failed")) }
                 )
