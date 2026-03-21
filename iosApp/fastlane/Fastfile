@@ -117,24 +117,11 @@ platform :ios do
 
   desc "Validate the built IPA"
   lane :validate do
-    UI.message("🔍 Validating IPA...")
-
-    ipa_path = File.expand_path("../build/Lexicon.ipa", __dir__)
-
-    unless File.exist?(ipa_path)
-      UI.user_error!("❌ IPA not found at #{ipa_path}. Please run 'fastlane build' first.")
-    end
-
-    # Validate the IPA using xcrun altool
-    if @api_key
-      UI.message("Validating with App Store Connect API key...")
-      sh("xcrun altool --validate-app -f \"#{ipa_path}\" -t ios --apiKey #{@api_key[:key_id]} --apiIssuer #{@api_key[:issuer_id]}")
-    else
-      UI.important("⚠️  No API key configured. Skipping App Store Connect validation.")
-      UI.important("The IPA file exists and can be uploaded manually.")
-    end
-
-    UI.success("✓ IPA validation successful!")
+    ipa_path = lane_context[SharedValues::IPA_OUTPUT_PATH]
+    UI.user_error!("No IPA found. Run 'fastlane build' first.") unless ipa_path && File.exist?(ipa_path)
+    # Validation is handled natively by upload_to_testflight / upload_to_app_store
+    # via the App Store Connect API key configured in before_all
+    UI.success("✓ IPA present at #{ipa_path}")
   end
 
   desc "Upload a new build to TestFlight"
@@ -198,32 +185,6 @@ platform :ios do
   lane :deploy_appstore do
     # This is an alias for release with clearer naming
     release
-  end
-
-  desc "Download certificates and provisioning profiles"
-  lane :setup_certificates do
-    # Use match for certificate management (recommended for teams)
-    # Or use manual certificate import for simple setups
-
-    # Option 1: Using match (requires git repo for certs)
-    # match(
-    #   type: "appstore",
-    #   readonly: true
-    # )
-
-    # Option 2: Manual import (for CI with secrets)
-    if ENV['CI']
-      import_certificate(
-        certificate_path: "certificate.p12",
-        certificate_password: ENV["IOS_CERTIFICATES_PASSWORD"],
-        keychain_name: "build.keychain",
-        keychain_password: ""
-      )
-
-      install_provisioning_profile(
-        path: "profile.mobileprovision"
-      )
-    end
   end
 
   desc "Run tests"

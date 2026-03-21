@@ -48,13 +48,13 @@ platform :android do
     end
   end
 
-  desc "Upload a new build to closed testing (4.12.2025 track)"
+  desc "Upload a new build to closed testing"
   lane :beta do
     build
 
     upload_to_play_store(
       json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
-      track: "4.12.2025",
+      track: ENV["GOOGLE_PLAY_TRACK"] || "early-access",
       aab: "composeApp/build/outputs/bundle/release/composeApp-release.aab",
       release_status: "completed",
       skip_upload_apk: true,
@@ -98,7 +98,7 @@ platform :android do
   lane :release do
     upload_to_play_store(
       json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
-      track: "alpha",
+      track: ENV["GOOGLE_PLAY_TRACK"] || "early-access",
       track_promote_to: "production",
       skip_upload_apk: true,
       skip_upload_aab: true,

@@ -1,15 +1,19 @@
 package presentation.ui
 
+import analytics.IAnalyticsTracker
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import org.koin.compose.koinInject
 import feature.insights.navigation.insightsGraph
 import feature.profile.navigation.profileGraph
 import feature.subscription.navigation.SubscriptionRoute
@@ -24,6 +28,19 @@ internal fun NavigationGraph(
     navController: NavHostController,
 ) {
     val snackbarHostState = LocalSnackbarHostState.current
+    val analyticsTracker = koinInject<IAnalyticsTracker>()
+
+    DisposableEffect(navController) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            val screenName = destination.route
+                ?.substringAfterLast('.')
+                ?.substringBefore('/')
+                ?: "unknown"
+            analyticsTracker.logScreenView(screenName)
+        }
+        navController.addOnDestinationChangedListener(listener)
+        onDispose { navController.removeOnDestinationChangedListener(listener) }
+    }
 
     NavHost(
         navController = navController,

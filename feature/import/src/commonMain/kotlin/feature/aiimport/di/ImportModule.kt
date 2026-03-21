@@ -8,7 +8,8 @@ fun importModule() = module {
     viewModel {
         AiWordImportViewModel(
             submitPreferencesUseCase = get(),
-            importSuggestedVocabularyUseCase = get()
+            importSuggestedVocabularyUseCase = get(),
+            analyticsTracker = get()
         )
     }
 }

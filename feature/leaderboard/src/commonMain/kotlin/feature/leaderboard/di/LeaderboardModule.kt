@@ -7,7 +7,8 @@ import org.koin.dsl.module
 fun leaderboardModule() = module {
     viewModel {
         LeaderboardViewModel(
-            getLeaderboardUseCase = get()
+            getLeaderboardUseCase = get(),
+            analyticsTracker = get()
         )
     }
 }

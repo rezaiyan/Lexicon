@@ -9,7 +9,8 @@ fun onboardingModule() = module {
     viewModel {
         OnboardingViewModel(
             submitPreferencesUseCase = get(),
-            setLanguageUseCase = get()
+            setLanguageUseCase = get(),
+            analyticsTracker = get()
         )
     }
     viewModel { VocabularyPreviewViewModel() }

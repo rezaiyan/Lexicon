@@ -3,8 +3,18 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'doc/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'doc/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
   workflow_dispatch:
     inputs:
       platform:
@@ -52,6 +62,23 @@ env:
   FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
 
 jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      ios: ${{ steps.filter.outputs.ios }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ios:
+              - '**/*.kt'
+              - 'platforms/**'
+              - 'iosApp/**'
+              - 'gradle/libs.versions.toml'
+
   check-version:
     name: Check unpublished version
     if: github.ref == 'refs/heads/main'
@@ -198,23 +225,17 @@ jobs:
 
       # KAN-18: Run detekt with SARIF output for GitHub Code Scanning annotations
       - name: Run detekt
-        if: github.ref == 'refs/heads/main'
         run: ./gradlew detekt --stacktrace
         continue-on-error: true
 
       - name: Upload detekt SARIF to GitHub Code Scanning
-        if: github.ref == 'refs/heads/main' && always()
+        if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: build/reports/detekt/detekt.sarif
           category: detekt
 
-      - name: Run unit tests
-        if: github.ref != 'refs/heads/main'
-        run: ./gradlew composeApp:testDebugUnitTest --stacktrace
-
       - name: Run all tests
-        if: github.ref == 'refs/heads/main'
         run: ./gradlew composeApp:cleanAllTests composeApp:testDebugUnitTest composeApp:wasmJsBrowserTest --stacktrace
 
       - name: Generate code coverage report
@@ -225,7 +246,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: |
@@ -234,7 +255,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: |
@@ -248,7 +269,7 @@ jobs:
           path: build/reports/kover/report.xml
           title: Code Coverage
           update-comment: true
-          min-coverage-overall: 5
+          min-coverage-overall: 40
 
       - name: Test report
         if: always()
@@ -263,6 +284,8 @@ jobs:
   test-ios:
     name: iOS Tests
     runs-on: macos-26
+    needs: [changes]
+    if: needs.changes.outputs.ios == 'true' || github.ref == 'refs/heads/main'
     permissions:
       checks: write
       contents: read
@@ -302,7 +325,7 @@ jobs:
 
       - name: Upload iOS test results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: ios-test-results
           path: |
@@ -366,7 +389,7 @@ jobs:
           echo "apk_size_bytes=${SIZE_BYTES}" >> $GITHUB_OUTPUT
 
       - name: Upload APK
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
@@ -375,7 +398,7 @@ jobs:
   maestro:
     name: Maestro UI Tests
     runs-on: ubuntu-latest
-    needs: [test, check-version]
+    needs: [test, build-android, check-version]
     if: |
       github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
@@ -389,30 +412,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Cache Git LFS
-        uses: actions/cache@v4
+      - name: Download APK
+        uses: actions/download-artifact@v4
         with:
-          path: .git/lfs
-          key: git-lfs-${{ runner.os }}-${{ hashFiles('platforms/libs/**') }}
-          restore-keys: git-lfs-${{ runner.os }}-
-
-      - name: Pull LFS files
-        run: git lfs pull
-
-      - name: Initialize configuration
-        uses: ./.github/actions/init-config
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Build debug APK
-        run: ./gradlew composeApp:assembleDebug --stacktrace
+          name: debug-apk
+          path: composeApp/build/outputs/apk/debug/
 
       - name: Install Maestro CLI
         run: |
@@ -495,7 +499,7 @@ jobs:
 
       - name: Upload Maestro artifacts
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: maestro-artifacts
           path: |
@@ -556,6 +560,7 @@ jobs:
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+          GOOGLE_PLAY_TRACK: early-access
 
   build-web:
     name: Build Web (wasmJs)
@@ -586,7 +591,7 @@ jobs:
         run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
 
       - name: Upload web distribution
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: web-dist
           path: composeApp/build/dist/wasmJs/productionExecutable/
@@ -606,7 +611,7 @@ jobs:
 
     steps:
       - name: Download web distribution
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: web-dist
           path: composeApp/build/dist/wasmJs/productionExecutable/
@@ -627,9 +632,10 @@ jobs:
             exit 1
           fi
 
-          ssh-keyscan -p "$VPS_SSH_PORT" -T 30 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
-            ssh-keyscan -p "$VPS_SSH_PORT" -T 30 "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null || \
-            echo "Warning: ssh-keyscan failed — host key will not be pre-verified"
+          ssh-keyscan -p "$VPS_SSH_PORT" -T 30 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>&1 || {
+            echo "::error::ssh-keyscan failed for $VPS_HOST — aborting to prevent MITM"
+            exit 1
+          }
 
           echo "✓ SSH setup complete"
 
@@ -640,7 +646,7 @@ jobs:
           VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
         run: |
           DIST_DIR="composeApp/build/dist/wasmJs/productionExecutable"
-          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=30 -p ${VPS_SSH_PORT}"
+          SSH_OPTS="-i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes -o ConnectTimeout=30 -p ${VPS_SSH_PORT}"
 
           echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH} (port ${VPS_SSH_PORT})..."
 
@@ -776,6 +782,7 @@ jobs:
           bundle install
 
       - name: Set up certificates and provisioning profiles
+        id: ios-certs
         uses: ./.github/actions/ios-cert-setup
         with:
           certificate_base64: ${{ secrets.IOS_CERTIFICATES_P12_BASE64 }}
@@ -791,15 +798,6 @@ jobs:
           echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > iosApp/iosApp/GoogleService-Info.plist
         env:
           GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
-
-      - name: Cache KMP Framework
-        uses: actions/cache@v4
-        with:
-          path: |
-            composeApp/build/bin/iosArm64
-            composeApp/build/classes/kotlin/iosArm64
-          key: kmp-ios-release-${{ runner.os }}-${{ hashFiles('**/*.kt', 'gradle/libs.versions.toml') }}
-          restore-keys: kmp-ios-release-${{ runner.os }}-
 
       - name: Build Kotlin Multiplatform Framework
         run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace --no-daemon
@@ -822,7 +820,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APP_STORE_CONNECT_TEAM_ID: ${{ secrets.APP_STORE_CONNECT_TEAM_ID }}
           IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
-          IOS_PROVISIONING_PROFILE_NAME: ${{ secrets.IOS_PROVISIONING_PROFILE_NAME }}
+          IOS_PROVISIONING_PROFILE_NAME: ${{ steps.ios-certs.outputs.profile_name }}
           FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: 10
           FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 6
         run: |
@@ -832,6 +830,12 @@ jobs:
 
           cd iosApp
           bundle exec fastlane beta
+
+      - name: Clean up sensitive files
+        if: always()
+        run: |
+          rm -f iosApp/iosApp/GoogleService-Info.plist
+          rm -f ~/.appstoreconnect/private_keys/AuthKey_*.p8
 
   mark-deployed:
     name: Mark version as deployed

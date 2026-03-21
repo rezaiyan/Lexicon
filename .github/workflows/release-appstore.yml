@@ -89,15 +89,6 @@ jobs:
           certificate_password: ${{ secrets.IOS_CERTIFICATES_PASSWORD }}
           provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
 
-      - name: Cache KMP Framework
-        uses: actions/cache@v4
-        with:
-          path: |
-            composeApp/build/bin/iosArm64
-            composeApp/build/classes/kotlin/iosArm64
-          key: kmp-ios-release-${{ runner.os }}-${{ hashFiles('**/*.kt', 'gradle/libs.versions.toml') }}
-          restore-keys: kmp-ios-release-${{ runner.os }}-
-
       - name: Build Kotlin Multiplatform Framework
         run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace --no-daemon
 
@@ -133,8 +124,14 @@ jobs:
           cd iosApp
           bundle exec fastlane release
 
+      - name: Clean up sensitive files
+        if: always()
+        run: |
+          rm -f iosApp/iosApp/GoogleService-Info.plist
+          rm -f ~/.appstoreconnect/private_keys/AuthKey_*.p8
+
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: ios-appstore-ipa
           path: iosApp/build/*.ipa

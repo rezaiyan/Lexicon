@@ -1,5 +1,6 @@
 package feature.subscription
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import domain.subscription.ISubscriptionManager
 import domain.subscription.model.SubscriptionPackage
@@ -23,12 +24,14 @@ data class SubscriptionScreenState(
 )
 
 class SubscriptionViewModel(
-    private val subscriptionManager: ISubscriptionManager
+    private val subscriptionManager: ISubscriptionManager,
+    private val analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<SubscriptionScreenState, Nothing>() {
 
     override fun initialState() = SubscriptionScreenState()
 
     init {
+        analyticsTracker.logEvent("subscription_screen_viewed")
         loadOfferings()
         observeSubscriptionState()
     }
@@ -109,11 +112,23 @@ class SubscriptionViewModel(
     }
 
     fun purchasePackage(packageToPurchase: SubscriptionPackage) {
+        analyticsTracker.logEvent(
+            "subscription_plan_selected",
+            mapOf("package_id" to packageToPurchase.identifier)
+        )
         viewModelScope.launch {
             updateState { copy(isPurchasing = true, errorMessage = null) }
+            analyticsTracker.logEvent(
+                "subscription_purchase_started",
+                mapOf("package_id" to packageToPurchase.identifier)
+            )
             subscriptionManager.purchase(packageToPurchase)
                 .onSuccess {
                     updateState { copy(isPurchasing = false) }
+                    analyticsTracker.logEvent(
+                        "subscription_purchase_success",
+                        mapOf("package_id" to packageToPurchase.identifier)
+                    )
                 }
                 .onFailure { error ->
                     updateState {
@@ -122,11 +137,16 @@ class SubscriptionViewModel(
                             errorMessage = error.message ?: "PURCHASE_FAILED"
                         )
                     }
+                    analyticsTracker.logEvent(
+                        "subscription_purchase_failed",
+                        mapOf("package_id" to packageToPurchase.identifier, "reason" to (error.message ?: "unknown"))
+                    )
                 }
         }
     }
 
     fun restorePurchases() {
+        analyticsTracker.logEvent("subscription_restore_tapped")
         viewModelScope.launch {
             updateState { copy(errorMessage = null, successMessage = null) }
 
@@ -135,14 +155,17 @@ class SubscriptionViewModel(
                     val hasActiveEntitlements = customerInfo.activeEntitlements.isNotEmpty()
                     if (hasActiveEntitlements) {
                         updateState { copy(successMessage = "PURCHASES_RESTORED_SUCCESS") }
+                        analyticsTracker.logEvent("subscription_restore_result", mapOf("success" to "true"))
                     } else {
                         updateState { copy(errorMessage = "NO_PURCHASES_TO_RESTORE") }
+                        analyticsTracker.logEvent("subscription_restore_result", mapOf("success" to "false", "reason" to "no_purchases"))
                     }
                 }
                 .onFailure { error ->
                     updateState {
                         copy(errorMessage = error.message ?: "RESTORE_PURCHASES_FAILED")
                     }
+                    analyticsTracker.logEvent("subscription_restore_result", mapOf("success" to "false", "reason" to (error.message ?: "unknown")))
                 }
         }
     }

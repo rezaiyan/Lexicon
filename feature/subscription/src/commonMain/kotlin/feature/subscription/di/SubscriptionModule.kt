@@ -7,7 +7,8 @@ import org.koin.dsl.module
 fun subscriptionModule() = module {
     viewModel {
         SubscriptionViewModel(
-            subscriptionManager = get()
+            subscriptionManager = get(),
+            analyticsTracker = get()
         )
     }
 }

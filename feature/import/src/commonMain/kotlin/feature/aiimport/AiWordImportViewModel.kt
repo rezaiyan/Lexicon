@@ -1,5 +1,6 @@
 package feature.aiimport
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.common.onFailure
 import core.common.onSuccess
@@ -15,9 +16,14 @@ import feature.aiimport.model.AiWordImportUiState
 class AiWordImportViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val importSuggestedVocabularyUseCase: ImportSuggestedVocabularyUseCase,
+    private val analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<AiWordImportUiState, AiWordImportEffect>() {
 
     override fun initialState() = AiWordImportUiState()
+
+    init {
+        analyticsTracker.logEvent("import_started")
+    }
 
     fun selectTargetLanguage(language: String) {
         updateState { copy(selectedTargetLanguage = language) }
@@ -34,6 +40,7 @@ class AiWordImportViewModel(
     }
 
     fun toggleTopic(topic: String) {
+        val isAdding = !currentState.selectedTopics.contains(topic)
         updateState {
             val updated = if (selectedTopics.contains(topic)) {
                 selectedTopics - topic
@@ -41,6 +48,9 @@ class AiWordImportViewModel(
                 selectedTopics + topic
             }
             copy(selectedTopics = updated)
+        }
+        if (isAdding) {
+            analyticsTracker.logEvent("import_topic_entered", mapOf("topic" to topic))
         }
     }
 
@@ -107,9 +117,14 @@ class AiWordImportViewModel(
                             error = null
                         )
                     }
+                    analyticsTracker.logEvent(
+                        "import_preview_shown",
+                        mapOf("word_count" to response.suggestedVocabulary.size.toString())
+                    )
                 }
                 .onFailure { error ->
                     updateState { copy(isLoading = false, error = error.message) }
+                    analyticsTracker.logEvent("import_failed", mapOf("reason" to (error.message ?: "unknown")))
                 }
         }
     }
@@ -127,15 +142,19 @@ class AiWordImportViewModel(
             importSuggestedVocabularyUseCase(wordsToImport)
                 .onSuccess { count ->
                     updateState { copy(isLoading = false) }
+                    analyticsTracker.logWordsImported(count = count, method = "ai")
+                    analyticsTracker.logEvent("import_confirmed", mapOf("word_count" to count.toString()))
                     emitEffect(AiWordImportEffect.ImportSuccess(count))
                 }
                 .onFailure { error ->
                     updateState { copy(isLoading = false, error = error.message) }
+                    analyticsTracker.logEvent("import_failed", mapOf("reason" to (error.message ?: "unknown")))
                 }
         }
     }
 
     fun dismiss() {
+        analyticsTracker.logEvent("import_cancelled")
         emitEffect(AiWordImportEffect.Dismiss)
     }
 

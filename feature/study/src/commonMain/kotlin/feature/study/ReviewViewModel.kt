@@ -156,6 +156,10 @@ class ReviewViewModel(
 
             val newLevel = computeNewLevel(previousLevel, quality, sessionSettings)
 
+            if (newLevel == 6 && previousLevel < 6) {
+                analyticsTracker.logWordMastered(level = 6)
+            }
+
             currentSessionId?.let { sid ->
                 sessionUseCases.recordEvent(
                     ReviewEventParams(
@@ -233,7 +237,10 @@ class ReviewViewModel(
             endAnalyticsSession(completedNormally = true)
             if (count > 0) {
                 sessionUseCases.recordStreak(count)
-                    .onSuccess { logNetwork("RecordActivity", "Success, count=$count") }
+                    .onSuccess { streakData ->
+                        logNetwork("RecordActivity", "Success, count=$count")
+                        analyticsTracker.logStreakUpdated(days = streakData.currentStreak, isNewRecord = false)
+                    }
                     .onFailure { logNetwork("RecordActivity", "Failed, count=$count") }
             }
             updateState { copy(review = ReviewScreenState()) }
@@ -287,6 +294,11 @@ class ReviewViewModel(
                 incorrectCount = incorrectCardCount,
                 completedNormally = completedNormally,
             )
+        )
+        analyticsTracker.logReviewSessionComplete(
+            cardsReviewed = reviewedCardCount,
+            durationMs = now - sessionStartTime,
+            perfectCount = correctCardCount,
         )
         currentSessionId = null
     }

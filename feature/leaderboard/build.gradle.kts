@@ -6,6 +6,7 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":platforms"))
             implementation(libs.coil.compose)
         }
     }

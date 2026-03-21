@@ -1,5 +1,6 @@
 package feature.leaderboard
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.common.fold
 import domain.leaderboard.usecase.GetLeaderboardUseCase
@@ -10,7 +11,8 @@ import feature.leaderboard.model.LeaderboardUiData
 import core.common.UiState
 
 class LeaderboardViewModel(
-    private val getLeaderboardUseCase: GetLeaderboardUseCase
+    private val getLeaderboardUseCase: GetLeaderboardUseCase,
+    private val analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<UiState<LeaderboardUiData>, Nothing>() {
 
     override fun initialState(): UiState<LeaderboardUiData> = UiState.Loading
@@ -36,6 +38,13 @@ class LeaderboardViewModel(
                             )
                         )
                     }
+                    analyticsTracker.logEvent(
+                        "leaderboard_viewed",
+                        mapOf(
+                            "user_rank" to (leaderboard.userEntry?.rank?.toString() ?: "unranked"),
+                            "total_users" to leaderboard.entries.size.toString()
+                        )
+                    )
                 },
                 onFailure = { error ->
                     updateState {

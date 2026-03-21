@@ -1,5 +1,6 @@
 package feature.onboarding
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import domain.onboarding.model.OnboardingPreferences
 import core.common.onFailure
@@ -14,21 +15,29 @@ import feature.onboarding.model.OnboardingUiState
 
 class OnboardingViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
-    private val setLanguageUseCase: SetLanguageUseCase
+    private val setLanguageUseCase: SetLanguageUseCase,
+    private val analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<OnboardingUiState, OnboardingEffect>() {
 
     override fun initialState() = OnboardingUiState()
 
+    init {
+        analyticsTracker.logEvent("onboarding_started")
+    }
+
     fun selectTargetLanguage(language: String) {
         updateState { copy(selectedTargetLanguage = language) }
+        analyticsTracker.logEvent("onboarding_language_selected", mapOf("type" to "target", "language" to language))
     }
 
     fun selectNativeLanguage(language: String) {
         updateState { copy(selectedNativeLanguage = language) }
+        analyticsTracker.logEvent("onboarding_language_selected", mapOf("type" to "native", "language" to language))
     }
 
     fun selectLevel(level: String) {
         updateState { copy(selectedLevel = level) }
+        analyticsTracker.logEvent("onboarding_level_selected", mapOf("level" to level))
     }
 
     fun nextStep() {
@@ -37,6 +46,7 @@ class OnboardingViewModel(
                 copy(currentStep = currentStep + 1, error = null)
             } else this
         }
+        analyticsTracker.logEvent("onboarding_step_viewed", mapOf("step" to currentState.currentStep.toString()))
     }
 
     fun previousStep() {
@@ -65,6 +75,7 @@ class OnboardingViewModel(
                 .onSuccess { response ->
                     setLanguageUseCase(Language.fromCodeOrName(targetLang))
                     updateState { copy(isLoading = false) }
+                    analyticsTracker.logEvent("onboarding_completed")
                     emitEffect(OnboardingEffect.NavigateToPreview(response))
                 }
                 .onFailure { error ->
@@ -74,6 +85,7 @@ class OnboardingViewModel(
     }
 
     fun skip() {
+        analyticsTracker.logEvent("onboarding_skipped")
         emitEffect(OnboardingEffect.NavigateToMain)
     }
 }
