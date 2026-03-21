@@ -7,7 +7,6 @@ import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsSettings
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import utils.Language
 

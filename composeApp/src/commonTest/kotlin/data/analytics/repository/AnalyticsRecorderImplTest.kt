@@ -37,30 +37,18 @@ class AnalyticsRecorderImplTest {
         override suspend fun getResponseTimeTrend() = Try.success(emptyList<data.analytics.remote.model.ResponseTimeTrendRemoteResponse>())
     }
 
-    private fun reviewEventParams(
-        sessionId: String = "s-1",
-        wordId: Int = 42,
-        wordText: String = "hello",
-        wordTranslation: String = "hola",
-        sourceLanguage: String = "EN",
-        targetLanguage: String = "ES",
-        rating: Int = 1,
-        previousLevel: Int = 2,
-        newLevel: Int = 3,
-        responseTimeMs: Long = 1500,
-        reviewedAt: Long = 2000L,
-    ) = ReviewEventParams(
-        sessionId = sessionId,
-        wordId = wordId,
-        wordText = wordText,
-        wordTranslation = wordTranslation,
-        sourceLanguage = sourceLanguage,
-        targetLanguage = targetLanguage,
-        rating = rating,
-        previousLevel = previousLevel,
-        newLevel = newLevel,
-        responseTimeMs = responseTimeMs,
-        reviewedAt = reviewedAt,
+    private val defaultEvent = ReviewEventParams(
+        sessionId = "s-1",
+        wordId = 42,
+        wordText = "hello",
+        wordTranslation = "hola",
+        sourceLanguage = "EN",
+        targetLanguage = "ES",
+        rating = 1,
+        previousLevel = 2,
+        newLevel = 3,
+        responseTimeMs = 1500,
+        reviewedAt = 2000L,
     )
 
     @Test
@@ -81,7 +69,7 @@ class AnalyticsRecorderImplTest {
         val recorder = AnalyticsRecorderImpl(remote)
         recorder.startSession("s-1", "REVIEW", 1000L)
 
-        recorder.recordReviewEvent(reviewEventParams())
+        recorder.recordReviewEvent(defaultEvent)
 
         // Still nothing sent
         assertTrue(remote.syncRequests.isEmpty())
@@ -94,8 +82,14 @@ class AnalyticsRecorderImplTest {
         val recorder = AnalyticsRecorderImpl(remote)
 
         recorder.startSession("s-1", "REVIEW", 1000L)
-        recorder.recordReviewEvent(reviewEventParams(rating = 1, previousLevel = 2, newLevel = 3))
-        recorder.recordReviewEvent(reviewEventParams(wordId = 43, wordText = "world", wordTranslation = "mundo", rating = 0, previousLevel = 1, newLevel = 0, responseTimeMs = 2000, reviewedAt = 3000L))
+        recorder.recordReviewEvent(defaultEvent)
+        recorder.recordReviewEvent(
+            defaultEvent.copy(
+                wordId = 43, wordText = "world", wordTranslation = "mundo",
+                rating = 0, previousLevel = 1, newLevel = 0,
+                responseTimeMs = 2000, reviewedAt = 3000L,
+            )
+        )
         val result = recorder.endSession("s-1", 5000L, 4000L, 2, 1, 1, true)
 
         assertTrue(result.isSuccess)

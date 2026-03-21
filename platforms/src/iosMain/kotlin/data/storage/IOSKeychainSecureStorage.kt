@@ -25,7 +25,6 @@ import platform.CoreFoundation.kCFBooleanTrue
 import platform.CoreFoundation.kCFStringEncodingUTF8
 import platform.Foundation.NSData
 import platform.Foundation.NSUserDefaults
-import platform.Foundation.create
 import platform.Foundation.getBytes
 import platform.Security.SecItemAdd
 import platform.Security.SecItemCopyMatching
@@ -268,11 +267,6 @@ private fun NSData.toByteArray(): ByteArray {
     }
     return result
 }
-
-private fun ByteArray.toNSData(): NSData =
-    usePinned { pinned ->
-        NSData.create(bytes = pinned.addressOf(0), length = size.toULong())
-    }
 
 private fun String.toCFString(): CFStringRef? = memScoped {
     CFStringCreateWithCString(

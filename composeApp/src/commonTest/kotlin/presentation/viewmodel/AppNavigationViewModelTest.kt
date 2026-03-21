@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
+import feature.auth.AuthPhase
 import presentation.model.AppUiState
 import kotlin.test.Test
 import kotlin.test.assertIs
@@ -70,41 +71,44 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `initial state is Splash`() {
+    fun `initial state is Auth with Verifying phase`() {
         val vm = createViewModel()
-        assertIs<AppUiState.Splash>(vm.currentState)
+        val state = assertIs<AppUiState.Auth>(vm.currentState)
+        assertEquals(AuthPhase.Verifying, state.phase)
     }
 
     @Test
-    fun `onSplashComplete with authenticated and onboarding completed goes to Ready`() = runTest {
+    fun `onSessionVerified with authenticated and onboarding completed goes to Ready`() = runTest {
         val vm = createViewModel(hasCompleted = true)
-        vm.onSplashComplete(isAuthenticated = true)
+        vm.onSessionVerified(isAuthenticated = true)
         assertIs<AppUiState.Ready>(vm.currentState)
     }
 
     @Test
-    fun `onSplashComplete with not authenticated and onboarding completed goes to AuthGate`() = runTest {
+    fun `onSessionVerified with not authenticated and onboarding completed goes to Auth LoginRequired`() = runTest {
         val vm = createViewModel(hasCompleted = true)
-        vm.onSplashComplete(isAuthenticated = false)
-        val state = assertIs<AppUiState.AuthGate>(vm.currentState)
+        vm.onSessionVerified(isAuthenticated = false)
+        val state = assertIs<AppUiState.Auth>(vm.currentState)
+        assertEquals(AuthPhase.LoginRequired, state.phase)
         assertEquals(false, state.needsOnboardingCheck)
     }
 
     @Test
-    fun `onSplashComplete with auth but onboarding not completed marks completed`() =
+    fun `onSessionVerified with auth but onboarding not completed marks completed`() =
         runTest {
             val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
             val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo())
-            vm.onSplashComplete(isAuthenticated = true)
+            vm.onSessionVerified(isAuthenticated = true)
             assertIs<AppUiState.Ready>(vm.currentState)
             assertEquals(true, onboardingRepo.markCompletedCalled)
         }
 
     @Test
-    fun `onSplashComplete unauthenticated and onboarding not completed goes to AuthGate`() = runTest {
+    fun `onSessionVerified unauthenticated and onboarding not completed goes to Auth LoginRequired with onboarding check`() = runTest {
         val vm = createViewModel(hasCompleted = false)
-        vm.onSplashComplete(isAuthenticated = false)
-        val state = assertIs<AppUiState.AuthGate>(vm.currentState)
+        vm.onSessionVerified(isAuthenticated = false)
+        val state = assertIs<AppUiState.Auth>(vm.currentState)
+        assertEquals(AuthPhase.LoginRequired, state.phase)
         assertEquals(true, state.needsOnboardingCheck)
     }
 
@@ -127,10 +131,11 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `onLogout goes to AuthGate`() {
+    fun `onLogout goes to Auth LoginRequired`() {
         val vm = createViewModel()
         vm.onLogout()
-        assertIs<AppUiState.AuthGate>(vm.currentState)
+        val state = assertIs<AppUiState.Auth>(vm.currentState)
+        assertEquals(AuthPhase.LoginRequired, state.phase)
     }
 
     @Test
@@ -160,15 +165,16 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             SuggestedVocabulary("hola", "hello", "greeting", "es", "en")
         )
         vm.onNavigateToAuthGate(words)
-        val state = assertIs<AppUiState.AuthGate>(vm.currentState)
+        val state = assertIs<AppUiState.Auth>(vm.currentState)
+        assertEquals(AuthPhase.LoginRequired, state.phase)
         assertEquals(words, state.pendingVocabulary)
     }
 
     @Test
-    fun `isSplash returns true only in Splash state`() {
+    fun `isVerifying returns true only in Verifying phase`() {
         val vm = createViewModel()
-        assertEquals(true, vm.isSplash)
+        assertEquals(true, vm.isVerifying)
         vm.onLogout()
-        assertEquals(false, vm.isSplash)
+        assertEquals(false, vm.isVerifying)
     }
 }

@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().setKeepOnScreenCondition {
-            appNavigationViewModel.isSplash
+            appNavigationViewModel.isVerifying
         }
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)

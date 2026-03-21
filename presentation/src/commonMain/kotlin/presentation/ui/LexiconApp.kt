@@ -43,11 +43,11 @@ import feature.onboarding.OnboardingViewModel
 import feature.onboarding.VocabularyPreviewViewModel
 import feature.onboarding.model.OnboardingEffect
 import feature.onboarding.model.VocabularyPreviewEffect
+import feature.auth.AuthPhase
 import presentation.model.AppUiState
 import presentation.model.TabDestination
 import overlay.OverlayHostContainer
-import feature.auth.ui.AuthGateScreen
-import feature.auth.ui.SplashHost
+import feature.auth.ui.AuthExperienceScreen
 import feature.onboarding.ui.OnboardingScreen
 import feature.onboarding.ui.VocabularyPreviewScreen
 import presentation.viewmodel.AppNavigationViewModel
@@ -139,14 +139,17 @@ fun LexiconApp() {
                 AnimatedContent(
                     targetState = appUiState,
                     modifier = Modifier.fillMaxSize(),
+                    // Auth(Verifying) and Auth(LoginRequired) share the same content key so the
+                    // composable — and its single LottieGradientBackground — stays alive across
+                    // the phase transition without restarting the animation.
+                    contentKey = { if (it is AppUiState.Auth) AppUiState.Auth::class else it },
                     transitionSpec = {
                         val initial = initialState
                         val target = targetState
                         val toPreview = target is AppUiState.VocabularyPreview && initial is AppUiState.Onboarding
-                        val fromPreview = initial is AppUiState.VocabularyPreview && target is AppUiState.AuthGate
-                        val isLogout = initial is AppUiState.Ready && target is AppUiState.AuthGate
-                        val isAuthToReady = initial is AppUiState.AuthGate && target is AppUiState.Ready
-                        val fromSplash = initial is AppUiState.Splash
+                        val fromPreview = initial is AppUiState.VocabularyPreview && target is AppUiState.Auth
+                        val isLogout = initial is AppUiState.Ready && target is AppUiState.Auth
+                        val isAuthToReady = initial is AppUiState.Auth && target is AppUiState.Ready
                         val slideForward = toPreview || fromPreview
                         when {
                             isLogout -> ContentTransform(
@@ -156,11 +159,6 @@ fun LexiconApp() {
                             isAuthToReady -> ContentTransform(
                                 targetContentEnter = EnterTransition.None,
                                 initialContentExit = fadeOut(animationSpec = tween(300)),
-                                targetContentZIndex = 1f
-                            )
-                            fromSplash -> ContentTransform(
-                                targetContentEnter = fadeIn(animationSpec = tween(400)),
-                                initialContentExit = fadeOut(animationSpec = tween(200)),
                                 targetContentZIndex = 1f
                             )
                             else -> ContentTransform(
@@ -178,10 +176,43 @@ fun LexiconApp() {
                     label = "onboarding_flow"
                 ) { state ->
                 when (state) {
-                    is AppUiState.Splash -> {
-                        SplashHost(onEnd = {
-                            appNavigationViewModel.onSplashComplete(authState.isAuthenticated)
-                        })
+                    is AppUiState.Auth -> {
+                        val pendingVocabulary = state.pendingVocabulary
+                        val needsOnboardingCheck = state.needsOnboardingCheck
+                        val importUseCase: ImportSuggestedVocabularyUseCase = koinInject()
+
+                        AuthExperienceScreen(
+                            phase = state.phase,
+                            onVerifySession = { onComplete ->
+                                authViewModel.verifyAndRestoreSession(onComplete = onComplete)
+                            },
+                            onSessionVerified = {
+                                appNavigationViewModel.onSessionVerified(authState.isAuthenticated)
+                            },
+                            onLoginWithGoogle = { idToken ->
+                                authViewModel.loginWithGoogle(idToken)
+                            },
+                            onLoginWithApple = { idToken, fullName, appleUserId ->
+                                authViewModel.loginWithApple(idToken, fullName, appleUserId)
+                            },
+                            isLoading = authState.isLoading,
+                            error = authState.error,
+                        )
+
+                        if (state.phase == AuthPhase.LoginRequired) {
+                            LaunchedEffect(authState.isAuthenticated, authState.isLoading) {
+                                if (authState.isAuthenticated && !authState.isLoading) {
+                                    if (needsOnboardingCheck) {
+                                        appNavigationViewModel.onAuthCompleteCheckingData()
+                                    } else {
+                                        if (pendingVocabulary.isNotEmpty()) {
+                                            importUseCase(pendingVocabulary)
+                                        }
+                                        appNavigationViewModel.onAuthComplete()
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     is AppUiState.Onboarding -> {
@@ -239,39 +270,6 @@ fun LexiconApp() {
                             onAccept = vocabularyPreviewViewModel::proceedWithSelected,
                             onDeny = vocabularyPreviewViewModel::skip
                         )
-                    }
-
-                    is AppUiState.AuthGate -> {
-                        val pendingVocabulary = state.pendingVocabulary
-                        val needsOnboardingCheck = state.needsOnboardingCheck
-                        val importUseCase: ImportSuggestedVocabularyUseCase = koinInject()
-
-                        AuthGateScreen(
-                            onLoginWithGoogle = { idToken ->
-                                authViewModel.loginWithGoogle(idToken)
-                            },
-                            onLoginWithApple = { idToken, fullName, appleUserId ->
-                                authViewModel.loginWithApple(idToken, fullName, appleUserId)
-                            },
-                            isLoading = authState.isLoading,
-                            error = authState.error
-                        )
-
-                        // When auth succeeds and sync is done (isLoading = false):
-                        // - needsOnboardingCheck: check if user has existing data to decide onboarding
-                        // - otherwise: import pending vocabulary and go to main
-                        LaunchedEffect(authState.isAuthenticated, authState.isLoading) {
-                            if (authState.isAuthenticated && !authState.isLoading) {
-                                if (needsOnboardingCheck) {
-                                    appNavigationViewModel.onAuthCompleteCheckingData()
-                                } else {
-                                    if (pendingVocabulary.isNotEmpty()) {
-                                        importUseCase(pendingVocabulary)
-                                    }
-                                    appNavigationViewModel.onAuthComplete()
-                                }
-                            }
-                        }
                     }
 
                     is AppUiState.Ready -> {

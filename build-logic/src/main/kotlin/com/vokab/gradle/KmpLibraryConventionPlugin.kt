@@ -43,7 +43,10 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                     optIn("kotlin.io.encoding.ExperimentalEncodingApi")
                     optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
                     optIn("androidx.compose.material3.ExperimentalMaterial3Api")
-                    optIn("androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi")
+                    optIn(
+                        "androidx.compose.material3.adaptive.navigationsuite" +
+                            ".ExperimentalMaterial3AdaptiveNavigationSuiteApi",
+                    )
                     optIn("androidx.compose.ui.ExperimentalComposeUiApi")
                     optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
                     optIn("kotlinx.cinterop.ExperimentalForeignApi")

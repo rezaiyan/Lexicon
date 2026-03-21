@@ -22,7 +22,7 @@ tags:
 - inputText: "zzz_no_match_query_xyz"
 
 # The "No results found" message must appear.
-- assertVisible: "No results found"
+- assertVisible: "No matching words"
 
 # The word list items must be hidden (filtered out).
 - assertNotVisible: "Search words..."
@@ -35,4 +35,4 @@ tags:
 - assertVisible: "Search words..."
 
 # "No results found" must disappear after clearing.
-- assertNotVisible: "No results found"
+- assertNotVisible: "No matching words"

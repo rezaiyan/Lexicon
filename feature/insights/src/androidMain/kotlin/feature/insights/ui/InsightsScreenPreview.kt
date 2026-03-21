@@ -38,10 +38,22 @@ private val previewState = InsightsState(
     ),
     difficultWords = UiState.Loaded(
         listOf(
-            WordDifficulty(wordId = 1, wordText = "ephemeral", wordTranslation = "lasting a very short time", sourceLanguage = "en", targetLanguage = "en", totalReviews = 12, errorCount = 7, errorRate = 0.58),
-            WordDifficulty(wordId = 2, wordText = "melancholy", wordTranslation = "deep sadness", sourceLanguage = "en", targetLanguage = "en", totalReviews = 10, errorCount = 5, errorRate = 0.50),
-            WordDifficulty(wordId = 3, wordText = "sycophant", wordTranslation = "a person who flatters", sourceLanguage = "en", targetLanguage = "en", totalReviews = 8, errorCount = 4, errorRate = 0.50),
-            WordDifficulty(wordId = 4, wordText = "quixotic", wordTranslation = "exceedingly idealistic", sourceLanguage = "en", targetLanguage = "en", totalReviews = 9, errorCount = 4, errorRate = 0.44),
+            WordDifficulty(
+                wordId = 1, wordText = "ephemeral", wordTranslation = "lasting a very short time",
+                sourceLanguage = "en", targetLanguage = "en", totalReviews = 12, errorCount = 7, errorRate = 0.58,
+            ),
+            WordDifficulty(
+                wordId = 2, wordText = "melancholy", wordTranslation = "deep sadness",
+                sourceLanguage = "en", targetLanguage = "en", totalReviews = 10, errorCount = 5, errorRate = 0.50,
+            ),
+            WordDifficulty(
+                wordId = 3, wordText = "sycophant", wordTranslation = "a person who flatters",
+                sourceLanguage = "en", targetLanguage = "en", totalReviews = 8, errorCount = 4, errorRate = 0.50,
+            ),
+            WordDifficulty(
+                wordId = 4, wordText = "quixotic", wordTranslation = "exceedingly idealistic",
+                sourceLanguage = "en", targetLanguage = "en", totalReviews = 9, errorCount = 4, errorRate = 0.44,
+            ),
         )
     ),
     heatmap = UiState.Loaded(

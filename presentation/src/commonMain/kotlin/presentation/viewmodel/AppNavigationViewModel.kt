@@ -8,6 +8,7 @@ import core.common.getOrDefault
 import core.common.getOrElse
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
+import feature.auth.AuthPhase
 import presentation.model.AppUiState
 
 class AppNavigationViewModel(
@@ -15,17 +16,17 @@ class AppNavigationViewModel(
     private val wordRepository: IWordRepository
 ) : BaseViewModel<AppUiState, Nothing>() {
 
-    override fun initialState(): AppUiState = AppUiState.Splash
+    override fun initialState(): AppUiState = AppUiState.Auth()
 
     /** Non-composable read for Android splash screen keep-on-screen condition. */
-    val isSplash: Boolean get() = currentState is AppUiState.Splash
+    val isVerifying: Boolean get() = (currentState as? AppUiState.Auth)?.phase == AuthPhase.Verifying
 
-    fun onSplashComplete(isAuthenticated: Boolean) {
+    fun onSessionVerified(isAuthenticated: Boolean) {
         viewModelScope.launch {
             val onboardingCompleted = onboardingRepository.hasCompletedOnboarding().getOrDefault(false)
             when {
                 onboardingCompleted && isAuthenticated -> updateState { AppUiState.Ready }
-                onboardingCompleted -> updateState { AppUiState.AuthGate() }
+                onboardingCompleted -> updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired) }
                 isAuthenticated -> {
                     // User has a valid session but lost the onboarding flag (e.g. reinstall
                     // with Keychain-persisted tokens). They're a returning user — skip onboarding.
@@ -35,7 +36,7 @@ class AppNavigationViewModel(
                 else -> {
                     // Not authenticated and no onboarding flag — show auth first,
                     // then decide about onboarding based on whether the user has data.
-                    updateState { AppUiState.AuthGate(needsOnboardingCheck = true) }
+                    updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired, needsOnboardingCheck = true) }
                 }
             }
         }
@@ -46,7 +47,7 @@ class AppNavigationViewModel(
     }
 
     fun onNavigateToAuthGate(pendingVocabulary: List<SuggestedVocabulary> = emptyList()) {
-        updateState { AppUiState.AuthGate(pendingVocabulary) }
+        updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired, pendingVocabulary = pendingVocabulary) }
     }
 
     fun onAuthComplete() {
@@ -73,6 +74,6 @@ class AppNavigationViewModel(
     }
 
     fun onLogout() {
-        updateState { AppUiState.AuthGate() }
+        updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired) }
     }
 }

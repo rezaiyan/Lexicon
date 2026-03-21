@@ -83,19 +83,11 @@ class ReviewViewModel(
     private var sessionSettings: ReviewSettings = ReviewSettings.BALANCED
 
     init {
-        observeTtsState(ttsRepository)
-        observeSpeechRate()
-    }
-
-    private fun observeTtsState(ttsRepository: ITtsRepository) {
         viewModelScope.launch {
             ttsRepository.ttsState.collect { state ->
                 updateState { copy(ttsState = state) }
             }
         }
-    }
-
-    private fun observeSpeechRate() {
         settingsRepository.getTtsSettings()
             .onEach { settings -> updateState { copy(speechRate = settings.speechRate) } }
             .launchIn(viewModelScope)

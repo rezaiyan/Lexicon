@@ -5,14 +5,11 @@ import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.UiState
 import core.common.getOrThrow
-import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.GetProgressStatsUseCase
-import feature.study.formatter.WeeklyReportFormatter
 import feature.study.model.ProgressScreenState
-import feature.study.model.WeeklyReportUiModel
 import feature.study.util.NotificationStringHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch

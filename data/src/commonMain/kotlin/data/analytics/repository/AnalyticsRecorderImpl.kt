@@ -85,11 +85,17 @@ class AnalyticsRecorderImpl(
         return remoteDataSource.syncSessions(combinedRequest).let { result ->
             when (result) {
                 is Try.Success -> {
-                    logNetwork("AnalyticsRecorder", "Session ${session.sessionId} sent to backend (retried ${pending.size} pending)")
+                    logNetwork(
+                        "AnalyticsRecorder",
+                        "Session ${session.sessionId} sent to backend (retried ${pending.size} pending)",
+                    )
                     Try.success(Unit)
                 }
                 is Try.Failure -> {
-                    logNetwork("AnalyticsRecorder", "Failed to send session: ${result.throwable.message}. Queuing for retry.")
+                    logNetwork(
+                        "AnalyticsRecorder",
+                        "Failed to send session: ${result.throwable.message}. Queuing for retry.",
+                    )
                     // Keep current session in retry queue — do not block the user
                     mutex.withLock { retryQueue.addAll(pending + listOf(newRequest)) }
                     Try.success(Unit)

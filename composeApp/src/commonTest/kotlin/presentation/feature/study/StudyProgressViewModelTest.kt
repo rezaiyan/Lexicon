@@ -2,9 +2,6 @@ package presentation.feature.study
 
 import analytics.IAnalyticsTracker
 import core.common.Try
-import domain.analytics.model.WeeklyReport
-import domain.analytics.repository.IAnalyticsStatsRepository
-import domain.analytics.usecase.GetWeeklyReportUseCase
 import fakes.FakePerformanceTracer
 import feature.study.StudyProgressViewModel
 import domain.auth.model.FeatureAccessResponse
