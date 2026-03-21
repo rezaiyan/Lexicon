@@ -37,6 +37,7 @@ class AnalyticsRepositoryImplTest {
         override suspend fun getMonthlyStats() = Try.success(emptyList<MonthlyStatsResponse>())
         override suspend fun getDailyStats(start: String, end: String) = Try.success(emptyList<DailyStatsRemoteResponse>())
         override suspend fun getWeeklyReport() = Try.success(WeeklyReportRemoteResponse())
+        override suspend fun getResponseTimeTrend() = Try.success(emptyList<data.analytics.remote.model.ResponseTimeTrendRemoteResponse>())
     }
 
     private class FakeWordDataSource(
@@ -52,6 +53,7 @@ class AnalyticsRepositoryImplTest {
         override suspend fun getWordsMastered(limit: Int) = Try.success(emptyList<MasteredWordResponse>())
         override suspend fun getLanguageStats() = Try.success(emptyList<LanguagePairStatsResponse>())
         override suspend fun getComebackWords() = Try.success(emptyList<ComebackWordResponse>())
+        override suspend fun getLevelTransitions() = Try.success(emptyList<data.analytics.remote.model.LevelTransitionRemoteResponse>())
     }
 
     private fun makeRepo(

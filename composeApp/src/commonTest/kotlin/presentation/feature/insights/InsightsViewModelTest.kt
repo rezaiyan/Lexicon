@@ -60,6 +60,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
         )
         override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = Try.success(emptyList())
+        override suspend fun getResponseTimeTrend(): Try<List<domain.analytics.model.ResponseTimeTrend>> = Try.success(emptyList())
         override suspend fun syncToBackend(): Try<Int> = Try.success(0)
 
         // IAnalyticsWordRepository
@@ -71,6 +72,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
         override suspend fun getWordsMastered(limit: Int): Try<List<MasteredWord>> = Try.success(emptyList())
         override suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>> = Try.success(emptyList())
         override suspend fun getComebackWords(): Try<List<ComebackWord>> = Try.success(emptyList())
+        override suspend fun getLevelTransitions(): Try<List<domain.analytics.model.LevelTransition>> = Try.success(emptyList())
     }
 
     // endregion
