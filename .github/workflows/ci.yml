@@ -625,7 +625,7 @@ jobs:
 
       - name: Setup SSH for deployment
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_DEV_KEY }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
         run: |
@@ -658,7 +658,7 @@ jobs:
           echo "▸ Deploying to ${VPS_HOST}:${VPS_PATH} (port ${VPS_SSH_PORT})..."
 
           for attempt in 1 2 3; do
-            if ssh $SSH_OPTS "root@${VPS_HOST}" "echo 'SSH connection successful'"; then
+            if ssh $SSH_OPTS "dev@${VPS_HOST}" "echo 'SSH connection successful'"; then
               echo "✓ SSH connection established (attempt ${attempt})"
               break
             fi
@@ -670,12 +670,12 @@ jobs:
             sleep 15
           done
 
-          ssh $SSH_OPTS "root@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
+          ssh $SSH_OPTS "dev@${VPS_HOST}" "mkdir -p ${VPS_PATH}"
 
           rsync -avz --delete --checksum \
             -e "ssh $SSH_OPTS" \
             "${DIST_DIR}/" \
-            "root@${VPS_HOST}:${VPS_PATH}/"
+            "dev@${VPS_HOST}:${VPS_PATH}/"
 
           echo "✓ Deployed to ${VPS_HOST}:${VPS_PATH}"
 

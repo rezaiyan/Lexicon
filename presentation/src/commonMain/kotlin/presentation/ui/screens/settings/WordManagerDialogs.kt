@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -70,7 +72,8 @@ internal fun EditWordContent(
 
     LexiconDialogContent(
         modifier = Modifier
-            .imePadding(),
+            .imePadding()
+            .verticalScroll(rememberScrollState()),
         iconState = components.dialog.DialogIconState.Icon(Icons.Default.Edit),
         title = stringResource(Res.string.edit_word),
             content = {

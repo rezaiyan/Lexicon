@@ -1,4 +1,4 @@
-appId: com.alirezaiyan.vokab
+yappId: com.alirezaiyan.vokab
 tags:
   - import
   - method-chooser
@@ -36,7 +36,7 @@ tags:
     timeout: 5000
 
 # Go back to the import method chooser.
-- tapOn: "Back"
+- pressKey: back
 
 # Method chooser should be visible again.
 - extendedWaitUntil:
@@ -50,7 +50,7 @@ tags:
     timeout: 5000
 
 # Go back to the import method chooser.
-- tapOn: "Back"
+- pressKey: back
 
 # Method chooser should be visible again.
 - extendedWaitUntil:
