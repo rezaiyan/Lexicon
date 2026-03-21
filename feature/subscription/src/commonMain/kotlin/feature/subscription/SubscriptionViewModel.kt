@@ -158,14 +158,20 @@ class SubscriptionViewModel(
                         analyticsTracker.logEvent("subscription_restore_result", mapOf("success" to "true"))
                     } else {
                         updateState { copy(errorMessage = "NO_PURCHASES_TO_RESTORE") }
-                        analyticsTracker.logEvent("subscription_restore_result", mapOf("success" to "false", "reason" to "no_purchases"))
+                        analyticsTracker.logEvent(
+                            "subscription_restore_result",
+                            mapOf("success" to "false", "reason" to "no_purchases"),
+                        )
                     }
                 }
                 .onFailure { error ->
                     updateState {
                         copy(errorMessage = error.message ?: "RESTORE_PURCHASES_FAILED")
                     }
-                    analyticsTracker.logEvent("subscription_restore_result", mapOf("success" to "false", "reason" to (error.message ?: "unknown")))
+                    analyticsTracker.logEvent(
+                        "subscription_restore_result",
+                        mapOf("success" to "false", "reason" to (error.message ?: "unknown")),
+                    )
                 }
         }
     }
