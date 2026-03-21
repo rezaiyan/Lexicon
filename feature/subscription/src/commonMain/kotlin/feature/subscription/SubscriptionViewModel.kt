@@ -14,7 +14,7 @@ import kotlinx.datetime.toLocalDateTime
 import core.base.BaseViewModel
 import core.common.UiState
 import feature.subscription.ui.SubscriptionData
-import kotlinx.datetime.Instant as DateTimeInstant
+import kotlin.time.Instant
 
 data class SubscriptionScreenState(
     val content: UiState<SubscriptionData> = UiState.Loading,
@@ -68,14 +68,14 @@ class SubscriptionViewModel(
     }
 
     private fun formatDate(epochMillis: Long): String {
-        val dateTimeInstant = DateTimeInstant.fromEpochMilliseconds(epochMillis)
-        val localDateTime = dateTimeInstant.toLocalDateTime(TimeZone.currentSystemDefault())
+        val instant = Instant.fromEpochMilliseconds(epochMillis)
+        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
         val monthNames = listOf(
             "Jan", "Feb", "Mar", "Apr", "May", "Jun",
             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
         )
-        val monthName = monthNames[localDateTime.monthNumber - 1]
-        return "$monthName ${localDateTime.dayOfMonth}, ${localDateTime.year}"
+        val monthName = monthNames[localDateTime.month.ordinal]
+        return "$monthName ${localDateTime.day}, ${localDateTime.year}"
     }
 
     fun loadOfferings() {
@@ -93,7 +93,7 @@ class SubscriptionViewModel(
                         copy(
                             content = UiState.Loaded(
                                 SubscriptionData(
-                                    packages = offerings?.availablePackages ?: emptyList(),
+                                    packages = offerings.availablePackages,
                                     isSubscribed = isSubscribed,
                                     customerInfo = customerInfo,
                                     formattedExpirationDate = formattedExpirationDate,
