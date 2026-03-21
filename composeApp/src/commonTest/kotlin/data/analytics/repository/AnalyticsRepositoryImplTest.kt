@@ -56,10 +56,11 @@ class AnalyticsRepositoryImplTest {
         override suspend fun getLevelTransitions() = Try.success(emptyList<data.analytics.remote.model.LevelTransitionRemoteResponse>())
     }
 
-    private fun makeRepo(
-        stats: FakeStatsDataSource = FakeStatsDataSource(),
-        words: FakeWordDataSource = FakeWordDataSource(),
-    ) = AnalyticsRepositoryImpl(statsDataSource = stats, wordDataSource = words)
+    private fun makeStatsRepo(stats: FakeStatsDataSource = FakeStatsDataSource()) =
+        AnalyticsStatsRepositoryImpl(statsDataSource = stats)
+
+    private fun makeWordRepo(words: FakeWordDataSource = FakeWordDataSource()) =
+        AnalyticsWordRepositoryImpl(wordDataSource = words)
 
     @Test
     fun `getStudyInsights maps response to domain model`() = runTest {
@@ -77,7 +78,7 @@ class AnalyticsRepositoryImplTest {
                 )
             )
         )
-        val repo = makeRepo(stats = stats)
+        val repo = makeStatsRepo(stats = stats)
 
         val result = repo.getStudyInsights()
 
@@ -96,7 +97,7 @@ class AnalyticsRepositoryImplTest {
         val stats = FakeStatsDataSource(
             insightsResult = Try.failure(RuntimeException("Network error"))
         )
-        val repo = makeRepo(stats = stats)
+        val repo = makeStatsRepo(stats = stats)
 
         val result = repo.getStudyInsights()
 
@@ -116,7 +117,7 @@ class AnalyticsRepositoryImplTest {
                 )
             )
         )
-        val repo = makeRepo(words = words)
+        val repo = makeWordRepo(words = words)
 
         val result = repo.getDifficultWords(3, 20)
 
@@ -137,7 +138,7 @@ class AnalyticsRepositoryImplTest {
                 )
             )
         )
-        val repo = makeRepo(words = words)
+        val repo = makeWordRepo(words = words)
 
         val result = repo.getAccuracyByLevel()
 
@@ -148,7 +149,7 @@ class AnalyticsRepositoryImplTest {
 
     @Test
     fun `syncToBackend returns 0 since no local data`() = runTest {
-        val repo = makeRepo()
+        val repo = makeStatsRepo()
 
         val result = repo.syncToBackend()
 

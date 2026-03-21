@@ -5,6 +5,7 @@ import domain.leaderboard.model.Leaderboard
 import domain.leaderboard.model.LeaderboardEntry
 import domain.leaderboard.usecase.GetLeaderboardUseCase
 import domain.leaderboard.repository.ILeaderboardRepository
+import fakes.FakeAnalyticsTracker
 import feature.leaderboard.LeaderboardViewModel
 import feature.leaderboard.model.LeaderboardUiData
 import kotlinx.coroutines.test.runTest
@@ -55,7 +56,7 @@ class LeaderboardViewModelTest : ViewModelTestBase() {
     @Test
     fun `successful load maps to Loaded state`() = runTest {
         val leaderboard = testLeaderboard()
-        val vm = LeaderboardViewModel(createFakeUseCase(Try.success(leaderboard)))
+        val vm = LeaderboardViewModel(createFakeUseCase(Try.success(leaderboard)), FakeAnalyticsTracker())
 
         val state = assertIs<UiState.Loaded<*>>(vm.currentState)
         val data = state.value as LeaderboardUiData
@@ -67,7 +68,8 @@ class LeaderboardViewModelTest : ViewModelTestBase() {
     @Test
     fun `failed load maps to Error state`() = runTest {
         val vm = LeaderboardViewModel(
-            createFakeUseCase(Try.failure(RuntimeException("Network error")))
+            createFakeUseCase(Try.failure(RuntimeException("Network error"))),
+            FakeAnalyticsTracker(),
         )
 
         val state = assertIs<UiState.Error>(vm.currentState)
@@ -84,7 +86,7 @@ class LeaderboardViewModelTest : ViewModelTestBase() {
                 return Try.success(leaderboard)
             }
         }
-        val vm = LeaderboardViewModel(GetLeaderboardUseCase(repo))
+        val vm = LeaderboardViewModel(GetLeaderboardUseCase(repo), FakeAnalyticsTracker())
 
         assertEquals(1, callCount)
         vm.refresh()

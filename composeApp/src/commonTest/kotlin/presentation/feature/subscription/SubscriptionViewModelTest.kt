@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import fakes.FakeAnalyticsTracker
 import presentation.ViewModelTestBase
 import core.common.UiState
 import feature.subscription.SubscriptionViewModel
@@ -61,7 +62,7 @@ class SubscriptionViewModelTest : ViewModelTestBase() {
         override suspend fun cancelSubscription(): Try<Unit> = cancelResult
     }
 
-    private fun createViewModel() = SubscriptionViewModel(fakeSubscriptionManager())
+    private fun createViewModel() = SubscriptionViewModel(fakeSubscriptionManager(), FakeAnalyticsTracker())
 
     @Test
     fun `init loads offerings into Loaded state`() = runTest {

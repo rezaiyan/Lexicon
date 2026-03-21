@@ -1,6 +1,7 @@
 package data.analytics.remote
 
 import core.common.Try
+import core.common.getOrThrow
 import data.analytics.remote.model.SyncAnalyticsRequest
 import data.analytics.remote.model.SyncReviewEventRequest
 import data.analytics.remote.model.SyncSessionRequest
@@ -34,7 +35,7 @@ class AnalyticsRemoteDataSourceTest {
     }
 
     private fun buildDataSource(mockEngine: MockEngine) =
-        AnalyticsRemoteDataSource(buildApiClient(mockEngine))
+        AnalyticsStatsRemoteDataSource(buildApiClient(mockEngine))
 
     private fun successEnvelope(data: String) = """{"success":true,"data":$data}"""
     private fun jsonHeaders() = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
@@ -101,8 +102,8 @@ class AnalyticsRemoteDataSourceTest {
 
         val result = buildDataSource(mockEngine).syncSessions(testSyncRequest())
 
-        assertTrue(result is Try.Success)
-        assertEquals(listOf("s-1", "s-2"), result.value.syncedSessionIds)
+        assertTrue(result.isSuccess)
+        assertEquals(listOf("s-1", "s-2"), result.getOrThrow().syncedSessionIds)
     }
 
     @Test

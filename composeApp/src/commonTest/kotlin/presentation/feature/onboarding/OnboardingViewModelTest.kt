@@ -9,6 +9,7 @@ import domain.onboarding.repository.IOnboardingRepository
 import domain.settings.model.ThemeMode
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.repository.ISettingsRepository
+import fakes.FakeAnalyticsTracker
 import feature.onboarding.OnboardingViewModel
 import feature.onboarding.model.OnboardingEffect
 import kotlinx.coroutines.flow.Flow
@@ -74,7 +75,8 @@ class OnboardingViewModelTest : ViewModelTestBase() {
 
     private fun createViewModel() = OnboardingViewModel(
         submitPreferencesUseCase = fakeSubmitUseCase(),
-        setLanguageUseCase = fakeSetLanguageUseCase()
+        setLanguageUseCase = fakeSetLanguageUseCase(),
+        analyticsTracker = FakeAnalyticsTracker(),
     )
 
     @Test

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
+import fakes.FakeAnalyticsTracker
 import feature.aiimport.AiWordImportViewModel
 import feature.aiimport.model.AiWordImportEffect
 import feature.aiimport.model.AiWordImportStep
@@ -69,7 +70,8 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
 
     private fun createViewModel() = AiWordImportViewModel(
         submitPreferencesUseCase = SubmitPreferencesUseCase(fakeOnboardingRepo()),
-        importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(fakeWordRepo())
+        importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(fakeWordRepo()),
+        analyticsTracker = FakeAnalyticsTracker(),
     )
 
     @Test
