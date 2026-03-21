@@ -5,7 +5,7 @@ class WasmJsTtsEngine : ITtsEngine {
         // TTS not supported on WasmJs
     }
 
-    override suspend fun synthesizeAndPlay(text: String) {
+    override suspend fun synthesizeAndPlay(text: String, speed: Float, speakerId: Int) {
         // TTS not supported on WasmJs
     }
 

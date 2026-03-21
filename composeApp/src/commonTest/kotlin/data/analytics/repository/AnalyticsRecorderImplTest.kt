@@ -5,6 +5,7 @@ import data.analytics.remote.IAnalyticsStatsDataSource
 import data.analytics.remote.model.DailyStatsRemoteResponse
 import data.analytics.remote.model.HeatmapDayResponse
 import data.analytics.remote.model.MonthlyStatsResponse
+import data.analytics.remote.model.ResponseTimeTrendRemoteResponse
 import data.analytics.remote.model.StudyInsightsResponse
 import data.analytics.remote.model.StudySessionResponse
 import data.analytics.remote.model.SyncAnalyticsRequest
@@ -33,6 +34,7 @@ class AnalyticsRecorderImplTest {
         override suspend fun getMonthlyStats() = Try.success(emptyList<MonthlyStatsResponse>())
         override suspend fun getDailyStats(start: String, end: String) = Try.success(emptyList<DailyStatsRemoteResponse>())
         override suspend fun getWeeklyReport() = Try.success(WeeklyReportRemoteResponse())
+        override suspend fun getResponseTimeTrend() = Try.success(emptyList<data.analytics.remote.model.ResponseTimeTrendRemoteResponse>())
     }
 
     private fun reviewEventParams(
