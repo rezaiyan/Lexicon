@@ -185,6 +185,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             ),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
             analyticsTracker = fakeAnalytics(),
+            settingsRepository = settingsRepo,
             ttsRepository = ttsRepo,
         )
     }

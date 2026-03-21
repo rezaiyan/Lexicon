@@ -25,7 +25,6 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
-import feature.insights.InsightsTab
 import feature.insights.InsightsViewModel
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
@@ -98,6 +97,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             averageResponseTimeMs = 2000,
             averageSessionDurationMs = 360000,
             wordsMasteredCount = 10,
+            sessionCompletionRate = null,
         )
 
         fun defaultDailyStats() = listOf(
@@ -232,26 +232,6 @@ class InsightsViewModelTest : ViewModelTestBase() {
 
         val bestTime = assertIs<UiState.Loaded<HourlyAccuracy?>>(vm.currentState.bestStudyTime)
         assertNull(bestTime.value)
-    }
-
-    // endregion
-
-    // region Tab selection
-
-    @Test
-    fun `selectTab updates selectedTab`() = runTest {
-        val vm = createViewModel()
-
-        assertEquals(InsightsTab.OVERVIEW, vm.currentState.selectedTab)
-
-        vm.selectTab(InsightsTab.TRENDS)
-        assertEquals(InsightsTab.TRENDS, vm.currentState.selectedTab)
-
-        vm.selectTab(InsightsTab.WORDS)
-        assertEquals(InsightsTab.WORDS, vm.currentState.selectedTab)
-
-        vm.selectTab(InsightsTab.OVERVIEW)
-        assertEquals(InsightsTab.OVERVIEW, vm.currentState.selectedTab)
     }
 
     // endregion

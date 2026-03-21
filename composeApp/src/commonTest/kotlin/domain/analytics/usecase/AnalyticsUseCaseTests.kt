@@ -83,6 +83,7 @@ class AnalyticsUseCaseTests {
                 uniqueWordsReviewed = 50,
                 averageResponseTimeMs = 2000,
                 averageSessionDurationMs = 360000,
+                sessionCompletionRate = null,
                 wordsMasteredCount = 10,
             )
         )
