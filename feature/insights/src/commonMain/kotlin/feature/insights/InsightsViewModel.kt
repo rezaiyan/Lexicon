@@ -33,6 +33,12 @@ data class InsightsState(
     val dailyInsight: String? = null,
 ) {
     val availability: InsightsAvailability get() = InsightsAvailability.from(this)
+
+    val isLoaded: Boolean get() = overview !is UiState.Loading
+            && difficultWords !is UiState.Loading
+            && accuracyByLevel !is UiState.Loading
+            && heatmap !is UiState.Loading
+            && bestStudyTime !is UiState.Loading
 }
 
 class InsightsViewModel(

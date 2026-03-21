@@ -137,11 +137,13 @@ class ReviewViewModel(
 
     fun startStageReview(stage: LearningStage) {
         loadWordsByStage(stage)
-        beginAnalyticsSession("BROWSE")
-        cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
-        val wordListState = currentState.review.wordListState
-        val cardCount = if (wordListState is UiState.Loaded) wordListState.value.size else 0
-        analyticsTracker.logReviewSessionStart(cardCount = cardCount)
+        viewModelScope.launch {
+            beginAnalyticsSession("BROWSE")
+            cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
+            val wordListState = currentState.review.wordListState
+            val cardCount = if (wordListState is UiState.Loaded) wordListState.value.size else 0
+            analyticsTracker.logReviewSessionStart(cardCount = cardCount)
+        }
     }
 
     fun reviewWord(word: Word, quality: Int) {
@@ -266,19 +268,20 @@ class ReviewViewModel(
         }
     }
 
-    private fun beginAnalyticsSession(reviewType: String) {
+    private suspend fun beginAnalyticsSession(reviewType: String) {
         val sessionId = Clock.System.now().toEpochMilliseconds().toString() +
             "-" + (0..999999).random().toString().padStart(6, '0')
+        val startTime = Clock.System.now().toEpochMilliseconds()
+        sessionSettings = sessionUseCases.getSettings(Unit)
+            .fold(onSuccess = { it }, onFailure = { ReviewSettings.BALANCED })
+        sessionUseCases.startSession(StartStudySessionUseCase.Params(sessionId, reviewType))
+        // Set currentSessionId only after the session is registered in the recorder,
+        // so that recordReviewEvent calls never target an unregistered session.
         currentSessionId = sessionId
-        sessionStartTime = Clock.System.now().toEpochMilliseconds()
+        sessionStartTime = startTime
         reviewedCardCount = 0
         correctCardCount = 0
         incorrectCardCount = 0
-        viewModelScope.launch {
-            sessionSettings = sessionUseCases.getSettings(Unit)
-                .fold(onSuccess = { it }, onFailure = { ReviewSettings.BALANCED })
-            sessionUseCases.startSession(StartStudySessionUseCase.Params(sessionId, reviewType))
-        }
     }
 
     private suspend fun endAnalyticsSession(completedNormally: Boolean) {

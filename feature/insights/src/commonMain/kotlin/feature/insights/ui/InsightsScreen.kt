@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -68,6 +69,8 @@ import kotlinx.datetime.toLocalDateTime
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.insights_accuracy
 import lexicon.resources.generated.resources.insights_accuracy_by_level
+import lexicon.resources.generated.resources.insights_empty_subtitle
+import lexicon.resources.generated.resources.insights_empty_title
 import lexicon.resources.generated.resources.insights_accuracy_format
 import lexicon.resources.generated.resources.insights_accuracy_reviews_format
 import lexicon.resources.generated.resources.insights_best_study_time
@@ -117,23 +120,75 @@ internal fun InsightsContent(
         scrollable = false,
         topBarColor = TopBarColor.Background,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = Theme.spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
-        ) {
-            state.dailyInsight?.let { message ->
-                DailyInsightBanner(message = message, onDismiss = onDismissInsight)
+        if (!state.isLoaded) {
+            LoadingScreen(message = stringResource(Res.string.insights_loading))
+        } else if (!state.availability.hasAnyContent) {
+            EmptyInsightsContent()
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = Theme.spacing.md),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
+            ) {
+                state.dailyInsight?.let { message ->
+                    DailyInsightBanner(message = message, onDismiss = onDismissInsight)
+                }
+                OverviewTab(state)
+                TrendsTab(state)
+                WordsTab(state)
+                Spacer(modifier = Modifier.height(Theme.spacing.xl))
             }
-            OverviewTab(state)
-            TrendsTab(state)
-            WordsTab(state)
-            Spacer(modifier = Modifier.height(Theme.spacing.xl))
         }
     }
 }
+
+// region Empty State
+
+@Composable
+private fun EmptyInsightsContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = Theme.spacing.xl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(40.dp),
+                )
+            }
+            Spacer(modifier = Modifier.height(Theme.spacing.xs))
+            Text(
+                text = stringResource(Res.string.insights_empty_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = stringResource(Res.string.insights_empty_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+// endregion
 
 // region Daily Insight Banner
 

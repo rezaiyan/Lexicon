@@ -133,6 +133,8 @@
     <string name="insights_no_difficult_words">No difficult words found yet. Keep studying!</string>
     <string name="insights_error_rate_format">%1$d%% error</string>
     <string name="insights_reviews_format">%1$d reviews</string>
+    <string name="insights_empty_title">No activity yet</string>
+    <string name="insights_empty_subtitle">Complete a study session to unlock your learning insights</string>
     <string name="languages">Languages</string>
     <string name="member_since">Member since %1$s</string>
     
