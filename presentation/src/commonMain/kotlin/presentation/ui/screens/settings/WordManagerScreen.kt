@@ -204,7 +204,10 @@ internal fun WordManagerContent(
                                             viewModel.deleteSelectedWords()
                                             nav.dismiss()
                                         },
-                                        onDismiss = { nav.dismiss() }
+                                        onDismiss = {
+                                            nav.dismiss()
+                                            viewModel.exitSelectionMode()
+                                        }
                                     )
                                 }
                             }

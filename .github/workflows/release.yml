@@ -172,8 +172,15 @@ jobs:
         env:
           GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
 
+      - name: Cache Kotlin Native toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
       - name: Build Kotlin Multiplatform Framework
-        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace --no-daemon
+        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
 
       - name: Cache SPM packages
         uses: actions/cache@v4
@@ -181,6 +188,13 @@ jobs:
           path: iosApp/SourcePackages
           key: spm-${{ runner.os }}-${{ hashFiles('iosApp/iosApp.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'iosApp/iosApp.xcodeproj/project.pbxproj') }}
           restore-keys: spm-${{ runner.os }}-
+
+      - name: Cache Xcode derived data
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: xcode-deriveddata-${{ runner.os }}-${{ hashFiles('iosApp/iosApp.xcodeproj/project.pbxproj') }}
+          restore-keys: xcode-deriveddata-${{ runner.os }}-
 
       - name: Build and upload to TestFlight
         env:
