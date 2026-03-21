@@ -161,9 +161,19 @@ class TtsRepositoryImplTest {
             initializeCount++
             initialized = initializeSuccess
         }
-        override suspend fun synthesizeAndPlay(text: String, speed: Float, speakerId: Int) { lastSpokenText = text }
-        override suspend fun stop() { stopped = true }
-        override fun release() { initialized = false }
+
+        override suspend fun synthesizeAndPlay(text: String, speed: Float, speakerId: Int) {
+            lastSpokenText = text
+        }
+
+        override suspend fun stop() {
+            stopped = true
+        }
+
+        override fun release() {
+            initialized = false
+        }
+
         override fun isInitialized(): Boolean = initialized
         override fun numSpeakers(): Int = 1
     }
@@ -180,6 +190,7 @@ class TtsRepositoryImplTest {
             languageCode: String,
             extractedDirName: String,
         ): Flow<Float> = flowOf(1.0f)
+
         override fun getModelFilePath(languageCode: String): String = modelPath
         override fun getTokensFilePath(languageCode: String): String = tokensPath
         override fun getDataDir(languageCode: String): String = dataDir
