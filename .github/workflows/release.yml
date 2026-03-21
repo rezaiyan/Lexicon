@@ -12,6 +12,10 @@ on:
           - android
           - ios
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 env:
   VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
   GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
@@ -42,7 +46,7 @@ jobs:
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
 
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -76,9 +80,6 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Install Fastlane
-        run: bundle install
-
       - name: Build and upload to Google Play (closed testing)
         run: bundle exec fastlane android beta
         env:
@@ -90,19 +91,11 @@ jobs:
           GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
 
-      - name: Build release APK
-        run: ./gradlew composeApp:assembleRelease
-        env:
-          RELEASE_STORE_FILE: composeApp/release.keystore
-          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-
-      - name: Upload APK artifact
+      - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: composeApp/build/outputs/apk/release/*.apk
+          name: android-aab
+          path: composeApp/build/outputs/bundle/release/composeApp-release.aab
           retention-days: 30
 
   release-ios:
@@ -111,6 +104,9 @@ jobs:
     if: |
       github.ref == 'refs/heads/main' &&
       (github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
+    timeout-minutes: 70
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -148,11 +144,6 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
           working-directory: iosApp
-
-      - name: Install Fastlane
-        run: |
-          cd iosApp
-          bundle install
 
       - name: Set up certificates and provisioning profiles
         id: ios-certs
@@ -265,11 +256,11 @@ jobs:
             exit 1
           fi
 
-      - name: Download Android APK
+      - name: Download Android AAB
         if: needs.release-android.result == 'success'
         uses: actions/download-artifact@v4
         with:
-          name: android-apk
+          name: android-aab
           path: ./android
 
       - name: Download iOS IPA
@@ -285,5 +276,5 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           generate_release_notes: true
           files: |
-            android/**/*.apk
+            android/*.aab
             ios/*.ipa

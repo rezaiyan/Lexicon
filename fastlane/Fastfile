@@ -65,6 +65,21 @@ platform :android do
     )
   end
 
+  desc "Upload an existing AAB to Google Play without rebuilding (used by CI)"
+  lane :upload do
+    upload_to_play_store(
+      json_key_data: ENV["GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"],
+      track: ENV["GOOGLE_PLAY_TRACK"] || "early-access",
+      aab: "composeApp/build/outputs/bundle/release/composeApp-release.aab",
+      release_status: "completed",
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
   desc "Build and deploy to a closed testing track locally. Use `track` param to specify the track name (default: alpha)."
   lane :deploy do |options|
     project_root = File.expand_path("..", Dir.pwd)

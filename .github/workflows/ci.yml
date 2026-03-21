@@ -65,8 +65,11 @@ jobs:
   changes:
     name: Detect changed paths
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       ios: ${{ steps.filter.outputs.ios }}
+      gradle: ${{ steps.filter.outputs.gradle }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -78,11 +81,17 @@ jobs:
               - 'platforms/**'
               - 'iosApp/**'
               - 'gradle/libs.versions.toml'
+            gradle:
+              - 'gradle/libs.versions.toml'
+              - '**/*.gradle.kts'
+              - 'gradle/*.properties'
 
   check-version:
     name: Check unpublished version
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
     steps:
@@ -142,7 +151,8 @@ jobs:
   # KAN-14: Submit dependency graph for GitHub security alerts
   dependency-submission:
     name: Dependency Submission
-    if: github.ref == 'refs/heads/main'
+    needs: [changes]
+    if: github.ref == 'refs/heads/main' && needs.changes.outputs.gradle == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -286,6 +296,7 @@ jobs:
     runs-on: macos-26
     needs: [changes]
     if: needs.changes.outputs.ios == 'true' || github.ref == 'refs/heads/main'
+    timeout-minutes: 70
     permissions:
       checks: write
       contents: read
@@ -356,6 +367,8 @@ jobs:
       github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -386,6 +399,19 @@ jobs:
       - name: Build Android APK
         run: ./gradlew composeApp:assembleDebug --stacktrace
 
+      - name: Decode release keystore
+        run: echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > composeApp/release.keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+
+      - name: Build release AAB
+        run: ./gradlew composeApp:bundleRelease --stacktrace
+        env:
+          RELEASE_STORE_FILE: composeApp/release.keystore
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+
       # KAN-17: Track APK size per build
       - name: Report APK size
         run: |
@@ -400,6 +426,13 @@ jobs:
         with:
           name: debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+      - name: Upload release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: composeApp/build/outputs/bundle/release/composeApp-release.aab
           retention-days: 7
 
   maestro:
@@ -522,6 +555,42 @@ jobs:
       github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download release AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: release-aab
+          path: composeApp/build/outputs/bundle/release/
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Upload to Google Play (closed testing)
+        run: bundle exec fastlane android upload
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+          GOOGLE_PLAY_TRACK: early-access
+
+  build-web:
+    name: Build Web (wasmJs)
+    runs-on: ubuntu-latest
+    needs: [test, check-version]
+    if: |
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'web')
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -536,51 +605,6 @@ jobs:
 
       - name: Pull LFS files
         run: git lfs pull
-
-      - name: Initialize configuration
-        uses: ./.github/actions/init-config
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-
-      - name: Install Fastlane
-        run: bundle install
-
-      - name: Upload to Google Play (closed testing)
-        run: bundle exec fastlane android beta
-        env:
-          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
-          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
-          ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
-          GOOGLE_PLAY_TRACK: early-access
-
-  build-web:
-    name: Build Web (wasmJs)
-    runs-on: ubuntu-latest
-    needs: [test, check-version]
-    if: |
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
-      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
-      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'web')
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Initialize configuration
         uses: ./.github/actions/init-config
@@ -615,6 +639,8 @@ jobs:
       (needs.maestro.result == 'success' || needs.maestro.result == 'skipped') &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'web')
+    permissions:
+      contents: read
 
     steps:
       - name: Download web distribution
@@ -692,66 +718,21 @@ jobs:
           echo "**Host:** ${VPS_HOST}" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
 
-  build-ios:
-    name: Build iOS
-    runs-on: macos-26
-    needs: [test, test-ios, check-version]
-    if: |
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
-      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
-      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Cache Git LFS
-        uses: actions/cache@v4
-        with:
-          path: .git/lfs
-          key: git-lfs-${{ runner.os }}-${{ hashFiles('platforms/libs/**') }}
-          restore-keys: git-lfs-${{ runner.os }}-
-
-      - name: Pull LFS files
-        run: git lfs pull
-
-      - name: Initialize configuration
-        uses: ./.github/actions/init-config
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          architecture: 'aarch64'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Set up Xcode
-        run: xcodebuild -version
-
-      - name: Cache Kotlin Native toolchain
-        uses: actions/cache@v4
-        with:
-          path: ~/.konan
-          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
-          restore-keys: konan-${{ runner.os }}-
-
-      - name: Build iOS Framework
-        run: ./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64 --stacktrace
-
   deploy-ios:
     name: Deploy iOS to TestFlight
     runs-on: macos-26
-    needs: [build-ios, maestro, check-version]
+    needs: [test, test-ios, maestro, check-version]
     if: |
       always() &&
       github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
-      needs.build-ios.result == 'success' &&
+      needs.test.result == 'success' &&
+      needs.test-ios.result == 'success' &&
       (needs.maestro.result == 'success' || needs.maestro.result == 'skipped') &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
+    timeout-minutes: 70
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -789,11 +770,6 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
           working-directory: iosApp
-
-      - name: Install Fastlane
-        run: |
-          cd iosApp
-          bundle install
 
       - name: Set up certificates and provisioning profiles
         id: ios-certs
