@@ -1,0 +1,46 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - profile
+  - leaderboard
+---
+# Test: Leaderboard screen opens from Profile and can be dismissed.
+#
+# Verifies that tapping "Leaderboard" on the Profile screen opens the
+# leaderboard overlay with its ranking content, and that pressing back
+# dismisses it and returns to the Profile screen.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_profile.yaml
+
+# The Leaderboard button must be visible on the Profile screen.
+- assertVisible: "Leaderboard"
+
+# Tap the Leaderboard button to open the leaderboard overlay.
+- tapOn: "Leaderboard"
+
+- waitForAnimationToEnd
+
+# "Your Ranking" is the footer label unique to the leaderboard screen.
+# Waiting for it confirms the screen loaded — not just that the navigation
+# started (which would still show "Leaderboard" from the Profile button).
+- extendedWaitUntil:
+    visible: "Your Ranking"
+    timeout: 10000
+
+# The refresh button is also unique to the leaderboard screen.
+- assertVisible: "Refresh"
+
+# Dismiss by pressing the system back button.
+- pressKey: back
+
+- waitForAnimationToEnd
+
+# "Your Ranking" must no longer be visible (leaderboard overlay is gone).
+- assertNotVisible: "Your Ranking"
+
+# We should be back on the Profile screen.
+- extendedWaitUntil:
+    visible: "Profile"
+    timeout: 5000

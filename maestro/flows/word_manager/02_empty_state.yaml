@@ -3,11 +3,17 @@ tags:
   - word-manager
   - empty-state
 ---
+# LOCAL ONLY — requires a zero-word account. NOT included in CI config.
+#
 # Test: Word Manager empty state is rendered correctly when the library has no words.
 #
-# NOTE: This flow is only meaningful when the user has zero words in their library.
-# If words exist, the empty state will not be shown and the assertions below will fail.
-# Use this flow on a freshly created test account with no imported words.
+# This flow requires a dedicated test account with no imported words and no
+# server-synced data. The standard CI test account always has data (server sync
+# ensures words are present), so this flow must be run manually on a fresh account:
+#
+#   maestro test maestro/flows/word_manager/02_empty_state.yaml
+#
+# If words exist, the empty state will not be shown and the assertions will fail.
 
 - launchApp:
     clearState: false

@@ -16,26 +16,50 @@
 #      ./gradlew composeApp:assembleDebug
 #   3. Start an Android emulator or connect a device with USB debugging enabled.
 #   4. Ensure the device is not locked / screen is on.
+#
+# ── Flow directories (NOT in CI) ────────────────────────────────────────────
+#
+#   flows/showcase/     — Video recording flows for demo/marketing. Not CI.
+#                         Each flow has cinematic pauses and covers the full
+#                         user journey for a feature.
+#
+#   flows/local_only/   — Developer-only flows (UX audits, screenshot dumps).
+#                         Not CI. Run manually when reviewing UI changes:
+#                           maestro test maestro/flows/local_only/
+#
+#   flows/utils/        — Reusable sub-flows (navigate_to_*, add_test_word).
+#                         Not run directly; called via runFlow from other flows.
+#
+# ── Excluded CI flows ────────────────────────────────────────────────────────
+#
+#   word_manager/02_empty_state.yaml   — Requires a zero-word account.
+#                                        The CI test account always has data
+#                                        (server sync). Run manually on a
+#                                        fresh account.
 
 flows:
   - "flows/navigation/*.yaml"
   - "flows/import/01_manual_text_input.yaml"
   - "flows/import/02_file_import_ui.yaml"
+  # 03_import_sheet_tabs tests in-sheet back navigation (method chooser ↔
+  # language chooser); distinct regression value from 01 and 02.
   - "flows/import/03_import_sheet_tabs.yaml"
-  # 04_import_method_selector excluded: all assertions optional (can never fail);
-  # method selector already implicitly tested by 01, 02, 03 via non-optional "Manually" tap.
-  # 05_manual_import_detailed excluded: UX screenshot audit for local use only.
   - "flows/import/06_image_import_from_gallery.yaml"
   - "flows/study/*.yaml"
-  - "flows/profile/*.yaml"
-  - "flows/settings/*.yaml"
-  # 02_empty_state excluded: requires zero words but server-synced test account always has data.
+  - "flows/profile/01_profile_screen_loads.yaml"
+  - "flows/profile/02_more_options_sheet.yaml"
+  - "flows/profile/03_logout_sheet.yaml"
+  - "flows/profile/04_leaderboard_screen.yaml"
+  - "flows/settings/01_settings_screen_loads.yaml"
+  - "flows/settings/02_theme_dialog.yaml"
+  - "flows/settings/03_notification_settings.yaml"
+  - "flows/settings/04_subscription_screen.yaml"
+  # word_manager/02_empty_state excluded — see header comment in that file.
   - "flows/word_manager/01_screen_loads.yaml"
   - "flows/word_manager/03_search_functionality.yaml"
   - "flows/word_manager/04_select_deselect.yaml"
   - "flows/word_manager/05_edit_word_dialog.yaml"
   - "flows/word_manager/06_delete_flow.yaml"
-  - "flows/word_manager/07_back_navigation.yaml"
   - "flows/word_manager/08_word_detail_sheet.yaml"
 
 executionOrder:
@@ -57,15 +81,16 @@ executionOrder:
     - flows/profile/01_profile_screen_loads.yaml
     - flows/profile/02_more_options_sheet.yaml
     - flows/profile/03_logout_sheet.yaml
+    - flows/profile/04_leaderboard_screen.yaml
     # Settings tests
     - flows/settings/01_settings_screen_loads.yaml
     - flows/settings/02_theme_dialog.yaml
     - flows/settings/03_notification_settings.yaml
-    # Word manager tests run last
+    - flows/settings/04_subscription_screen.yaml
+    # Word manager tests run last (some tests delete words — run destructive last)
     - flows/word_manager/01_screen_loads.yaml
     - flows/word_manager/03_search_functionality.yaml
     - flows/word_manager/04_select_deselect.yaml
     - flows/word_manager/05_edit_word_dialog.yaml
     - flows/word_manager/06_delete_flow.yaml
-    - flows/word_manager/07_back_navigation.yaml
     - flows/word_manager/08_word_detail_sheet.yaml

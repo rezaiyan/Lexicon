@@ -45,6 +45,9 @@ tags:
 # Tap "Select All" again — it toggles to deselect all since every word is selected.
 - tapOn: "Select All"
 
+# Wait for the selection mode exit animation to complete.
+- waitForAnimationToEnd
+
 # After deselecting all, selection mode exits and the bar disappears.
 - assertNotVisible:
     text: ".*selected.*"

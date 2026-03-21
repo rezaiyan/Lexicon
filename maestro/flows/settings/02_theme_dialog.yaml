@@ -15,16 +15,15 @@ tags:
 # Tap the Theme card to open the theme bottom sheet.
 - tapOn: "Theme"
 
-# The bottom sheet should show theme options with their display names.
-- assertVisible:
-    text: "Light"
-    optional: true
-- assertVisible:
-    text: "Dark"
-    optional: true
-- assertVisible:
-    text: "Automatic"
-    optional: true
+# Wait for the bottom sheet to open.
+- waitForAnimationToEnd
+
+# "Light" and "Dark" are universal options that must always be present.
+- assertVisible: "Light"
+- assertVisible: "Dark"
+
+# "Automatic" follows the system setting — always present on both platforms.
+- assertVisible: "Automatic"
 
 # Dismiss the bottom sheet by pressing back.
 - pressKey: back
@@ -32,7 +31,8 @@ tags:
 # Wait for the sheet dismiss animation to complete.
 - waitForAnimationToEnd
 
+# Theme options must no longer be visible (sheet is gone).
+- assertNotVisible: "Light"
+
 # Settings screen should still be visible.
-- extendedWaitUntil:
-    visible: "Theme"
-    timeout: 5000
+- assertVisible: "Theme"

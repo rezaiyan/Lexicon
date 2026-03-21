@@ -8,9 +8,16 @@ tags:
 # Verifies the full manual word entry flow: open import sheet → choose method →
 # pick source language → fill in word/translation/description → tap "Add Word" →
 # success counter shown → close.
+#
+# Uses a unique word name (Import + timestamp) so the word is always NEW and
+# "1 word added" always appears — avoids the "already exist" ambiguity and
+# ensures the backend actually processed the import.
 
 - launchApp:
     clearState: false
+
+# Generate a unique word so the import always succeeds with "1 word added".
+- evalScript: ${output.importWord = 'Import' + Date.now()}
 
 - runFlow: ../utils/navigate_to_study.yaml
 
@@ -49,11 +56,13 @@ tags:
 
 # Fill in the "Original Word" field.
 - tapOn: "Original Word"
-- inputText: "ImportTest"
+- eraseText: 50
+- inputText: "${output.importWord}"
 - hideKeyboard
 
 # Fill in the "Translation" field.
 - tapOn: "Translation"
+- eraseText: 50
 - inputText: "TestImport"
 - hideKeyboard
 
@@ -70,14 +79,11 @@ tags:
 # Tap "Add Word" to submit.
 - tapOn: "Add Word"
 
-# Wait for the operation to complete. On first run "X words added" appears;
-# on repeated runs "already exist in your collection" appears instead.
-- assertVisible:
-    text: "words added"
-    optional: true
-- assertVisible:
-    text: "already exist"
-    optional: true
+# The unique word is always new → "1 word added" must appear.
+# If this times out the backend failed or inputText typed nothing.
+- extendedWaitUntil:
+    visible: "1 word added"
+    timeout: 8000
 
 # Close the import sheet via the X icon (content description: "Close").
 - tapOn: "Close"

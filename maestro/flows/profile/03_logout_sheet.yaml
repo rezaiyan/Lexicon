@@ -42,6 +42,15 @@ tags:
 # Dismiss without logging out by tapping Cancel.
 - tapOn: "Cancel"
 
+# Wait for the dismiss animation to complete.
+- waitForAnimationToEnd
+
+# Sheet must be gone — the confirmation Cancel button should no longer be visible.
+- assertNotVisible:
+    text: "Cancel"
+
 # We should still be on the Profile screen with the user logged in.
-- assertVisible: "Profile"
+- extendedWaitUntil:
+    visible: "Profile"
+    timeout: 5000
 - assertVisible: "Leaderboard"

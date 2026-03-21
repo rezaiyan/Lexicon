@@ -5,6 +5,8 @@ tags:
   - screenshot-audit
   - ux-review
 ---
+# LOCAL ONLY — NOT included in CI config.
+#
 # Detailed UX Audit: Manual Word Import
 #
 # This flow exercises EVERY interaction of the manual text import flow,

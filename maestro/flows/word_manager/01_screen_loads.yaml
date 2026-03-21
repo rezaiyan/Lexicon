@@ -2,13 +2,16 @@ appId: com.alirezaiyan.vokab
 tags:
   - word-manager
   - smoke
+  - navigation
 ---
-# Test: Word Manager screen loads with core UI elements visible.
+# Test: Word Manager screen loads with core UI elements visible and back
+# navigation returns to Settings.
 #
 # Verifies that navigating to the Word Manager screen from the Settings tab
 # successfully renders the top bar — regardless of whether the word library
-# is empty or populated. The search bar and selection bar are only present
-# when words exist (see 02_empty_state.yaml and 03_search_functionality.yaml
+# is empty or populated. Also verifies that the Navigate Back icon returns
+# the user to the Settings screen. The search bar and selection bar are only
+# present when words exist (see 02_empty_state.yaml and 03_search_functionality.yaml
 # for state-specific coverage).
 
 - launchApp:
@@ -32,3 +35,17 @@ tags:
 - assertVisible:
     text: "Search words..."
     optional: true
+
+# --- Back navigation ---
+# Tap the Navigate Back icon (content description from LexiconColumn).
+- tapOn: "Navigate back"
+
+- waitForAnimationToEnd
+
+# Settings screen must be visible after navigating back.
+- extendedWaitUntil:
+    visible: "Manage your vocabulary"
+    timeout: 5000
+
+# The Word Manager search bar must no longer be present on the Settings screen.
+- assertNotVisible: "Search words..."

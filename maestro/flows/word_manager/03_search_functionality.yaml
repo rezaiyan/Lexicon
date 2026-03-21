@@ -24,7 +24,7 @@ tags:
 # The "No results found" message must appear.
 - assertVisible: "No matching words"
 
-# The word list items must be hidden (filtered out).
+# The search field placeholder disappears once text has been entered.
 - assertNotVisible: "Search words..."
 
 # Clear the search using the Clear icon (content description: "Cancel").

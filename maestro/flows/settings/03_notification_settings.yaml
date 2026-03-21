@@ -34,7 +34,8 @@ tags:
 # Wait for the sheet dismiss animation to complete.
 - waitForAnimationToEnd
 
+# Sheet must be gone — notification settings title should no longer be visible.
+- assertNotVisible: "Notification Settings"
+
 # Settings screen should still be visible.
-- extendedWaitUntil:
-    visible: "Theme"
-    timeout: 5000
+- assertVisible: "Theme"

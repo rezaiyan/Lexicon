@@ -17,17 +17,13 @@ tags:
 # The "Import Words" button must always be visible (content description).
 - assertVisible: "Import Words"
 
-# Empty state: "Ready to Learn?" heading may be visible if no words exist.
-- assertVisible:
-    text: "Ready to Learn?"
-    optional: true
+# Import tests run before study tests and add at least one new word (always due).
+# "Start Review" must be visible — new words are immediately available for review.
+- extendedWaitUntil:
+    visible: "Start Review"
+    timeout: 5000
 
-# Populated state: "Start Review" button may be visible if due words exist.
-- assertVisible:
-    text: "Start Review"
-    optional: true
-
-# Populated state: "Review Due Cards" may be visible as an alternative label.
+# "Review Due Cards" is an alternative label shown for larger due counts.
 - assertVisible:
     text: "Review Due Cards"
     optional: true

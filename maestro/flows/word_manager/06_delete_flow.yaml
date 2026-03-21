@@ -48,8 +48,15 @@ tags:
 # Dismiss — do NOT actually delete words.
 - tapOn: "Cancel"
 
+# Wait for the dialog dismiss animation.
+- waitForAnimationToEnd
+
 # The dialog must be dismissed.
 - assertNotVisible: "Delete Words?"
+
+# Cancelling the delete dialog should also exit selection mode.
+- assertNotVisible:
+    text: ".*selected.*"
 
 # The word list must still be intact.
 - assertVisible: "Search words..."

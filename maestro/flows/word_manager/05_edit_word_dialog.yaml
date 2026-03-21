@@ -53,12 +53,14 @@ tags:
 # Dismiss the dialog without saving.
 - tapOn: "Cancel"
 
+# Wait for the dialog dismiss animation.
+- waitForAnimationToEnd
+
 # The dialog must be gone.
 - assertNotVisible: "Edit Word"
 
-# Close the detail bottom sheet by tapping outside (top area above the sheet).
-- tapOn:
-    point: "50%,10%"
+# Close the detail bottom sheet.
+- pressKey: back
 
 # Wait for the sheet dismiss animation.
 - waitForAnimationToEnd

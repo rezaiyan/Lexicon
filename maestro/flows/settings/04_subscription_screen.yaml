@@ -1,0 +1,53 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - settings
+  - subscription
+---
+# Test: Subscription screen opens from Settings and renders core UI.
+#
+# Verifies that tapping the Subscription card in Settings opens the
+# subscription screen. "Unlock Premium" is the hero heading present on
+# the non-subscribed paywall — it appears before RevenueCat finishes
+# loading prices, so it is a reliable early render signal.
+# Does NOT trigger actual purchases.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# The Subscription card must be visible on the Settings screen.
+- assertVisible: "Subscription"
+
+# Tap the Subscription card.
+- tapOn: "Subscription"
+
+- waitForAnimationToEnd
+
+# "Unlock Premium" is the hero heading rendered immediately on the paywall
+# before RevenueCat loads. Waiting for it confirms the screen opened.
+- extendedWaitUntil:
+    visible: "Unlock Premium"
+    timeout: 10000
+
+# The comparison table header confirms the full screen layout loaded.
+- assertVisible: "Features"
+
+# The restore link must be present (bottom of screen — may need scroll).
+- scrollUntilVisible:
+    element: "Restore My Purchases"
+    direction: DOWN
+    timeout: 5000
+
+# Dismiss by pressing the system back button.
+- pressKey: back
+
+- waitForAnimationToEnd
+
+# "Unlock Premium" must no longer be visible (screen is gone).
+- assertNotVisible: "Unlock Premium"
+
+# We should be back on the Settings screen.
+- extendedWaitUntil:
+    visible: "Subscription"
+    timeout: 5000

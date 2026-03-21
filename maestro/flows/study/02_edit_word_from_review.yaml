@@ -60,6 +60,9 @@ tags:
 # Tap "Save" to save the changes.
 - tapOn: "Save"
 
+# Wait for the sheet dismiss animation before asserting it is gone.
+- waitForAnimationToEnd
+
 # The sheet must close — "Edit Word" title should no longer be visible.
 - assertNotVisible: "Edit Word"
 
