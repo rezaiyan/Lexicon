@@ -12,8 +12,10 @@ import domain.analytics.usecase.EndStudySessionUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
 import domain.settings.model.ReviewSettings
+import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
+import domain.tts.model.TtsSettings
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
 import domain.tts.usecase.SpeakWordUseCase
@@ -29,7 +31,9 @@ import feature.study.model.ReviewScreenState
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
@@ -52,6 +56,7 @@ data class ReviewSessionUseCases(
 data class ReviewState(
     val review: ReviewScreenState = ReviewScreenState(),
     val ttsState: TtsState = TtsState.Idle,
+    val speechRate: Float = TtsSettings.DEFAULT_SPEECH_RATE,
 )
 
 sealed class ReviewEffect {
@@ -63,6 +68,7 @@ class ReviewViewModel(
     private val sessionUseCases: ReviewSessionUseCases,
     private val speakWordUseCase: SpeakWordUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val settingsRepository: ISettingsRepository,
     ttsRepository: ITtsRepository,
 ) : BaseViewModel<ReviewState, ReviewEffect>() {
 
@@ -78,6 +84,7 @@ class ReviewViewModel(
 
     init {
         observeTtsState(ttsRepository)
+        observeSpeechRate()
     }
 
     private fun observeTtsState(ttsRepository: ITtsRepository) {
@@ -86,6 +93,16 @@ class ReviewViewModel(
                 updateState { copy(ttsState = state) }
             }
         }
+    }
+
+    private fun observeSpeechRate() {
+        settingsRepository.getTtsSettings()
+            .onEach { settings -> updateState { copy(speechRate = settings.speechRate) } }
+            .launchIn(viewModelScope)
+    }
+
+    fun setTtsSpeechRate(rate: Float) {
+        viewModelScope.launch { settingsRepository.setTtsSpeechRate(rate) }
     }
 
     fun startReview() {

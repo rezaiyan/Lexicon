@@ -645,4 +645,9 @@
     <string name="tts_models_delete_all_title">すべてのTTSモデルを削除しますか？</string>
     <string name="tts_models_delete_all_message">ダウンロード済みのすべての音声モデルが削除されます。必要に応じて自動的に再ダウンロードされます。</string>
     <string name="tts_models_none_downloaded">ダウンロード済みのモデルはありません</string>
+    <string name="tts_playback_speed">再生速度</string>
+    <string name="tts_playback_speed_value">%1$sx</string>
+    <string name="tts_voice_selection">音声</string>
+    <string name="tts_voice_speaker">スピーカー %1$d</string>
+    <string name="tts_playback_settings">再生設定</string>
 </resources>

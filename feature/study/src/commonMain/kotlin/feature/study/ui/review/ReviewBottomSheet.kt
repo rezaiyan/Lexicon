@@ -46,7 +46,9 @@ fun ReviewBottomSheet(
     onDeleteWord: (Int, () -> Unit) -> Unit,
     initialWord: Word? = null,
     ttsState: TtsState = TtsState.Idle,
-    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> }
+    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> },
+    speechRate: Float = 1.0f,
+    onSpeechRateChanged: (Float) -> Unit = {},
 ) {
     val wordListState = state.wordListState
     val reviewType = state.reviewType
@@ -260,6 +262,8 @@ fun ReviewBottomSheet(
                                 onSpeakClick = onSpeakClick,
                                 isAutoPlayEnabled = isAutoPlayEnabled,
                                 onAutoPlayToggle = { isAutoPlayEnabled = it },
+                                speechRate = speechRate,
+                                onSpeechRateChanged = onSpeechRateChanged,
                             )
                         }
                     }

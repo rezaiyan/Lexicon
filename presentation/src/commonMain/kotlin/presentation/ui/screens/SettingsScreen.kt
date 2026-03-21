@@ -20,8 +20,8 @@ import presentation.ui.components.settings.NotificationSettingsCard
 import presentation.ui.components.settings.SubscriptionCard
 import presentation.ui.components.settings.ThemeSettingsCard
 import presentation.ui.components.settings.TtsModelCacheCard
-import presentation.ui.components.settings.TtsModelCacheContent
-import presentation.ui.components.settings.TtsModelDeleteConfirmationContent
+import presentation.ui.components.settings.TtsDeleteConfirmationContent
+import presentation.ui.components.settings.TtsVoiceManagerContent
 import presentation.ui.components.settings.WordManagerCard
 import presentation.ui.permissions.rememberNotificationPermissionRequester
 import presentation.ui.permissions.wasNotificationPermissionDenied
@@ -130,15 +130,19 @@ fun SettingsScreen(
                     viewModel.loadTtsModels()
                     overlayHost.showSizeToFitBottomSheet(tag = "tts-model-cache") { nav ->
                         val currentState by viewModel.state()
-                        TtsModelCacheContent(
+                        TtsVoiceManagerContent(
                             models = currentState.ttsModels,
                             isLoading = currentState.ttsModelsLoading,
                             totalSizeBytes = currentState.ttsTotalSizeBytes,
+                            downloadProgress = currentState.ttsDownloadProgress,
+                            ttsSettings = currentState.ttsSettings,
+                            onSpeechRateChanged = { rate -> viewModel.setTtsSpeechRate(rate) },
+                            onDownloadModel = { languageCode -> viewModel.downloadTtsModel(languageCode) },
                             onDeleteModel = { languageCode ->
                                 val model = currentState.ttsModels.find { it.languageCode == languageCode }
                                 val displayName = model?.languageDisplayName ?: languageCode
                                 overlayHost.showSizeToFitBottomSheet(tag = "tts-delete-confirm") { confirmNav ->
-                                    TtsModelDeleteConfirmationContent(
+                                    TtsDeleteConfirmationContent(
                                         languageDisplayName = displayName,
                                         onConfirm = {
                                             viewModel.deleteTtsModel(languageCode)
@@ -147,6 +151,9 @@ fun SettingsScreen(
                                         onDismiss = { confirmNav.dismiss() },
                                     )
                                 }
+                            },
+                            onVoiceSelected = { languageCode, speakerId ->
+                                viewModel.setTtsVoice(languageCode, speakerId)
                             },
                         )
                     }

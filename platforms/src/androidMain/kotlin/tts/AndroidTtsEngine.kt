@@ -49,15 +49,15 @@ class AndroidTtsEngine : ITtsEngine {
         }
     }
 
-    override suspend fun synthesizeAndPlay(text: String) {
+    override suspend fun synthesizeAndPlay(text: String, speed: Float, speakerId: Int) {
         withContext(Dispatchers.IO) {
             val tts = offlineTts ?: run {
                 Log.w(TAG, "synthesizeAndPlay called but TTS not initialized")
                 return@withContext
             }
 
-            Log.d(TAG, "Generating audio for: \"$text\"")
-            val audio = tts.generate(text = text, sid = 0, speed = 1.0f)
+            Log.d(TAG, "Generating audio for: \"$text\" (speed=$speed, sid=$speakerId)")
+            val audio = tts.generate(text = text, sid = speakerId, speed = speed)
             if (!coroutineContext.isActive) return@withContext
 
             val samples = audio.samples
@@ -126,6 +126,8 @@ class AndroidTtsEngine : ITtsEngine {
     }
 
     override fun isInitialized(): Boolean = offlineTts != null
+
+    override fun numSpeakers(): Int = offlineTts?.numSpeakers() ?: 1
 
     companion object {
         private const val TAG = "TtsEngine"

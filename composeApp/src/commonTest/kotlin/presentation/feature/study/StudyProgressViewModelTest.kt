@@ -136,16 +136,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
-    private fun fakeAnalyticsRepo() = object : IAnalyticsStatsRepository {
-        override suspend fun getStudyInsights() = Try.success(domain.analytics.model.StudyInsights(0, 0, 0.0, 0, 0, 0, 0, null, null, 0))
-        override suspend fun getDailyStats(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.DailyStudyStats>())
-        override suspend fun getRecentSessions(limit: Int) = Try.success(emptyList<domain.analytics.model.StudySession>())
-        override suspend fun getStudyHeatmap(startDate: String, endDate: String) = Try.success(emptyList<domain.analytics.model.StudyHeatmapDay>())
-        override suspend fun getWeeklyReport() = Try.success(WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", ""))
-        override suspend fun getMonthlyStats() = Try.success(emptyList<domain.analytics.model.MonthlyStats>())
-        override suspend fun syncToBackend() = Try.success(0)
-    }
-
     private fun createViewModel(): StudyProgressViewModel {
         val wordRepo = fakeWordRepo()
         val settingsRepo = fakeSettingsRepo()
@@ -154,7 +144,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             getProgressStatsUseCase = GetProgressStatsUseCase(wordRepo),
             evaluateProgressUseCase = EvaluateProgressUseCase(),
             scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
-            getWeeklyReportUseCase = GetWeeklyReportUseCase(fakeAnalyticsRepo()),
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),

@@ -67,6 +67,8 @@ fun ReviewContent(
     onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> },
     isAutoPlayEnabled: Boolean = false,
     onAutoPlayToggle: (Boolean) -> Unit = {},
+    speechRate: Float = 1.0f,
+    onSpeechRateChanged: (Float) -> Unit = {},
 ) {
     // Animate the "tap to reveal" hint alpha outside the nested Box lambda to
     // avoid Kotlin's implicit-receiver overload resolution picking ColumnScope.AnimatedVisibility.
@@ -85,7 +87,9 @@ fun ReviewContent(
             totalCount = words.size,
             isAutoPlayEnabled = isAutoPlayEnabled,
             onAutoPlayToggle = onAutoPlayToggle,
-            onClose = onClose
+            speechRate = speechRate,
+            onSpeechRateChanged = onSpeechRateChanged,
+            onClose = onClose,
         )
 
         // ── Card slot: fills all remaining vertical space ─────────────────

@@ -645,4 +645,9 @@
     <string name="tts_models_delete_all_title">Usunąć wszystkie modele TTS?</string>
     <string name="tts_models_delete_all_message">Wszystkie pobrane modele głosowe zostaną usunięte. Zostaną automatycznie pobrane ponownie, gdy będą potrzebne.</string>
     <string name="tts_models_none_downloaded">Brak pobranych modeli</string>
+    <string name="tts_playback_speed">Prędkość odtwarzania</string>
+    <string name="tts_playback_speed_value">%1$sx</string>
+    <string name="tts_voice_selection">Głos</string>
+    <string name="tts_voice_speaker">Głośnik %1$d</string>
+    <string name="tts_playback_settings">Ustawienia odtwarzania</string>
 </resources>

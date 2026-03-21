@@ -18,7 +18,10 @@ import domain.settings.usecase.SetThemeModeUseCase
 import domain.tts.model.TtsModelInfo
 import domain.tts.repository.ITtsRepository
 import domain.tts.model.TtsState
+import domain.settings.usecase.SetTtsVoiceUseCase
+import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.tts.usecase.DeleteTtsModelUseCase
+import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -150,8 +153,11 @@ class SettingsViewModelTest : ViewModelTestBase() {
             openNotificationSettingsUseCase = OpenNotificationSettingsUseCase(notifRepo),
             analyticsTracker = fakeAnalytics(),
             notificationPermissionMonitor = NotificationPermissionMonitor(notifRepo),
-            getTtsModelsInfoUseCase = GetTtsModelsInfoUseCase(ttsRepo),
+            getTtsModelsInfoUseCase = GetTtsModelsInfoUseCase(ttsRepo, settingsRepo),
             deleteTtsModelUseCase = DeleteTtsModelUseCase(ttsRepo),
+            downloadTtsModelUseCase = DownloadTtsModelUseCase(ttsRepo),
+            setTtsSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),
+            setTtsVoiceUseCase = SetTtsVoiceUseCase(settingsRepo),
             settingsRepository = settingsRepo,
             authRepository = fakeAuthRepo(),
             appVersionProvider = fakeAppVersionProvider()

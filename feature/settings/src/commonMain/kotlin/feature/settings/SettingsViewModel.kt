@@ -10,14 +10,20 @@ import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
+import domain.settings.usecase.SetTtsVoiceUseCase
+import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.tts.model.TtsModelInfo
+import domain.tts.model.TtsSettings
 import domain.tts.usecase.DeleteTtsModelUseCase
+import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
 import core.common.getOrDefault
 import core.common.fold
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import platform.IAppVersionProvider
@@ -33,6 +39,8 @@ data class SettingsState(
     val ttsModelsLoading: Boolean = false,
     val ttsTotalSizeBytes: Long = 0L,
     val ttsDownloadedCount: Int = 0,
+    val ttsSettings: TtsSettings = TtsSettings(),
+    val ttsDownloadProgress: Map<String, Float> = emptyMap(),
 )
 
 @Suppress("LongParameterList")
@@ -47,6 +55,9 @@ class SettingsViewModel(
     private val notificationPermissionMonitor: NotificationPermissionMonitor,
     private val getTtsModelsInfoUseCase: GetTtsModelsInfoUseCase,
     private val deleteTtsModelUseCase: DeleteTtsModelUseCase,
+    private val downloadTtsModelUseCase: DownloadTtsModelUseCase,
+    private val setTtsSpeechRateUseCase: SetTtsSpeechRateUseCase,
+    private val setTtsVoiceUseCase: SetTtsVoiceUseCase,
     settingsRepository: ISettingsRepository,
     authRepository: IAuthRepository,
     appVersionProvider: IAppVersionProvider,
@@ -65,6 +76,7 @@ class SettingsViewModel(
     init {
         initializeNotificationState()
         observeSettingsState(settingsRepository, authRepository, appVersionProvider)
+        observeTtsSettings(settingsRepository)
     }
 
     private fun observeSettingsState(
@@ -89,6 +101,12 @@ class SettingsViewModel(
                 updateState { copy(screen = screenState) }
             }
         }
+    }
+
+    private fun observeTtsSettings(settingsRepository: ISettingsRepository) {
+        settingsRepository.getTtsSettings()
+            .onEach { settings -> updateState { copy(ttsSettings = settings) } }
+            .launchIn(viewModelScope)
     }
 
     private fun initializeNotificationState() {
@@ -144,9 +162,9 @@ class SettingsViewModel(
         }
     }
 
-    fun loadTtsModels() {
+    fun loadTtsModels(silently: Boolean = false) {
         viewModelScope.launch {
-            updateState { copy(ttsModelsLoading = true) }
+            if (!silently) updateState { copy(ttsModelsLoading = true) }
             getTtsModelsInfoUseCase().fold(
                 onSuccess = { models ->
                     updateState {
@@ -168,9 +186,33 @@ class SettingsViewModel(
     fun deleteTtsModel(languageCode: String) {
         viewModelScope.launch {
             deleteTtsModelUseCase(languageCode).fold(
-                onSuccess = { loadTtsModels() },
+                onSuccess = { loadTtsModels(silently = true) },
                 onFailure = { /* silent failure — model list will reflect current state on next load */ }
             )
+        }
+    }
+
+    fun downloadTtsModel(languageCode: String) {
+        viewModelScope.launch {
+            downloadTtsModelUseCase(languageCode)
+                .collect { progress ->
+                    updateState { copy(ttsDownloadProgress = ttsDownloadProgress + (languageCode to progress)) }
+                }
+            updateState { copy(ttsDownloadProgress = ttsDownloadProgress - languageCode) }
+            loadTtsModels(silently = true)
+        }
+    }
+
+    fun setTtsSpeechRate(rate: Float) {
+        viewModelScope.launch {
+            setTtsSpeechRateUseCase(rate)
+        }
+    }
+
+    fun setTtsVoice(languageCode: String, speakerId: Int) {
+        viewModelScope.launch {
+            setTtsVoiceUseCase(SetTtsVoiceUseCase.Params(languageCode, speakerId))
+            loadTtsModels(silently = true)
         }
     }
 }

@@ -1,14 +1,18 @@
 package data.tts.repository
 
 import core.common.Try
+import core.common.getOrDefault
 import data.tts.LanguageModelMapping
+import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsModelInfo
+import domain.tts.model.TtsSettings
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -20,6 +24,7 @@ class TtsRepositoryImpl(
     private val ttsEngine: ITtsEngine,
     private val modelFileManager: IModelFileManager,
     private val performanceTracer: IPerformanceTracer,
+    private val settingsRepository: ISettingsRepository,
 ) : ITtsRepository {
 
     private val _ttsState = MutableStateFlow<TtsState>(TtsState.Idle)
@@ -50,10 +55,13 @@ class TtsRepositoryImpl(
             }
 
             currentLoadedLanguage = languageCode
+            settingsRepository.cacheNumSpeakersForLanguage(languageCode, ttsEngine.numSpeakers())
         }
 
+        val ttsSettings = settingsRepository.getTtsSettings().first()
+        val speakerId = settingsRepository.getTtsVoiceForLanguage(languageCode).first()
         _ttsState.value = TtsState.Speaking
-        ttsEngine.synthesizeAndPlay(text)
+        ttsEngine.synthesizeAndPlay(text, ttsSettings.speechRate, speakerId)
         _ttsState.value = TtsState.Idle
     }
 
@@ -104,11 +112,19 @@ class TtsRepositoryImpl(
         } else {
             0L
         }
+        val numSpeakers = if (isDownloaded && currentLoadedLanguage == languageCode && ttsEngine.isInitialized()) {
+            ttsEngine.numSpeakers()
+        } else if (isDownloaded) {
+            Try { settingsRepository.getNumSpeakersForLanguage(languageCode).first() }.getOrDefault(1)
+        } else {
+            LanguageModelMapping.getModelInfo(languageCode)?.numSpeakers ?: 1
+        }
         TtsModelInfo(
             languageCode = languageCode,
             languageDisplayName = displayName,
             isDownloaded = isDownloaded,
             sizeBytes = sizeBytes,
+            numSpeakers = numSpeakers,
         )
     }
 

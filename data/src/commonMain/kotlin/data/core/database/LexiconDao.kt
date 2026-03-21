@@ -31,5 +31,7 @@ data class SettingsEntityData(
     val reviewReminders: Boolean = true,
     val motivationalMessages: Boolean = true,
     val dailyReminderTime: String = "18:00",
-    val minimumDueCards: Int = 5
+    val minimumDueCards: Int = 5,
+    val ttsSpeed: Float = 1.0f,
+    val ttsSpeakerId: Int = 0,
 )

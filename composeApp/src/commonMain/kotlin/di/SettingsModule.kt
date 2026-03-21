@@ -12,6 +12,8 @@ import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
+import domain.settings.usecase.SetTtsVoiceUseCase
+import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.streak.repository.IStreakRepository
 import domain.streak.usecase.GetStreakUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
@@ -44,6 +46,8 @@ fun settingsModule() = module {
     singleOf(::SetLanguageUseCase)
     singleOf(::SetThemeModeUseCase)
     singleOf(::SetNotificationsEnabledUseCase)
+    singleOf(::SetTtsSpeechRateUseCase)
+    singleOf(::SetTtsVoiceUseCase)
 
     // Use Cases - Streak
     singleOf(::GetStreakUseCase)

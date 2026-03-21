@@ -1,7 +1,9 @@
 package data.settings.local
 
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import data.core.database.LexiconQueries
 import data.core.database.SettingsEntityData
@@ -25,7 +27,9 @@ class SettingsLocalDataSourceImpl(
                         reviewReminders = it.reviewReminders != 0L,
                         motivationalMessages = it.motivationalMessages != 0L,
                         dailyReminderTime = it.dailyReminderTime,
-                        minimumDueCards = it.minimumDueCards.toInt()
+                        minimumDueCards = it.minimumDueCards.toInt(),
+                        ttsSpeed = it.ttsSpeed.toFloat(),
+                        ttsSpeakerId = it.ttsSpeakerId.toInt(),
                     )
                 }
             }
@@ -40,7 +44,9 @@ class SettingsLocalDataSourceImpl(
             reviewReminders = entity.reviewReminders != 0L,
             motivationalMessages = entity.motivationalMessages != 0L,
             dailyReminderTime = entity.dailyReminderTime,
-            minimumDueCards = entity.minimumDueCards.toInt()
+            minimumDueCards = entity.minimumDueCards.toInt(),
+            ttsSpeed = entity.ttsSpeed.toFloat(),
+            ttsSpeakerId = entity.ttsSpeakerId.toInt(),
         )
     }
 
@@ -53,11 +59,33 @@ class SettingsLocalDataSourceImpl(
             reviewReminders = if (data.reviewReminders) 1L else 0L,
             motivationalMessages = if (data.motivationalMessages) 1L else 0L,
             dailyReminderTime = data.dailyReminderTime,
-            minimumDueCards = data.minimumDueCards.toLong()
+            minimumDueCards = data.minimumDueCards.toLong(),
+            ttsSpeed = data.ttsSpeed.toDouble(),
+            ttsSpeakerId = data.ttsSpeakerId.toLong(),
         )
     }
 
     override suspend fun clearSettings() {
         queries.clearSettings()
+    }
+
+    override fun observeVoicePreferences(): Flow<Map<String, Int>> =
+        queries.selectAllVoicePreferences().asFlow().mapToList(Dispatchers.Default)
+            .map { rows -> rows.associate { it.languageCode to it.speakerId.toInt() } }
+
+    override suspend fun setVoiceForLanguage(languageCode: String, speakerId: Int) {
+        val existing = queries.selectVoicePreferenceForLanguage(languageCode).awaitAsOneOrNull()
+        val currentNumSpeakers = existing?.numSpeakers ?: 1L
+        queries.upsertVoicePreference(languageCode, speakerId.toLong(), currentNumSpeakers)
+    }
+
+    override fun getNumSpeakersForLanguage(languageCode: String): Flow<Int> =
+        queries.selectAllVoicePreferences().asFlow().mapToList(Dispatchers.Default)
+            .map { rows -> rows.find { it.languageCode == languageCode }?.numSpeakers?.toInt() ?: 1 }
+
+    override suspend fun cacheNumSpeakersForLanguage(languageCode: String, numSpeakers: Int) {
+        val existing = queries.selectVoicePreferenceForLanguage(languageCode).awaitAsOneOrNull()
+        val currentSpeakerId = existing?.speakerId ?: 0L
+        queries.upsertVoicePreference(languageCode, currentSpeakerId, numSpeakers.toLong())
     }
 }

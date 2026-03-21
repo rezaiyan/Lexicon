@@ -25,16 +25,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RichTooltip
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,12 +58,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import components.CounterPill
 import components.GradientProgressBar
+import domain.tts.model.TtsSettings
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.auto_play
 import lexicon.resources.generated.resources.close
+import lexicon.resources.generated.resources.tts_playback_speed
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
@@ -60,16 +74,22 @@ import theme.Theme
  * Compact top bar: close button (left), session title (center), card counter chip (right).
  * A full-bleed gradient progress strip runs along the bottom edge — no horizontal padding
  * so it spans edge-to-edge and feels like a native reading indicator.
+ *
+ * Long-pressing the auto-play toggle opens a rich tooltip with a speech speed slider.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ReviewTopBar(
     currentIndex: Int,
     totalCount: Int,
     isAutoPlayEnabled: Boolean,
+    speechRate: Float,
     onAutoPlayToggle: (Boolean) -> Unit,
-    onClose: () -> Unit
+    onSpeechRateChanged: (Float) -> Unit,
+    onClose: () -> Unit,
 ) {
     val progress = (currentIndex + 1).toFloat() / totalCount.toFloat()
+    val tooltipState = rememberTooltipState(isPersistent = true)
 
     Column {
         Row(
@@ -93,10 +113,25 @@ internal fun ReviewTopBar(
 
             Spacer(Modifier.weight(1F))
 
-            AutoPlayToggle(
-                enabled = isAutoPlayEnabled,
-                onToggle = onAutoPlayToggle
-            )
+            TooltipBox(
+                positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
+                tooltip = {
+                    RichTooltip(
+                        title = { Text(stringResource(Res.string.tts_playback_speed)) },
+                    ) {
+                        SpeedSliderContent(
+                            speechRate = speechRate,
+                            onSpeechRateChanged = onSpeechRateChanged,
+                        )
+                    }
+                },
+                state = tooltipState,
+            ) {
+                AutoPlayToggle(
+                    enabled = isAutoPlayEnabled,
+                    onToggle = onAutoPlayToggle,
+                )
+            }
             Spacer(Modifier.size(Theme.spacing.md))
 
             CounterPill(text = "${currentIndex + 1} / $totalCount")
@@ -112,6 +147,42 @@ internal fun ReviewTopBar(
             animationDurationMs = 350
         )
     }
+}
+
+@Composable
+private fun SpeedSliderContent(
+    speechRate: Float,
+    onSpeechRateChanged: (Float) -> Unit,
+) {
+    var sliderValue by remember(speechRate) { mutableFloatStateOf(speechRate) }
+
+    Row(
+        modifier = Modifier.width(220.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(Theme.spacing.xs),
+    ) {
+        Slider(
+            value = sliderValue,
+            onValueChange = { sliderValue = it },
+            onValueChangeFinished = { onSpeechRateChanged(sliderValue) },
+            valueRange = TtsSettings.MIN_SPEECH_RATE..TtsSettings.MAX_SPEECH_RATE,
+            steps = 5,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            text = formatSpeed(sliderValue) + "x",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+private fun formatSpeed(speed: Float): String {
+    val rounded = kotlin.math.round(speed * 10) / 10.0
+    val whole = rounded.toLong()
+    val decimal = kotlin.math.round((rounded - whole) * 10).toInt()
+    return "$whole.$decimal"
 }
 
 /**

@@ -24,6 +24,7 @@ import sherpa_onnx.SherpaOnnxDestroyOfflineTts
 import sherpa_onnx.SherpaOnnxDestroyOfflineTtsGeneratedAudio
 import sherpa_onnx.SherpaOnnxOfflineTtsConfig
 import sherpa_onnx.SherpaOnnxOfflineTtsGenerate
+import sherpa_onnx.SherpaOnnxOfflineTtsNumSpeakers
 import sherpa_onnx.SherpaOnnxOfflineTtsSampleRate
 import sherpa_onnx.SherpaOnnxWriteWave
 import cnames.structs.SherpaOnnxOfflineTts
@@ -65,15 +66,15 @@ class IosTtsEngine : ITtsEngine {
         }
     }
 
-    override suspend fun synthesizeAndPlay(text: String) {
+    override suspend fun synthesizeAndPlay(text: String, speed: Float, speakerId: Int) {
         withContext(Dispatchers.IO) {
             val tts = ttsPtr ?: run {
                 NSLog("IosTtsEngine: synthesizeAndPlay called but not initialized")
                 return@withContext
             }
 
-            NSLog("IosTtsEngine: Generating audio for: \"$text\"")
-            val audio = SherpaOnnxOfflineTtsGenerate(tts, text, 0, 1.0f) ?: run {
+            NSLog("IosTtsEngine: Generating audio for: \"$text\" (speed=$speed, sid=$speakerId)")
+            val audio = SherpaOnnxOfflineTtsGenerate(tts, text, speakerId, speed) ?: run {
                 NSLog("IosTtsEngine: Generate returned null")
                 return@withContext
             }
@@ -139,4 +140,6 @@ class IosTtsEngine : ITtsEngine {
     }
 
     override fun isInitialized(): Boolean = ttsPtr != null
+
+    override fun numSpeakers(): Int = ttsPtr?.let { SherpaOnnxOfflineTtsNumSpeakers(it).toInt() } ?: 1
 }

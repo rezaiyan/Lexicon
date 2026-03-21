@@ -10,7 +10,8 @@ object LanguageModelMapping {
 
     data class PiperModelInfo(
         val archiveUrl: String,
-        val extractedDirName: String
+        val extractedDirName: String,
+        val numSpeakers: Int = 1,
     )
 
     private const val BASE = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models"

@@ -23,7 +23,9 @@ fun ReviewBottomSheetContent(
     onDeleteWord: (Int, () -> Unit) -> Unit,
     initialWord: Word? = null,
     ttsState: TtsState = TtsState.Idle,
-    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> }
+    onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> },
+    speechRate: Float = 1.0f,
+    onSpeechRateChanged: (Float) -> Unit = {},
 ) {
     ReviewBottomSheet(
         state = reviewState.copy(reviewType = reviewType),
@@ -35,7 +37,9 @@ fun ReviewBottomSheetContent(
         onDeleteWord = onDeleteWord,
         initialWord = initialWord,
         ttsState = ttsState,
-        onSpeakClick = onSpeakClick
+        onSpeakClick = onSpeakClick,
+        speechRate = speechRate,
+        onSpeechRateChanged = onSpeechRateChanged,
     )
 }
 

@@ -23,6 +23,9 @@ fun settingsModule() = module {
             appVersionProvider = get(),
             getTtsModelsInfoUseCase = get(),
             deleteTtsModelUseCase = get(),
+            downloadTtsModelUseCase = get(),
+            setTtsSpeechRateUseCase = get(),
+            setTtsVoiceUseCase = get(),
         )
     }
 }

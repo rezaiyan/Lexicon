@@ -13,4 +13,6 @@ data class TtsModelInfo(
     val languageDisplayName: String,
     val isDownloaded: Boolean,
     val sizeBytes: Long,
+    val numSpeakers: Int = 1,
+    val selectedSpeakerId: Int = 0,
 )

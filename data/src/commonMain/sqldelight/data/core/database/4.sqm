@@ -1,0 +1,4 @@
+-- Migration from version 4 to version 5
+-- Adds numSpeakers column to TtsVoicePreference for caching per-model speaker count
+
+ALTER TABLE TtsVoicePreference ADD COLUMN numSpeakers INTEGER NOT NULL DEFAULT 1;

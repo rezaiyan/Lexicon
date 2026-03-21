@@ -3,6 +3,7 @@ package di
 import data.tts.repository.TtsRepositoryImpl
 import domain.tts.repository.ITtsRepository
 import domain.tts.usecase.DeleteTtsModelUseCase
+import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
 import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
@@ -22,6 +23,7 @@ fun ttsModule() = module {
             ttsEngine = get(),
             modelFileManager = get(),
             performanceTracer = get(),
+            settingsRepository = get(),
         )
     }
 
@@ -29,4 +31,5 @@ fun ttsModule() = module {
     singleOf(::StopSpeakingUseCase)
     singleOf(::GetTtsModelsInfoUseCase)
     singleOf(::DeleteTtsModelUseCase)
+    singleOf(::DownloadTtsModelUseCase)
 }

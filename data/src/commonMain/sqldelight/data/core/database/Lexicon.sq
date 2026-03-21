@@ -24,7 +24,9 @@ CREATE TABLE SettingsEntity (
     reviewReminders INTEGER NOT NULL DEFAULT 1,
     motivationalMessages INTEGER NOT NULL DEFAULT 1,
     dailyReminderTime TEXT NOT NULL DEFAULT '18:00',
-    minimumDueCards INTEGER NOT NULL DEFAULT 5
+    minimumDueCards INTEGER NOT NULL DEFAULT 5,
+    ttsSpeed REAL NOT NULL DEFAULT 1.0,
+    ttsSpeakerId INTEGER NOT NULL DEFAULT 0
 );
 
 -- Word queries
@@ -129,14 +131,35 @@ LIMIT 1;
 -- Settings queries
 
 insertSettings:
-INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards)
-VALUES (?, ?,?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSettings:
 SELECT * FROM SettingsEntity WHERE id = 1;
 
 clearSettings:
 DELETE FROM SettingsEntity;
+
+-- TtsVoicePreference table
+CREATE TABLE TtsVoicePreference (
+    languageCode TEXT NOT NULL PRIMARY KEY,
+    speakerId INTEGER NOT NULL DEFAULT 0,
+    numSpeakers INTEGER NOT NULL DEFAULT 1
+);
+
+-- TtsVoicePreference queries
+
+selectVoiceForLanguage:
+SELECT speakerId FROM TtsVoicePreference WHERE languageCode = ?;
+
+selectVoicePreferenceForLanguage:
+SELECT speakerId, numSpeakers FROM TtsVoicePreference WHERE languageCode = ?;
+
+selectAllVoicePreferences:
+SELECT languageCode, speakerId, numSpeakers FROM TtsVoicePreference;
+
+upsertVoicePreference:
+INSERT OR REPLACE INTO TtsVoicePreference(languageCode, speakerId, numSpeakers) VALUES (?, ?, ?);
 
 -- Progress stats aggregate query
 

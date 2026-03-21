@@ -1,0 +1,5 @@
+-- Migration from version 2 to version 3
+-- Adds TTS playback settings columns to SettingsEntity
+
+ALTER TABLE SettingsEntity ADD COLUMN ttsSpeed REAL NOT NULL DEFAULT 1.0;
+ALTER TABLE SettingsEntity ADD COLUMN ttsSpeakerId INTEGER NOT NULL DEFAULT 0;

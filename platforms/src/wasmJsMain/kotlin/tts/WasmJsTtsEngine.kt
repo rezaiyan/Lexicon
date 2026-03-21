@@ -18,4 +18,6 @@ class WasmJsTtsEngine : ITtsEngine {
     }
 
     override fun isInitialized(): Boolean = false
+
+    override fun numSpeakers(): Int = 1
 }

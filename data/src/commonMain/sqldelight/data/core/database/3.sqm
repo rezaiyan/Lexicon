@@ -1,0 +1,7 @@
+-- Migration from version 3 to version 4
+-- Adds per-language TTS voice preference table
+
+CREATE TABLE TtsVoicePreference (
+    languageCode TEXT NOT NULL PRIMARY KEY,
+    speakerId INTEGER NOT NULL DEFAULT 0
+);

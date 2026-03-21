@@ -49,8 +49,6 @@ import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
 import feature.study.ui.study.StatsSection
 import feature.insights.navigation.showInsightsSheet
-import feature.study.model.WeeklyReportUiModel
-import feature.study.ui.study.WeeklyReportCard
 import feature.study.ui.study.WordDistributionBar
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -247,7 +245,9 @@ fun StudyScreen() {
                                             onComplete()
                                         },
                                         ttsState = sheetTts,
-                                        onSpeakClick = reviewViewModel::speakWord
+                                        onSpeakClick = reviewViewModel::speakWord,
+                                        speechRate = reviewState.speechRate,
+                                        onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
                                     )
                                 }
                             }
@@ -264,17 +264,6 @@ fun StudyScreen() {
                         onImportWords = openImportSheet,
                         onStartReview = { reviewViewModel.startReview() }
                     )
-
-                    val weeklyReport = (progressState.weeklyReport as? UiState.Loaded)?.value
-                    if (weeklyReport is WeeklyReportUiModel.Content) {
-                        Spacer(Modifier.height(Theme.spacing.sm))
-                        WeeklyReportCard(
-                            report = weeklyReport,
-                            onViewInsights = {
-                                overlayHost.showInsightsSheet()
-                            },
-                        )
-                    }
 
                     WordDistributionBar(stats = loadedStats)
 
@@ -302,7 +291,9 @@ fun StudyScreen() {
                                         onComplete()
                                     },
                                     ttsState = sheetTts,
-                                    onSpeakClick = reviewViewModel::speakWord
+                                    onSpeakClick = reviewViewModel::speakWord,
+                                    speechRate = reviewState.speechRate,
+                                    onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
                                 )
                             }
                             reviewViewModel.startStageReview(stage)

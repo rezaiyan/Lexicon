@@ -3,10 +3,12 @@ package data.settings.repository
 import core.common.Try
 import data.core.database.SettingsEntityData
 import data.settings.local.ISettingsLocalDataSource
-import domain.settings.repository.ISettingsRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import domain.settings.model.ThemeMode
+import domain.settings.repository.ISettingsRepository
+import domain.tts.model.TtsSettings
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import utils.Language
 
 class SettingsRepositoryImpl(
@@ -83,6 +85,35 @@ class SettingsRepositoryImpl(
         val current = localDataSource.getSettings() ?: SettingsEntityData()
         val updated = current.copy(minimumDueCards = count)
         localDataSource.saveSettings(updated)
+    }
+
+    override fun getTtsSettings(): Flow<TtsSettings> {
+        return localDataSource.observeSettings().map { settings ->
+            TtsSettings(
+                speechRate = settings?.ttsSpeed ?: TtsSettings.DEFAULT_SPEECH_RATE,
+            )
+        }
+    }
+
+    override suspend fun setTtsSpeechRate(rate: Float): Try<Unit> = Try {
+        val current = localDataSource.getSettings() ?: SettingsEntityData()
+        localDataSource.saveSettings(current.copy(ttsSpeed = rate))
+    }
+
+    override fun getTtsVoiceForLanguage(languageCode: String): Flow<Int> =
+        localDataSource.observeVoicePreferences().map { prefs ->
+            prefs[languageCode] ?: TtsSettings.DEFAULT_SPEAKER_ID
+        }
+
+    override suspend fun setTtsVoiceForLanguage(languageCode: String, speakerId: Int): Try<Unit> = Try {
+        localDataSource.setVoiceForLanguage(languageCode, speakerId)
+    }
+
+    override fun getNumSpeakersForLanguage(languageCode: String): Flow<Int> =
+        localDataSource.getNumSpeakersForLanguage(languageCode)
+
+    override suspend fun cacheNumSpeakersForLanguage(languageCode: String, numSpeakers: Int): Try<Unit> = Try {
+        localDataSource.cacheNumSpeakersForLanguage(languageCode, numSpeakers)
     }
 
     override suspend fun clearSettings(): Try<Unit> = Try {

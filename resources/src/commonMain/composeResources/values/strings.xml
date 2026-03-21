@@ -677,6 +677,14 @@
     <string name="tts_models_delete_all_title">Delete All TTS Models?</string>
     <string name="tts_models_delete_all_message">All downloaded voice models will be removed. They will be re-downloaded automatically when needed.</string>
     <string name="tts_models_none_downloaded">No models downloaded</string>
+    <string name="tts_playback_speed">Playback Speed</string>
+    <string name="tts_playback_speed_value">%1$sx</string>
+    <string name="tts_model_download">Download</string>
+    <string name="tts_model_downloading">Downloading…</string>
+    <string name="tts_voice_selection">Voice</string>
+    <string name="tts_voice_speaker">Speaker %1$d</string>
+    <string name="tts_playback_settings">Playback Settings</string>
+    <string name="tts_all_languages">All Languages</string>
 
     <!-- Leaderboard -->
     <string name="leaderboard">Leaderboard</string>
