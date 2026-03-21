@@ -2,6 +2,7 @@ package presentation.feature.insights
 
 import core.common.Try
 import core.common.UiState
+import data.storage.DailyInsightCache
 import domain.analytics.model.AccuracyByLevel
 import domain.analytics.model.ComebackWord
 import domain.analytics.model.DailyStudyStats
@@ -76,6 +77,13 @@ class InsightsViewModelTest : ViewModelTestBase() {
 
     // region Helpers
 
+    private class FakeDailyInsightCache(initial: String? = null) : DailyInsightCache {
+        private var value: String? = initial
+        override fun getDailyInsight(): String? = value
+        override fun saveDailyInsight(message: String) { value = message }
+        override fun clearDailyInsight() { value = null }
+    }
+
     companion object {
         fun defaultInsights() = StudyInsights(
             totalCardsReviewed = 100,
@@ -121,6 +129,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
 
     private fun createViewModel(
         repo: FakeAnalyticsRepository = FakeAnalyticsRepository(),
+        dailyInsightCache: DailyInsightCache = FakeDailyInsightCache(),
     ): InsightsViewModel {
         return InsightsViewModel(
             getStudyInsightsUseCase = GetStudyInsightsUseCase(repo),
@@ -129,6 +138,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             getAccuracyByLevelUseCase = GetAccuracyByLevelUseCase(repo),
             getStudyHeatmapUseCase = GetStudyHeatmapUseCase(repo),
             getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
+            dailyInsightCache = dailyInsightCache,
         )
     }
 

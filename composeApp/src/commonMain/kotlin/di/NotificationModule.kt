@@ -5,6 +5,7 @@ import data.notification.remote.PushNotificationDataSource
 import data.notification.remote.model.Platform
 import data.notification.repository.NotificationRepositoryImpl
 import data.notification.repository.PushTokenRepositoryImpl
+import data.storage.DailyInsightCache
 import data.storage.SecureStorage
 import domain.notifications.repository.INotificationRepository
 import domain.notifications.repository.IPushTokenRepository
@@ -37,6 +38,9 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
             ),
             notification.payload.SignOutHandler(
                 clearAllUserDataUseCase = get()
+            ),
+            notification.payload.DailyInsightHandler(
+                dailyInsightCache = get<DailyInsightCache>()
             ),
             notification.payload.NoOpHandler("streak_reminder"),
             notification.payload.NoOpHandler("review_reminder"),

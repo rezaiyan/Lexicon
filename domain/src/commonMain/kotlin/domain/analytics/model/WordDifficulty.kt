@@ -1,7 +1,7 @@
 package domain.analytics.model
 
 data class WordDifficulty(
-    val wordId: Int,
+    val wordId: Long,
     val wordText: String,
     val wordTranslation: String,
     val sourceLanguage: String,

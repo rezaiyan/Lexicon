@@ -8,6 +8,7 @@ import data.analytics.remote.model.StudyInsightsResponse
 import data.analytics.remote.model.StudySessionResponse
 import data.analytics.remote.model.SyncAnalyticsRequest
 import data.analytics.remote.model.SyncAnalyticsResponse
+import data.analytics.remote.model.ResponseTimeTrendRemoteResponse
 import data.analytics.remote.model.WeeklyReportRemoteResponse
 
 interface IAnalyticsStatsDataSource {
@@ -18,4 +19,5 @@ interface IAnalyticsStatsDataSource {
     suspend fun getRecentSessions(limit: Int): Try<List<StudySessionResponse>>
     suspend fun getWeeklyReport(): Try<WeeklyReportRemoteResponse>
     suspend fun getMonthlyStats(): Try<List<MonthlyStatsResponse>>
+    suspend fun getResponseTimeTrend(): Try<List<ResponseTimeTrendRemoteResponse>>
 }

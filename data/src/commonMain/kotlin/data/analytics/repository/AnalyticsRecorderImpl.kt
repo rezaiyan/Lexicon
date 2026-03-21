@@ -14,6 +14,7 @@ import kotlinx.coroutines.sync.withLock
 /**
  * In-memory analytics recorder that buffers events during a session
  * and sends everything to the backend when the session ends.
+ * Failed syncs are added to a retry queue and re-attempted on the next session end.
  */
 class AnalyticsRecorderImpl(
     private val remoteDataSource: IAnalyticsStatsDataSource,
@@ -28,6 +29,7 @@ class AnalyticsRecorderImpl(
 
     private val mutex = Mutex()
     private val sessions: MutableMap<String, SessionData> = mutableMapOf()
+    private val retryQueue: MutableList<SyncAnalyticsRequest> = mutableListOf()
 
     override suspend fun startSession(
         sessionId: String,
@@ -53,10 +55,13 @@ class AnalyticsRecorderImpl(
         incorrectCount: Int,
         completedNormally: Boolean,
     ): Try<Unit> {
-        val session = mutex.withLock { sessions.remove(sessionId) }
-            ?: return Try.success(Unit)
+        val (session, pending) = mutex.withLock {
+            val s = sessions.remove(sessionId) ?: return Try.success(Unit)
+            val p = retryQueue.toList().also { retryQueue.clear() }
+            s to p
+        }
 
-        val request = SyncAnalyticsRequest(
+        val newRequest = SyncAnalyticsRequest(
             sessions = listOf(
                 SyncSessionRequest(
                     clientSessionId = session.sessionId,
@@ -73,15 +78,20 @@ class AnalyticsRecorderImpl(
             )
         )
 
-        return remoteDataSource.syncSessions(request).let { result ->
+        // Merge retry sessions + current session into one request (backend accepts a list)
+        val allSessions = pending.flatMap { it.sessions } + newRequest.sessions
+        val combinedRequest = SyncAnalyticsRequest(sessions = allSessions)
+
+        return remoteDataSource.syncSessions(combinedRequest).let { result ->
             when (result) {
                 is Try.Success -> {
-                    logNetwork("AnalyticsRecorder", "Session ${session.sessionId} sent to backend")
+                    logNetwork("AnalyticsRecorder", "Session ${session.sessionId} sent to backend (retried ${pending.size} pending)")
                     Try.success(Unit)
                 }
                 is Try.Failure -> {
-                    logNetwork("AnalyticsRecorder", "Failed to send session: ${result.throwable.message}")
-                    // Silently fail — analytics should not block the user
+                    logNetwork("AnalyticsRecorder", "Failed to send session: ${result.throwable.message}. Queuing for retry.")
+                    // Keep current session in retry queue — do not block the user
+                    mutex.withLock { retryQueue.addAll(pending + listOf(newRequest)) }
                     Try.success(Unit)
                 }
             }

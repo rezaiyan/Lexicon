@@ -13,13 +13,6 @@ data class InsightsAvailability(
     val hasTrends: Boolean,
     val hasWords: Boolean,
 ) {
-    val visibleTabs: List<InsightsTab>
-        get() = buildList {
-            if (hasOverview) add(InsightsTab.OVERVIEW)
-            if (hasTrends) add(InsightsTab.TRENDS)
-            if (hasWords) add(InsightsTab.WORDS)
-        }
-
     val hasAnyContent: Boolean
         get() = hasOverview || hasTrends || hasWords
 

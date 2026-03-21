@@ -11,10 +11,10 @@ class NotificationPayloadHandlerRegistry(
         return type?.let { handlers[it] }
     }
     
-    fun handle(type: String?, data: Map<String, String>) {
+    fun handle(type: String?, body: String, data: Map<String, String>) {
         getHandler(type)?.let { handler ->
             CoroutineScope(Dispatchers.Default).launch {
-                handler.handle(data)
+                handler.handle(data + ("body" to body))
             }
         }
     }

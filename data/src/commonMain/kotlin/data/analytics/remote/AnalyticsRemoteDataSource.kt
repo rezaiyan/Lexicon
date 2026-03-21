@@ -12,8 +12,10 @@ import data.analytics.remote.model.HeatmapDayResponse
 import data.analytics.remote.model.HourlyAccuracyResponse
 import data.analytics.remote.model.LanguagePairStatsResponse
 import data.analytics.remote.model.MasteredWordResponse
+import data.analytics.remote.model.LevelTransitionRemoteResponse
 import data.analytics.remote.model.MonthlyStatsResponse
 import data.analytics.remote.model.MostReviewedWordResponse
+import data.analytics.remote.model.ResponseTimeTrendRemoteResponse
 import data.analytics.remote.model.StudyInsightsResponse
 import data.analytics.remote.model.StudySessionResponse
 import data.analytics.remote.model.SyncAnalyticsRequest
@@ -72,4 +74,10 @@ class AnalyticsRemoteDataSource(
 
     override suspend fun getWeeklyReport(): Try<WeeklyReportRemoteResponse> =
         apiClient.getNotNull("/analytics/weekly-report")
+
+    override suspend fun getResponseTimeTrend(): Try<List<ResponseTimeTrendRemoteResponse>> =
+        apiClient.getNotNull("/analytics/response-time-trend")
+
+    override suspend fun getLevelTransitions(): Try<List<LevelTransitionRemoteResponse>> =
+        apiClient.getNotNull("/analytics/level-transitions")
 }

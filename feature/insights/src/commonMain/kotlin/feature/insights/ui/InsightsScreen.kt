@@ -1,6 +1,10 @@
 package feature.insights.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,53 +17,59 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import components.ErrorScreen
 import components.LoadingScreen
+import components.Pill
 import components.scaffold.LexiconColumn
 import components.scaffold.TopBarColor
+import core.common.UiState
 import core.common.onError
 import core.common.onLoaded
 import core.common.onLoading
 import domain.analytics.model.AccuracyByLevel
+import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.WordDifficulty
 import feature.insights.InsightsState
-import feature.insights.InsightsTab
 import feature.insights.InsightsViewModel
 import kotlin.math.roundToInt
+import kotlin.time.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.toLocalDateTime
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.insights_accuracy
 import lexicon.resources.generated.resources.insights_accuracy_by_level
 import lexicon.resources.generated.resources.insights_accuracy_format
 import lexicon.resources.generated.resources.insights_accuracy_reviews_format
-import lexicon.resources.generated.resources.insights_activity_summary
-import lexicon.resources.generated.resources.insights_activity_title
 import lexicon.resources.generated.resources.insights_best_study_time
 import lexicon.resources.generated.resources.insights_cards_reviewed
 import lexicon.resources.generated.resources.insights_days_studied
@@ -69,13 +79,9 @@ import lexicon.resources.generated.resources.insights_loading
 import lexicon.resources.generated.resources.insights_loading_levels
 import lexicon.resources.generated.resources.insights_loading_words
 import lexicon.resources.generated.resources.insights_most_difficult_words
-import lexicon.resources.generated.resources.insights_no_difficult_words
-import lexicon.resources.generated.resources.insights_no_review_data
 import lexicon.resources.generated.resources.insights_reviews_format
 import lexicon.resources.generated.resources.insights_sessions_words
-import lexicon.resources.generated.resources.insights_tab_overview
-import lexicon.resources.generated.resources.insights_tab_trends
-import lexicon.resources.generated.resources.insights_tab_words
+import lexicon.resources.generated.resources.insights_this_week
 import lexicon.resources.generated.resources.insights_title
 import lexicon.resources.generated.resources.insights_total_study_time
 import lexicon.resources.generated.resources.insights_words_mastered
@@ -92,20 +98,17 @@ fun InsightsScreen(
 
     InsightsContent(
         state = state,
-        onTabSelected = viewModel::selectTab,
         onNavigateBack = onNavigateBack,
+        onDismissInsight = { viewModel.dismissDailyInsight() },
     )
 }
 
 @Composable
-private fun InsightsContent(
+internal fun InsightsContent(
     state: InsightsState,
-    onTabSelected: (InsightsTab) -> Unit,
     onNavigateBack: () -> Unit,
+    onDismissInsight: () -> Unit = {},
 ) {
-    val availability = state.availability
-    val visibleTabs = availability.visibleTabs
-
     LexiconColumn(
         title = stringResource(Res.string.insights_title),
         showNavigationIcon = true,
@@ -121,52 +124,59 @@ private fun InsightsContent(
                 .padding(horizontal = Theme.spacing.md),
             verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
         ) {
-            if (visibleTabs.size > 1) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                ) {
-                    visibleTabs.forEach { tab ->
-                        FilterChip(
-                            selected = state.selectedTab == tab,
-                            onClick = { onTabSelected(tab) },
-                            label = {
-                                Text(
-                                    tabLabel(tab),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = if (state.selectedTab == tab) {
-                                        FontWeight.SemiBold
-                                    } else {
-                                        FontWeight.Normal
-                                    },
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
-                            shape = RoundedCornerShape(Theme.shapes.pill),
-                        )
-                    }
-                }
+            state.dailyInsight?.let { message ->
+                DailyInsightBanner(message = message, onDismiss = onDismissInsight)
             }
-
-            when (state.selectedTab) {
-                InsightsTab.OVERVIEW -> OverviewTab(state)
-                InsightsTab.TRENDS -> if (availability.hasTrends) TrendsTab(state)
-                InsightsTab.WORDS -> if (availability.hasWords) WordsTab(state)
-            }
-
+            OverviewTab(state)
+            TrendsTab(state)
+            WordsTab(state)
             Spacer(modifier = Modifier.height(Theme.spacing.xl))
         }
     }
 }
 
+// region Daily Insight Banner
+
 @Composable
-private fun tabLabel(tab: InsightsTab): String = when (tab) {
-    InsightsTab.OVERVIEW -> stringResource(Res.string.insights_tab_overview)
-    InsightsTab.TRENDS -> stringResource(Res.string.insights_tab_trends)
-    InsightsTab.WORDS -> stringResource(Res.string.insights_tab_words)
+private fun DailyInsightBanner(message: String, onDismiss: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.medium))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "Daily Insight",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+        IconButton(
+            onClick = onDismiss,
+            modifier = Modifier.size(Theme.dimensions.iconSize),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Dismiss",
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
 }
+
+// endregion
 
 // region Overview
 
@@ -176,11 +186,15 @@ private fun OverviewTab(state: InsightsState) {
         .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading)) }
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { insights ->
-            OverviewCards(insights)
+            if (state.availability.hasOverview) {
+                HeroSection(insights)
+                Spacer(modifier = Modifier.height(Theme.spacing.sm))
+                OverviewCards(insights)
+            }
         }
 
     state.bestStudyTime.onLoaded { bestTime ->
-        if (bestTime != null) {
+        if (bestTime != null && state.availability.hasOverview) {
             MetricRow(
                 icon = Icons.Default.Schedule,
                 iconTint = MaterialTheme.colorScheme.tertiary,
@@ -193,6 +207,26 @@ private fun OverviewTab(state: InsightsState) {
 }
 
 @Composable
+private fun HeroSection(insights: StudyInsights) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Theme.spacing.sm),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        SectionLabel(stringResource(Res.string.insights_cards_reviewed))
+        Spacer(modifier = Modifier.height(Theme.spacing.xxs))
+        Text(
+            text = insights.totalCardsReviewed.toString(),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
 private fun OverviewCards(insights: StudyInsights) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -200,24 +234,11 @@ private fun OverviewCards(insights: StudyInsights) {
     ) {
         StatCard(
             modifier = Modifier.weight(1f),
-            icon = Icons.AutoMirrored.Filled.MenuBook,
-            iconTint = MaterialTheme.colorScheme.primary,
-            label = stringResource(Res.string.insights_cards_reviewed),
-            value = insights.totalCardsReviewed.toString(),
-        )
-        StatCard(
-            modifier = Modifier.weight(1f),
             icon = Icons.AutoMirrored.Filled.TrendingUp,
             iconTint = MaterialTheme.colorScheme.secondary,
             label = stringResource(Res.string.insights_accuracy),
             value = "${insights.accuracyPercent.roundToInt()}%",
         )
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
-    ) {
         StatCard(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.Star,
@@ -260,18 +281,8 @@ private fun TrendsTab(state: InsightsState) {
         .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading_levels)) }
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { levels ->
-            if (levels.isEmpty()) {
-                Text(
-                    stringResource(Res.string.insights_no_review_data),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                Text(
-                    stringResource(Res.string.insights_accuracy_by_level),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
+            if (levels.isNotEmpty()) {
+                SectionLabel(stringResource(Res.string.insights_accuracy_by_level))
                 Spacer(Modifier.height(Theme.spacing.xs))
                 levels.forEachIndexed { index, level ->
                     LevelAccuracyRow(level)
@@ -285,28 +296,19 @@ private fun TrendsTab(state: InsightsState) {
             }
         }
 
-    state.heatmap.onLoaded { days ->
-        if (days.isNotEmpty()) {
-            Text(
-                stringResource(Res.string.insights_activity_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(
-                stringResource(
-                    Res.string.insights_activity_summary,
-                    days.size,
-                    days.sumOf { it.count },
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    val heatmapDays = when (val h = state.heatmap) {
+        is UiState.Loaded -> h.value
+        else -> emptyList()
     }
+    ThisWeekSection(heatmapDays = heatmapDays)
 }
 
 @Composable
 private fun LevelAccuracyRow(level: AccuracyByLevel) {
+    val accuracyFraction = (level.accuracyPercent / 100.0).toFloat().coerceIn(0f, 1f)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -323,24 +325,138 @@ private fun LevelAccuracyRow(level: AccuracyByLevel) {
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
             )
-            Text(
-                stringResource(
-                    Res.string.insights_accuracy_reviews_format,
-                    level.accuracyPercent.roundToInt(),
-                    level.totalReviews.toInt(),
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+            ) {
+                Text(
+                    stringResource(
+                        Res.string.insights_accuracy_reviews_format,
+                        level.accuracyPercent.roundToInt(),
+                        level.totalReviews.toInt(),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "${level.accuracyPercent.roundToInt()}%",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
-        LinearProgressIndicator(
-            progress = { (level.accuracyPercent / 100.0).toFloat() },
+        // Custom thin track using Box instead of LinearProgressIndicator
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(Theme.spacing.xs)
-                .clip(RoundedCornerShape(Theme.shapes.pill)),
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            strokeCap = StrokeCap.Round,
+                .height(4.dp)
+                .clip(RoundedCornerShape(Theme.shapes.pill))
+                .background(trackColor),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(accuracyFraction)
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(Theme.shapes.pill))
+                    .background(primaryColor),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThisWeekSection(heatmapDays: List<StudyHeatmapDay>) {
+    val today = remember {
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+    }
+    val todayStr = remember(today) { today.toString() }
+    val last7Days = remember(today, heatmapDays) {
+        val countByDate = heatmapDays.associate { it.date to it.count }
+        (6 downTo 0).map { daysAgo ->
+            val date = today.minus(daysAgo, DateTimeUnit.DAY)
+            StudyHeatmapDay(date = date.toString(), count = countByDate[date.toString()] ?: 0)
+        }
+    }
+    val maxCount = last7Days.maxOfOrNull { it.count }.takeIf { it != null && it > 0 } ?: 1
+
+    SectionLabel(stringResource(Res.string.insights_this_week))
+    Spacer(Modifier.height(Theme.spacing.xs))
+    // Bars float directly on the background — no Surface container
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Theme.spacing.md),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        last7Days.forEachIndexed { index, day ->
+            WeekDayBar(day = day, maxCount = maxCount, todayStr = todayStr, index = index)
+        }
+    }
+}
+
+@Composable
+private fun WeekDayBar(day: StudyHeatmapDay, maxCount: Int, todayStr: String, index: Int) {
+    val isToday = day.date == todayStr
+    val fraction = day.count.toFloat() / maxCount
+    val targetFraction = fraction.coerceAtLeast(0.15f)
+    val animatedFraction = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay((index * 60).toLong())
+        animatedFraction.animateTo(
+            targetValue = targetFraction,
+            animationSpec = tween(500, easing = FastOutSlowInEasing),
+        )
+    }
+
+    val barHeight = 120.dp * animatedFraction.value
+    val shadowHeight = 120.dp * (animatedFraction.value * 1.5f).coerceAtMost(1f)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val shadowColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    val barAlpha = if (isToday) 1f else (0.4f + fraction * 0.6f)
+
+    val dayLabel = remember(day.date) {
+        try {
+            LocalDate.parse(day.date).dayOfWeek.name.take(3)
+        } catch (_: Exception) {
+            "???"
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (day.count > 0) {
+            Text(
+                day.count.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Medium,
+                color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(Theme.spacing.xxxs))
+        }
+        Box(contentAlignment = Alignment.BottomCenter) {
+            Box(
+                Modifier
+                    .width(32.dp)
+                    .height(shadowHeight)
+                    .clip(RoundedCornerShape(50))
+                    .background(shadowColor),
+            )
+            Box(
+                Modifier
+                    .width(32.dp)
+                    .height(barHeight)
+                    .clip(RoundedCornerShape(50))
+                    .background(primaryColor.copy(alpha = barAlpha)),
+            )
+        }
+        Spacer(Modifier.height(Theme.spacing.xs))
+        Text(
+            dayLabel,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
+            color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -355,18 +471,8 @@ private fun WordsTab(state: InsightsState) {
         .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading_words)) }
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { words ->
-            if (words.isEmpty()) {
-                Text(
-                    stringResource(Res.string.insights_no_difficult_words),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                Text(
-                    stringResource(Res.string.insights_most_difficult_words),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
+            if (words.isNotEmpty()) {
+                SectionLabel(stringResource(Res.string.insights_most_difficult_words))
                 Spacer(Modifier.height(Theme.spacing.xs))
                 words.forEachIndexed { index, word ->
                     DifficultWordRow(word)
@@ -384,6 +490,7 @@ private fun WordsTab(state: InsightsState) {
 
 @Composable
 private fun DifficultWordRow(word: WordDifficulty) {
+    val errorPercent = (word.errorRate * 100).roundToInt()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -405,12 +512,15 @@ private fun DifficultWordRow(word: WordDifficulty) {
         }
         Spacer(modifier = Modifier.width(Theme.spacing.sm))
         Column(horizontalAlignment = Alignment.End) {
-            Text(
-                stringResource(Res.string.insights_error_rate_format, (word.errorRate * 100).roundToInt()),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
+            // Error rate as styled pill using design-system Pill component
+            Pill(
+                text = stringResource(Res.string.insights_error_rate_format, errorPercent),
                 color = MaterialTheme.colorScheme.error,
+                backgroundColor = MaterialTheme.colorScheme.errorContainer,
+                height = 22.dp,
+                cornerRadius = Theme.shapes.extraSmall,
             )
+            Spacer(modifier = Modifier.height(Theme.spacing.xxs))
             Text(
                 stringResource(Res.string.insights_reviews_format, word.totalReviews),
                 style = MaterialTheme.typography.labelSmall,
@@ -424,6 +534,23 @@ private fun DifficultWordRow(word: WordDifficulty) {
 
 // region Shared components
 
+/**
+ * Section label: labelMedium ALL CAPS + letter spacing + onSurfaceVariant.
+ * Used as a lightweight alternative to titleMedium for section headers.
+ */
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelMedium,
+        letterSpacing = 1.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+/**
+ * Stat card: no Surface/elevation — thin border + big bold number above small label.
+ */
 @Composable
 private fun StatCard(
     modifier: Modifier = Modifier,
@@ -432,43 +559,39 @@ private fun StatCard(
     label: String,
     value: String,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = Theme.elevation.low,
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(
+                width = Theme.dimensions.borderWidth,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = RoundedCornerShape(Theme.shapes.medium),
+            )
+            .padding(Theme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
     ) {
-        Column(modifier = Modifier.padding(Theme.spacing.lg)) {
-            Box(
-                modifier = Modifier
-                    .size(Theme.dimensions.iconSizeHuge)
-                    .clip(RoundedCornerShape(Theme.shapes.medium))
-                    .background(iconTint.copy(alpha = Theme.opacity.focus)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(Theme.dimensions.iconSize),
-                )
-            }
-            Spacer(modifier = Modifier.height(Theme.spacing.md))
-            Text(
-                value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(modifier = Modifier.height(Theme.spacing.xxs))
-            Text(
-                label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(Theme.dimensions.iconSize),
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
+/**
+ * Metric row: 3dp accent left bar + label above + bold value below — no Surface container.
+ */
 @Composable
 private fun MetricRow(
     icon: ImageVector,
@@ -477,49 +600,42 @@ private fun MetricRow(
     value: String,
     subtitle: String? = null,
 ) {
-    Surface(
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = Theme.elevation.low,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
     ) {
-        Row(
-            modifier = Modifier.padding(Theme.spacing.lg),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(Theme.dimensions.iconSizeHuge)
-                    .clip(RoundedCornerShape(Theme.shapes.medium))
-                    .background(iconTint.copy(alpha = Theme.opacity.focus)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(Theme.dimensions.iconSize),
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
+        // 3dp accent left bar
+        Box(
+            modifier = Modifier
+                .width(3.dp)
+                .height(if (subtitle != null) 56.dp else 40.dp)
+                .clip(RoundedCornerShape(Theme.shapes.pill))
+                .background(iconTint),
+        )
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(Theme.dimensions.iconSize),
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            if (subtitle != null) {
                 Text(
-                    title,
-                    style = MaterialTheme.typography.bodyMedium,
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(
-                    value,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                if (subtitle != null) {
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
         }
     }

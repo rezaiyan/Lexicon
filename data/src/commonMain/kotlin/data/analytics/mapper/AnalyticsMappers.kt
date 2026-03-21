@@ -33,7 +33,7 @@ fun DailyStatsRemoteResponse.toDomain(): DailyStudyStats = DailyStudyStats(
     correctCount = correctCount,
     incorrectCount = incorrectCount,
     studyTimeMs = studyTimeMs,
-    uniqueWordsReviewed = 0,
-    wordsLeveledUp = 0,
-    wordsLeveledDown = 0,
+    uniqueWordsReviewed = uniqueWordsReviewed,
+    wordsLeveledUp = wordsLeveledUp,
+    wordsLeveledDown = wordsLeveledDown,
 )

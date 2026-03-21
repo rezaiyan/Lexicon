@@ -7,7 +7,9 @@ import auth.IAppleAuthStateProvider
 import auth.IGoogleAuthStateProvider
 import data.core.database.DatabaseDriverFactory
 import data.core.database.LexiconDatabase
+import data.storage.AndroidDailyInsightCache
 import data.storage.AndroidSecureStorage
+import data.storage.DailyInsightCache
 import data.storage.SecureStorage
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -32,6 +34,11 @@ fun androidPlatformModule(context: Context): Module = module {
     // Secure Storage
     single<SecureStorage> {
         AndroidSecureStorage(context)
+    }
+
+    // Daily Insight Cache
+    single<DailyInsightCache> {
+        AndroidDailyInsightCache(context)
     }
 
     // App Version Provider

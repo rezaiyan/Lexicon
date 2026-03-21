@@ -126,6 +126,7 @@
     <string name="insights_no_review_data">No review data yet. Start studying to see trends!</string>
     <string name="insights_level_format">Level %1$d</string>
     <string name="insights_accuracy_reviews_format">%1$d%% (%2$d reviews)</string>
+    <string name="insights_this_week">This Week</string>
     <string name="insights_activity_title">Activity (last 90 days)</string>
     <string name="insights_activity_summary">%1$d active days, %2$d cards reviewed</string>
     <string name="insights_most_difficult_words">Most Difficult Words</string>

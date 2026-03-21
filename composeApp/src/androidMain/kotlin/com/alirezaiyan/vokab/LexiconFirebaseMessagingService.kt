@@ -56,7 +56,7 @@ class LexiconFirebaseMessagingService : FirebaseMessagingService() {
                     notificationData.body,
                     notificationData.data
                 )
-                payloadHandlerRegistry.handle(notificationData.type, notificationData.data)
+                payloadHandlerRegistry.handle(notificationData.type, notificationData.body, notificationData.data)
             },
             onShouldSkip = {
                 Log.d(TAG, "Skipping notification - user not authenticated. Type: ${notificationData.type}")

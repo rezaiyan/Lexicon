@@ -12,8 +12,10 @@ import domain.analytics.model.DayOfWeekAccuracy
 import domain.analytics.model.HourlyAccuracy
 import domain.analytics.model.LanguagePairStats
 import domain.analytics.model.MasteredWord
+import domain.analytics.model.LevelTransition
 import domain.analytics.model.MonthlyStats
 import domain.analytics.model.MostReviewedWord
+import domain.analytics.model.ResponseTimeTrend
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.StudySession
@@ -51,6 +53,7 @@ class AnalyticsRepositoryImpl(
                 uniqueWordsReviewed = response.uniqueWordsReviewed,
                 averageResponseTimeMs = response.averageResponseTimeMs,
                 averageSessionDurationMs = response.averageSessionDurationMs,
+                sessionCompletionRate = response.sessionCompletionRate,
                 wordsMasteredCount = response.wordsMasteredCount,
             )
         }
@@ -109,7 +112,7 @@ class AnalyticsRepositoryImpl(
         wordDataSource.getDifficultWords(minReviews, limit).map { list ->
             list.map { r ->
                 WordDifficulty(
-                    wordId = r.wordId.toInt(),
+                    wordId = r.wordId,
                     wordText = r.wordText,
                     wordTranslation = r.wordTranslation,
                     sourceLanguage = r.sourceLanguage,
@@ -125,7 +128,7 @@ class AnalyticsRepositoryImpl(
         wordDataSource.getMostReviewedWords(limit).map { list ->
             list.map { r ->
                 MostReviewedWord(
-                    wordId = r.wordId.toInt(),
+                    wordId = r.wordId,
                     wordText = r.wordText,
                     wordTranslation = r.wordTranslation,
                     totalReviews = r.totalReviews,
@@ -173,7 +176,7 @@ class AnalyticsRepositoryImpl(
         wordDataSource.getWordsMastered(limit).map { list ->
             list.map { r ->
                 MasteredWord(
-                    wordId = r.wordId.toInt(),
+                    wordId = r.wordId,
                     wordText = r.wordText,
                     wordTranslation = r.wordTranslation,
                     masteredAt = r.masteredAt,
@@ -199,9 +202,31 @@ class AnalyticsRepositoryImpl(
         wordDataSource.getComebackWords().map { list ->
             list.map { r ->
                 ComebackWord(
-                    wordId = r.wordId.toInt(),
+                    wordId = r.wordId,
                     wordText = r.wordText,
                     wordTranslation = r.wordTranslation,
+                )
+            }
+        }
+
+    override suspend fun getLevelTransitions(): Try<List<LevelTransition>> =
+        wordDataSource.getLevelTransitions().map { list ->
+            list.map { r ->
+                LevelTransition(
+                    fromLevel = r.fromLevel,
+                    toLevel = r.toLevel,
+                    count = r.count,
+                )
+            }
+        }
+
+    override suspend fun getResponseTimeTrend(): Try<List<ResponseTimeTrend>> =
+        statsDataSource.getResponseTimeTrend().map { list ->
+            list.map { r ->
+                ResponseTimeTrend(
+                    year = r.year,
+                    week = r.week,
+                    avgResponseTimeMs = r.avgResponseTimeMs,
                 )
             }
         }

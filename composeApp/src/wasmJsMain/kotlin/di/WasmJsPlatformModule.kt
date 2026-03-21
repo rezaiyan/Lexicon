@@ -7,7 +7,9 @@ import auth.WasmJsAppleAuthStateProvider
 import auth.WasmJsGoogleAuthStateProvider
 import data.core.database.DatabaseDriverFactory
 import data.core.database.LexiconDatabase
+import data.storage.DailyInsightCache
 import data.storage.SecureStorage
+import data.storage.WasmJsDailyInsightCache
 import data.storage.WasmJsSecureStorage
 import data.subscription.WebSubscriptionManager
 import domain.subscription.ISubscriptionManager
@@ -24,6 +26,9 @@ fun wasmJsPlatformModule() = module {
 
     // Secure Storage
     single<SecureStorage> { WasmJsSecureStorage() }
+
+    // Daily Insight Cache
+    single<DailyInsightCache> { WasmJsDailyInsightCache() }
 
     // App Version Provider
     single<IAppVersionProvider> { WasmJsAppVersionProvider() }

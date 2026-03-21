@@ -6,6 +6,7 @@ import domain.analytics.model.MonthlyStats
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.StudySession
+import domain.analytics.model.ResponseTimeTrend
 import domain.analytics.model.WeeklyReport
 
 interface IAnalyticsStatsRepository {
@@ -15,5 +16,6 @@ interface IAnalyticsStatsRepository {
     suspend fun getRecentSessions(limit: Int): Try<List<StudySession>>
     suspend fun getWeeklyReport(): Try<WeeklyReport>
     suspend fun getMonthlyStats(): Try<List<MonthlyStats>>
+    suspend fun getResponseTimeTrend(): Try<List<ResponseTimeTrend>>
     suspend fun syncToBackend(): Try<Int>
 }

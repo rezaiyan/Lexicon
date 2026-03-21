@@ -3,6 +3,7 @@ package feature.insights
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.UiState
+import data.storage.DailyInsightCache
 import domain.analytics.model.AccuracyByLevel
 import domain.analytics.model.DailyStudyStats
 import domain.analytics.model.HourlyAccuracy
@@ -29,12 +30,10 @@ data class InsightsState(
     val accuracyByLevel: UiState<List<AccuracyByLevel>> = UiState.Loading,
     val heatmap: UiState<List<StudyHeatmapDay>> = UiState.Loading,
     val bestStudyTime: UiState<HourlyAccuracy?> = UiState.Loading,
-    val selectedTab: InsightsTab = InsightsTab.OVERVIEW,
+    val dailyInsight: String? = null,
 ) {
     val availability: InsightsAvailability get() = InsightsAvailability.from(this)
 }
-
-enum class InsightsTab { OVERVIEW, TRENDS, WORDS }
 
 class InsightsViewModel(
     private val getStudyInsightsUseCase: GetStudyInsightsUseCase,
@@ -43,6 +42,7 @@ class InsightsViewModel(
     private val getAccuracyByLevelUseCase: GetAccuracyByLevelUseCase,
     private val getStudyHeatmapUseCase: GetStudyHeatmapUseCase,
     private val getBestStudyTimeUseCase: GetBestStudyTimeUseCase,
+    private val dailyInsightCache: DailyInsightCache,
 ) : BaseViewModel<InsightsState, Nothing>() {
 
     override fun initialState() = InsightsState()
@@ -51,15 +51,13 @@ class InsightsViewModel(
         loadAllData()
     }
 
-    fun selectTab(tab: InsightsTab) {
-        updateState {
-            val allowed = availability.visibleTabs
-            copy(selectedTab = if (tab in allowed) tab else allowed.firstOrNull() ?: InsightsTab.OVERVIEW)
-        }
-    }
-
     fun refresh() {
         loadAllData()
+    }
+
+    fun dismissDailyInsight() {
+        dailyInsightCache.clearDailyInsight()
+        updateState { copy(dailyInsight = null) }
     }
 
     private fun loadAllData() {
@@ -69,6 +67,7 @@ class InsightsViewModel(
         loadAccuracyByLevel()
         loadHeatmap()
         loadBestStudyTime()
+        updateState { copy(dailyInsight = dailyInsightCache.getDailyInsight()) }
     }
 
     private fun loadOverview() {

@@ -10,5 +10,6 @@ data class StudyInsights(
     val uniqueWordsReviewed: Long,
     val averageResponseTimeMs: Long?,
     val averageSessionDurationMs: Long?,
+    val sessionCompletionRate: Double?,
     val wordsMasteredCount: Long,
 )

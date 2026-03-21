@@ -24,7 +24,6 @@ import feature.profile.model.ProfileUiData
 import feature.profile.ui.components.MemberSinceSection
 import feature.profile.ui.components.StreakSection
 import feature.profile.ui.components.UserInfoSection
-import feature.profile.ui.components.WeeklyActivitySection
 import components.animation.staggeredFadeSlide
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -84,18 +83,7 @@ internal fun ProfileContent(
             Text(stringResource(Res.string.leaderboard))
         }
 
-        // 4. Weekly Activity (server data — loads async)
-        val weeklyActivity = profileData.profileStats?.weeklyActivity
-        if (weeklyActivity != null) {
-            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
-            WeeklyActivitySection(
-                weeklyActivity = weeklyActivity,
-                modifier = Modifier
-                    .staggeredFadeSlide(sectionIndex++)
-            )
-        }
-
-        // 6. Member Since (server data — loads async)
+        // 5. Member Since (server data — loads async)
         val memberSince = profileData.profileStats?.memberSince
         if (memberSince != null) {
             Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))

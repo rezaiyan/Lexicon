@@ -8,6 +8,7 @@ import data.analytics.remote.model.DifficultWordResponse
 import data.analytics.remote.model.HourlyAccuracyResponse
 import data.analytics.remote.model.LanguagePairStatsResponse
 import data.analytics.remote.model.MasteredWordResponse
+import data.analytics.remote.model.LevelTransitionRemoteResponse
 import data.analytics.remote.model.MostReviewedWordResponse
 
 interface IAnalyticsWordDataSource {
@@ -19,4 +20,5 @@ interface IAnalyticsWordDataSource {
     suspend fun getWordsMastered(limit: Int): Try<List<MasteredWordResponse>>
     suspend fun getLanguageStats(): Try<List<LanguagePairStatsResponse>>
     suspend fun getComebackWords(): Try<List<ComebackWordResponse>>
+    suspend fun getLevelTransitions(): Try<List<LevelTransitionRemoteResponse>>
 }

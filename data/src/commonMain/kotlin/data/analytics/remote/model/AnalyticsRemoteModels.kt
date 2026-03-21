@@ -156,6 +156,20 @@ data class ComebackWordResponse(
     val wordTranslation: String,
 )
 
+@Serializable
+data class LevelTransitionRemoteResponse(
+    val fromLevel: Int,
+    val toLevel: Int,
+    val count: Long,
+)
+
+@Serializable
+data class ResponseTimeTrendRemoteResponse(
+    val year: Int,
+    val week: Int,
+    val avgResponseTimeMs: Double,
+)
+
 // === Daily Stats ===
 
 @Serializable
@@ -166,6 +180,9 @@ data class DailyStatsRemoteResponse(
     val correctCount: Int = 0,
     val incorrectCount: Int = 0,
     val studyTimeMs: Long = 0,
+    val uniqueWordsReviewed: Int = 0,
+    val wordsLeveledUp: Int = 0,
+    val wordsLeveledDown: Int = 0,
 )
 
 // === Weekly Report ===

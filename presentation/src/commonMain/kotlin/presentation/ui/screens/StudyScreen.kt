@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
@@ -54,6 +55,7 @@ import feature.study.ui.study.WordDistributionBar
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
+import lexicon.resources.generated.resources.insights_title
 import overlay.bottomsheet.showSizeToFitBottomSheet
 
 /** Non-dismissable sheet configuration reused for import and review flows. */
@@ -169,6 +171,12 @@ fun StudyScreen() {
                 stats = progressStats ?: return@LexiconColumn,
             )
         },
+        actionIcon1 = ActionIconConfig(
+            icon = Icons.Default.Insights,
+            contentDescription = stringResource(Res.string.insights_title),
+            onClick = { overlayHost.showInsightsSheet() },
+            size = Theme.dimensions.iconSize
+        ),
         actionIcon2 = ActionIconConfig(
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),

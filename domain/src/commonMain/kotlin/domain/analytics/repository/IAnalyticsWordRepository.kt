@@ -8,6 +8,7 @@ import domain.analytics.model.HourlyAccuracy
 import domain.analytics.model.LanguagePairStats
 import domain.analytics.model.MasteredWord
 import domain.analytics.model.MostReviewedWord
+import domain.analytics.model.LevelTransition
 import domain.analytics.model.WordDifficulty
 
 interface IAnalyticsWordRepository {
@@ -19,4 +20,5 @@ interface IAnalyticsWordRepository {
     suspend fun getWordsMastered(limit: Int): Try<List<MasteredWord>>
     suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>>
     suspend fun getComebackWords(): Try<List<ComebackWord>>
+    suspend fun getLevelTransitions(): Try<List<LevelTransition>>
 }
