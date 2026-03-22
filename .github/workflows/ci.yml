@@ -160,16 +160,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Submit Gradle dependencies
-        uses: mikepenz/gradle-dependency-submission@v1
-        with:
-          gradle-build-module: ':'
+      - name: Generate and submit dependency graph
+        uses: gradle/actions/dependency-submission@v4
 
   bump-version:
     name: Bump Version
