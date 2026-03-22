@@ -93,7 +93,9 @@ jobs:
     permissions:
       contents: read
     outputs:
-      should_deploy: ${{ steps.check.outputs.should_deploy }}
+      should_deploy_android: ${{ steps.check.outputs.should_deploy_android }}
+      should_deploy_ios: ${{ steps.check.outputs.should_deploy_ios }}
+      should_deploy_web: ${{ steps.check.outputs.should_deploy_web }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -107,7 +109,9 @@ jobs:
           # On PRs and manual triggers, always run all stages
           if [ "${{ github.event_name }}" != "push" ]; then
             echo "Non-push event — running all stages"
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "should_deploy_android=true" >> $GITHUB_OUTPUT
+            echo "should_deploy_ios=true" >> $GITHUB_OUTPUT
+            echo "should_deploy_web=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -115,19 +119,37 @@ jobs:
           LATEST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
           if [ -z "$LATEST_TAG" ]; then
             echo "No version tags found — skipping deploy stages"
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
+            echo "should_deploy_android=false" >> $GITHUB_OUTPUT
+            echo "should_deploy_ios=false" >> $GITHUB_OUTPUT
+            echo "should_deploy_web=false" >> $GITHUB_OUTPUT
             exit 0
           fi
 
           echo "Latest version tag: $LATEST_TAG"
 
-          # Check if this version was already deployed by CI
-          if git tag -l "ci-deployed/$LATEST_TAG" | grep -q .; then
-            echo "Version $LATEST_TAG already deployed — skipping deploy stages"
-            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          # Check per-platform deployment status
+          if git tag -l "ci-deployed/android/$LATEST_TAG" | grep -q .; then
+            echo "Android $LATEST_TAG already deployed — skipping"
+            echo "should_deploy_android=false" >> $GITHUB_OUTPUT
           else
-            echo "Version $LATEST_TAG not yet deployed — will run deploy stages"
-            echo "should_deploy=true" >> $GITHUB_OUTPUT
+            echo "Android $LATEST_TAG not yet deployed"
+            echo "should_deploy_android=true" >> $GITHUB_OUTPUT
+          fi
+
+          if git tag -l "ci-deployed/ios/$LATEST_TAG" | grep -q .; then
+            echo "iOS $LATEST_TAG already deployed — skipping"
+            echo "should_deploy_ios=false" >> $GITHUB_OUTPUT
+          else
+            echo "iOS $LATEST_TAG not yet deployed"
+            echo "should_deploy_ios=true" >> $GITHUB_OUTPUT
+          fi
+
+          if git tag -l "ci-deployed/web/$LATEST_TAG" | grep -q .; then
+            echo "Web $LATEST_TAG already deployed — skipping"
+            echo "should_deploy_web=false" >> $GITHUB_OUTPUT
+          else
+            echo "Web $LATEST_TAG not yet deployed"
+            echo "should_deploy_web=true" >> $GITHUB_OUTPUT
           fi
 
   # KAN-14: Dependency vulnerability review on PRs
@@ -365,7 +387,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test, check-version]
     if: |
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_android == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     permissions:
@@ -441,7 +463,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test, build-android, check-version]
     if: |
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_android == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     timeout-minutes: 45
@@ -553,7 +575,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build-android, maestro, check-version]
     if: |
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_android == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     permissions:
@@ -587,7 +609,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test, check-version]
     if: |
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_web == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'web')
     permissions:
@@ -635,7 +657,7 @@ jobs:
     needs: [build-web, maestro, check-version]
     if: |
       always() &&
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_web == 'true' &&
       needs.build-web.result == 'success' &&
       (needs.maestro.result == 'success' || needs.maestro.result == 'skipped') &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
@@ -725,7 +747,7 @@ jobs:
     needs: [test, test-ios, maestro, check-version]
     if: |
       always() &&
-      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy == 'true' &&
+      github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_ios == 'true' &&
       needs.test.result == 'success' &&
       needs.test-ios.result == 'success' &&
       (needs.maestro.result == 'success' || needs.maestro.result == 'skipped') &&
@@ -842,18 +864,16 @@ jobs:
           rm -f iosApp/iosApp/GoogleService-Info.plist
           rm -f ~/.appstoreconnect/private_keys/AuthKey_*.p8
 
-  mark-deployed:
-    name: Mark version as deployed
+  mark-deployed-android:
+    name: Mark Android as deployed
     runs-on: ubuntu-latest
-    needs: [deploy-android, deploy-ios, deploy-web, check-version]
+    needs: [deploy-android, check-version]
     if: |
       always() &&
-      needs.check-version.outputs.should_deploy == 'true' &&
-      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
-      (github.event.inputs.platform == null || github.event.inputs.platform == 'all') &&
+      needs.check-version.outputs.should_deploy_android == 'true' &&
       needs.deploy-android.result == 'success' &&
-      needs.deploy-ios.result == 'success' &&
-      needs.deploy-web.result == 'success'
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
     permissions:
       contents: write
     steps:
@@ -863,11 +883,67 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Tag version as deployed
+      - name: Tag Android as deployed
         run: |
           LATEST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
-          if [ -n "$LATEST_TAG" ] && ! git tag -l "ci-deployed/$LATEST_TAG" | grep -q .; then
-            git tag "ci-deployed/$LATEST_TAG"
-            git push origin "ci-deployed/$LATEST_TAG"
-            echo "Marked $LATEST_TAG as deployed"
+          if [ -n "$LATEST_TAG" ] && ! git tag -l "ci-deployed/android/$LATEST_TAG" | grep -q .; then
+            git tag "ci-deployed/android/$LATEST_TAG"
+            git push origin "ci-deployed/android/$LATEST_TAG"
+            echo "Marked Android $LATEST_TAG as deployed"
+          fi
+
+  mark-deployed-ios:
+    name: Mark iOS as deployed
+    runs-on: ubuntu-latest
+    needs: [deploy-ios, check-version]
+    if: |
+      always() &&
+      needs.check-version.outputs.should_deploy_ios == 'true' &&
+      needs.deploy-ios.result == 'success' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'ios')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Tag iOS as deployed
+        run: |
+          LATEST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
+          if [ -n "$LATEST_TAG" ] && ! git tag -l "ci-deployed/ios/$LATEST_TAG" | grep -q .; then
+            git tag "ci-deployed/ios/$LATEST_TAG"
+            git push origin "ci-deployed/ios/$LATEST_TAG"
+            echo "Marked iOS $LATEST_TAG as deployed"
+          fi
+
+  mark-deployed-web:
+    name: Mark Web as deployed
+    runs-on: ubuntu-latest
+    needs: [deploy-web, check-version]
+    if: |
+      always() &&
+      needs.check-version.outputs.should_deploy_web == 'true' &&
+      needs.deploy-web.result == 'success' &&
+      (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
+      (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'web')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Tag Web as deployed
+        run: |
+          LATEST_TAG=$(git tag -l 'v*' --sort=-version:refname | head -1)
+          if [ -n "$LATEST_TAG" ] && ! git tag -l "ci-deployed/web/$LATEST_TAG" | grep -q .; then
+            git tag "ci-deployed/web/$LATEST_TAG"
+            git push origin "ci-deployed/web/$LATEST_TAG"
+            echo "Marked Web $LATEST_TAG as deployed"
           fi
