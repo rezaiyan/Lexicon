@@ -7,8 +7,10 @@ import auth.IAppleAuthStateProvider
 import auth.IGoogleAuthStateProvider
 import auth.IOSAppleAuthStateProvider
 import auth.IOSGoogleAuthStateProvider
+import data.storage.DailyInsightCache
 import data.storage.IOSKeychainSecureStorage
 import data.storage.IOSPlatformSecureStorage
+import data.storage.IosDailyInsightCache
 import data.storage.SecureStorage
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -29,6 +31,9 @@ fun iosPlatformModule(): Module = module {
     // Secure Storage
     single<IOSPlatformSecureStorage> { IOSKeychainSecureStorage() }
     single<SecureStorage> { get<IOSPlatformSecureStorage>() }
+
+    // Daily Insight Cache
+    single<DailyInsightCache> { IosDailyInsightCache() }
 
     // App Version Provider
     single<IAppVersionProvider> {
