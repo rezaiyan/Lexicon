@@ -12,6 +12,10 @@ on:
           - 'false'
           - 'true'
 
+concurrency:
+  group: release-appstore
+  cancel-in-progress: false
+
 env:
   VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
   GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
@@ -38,6 +42,9 @@ jobs:
     name: Build & Release iOS to App Store
     runs-on: macos-26
     if: github.ref == 'refs/heads/main'
+    timeout-minutes: 70
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout code
@@ -76,11 +83,6 @@ jobs:
           bundler-cache: true
           working-directory: iosApp
 
-      - name: Install Fastlane
-        run: |
-          cd iosApp
-          bundle install
-
       - name: Set up certificates and provisioning profiles
         id: ios-certs
         uses: ./.github/actions/ios-cert-setup
@@ -89,8 +91,15 @@ jobs:
           certificate_password: ${{ secrets.IOS_CERTIFICATES_PASSWORD }}
           provisioning_profile_base64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
 
+      - name: Cache Kotlin Native toolchain
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+          restore-keys: konan-${{ runner.os }}-
+
       - name: Build Kotlin Multiplatform Framework
-        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace --no-daemon
+        run: ./gradlew composeApp:linkReleaseFrameworkIosArm64 --stacktrace
 
       - name: Cache SPM packages
         uses: actions/cache@v4
