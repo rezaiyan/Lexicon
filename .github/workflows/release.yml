@@ -258,14 +258,14 @@ jobs:
 
       - name: Download Android AAB
         if: needs.release-android.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: android-aab
           path: ./android
 
       - name: Download iOS IPA
         if: needs.release-ios.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ios-ipa
           path: ./ios
