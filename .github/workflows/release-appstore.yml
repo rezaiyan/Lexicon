@@ -140,7 +140,7 @@ jobs:
           rm -f ~/.appstoreconnect/private_keys/AuthKey_*.p8
 
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-appstore-ipa
           path: iosApp/build/*.ipa

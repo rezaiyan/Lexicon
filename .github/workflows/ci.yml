@@ -279,7 +279,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: |
@@ -288,7 +288,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: |
@@ -366,7 +366,7 @@ jobs:
 
       - name: Upload iOS test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-test-results
           path: |
@@ -445,14 +445,14 @@ jobs:
           echo "apk_size_bytes=${SIZE_BYTES}" >> $GITHUB_OUTPUT
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: debug-apk
           path: composeApp/build/outputs/apk/debug/*.apk
           retention-days: 7
 
       - name: Upload release AAB
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-aab
           path: composeApp/build/outputs/bundle/release/composeApp-release.aab
@@ -562,7 +562,7 @@ jobs:
 
       - name: Upload Maestro artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: maestro-artifacts
           path: |
@@ -645,7 +645,7 @@ jobs:
         run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
 
       - name: Upload web distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-dist
           path: composeApp/build/dist/wasmJs/productionExecutable/
