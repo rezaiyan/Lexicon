@@ -98,6 +98,27 @@ Any → Auth(LoginRequired)  [on logout]
 
 ---
 
+## 9. Tag System — Cascades & Reactivity
+
+**Cascade ordering in `deleteTag()`:**
+`TagLocalDataSource.deleteTag()` runs a SQLDelight transaction: `deleteWordTagsForTag(id)` first, then `deleteTag(id)`. Reversing this order will violate the implicit FK constraint and leave orphan `WordTagEntity` rows that can never be cleaned up.
+
+**Atomic assignment in `setWordTags()`:**
+`deleteWordTagsForWord(wordId)` followed by per-tag `insertWordTag()` calls — all inside one SQLDelight transaction. If you add error handling that returns early inside this transaction without rolling back, words may end up with no tags instead of their previous assignment.
+
+**Reactivity blast radius:**
+Word list flows (`getAllWords`, `getDueCards`) use `combine()` with a `countWordTags()` trigger. Every tag assignment/unassignment re-emits the entire word list to all subscribers. Tag operations that loop over many words will cause N re-emissions. Batch-assign operations should use `setWordTags()` (single transaction) rather than repeated `addTagToWord()` calls.
+
+**Remote sync divergence risk:**
+`syncTagsFromRemote()` calls `replaceAllTags()` (delete-all + re-insert). This wipes all local tag metadata but does NOT touch `WordTagEntity`. If the remote sync succeeds but the subsequent remote call to re-fetch word-tag mappings fails, the local DB has tags with no associations — silent data loss for tag assignments.
+
+**Do not:**
+- Split the `setWordTags()` transaction into separate suspend calls
+- Add tag reads outside the `getTagIdsForWord()` path (would bypass reactive trigger)
+- Remove the `countWordTags()` combine trigger from word flows — doing so breaks live tag-count updates on the word list screen
+
+---
+
 ## 6. Settings Persistence (`SettingsLocalDataSourceImpl`)
 
 **Type conversion traps:**
@@ -148,8 +169,12 @@ Any → Auth(LoginRequired)  [on logout]
 | ReviewViewModel startSession fire-and-forget | **CRITICAL** | Events orphaned to unregistered sessions |
 | ReviewWordUseCase interval=0 at level 6 | **HIGH** | Mastered word reviews every minute forever |
 | Token refresh race condition | **HIGH** | User hits 401 despite valid session |
+| Tag cascade delete ordering | **HIGH** | Orphan WordTagEntity rows that can never be cleaned up |
+| Tag syncTagsFromRemote divergence | **HIGH** | Tag assignments silently lost if word-tag re-fetch fails |
 | AppNavigationViewModel onboarding flag | **MEDIUM** | User stuck in wrong screen after reinstall |
 | Batch word update partial failure | **MEDIUM** | Inconsistent local/remote state |
+| Tag setWordTags partial transaction | **MEDIUM** | Words left with no tags instead of previous assignment |
+| Tag reactivity blast radius (N re-emissions) | **MEDIUM** | UI lag when bulk-assigning tags via addTagToWord loop |
 | Settings Long→Int cast | **MEDIUM** | Corrupted speaker ID on large ID values |
 | iOS Keychain CFDataRef leak | **LOW** | Memory accumulation over many sessions |
 | Try<T> transform error masking | **LOW** | Hard-to-debug silent failures |

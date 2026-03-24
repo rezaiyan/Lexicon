@@ -22,6 +22,8 @@ class ImportSuggestedVocabularyUseCaseTest {
 
     private val repository = FakeWordRepository()
     private val useCase = ImportSuggestedVocabularyUseCase(repository)
+    private fun params(suggestions: List<SuggestedVocabulary>, tagId: Long? = null) =
+        ImportSuggestedVocabularyUseCase.Params(suggestions, tagId)
 
     @Test
     fun `imports suggestions as words`() = runTest {
@@ -30,7 +32,7 @@ class ImportSuggestedVocabularyUseCaseTest {
             createSuggestion(original = "Goodbye", translation = "Adiós")
         )
 
-        val result = useCase(suggestions)
+        val result = useCase(params(suggestions))
 
         assertTrue(result.isSuccess)
         assertEquals(2, repository.insertedWords.size)
@@ -44,7 +46,7 @@ class ImportSuggestedVocabularyUseCaseTest {
             createSuggestion(original = "Three", translation = "Tres")
         )
 
-        val result = useCase(suggestions)
+        val result = useCase(params(suggestions))
 
         assertTrue(result.isSuccess)
         assertEquals(3, result.getOrNull())
@@ -62,7 +64,7 @@ class ImportSuggestedVocabularyUseCaseTest {
             )
         )
 
-        val result = useCase(suggestions)
+        val result = useCase(params(suggestions))
 
         assertTrue(result.isSuccess)
         val word = repository.insertedWords.first()
@@ -81,7 +83,7 @@ class ImportSuggestedVocabularyUseCaseTest {
 
     @Test
     fun `returns success for empty list`() = runTest {
-        val result = useCase(emptyList())
+        val result = useCase(params(emptyList()))
 
         assertTrue(result.isSuccess)
         assertEquals(0, result.getOrNull())
@@ -111,6 +113,7 @@ class ImportSuggestedVocabularyUseCaseTest {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(insertedWords.toList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(insertedWords)
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)

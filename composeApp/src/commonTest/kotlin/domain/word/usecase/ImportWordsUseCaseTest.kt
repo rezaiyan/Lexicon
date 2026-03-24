@@ -369,6 +369,8 @@ internal class FakeWordRepositoryForImport : IWordRepository {
 
     override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
 
+    override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
+
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
 
     override suspend fun updateWord(word: Word): Try<Unit> {

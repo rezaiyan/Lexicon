@@ -88,6 +88,7 @@ class WordRemoteSyncHandler(
         repetitions = repetitions,
         lastReviewDate = lastReviewDate,
         nextReviewDate = nextReviewDate,
-        createdAt = dateAdded
+        createdAt = dateAdded,
+        tagIds = tagIds,
     )
 }

@@ -69,16 +69,70 @@ On login: sync words from backend → init push notifications → init RevenueCa
 
 ### 3. Word Management
 
-**Word model fields**: `id`, `originalWord`, `translation`, `description`, `sourceLanguage`, `targetLanguage`, `level` (0–6), `easeFactor`, `interval`, `repetitions`, `lastReviewDate`, `nextReviewDate`, `dateAdded`
+**Word model fields**: `id`, `originalWord`, `translation`, `description`, `sourceLanguage`, `targetLanguage`, `level` (0–6), `easeFactor`, `interval`, `repetitions`, `lastReviewDate`, `nextReviewDate`, `dateAdded`, `tagIds` (List<Long>)
 
 **Key operations**:
 - CRUD: `GetAllWordsUseCase`, `UpdateWordUseCase`, `DeleteWordUseCase`, `DeleteWordsUseCase`
-- Filtering: `GetDueWordsUseCase`, `GetWordsByStageUseCase`
+- Filtering: `GetDueWordsUseCase`, `GetWordsByStageUseCase`, `GetDueWordsByTagUseCase` (filter due cards by tag)
 - Bulk: `BatchUpdateLanguagesUseCase`, `DeleteWordsUseCase` (with progress)
 - Duplicate detection: `isSameContent()` — compares `originalWord` + `translation`
 - Progress stats: `GetProgressStatsUseCase` → counts per level, due count
 
 **Sync**: `SyncRemoteToLocalUseCase` (backend is source of truth on fresh sync)
+
+**Tags**: Words carry a `tagIds: List<Long>` field populated by joining `WordTagEntity` at query time. Tag assignment is a separate concern — use `AssignWordTagsUseCase`.
+
+---
+
+### 3b. Tag System
+
+Tags let users organise their vocabulary and do focused study sessions on specific groups of words.
+
+**Domain model** (`domain/src/commonMain/kotlin/domain/tag/model/Tag.kt`):
+```kotlin
+data class Tag(val id: Long, val name: String, val wordCount: Long, val createdAt: Long, val updatedAt: Long)
+```
+
+**Database schema** (migration `5.sqm`):
+- `TagEntity` — primary tag record
+- `WordTagEntity (wordId, tagId)` — many-to-many junction table (composite PK)
+- `wordCount` is computed in SQL via `LEFT JOIN + COUNT()` on every tag read
+
+**Repository**: `ITagRepository` (domain) / `TagRepositoryImpl` (data)
+```
+getTags(): Flow<List<Tag>>
+createTag(name): Try<Tag>
+renameTag(id, name): Try<Tag>
+deleteTag(id): Try<Unit>           // cascades: deletes WordTagEntity rows first
+assignWordTags(wordId, tagIds): Try<Unit>
+addTagToWord(wordId, tagId): Try<Unit>
+syncTagsFromRemote(): Try<Unit>
+```
+
+**Use cases** (all in `domain/src/commonMain/kotlin/domain/tag/usecase/`):
+| Use case | Type | Purpose |
+|----------|------|---------|
+| `GetTagsUseCase` | `NoParamFlowUseCase<List<Tag>>` | Live tag list stream |
+| `CreateTagUseCase` | `UseCase<String, Tag>` | Create new tag |
+| `RenameTagUseCase` | `UseCase<RenameTagParams, Tag>` | Rename existing tag |
+| `DeleteTagUseCase` | `UseCase<Long, Unit>` | Delete tag (cascades) |
+| `AssignWordTagsUseCase` | `UseCase<AssignWordTagsParams, Unit>` | Atomically replace all tags on a word |
+| `GetDueWordsByTagUseCase` | `FlowUseCase<Long, List<Word>>` | Due cards filtered by tag |
+
+**ViewModels** (in `feature/words/`):
+- `TagManagerViewModel` — CRUD for tags; state: `TagManagerState(tags, isLoading, errorMessage)`
+- `WordTagAssignmentViewModel` — tag assignment for a single word; state: `WordTagAssignmentState(wordId, tags, selectedTagIds, isLoading, isSaving)`
+
+**Screens/components** (in `presentation/`):
+- `TagManagerScreen` — full-screen manager: create / rename / delete tags
+- `TagAssignmentSheet` — bottom sheet to assign tags to a word (accessed from `WordManagerDetailSheet`)
+- `TagManagerCard` — settings card that navigates to `TagManagerScreen`
+- `TagsSection` — study progress screen component showing tags as clickable `LevelBucketCard` rows (each click launches a tag-filtered review)
+
+**Study integration**:
+- `StudyProgressViewModel` subscribes to `GetTagsUseCase` → `state.tags` list shown in `TagsSection`
+- `ReviewViewModel.ReviewWordUseCases` includes `getDueWordsByTag` — clicking a tag on the Study screen launches a review filtered to that tag's due words
+- Word list flows (`getAllWords`, `getDueCards`) use `combine()` to re-emit whenever `WordTagEntity` rows change — tag assignment instantly refreshes all dependent screens
 
 ---
 
@@ -214,6 +268,7 @@ Onboarding is skipped if user already has words in the local DB.
 | Domain | Endpoints |
 |--------|-----------|
 | Words | GET/POST/PUT/DELETE `/words`, PATCH `/words/languages`, DELETE batch |
+| Tags | GET `/tags`, POST `/tags`, PUT `/tags/{id}`, DELETE `/tags/{id}`, PUT `/words/{id}/tags` |
 | Auth | POST `/auth/login/{google,apple}`, POST `/auth/logout`, POST `/auth/verify-session`, DELETE `/auth/account` |
 | Analytics | POST `/analytics/sessions/{start,end}`, POST `/analytics/events`; GET `/analytics/{insights,stats/*,words/*}` |
 | Profile | GET/PUT `/profile`, POST/DELETE `/profile/avatar`, GET `/profile/stats` |
@@ -252,3 +307,5 @@ Analytics split: `AnalyticsModule.kt` in same package.
 5. **Sync** treats backend as source of truth. Local DB is primary for offline reads; writes are queued and synced.
 6. **TTS state** is a `StateFlow` on `ITtsRepository` — UI observes it to show download progress, speaking indicator, etc.
 7. **FeatureFlags** gate premium features — check `GetFeatureAccessUseCase` before adding features gated on subscription.
+8. **Tags** are a cross-cutting concern on `Word`. Word list flows re-emit on `WordTagEntity` changes — any operation that touches `WordTagEntity` will cause all word list collectors to fire. Keep tag-assignment operations transactional (`setWordTags` is atomic: delete-all then insert-all).
+9. **Tag deletion** cascades synchronously in SQLDelight (delete `WordTagEntity` rows first, then `TagEntity`) — words themselves are unaffected, their `tagIds` simply becomes empty on next query.

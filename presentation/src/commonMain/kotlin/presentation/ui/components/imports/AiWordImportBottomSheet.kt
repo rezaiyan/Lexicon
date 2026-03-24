@@ -179,6 +179,7 @@ fun AiWordImportBottomSheet(
                         state = state,
                         onToggleWord = viewModel::toggleWordSelection,
                         onImport = viewModel::importSelected,
+                        onTagSelected = viewModel::selectTag,
                         spacing = spacing,
                         dimensions = dimensions
                     )

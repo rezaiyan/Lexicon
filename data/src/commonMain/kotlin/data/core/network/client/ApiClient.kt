@@ -9,6 +9,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
@@ -97,6 +98,54 @@ class ApiClient(
     ): Try<Unit> {
         return executeUnitRequest {
             httpClient.post("$baseUrl$path") {
+                contentType(ContentType.Application.Json)
+                body?.let { setBody(it) }
+                block()
+            }
+        }
+    }
+
+    /**
+     * Executes a PUT request and returns Try<T?>
+     */
+    suspend inline fun <reified T> put(
+        path: String,
+        body: Any? = null,
+        crossinline block: HttpRequestBuilder.() -> Unit = {}
+    ): Try<T?> {
+        return executeRequest {
+            httpClient.put("$baseUrl$path") {
+                contentType(ContentType.Application.Json)
+                body?.let { setBody(it) }
+                block()
+            }
+        }
+    }
+
+    /**
+     * Executes a PUT request and returns Try<T> (non-null)
+     */
+    suspend inline fun <reified T> putNotNull(
+        path: String,
+        body: Any? = null,
+        crossinline block: HttpRequestBuilder.() -> Unit = {}
+    ): Try<T> {
+        return put<T>(path, body, block).flatMap { value ->
+            if (value != null) Try.success(value)
+            else Try.failure(Exception("Response data is null"))
+        }
+    }
+
+    /**
+     * Executes a PUT request and returns Try<Unit>
+     */
+    suspend inline fun putUnit(
+        path: String,
+        body: Any? = null,
+        crossinline block: HttpRequestBuilder.() -> Unit = {}
+    ): Try<Unit> {
+        return executeUnitRequest {
+            httpClient.put("$baseUrl$path") {
                 contentType(ContentType.Application.Json)
                 body?.let { setBody(it) }
                 block()

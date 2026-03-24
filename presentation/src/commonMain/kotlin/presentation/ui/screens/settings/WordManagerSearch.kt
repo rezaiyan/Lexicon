@@ -32,14 +32,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import domain.tag.model.Tag
 import domain.word.model.LearningStage
 import feature.words.model.WordSortOption
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.filter_all_languages
 import lexicon.resources.generated.resources.filter_all_levels
+import lexicon.resources.generated.resources.filter_all_tags
 import lexicon.resources.generated.resources.filter_language
 import lexicon.resources.generated.resources.filter_level
+import lexicon.resources.generated.resources.filter_tag
 import lexicon.resources.generated.resources.search_words
 import lexicon.resources.generated.resources.sort_a_to_z
 import lexicon.resources.generated.resources.sort_level_asc
@@ -109,10 +112,13 @@ internal fun FilterChipsRow(
     sortOption: WordSortOption,
     filterLanguage: Language?,
     filterLearningStage: LearningStage?,
+    filterTagId: Long?,
+    tags: List<Tag>,
     availableLanguages: Set<Language>,
     onSortOptionChange: (WordSortOption) -> Unit,
     onFilterLanguageChange: (Language?) -> Unit,
     onFilterLearningStageChange: (LearningStage?) -> Unit,
+    onFilterTagChange: (Long?) -> Unit,
 ) {
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -140,6 +146,66 @@ internal fun FilterChipsRow(
                 selectedStage = filterLearningStage,
                 onStageSelected = onFilterLearningStageChange
             )
+        }
+
+        if (tags.isNotEmpty()) {
+            item {
+                TagFilterChip(
+                    selectedTagId = filterTagId,
+                    tags = tags,
+                    onTagSelected = onFilterTagChange
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TagFilterChip(
+    selectedTagId: Long?,
+    tags: List<Tag>,
+    onTagSelected: (Long?) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedTag = tags.find { it.id == selectedTagId }
+
+    Box {
+        FilterChip(
+            selected = selectedTagId != null,
+            onClick = { expanded = true },
+            label = {
+                Text(
+                    selectedTag?.name ?: stringResource(Res.string.filter_tag),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+        )
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.filter_all_tags)) },
+                onClick = {
+                    onTagSelected(null)
+                    expanded = false
+                }
+            )
+            tags.forEach { tag ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            tag.name,
+                            fontWeight = if (tag.id == selectedTagId) FontWeight.Bold else FontWeight.Normal
+                        )
+                    },
+                    onClick = {
+                        onTagSelected(tag.id)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }

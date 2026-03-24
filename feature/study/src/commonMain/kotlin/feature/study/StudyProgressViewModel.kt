@@ -7,7 +7,10 @@ import core.common.UiState
 import core.common.getOrThrow
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
+import domain.tag.model.Tag
+import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.EvaluateProgressUseCase
+import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import feature.study.model.ProgressScreenState
 import feature.study.util.NotificationStringHelper
@@ -21,6 +24,8 @@ import performance.IPerformanceTracer
 data class StudyProgressState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,
     val hasPremiumAccess: Boolean = false,
+    val tags: List<Tag> = emptyList(),
+    val dueTagIds: Set<Long> = emptySet(),
 )
 
 class StudyProgressViewModel(
@@ -30,6 +35,8 @@ class StudyProgressViewModel(
     private val analyticsTracker: IAnalyticsTracker,
     private val performanceTracer: IPerformanceTracer,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
+    getTagsUseCase: GetTagsUseCase,
+    getDueWordsUseCase: GetDueWordsUseCase,
 ) : BaseViewModel<StudyProgressState, Nothing>() {
 
     override fun initialState() = StudyProgressState()
@@ -39,6 +46,28 @@ class StudyProgressViewModel(
     init {
         observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
+        startObservingTags(getTagsUseCase)
+        startObservingDueTagIds(getDueWordsUseCase)
+    }
+
+    private fun startObservingTags(getTagsUseCase: GetTagsUseCase) {
+        viewModelScope.launch {
+            getTagsUseCase()
+                .catch { /* tags unavailable, keep empty list */ }
+                .collect { tags ->
+                    updateState { copy(tags = tags) }
+                }
+        }
+    }
+
+    private fun startObservingDueTagIds(getDueWordsUseCase: GetDueWordsUseCase) {
+        viewModelScope.launch {
+            getDueWordsUseCase()
+                .catch { /* due words unavailable */ }
+                .collect { words ->
+                    updateState { copy(dueTagIds = words.flatMap { it.tagIds }.toSet()) }
+                }
+        }
     }
 
     private fun observeFeatureAccess(getFeatureAccessUseCase: GetFeatureAccessUseCase) {

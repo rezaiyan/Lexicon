@@ -4,7 +4,7 @@ import data.core.database.WordEntity
 import data.core.database.WordEntityData
 import domain.word.model.Word
 import utils.Language
-fun WordEntity.toDomain(fallbackLanguage: Language = Language.ENGLISH): Word {
+fun WordEntity.toDomain(fallbackLanguage: Language = Language.ENGLISH, tagIds: List<Long> = emptyList()): Word {
     return Word(
         id = id.toInt(),
         originalWord = originalWord,
@@ -18,7 +18,8 @@ fun WordEntity.toDomain(fallbackLanguage: Language = Language.ENGLISH): Word {
         repetitions = repetitions.toInt(),
         lastReviewDate = lastReviewDate,
         nextReviewDate = nextReviewDate,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        tagIds = tagIds
     )
 }
 
@@ -36,7 +37,8 @@ fun WordEntityData.toDomain(fallbackLanguage: Language = Language.ENGLISH): Word
         repetitions = repetitions,
         lastReviewDate = lastReviewDate,
         nextReviewDate = nextReviewDate,
-        dateAdded = dateAdded
+        dateAdded = dateAdded,
+        tagIds = tagIds
     )
 }
 

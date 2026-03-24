@@ -7,6 +7,8 @@ import core.common.onSuccess
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
+import domain.tag.usecase.GetTagsUseCase
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
 import feature.aiimport.model.AiWordImportEffect
@@ -16,6 +18,7 @@ import feature.aiimport.model.AiWordImportUiState
 class AiWordImportViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val importSuggestedVocabularyUseCase: ImportSuggestedVocabularyUseCase,
+    private val getTagsUseCase: GetTagsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<AiWordImportUiState, AiWordImportEffect>() {
 
@@ -23,6 +26,19 @@ class AiWordImportViewModel(
 
     init {
         analyticsTracker.logEvent("import_started")
+        observeTags()
+    }
+
+    private fun observeTags() {
+        viewModelScope.launch {
+            getTagsUseCase()
+                .catch { }
+                .collect { tags -> updateState { copy(tags = tags) } }
+        }
+    }
+
+    fun selectTag(tagId: Long?) {
+        updateState { copy(selectedTagId = tagId) }
     }
 
     fun selectTargetLanguage(language: String) {
@@ -139,7 +155,12 @@ class AiWordImportViewModel(
 
         viewModelScope.launch {
             updateState { copy(isLoading = true, error = null) }
-            importSuggestedVocabularyUseCase(wordsToImport)
+            importSuggestedVocabularyUseCase(
+                ImportSuggestedVocabularyUseCase.Params(
+                    suggestions = wordsToImport,
+                    tagId = currentState.selectedTagId
+                )
+            )
                 .onSuccess { count ->
                     updateState { copy(isLoading = false) }
                     analyticsTracker.logWordsImported(count = count, method = "ai")

@@ -334,6 +334,23 @@
     <string name="theme_dark_desc">Always use dark theme</string>
     <string name="theme_auto_desc">Follow system settings</string>
     
+    <!-- Tag Manager -->
+    <string name="tag_manager">Tag Manager</string>
+    <string name="tag_manager_subtitle">Organize words with tags</string>
+    <string name="tags">Tags</string>
+    <string name="new_tag">New Tag</string>
+    <string name="tag_name_hint">Tag name</string>
+    <string name="create_tag">Create Tag</string>
+    <string name="rename_tag">Rename Tag</string>
+    <string name="delete_tag">Delete Tag</string>
+    <string name="delete_tag_confirm">Delete this tag? Words with this tag will not be deleted.</string>
+    <string name="no_tags">No tags yet</string>
+    <string name="no_tags_subtitle">Create your first tag to organize words</string>
+    <string name="filter_tag">Tag</string>
+    <string name="filter_all_tags">All Tags</string>
+    <string name="assign_tags">Assign Tags</string>
+    <string name="word_count_label">%1$d words</string>
+
     <!-- Word Manager Screen -->
     <string name="word_manager">Word Manager</string>
     <string name="word_manager_subtitle">Manage your vocabulary</string>
@@ -687,6 +704,15 @@
     <string name="tts_voice_speaker">Speaker %1$d</string>
     <string name="tts_playback_settings">Playback Settings</string>
     <string name="tts_all_languages">All Languages</string>
+
+    <!-- Image Word Review -->
+    <string name="image_review_title">Review Extracted Words</string>
+    <string name="image_review_subtitle">%1$d words found. Edit or remove any before adding them.</string>
+    <string name="image_review_add_words">Add %1$d Words</string>
+    <string name="image_review_edit_word">Edit Word</string>
+    <string name="image_review_word_label">Word</string>
+    <string name="image_review_translation_label">Translation</string>
+    <string name="image_review_description_label">Description (optional)</string>
 
     <!-- Leaderboard -->
     <string name="leaderboard">Leaderboard</string>

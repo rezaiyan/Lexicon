@@ -40,6 +40,10 @@ class WordRepositoryImpl(
         return localDataSource.getDueCards()
     }
 
+    override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> {
+        return localDataSource.getDueCardsByTag(tagId)
+    }
+
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> {
         return localDataSource.getWordsByStage(stage)
     }

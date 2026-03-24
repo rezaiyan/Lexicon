@@ -74,6 +74,7 @@ class GetSourceLanguageUseCaseTest {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)

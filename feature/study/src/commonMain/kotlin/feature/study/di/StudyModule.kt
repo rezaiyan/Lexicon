@@ -16,6 +16,8 @@ fun studyModule() = module {
             getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
             performanceTracer = get(),
+            getTagsUseCase = get(),
+            getDueWordsUseCase = get(),
         )
     }
     viewModel {
@@ -23,6 +25,7 @@ fun studyModule() = module {
             wordUseCases = ReviewWordUseCases(
                 getDueWords = get(),
                 getWordsByStage = get(),
+                getDueWordsByTag = get(),
                 reviewWord = get(),
                 updateWord = get(),
                 deleteWord = get(),

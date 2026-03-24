@@ -22,9 +22,11 @@ import presentation.ui.components.settings.ThemeSettingsCard
 import presentation.ui.components.settings.TtsModelCacheCard
 import presentation.ui.components.settings.TtsDeleteConfirmationContent
 import presentation.ui.components.settings.TtsVoiceManagerContent
+import presentation.ui.components.settings.TagManagerCard
 import presentation.ui.components.settings.WordManagerCard
 import presentation.ui.permissions.rememberNotificationPermissionRequester
 import presentation.ui.permissions.wasNotificationPermissionDenied
+import presentation.ui.screens.settings.showTagManagerScreen
 import presentation.ui.screens.settings.showWordManagerSheet
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -125,10 +127,12 @@ fun SettingsScreen(
 
             WordManagerCard(onClick = { overlayHost.showWordManagerSheet() })
 
+            TagManagerCard(onClick = { overlayHost.showTagManagerScreen() })
+
             TtsModelCacheCard(
                 onClick = {
                     viewModel.loadTtsModels()
-                    overlayHost.showSizeToFitBottomSheet(tag = "tts-model-cache") { nav ->
+                    overlayHost.showSizeToFitBottomSheet(tag = "tts-model-cache") { _ ->
                         val currentState by viewModel.state()
                         TtsVoiceManagerContent(
                             models = currentState.ttsModels,

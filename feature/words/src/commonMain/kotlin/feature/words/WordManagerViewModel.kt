@@ -3,6 +3,7 @@ package feature.words
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.tag.usecase.GetTagsUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.usecase.BatchUpdateLanguagesUseCase
@@ -19,6 +20,7 @@ import feature.words.model.WordSortOption
 import utils.Language
 class WordManagerViewModel(
     private val getAllWordsUseCase: GetAllWordsUseCase,
+    private val getTagsUseCase: GetTagsUseCase,
     deleteWordsUseCase: DeleteWordsUseCase,
     batchUpdateLanguagesUseCase: BatchUpdateLanguagesUseCase,
     updateWordUseCase: UpdateWordUseCase,
@@ -61,6 +63,7 @@ class WordManagerViewModel(
 
     init {
         startObservingWords()
+        startObservingTags()
         viewModelScope.launch {
             getFeatureAccessUseCase()
                 .catch {
@@ -82,6 +85,14 @@ class WordManagerViewModel(
                 isBatchUpdatingLanguages = false,
                 errorMessage = null
             )
+        }
+    }
+
+    private fun startObservingTags() {
+        viewModelScope.launch {
+            getTagsUseCase()
+                .catch { it.printStackTrace() }
+                .collect { tags -> updateState { copy(tags = tags) } }
         }
     }
 
@@ -159,6 +170,10 @@ class WordManagerViewModel(
 
     fun setFilterLearningStage(stage: LearningStage?) {
         updateState { copy(filterLearningStage = stage) }
+    }
+
+    fun setFilterTagId(tagId: Long?) {
+        updateState { copy(filterTagId = tagId) }
     }
 
     fun enterSelectionMode() {

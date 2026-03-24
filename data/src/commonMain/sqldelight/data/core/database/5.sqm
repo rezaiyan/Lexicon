@@ -1,0 +1,15 @@
+-- Migration from version 5 to version 6
+-- Adds TagEntity and WordTagEntity tables for the tag system
+
+CREATE TABLE TagEntity (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE TABLE WordTagEntity (
+    wordId INTEGER NOT NULL,
+    tagId INTEGER NOT NULL,
+    PRIMARY KEY (wordId, tagId)
+);

@@ -18,6 +18,7 @@ import domain.word.model.ProgressStats
 import domain.word.model.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlin.time.Clock
@@ -26,6 +27,7 @@ interface IWordLocalDataSource {
     suspend fun getAllWordsAsync(): List<Word>
     fun getAllWords(): Flow<List<Word>>
     fun getDueCards(): Flow<List<Word>>
+    fun getDueCardsByTag(tagId: Long): Flow<List<Word>>
     fun getWordsByStage(stage: LearningStage): Flow<List<Word>>
     suspend fun getWordById(id: Int): Word?
     suspend fun insertWords(words: List<Word>)
@@ -37,7 +39,7 @@ interface IWordLocalDataSource {
     fun getProgressStats(): Flow<ProgressStats>
     suspend fun getTotalCount(): Int
     suspend fun getDueCount(): Int
-    suspend fun deleteAllWords(): Unit
+    suspend fun deleteAllWords()
     suspend fun getMostCommonSourceLanguage(): String?
 }
 
@@ -48,23 +50,67 @@ class WordLocalDataSource(
 
     override suspend fun getAllWordsAsync(): List<Word> {
         val fallback = settingsRepository.getLanguage().first()
-        return queries.getAllWords().awaitAsList().toDomainList(fallback)
+        val entities = queries.getAllWords().awaitAsList()
+        if (entities.isEmpty()) return emptyList()
+        val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
+            .awaitAsList().groupBy { it.wordId }
+        return entities.map { entity ->
+            entity.toDomain(fallback, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+        }
     }
 
+    // Combines the word-entity trigger with the word-tag trigger so that tag assignments
+    // cause the list to re-emit, keeping tagIds on each Word in sync.
     override fun getAllWords(): Flow<List<Word>> {
-        return queries.getAllWords().asFlow().mapToList(Dispatchers.Default)
+        return combine(
+            queries.getAllWords().asFlow().mapToList(Dispatchers.Default),
+            queries.countWordTags().asFlow().mapToOneOrNull(Dispatchers.Default)
+        ) { entities, _ -> entities }
             .map { entities ->
                 val language = settingsRepository.getLanguage().first()
-                entities.toDomainList(language)
+                if (entities.isEmpty()) return@map emptyList()
+                val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
+                    .awaitAsList().groupBy { it.wordId }
+                entities.map { entity ->
+                    entity.toDomain(language, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+                }
             }
     }
 
     override fun getDueCards(): Flow<List<Word>> {
-        return queries.countWords().asFlow().mapToOneOrNull(Dispatchers.Default)
+        return combine(
+            queries.countWords().asFlow().mapToOneOrNull(Dispatchers.Default),
+            queries.countWordTags().asFlow().mapToOneOrNull(Dispatchers.Default)
+        ) { _, _ -> }
             .map {
                 val language = settingsRepository.getLanguage().first()
                 val currentTime = Clock.System.now().toEpochMilliseconds()
-                queries.getDueCards(currentTime).awaitAsList().toDomainList(language)
+                val entities = queries.getDueCards(currentTime).awaitAsList()
+                if (entities.isEmpty()) return@map emptyList()
+                val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
+                    .awaitAsList().groupBy { it.wordId }
+                entities.map { entity ->
+                    entity.toDomain(language, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+                }
+            }
+    }
+
+    // Reacts to both word-count changes (review progress) and word-tag changes (tag assignment).
+    override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> {
+        return combine(
+            queries.countWords().asFlow().mapToOneOrNull(Dispatchers.Default),
+            queries.countWordTags().asFlow().mapToOneOrNull(Dispatchers.Default)
+        ) { _, _ -> }
+            .map {
+                val language = settingsRepository.getLanguage().first()
+                val currentTime = Clock.System.now().toEpochMilliseconds()
+                val entities = queries.getDueCardsByTag(tagId, currentTime).awaitAsList()
+                if (entities.isEmpty()) return@map emptyList()
+                val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
+                    .awaitAsList().groupBy { it.wordId }
+                entities.map { entity ->
+                    entity.toDomain(language, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+                }
             }
     }
 
@@ -80,29 +126,63 @@ class WordLocalDataSource(
 
     override suspend fun getWordById(id: Int): Word? {
         val fallback = settingsRepository.getLanguage().first()
-        return queries.getWordById(id.toLong()).awaitAsOneOrNull()
-            ?.toDomain(fallback)
+        val entity = queries.getWordById(id.toLong()).awaitAsOneOrNull() ?: return null
+        val tagIds = queries.getTagIdsForWord(id.toLong()).awaitAsList()
+        return entity.toDomain(fallback, tagIds)
     }
 
     override suspend fun insertWords(words: List<Word>) {
         val entities = words.toEntityDataList()
         queries.transaction {
             entities.forEach { entity ->
-                queries.upsertWord(
-                    id = entity.id.toLong(),
-                    originalWord = entity.originalWord,
-                    translation = entity.translation,
-                    description = entity.description,
-                    sourceLanguage = entity.sourceLanguage,
-                    targetLanguage = entity.targetLanguage,
-                    level = entity.level.toLong(),
-                    easeFactor = entity.easeFactor.toDouble(),
-                    interval = entity.interval.toLong(),
-                    repetitions = entity.repetitions.toLong(),
-                    lastReviewDate = entity.lastReviewDate,
-                    nextReviewDate = entity.nextReviewDate,
-                    dateAdded = entity.dateAdded
-                )
+                if (entity.id == 0) {
+                    queries.insertWord(
+                        originalWord = entity.originalWord,
+                        translation = entity.translation,
+                        description = entity.description,
+                        sourceLanguage = entity.sourceLanguage,
+                        targetLanguage = entity.targetLanguage,
+                        level = entity.level.toLong(),
+                        easeFactor = entity.easeFactor.toDouble(),
+                        interval = entity.interval.toLong(),
+                        repetitions = entity.repetitions.toLong(),
+                        lastReviewDate = entity.lastReviewDate,
+                        nextReviewDate = entity.nextReviewDate,
+                        dateAdded = entity.dateAdded
+                    )
+                } else {
+                    queries.upsertWord(
+                        id = entity.id.toLong(),
+                        originalWord = entity.originalWord,
+                        translation = entity.translation,
+                        description = entity.description,
+                        sourceLanguage = entity.sourceLanguage,
+                        targetLanguage = entity.targetLanguage,
+                        level = entity.level.toLong(),
+                        easeFactor = entity.easeFactor.toDouble(),
+                        interval = entity.interval.toLong(),
+                        repetitions = entity.repetitions.toLong(),
+                        lastReviewDate = entity.lastReviewDate,
+                        nextReviewDate = entity.nextReviewDate,
+                        dateAdded = entity.dateAdded
+                    )
+                }
+            }
+            // Handle tags for existing words (real IDs known)
+            words.filter { it.id != 0 }.forEach { word ->
+                queries.deleteWordTagsForWord(word.id.toLong())
+                word.tagIds.forEach { tagId ->
+                    queries.insertWordTag(word.id.toLong(), tagId)
+                }
+            }
+        }
+        // Handle tags for new words: look up real AUTOINCREMENT IDs after insert
+        words.filter { it.id == 0 && it.tagIds.isNotEmpty() }.forEach { word ->
+            val realId = queries.findWordByContent(word.originalWord, word.translation)
+                .awaitAsOneOrNull()?.id ?: return@forEach
+            queries.deleteWordTagsForWord(realId)
+            word.tagIds.forEach { tagId ->
+                queries.insertWordTag(realId, tagId)
             }
         }
     }

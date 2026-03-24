@@ -19,7 +19,8 @@ data class Word(
     val repetitions: Int = 0,
     val lastReviewDate: Long = 0L,
     val nextReviewDate: Long,
-    val dateAdded: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
+    val dateAdded: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+    val tagIds: List<Long> = emptyList(),
 ) {
     /**
      * Compare words by content (ignoring ID and learning progress)

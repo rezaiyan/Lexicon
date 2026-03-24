@@ -20,15 +20,17 @@ class ImportWordsUseCase(
         val text: String,
         val sourceLanguage: Language? = null,
         val targetLanguage: Language? = null,
+        val tagId: Long? = null,
     )
 
     override suspend operator fun invoke(params: Params): Try<Int> =
-        invoke(params.text, params.sourceLanguage, params.targetLanguage)
+        invoke(params.text, params.sourceLanguage, params.targetLanguage, params.tagId)
 
     suspend operator fun invoke(
         text: String,
         sourceLanguage: Language? = null,
         targetLanguage: Language? = null,
+        tagId: Long? = null,
     ): Try<Int> {
         val resolvedSourceLanguage = sourceLanguage ?: Language.ENGLISH
         val resolvedTargetLanguage = targetLanguage ?: getCurrentLanguageUseCase().getOrDefault(Language.ENGLISH)
@@ -38,12 +40,10 @@ class ImportWordsUseCase(
             targetLanguage = resolvedTargetLanguage
         ).fold(
             onSuccess = { parsedWords ->
-                val importWords = parsedWords.distinctBy {
-                    Pair(
-                        it.originalWord.trim().lowercase(),
-                        it.translation.trim().lowercase()
-                    )
-                }
+                val tagIds = if (tagId != null) listOf(tagId) else emptyList()
+                val importWords = parsedWords
+                    .distinctBy { Pair(it.originalWord.trim().lowercase(), it.translation.trim().lowercase()) }
+                    .map { it.copy(tagIds = tagIds) }
 
                 wordRepository.insertWords(importWords).flatMap { importedCount ->
                     if (importedCount > 0) {

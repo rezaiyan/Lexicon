@@ -40,6 +40,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.assign_tags
 import lexicon.resources.generated.resources.delete
 import lexicon.resources.generated.resources.detail_added
 import lexicon.resources.generated.resources.detail_languages
@@ -52,7 +53,8 @@ import lexicon.resources.generated.resources.learning_progress
 internal fun WordDetailSheetContent(
     word: Word,
     onEdit: (Word) -> Unit,
-    onDelete: (Word) -> Unit
+    onDelete: (Word) -> Unit,
+    onAssignTags: (Word) -> Unit,
 ) {
     val stage = LearningStage.fromLevel(word.level)
     val color = levelColor(stage)
@@ -168,6 +170,10 @@ internal fun WordDetailSheetContent(
             text = stringResource(Res.string.delete),
             onClick = { onDelete(word) },
             type = ButtonType.Error
+        ),
+        secondaryButton = ButtonState(
+            text = stringResource(Res.string.assign_tags),
+            onClick = { onAssignTags(word) }
         ),
         primaryButton = ButtonState(
             text = stringResource(Res.string.edit),

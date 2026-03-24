@@ -1,6 +1,7 @@
 package feature.aiimport.model
 
 import domain.onboarding.model.SuggestedVocabulary
+import domain.tag.model.Tag
 
 enum class AiWordImportStep { TARGET_LANG, NATIVE_LANG, LEVEL, TOPICS, PREVIEW }
 
@@ -22,5 +23,7 @@ data class AiWordImportUiState(
     val suggestedWords: List<SuggestedVocabulary> = emptyList(),
     val selectedWordIndices: Set<Int> = emptySet(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val tags: List<Tag> = emptyList(),
+    val selectedTagId: Long? = null,
 )

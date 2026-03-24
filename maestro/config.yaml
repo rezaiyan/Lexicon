@@ -44,6 +44,9 @@ flows:
   # 03_import_sheet_tabs tests in-sheet back navigation (method chooser ↔
   # language chooser); distinct regression value from 01 and 02.
   - "flows/import/03_import_sheet_tabs.yaml"
+  # 04_tag_selector_in_import verifies the TagSelectorRow and inline create-tag
+  # dialog appear in the manual text import flow.
+  - "flows/import/04_tag_selector_in_import.yaml"
   - "flows/import/06_image_import_from_gallery.yaml"
   - "flows/study/*.yaml"
   - "flows/profile/01_profile_screen_loads.yaml"
@@ -54,6 +57,7 @@ flows:
   - "flows/settings/02_theme_dialog.yaml"
   - "flows/settings/03_notification_settings.yaml"
   - "flows/settings/04_subscription_screen.yaml"
+  - "flows/settings/05_tag_manager_screen.yaml"
   # word_manager/02_empty_state excluded — see header comment in that file.
   - "flows/word_manager/01_screen_loads.yaml"
   - "flows/word_manager/03_search_functionality.yaml"
@@ -61,6 +65,7 @@ flows:
   - "flows/word_manager/05_edit_word_dialog.yaml"
   - "flows/word_manager/06_delete_flow.yaml"
   - "flows/word_manager/08_word_detail_sheet.yaml"
+  - "flows/word_manager/09_tag_assignment.yaml"
 
 executionOrder:
   continueOnFailure: true
@@ -71,12 +76,14 @@ executionOrder:
     - flows/import/01_manual_text_input.yaml
     - flows/import/02_file_import_ui.yaml
     - flows/import/03_import_sheet_tabs.yaml
+    - flows/import/04_tag_selector_in_import.yaml
     - flows/import/06_image_import_from_gallery.yaml
     # Study/review tests (need words to exist)
     - flows/study/01_study_screen_loads.yaml
     - flows/study/02_edit_word_from_review.yaml
     - flows/study/03_review_rating_buttons.yaml
     - flows/study/04_review_completion.yaml
+    - flows/study/05_tag_filter_long_press.yaml
     # Profile tests
     - flows/profile/01_profile_screen_loads.yaml
     - flows/profile/02_more_options_sheet.yaml
@@ -87,6 +94,7 @@ executionOrder:
     - flows/settings/02_theme_dialog.yaml
     - flows/settings/03_notification_settings.yaml
     - flows/settings/04_subscription_screen.yaml
+    - flows/settings/05_tag_manager_screen.yaml
     # Word manager tests run last (some tests delete words — run destructive last)
     - flows/word_manager/01_screen_loads.yaml
     - flows/word_manager/03_search_functionality.yaml
@@ -94,3 +102,4 @@ executionOrder:
     - flows/word_manager/05_edit_word_dialog.yaml
     - flows/word_manager/06_delete_flow.yaml
     - flows/word_manager/08_word_detail_sheet.yaml
+    - flows/word_manager/09_tag_assignment.yaml

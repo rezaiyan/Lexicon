@@ -22,6 +22,7 @@ import domain.tts.usecase.SpeakWordUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.usecase.DeleteWordUseCase
+import domain.word.usecase.GetDueWordsByTagUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ReviewWordUseCase
@@ -40,6 +41,7 @@ import kotlin.time.Clock
 data class ReviewWordUseCases(
     val getDueWords: GetDueWordsUseCase,
     val getWordsByStage: GetWordsByStageUseCase,
+    val getDueWordsByTag: GetDueWordsByTagUseCase,
     val reviewWord: ReviewWordUseCase,
     val updateWord: UpdateWordUseCase,
     val deleteWord: DeleteWordUseCase,
@@ -142,6 +144,38 @@ class ReviewViewModel(
             cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
             val wordListState = currentState.review.wordListState
             val cardCount = if (wordListState is UiState.Loaded) wordListState.value.size else 0
+            analyticsTracker.logReviewSessionStart(cardCount = cardCount)
+        }
+    }
+
+    fun startStageTagReview(stage: LearningStage, tagId: Long) {
+        viewModelScope.launch {
+            beginAnalyticsSession("BROWSE")
+            updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
+            wordUseCases.getWordsByStage(stage)
+                .map<List<Word>, UiState<List<Word>>> { words ->
+                    UiState.Loaded(words.filter { tagId in it.tagIds })
+                }
+                .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
+                .first()
+                .let { state ->
+                    updateState { copy(review = review.copy(wordListState = state)) }
+                    cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
+                }
+        }
+    }
+
+    fun startTagReview(tagId: Long) {
+        viewModelScope.launch {
+            beginAnalyticsSession("BROWSE")
+            cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
+            updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
+            val result = wordUseCases.getDueWordsByTag(tagId)
+                .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
+                .catch { e -> emit(UiState.Error(e.message ?: "Failed to load words")) }
+                .first()
+            updateState { copy(review = review.copy(wordListState = result)) }
+            val cardCount = if (result is UiState.Loaded) result.value.size else 0
             analyticsTracker.logReviewSessionStart(cardCount = cardCount)
         }
     }

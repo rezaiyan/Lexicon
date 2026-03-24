@@ -1,0 +1,84 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - tags
+---
+# Test: TagSelectorRow appears in the manual text import flow and the inline
+# "New Tag" dialog can be opened and cancelled.
+#
+# Navigates to the TextContentPage of the manual import sheet, verifies the
+# "None" chip and the "New tag" (+) button are visible, opens the create-tag
+# dialog, then cancels without creating a tag — keeping the account clean for
+# subsequent tests.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Open the import picker.
+- tapOn: "Import Words"
+
+# The "Add Words" picker sheet appears. Tap "Manually".
+- tapOn: "Manually"
+
+# The import method chooser appears. Tap "Type Text".
+- assertVisible: "Type Text"
+- tapOn: "Type Text"
+
+# The source language chooser appears.
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
+
+# Select "English" as the source language.
+- tapOn: "English"
+
+# Wait for the text import form to render (Add a Word header).
+- extendedWaitUntil:
+    visible: "Add a Word"
+    timeout: 5000
+
+# ── TagSelectorRow ────────────────────────────────────────────────────────────
+
+# The "None" chip must always be visible in the tag selector row.
+- assertVisible: "None"
+
+# The "New tag" (+) button must be visible (content description set on the icon
+# button; only shown when the user has permission to create tags).
+- assertVisible: "New tag"
+
+# ── Create tag dialog ─────────────────────────────────────────────────────────
+
+# Tap the "New tag" button to open the inline tag creation dialog.
+- tapOn: "New tag"
+
+# The create-tag dialog must appear.
+- extendedWaitUntil:
+    visible: "New Tag"
+    timeout: 5000
+
+# The "Tag name" input hint must be visible inside the dialog.
+- assertVisible: "Tag name"
+
+# Both action buttons must be present.
+- assertVisible: "Create Tag"
+- assertVisible: "Cancel"
+
+# Cancel without creating a tag (keeps state clean for other tests).
+- tapOn: "Cancel"
+- waitForAnimationToEnd
+
+# ── Post-cancel state ─────────────────────────────────────────────────────────
+
+# The dialog must be dismissed; the "None" chip must still be visible.
+- assertVisible: "None"
+
+# ── Close import sheet ────────────────────────────────────────────────────────
+
+- tapOn: "Close"
+
+# Verify we are back on the Study screen.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

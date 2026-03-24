@@ -206,7 +206,7 @@ fun LexiconApp() {
                                         appNavigationViewModel.onAuthCompleteCheckingData()
                                     } else {
                                         if (pendingVocabulary.isNotEmpty()) {
-                                            importUseCase(pendingVocabulary)
+                                            importUseCase(ImportSuggestedVocabularyUseCase.Params(pendingVocabulary))
                                         }
                                         appNavigationViewModel.onAuthComplete()
                                     }

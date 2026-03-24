@@ -54,7 +54,8 @@ class WordConflictResolver : IWordConflictResolver {
                 nextReviewDate = remote.nextReviewDate,
                 dateAdded = remote.createdAt
                     ?: existingEntity?.dateAdded
-                    ?: 0L
+                    ?: 0L,
+                tagIds = remote.tagIds
             )
 
             entitiesByContent[contentKey] = entity

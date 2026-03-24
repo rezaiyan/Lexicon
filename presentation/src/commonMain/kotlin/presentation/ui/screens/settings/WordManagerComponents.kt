@@ -34,6 +34,7 @@ internal fun WordListContent(
     onSortOptionChange: (WordSortOption) -> Unit,
     onFilterLanguageChange: (Language?) -> Unit,
     onFilterLearningStageChange: (LearningStage?) -> Unit,
+    onFilterTagChange: (Long?) -> Unit,
     onDeleteSelected: () -> Unit,
     onBatchEditLanguages: () -> Unit,
     onExitSelectionMode: () -> Unit,
@@ -50,10 +51,13 @@ internal fun WordListContent(
                 sortOption = state.sortOption,
                 filterLanguage = state.filterLanguage,
                 filterLearningStage = state.filterLearningStage,
+                filterTagId = state.filterTagId,
+                tags = state.tags,
                 availableLanguages = state.availableLanguages,
                 onSortOptionChange = onSortOptionChange,
                 onFilterLanguageChange = onFilterLanguageChange,
-                onFilterLearningStageChange = onFilterLearningStageChange
+                onFilterLearningStageChange = onFilterLearningStageChange,
+                onFilterTagChange = onFilterTagChange
             )
 
             WordCountSummary(

@@ -1,6 +1,8 @@
 package presentation.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -8,6 +10,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.rounded.Sell
+import components.SectionHeader
+import domain.tag.model.Tag
+import theme.AppColors
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -43,6 +49,7 @@ import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
+import feature.study.ui.components.LevelBucketCard
 import feature.study.ui.review.ReviewBottomSheetContent
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -81,6 +88,8 @@ fun StudyScreen() {
     val progressState by progressViewModel.state()
     val uiState = progressState.progress
     val hasPremiumAccess = progressState.hasPremiumAccess
+    val tags = progressState.tags
+    val dueTagIds = progressState.dueTagIds
 
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
@@ -153,6 +162,23 @@ fun StudyScreen() {
                     onClose = { nav.dismiss() },
                     onDismiss = { nav.dismiss() },
                     onShowSnackBar = onImportSuccess,
+                )
+            }
+        }
+    }
+
+    val openTagPickerSheet: (List<Tag>, (Tag) -> Unit) -> Unit = { tagsToShow, onTagSelected ->
+        if (tagsToShow.isNotEmpty()) {
+            overlayHost.showSizeToFitBottomSheet(
+                tag = "tag-picker",
+                properties = BottomSheetProperties(dismissOnBackPress = true, dismissOnTouchOutside = true),
+            ) { nav ->
+                TagPickerSheetContent(
+                    tags = tagsToShow,
+                    onTagSelected = { tag ->
+                        nav.dismiss()
+                        onTagSelected(tag)
+                    },
                 )
             }
         }
@@ -253,6 +279,41 @@ fun StudyScreen() {
                         }
                     }
 
+                    val dueTags = tags.filter { it.id in dueTagIds }
+                    val onStartReviewLongPress: (() -> Unit)? = if (dueTags.isNotEmpty()) {
+                        {
+                            openTagPickerSheet(dueTags) { tag ->
+                                reviewViewModel.startTagReview(tag.id)
+                                overlayHost.showFullScreen(
+                                    tag = "review-tag-${tag.id}",
+                                    properties = FullScreenProperties(
+                                        dismissOnBackPress = false,
+                                        isNavigationBarsPaddingEnabled = true
+                                    ),
+                                ) { navigator ->
+                                    val reviewState by reviewViewModel.state()
+                                    ReviewBottomSheetContent(
+                                        reviewType = ReviewType.REVIEW,
+                                        reviewState = reviewState.review,
+                                        onClose = navigator::dismiss,
+                                        onReviewComplete = navigator::dismiss,
+                                        onReviewWord = reviewViewModel::reviewWord,
+                                        onLoadWords = reviewViewModel::startDueReview,
+                                        onUpdateWord = reviewViewModel::updateWord,
+                                        onDeleteWord = { wordId, onComplete ->
+                                            reviewViewModel.deleteWord(wordId)
+                                            onComplete()
+                                        },
+                                        ttsState = reviewState.ttsState,
+                                        onSpeakClick = reviewViewModel::speakWord,
+                                        speechRate = reviewState.speechRate,
+                                        onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
+                                    )
+                                }
+                            }
+                        }
+                    } else null
+
                     StatsSection(
                         modifier = Modifier.onGloballyPositioned { coordinates ->
                             statsSectionBottom =
@@ -261,7 +322,8 @@ fun StudyScreen() {
                         evaluation = evaluation,
                         dueCards = loadedStats.dueCards,
                         onImportWords = openImportSheet,
-                        onStartReview = { reviewViewModel.startReview() }
+                        onStartReview = { reviewViewModel.startReview() },
+                        onStartReviewLongPress = onStartReviewLongPress,
                     )
 
                     WordDistributionBar(stats = loadedStats)
@@ -269,37 +331,91 @@ fun StudyScreen() {
                     LearningStagesSection(
                         stats = loadedStats,
                         onStageClick = { stage, _ ->
-                            reviewViewModel.loadWordsByStage(stage)
-                            overlayHost.showFullScreen(
-                        tag = "review-stage-${stage}",
-                        properties = FullScreenProperties(dismissOnSwipe = true),
-                    ) { navigator ->
-                                val reviewState by reviewViewModel.state()
-                                val sheetTts = reviewState.ttsState
-
-                                ReviewBottomSheetContent(
-                                    reviewType = ReviewType.BROWSE,
-                                    reviewState = reviewState.review,
-                                    onClose = navigator::dismiss,
-                                    onReviewComplete = navigator::dismiss,
-                                    onReviewWord = reviewViewModel::reviewWord,
-                                    onLoadWords = reviewViewModel::startDueReview,
-                                    onUpdateWord = reviewViewModel::updateWord,
-                                    onDeleteWord = { wordId, onComplete ->
-                                        reviewViewModel.deleteWord(wordId)
-                                        onComplete()
-                                    },
-                                    ttsState = sheetTts,
-                                    onSpeakClick = reviewViewModel::speakWord,
-                                    speechRate = reviewState.speechRate,
-                                    onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
-                                )
+                            val activeTags = tags.filter { it.wordCount > 0 }
+                            if (activeTags.isNotEmpty()) {
+                                openTagPickerSheet(activeTags) { tag ->
+                                    reviewViewModel.startStageTagReview(stage, tag.id)
+                                    overlayHost.showFullScreen(
+                                        tag = "review-stage-tag-${stage}-${tag.id}",
+                                        properties = FullScreenProperties(dismissOnSwipe = true),
+                                    ) { navigator ->
+                                        val reviewState by reviewViewModel.state()
+                                        ReviewBottomSheetContent(
+                                            reviewType = ReviewType.BROWSE,
+                                            reviewState = reviewState.review,
+                                            onClose = navigator::dismiss,
+                                            onReviewComplete = navigator::dismiss,
+                                            onReviewWord = reviewViewModel::reviewWord,
+                                            onLoadWords = reviewViewModel::startDueReview,
+                                            onUpdateWord = reviewViewModel::updateWord,
+                                            onDeleteWord = { wordId, onComplete ->
+                                                reviewViewModel.deleteWord(wordId)
+                                                onComplete()
+                                            },
+                                            ttsState = reviewState.ttsState,
+                                            onSpeakClick = reviewViewModel::speakWord,
+                                            speechRate = reviewState.speechRate,
+                                            onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
+                                        )
+                                    }
+                                }
+                            } else {
+                                reviewViewModel.loadWordsByStage(stage)
+                                overlayHost.showFullScreen(
+                                    tag = "review-stage-${stage}",
+                                    properties = FullScreenProperties(dismissOnSwipe = true),
+                                ) { navigator ->
+                                    val reviewState by reviewViewModel.state()
+                                    ReviewBottomSheetContent(
+                                        reviewType = ReviewType.BROWSE,
+                                        reviewState = reviewState.review,
+                                        onClose = navigator::dismiss,
+                                        onReviewComplete = navigator::dismiss,
+                                        onReviewWord = reviewViewModel::reviewWord,
+                                        onLoadWords = reviewViewModel::startDueReview,
+                                        onUpdateWord = reviewViewModel::updateWord,
+                                        onDeleteWord = { wordId, onComplete ->
+                                            reviewViewModel.deleteWord(wordId)
+                                            onComplete()
+                                        },
+                                        ttsState = reviewState.ttsState,
+                                        onSpeakClick = reviewViewModel::speakWord,
+                                        speechRate = reviewState.speechRate,
+                                        onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
+                                    )
+                                }
+                                reviewViewModel.startStageReview(stage)
                             }
-                            reviewViewModel.startStageReview(stage)
-                        }
+                        },
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TagPickerSheetContent(
+    tags: List<Tag>,
+    onTagSelected: (Tag) -> Unit,
+) {
+    Column(modifier = Modifier.padding(horizontal = Theme.spacing.md)) {
+        SectionHeader(
+            title = "Tags",
+            modifier = Modifier.padding(vertical = Theme.spacing.md),
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+            tags.forEach { tag ->
+                LevelBucketCard(
+                    level = tag.name,
+                    description = "${tag.wordCount} ${if (tag.wordCount == 1L) "word" else "words"}",
+                    count = tag.wordCount.toInt(),
+                    color = AppColors.adept,
+                    icon = Icons.Rounded.Sell,
+                    onClick = { onTagSelected(tag) },
+                )
+            }
+        }
+        Spacer(Modifier.height(Theme.spacing.md))
     }
 }

@@ -1,11 +1,13 @@
 package feature.words.model
 
+import domain.tag.model.Tag
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import utils.Language
 
 data class WordManagerScreenState(
     val words: List<Word> = emptyList(),
+    val tags: List<Tag> = emptyList(),
     val isUserSubscribed: Boolean = false,
     val isLoading: Boolean = false,
     val isDeletingWords: Boolean = false,
@@ -14,6 +16,7 @@ data class WordManagerScreenState(
     val sortOption: WordSortOption = WordSortOption.DATE_ADDED_DESC,
     val filterLanguage: Language? = null,
     val filterLearningStage: LearningStage? = null,
+    val filterTagId: Long? = null,
     val isSelectionMode: Boolean = false,
     val selectedWordIds: Set<Int> = emptySet(),
     val errorMessage: String? = null
@@ -38,6 +41,11 @@ data class WordManagerScreenState(
         // Learning stage filter
         filterLearningStage?.let { stage ->
             result = result.filter { LearningStage.fromLevel(it.level) == stage }
+        }
+
+        // Tag filter
+        filterTagId?.let { tagId ->
+            result = result.filter { it.tagIds.contains(tagId) }
         }
 
         // Sort with tiebreakers for stable, predictable ordering
@@ -75,7 +83,7 @@ data class WordManagerScreenState(
     val selectedCount: Int get() = selectedWordIds.size
 
     val isFiltered: Boolean
-        get() = searchQuery.isNotBlank() || filterLanguage != null || filterLearningStage != null
+        get() = searchQuery.isNotBlank() || filterLanguage != null || filterLearningStage != null || filterTagId != null
 }
 
 sealed class WordManagerEffect {

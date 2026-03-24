@@ -7,6 +7,9 @@ import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.onboarding.repository.IOnboardingRepository
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
+import domain.tag.model.Tag
+import domain.tag.repository.ITagRepository
+import domain.tag.usecase.GetTagsUseCase
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -53,6 +56,7 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
@@ -68,9 +72,20 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 
+    private fun fakeTagRepo() = object : ITagRepository {
+        override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+        override suspend fun createTag(name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
+        override suspend fun renameTag(id: Long, name: String): Try<Tag> = Try.success(Tag(id, name, 0L, 0L, 0L))
+        override suspend fun deleteTag(id: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
+        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
+    }
+
     private fun createViewModel() = AiWordImportViewModel(
         submitPreferencesUseCase = SubmitPreferencesUseCase(fakeOnboardingRepo()),
         importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(fakeWordRepo()),
+        getTagsUseCase = GetTagsUseCase(fakeTagRepo()),
         analyticsTracker = FakeAnalyticsTracker(),
     )
 

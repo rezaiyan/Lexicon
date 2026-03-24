@@ -14,6 +14,7 @@ interface IWordRepository {
     suspend fun getAllWordsAsync(): Try<List<Word>>
     fun getAllWords(): Flow<List<Word>>
     fun getDueCards(): Flow<List<Word>>
+    fun getDueCardsByTag(tagId: Long): Flow<List<Word>>
     fun getWordsByStage(stage: LearningStage): Flow<List<Word>>
     suspend fun getWordById(id: Int): Word?
     suspend fun insertWords(words: List<Word>): Try<Int>

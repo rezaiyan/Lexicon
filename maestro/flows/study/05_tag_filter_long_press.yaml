@@ -1,0 +1,195 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - tags
+  - review
+---
+# Test: Long-pressing "Start Review" on the Study screen opens a tag-filter
+# picker sheet when at least one tag with assigned words exists.  Selecting a
+# tag launches a tag-filtered review session.
+#
+# Setup
+#   1. Create tag "TestFilterTag" via Settings → Tag Manager.
+#   2. Add a test word via the import sheet.
+#   3. Assign "TestFilterTag" to the test word via Word Manager.
+#
+# Test
+#   4. Long-press "Start Review" on the Study screen.
+#   5. Verify the "Tags" picker sheet appears with "TestFilterTag" listed.
+#   6. Tap "TestFilterTag" → review opens.
+#   7. Close the review immediately (no cards rated).
+#
+# Teardown
+#   8. Delete "TestFilterTag" via Settings → Tag Manager so the account is
+#      clean for subsequent tests (word_manager/09_tag_assignment.yaml expects
+#      the "No tags yet" empty state).
+
+- launchApp:
+    clearState: false
+
+# ── Setup: Create tag ─────────────────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+- extendedWaitUntil:
+    visible: "Tag Manager"
+    timeout: 8000
+
+- tapOn: "New Tag"
+
+- extendedWaitUntil:
+    visible: "New Tag"
+    timeout: 5000
+
+- tapOn: "Tag name"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "TestFilterTag"
+- hideKeyboard
+
+- tapOn: "Create Tag"
+- waitForAnimationToEnd
+
+# Tag appears in the list.
+- assertVisible: "TestFilterTag"
+
+# Close Tag Manager.
+- pressKey: back
+
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000
+
+# ── Setup: Add a test word ────────────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# ── Setup: Assign tag to the test word ───────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 15000
+
+# Open the detail sheet for the test word.
+- tapOn: "${output.word}"
+
+# Wait for the detail sheet to appear.
+- assertVisible: "Learning Progress"
+
+# Open tag assignment.
+- tapOn: "Assign Tags"
+
+- extendedWaitUntil:
+    visible: "Assign Tags"
+    timeout: 8000
+
+# "TestFilterTag" chip must be present (wordCount=0 so shows plain name).
+- assertVisible: "TestFilterTag"
+
+# Select the chip.
+- tapOn: "TestFilterTag"
+- waitForAnimationToEnd
+
+# Save the assignment.
+- tapOn: "Assign Tags"
+- waitForAnimationToEnd
+
+# Back on the detail sheet.
+- assertVisible: "Learning Progress"
+
+# Dismiss the detail sheet.
+- pressKey: back
+
+# ── Test: Long-press "Start Review" opens tag picker ─────────────────────────
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Wait for the "Start Review" button to be visible (due cards exist).
+- extendedWaitUntil:
+    visible: "Start Review"
+    timeout: 8000
+
+# Long-press "Start Review" to open the tag-filter picker sheet.
+- longPressOn: "Start Review"
+
+# The picker sheet must appear with the "Tags" section header.
+- extendedWaitUntil:
+    visible: "Tags"
+    timeout: 8000
+
+# "TestFilterTag" must appear (wordCount > 0 after assignment).
+- assertVisible: "TestFilterTag"
+
+# Tap the tag to start a tag-filtered review.
+- tapOn: "TestFilterTag"
+- waitForAnimationToEnd
+
+# The review screen must open — first card is face-down.
+- extendedWaitUntil:
+    visible: "Tap card to reveal"
+    timeout: 8000
+
+# Close the review without rating any cards.
+- tapOn: "Close"
+
+- extendedWaitUntil:
+    visible: "Exit Review?"
+    timeout: 5000
+
+# Confirm exit (index 1 = the confirm button, index 0 = the title text).
+- tapOn:
+    text: "Exit Review?"
+    index: 1
+
+- waitForAnimationToEnd
+
+# Back on the Study screen.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 8000
+
+# ── Teardown: Delete "TestFilterTag" ─────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+- extendedWaitUntil:
+    visible: "TestFilterTag"
+    timeout: 8000
+
+- tapOn: "Delete Tag"
+
+- extendedWaitUntil:
+    visible: "Delete Tag"
+    timeout: 5000
+
+- assertVisible: "Delete this tag? Words with this tag will not be deleted."
+
+- tapOn: "Delete Tag"
+- waitForAnimationToEnd
+
+# Empty state must appear — confirms the tag was deleted.
+- assertVisible: "No tags yet"
+
+# Close Tag Manager.
+- pressKey: back
+
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000

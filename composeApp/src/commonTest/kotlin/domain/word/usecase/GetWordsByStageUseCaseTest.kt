@@ -75,6 +75,7 @@ class GetWordsByStageUseCaseTest {
 
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))

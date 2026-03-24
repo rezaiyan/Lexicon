@@ -16,7 +16,8 @@ data class RemoteWord(
     val repetitions: Int,
     val lastReviewDate: Long,
     val nextReviewDate: Long,
-    val createdAt: Long? = null
+    val createdAt: Long? = null,
+    val tagIds: List<Long> = emptyList()
 )
 
 @Serializable

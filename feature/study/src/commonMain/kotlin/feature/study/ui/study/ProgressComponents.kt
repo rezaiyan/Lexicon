@@ -52,7 +52,8 @@ fun LearningStagesList(
     onStageClick: (LearningStage, String) -> Unit,
     levelTexts: List<String>? = null,
     levelNames: List<String>? = null,
-    levelDescriptions: List<String>? = null
+    levelDescriptions: List<String>? = null,
+    onStageLongClick: ((LearningStage, String) -> Unit)? = null,
 ) {
     val level0Text = levelTexts?.getOrNull(0) ?: stringResource(Res.string.level_0_fresh)
     val level1Text = levelTexts?.getOrNull(1) ?: stringResource(Res.string.level_1_learning)
@@ -137,7 +138,10 @@ fun LearningStagesList(
                     if (level.count > 0) {
                         onStageClick(level.stage, clickTexts[index])
                     }
-                }
+                },
+                onLongClick = onStageLongClick?.let { callback ->
+                    { callback(level.stage, clickTexts[index]) }
+                },
             )
         }
     }

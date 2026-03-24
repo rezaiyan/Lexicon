@@ -20,7 +20,8 @@ data class WordEntityData(
     val repetitions: Int = 0,
     val lastReviewDate: Long = 0L,
     val nextReviewDate: Long = Clock.System.now().toEpochMilliseconds() - 1000,
-    val dateAdded: Long = Clock.System.now().toEpochMilliseconds()
+    val dateAdded: Long = Clock.System.now().toEpochMilliseconds(),
+    val tagIds: List<Long> = emptyList()
 )
 
 data class SettingsEntityData(

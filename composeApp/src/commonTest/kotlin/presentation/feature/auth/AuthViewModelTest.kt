@@ -54,7 +54,6 @@ class AuthViewModelTest : ViewModelTestBase() {
     // --- Fakes ---
 
     private var isAuthenticatedFlow: Flow<Boolean> = flowOf(false)
-    private var sessionResult: SessionVerificationResult = SessionVerificationResult.NotAuthenticated
     private var loginResult: Try<AuthUser> = Try.failure(RuntimeException("not configured"))
 
     private fun testUser(id: Long = 1L) = AuthUser(
@@ -82,6 +81,7 @@ class AuthViewModelTest : ViewModelTestBase() {
 
     private fun fakeWordRepo() = object : IWordRepository {
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)

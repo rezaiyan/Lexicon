@@ -63,6 +63,7 @@ private sealed interface WordDetailPage {
     data class Detail(val word: Word) : WordDetailPage
     data class Edit(val word: Word) : WordDetailPage
     data class DeleteConfirm(val word: Word) : WordDetailPage
+    data class TagAssignment(val word: Word) : WordDetailPage
 }
 
 @Composable
@@ -193,6 +194,7 @@ internal fun WordManagerContent(
                         onSortOptionChange = viewModel::setSortOption,
                         onFilterLanguageChange = viewModel::setFilterLanguage,
                         onFilterLearningStageChange = viewModel::setFilterLearningStage,
+                        onFilterTagChange = viewModel::setFilterTagId,
                         onDeleteSelected = {
                             if (state.selectedCount > 0) {
                                 overlayHost.showSizeToFitBottomSheet(
@@ -277,7 +279,8 @@ private fun OverlayHost.showWordDetailSheet(
                 is WordDetailPage.Detail -> WordDetailSheetContent(
                     word = page.word,
                     onEdit = { w -> pages.navigateTo(WordDetailPage.Edit(w)) },
-                    onDelete = { w -> pages.navigateTo(WordDetailPage.DeleteConfirm(w)) }
+                    onDelete = { w -> pages.navigateTo(WordDetailPage.DeleteConfirm(w)) },
+                    onAssignTags = { w -> pages.navigateTo(WordDetailPage.TagAssignment(w)) }
                 )
 
                 is WordDetailPage.Edit -> EditWordContent(
@@ -295,6 +298,11 @@ private fun OverlayHost.showWordDetailSheet(
                         onDeleteWord(page.word)
                         sheetNav.dismiss()
                     },
+                    onDismiss = { pages.navigateBack() }
+                )
+
+                is WordDetailPage.TagAssignment -> TagAssignmentSheetContent(
+                    word = page.word,
                     onDismiss = { pages.navigateBack() }
                 )
             }

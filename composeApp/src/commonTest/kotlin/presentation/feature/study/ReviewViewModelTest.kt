@@ -25,6 +25,7 @@ import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.word.usecase.DeleteWordUseCase
+import domain.word.usecase.GetDueWordsByTagUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ReviewWordUseCase
@@ -65,6 +66,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
 
     private fun fakeWordRepo() = object : IWordRepository {
         override fun getDueCards(): Flow<List<Word>> = flowOf(dueWords)
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(stageWords)
         override suspend fun deleteWord(id: Int): Try<Unit> = deleteResult
         override suspend fun updateWord(word: Word): Try<Unit> = updateResult
@@ -170,6 +172,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             wordUseCases = ReviewWordUseCases(
                 getDueWords = GetDueWordsUseCase(wordRepo),
                 getWordsByStage = GetWordsByStageUseCase(wordRepo),
+                getDueWordsByTag = GetDueWordsByTagUseCase(wordRepo),
                 reviewWord = ReviewWordUseCase(wordRepo, GetReviewSettingsUseCase()),
                 updateWord = UpdateWordUseCase(wordRepo),
                 deleteWord = DeleteWordUseCase(

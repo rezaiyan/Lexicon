@@ -302,6 +302,7 @@ internal class FakeWordRepositoryForUpdate : IWordRepository {
     override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
     override fun getAllWords() = kotlinx.coroutines.flow.flowOf<List<Word>>(emptyList())
     override fun getDueCards() = kotlinx.coroutines.flow.flowOf<List<Word>>(emptyList())
+    override fun getDueCardsByTag(tagId: Long) = kotlinx.coroutines.flow.flowOf<List<Word>>(emptyList())
     override fun getWordsByStage(stage: domain.word.model.LearningStage) = kotlinx.coroutines.flow.flowOf<List<Word>>(emptyList())
     override suspend fun getWordById(id: Int) = null
     override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)

@@ -161,6 +161,82 @@ SELECT languageCode, speakerId, numSpeakers FROM TtsVoicePreference;
 upsertVoicePreference:
 INSERT OR REPLACE INTO TtsVoicePreference(languageCode, speakerId, numSpeakers) VALUES (?, ?, ?);
 
+-- TagEntity table
+CREATE TABLE TagEntity (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+-- WordTagEntity table (many-to-many word ↔ tag)
+CREATE TABLE WordTagEntity (
+    wordId INTEGER NOT NULL,
+    tagId INTEGER NOT NULL,
+    PRIMARY KEY (wordId, tagId)
+);
+
+-- Tag queries
+
+countTags:
+SELECT count(*) FROM TagEntity;
+
+insertOrReplaceTag:
+INSERT OR REPLACE INTO TagEntity(id, name, createdAt, updatedAt)
+VALUES (?, ?, ?, ?);
+
+getAllTagsWithWordCount:
+SELECT t.id, t.name, t.createdAt, t.updatedAt, COUNT(wt.wordId) AS wordCount
+FROM TagEntity t
+LEFT JOIN WordTagEntity wt ON t.id = wt.tagId
+GROUP BY t.id
+ORDER BY t.name ASC;
+
+getTagById:
+SELECT * FROM TagEntity WHERE id = ?;
+
+deleteTag:
+DELETE FROM TagEntity WHERE id = ?;
+
+deleteAllTags:
+DELETE FROM TagEntity;
+
+-- WordTag queries
+
+insertWordTag:
+INSERT OR IGNORE INTO WordTagEntity(wordId, tagId) VALUES (?, ?);
+
+deleteWordTagsForWord:
+DELETE FROM WordTagEntity WHERE wordId = ?;
+
+deleteWordTagsForTag:
+DELETE FROM WordTagEntity WHERE tagId = ?;
+
+countWordTags:
+SELECT count(*) FROM WordTagEntity;
+
+getAllWordTagMappings:
+SELECT wordId, tagId FROM WordTagEntity;
+
+getTagIdsForWord:
+SELECT tagId FROM WordTagEntity WHERE wordId = ?;
+
+getTagMappingsForWords:
+SELECT wordId, tagId FROM WordTagEntity WHERE wordId IN ?;
+
+deleteAllWordTags:
+DELETE FROM WordTagEntity;
+
+getDueCardsByTag:
+SELECT * FROM WordEntity
+WHERE id IN (
+    SELECT wordId FROM WordTagEntity WHERE tagId = ?
+)
+AND nextReviewDate <= ?
+ORDER BY
+    CASE WHEN lastReviewDate = 0 THEN 0 ELSE 1 END,
+    lastReviewDate ASC;
+
 -- Progress stats aggregate query
 
 progressRow:

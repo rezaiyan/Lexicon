@@ -61,10 +61,12 @@ fun presentationModule() = module {
             getFeatureAccessUseCase = get(),
             importWordsUseCase = get(),
             importViaFileUseCase = get(),
-            importFromImageUseCase = get(),
+            extractVocabularyFromImageUseCase = get(),
             userManager = get(),
             getCurrentLanguageUseCase = get(),
             getSourceLanguageUseCase = get(),
+            getTagsUseCase = get(),
+            createTagUseCase = get(),
             performanceTracer = get(),
         )
     }

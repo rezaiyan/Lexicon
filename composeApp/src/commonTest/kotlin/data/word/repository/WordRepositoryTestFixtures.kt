@@ -29,6 +29,8 @@ internal class FakeWordLocalDataSource : IWordLocalDataSource {
 
     override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
 
+    override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
+
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
 
     override suspend fun getWordById(id: Int): Word? = storedWords.find { it.id == id }

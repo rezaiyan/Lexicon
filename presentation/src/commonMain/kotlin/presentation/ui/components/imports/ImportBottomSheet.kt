@@ -2,29 +2,40 @@ package presentation.ui.components.imports
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import events.OnEvents
 import feature.onboarding.ui.components.LanguageGrid
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.create_tag
 import lexicon.resources.generated.resources.import_error_file_format
 import lexicon.resources.generated.resources.import_error_image_hint
 import lexicon.resources.generated.resources.import_error_network
 import lexicon.resources.generated.resources.import_failed_generic
+import lexicon.resources.generated.resources.new_tag
 import lexicon.resources.generated.resources.original_language
 import lexicon.resources.generated.resources.original_language_question
 import lexicon.resources.generated.resources.success_imported_words
+import lexicon.resources.generated.resources.tag_name_hint
 import lexicon.resources.generated.resources.translation_language_hint
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -42,6 +53,7 @@ private sealed interface ImportPage {
     data object TextContent : ImportPage
     data object FileContent : ImportPage
     data object ImageContent : ImportPage
+    data object ImageReview : ImportPage
     data object LanguageConfirmation : ImportPage
     data object SourceLanguagePicker : ImportPage
     data object TargetLanguagePicker : ImportPage
@@ -109,11 +121,27 @@ fun ImportBottomSheet(
         if (state.showLanguageConfirmation) pages.navigateTo(ImportPage.LanguageConfirmation)
     }
 
+    LaunchedEffect(state.imageReviewState) {
+        when (state.imageReviewState) {
+            is ImageReviewState.Review -> pages.navigateTo(ImportPage.ImageReview)
+            is ImageReviewState.None -> {
+                if (pages.currentPage is ImportPage.ImageReview) pages.navigateBack()
+            }
+        }
+    }
+
     // Clean up language confirmation state when navigating away
     LaunchedEffect(pages.currentPage) {
         if (pages.currentPage !is ImportPage.LanguageConfirmation && state.showLanguageConfirmation) {
             viewModel.dismissLanguageConfirmation()
         }
+    }
+
+    if (state.showCreateTagDialog) {
+        CreateTagDialog(
+            onConfirm = viewModel::createTag,
+            onDismiss = viewModel::dismissCreateTagDialog,
+        )
     }
 
     BottomSheetPages(
@@ -167,6 +195,21 @@ fun ImportBottomSheet(
                 onDismiss = onDismiss,
             )
 
+            is ImportPage.ImageReview -> {
+                val reviewState = state.imageReviewState as? ImageReviewState.Review ?: return@BottomSheetPages
+                ImageWordReviewContent(
+                    reviewState = reviewState,
+                    onRemoveWord = viewModel::removeExtractedWord,
+                    onStartEditWord = viewModel::startEditingWord,
+                    onCancelEdit = viewModel::cancelEditingWord,
+                    onSaveEdit = viewModel::saveEditedWord,
+                    onConfirmImport = viewModel::confirmImageImport,
+                    onRequestCancel = viewModel::requestCancelImageReview,
+                    onDismissCancelConfirmation = viewModel::dismissCancelConfirmation,
+                    onCancelImport = viewModel::cancelImageReview,
+                )
+            }
+
             is ImportPage.LanguageConfirmation -> ImportLanguageConfirmationContent(
                 sourceLanguage = state.targetLanguage,
                 targetLanguage = state.sourceLanguage,
@@ -206,6 +249,13 @@ private fun TextContentPage(
             .padding(Theme.spacing.lg)
             .imePadding()
     ) {
+        TagSelectorRow(
+            tags = state.tags,
+            selectedTagId = state.selectedTagId,
+            onTagSelected = viewModel::selectTag,
+            onCreateTag = viewModel::showCreateTagDialog,
+            modifier = Modifier.padding(bottom = Theme.spacing.sm),
+        )
         TextImportContent(
             textInputState = state.textInputState,
             onWordChange = viewModel::updateWord,
@@ -227,6 +277,13 @@ private fun FileContentPage(
             .padding(Theme.spacing.lg)
             .imePadding()
     ) {
+        TagSelectorRow(
+            tags = state.tags,
+            selectedTagId = state.selectedTagId,
+            onTagSelected = viewModel::selectTag,
+            onCreateTag = viewModel::showCreateTagDialog,
+            modifier = Modifier.padding(bottom = Theme.spacing.sm),
+        )
         FileImportContent(
             isEnabled = state.fileImportState !is ImportFileState.Loading,
             isLoading = state.fileImportState is ImportFileState.Loading,
@@ -258,6 +315,13 @@ private fun ImageContentPage(
             .padding(Theme.spacing.lg)
             .imePadding()
     ) {
+        TagSelectorRow(
+            tags = state.tags,
+            selectedTagId = state.selectedTagId,
+            onTagSelected = viewModel::selectTag,
+            onCreateTag = viewModel::showCreateTagDialog,
+            modifier = Modifier.padding(bottom = Theme.spacing.sm),
+        )
         ImageImportContent(
             imageTab = imageTab,
             isEnabled = !isImageLoading && state.fileImportState !is ImportFileState.Loading,
@@ -318,4 +382,38 @@ private fun SourceLanguageChooserPage(
 private fun formatCount(pattern: String, count: Int): String {
     val placeholder = "%1" + '$' + "d"
     return pattern.replace(placeholder, count.toString())
+}
+
+@Composable
+private fun CreateTagDialog(
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.new_tag)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(stringResource(Res.string.tag_name_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(name) },
+                enabled = name.isNotBlank(),
+            ) {
+                Text(stringResource(Res.string.create_tag))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(Res.string.cancel))
+            }
+        },
+    )
 }

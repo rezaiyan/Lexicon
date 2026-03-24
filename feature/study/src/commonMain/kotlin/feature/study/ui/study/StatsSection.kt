@@ -1,6 +1,8 @@
 package feature.study.ui.study
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Column
@@ -12,9 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -63,7 +64,8 @@ fun StatsSection(
     dueCards: Int,
     onImportWords: () -> Unit,
     onStartReview: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onStartReviewLongPress: (() -> Unit)? = null,
 ) {
     val accentColor = when (evaluation.tier) {
         ProgressTier.EMPTY,
@@ -174,14 +176,18 @@ fun StatsSection(
                     if (isEmpty || hasDueCards) {
                         Spacer(Modifier.height(Theme.spacing.sm))
 
-                        Button(
-                            onClick = if (isEmpty) onImportWords else onStartReview,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(Theme.shapes.pill),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = AppColors.primary,
-                                contentColor = Color.White
-                            )
+                        val buttonShape = RoundedCornerShape(Theme.shapes.pill)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(buttonShape)
+                                .background(AppColors.primary)
+                                .combinedClickable(
+                                    onClick = if (isEmpty) onImportWords else onStartReview,
+                                    onLongClick = if (!isEmpty) onStartReviewLongPress else null,
+                                )
+                                .padding(vertical = 10.dp, horizontal = 24.dp),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 text = if (isEmpty) {
@@ -189,15 +195,16 @@ fun StatsSection(
                                 } else {
                                     stringResource(Res.string.start_review)
                                 },
-                            maxLines = 1,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            autoSize = TextAutoSize.StepBased(
-                                minFontSize = 10.sp,
-                                maxFontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                stepSize = 1.sp
+                                maxLines = 1,
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                autoSize = TextAutoSize.StepBased(
+                                    minFontSize = 10.sp,
+                                    maxFontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                    stepSize = 1.sp
+                                )
                             )
-                        )
                         }
                     }
                 }

@@ -1,6 +1,7 @@
 package feature.study.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,7 +42,8 @@ fun LevelBucketCard(
     color: Color,
     icon: ImageVector,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val isEmpty = count == 0
 
@@ -76,9 +78,12 @@ fun LevelBucketCard(
                     )
                 )
             }
-            .fillMaxWidth(),
-        onClick = onClick,
-        enabled = !isEmpty,
+            .fillMaxWidth()
+            .combinedClickable(
+                enabled = !isEmpty,
+                onClick = onClick,
+                onLongClick = if (!isEmpty) onLongClick else null,
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),

@@ -1,0 +1,114 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - settings
+  - tags
+---
+# Test: Tag Manager screen opens from Settings, shows empty state, and supports
+# create → rename → delete tag lifecycle.
+#
+# Opens Tag Manager from the Settings screen, verifies the empty state renders,
+# creates a tag via the bottom sheet form, renames it, then deletes it via the
+# confirmation sheet. All destructive steps confirm then cancel to leave the
+# account clean for subsequent tests.
+
+- launchApp:
+    clearState: false
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# The Tag Manager card must be visible on the Settings screen.
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+# The Tag Manager full-screen overlay must open.
+- extendedWaitUntil:
+    visible: "Tag Manager"
+    timeout: 8000
+
+# ── Create tag ────────────────────────────────────────────────────────────────
+
+# The "New Tag" button must be present (empty-state or non-empty-state).
+- assertVisible: "New Tag"
+
+- tapOn: "New Tag"
+
+# The create-tag bottom sheet must appear with its title and input field.
+- extendedWaitUntil:
+    visible: "New Tag"
+    timeout: 5000
+- assertVisible: "Tag name"
+- assertVisible: "Create Tag"
+- assertVisible: "Cancel"
+
+# Type a tag name.
+- tapOn: "Tag name"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "TestTag"
+- hideKeyboard
+
+# Confirm creation.
+- tapOn: "Create Tag"
+- waitForAnimationToEnd
+
+# The new tag must now appear in the list.
+- assertVisible: "TestTag"
+
+# ── Rename tag ────────────────────────────────────────────────────────────────
+
+# Tap the Edit (rename) icon for the tag.
+- tapOn: "Rename Tag"
+
+# The rename bottom sheet must appear pre-filled with the current name.
+- extendedWaitUntil:
+    visible: "Rename Tag"
+    timeout: 5000
+- assertVisible: "Tag name"
+- assertVisible: "Cancel"
+
+# Clear the field and type a new name.
+- tapOn: "Tag name"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "TestTagRenamed"
+- hideKeyboard
+
+# Confirm rename.
+- tapOn: "Rename Tag"
+- waitForAnimationToEnd
+
+# The renamed tag must appear in the list.
+- assertVisible: "TestTagRenamed"
+
+# ── Delete tag (confirm then cancel to keep account clean) ────────────────────
+
+# Tap the Delete icon for the tag.
+- tapOn: "Delete Tag"
+
+# The delete confirmation sheet must appear.
+- extendedWaitUntil:
+    visible: "Delete Tag"
+    timeout: 5000
+- assertVisible: "Delete this tag? Words with this tag will not be deleted."
+- assertVisible: "Cancel"
+
+# Confirm deletion.
+- tapOn: "Delete Tag"
+- waitForAnimationToEnd
+
+# After deletion the "No tags yet" empty state must appear again.
+- assertVisible: "No tags yet"
+
+# ── Close Tag Manager ─────────────────────────────────────────────────────────
+
+# Close the Tag Manager full-screen overlay via the close (X) icon.
+- pressKey: back
+
+# Settings screen must be visible again.
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000

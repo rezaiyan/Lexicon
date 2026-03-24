@@ -29,6 +29,12 @@ tags:
 # Subscription card must be visible.
 - assertVisible: "Subscription"
 
+# Tag Manager card must be visible (may need to scroll).
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 3000
+
 # About card must be visible (may need to scroll).
 - scrollUntilVisible:
     element: "About"

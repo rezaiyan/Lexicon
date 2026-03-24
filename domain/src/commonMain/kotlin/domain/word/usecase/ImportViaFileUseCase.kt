@@ -15,16 +15,18 @@ class ImportViaFileUseCase(
         val fileName: String? = null,
         val sourceLanguage: Language? = null,
         val targetLanguage: Language? = null,
+        val tagId: Long? = null,
     )
 
     override suspend operator fun invoke(params: Params) =
-        invoke(params.fileContent, params.fileName, params.sourceLanguage, params.targetLanguage)
+        invoke(params.fileContent, params.fileName, params.sourceLanguage, params.targetLanguage, params.tagId)
 
     suspend operator fun invoke(
         fileContent: String,
         fileName: String? = null,
         sourceLanguage: Language? = null,
         targetLanguage: Language? = null,
+        tagId: Long? = null,
     ): Try<Int> {
         return withContext(Dispatchers.Default) {
             if (fileContent.isBlank()) {
@@ -40,7 +42,7 @@ class ImportViaFileUseCase(
                 }
             }
 
-            importWordsUseCase(fileContent, sourceLanguage, targetLanguage)
+            importWordsUseCase(fileContent, sourceLanguage, targetLanguage, tagId)
         }
     }
 }

@@ -1,0 +1,68 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - tags
+---
+# Test: "Assign Tags" button in the word detail sheet opens the tag assignment
+# bottom sheet. When no tags exist the empty state is shown. Tapping "Assign Tags"
+# (save) dismisses the sheet.
+#
+# Creates a test word first to ensure at least one word exists in the library.
+# Does NOT create tags — verifies the no-tags empty state in the assignment sheet,
+# which keeps the test self-contained and non-destructive.
+
+- launchApp:
+    clearState: false
+
+# Navigate to Study screen and add a test word so the library is non-empty.
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# Navigate to the Word Manager.
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Wait for the word list to load.
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 15000
+
+# Tap the test word to open the detail sheet.
+- tapOn: "${output.word}"
+
+# The detail sheet must be visible.
+- assertVisible: "Learning Progress"
+
+# The "Assign Tags" button must be present in the detail sheet.
+- assertVisible: "Assign Tags"
+
+# Tap "Assign Tags" to open the tag assignment bottom sheet.
+- tapOn: "Assign Tags"
+
+# The assignment sheet title must appear.
+- extendedWaitUntil:
+    visible: "Assign Tags"
+    timeout: 8000
+
+# The word name must be shown as context below the title.
+- assertVisible: "${output.word}"
+
+# When no tags exist the empty state message must be shown.
+- assertVisible: "No tags yet"
+
+# The save button must still be present (enabled even with no tags).
+- assertVisible: "Assign Tags"
+
+# Tap save — dismisses the sheet (no-op when no tags are selected).
+- tapOn: "Assign Tags"
+- waitForAnimationToEnd
+
+# After dismissal the word detail sheet must be visible again.
+- assertVisible: "Learning Progress"
+
+# Dismiss the detail sheet.
+- pressKey: back
+
+# The word list must be visible again.
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 5000

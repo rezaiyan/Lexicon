@@ -67,6 +67,7 @@ class GetDueWordsUseCaseTest {
             dueCardsCallCount++
             return dueWordsFlow
         }
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
 
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(dueWordsFlow.value)
 

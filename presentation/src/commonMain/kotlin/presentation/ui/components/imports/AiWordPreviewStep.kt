@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import domain.tag.model.Tag
 import feature.aiimport.model.AiWordImportUiState
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.ai_wizard_all_selected
@@ -49,6 +50,7 @@ internal fun AiWordPreviewStep(
     state: AiWordImportUiState,
     onToggleWord: (Int) -> Unit,
     onImport: () -> Unit,
+    onTagSelected: (Long?) -> Unit,
     spacing: AppSpacing,
     dimensions: AppDimensions,
 ) {
@@ -65,6 +67,9 @@ internal fun AiWordPreviewStep(
             suggestedWordIndices = state.suggestedWords.indices,
             selectedWordIndices = state.selectedWordIndices,
             onToggleWord = onToggleWord,
+            tags = state.tags,
+            selectedTagId = state.selectedTagId,
+            onTagSelected = onTagSelected,
             spacing = spacing
         )
 
@@ -143,6 +148,9 @@ private fun PreviewHeader(
     suggestedWordIndices: IntRange,
     selectedWordIndices: Set<Int>,
     onToggleWord: (Int) -> Unit,
+    tags: List<Tag>,
+    selectedTagId: Long?,
+    onTagSelected: (Long?) -> Unit,
     spacing: AppSpacing,
 ) {
     Column(
@@ -162,6 +170,13 @@ private fun PreviewHeader(
         )
 
         Spacer(modifier = Modifier.height(spacing.sm))
+
+        TagSelectorRow(
+            tags = tags,
+            selectedTagId = selectedTagId,
+            onTagSelected = onTagSelected,
+            modifier = Modifier.padding(bottom = spacing.xs),
+        )
 
         // Selection row
         Row(

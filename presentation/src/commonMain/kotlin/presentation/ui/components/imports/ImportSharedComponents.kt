@@ -10,12 +10,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import components.dialog.LexiconDialogContent
+import domain.tag.model.Tag
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.confirm_languages
@@ -178,4 +184,81 @@ internal fun LanguagePickerPage(
         onLanguageSelected = onLanguageSelected,
         title = title,
     )
+}
+
+@Composable
+internal fun TagSelectorRow(
+    tags: List<Tag>,
+    selectedTagId: Long?,
+    onTagSelected: (Long?) -> Unit,
+    modifier: Modifier = Modifier,
+    onCreateTag: (() -> Unit)? = null,
+) {
+    if (tags.isEmpty() && onCreateTag == null) return
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+    ) {
+        item {
+            FilterChip(
+                selected = selectedTagId == null,
+                onClick = { onTagSelected(null) },
+                label = { Text("None", style = MaterialTheme.typography.labelMedium) },
+                shape = RoundedCornerShape(Theme.shapes.pill),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selectedTagId == null,
+                    borderColor = MaterialTheme.colorScheme.outlineVariant,
+                    selectedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                )
+            )
+        }
+        items(tags, key = { it.id }) { tag ->
+            val selected = selectedTagId == tag.id
+            FilterChip(
+                selected = selected,
+                onClick = { onTagSelected(tag.id) },
+                label = { Text(tag.name, style = MaterialTheme.typography.labelMedium) },
+                shape = RoundedCornerShape(Theme.shapes.pill),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selected,
+                    borderColor = MaterialTheme.colorScheme.outlineVariant,
+                    selectedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                )
+            )
+        }
+        if (onCreateTag != null) {
+            item {
+                FilterChip(
+                    selected = false,
+                    onClick = onCreateTag,
+                    label = {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "New tag",
+                            modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    },
+                    shape = RoundedCornerShape(Theme.shapes.pill),
+                    colors = FilterChipDefaults.filterChipColors(),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = false,
+                        borderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
+                    )
+                )
+            }
+        }
+    }
 }

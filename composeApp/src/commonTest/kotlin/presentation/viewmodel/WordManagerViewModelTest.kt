@@ -14,6 +14,9 @@ import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
+import domain.tag.model.Tag
+import domain.tag.repository.ITagRepository
+import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
@@ -49,6 +52,7 @@ class WordManagerViewModelTest : ViewModelTestBase() {
     private fun fakeWordRepo() = object : IWordRepository {
         override fun getAllWords(): Flow<List<Word>> = wordsFlow
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(wordsFlow.value)
@@ -98,10 +102,21 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
+    private fun fakeTagRepo() = object : ITagRepository {
+        override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+        override suspend fun createTag(name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
+        override suspend fun renameTag(id: Long, name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
+        override suspend fun deleteTag(id: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
+        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
+    }
+
     private fun createViewModel(): WordManagerViewModel {
         val wordRepo = fakeWordRepo()
         return WordManagerViewModel(
             getAllWordsUseCase = GetAllWordsUseCase(wordRepo),
+            getTagsUseCase = GetTagsUseCase(fakeTagRepo()),
             deleteWordsUseCase = DeleteWordsUseCase(
                 wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)
             ),

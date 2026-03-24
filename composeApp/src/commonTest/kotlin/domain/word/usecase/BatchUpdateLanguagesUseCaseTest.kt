@@ -27,7 +27,7 @@ class BatchUpdateLanguagesUseCaseTest {
         val result = useCase(emptyList(), "en", "de").first()
 
         assertTrue(result is BatchUpdateLanguagesResult.Error)
-        assertEquals("No words selected", (result as BatchUpdateLanguagesResult.Error).message)
+        assertEquals("No words selected", result.message)
     }
 
     @Test
@@ -84,6 +84,7 @@ class BatchUpdateLanguagesUseCaseTest {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)

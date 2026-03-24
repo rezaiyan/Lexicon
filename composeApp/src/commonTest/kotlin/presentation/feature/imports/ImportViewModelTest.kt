@@ -3,7 +3,11 @@ package presentation.feature.imports
 import core.common.Try
 import fakes.FakePerformanceTracer
 import domain.ai.repository.IAiRepository
-import domain.ai.usecase.ImportFromImageUseCase
+import domain.ai.usecase.ExtractVocabularyFromImageUseCase
+import domain.tag.model.Tag
+import domain.tag.repository.ITagRepository
+import domain.tag.usecase.CreateTagUseCase
+import domain.tag.usecase.GetTagsUseCase
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
@@ -51,8 +55,11 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val importWordsUseCase = ImportWordsUseCase(wordRepository, validationService, getCurrentLanguageUseCase)
     private val importViaFileUseCase = ImportViaFileUseCase(importWordsUseCase)
     private val aiRepository = FakeAiRepo()
-    private val importFromImageUseCase =
-        ImportFromImageUseCase(aiRepository, importWordsUseCase, getCurrentLanguageUseCase)
+    private val tagRepository = FakeTagRepo()
+    private val extractVocabularyFromImageUseCase =
+        ExtractVocabularyFromImageUseCase(aiRepository, getCurrentLanguageUseCase)
+    private val getTagsUseCase = GetTagsUseCase(tagRepository)
+    private val createTagUseCase = CreateTagUseCase(tagRepository)
     private val userManager = FakeUserManager()
     private val authRepository = FakeAuthRepo()
     private val getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository)
@@ -63,10 +70,12 @@ class ImportViewModelTest : ViewModelTestBase() {
         getFeatureAccessUseCase = getFeatureAccessUseCase,
         importWordsUseCase = importWordsUseCase,
         importViaFileUseCase = importViaFileUseCase,
-        importFromImageUseCase = importFromImageUseCase,
+        extractVocabularyFromImageUseCase = extractVocabularyFromImageUseCase,
         userManager = userManager,
         getCurrentLanguageUseCase = getCurrentLanguageUseCase,
         getSourceLanguageUseCase = getSourceLanguageUseCase,
+        getTagsUseCase = getTagsUseCase,
+        createTagUseCase = createTagUseCase,
         performanceTracer = performanceTracer,
     )
 
@@ -297,6 +306,7 @@ class ImportViewModelTest : ViewModelTestBase() {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun insertWords(words: List<Word>): Try<Int> {
@@ -363,5 +373,15 @@ class ImportViewModelTest : ViewModelTestBase() {
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
         override suspend fun getAccessToken(): String = "fake-token"
         override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = featureAccessFlow
+    }
+
+    private class FakeTagRepo : ITagRepository {
+        override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+        override suspend fun createTag(name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
+        override suspend fun renameTag(id: Long, name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
+        override suspend fun deleteTag(id: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
+        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 }

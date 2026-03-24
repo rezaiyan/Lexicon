@@ -47,6 +47,7 @@ class VocabularyViewModelTest : ViewModelTestBase() {
 
     private fun fakeRepo() = object : IWordRepository {
         override fun getDueCards(): Flow<List<Word>> = flowOf(dueWords)
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(stageWords)
         override suspend fun deleteWord(id: Int): Try<Unit> = deleteResult
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
@@ -163,6 +164,7 @@ class VocabularyViewModelTest : ViewModelTestBase() {
         // Override repo to fail updates — need to rebuild VM
         val failingRepo = object : IWordRepository {
             override fun getDueCards(): Flow<List<Word>> = flowOf(dueWords)
+            override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
             override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(stageWords)
             override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
             override suspend fun updateWord(word: Word): Try<Unit> = Try.failure(RuntimeException("update failed"))

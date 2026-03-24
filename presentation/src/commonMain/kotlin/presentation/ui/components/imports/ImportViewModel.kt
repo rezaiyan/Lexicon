@@ -1,13 +1,15 @@
 package presentation.ui.components.imports
 
 import androidx.lifecycle.viewModelScope
-import domain.ai.usecase.ImportFromImageUseCase
-import domain.ai.usecase.ImportImageResult
+import domain.ai.usecase.ExtractVocabularyFromImageUseCase
+import domain.ai.usecase.ExtractVocabularyResult
 import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
 import core.common.fold
 import core.common.getOrDefault
 import domain.settings.usecase.GetCurrentLanguageUseCase
+import domain.tag.usecase.CreateTagUseCase
+import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
@@ -28,10 +30,12 @@ class ImportViewModel(
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val importWordsUseCase: ImportWordsUseCase,
     private val importViaFileUseCase: ImportViaFileUseCase,
-    private val importFromImageUseCase: ImportFromImageUseCase,
+    private val extractVocabularyFromImageUseCase: ExtractVocabularyFromImageUseCase,
     private val userManager: IUserManager,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     private val getSourceLanguageUseCase: GetSourceLanguageUseCase,
+    private val getTagsUseCase: GetTagsUseCase,
+    private val createTagUseCase: CreateTagUseCase,
     private val performanceTracer: IPerformanceTracer,
 ) : BaseViewModel<ImportUiState, ImportEffect>() {
 
@@ -44,6 +48,40 @@ class ImportViewModel(
             updateState { copy(targetLanguage = targetLanguage, sourceLanguage = sourceLanguage) }
         }
         observeFeatureAccess()
+        observeTags()
+    }
+
+    private fun observeTags() {
+        viewModelScope.launch {
+            getTagsUseCase()
+                .catch { }
+                .collect { tags -> updateState { copy(tags = tags) } }
+        }
+    }
+
+    fun selectTag(tagId: Long?) {
+        updateState { copy(selectedTagId = tagId) }
+    }
+
+    fun showCreateTagDialog() {
+        updateState { copy(showCreateTagDialog = true) }
+    }
+
+    fun dismissCreateTagDialog() {
+        updateState { copy(showCreateTagDialog = false) }
+    }
+
+    fun createTag(name: String) {
+        val trimmed = name.trim()
+        if (trimmed.isBlank()) return
+        viewModelScope.launch {
+            createTagUseCase(trimmed).fold(
+                onSuccess = { tag ->
+                    updateState { copy(showCreateTagDialog = false, selectedTagId = tag.id) }
+                },
+                onFailure = { }
+            )
+        }
     }
 
     @Suppress("OPT_IN_USAGE")
@@ -145,7 +183,8 @@ class ImportViewModel(
             importWordsUseCase(
                 csvLine,
                 currentState.targetLanguage,
-                currentState.sourceLanguage
+                currentState.sourceLanguage,
+                currentState.selectedTagId
             ).fold(
                 onSuccess = { count ->
                     val newCount = currentState.textInputState.wordsAddedCount + count
@@ -217,31 +256,33 @@ class ImportViewModel(
 
         viewModelScope.launch {
             updateState { copy(imageImportState = ImageImportState.Loading) }
-            val trace = performanceTracer.startTrace("import_image_processing")
+            val trace = performanceTracer.startTrace("import_image_extraction")
 
             withContext(Dispatchers.Default) {
-                importFromImageUseCase(
+                extractVocabularyFromImageUseCase(
                     imageBytes = imageBytes,
                     extractWords = true,
                     extractSentences = true,
-                    sourceLanguage = currentState.sourceLanguage,
                 ).collect { result ->
                     when (result) {
-                        is ImportImageResult.Loading -> {
+                        is ExtractVocabularyResult.Loading -> {
                             updateState { copy(imageImportState = ImageImportState.Loading) }
                         }
 
-                        is ImportImageResult.Success -> {
+                        is ExtractVocabularyResult.Success -> {
+                            val wordItems = parseCsvToWordItems(result.csvText)
                             clearSelectedImage()
                             updateState {
-                                copy(imageImportState = ImageImportState.Success(result.count))
+                                copy(
+                                    imageImportState = ImageImportState.Idle,
+                                    imageReviewState = ImageReviewState.Review(words = wordItems),
+                                )
                             }
-                            performanceTracer.putMetric(trace, "words_imported", result.count.toLong())
+                            performanceTracer.putMetric(trace, "words_extracted", wordItems.size.toLong())
                             performanceTracer.stopTrace(trace)
-                            emitEffect(ImportEffect.ImageImportSuccessful(result.count))
                         }
 
-                        is ImportImageResult.Error -> {
+                        is ExtractVocabularyResult.Error -> {
                             clearSelectedImage()
                             val raw = result.message
                             val isNetwork = raw.contains("timeout", ignoreCase = true) ||
@@ -268,6 +309,85 @@ class ImportViewModel(
                 }
             }
         }
+    }
+
+    fun removeExtractedWord(id: Int) {
+        val reviewState = currentState.imageReviewState as? ImageReviewState.Review ?: return
+        updateState {
+            copy(imageReviewState = reviewState.copy(words = reviewState.words.filter { it.id != id }))
+        }
+    }
+
+    fun startEditingWord(id: Int) {
+        val reviewState = currentState.imageReviewState as? ImageReviewState.Review ?: return
+        updateState { copy(imageReviewState = reviewState.copy(editingWordId = id)) }
+    }
+
+    fun cancelEditingWord() {
+        val reviewState = currentState.imageReviewState as? ImageReviewState.Review ?: return
+        updateState { copy(imageReviewState = reviewState.copy(editingWordId = null)) }
+    }
+
+    fun saveEditedWord(id: Int, word: String, translation: String, description: String) {
+        val reviewState = currentState.imageReviewState as? ImageReviewState.Review ?: return
+        val updatedWords = reviewState.words.map { item ->
+            if (item.id == id) item.copy(word = word, translation = translation, description = description)
+            else item
+        }
+        updateState {
+            copy(imageReviewState = reviewState.copy(words = updatedWords, editingWordId = null))
+        }
+    }
+
+    fun confirmImageImport() {
+        val reviewState = currentState.imageReviewState as? ImageReviewState.Review ?: return
+        val words = reviewState.words
+        if (words.isEmpty()) return
+
+        val csvText = words.joinToString("\n") { item ->
+            if (item.description.isNotBlank()) "${item.word},${item.translation},${item.description}"
+            else "${item.word},${item.translation}"
+        }
+
+        updateState { copy(imageReviewState = reviewState.copy(isImporting = true)) }
+
+        viewModelScope.launch {
+            val trace = performanceTracer.startTrace("import_image_processing")
+            importWordsUseCase(
+                csvText,
+                currentState.targetLanguage,
+                currentState.sourceLanguage,
+                currentState.selectedTagId,
+            ).fold(
+                onSuccess = { count ->
+                    updateState { copy(imageReviewState = ImageReviewState.None) }
+                    performanceTracer.putMetric(trace, "words_imported", count.toLong())
+                    performanceTracer.stopTrace(trace)
+                    emitEffect(ImportEffect.ImageImportSuccessful(count))
+                },
+                onFailure = { error ->
+                    val message = error.message ?: "Import failed"
+                    updateState { copy(imageReviewState = reviewState.copy(isImporting = false)) }
+                    performanceTracer.putAttribute(trace, "error", message)
+                    performanceTracer.stopTrace(trace)
+                    emitEffect(ImportEffect.Error(message))
+                }
+            )
+        }
+    }
+
+    fun requestCancelImageReview() {
+        val reviewState = currentState.imageReviewState as? ImageReviewState.Review ?: return
+        updateState { copy(imageReviewState = reviewState.copy(showCancelConfirmation = true)) }
+    }
+
+    fun dismissCancelConfirmation() {
+        val reviewState = currentState.imageReviewState as? ImageReviewState.Review ?: return
+        updateState { copy(imageReviewState = reviewState.copy(showCancelConfirmation = false)) }
+    }
+
+    fun cancelImageReview() {
+        updateState { copy(imageReviewState = ImageReviewState.None) }
     }
 
     fun importFile(fileContent: String, fileName: String? = null) {
@@ -310,7 +430,8 @@ class ImportViewModel(
                             pendingAction.content,
                             pendingAction.fileName,
                             targetLanguage,
-                            sourceLanguage
+                            sourceLanguage,
+                            currentState.selectedTagId
                         ).fold(
                             onSuccess = { count ->
                                 if (count == 0) {
@@ -368,5 +489,23 @@ class ImportViewModel(
             }
             copy(tabs = updatedTabs, selectedTab = updatedSelected)
         }
+    }
+
+    private fun parseCsvToWordItems(csvText: String): List<ExtractedWordItem> {
+        return csvText.trim()
+            .split(Regex("[;\n]+"))
+            .map { it.trim() }
+            .filter { it.isNotBlank() && !it.startsWith("#") }
+            .mapIndexedNotNull { index, line ->
+                val parts = line.split(",", limit = 3).map { it.trim() }
+                if (parts.size >= 2 && parts[0].isNotBlank() && parts[1].isNotBlank()) {
+                    ExtractedWordItem(
+                        id = index,
+                        word = parts[0],
+                        translation = parts[1],
+                        description = if (parts.size > 2) parts[2] else "",
+                    )
+                } else null
+            }
     }
 }

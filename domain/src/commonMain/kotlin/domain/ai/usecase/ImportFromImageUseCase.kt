@@ -20,6 +20,7 @@ class ImportFromImageUseCase(
         val extractWords: Boolean = true,
         val extractSentences: Boolean = false,
         val sourceLanguage: Language? = null,
+        val tagId: Long? = null,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -27,7 +28,8 @@ class ImportFromImageUseCase(
             return imageBytes.contentEquals(other.imageBytes) &&
                 extractWords == other.extractWords &&
                 extractSentences == other.extractSentences &&
-                sourceLanguage == other.sourceLanguage
+                sourceLanguage == other.sourceLanguage &&
+                tagId == other.tagId
         }
 
         override fun hashCode(): Int {
@@ -35,6 +37,7 @@ class ImportFromImageUseCase(
             result = 31 * result + extractWords.hashCode()
             result = 31 * result + extractSentences.hashCode()
             result = 31 * result + (sourceLanguage?.hashCode() ?: 0)
+            result = 31 * result + (tagId?.hashCode() ?: 0)
             return result
         }
     }
@@ -44,6 +47,7 @@ class ImportFromImageUseCase(
         params.extractWords,
         params.extractSentences,
         params.sourceLanguage,
+        params.tagId,
     )
 
     operator fun invoke(
@@ -51,6 +55,7 @@ class ImportFromImageUseCase(
         extractWords: Boolean = true,
         extractSentences: Boolean = false,
         sourceLanguage: Language? = null,
+        tagId: Long? = null,
     ): Flow<ImportImageResult> = flow {
         emit(ImportImageResult.Loading)
 
@@ -68,6 +73,7 @@ class ImportFromImageUseCase(
                     extractedText,
                     sourceLanguage = targetLanguage,
                     targetLanguage = sourceLanguage,
+                    tagId = tagId,
                 ).fold(
                     onSuccess = { count -> emit(ImportImageResult.Success(count)) },
                     onFailure = { error -> emit(ImportImageResult.Error(error.message ?: "Import failed")) }

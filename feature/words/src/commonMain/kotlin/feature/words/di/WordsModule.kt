@@ -1,7 +1,9 @@
 package feature.words.di
 
+import feature.words.TagManagerViewModel
 import feature.words.VocabularyViewModel
 import feature.words.WordManagerViewModel
+import feature.words.WordTagAssignmentViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -18,12 +20,27 @@ fun wordsModule() = module {
     viewModel {
         WordManagerViewModel(
             getAllWordsUseCase = get(),
+            getTagsUseCase = get(),
             deleteWordsUseCase = get(),
             batchUpdateLanguagesUseCase = get(),
             updateWordUseCase = get(),
             exportWordsUseCase = get(),
             getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
+        )
+    }
+    viewModel {
+        TagManagerViewModel(
+            getTagsUseCase = get(),
+            createTagUseCase = get(),
+            renameTagUseCase = get(),
+            deleteTagUseCase = get(),
+        )
+    }
+    viewModel {
+        WordTagAssignmentViewModel(
+            getTagsUseCase = get(),
+            assignWordTagsUseCase = get(),
         )
     }
 }
