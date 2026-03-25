@@ -174,6 +174,66 @@ singleOf(::WordRemoteDataSourceImpl) { bind<IWordRemoteDataSource>() }
 singleOf(::WordRepositoryImpl) { bind<IWordRepository>() }
 ```
 
+## Batch Operations
+
+**Anti-pattern — N sequential HTTP requests:**
+```kotlin
+// NEVER do this — partial failure leaves state inconsistent
+wordIds.forEach { wordId ->
+    remoteDataSource.assignTags(wordId, tagIds).getOrThrow() // fails on word #3? 1–2 are done, 3–N are not
+}
+```
+
+**Correct pattern — single batch endpoint:**
+```kotlin
+// UseCase
+override suspend fun invoke(params: BatchAssignTagsParams): Try<Int> = Try {
+    tagRepository.batchAssignWordTags(
+        wordIds = params.wordIds.map { it.toLong() },
+        tagIds = params.tagIds
+    ).getOrThrow()
+    params.wordIds.size
+}
+
+// Repository
+override suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> = Try {
+    remoteDataSource.batchUpdateWordTags(wordIds, tagIds).getOrThrow()  // single HTTP request
+    localDataSource.batchSetWordTags(wordIds, tagIds)                    // single SQLDelight transaction
+}
+
+// Local data source — wrap entire batch in ONE transaction
+override suspend fun batchSetWordTags(wordIds: List<Long>, tagIds: List<Long>) {
+    queries.transaction {                         // ← one transaction wraps all words
+        wordIds.forEach { wordId ->
+            queries.deleteWordTagsForWord(wordId)
+            tagIds.forEach { tagId -> queries.insertWordTag(wordId, tagId) }
+        }
+    }
+}
+```
+
+**Backend rule — never save() a parent entity just to modify a join table:**
+
+If you only need to modify a join table (e.g., `word_tags`), use native `@Modifying @Query` directly on that table. Calling `wordRepository.save(word)` bumps `@Version` and causes `OptimisticLockingFailureException` under concurrent load.
+
+```kotlin
+// NEVER: loads Word entity, bumps @Version — breaks under concurrent sync
+fun updateWordTags(wordId: Long, tagIds: List<Long>) {
+    val word = wordRepository.findById(wordId).orElseThrow()
+    word.tags = tagRepository.findAllById(tagIds).toMutableSet()
+    wordRepository.save(word) // ← @Version bump — unnecessary, dangerous
+}
+
+// CORRECT: native SQL on join table, no @Version involved
+@Modifying
+@Query("DELETE FROM word_tags WHERE word_id IN :wordIds AND ...", nativeQuery = true)
+fun deleteWordTagsByWordIdsAndUserId(wordIds: List<Long>, userId: Long)
+
+@Modifying
+@Query("INSERT INTO word_tags (word_id, tag_id) SELECT ... ON CONFLICT DO NOTHING", nativeQuery = true)
+fun insertWordTagsByWordIdsAndUserId(wordIds: List<Long>, tagId: Long, userId: Long)
+```
+
 ## Checklist
 
 1. Interface in `:domain` — implementation in `:data`
@@ -183,3 +243,5 @@ singleOf(::WordRepositoryImpl) { bind<IWordRepository>() }
 5. Mappers are extension functions: `Dto.toDomain()`, `Domain.toDto()`, `Entity.toDomain()`
 6. No platform imports in repository interfaces
 7. Registered in AppModule.kt with `bind<Interface>()`
+8. Batch mutations use a single dedicated endpoint — never loop N sequential HTTP requests
+9. Join table modifications use native `@Modifying @Query` — never `save()` the parent entity just for join table changes

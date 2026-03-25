@@ -161,6 +161,79 @@ Word list flows (`getAllWords`, `getDueCards`) use `combine()` with a `countWord
 
 ---
 
+## 10. Batch Remote Operations — Sequential Request Anti-Pattern
+
+**The bug this section prevents:** Batch tag assignment originally looped `assignWordTags(wordId)` for each selected word, sending N sequential HTTP requests. Two failure modes caused partial updates:
+
+1. **Fail-fast partial failure:** `forEach { remoteDataSource.updateWordTags(wordId, tagIds).getOrThrow() }` — if word #3 fails, words 1–2 are updated and synced, words 3–N are not. No rollback. Client and backend end up in inconsistent state.
+2. **JPA `@Version` optimistic locking failure:** The original `updateWordTags` backend endpoint loaded the `Word` entity, called `wordRepository.save(word)` to persist tag changes. `save()` bumps the `@Version` field. Under concurrent load (e.g., sync running while batch-assign runs), the version in DB doesn't match the loaded version → `OptimisticLockingFailureException` → random words in the batch silently fail.
+
+**Rules:**
+
+- **Never loop N sequential HTTP requests for batch mutations.** Always add a dedicated batch endpoint (e.g., `POST /words/batch-assign-tags`) that processes all items in a single `@Transactional` on the server.
+- **Never modify join table data by loading + saving the parent entity.** If you only need to touch a join table (e.g., `word_tags`), use a native `@Modifying @Query` directly on the join table — bypasses the parent entity's `@Version` entirely.
+- **Client batch local writes must also be a single transaction.** Use SQLDelight `queries.transaction { wordIds.forEach { ... } }` — not `wordIds.forEach { queries.transaction { ... } }` (one transaction per word).
+
+**Correct backend pattern (Spring Boot):**
+```kotlin
+// In WordRepository.kt
+@Modifying
+@Query(
+    "DELETE FROM word_tags WHERE word_id IN :wordIds " +
+        "AND word_id IN (SELECT id FROM words WHERE user_id = :userId)",
+    nativeQuery = true
+)
+fun deleteWordTagsByWordIdsAndUserId(wordIds: List<Long>, userId: Long)
+
+@Modifying
+@Query(
+    "INSERT INTO word_tags (word_id, tag_id) " +
+        "SELECT w.id, :tagId FROM words w WHERE w.id IN :wordIds AND w.user_id = :userId " +
+        "ON CONFLICT DO NOTHING",
+    nativeQuery = true
+)
+fun insertWordTagsByWordIdsAndUserId(wordIds: List<Long>, tagId: Long, userId: Long)
+
+// In WordService.kt
+@Transactional
+fun batchAssignTags(user: User, wordIds: List<Long>, tagIds: List<Long>): Int {
+    wordRepository.deleteWordTagsByWordIdsAndUserId(wordIds, user.id!!)
+    tagIds.forEach { tagId ->
+        wordRepository.insertWordTagsByWordIdsAndUserId(wordIds, tagId, user.id!!)
+    }
+    return wordIds.size
+}
+```
+
+**Correct client pattern (KMP):**
+```kotlin
+// UseCase — single batch call, not a loop
+override suspend fun invoke(params: BatchAssignTagsParams): Try<Int> = Try {
+    tagRepository.batchAssignWordTags(
+        wordIds = params.wordIds.map { it.toLong() },
+        tagIds = params.tagIds
+    ).getOrThrow()
+    params.wordIds.size
+}
+
+// Local data source — single SQLDelight transaction
+override suspend fun batchSetWordTags(wordIds: List<Long>, tagIds: List<Long>) {
+    queries.transaction {
+        wordIds.forEach { wordId ->
+            queries.deleteWordTagsForWord(wordId)
+            tagIds.forEach { tagId -> queries.insertWordTag(wordId, tagId) }
+        }
+    }
+}
+```
+
+**Do not:**
+- Use `forEach { singleItemRepository.doX(id).getOrThrow() }` for any remote batch operation
+- Call `wordRepository.save(entity)` just to persist join table changes — use native SQL `@Modifying @Query` on the join table directly
+- Wrap each item in its own `queries.transaction {}` inside a loop
+
+---
+
 ## Risk Summary
 
 | Area | Risk | Impact |
@@ -172,6 +245,8 @@ Word list flows (`getAllWords`, `getDueCards`) use `combine()` with a `countWord
 | Tag cascade delete ordering | **HIGH** | Orphan WordTagEntity rows that can never be cleaned up |
 | Tag syncTagsFromRemote divergence | **HIGH** | Tag assignments silently lost if word-tag re-fetch fails |
 | AppNavigationViewModel onboarding flag | **MEDIUM** | User stuck in wrong screen after reinstall |
+| Batch remote op N sequential requests | **HIGH** | Partial failure leaves client/server inconsistent, no rollback |
+| JPA @Version bump on join-table-only save() | **HIGH** | OptimisticLockingFailureException under concurrent load, random items silently fail |
 | Batch word update partial failure | **MEDIUM** | Inconsistent local/remote state |
 | Tag setWordTags partial transaction | **MEDIUM** | Words left with no tags instead of previous assignment |
 | Tag reactivity blast radius (N re-emissions) | **MEDIUM** | UI lag when bulk-assigning tags via addTagToWord loop |
