@@ -160,6 +160,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override suspend fun startSession(sessionId: String, reviewType: String, startedAt: Long) = Try.success(Unit)
         override suspend fun endSession(sessionId: String, endedAt: Long, durationMs: Long, totalCards: Int, correctCount: Int, incorrectCount: Int, completedNormally: Boolean) = Try.success(Unit)
         override suspend fun recordReviewEvent(params: ReviewEventParams) = Try.success(Unit)
+        override suspend fun retryPendingSync() = Try.success(Unit)
     }
 
 

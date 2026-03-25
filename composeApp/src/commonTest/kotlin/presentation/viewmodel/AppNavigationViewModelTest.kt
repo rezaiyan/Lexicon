@@ -115,7 +115,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     fun `onSessionVerified with auth but onboarding not completed marks completed`() =
         runTest {
             val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-            val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo())
+            val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(), fakeRetryUseCase())
             vm.onSessionVerified(isAuthenticated = true)
             assertIs<AppUiState.Ready>(vm.currentState)
             assertEquals(true, onboardingRepo.markCompletedCalled)
@@ -133,7 +133,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthCompleteCheckingData with existing words marks completed and goes to Ready`() = runTest {
         val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 10))
+        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 10), fakeRetryUseCase())
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Ready>(vm.currentState)
         assertEquals(true, onboardingRepo.markCompletedCalled)
@@ -142,7 +142,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthCompleteCheckingData with no words goes to Onboarding`() = runTest {
         val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 0))
+        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 0), fakeRetryUseCase())
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Onboarding>(vm.currentState)
         assertEquals(false, onboardingRepo.markCompletedCalled)
@@ -159,7 +159,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthComplete marks onboarding completed and goes to Ready`() = runTest {
         val repo = fakeOnboardingRepo()
-        val vm = AppNavigationViewModel(repo, fakeWordRepo())
+        val vm = AppNavigationViewModel(repo, fakeWordRepo(), fakeRetryUseCase())
         vm.onAuthComplete()
         assertIs<AppUiState.Ready>(vm.currentState)
         assertEquals(true, repo.markCompletedCalled)
