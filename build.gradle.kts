@@ -76,6 +76,80 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
     }
 }
 
+/**
+ * Enforces module dependency boundary rules from CLAUDE.md.
+ * Run with: ./gradlew checkModuleBoundaries
+ * Hooked into the `check` task so violations fail CI automatically.
+ *
+ * Scans build.gradle.kts files as text to find project(":...") references
+ * in non-test source sets. This approach is Gradle-version agnostic.
+ */
+tasks.register("checkModuleBoundaries") {
+    group = "verification"
+    description = "Fail the build if module dependency boundary rules are violated."
+    doLast {
+        // Rules: module path -> forbidden dependency paths
+        // :domain depends on :core for Try<T> — that is intentional and allowed.
+        val rules = mapOf(
+            ":domain" to listOf(":data", ":presentation", ":platforms", ":composeApp"),
+            ":presentation" to listOf(":data"),
+            ":design-system" to listOf(":domain", ":data", ":presentation"),
+        )
+
+        // Matches project(":foo") and project(path = ":foo")
+        val projectRef = Regex("""project\(\s*(?:path\s*=\s*)?"(:[^"]+)"\s*\)""")
+
+        val violations = mutableListOf<String>()
+
+        rules.forEach { (modulePath, forbidden) ->
+            val proj = findProject(modulePath) ?: return@forEach
+            val buildFile = proj.buildFile
+            if (!buildFile.exists()) return@forEach
+
+            // Walk lines, skip content inside *Test* or *test* named blocks.
+            var depth = 0
+            var testBlockDepth = -1   // brace depth at which we entered a test block; -1 = not in one
+
+            for (line in buildFile.readLines()) {
+                val openCount  = line.count { it == '{' }
+                val closeCount = line.count { it == '}' }
+
+                // Detect entry into a test source-set block (e.g. commonTest.dependencies {)
+                if (testBlockDepth < 0 && openCount > 0 &&
+                    line.contains(Regex("""\b\w*[Tt]est\w*\s*[\.\{]"""))) {
+                    testBlockDepth = depth  // remember depth before the open brace
+                }
+
+                depth += openCount - closeCount
+
+                // Exit test block when we return to (or below) the depth we entered it
+                if (testBlockDepth >= 0 && depth <= testBlockDepth) {
+                    testBlockDepth = -1
+                    continue
+                }
+
+                if (testBlockDepth >= 0) continue  // skip lines inside test blocks
+
+                projectRef.findAll(line).forEach { match ->
+                    val dep = match.groupValues[1]
+                    if (forbidden.any { dep == it || dep.startsWith("$it:") }) {
+                        violations += "  [$modulePath] → [$dep] is forbidden"
+                    }
+                }
+            }
+        }
+
+        if (violations.isNotEmpty()) {
+            throw org.gradle.api.GradleException(buildString {
+                appendLine("Module boundary violations detected:")
+                violations.forEach { appendLine(it) }
+                append("See CLAUDE.md \u00a7 Module Boundaries for rules.")
+            })
+        }
+        logger.lifecycle("checkModuleBoundaries: no violations found")
+    }
+}
+
 tasks.register<Exec>("bumpVersion") {
     group = "lexicon"
     description = "Bump/sync version (versioning.properties + iOS Config.xcconfig). Use script with --hotfix|--minor|--major for bump."
