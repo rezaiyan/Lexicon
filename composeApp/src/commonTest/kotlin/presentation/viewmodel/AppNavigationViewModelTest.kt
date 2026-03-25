@@ -1,8 +1,7 @@
 package presentation.viewmodel
 
+import core.common.NoParamUseCase
 import core.common.Try
-import domain.analytics.repository.IAnalyticsRecorder
-import domain.analytics.usecase.RetryAnalyticsSyncUseCase
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.model.SuggestedVocabularyResponse
@@ -24,6 +23,14 @@ import kotlin.test.assertIs
 import kotlin.test.assertEquals
 
 class AppNavigationViewModelTest : ViewModelTestBase() {
+
+    private class FakeRetryAnalyticsSyncUseCase : NoParamUseCase<Unit> {
+        var called = false
+        override suspend fun invoke(params: Unit): Try<Unit> {
+            called = true
+            return Try.success(Unit)
+        }
+    }
 
     private fun fakeOnboardingRepo(
         hasCompleted: Boolean = true
@@ -66,26 +73,12 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 
-    private class FakeAnalyticsRecorder : IAnalyticsRecorder {
-        var retryCalled = false
-        override suspend fun startSession(sessionId: String, reviewType: String, startedAt: Long) = Try.success(Unit)
-        override suspend fun endSession(sessionId: String, endedAt: Long, durationMs: Long, totalCards: Int, correctCount: Int, incorrectCount: Int, completedNormally: Boolean) = Try.success(Unit)
-        override suspend fun recordReviewEvent(params: domain.analytics.model.ReviewEventParams) = Try.success(Unit)
-        override suspend fun retryPendingSync(): Try<Unit> {
-            retryCalled = true
-            return Try.success(Unit)
-        }
-    }
-
-    private fun fakeRetryUseCase(recorder: FakeAnalyticsRecorder = FakeAnalyticsRecorder()) =
-        RetryAnalyticsSyncUseCase(recorder)
-
     private fun createViewModel(
         hasCompleted: Boolean = true,
         totalWordCount: Int = 0,
-        retryUseCase: RetryAnalyticsSyncUseCase = fakeRetryUseCase(),
+        retryAnalyticsSyncUseCase: NoParamUseCase<Unit> = FakeRetryAnalyticsSyncUseCase(),
     ): AppNavigationViewModel {
-        return AppNavigationViewModel(fakeOnboardingRepo(hasCompleted), fakeWordRepo(totalWordCount), retryUseCase)
+        return AppNavigationViewModel(fakeOnboardingRepo(hasCompleted), fakeWordRepo(totalWordCount), retryAnalyticsSyncUseCase)
     }
 
     @Test
@@ -115,7 +108,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     fun `onSessionVerified with auth but onboarding not completed marks completed`() =
         runTest {
             val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-            val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(), fakeRetryUseCase())
+            val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(), FakeRetryAnalyticsSyncUseCase())
             vm.onSessionVerified(isAuthenticated = true)
             assertIs<AppUiState.Ready>(vm.currentState)
             assertEquals(true, onboardingRepo.markCompletedCalled)
@@ -133,7 +126,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthCompleteCheckingData with existing words marks completed and goes to Ready`() = runTest {
         val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 10), fakeRetryUseCase())
+        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 10), FakeRetryAnalyticsSyncUseCase())
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Ready>(vm.currentState)
         assertEquals(true, onboardingRepo.markCompletedCalled)
@@ -142,7 +135,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthCompleteCheckingData with no words goes to Onboarding`() = runTest {
         val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 0), fakeRetryUseCase())
+        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 0), FakeRetryAnalyticsSyncUseCase())
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Onboarding>(vm.currentState)
         assertEquals(false, onboardingRepo.markCompletedCalled)
@@ -159,7 +152,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthComplete marks onboarding completed and goes to Ready`() = runTest {
         val repo = fakeOnboardingRepo()
-        val vm = AppNavigationViewModel(repo, fakeWordRepo(), fakeRetryUseCase())
+        val vm = AppNavigationViewModel(repo, fakeWordRepo(), FakeRetryAnalyticsSyncUseCase())
         vm.onAuthComplete()
         assertIs<AppUiState.Ready>(vm.currentState)
         assertEquals(true, repo.markCompletedCalled)
@@ -198,17 +191,17 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `onSessionVerified authenticated triggers analytics retry`() = runTest {
-        val recorder = FakeAnalyticsRecorder()
-        val vm = createViewModel(retryUseCase = fakeRetryUseCase(recorder))
+        val retryUseCase = FakeRetryAnalyticsSyncUseCase()
+        val vm = createViewModel(hasCompleted = true, retryAnalyticsSyncUseCase = retryUseCase)
         vm.onSessionVerified(isAuthenticated = true)
-        assertEquals(true, recorder.retryCalled)
+        assertEquals(true, retryUseCase.called)
     }
 
     @Test
     fun `onSessionVerified unauthenticated does not trigger analytics retry`() = runTest {
-        val recorder = FakeAnalyticsRecorder()
-        val vm = createViewModel(retryUseCase = fakeRetryUseCase(recorder))
+        val retryUseCase = FakeRetryAnalyticsSyncUseCase()
+        val vm = createViewModel(hasCompleted = true, retryAnalyticsSyncUseCase = retryUseCase)
         vm.onSessionVerified(isAuthenticated = false)
-        assertEquals(false, recorder.retryCalled)
+        assertEquals(false, retryUseCase.called)
     }
 }

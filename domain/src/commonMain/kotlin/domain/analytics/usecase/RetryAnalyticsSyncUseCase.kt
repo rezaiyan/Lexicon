@@ -7,9 +7,6 @@ import domain.analytics.repository.IAnalyticsRecorder
 class RetryAnalyticsSyncUseCase(
     private val analyticsRecorder: IAnalyticsRecorder,
 ) : NoParamUseCase<Unit> {
-
-    override suspend fun invoke(params: Unit): Try<Unit> = invoke()
-
-    suspend operator fun invoke(): Try<Unit> =
+    override suspend fun invoke(params: Unit): Try<Unit> =
         analyticsRecorder.retryPendingSync()
 }
