@@ -11,6 +11,7 @@ import data.analytics.remote.model.StudyInsightsResponse
 import data.analytics.remote.model.StudySessionResponse
 import data.analytics.remote.model.SyncAnalyticsRequest
 import data.analytics.remote.model.SyncAnalyticsResponse
+import data.analytics.remote.model.SyncSessionRequest
 import data.analytics.remote.model.WeeklyReportRemoteResponse
 import domain.analytics.model.ReviewEventParams
 import kotlinx.coroutines.test.runTest
@@ -153,5 +154,149 @@ class AnalyticsRecorderImplTest {
 
         assertTrue(result.isSuccess)
         assertTrue(remote.syncRequests.isEmpty())
+    }
+
+    // ─── retryPendingSync ────────────────────────────────────────────────────────
+
+    @Test
+    fun `retryPendingSync is no-op when queue is empty`() = runTest {
+        val remote = FakeStatsDataSource()
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
+
+        val result = recorder.retryPendingSync()
+
+        assertTrue(result.isSuccess)
+        assertTrue(remote.syncRequests.isEmpty())
+    }
+
+    @Test
+    fun `retryPendingSync sends all queued sessions to backend`() = runTest {
+        val queue = FakeAnalyticsLocalQueue()
+        val remote = FakeStatsDataSource()
+        remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = queue)
+
+        // Simulate a previously-failed sync by pre-populating the queue
+        val request = SyncAnalyticsRequest(
+            sessions = listOf(
+                SyncSessionRequest(
+                    clientSessionId = "s-1",
+                    startedAt = 1000L,
+                    endedAt = 5000L,
+                    durationMs = 4000L,
+                    totalCards = 3,
+                    correctCount = 2,
+                    incorrectCount = 1,
+                    reviewType = "REVIEW",
+                    completedNormally = true,
+                    events = emptyList(),
+                )
+            )
+        )
+        val json = kotlinx.serialization.json.Json.encodeToString(request)
+        queue.insertRequest(json, 1000L)
+
+        val result = recorder.retryPendingSync()
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, remote.syncRequests.size)
+        assertEquals(1, remote.syncRequests.first().sessions.size)
+        assertEquals("s-1", remote.syncRequests.first().sessions.first().clientSessionId)
+    }
+
+    @Test
+    fun `retryPendingSync clears queue on success`() = runTest {
+        val queue = FakeAnalyticsLocalQueue()
+        val remote = FakeStatsDataSource()
+        remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = queue)
+
+        val request = SyncAnalyticsRequest(
+            sessions = listOf(
+                SyncSessionRequest(
+                    clientSessionId = "s-1",
+                    startedAt = 1000L,
+                    endedAt = 5000L,
+                    durationMs = 4000L,
+                    totalCards = 2,
+                    correctCount = 2,
+                    incorrectCount = 0,
+                    reviewType = "REVIEW",
+                    completedNormally = true,
+                    events = emptyList(),
+                )
+            )
+        )
+        queue.insertRequest(kotlinx.serialization.json.Json.encodeToString(request), 1000L)
+
+        recorder.retryPendingSync()
+
+        assertTrue(queue.requests.isEmpty())
+    }
+
+    @Test
+    fun `retryPendingSync keeps queue intact on network failure`() = runTest {
+        val queue = FakeAnalyticsLocalQueue()
+        val remote = FakeStatsDataSource()
+        remote.syncResult = Try.failure(RuntimeException("Network error"))
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = queue)
+
+        val request = SyncAnalyticsRequest(
+            sessions = listOf(
+                SyncSessionRequest(
+                    clientSessionId = "s-1",
+                    startedAt = 1000L,
+                    endedAt = 5000L,
+                    durationMs = 4000L,
+                    totalCards = 2,
+                    correctCount = 2,
+                    incorrectCount = 0,
+                    reviewType = "REVIEW",
+                    completedNormally = true,
+                    events = emptyList(),
+                )
+            )
+        )
+        queue.insertRequest(kotlinx.serialization.json.Json.encodeToString(request), 1000L)
+
+        val result = recorder.retryPendingSync()
+
+        // Should not propagate failure — analytics are best-effort
+        assertTrue(result.isSuccess)
+        // Queue must still have the item so it can be retried next time
+        assertEquals(1, queue.requests.size)
+    }
+
+    // ─── empty session skip ──────────────────────────────────────────────────────
+
+    @Test
+    fun `endSession skips queue insert for 0-card 0-event session`() = runTest {
+        val queue = FakeAnalyticsLocalQueue()
+        val remote = FakeStatsDataSource()
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = queue)
+
+        recorder.startSession("s-empty", "REVIEW", 1000L)
+        // No reviewEvents recorded — user backed out immediately
+        val result = recorder.endSession("s-empty", 5000L, 4000L, 0, 0, 0, false)
+
+        assertTrue(result.isSuccess)
+        assertTrue(queue.requests.isEmpty())
+        assertTrue(remote.syncRequests.isEmpty())
+    }
+
+    @Test
+    fun `endSession still queues session with 0 cards when it has events`() = runTest {
+        val queue = FakeAnalyticsLocalQueue()
+        val remote = FakeStatsDataSource()
+        remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = queue)
+
+        recorder.startSession("s-1", "REVIEW", 1000L)
+        recorder.recordReviewEvent(defaultEvent.copy(sessionId = "s-1"))
+        // totalCards param is 0 but there are events — should still sync
+        val result = recorder.endSession("s-1", 5000L, 4000L, 0, 0, 0, false)
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, remote.syncRequests.size)
     }
 }

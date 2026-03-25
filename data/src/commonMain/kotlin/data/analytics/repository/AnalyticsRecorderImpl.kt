@@ -61,6 +61,10 @@ class AnalyticsRecorderImpl(
     ): Try<Unit> {
         val session = mutex.withLock { sessions.remove(sessionId) } ?: return Try.success(Unit)
 
+        // Skip sessions where the user backed out immediately (0 cards, 0 events) to avoid
+        // polluting analytics with empty sessions from ReviewViewModel.onCleared().
+        if (totalCards == 0 && session.events.isEmpty()) return Try.success(Unit)
+
         val newRequest = SyncAnalyticsRequest(
             sessions = listOf(
                 SyncSessionRequest(
@@ -109,6 +113,37 @@ class AnalyticsRecorderImpl(
                     logNetwork(
                         "AnalyticsRecorder",
                         "Failed to send session: ${result.throwable.message}. Persisted for retry on next session.",
+                    )
+                    Try.success(Unit)
+                }
+            }
+        }
+    }
+
+    override suspend fun retryPendingSync(): Try<Unit> {
+        val allRequestJsons = localQueue.getAllRequests()
+        if (allRequestJsons.isEmpty()) return Try.success(Unit)
+
+        val allSessions = allRequestJsons
+            .mapNotNull { runCatching { json.decodeFromString<SyncAnalyticsRequest>(it) }.getOrNull() }
+            .flatMap { it.sessions }
+
+        if (allSessions.isEmpty()) {
+            localQueue.clearQueue()
+            return Try.success(Unit)
+        }
+
+        return remoteDataSource.syncSessions(SyncAnalyticsRequest(sessions = allSessions)).let { result ->
+            when (result) {
+                is Try.Success -> {
+                    localQueue.clearQueue()
+                    logNetwork("AnalyticsRecorder", "Retry sync succeeded: ${allSessions.size} sessions sent")
+                    Try.success(Unit)
+                }
+                is Try.Failure -> {
+                    logNetwork(
+                        "AnalyticsRecorder",
+                        "Retry sync failed: ${result.throwable.message}. Will retry next time.",
                     )
                     Try.success(Unit)
                 }

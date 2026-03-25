@@ -24,6 +24,7 @@ import feature.onboarding.di.onboardingModule
 import feature.subscription.di.subscriptionModule
 import feature.leaderboard.di.leaderboardModule
 import feature.aiimport.di.importModule
+import domain.analytics.usecase.RetryAnalyticsSyncUseCase
 import feature.insights.di.insightsModule
 
 fun presentationModule() = module {
@@ -54,7 +55,13 @@ fun presentationModule() = module {
     }
 
     // App Navigation (stays in presentation — app-level coordinator)
-    viewModel { AppNavigationViewModel(onboardingRepository = get(), wordRepository = get()) }
+    viewModel {
+        AppNavigationViewModel(
+            onboardingRepository = get(),
+            wordRepository = get(),
+            retryAnalyticsSyncUseCase = get<RetryAnalyticsSyncUseCase>(),
+        )
+    }
 
     // Import VM (stays in presentation — depends on Compose UI types)
     viewModel {

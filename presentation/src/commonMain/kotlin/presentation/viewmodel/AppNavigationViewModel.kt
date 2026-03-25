@@ -1,6 +1,7 @@
 package presentation.viewmodel
 
 import androidx.lifecycle.viewModelScope
+import core.common.NoParamUseCase
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
 import domain.word.repository.IWordRepository
@@ -13,7 +14,8 @@ import presentation.model.AppUiState
 
 class AppNavigationViewModel(
     private val onboardingRepository: IOnboardingRepository,
-    private val wordRepository: IWordRepository
+    private val wordRepository: IWordRepository,
+    private val retryAnalyticsSyncUseCase: NoParamUseCase<Unit>,
 ) : BaseViewModel<AppUiState, Nothing>() {
 
     override fun initialState(): AppUiState = AppUiState.Auth()
@@ -22,6 +24,10 @@ class AppNavigationViewModel(
     val isVerifying: Boolean get() = (currentState as? AppUiState.Auth)?.phase == AuthPhase.Verifying
 
     fun onSessionVerified(isAuthenticated: Boolean) {
+        // Retry any sessions that failed to sync in a previous run — fire-and-forget.
+        if (isAuthenticated) {
+            viewModelScope.launch { retryAnalyticsSyncUseCase(Unit) }
+        }
         viewModelScope.launch {
             val onboardingCompleted = onboardingRepository.hasCompletedOnboarding().getOrDefault(false)
             when {

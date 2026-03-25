@@ -21,4 +21,10 @@ interface IAnalyticsRecorder {
     ): Try<Unit>
 
     suspend fun recordReviewEvent(params: ReviewEventParams): Try<Unit>
+
+    /**
+     * Retries any study sessions that are sitting in the local queue from previous failed syncs.
+     * Safe to call on app startup — no-op when the queue is empty.
+     */
+    suspend fun retryPendingSync(): Try<Unit>
 }

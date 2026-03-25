@@ -23,6 +23,7 @@ import domain.analytics.usecase.GetLevelTransitionsUseCase
 import domain.analytics.usecase.GetResponseTimeTrendUseCase
 import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
+import domain.analytics.usecase.RetryAnalyticsSyncUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -46,6 +47,7 @@ fun analyticsModule() = module {
     singleOf(::StartStudySessionUseCase)
     singleOf(::EndStudySessionUseCase)
     singleOf(::RecordReviewEventUseCase)
+    singleOf(::RetryAnalyticsSyncUseCase)
 
     // Use Cases — querying
     singleOf(::GetStudyInsightsUseCase)
