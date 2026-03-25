@@ -43,7 +43,9 @@ import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.most_popular_badge
 import lexicon.resources.generated.resources.processing_ellipsis
+import lexicon.resources.generated.resources.start_free_trial
 import lexicon.resources.generated.resources.subscribe_now
+import lexicon.resources.generated.resources.trial_then_price
 
 @Immutable
 data class SubscriptionPlan(
@@ -51,7 +53,9 @@ data class SubscriptionPlan(
     val billingPeriod: String,
     val description: String,
     val price: String,
-    val accentColor: Color
+    val accentColor: Color,
+    val hasFreeTrial: Boolean = false,
+    val trialPeriodDays: Int? = null
 )
 
 @Composable
@@ -171,6 +175,17 @@ fun PlanCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
+                        if (plan.hasFreeTrial && plan.trialPeriodDays != null) {
+                            Spacer(modifier = Modifier.height(Theme.spacing.extraSmall))
+                            Text(
+                                text = stringResource(Res.string.trial_then_price, plan.trialPeriodDays, plan.price),
+                                modifier = Modifier.fillMaxWidth(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Theme.colors.success,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(Theme.spacing.extraSmall))
 
                         Text(
@@ -202,9 +217,12 @@ fun PlanCard(
                         Spacer(modifier = Modifier.width(Theme.spacing.small))
                     }
                     Text(
-                        text = if (isPurchasing) stringResource(Res.string.processing_ellipsis) else stringResource(
-                            Res.string.subscribe_now
-                        ),
+                        text = when {
+                            isPurchasing -> stringResource(Res.string.processing_ellipsis)
+                            plan.hasFreeTrial && plan.trialPeriodDays != null ->
+                                stringResource(Res.string.start_free_trial, plan.trialPeriodDays)
+                            else -> stringResource(Res.string.subscribe_now)
+                        },
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold
                     )

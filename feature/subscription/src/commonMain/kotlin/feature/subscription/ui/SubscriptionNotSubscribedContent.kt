@@ -77,7 +77,9 @@ fun SubscriptionNotSubscribedContent(
                             billingPeriod = billingPeriod,
                             description = pkg.product.description,
                             price = pkg.product.priceFormatted,
-                            accentColor = accentColor
+                            accentColor = accentColor,
+                            hasFreeTrial = pkg.hasFreeTrial,
+                            trialPeriodDays = pkg.trialPeriodDays
                         )
 
                         PlanCard(

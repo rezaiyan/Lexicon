@@ -11,7 +11,9 @@ data class SubscriptionProduct(
 data class SubscriptionPackage(
     val identifier: String,
     val packagePeriod: PackagePeriod,
-    val product: SubscriptionProduct
+    val product: SubscriptionProduct,
+    val trialPeriodDays: Int? = null,
+    val hasFreeTrial: Boolean = false
 )
 
 data class SubscriptionOffering(
@@ -23,7 +25,8 @@ data class SubscriptionEntitlement(
     val isActive: Boolean,
     val expirationDateMillis: Long?,
     val productIdentifier: String,
-    val willRenew: Boolean = true
+    val willRenew: Boolean = true,
+    val isInTrial: Boolean = false
 )
 
 data class SubscriptionCustomerInfo(

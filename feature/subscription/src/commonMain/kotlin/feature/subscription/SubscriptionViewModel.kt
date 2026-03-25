@@ -123,12 +123,20 @@ class SubscriptionViewModel(
                 mapOf("package_id" to packageToPurchase.identifier)
             )
             subscriptionManager.purchase(packageToPurchase)
-                .onSuccess {
+                .onSuccess { customerInfo ->
                     updateState { copy(isPurchasing = false) }
-                    analyticsTracker.logEvent(
-                        "subscription_purchase_success",
-                        mapOf("package_id" to packageToPurchase.identifier)
-                    )
+                    val isTrialStart = customerInfo.activeEntitlements.values.any { it.isInTrial }
+                    if (isTrialStart) {
+                        analyticsTracker.logEvent(
+                            "trial_started",
+                            mapOf("package_id" to packageToPurchase.identifier)
+                        )
+                    } else {
+                        analyticsTracker.logEvent(
+                            "subscription_purchase_success",
+                            mapOf("package_id" to packageToPurchase.identifier)
+                        )
+                    }
                 }
                 .onFailure { error ->
                     updateState {
