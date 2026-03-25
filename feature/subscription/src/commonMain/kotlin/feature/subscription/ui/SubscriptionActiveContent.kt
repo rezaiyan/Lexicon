@@ -50,6 +50,8 @@ import lexicon.resources.generated.resources.subscription_expires_today
 import lexicon.resources.generated.resources.subscription_cancelled_access_note
 import lexicon.resources.generated.resources.subscription_cancelling
 import lexicon.resources.generated.resources.subscription_resubscribe
+import lexicon.resources.generated.resources.free_trial_ends
+import lexicon.resources.generated.resources.trial_active
 
 @Composable
 fun SubscriptionActiveContent(
@@ -98,6 +100,7 @@ private fun SubscriptionStatusCard(
     val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
     val productIdentifier = activeEntitlement?.productIdentifier ?: ""
     val planName = getPlanNameFromProductIdentifier(productIdentifier)
+    val isInTrial = activeEntitlement?.isInTrial ?: false
 
     val warningColor = Theme.colors.warning
 
@@ -184,9 +187,11 @@ private fun SubscriptionStatusCard(
                                 }
                             }
                         } else {
+                            val badgeColor = if (isInTrial) AppColors.subscriptionRecommended else AppColors.subscriptionStandard
+                            val badgeText = if (isInTrial) stringResource(Res.string.trial_active) else stringResource(Res.string.subscription_active)
                             Surface(
                                 shape = RoundedCornerShape(Theme.spacing.extraSmall),
-                                color = AppColors.subscriptionStandard.copy(alpha = 0.2f)
+                                color = badgeColor.copy(alpha = 0.2f)
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -199,13 +204,13 @@ private fun SubscriptionStatusCard(
                                     Icon(
                                         imageVector = Icons.Default.Check,
                                         contentDescription = null,
-                                        tint = AppColors.subscriptionStandard,
+                                        tint = badgeColor,
                                         modifier = Modifier.size(12.dp)
                                     )
                                     Text(
-                                        text = stringResource(Res.string.subscription_active),
+                                        text = badgeText,
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = AppColors.subscriptionStandard,
+                                        color = badgeColor,
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
@@ -243,7 +248,11 @@ private fun SubscriptionStatusCard(
                             }
                         } else {
                             Text(
-                                text = stringResource(Res.string.expires, formattedDate),
+                                text = if (isInTrial) {
+                                    stringResource(Res.string.free_trial_ends, formattedDate)
+                                } else {
+                                    stringResource(Res.string.expires, formattedDate)
+                                },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

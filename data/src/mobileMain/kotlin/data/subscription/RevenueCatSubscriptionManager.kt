@@ -5,10 +5,14 @@ import com.revenuecat.purchases.kmp.PurchasesDelegate
 import com.revenuecat.purchases.kmp.models.CustomerInfo
 import com.revenuecat.purchases.kmp.models.Offerings
 import com.revenuecat.purchases.kmp.models.Package
+import com.revenuecat.purchases.kmp.models.DiscountPaymentMode
 import com.revenuecat.purchases.kmp.models.PackageType
+import com.revenuecat.purchases.kmp.models.PeriodType
+import com.revenuecat.purchases.kmp.models.PeriodUnit
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.StoreProduct
 import com.revenuecat.purchases.kmp.models.StoreTransaction
+import com.revenuecat.purchases.kmp.models.freePhase
 import core.common.Try
 import core.common.getOrNull
 import domain.subscription.ISubscriptionManager
@@ -212,7 +216,8 @@ private fun CustomerInfo.toDomain(): SubscriptionCustomerInfo {
             isActive = entitlement.isActive,
             expirationDateMillis = entitlement.expirationDate?.toEpochMilliseconds(),
             productIdentifier = entitlement.productIdentifier,
-            willRenew = entitlement.willRenew
+            willRenew = entitlement.willRenew,
+            isInTrial = entitlement.periodType == PeriodType.TRIAL
         )
     }
     return SubscriptionCustomerInfo(
@@ -233,6 +238,21 @@ private fun Package.toDomain(): SubscriptionPackage {
         PackageType.LIFETIME -> PackagePeriod.LIFETIME
         else -> PackagePeriod.UNKNOWN
     }
+
+    // iOS: introductoryDiscount with FREE_TRIAL payment mode
+    val iosTrialPeriod = storeProduct.introductoryDiscount
+        ?.takeIf { it.paymentMode == DiscountPaymentMode.FREE_TRIAL }
+        ?.subscriptionPeriod
+
+    // Android: subscriptionOptions.freeTrial.freePhase billing period
+    val androidTrialPeriod = storeProduct.subscriptionOptions
+        ?.freeTrial
+        ?.freePhase
+        ?.billingPeriod
+
+    val trialPeriod = iosTrialPeriod ?: androidTrialPeriod
+    val trialDays = trialPeriod?.toDays()?.takeIf { it > 0 }
+
     return SubscriptionPackage(
         identifier = identifier,
         packagePeriod = period,
@@ -240,6 +260,16 @@ private fun Package.toDomain(): SubscriptionPackage {
             title = storeProduct.title,
             description = storeProduct.localizedDescription ?: "",
             priceFormatted = storeProduct.price.formatted
-        )
+        ),
+        trialPeriodDays = trialDays,
+        hasFreeTrial = trialDays != null
     )
+}
+
+private fun com.revenuecat.purchases.kmp.models.Period.toDays(): Int = when (unit) {
+    PeriodUnit.DAY -> value
+    PeriodUnit.WEEK -> value * 7
+    PeriodUnit.MONTH -> value * 30
+    PeriodUnit.YEAR -> value * 365
+    PeriodUnit.UNKNOWN -> 0
 }
