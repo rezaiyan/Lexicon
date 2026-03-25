@@ -42,6 +42,7 @@ import domain.word.usecase.GetAllWordsUseCase
 import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.GetDueWordsByTagUseCase
 import domain.word.usecase.GetDueWordsUseCase
+import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ImportViaFileUseCase
@@ -109,6 +110,7 @@ fun wordModule() = module {
     singleOf(::EvaluateProgressUseCase)
     singleOf(::GetWordsByStageUseCase)
     singleOf(::GetDueWordsUseCase)
+    singleOf(::LoadReviewQueueUseCase)
     singleOf(::GetDueWordsByTagUseCase)
     singleOf(::IsAiAvailableUseCase)
     singleOf(::ExtractVocabularyFromImageUseCase)

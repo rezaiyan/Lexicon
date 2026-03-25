@@ -5,6 +5,7 @@ import domain.tts.repository.ITtsRepository
 import domain.tts.usecase.DeleteTtsModelUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
+import domain.tts.usecase.ObserveTtsStateUseCase
 import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
 import org.koin.core.module.dsl.singleOf
@@ -27,6 +28,7 @@ fun ttsModule() = module {
         )
     }
 
+    singleOf(::ObserveTtsStateUseCase)
     singleOf(::SpeakWordUseCase)
     singleOf(::StopSpeakingUseCase)
     singleOf(::GetTtsModelsInfoUseCase)

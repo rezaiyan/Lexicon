@@ -8,22 +8,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Sell
-import domain.word.model.LearningStage
-import components.SectionHeader
-import domain.tag.model.Tag
-import theme.AppColors
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -33,44 +28,48 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import components.ErrorScreen
+import components.LoadingScreen
+import components.SectionHeader
+import components.scaffold.ActionIconConfig
+import components.scaffold.LexiconColumn
+import core.common.UiState
+import domain.tag.model.Tag
+import domain.word.model.LearningStage
+import domain.word.model.ReviewSource
 import events.OnEvents
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
+import feature.insights.navigation.showInsightsSheet
 import feature.study.ReviewEffect
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
-import feature.study.model.ReviewType
-import core.common.UiState
-import components.ErrorScreen
-import components.LoadingScreen
-import presentation.ui.LocalSnackbarHostState
-import components.scaffold.ActionIconConfig
-import components.scaffold.LexiconColumn
-import presentation.ui.components.imports.AiWordImportBottomSheet
-import presentation.ui.components.imports.ImportBottomSheet
-import presentation.ui.components.imports.ImportMethodSelectorContent
-import overlay.LocalOverlayHost
-import overlay.bottomsheet.BottomSheetProperties
-import overlay.bottomsheet.BottomSheetPageConfig
-import overlay.bottomsheet.BottomSheetPages
-import overlay.bottomsheet.rememberBottomSheetPageNavigator
-import overlay.fullscreen.FullScreenProperties
-import overlay.fullscreen.showFullScreen
 import feature.study.ui.components.LevelBucketCard
-import feature.study.ui.review.ReviewBottomSheetContent
+import feature.study.ui.review.ReviewScreen
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
 import feature.study.ui.study.StatsSection
-import feature.insights.navigation.showInsightsSheet
 import feature.study.ui.study.WordDistributionBar
-import theme.Theme
+import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.insights_title
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import overlay.LocalOverlayHost
+import overlay.bottomsheet.BottomSheetPageConfig
+import overlay.bottomsheet.BottomSheetPages
+import overlay.bottomsheet.BottomSheetProperties
+import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
+import overlay.fullscreen.FullScreenProperties
+import overlay.fullscreen.showFullScreen
+import presentation.ui.LocalSnackbarHostState
+import presentation.ui.components.imports.AiWordImportBottomSheet
+import presentation.ui.components.imports.ImportBottomSheet
+import presentation.ui.components.imports.ImportMethodSelectorContent
+import theme.AppColors
+import theme.Theme
 
-/** Non-dismissable sheet configuration reused for import and review flows. */
+/** Non-dismissable sheet configuration reused for import flows. */
 private val LockedSheetProperties = BottomSheetProperties(
     dismissOnTouchOutside = false,
     dismissOnBackPress = false,
@@ -102,8 +101,8 @@ fun StudyScreen() {
 
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
-    val isStatsSectionScrolledAway by remember {
-        derivedStateOf { scrollState.value > statsSectionBottom && statsSectionBottom > 0 }
+    val isStatsSectionScrolledAway = remember(scrollState.value, statsSectionBottom) {
+        scrollState.value > statsSectionBottom && statsSectionBottom > 0
     }
 
     val progressStats = (uiState as? UiState.Loaded)?.value?.progressStats
@@ -115,11 +114,36 @@ fun StudyScreen() {
         }
     }
 
+    // Single entry point for all review flows — eliminates 5+ repetitive call sites.
+    val openReviewScreen: (ReviewSource) -> Unit = { source ->
+        reviewViewModel.startSession(source)
+        overlayHost.showFullScreen(
+            tag = "review-${source::class.simpleName}",
+            properties = FullScreenProperties(
+                dismissOnBackPress = false,
+                isNavigationBarsPaddingEnabled = true,
+            ),
+        ) { navigator ->
+            OnEvents(reviewViewModel.effects) { effect ->
+                when (effect) {
+                    ReviewEffect.SessionComplete -> {
+                        progressViewModel.refreshStats()
+                        navigator.dismiss()
+                    }
+                }
+            }
+            ReviewScreen(
+                viewModel = reviewViewModel,
+                onDismiss = { reviewViewModel.abandonSession(); navigator.dismiss() },
+            )
+        }
+    }
+
     val openImportSheet: () -> Unit = {
         if (hasPremiumAccess) {
             overlayHost.showSizeToFitBottomSheet(
                 tag = "import",
-                properties = BottomSheetProperties(dismissOnBackPress = true, dismissOnTouchOutside = true)
+                properties = BottomSheetProperties(dismissOnBackPress = true, dismissOnTouchOutside = true),
             ) { sheetNav ->
                 val pages = rememberBottomSheetPageNavigator<ImportFlowPage>(ImportFlowPage.Selector)
                 val onClose: () -> Unit = { sheetNav.dismiss() }
@@ -147,17 +171,15 @@ fun StudyScreen() {
                     when (currentPage) {
                         is ImportFlowPage.Selector -> ImportMethodSelectorContent(
                             onManual = { pages.navigateTo(ImportFlowPage.Manual) },
-                            onAiAssistant = { pages.navigateTo(ImportFlowPage.AiAssistant) }
+                            onAiAssistant = { pages.navigateTo(ImportFlowPage.AiAssistant) },
                         )
-
                         is ImportFlowPage.Manual -> ImportBottomSheet(
                             onDismiss = onClose,
-                            onShowSnackBar = onImportSuccess
+                            onShowSnackBar = onImportSuccess,
                         )
-
                         is ImportFlowPage.AiAssistant -> AiWordImportBottomSheet(
                             onDismiss = onClose,
-                            onShowSnackBar = onImportSuccess
+                            onShowSnackBar = onImportSuccess,
                         )
                     }
                 }
@@ -190,13 +212,13 @@ fun StudyScreen() {
             icon = Icons.Default.Insights,
             contentDescription = stringResource(Res.string.insights_title),
             onClick = { overlayHost.showInsightsSheet() },
-            size = Theme.dimensions.iconSize
+            size = Theme.dimensions.iconSize,
         ),
         actionIcon2 = ActionIconConfig(
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),
             onClick = openImportSheet,
-            size = Theme.dimensions.iconSize
+            size = Theme.dimensions.iconSize,
         ),
         scrollable = true,
     ) {
@@ -222,7 +244,7 @@ fun StudyScreen() {
                         title = if (isNetworkError) "No Connection" else "Oops!",
                         icon = if (isNetworkError) Icons.Default.WifiOff else null,
                         retryLabel = "Try Again",
-                        onRetry = { progressViewModel.refreshStats() }
+                        onRetry = { progressViewModel.refreshStats() },
                     )
                 }
 
@@ -230,46 +252,6 @@ fun StudyScreen() {
                     val loadedState = uiState.value
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
-
-                    OnEvents(reviewViewModel.effects) { effect ->
-                        when (effect) {
-                            is ReviewEffect.StartReview -> {
-                                reviewViewModel.startDueReview()
-                                overlayHost.showFullScreen(
-                                    tag = "review-due",
-                                    properties = FullScreenProperties(
-                                        dismissOnBackPress = false,
-                                        isNavigationBarsPaddingEnabled = true,
-                                    )
-                                ) { navigator ->
-                                    val reviewState by reviewViewModel.state()
-                                    val sheetTts = reviewState.ttsState
-
-                                    ReviewBottomSheetContent(
-                                        reviewType = ReviewType.REVIEW,
-                                        reviewState = reviewState.review,
-                                        initialWord = effect.firstWord,
-                                        onClose = { navigator.dismiss() },
-                                        onReviewComplete = {
-                                            reviewViewModel.onReviewSessionComplete()
-                                            navigator.dismiss()
-                                        },
-                                        onReviewWord = reviewViewModel::reviewWord,
-                                        onLoadWords = reviewViewModel::startDueReview,
-                                        onUpdateWord = reviewViewModel::updateWord,
-                                        onDeleteWord = { wordId, onComplete ->
-                                            reviewViewModel.deleteWord(wordId)
-                                            onComplete()
-                                        },
-                                        ttsState = sheetTts,
-                                        onSpeakClick = reviewViewModel::speakWord,
-                                        speechRate = reviewState.speechRate,
-                                        onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
-                                    )
-                                }
-                            }
-                        }
-                    }
 
                     StatsSection(
                         modifier = Modifier.onGloballyPositioned { coordinates ->
@@ -279,14 +261,14 @@ fun StudyScreen() {
                         evaluation = evaluation,
                         dueCards = loadedStats.dueCards,
                         onImportWords = openImportSheet,
-                        onStartReviewLongPress = { reviewViewModel.startReview() },
+                        onStartReviewLongPress = { openReviewScreen(ReviewSource.DueCards) },
                         onStartReview = {
                             if (dueTags.isNotEmpty() && !skipTagSelector) {
                                 overlayHost.showSizeToFitBottomSheet(
                                     tag = "review-selector",
                                     properties = BottomSheetProperties(
                                         dismissOnBackPress = true,
-                                        dismissOnTouchOutside = true
+                                        dismissOnTouchOutside = true,
                                     ),
                                 ) { nav ->
                                     val sheetProgressState by progressViewModel.state()
@@ -299,45 +281,16 @@ fun StudyScreen() {
                                         onSkipTagSelectorChanged = { progressViewModel.setSkipTagSelector(it) },
                                         onAllSelected = {
                                             nav.dismiss()
-                                            reviewViewModel.startReview()
+                                            openReviewScreen(ReviewSource.DueCards)
                                         },
                                         onTagSelected = { tag ->
                                             nav.dismiss()
-                                            reviewViewModel.startTagReview(tag.id)
-                                            overlayHost.showFullScreen(
-                                                tag = "review-tag-${tag.id}",
-                                                properties = FullScreenProperties(
-                                                    dismissOnBackPress = false,
-                                                    isNavigationBarsPaddingEnabled = true
-                                                ),
-                                            ) { navigator ->
-                                                val reviewState by reviewViewModel.state()
-                                                ReviewBottomSheetContent(
-                                                    reviewType = ReviewType.REVIEW,
-                                                    reviewState = reviewState.review,
-                                                    onClose = navigator::dismiss,
-                                                    onReviewComplete = {
-                                                        reviewViewModel.onReviewSessionComplete()
-                                                        navigator.dismiss()
-                                                    },
-                                                    onReviewWord = reviewViewModel::reviewWord,
-                                                    onLoadWords = reviewViewModel::startDueReview,
-                                                    onUpdateWord = reviewViewModel::updateWord,
-                                                    onDeleteWord = { wordId, onComplete ->
-                                                        reviewViewModel.deleteWord(wordId)
-                                                        onComplete()
-                                                    },
-                                                    ttsState = reviewState.ttsState,
-                                                    onSpeakClick = reviewViewModel::speakWord,
-                                                    speechRate = reviewState.speechRate,
-                                                    onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
-                                                )
-                                            }
+                                            openReviewScreen(ReviewSource.ByTag(tag.id))
                                         },
                                     )
                                 }
                             } else {
-                                reviewViewModel.startReview()
+                                openReviewScreen(ReviewSource.DueCards)
                             }
                         },
                     )
@@ -347,34 +300,7 @@ fun StudyScreen() {
                     LearningStagesSection(
                         stats = loadedStats,
                         onStageLongClick = { stage, _ ->
-                            reviewViewModel.loadWordsByStage(stage)
-                            overlayHost.showFullScreen(
-                                tag = "review-stage-${stage}",
-                                properties = FullScreenProperties(dismissOnSwipe = true),
-                            ) { navigator ->
-                                val reviewState by reviewViewModel.state()
-                                ReviewBottomSheetContent(
-                                    reviewType = ReviewType.BROWSE,
-                                    reviewState = reviewState.review,
-                                    onClose = navigator::dismiss,
-                                    onReviewComplete = {
-                                        reviewViewModel.onReviewSessionComplete()
-                                        navigator.dismiss()
-                                    },
-                                    onReviewWord = reviewViewModel::reviewWord,
-                                    onLoadWords = reviewViewModel::startDueReview,
-                                    onUpdateWord = reviewViewModel::updateWord,
-                                    onDeleteWord = { wordId, onComplete ->
-                                        reviewViewModel.deleteWord(wordId)
-                                        onComplete()
-                                    },
-                                    ttsState = reviewState.ttsState,
-                                    onSpeakClick = reviewViewModel::speakWord,
-                                    speechRate = reviewState.speechRate,
-                                    onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
-                                )
-                            }
-                            reviewViewModel.startStageReview(stage)
+                            openReviewScreen(ReviewSource.ByStage(stage))
                         },
                         onStageClick = { stage, stageName ->
                             val stageTags = stageTagsMap[stage.ordinal].orEmpty()
@@ -392,7 +318,7 @@ fun StudyScreen() {
                                     tag = "stage-selector-${stage}",
                                     properties = BottomSheetProperties(
                                         dismissOnBackPress = true,
-                                        dismissOnTouchOutside = true
+                                        dismissOnTouchOutside = true,
                                     ),
                                 ) { nav ->
                                     val sheetProgressState by progressViewModel.state()
@@ -405,96 +331,16 @@ fun StudyScreen() {
                                         onSkipTagSelectorChanged = { progressViewModel.setSkipTagSelector(it) },
                                         onAllSelected = {
                                             nav.dismiss()
-                                            reviewViewModel.loadWordsByStage(stage)
-                                            overlayHost.showFullScreen(
-                                                tag = "review-stage-${stage}",
-                                                properties = FullScreenProperties(dismissOnSwipe = true),
-                                            ) { navigator ->
-                                                val reviewState by reviewViewModel.state()
-                                                ReviewBottomSheetContent(
-                                                    reviewType = ReviewType.BROWSE,
-                                                    reviewState = reviewState.review,
-                                                    onClose = navigator::dismiss,
-                                                    onReviewComplete = {
-                                                        reviewViewModel.onReviewSessionComplete()
-                                                        navigator.dismiss()
-                                                    },
-                                                    onReviewWord = reviewViewModel::reviewWord,
-                                                    onLoadWords = reviewViewModel::startDueReview,
-                                                    onUpdateWord = reviewViewModel::updateWord,
-                                                    onDeleteWord = { wordId, onComplete ->
-                                                        reviewViewModel.deleteWord(wordId)
-                                                        onComplete()
-                                                    },
-                                                    ttsState = reviewState.ttsState,
-                                                    onSpeakClick = reviewViewModel::speakWord,
-                                                    speechRate = reviewState.speechRate,
-                                                    onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
-                                                )
-                                            }
-                                            reviewViewModel.startStageReview(stage)
+                                            openReviewScreen(ReviewSource.ByStage(stage))
                                         },
                                         onTagSelected = { tag ->
                                             nav.dismiss()
-                                            reviewViewModel.startStageTagReview(stage, tag.id)
-                                            overlayHost.showFullScreen(
-                                                tag = "review-stage-tag-${stage}-${tag.id}",
-                                                properties = FullScreenProperties(dismissOnSwipe = true),
-                                            ) { navigator ->
-                                                val reviewState by reviewViewModel.state()
-                                                ReviewBottomSheetContent(
-                                                    reviewType = ReviewType.BROWSE,
-                                                    reviewState = reviewState.review,
-                                                    onClose = navigator::dismiss,
-                                                    onReviewComplete = {
-                                                        reviewViewModel.onReviewSessionComplete()
-                                                        navigator.dismiss()
-                                                    },
-                                                    onReviewWord = reviewViewModel::reviewWord,
-                                                    onLoadWords = reviewViewModel::startDueReview,
-                                                    onUpdateWord = reviewViewModel::updateWord,
-                                                    onDeleteWord = { wordId, onComplete ->
-                                                        reviewViewModel.deleteWord(wordId)
-                                                        onComplete()
-                                                    },
-                                                    ttsState = reviewState.ttsState,
-                                                    onSpeakClick = reviewViewModel::speakWord,
-                                                    speechRate = reviewState.speechRate,
-                                                    onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
-                                                )
-                                            }
+                                            openReviewScreen(ReviewSource.ByStageAndTag(stage, tag.id))
                                         },
                                     )
                                 }
                             } else {
-                                reviewViewModel.loadWordsByStage(stage)
-                                overlayHost.showFullScreen(
-                                    tag = "review-stage-${stage}",
-                                    properties = FullScreenProperties(dismissOnSwipe = true),
-                                ) { navigator ->
-                                    val reviewState by reviewViewModel.state()
-                                    ReviewBottomSheetContent(
-                                        reviewType = ReviewType.BROWSE,
-                                        reviewState = reviewState.review,
-                                        onClose = navigator::dismiss,
-                                        onReviewComplete = {
-                                            reviewViewModel.onReviewSessionComplete()
-                                            navigator.dismiss()
-                                        },
-                                        onReviewWord = reviewViewModel::reviewWord,
-                                        onLoadWords = reviewViewModel::startDueReview,
-                                        onUpdateWord = reviewViewModel::updateWord,
-                                        onDeleteWord = { wordId, onComplete ->
-                                            reviewViewModel.deleteWord(wordId)
-                                            onComplete()
-                                        },
-                                        ttsState = reviewState.ttsState,
-                                        onSpeakClick = reviewViewModel::speakWord,
-                                        speechRate = reviewState.speechRate,
-                                        onSpeechRateChanged = reviewViewModel::setTtsSpeechRate,
-                                    )
-                                }
-                                reviewViewModel.startStageReview(stage)
+                                openReviewScreen(ReviewSource.ByStage(stage))
                             }
                         },
                     )
