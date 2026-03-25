@@ -13,6 +13,7 @@ import domain.auth.repository.ISessionRepository
 import domain.auth.repository.SessionVerificationResult
 import domain.auth.service.AuthenticationService
 import domain.auth.service.IAuthenticationService
+import domain.auth.usecase.HandleLoginSuccessUseCase
 import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
@@ -183,12 +184,14 @@ class AuthViewModelTest : ViewModelTestBase() {
             logoutUseCase = LogoutUseCase(service, wordRepo, settingsRepo),
             observeAuthStateUseCase = ObserveAuthStateUseCase(authRepo),
             verifySessionUseCase = VerifySessionUseCase(fakeSessionRepo(sessionVerificationResult)),
-            syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(wordRepo),
-            initializePushNotificationsUseCase = InitializePushNotificationsUseCase(isAuthUseCase, registerPushTokenUseCase),
+            handleLoginSuccessUseCase = HandleLoginSuccessUseCase(
+                subscriptionManager = fakeSubscriptionManager(),
+                syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(wordRepo),
+                initializePushNotificationsUseCase = InitializePushNotificationsUseCase(isAuthUseCase, registerPushTokenUseCase),
+            ),
             registerPushTokenUseCase = registerPushTokenUseCase,
             analyticsTracker = fakeAnalytics(),
             userManager = fakeUserManager(),
-            subscriptionManager = fakeSubscriptionManager(),
         )
     }
 

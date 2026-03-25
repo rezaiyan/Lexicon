@@ -23,6 +23,7 @@ import domain.auth.storage.ISecureStorage
 import domain.auth.usecase.ClearAllUserDataUseCase
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.auth.usecase.HandleLoginSuccessUseCase
 import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
@@ -96,4 +97,5 @@ fun authModule(backendUrl: String) = module {
     singleOf(::ObserveAuthStateUseCase)
     singleOf(::VerifySessionUseCase)
     singleOf(::ClearAllUserDataUseCase)
+    factoryOf(::HandleLoginSuccessUseCase)
 }

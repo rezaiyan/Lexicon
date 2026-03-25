@@ -12,12 +12,10 @@ fun authModule() = module {
             logoutUseCase = get(),
             observeAuthStateUseCase = get(),
             verifySessionUseCase = get(),
-            syncRemoteToLocalUseCase = get(),
-            initializePushNotificationsUseCase = get(),
+            handleLoginSuccessUseCase = get(),
             registerPushTokenUseCase = get(),
             analyticsTracker = get(),
             userManager = get(),
-            subscriptionManager = get(),
         )
     }
 }
