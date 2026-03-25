@@ -154,7 +154,7 @@ class TagManagerViewModelTest : ViewModelTestBase() {
 
             val effect = vm.effects.first()
             assertIs<TagManagerEffect.Error>(effect)
-            assertEquals("Failed to create tag", effect.message)
+            assertEquals("Something went wrong. Please try again.", effect.message)
         }
 
     @Test
@@ -206,7 +206,7 @@ class TagManagerViewModelTest : ViewModelTestBase() {
 
             val effect = vm.effects.first()
             assertIs<TagManagerEffect.Error>(effect)
-            assertEquals("Failed to rename tag", effect.message)
+            assertEquals("Something went wrong. Please try again.", effect.message)
         }
 
     // --- deleteTag ---
@@ -257,7 +257,7 @@ class TagManagerViewModelTest : ViewModelTestBase() {
 
             val effect = vm.effects.first()
             assertIs<TagManagerEffect.Error>(effect)
-            assertEquals("Failed to delete tag", effect.message)
+            assertEquals("Something went wrong. Please try again.", effect.message)
         }
 
     @Test

@@ -218,7 +218,7 @@ class WordTagAssignmentViewModelTest : ViewModelTestBase() {
 
             val effect = vm.effects.first()
             assertIs<WordTagAssignmentEffect.Error>(effect)
-            assertEquals("Failed to save tags", effect.message)
+            assertEquals("Something went wrong. Please try again.", effect.message)
         }
 
     @Test
