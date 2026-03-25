@@ -135,6 +135,7 @@
     <string name="insights_reviews_format">%1$d reviews</string>
     <string name="insights_empty_title">No activity yet</string>
     <string name="insights_empty_subtitle">Complete a study session to unlock your learning insights</string>
+    <string name="insights_load_error">Failed to load insights. Please check your connection and try again.</string>
     <string name="languages">Languages</string>
     <string name="member_since">Member since %1$s</string>
     
@@ -348,7 +349,7 @@
     <string name="no_tags_subtitle">Create your first tag to organize words</string>
     <string name="filter_tag">Tag</string>
     <string name="filter_all_tags">All Tags</string>
-    <string name="assign_tags">Assign Tags</string>
+    <string name="assign_tags">Assign Tag</string>
     <string name="word_count_label">%1$d words</string>
 
     <!-- Word Manager Screen -->
@@ -390,6 +391,12 @@
     <string name="export_all">Export All</string>
     <string name="export_selected">Export Selected</string>
     
+    <!-- Batch Tag Assignment -->
+    <string name="set_tag">Set Tag</string>
+    <string name="words_tagged">Tags updated for %1$d word(s)</string>
+    <string name="assign_tags_to_words_count">Set tags for %1$d word(s)</string>
+    <string name="tagging_words_please_wait">Updating tags, please wait…</string>
+
     <!-- Batch Language Edit -->
     <string name="batch_edit_languages">Edit Languages</string>
     <string name="update_languages">Update Languages</string>

@@ -39,6 +39,14 @@ data class InsightsState(
             && accuracyByLevel !is UiState.Loading
             && heatmap !is UiState.Loading
             && bestStudyTime !is UiState.Loading
+
+    val isError: Boolean get() = isLoaded && !availability.hasAnyContent && (
+            overview is UiState.Error
+            || difficultWords is UiState.Error
+            || accuracyByLevel is UiState.Error
+            || heatmap is UiState.Error
+            || bestStudyTime is UiState.Error
+    )
 }
 
 class InsightsViewModel(

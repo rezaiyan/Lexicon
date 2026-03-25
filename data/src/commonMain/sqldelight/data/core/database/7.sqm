@@ -1,0 +1,8 @@
+-- Migration from version 7 to version 8
+-- Adds AnalyticsSyncQueue table to persist failed analytics sync requests across app restarts
+
+CREATE TABLE AnalyticsSyncQueue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requestJson TEXT NOT NULL,
+    createdAt INTEGER NOT NULL
+);

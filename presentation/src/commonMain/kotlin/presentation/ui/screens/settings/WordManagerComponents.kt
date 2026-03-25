@@ -37,6 +37,7 @@ internal fun WordListContent(
     onFilterTagChange: (Long?) -> Unit,
     onDeleteSelected: () -> Unit,
     onBatchEditLanguages: () -> Unit,
+    onBatchAssignTags: () -> Unit,
     onExitSelectionMode: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -117,6 +118,7 @@ internal fun WordListContent(
             onSelectAll = onSelectAll,
             onDelete = onDeleteSelected,
             onBatchEditLanguages = onBatchEditLanguages,
+            onBatchAssignTags = onBatchAssignTags,
             onShare = onShareWords,
             modifier = Modifier.align(Alignment.BottomCenter)
         )

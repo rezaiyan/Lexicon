@@ -3,6 +3,8 @@ package feature.words
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
+import domain.settings.usecase.GetSkipTagSelectorUseCase
+import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.usecase.CreateTagUseCase
 import domain.tag.usecase.DeleteTagUseCase
 import domain.tag.usecase.GetTagsUseCase
@@ -18,12 +20,23 @@ class TagManagerViewModel(
     private val createTagUseCase: CreateTagUseCase,
     private val renameTagUseCase: RenameTagUseCase,
     private val deleteTagUseCase: DeleteTagUseCase,
+    private val setSkipTagSelectorUseCase: SetSkipTagSelectorUseCase,
+    getSkipTagSelectorUseCase: GetSkipTagSelectorUseCase,
 ) : BaseViewModel<TagManagerState, TagManagerEffect>() {
 
     override fun initialState() = TagManagerState()
 
     init {
         startObservingTags()
+        viewModelScope.launch {
+            getSkipTagSelectorUseCase(Unit)
+                .catch { }
+                .collect { skip -> updateState { copy(skipTagSelector = skip) } }
+        }
+    }
+
+    fun setSkipTagSelector(skip: Boolean) {
+        viewModelScope.launch { setSkipTagSelectorUseCase(skip) }
     }
 
     private fun startObservingTags() {

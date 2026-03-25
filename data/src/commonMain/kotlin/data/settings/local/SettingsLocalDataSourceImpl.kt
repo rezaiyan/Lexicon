@@ -29,6 +29,7 @@ class SettingsLocalDataSourceImpl(
                         minimumDueCards = it.minimumDueCards.toInt(),
                         ttsSpeed = it.ttsSpeed.toFloat(),
                         ttsSpeakerId = it.ttsSpeakerId.toInt(),
+                        skipTagSelector = it.skipTagSelector != 0L,
                     )
                 }
             }
@@ -46,6 +47,7 @@ class SettingsLocalDataSourceImpl(
             minimumDueCards = entity.minimumDueCards.toInt(),
             ttsSpeed = entity.ttsSpeed.toFloat(),
             ttsSpeakerId = entity.ttsSpeakerId.toInt(),
+            skipTagSelector = entity.skipTagSelector != 0L,
         )
     }
 
@@ -61,6 +63,7 @@ class SettingsLocalDataSourceImpl(
             minimumDueCards = data.minimumDueCards.toLong(),
             ttsSpeed = data.ttsSpeed.toDouble(),
             ttsSpeakerId = data.ttsSpeakerId.toLong(),
+            skipTagSelector = if (data.skipTagSelector) 1L else 0L,
         )
     }
 

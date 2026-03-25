@@ -5,7 +5,8 @@ import domain.tag.model.Tag
 data class TagManagerState(
     val tags: List<Tag> = emptyList(),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val skipTagSelector: Boolean = false,
 )
 
 sealed class TagManagerEffect {

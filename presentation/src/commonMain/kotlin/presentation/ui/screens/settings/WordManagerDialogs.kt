@@ -2,20 +2,30 @@ package presentation.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -33,8 +43,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import domain.tag.model.Tag
 import domain.word.model.Word
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.assign_tags
+import lexicon.resources.generated.resources.assign_tags_to_words_count
 import lexicon.resources.generated.resources.batch_edit_languages
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete
@@ -42,8 +55,10 @@ import lexicon.resources.generated.resources.delete_words_message
 import lexicon.resources.generated.resources.delete_words_title
 import lexicon.resources.generated.resources.description_optional
 import lexicon.resources.generated.resources.edit_word
+import lexicon.resources.generated.resources.no_tags
 import lexicon.resources.generated.resources.original_word
 import lexicon.resources.generated.resources.save
+import lexicon.resources.generated.resources.set_tag
 import lexicon.resources.generated.resources.translation_language_label
 import lexicon.resources.generated.resources.update_languages
 import lexicon.resources.generated.resources.update_words_count
@@ -55,6 +70,7 @@ import components.dialog.LexiconDialogContent
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.components.LanguageSelectionContent
+import theme.AppColors
 import theme.Theme
 import utils.Language
 import lexicon.resources.generated.resources.translation_label
@@ -285,6 +301,107 @@ private fun LanguageSelectorCard(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+    }
+}
+
+@Composable
+internal fun BatchTagAssignmentContent(
+    count: Int,
+    tags: List<Tag>,
+    onConfirm: (tagIds: List<Long>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var selectedTagIds by remember { mutableStateOf(emptySet<Long>()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = Theme.spacing.lg, vertical = Theme.spacing.medium)
+    ) {
+        Text(
+            text = stringResource(Res.string.set_tag),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = stringResource(Res.string.assign_tags_to_words_count, count),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(Theme.spacing.medium))
+        HorizontalDivider()
+        Spacer(modifier = Modifier.height(Theme.spacing.sm))
+
+        if (tags.isEmpty()) {
+            Text(
+                text = stringResource(Res.string.no_tags),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(Theme.spacing.medium))
+        } else {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .weight(1f, fill = false),
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
+            ) {
+                tags.forEach { tag ->
+                    val selected = selectedTagIds.contains(tag.id)
+                    FilterChip(
+                        selected = selected,
+                        onClick = {
+                            selectedTagIds = if (selected) {
+                                selectedTagIds - tag.id
+                            } else {
+                                selectedTagIds + tag.id
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = if (tag.wordCount > 0) "${tag.name} · ${tag.wordCount}" else tag.name,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        },
+                        leadingIcon = if (selected) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                )
+                            }
+                        } else null,
+                        shape = RoundedCornerShape(Theme.shapes.pill),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AppColors.settingsTagManagerIcon.copy(alpha = 0.15f),
+                            selectedLabelColor = AppColors.settingsTagManagerIcon,
+                            selectedLeadingIconColor = AppColors.settingsTagManagerIcon
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selected,
+                            borderColor = MaterialTheme.colorScheme.outlineVariant,
+                            selectedBorderColor = AppColors.settingsTagManagerIcon.copy(alpha = 0.4f)
+                        )
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(Theme.spacing.medium))
+
+        Button(
+            onClick = { onConfirm(selectedTagIds.toList()) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(Res.string.assign_tags))
         }
     }
 }

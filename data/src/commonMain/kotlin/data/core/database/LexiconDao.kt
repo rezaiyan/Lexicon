@@ -35,4 +35,5 @@ data class SettingsEntityData(
     val minimumDueCards: Int = 5,
     val ttsSpeed: Float = 1.0f,
     val ttsSpeakerId: Int = 0,
+    val skipTagSelector: Boolean = false,
 )

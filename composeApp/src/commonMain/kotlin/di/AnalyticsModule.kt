@@ -33,7 +33,7 @@ fun analyticsModule() = module {
     singleOf(::AnalyticsWordRemoteDataSource) bind IAnalyticsWordDataSource::class
 
     // Repositories
-    single { AnalyticsRecorderImpl(remoteDataSource = get()) } bind IAnalyticsRecorder::class
+    single { AnalyticsRecorderImpl(remoteDataSource = get(), queries = get()) } bind IAnalyticsRecorder::class
     singleOf(::AnalyticsStatsRepositoryImpl) bind IAnalyticsStatsRepository::class
     singleOf(::AnalyticsWordRepositoryImpl) bind IAnalyticsWordRepository::class
 

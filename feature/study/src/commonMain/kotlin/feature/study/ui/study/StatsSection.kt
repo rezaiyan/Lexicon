@@ -64,8 +64,8 @@ fun StatsSection(
     dueCards: Int,
     onImportWords: () -> Unit,
     onStartReview: () -> Unit,
-    modifier: Modifier = Modifier,
     onStartReviewLongPress: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     val accentColor = when (evaluation.tier) {
         ProgressTier.EMPTY,
@@ -184,7 +184,7 @@ fun StatsSection(
                                 .background(AppColors.primary)
                                 .combinedClickable(
                                     onClick = if (isEmpty) onImportWords else onStartReview,
-                                    onLongClick = if (!isEmpty) onStartReviewLongPress else null,
+                                    onLongClick = if (isEmpty) null else onStartReviewLongPress,
                                 )
                                 .padding(vertical = 10.dp, horizontal = 24.dp),
                             contentAlignment = Alignment.Center,

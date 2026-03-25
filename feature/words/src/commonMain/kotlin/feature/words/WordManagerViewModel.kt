@@ -6,6 +6,9 @@ import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
+import core.common.fold
+import domain.tag.usecase.BatchAssignTagsParams
+import domain.tag.usecase.BatchAssignTagsUseCase
 import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
@@ -23,6 +26,7 @@ class WordManagerViewModel(
     private val getTagsUseCase: GetTagsUseCase,
     deleteWordsUseCase: DeleteWordsUseCase,
     batchUpdateLanguagesUseCase: BatchUpdateLanguagesUseCase,
+    private val batchAssignTagsUseCase: BatchAssignTagsUseCase,
     updateWordUseCase: UpdateWordUseCase,
     private val exportWordsUseCase: ExportWordsUseCase,
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
@@ -83,6 +87,7 @@ class WordManagerViewModel(
                 searchQuery = "",
                 isDeletingWords = false,
                 isBatchUpdatingLanguages = false,
+                isBatchAssigningTags = false,
                 errorMessage = null
             )
         }
@@ -198,6 +203,31 @@ class WordManagerViewModel(
     fun batchUpdateLanguages(sourceLanguage: Language, targetLanguage: Language) {
         val selectedIds = currentState.selectedWordIds.toList()
         batchEditHandler.batchUpdateLanguages(selectedIds, sourceLanguage, targetLanguage)
+    }
+
+    fun batchAssignTags(tagIds: List<Long>) {
+        val selectedIds = currentState.selectedWordIds.toList()
+        if (selectedIds.isEmpty()) return
+        viewModelScope.launch {
+            updateState { copy(isBatchAssigningTags = true) }
+            batchAssignTagsUseCase(BatchAssignTagsParams(selectedIds, tagIds))
+                .fold(
+                    onSuccess = { count ->
+                        updateState {
+                            copy(
+                                isBatchAssigningTags = false,
+                                selectedWordIds = emptySet(),
+                                isSelectionMode = false
+                            )
+                        }
+                        emitEffect(WordManagerEffect.WordsTagged(count))
+                    },
+                    onFailure = { error ->
+                        updateState { copy(isBatchAssigningTags = false) }
+                        emitEffect(WordManagerEffect.Error(error.message ?: "Failed to update tags"))
+                    }
+                )
+        }
     }
 
     fun shareWords() {

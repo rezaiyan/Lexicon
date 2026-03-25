@@ -168,8 +168,10 @@ class WordLocalDataSource(
                     )
                 }
             }
-            // Handle tags for existing words (real IDs known)
-            words.filter { it.id != 0 }.forEach { word ->
+            // Handle tags for existing words (real IDs known).
+            // Only update when tagIds is non-empty — an empty list means "no tag info provided"
+            // (e.g. words coming from a remote sync), so existing local tags are preserved.
+            words.filter { it.id != 0 && it.tagIds.isNotEmpty() }.forEach { word ->
                 queries.deleteWordTagsForWord(word.id.toLong())
                 word.tagIds.forEach { tagId ->
                     queries.insertWordTag(word.id.toLong(), tagId)

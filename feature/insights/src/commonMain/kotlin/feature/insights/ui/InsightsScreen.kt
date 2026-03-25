@@ -78,6 +78,7 @@ import lexicon.resources.generated.resources.insights_cards_reviewed
 import lexicon.resources.generated.resources.insights_days_studied
 import lexicon.resources.generated.resources.insights_error_rate_format
 import lexicon.resources.generated.resources.insights_level_format
+import lexicon.resources.generated.resources.insights_load_error
 import lexicon.resources.generated.resources.insights_loading
 import lexicon.resources.generated.resources.insights_loading_levels
 import lexicon.resources.generated.resources.insights_loading_words
@@ -87,6 +88,7 @@ import lexicon.resources.generated.resources.insights_sessions_words
 import lexicon.resources.generated.resources.insights_this_week
 import lexicon.resources.generated.resources.insights_title
 import lexicon.resources.generated.resources.insights_total_study_time
+import lexicon.resources.generated.resources.retry
 import lexicon.resources.generated.resources.insights_words_mastered
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -99,10 +101,15 @@ fun InsightsScreen(
     val viewModel = koinViewModel<InsightsViewModel>()
     val state by viewModel.state()
 
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
     InsightsContent(
         state = state,
         onNavigateBack = onNavigateBack,
         onDismissInsight = { viewModel.dismissDailyInsight() },
+        onRetry = { viewModel.refresh() },
     )
 }
 
@@ -111,6 +118,7 @@ internal fun InsightsContent(
     state: InsightsState,
     onNavigateBack: () -> Unit,
     onDismissInsight: () -> Unit = {},
+    onRetry: () -> Unit = {},
 ) {
     LexiconColumn(
         title = stringResource(Res.string.insights_title),
@@ -122,6 +130,12 @@ internal fun InsightsContent(
     ) {
         if (!state.isLoaded) {
             LoadingScreen(message = stringResource(Res.string.insights_loading))
+        } else if (state.isError) {
+            ErrorScreen(
+                message = stringResource(Res.string.insights_load_error),
+                retryLabel = stringResource(Res.string.retry),
+                onRetry = onRetry,
+            )
         } else if (!state.availability.hasAnyContent) {
             EmptyInsightsContent()
         } else {

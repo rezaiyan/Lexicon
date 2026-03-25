@@ -42,8 +42,8 @@ fun LevelBucketCard(
     color: Color,
     icon: ImageVector,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     val isEmpty = count == 0
 
@@ -79,11 +79,7 @@ fun LevelBucketCard(
                 )
             }
             .fillMaxWidth()
-            .combinedClickable(
-                enabled = !isEmpty,
-                onClick = onClick,
-                onLongClick = if (!isEmpty) onLongClick else null,
-            ),
+            .combinedClickable(enabled = !isEmpty, onClick = onClick, onLongClick = onLongClick),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),

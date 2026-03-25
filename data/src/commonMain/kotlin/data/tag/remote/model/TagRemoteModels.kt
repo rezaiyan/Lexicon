@@ -19,3 +19,6 @@ data class RenameTagPayload(val name: String)
 
 @Serializable
 data class UpdateWordTagsPayload(val tagIds: List<Long>)
+
+@Serializable
+data class BatchUpdateWordTagsPayload(val wordIds: List<Long>, val tagIds: List<Long>)

@@ -1,23 +1,28 @@
 package data.analytics.repository
 
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import core.common.Try
 import data.analytics.remote.IAnalyticsStatsDataSource
 import data.analytics.remote.model.SyncAnalyticsRequest
 import data.analytics.remote.model.SyncReviewEventRequest
 import data.analytics.remote.model.SyncSessionRequest
+import data.core.database.LexiconQueries
 import domain.analytics.model.ReviewEventParams
 import domain.analytics.repository.IAnalyticsRecorder
 import expects.logNetwork
+import kotlin.time.Clock
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.json.Json
 
 /**
- * In-memory analytics recorder that buffers events during a session
- * and sends everything to the backend when the session ends.
- * Failed syncs are added to a retry queue and re-attempted on the next session end.
+ * Analytics recorder that buffers events during a session and syncs to the backend when the
+ * session ends. Failed syncs are persisted to SQLDelight so they survive app restarts and are
+ * retried on the next session end.
  */
 class AnalyticsRecorderImpl(
     private val remoteDataSource: IAnalyticsStatsDataSource,
+    private val queries: LexiconQueries,
 ) : IAnalyticsRecorder {
 
     private data class SessionData(
@@ -29,7 +34,7 @@ class AnalyticsRecorderImpl(
 
     private val mutex = Mutex()
     private val sessions: MutableMap<String, SessionData> = mutableMapOf()
-    private val retryQueue: MutableList<SyncAnalyticsRequest> = mutableListOf()
+    private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun startSession(
         sessionId: String,
@@ -55,11 +60,7 @@ class AnalyticsRecorderImpl(
         incorrectCount: Int,
         completedNormally: Boolean,
     ): Try<Unit> {
-        val (session, pending) = mutex.withLock {
-            val s = sessions.remove(sessionId) ?: return Try.success(Unit)
-            val p = retryQueue.toList().also { retryQueue.clear() }
-            s to p
-        }
+        val session = mutex.withLock { sessions.remove(sessionId) } ?: return Try.success(Unit)
 
         val newRequest = SyncAnalyticsRequest(
             sessions = listOf(
@@ -78,26 +79,38 @@ class AnalyticsRecorderImpl(
             )
         )
 
-        // Merge retry sessions + current session into one request (backend accepts a list)
-        val allSessions = pending.flatMap { it.sessions } + newRequest.sessions
+        // Persist to DB before attempting sync so the session survives an app restart on failure
+        queries.insertAnalyticsSyncRequest(
+            requestJson = json.encodeToString(newRequest),
+            createdAt = Clock.System.now().toEpochMilliseconds(),
+        )
+
+        // Load all pending requests (includes the one just inserted + any from prior failures)
+        val pendingItems = queries.getAllAnalyticsSyncRequests().awaitAsList()
+        val allSessions = pendingItems
+            .mapNotNull { item ->
+                runCatching { json.decodeFromString<SyncAnalyticsRequest>(item.requestJson) }
+                    .getOrNull()
+            }
+            .flatMap { it.sessions }
+
         val combinedRequest = SyncAnalyticsRequest(sessions = allSessions)
 
         return remoteDataSource.syncSessions(combinedRequest).let { result ->
             when (result) {
                 is Try.Success -> {
+                    queries.clearAnalyticsSyncQueue()
                     logNetwork(
                         "AnalyticsRecorder",
-                        "Session ${session.sessionId} sent to backend (retried ${pending.size} pending)",
+                        "Session ${session.sessionId} sent to backend (${pendingItems.size} total in batch)",
                     )
                     Try.success(Unit)
                 }
                 is Try.Failure -> {
                     logNetwork(
                         "AnalyticsRecorder",
-                        "Failed to send session: ${result.throwable.message}. Queuing for retry.",
+                        "Failed to send session: ${result.throwable.message}. Persisted for retry on next session.",
                     )
-                    // Keep current session in retry queue — do not block the user
-                    mutex.withLock { retryQueue.addAll(pending + listOf(newRequest)) }
                     Try.success(Unit)
                 }
             }

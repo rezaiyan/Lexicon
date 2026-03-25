@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.School
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import components.dialog.ButtonState
 import components.dialog.ButtonType
 import components.dialog.LexiconDialogContent
+import domain.tag.model.Tag
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import kotlinx.datetime.Instant
@@ -42,6 +44,7 @@ import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.assign_tags
 import lexicon.resources.generated.resources.delete
+import lexicon.resources.generated.resources.filter_tag
 import lexicon.resources.generated.resources.detail_added
 import lexicon.resources.generated.resources.detail_languages
 import lexicon.resources.generated.resources.detail_next_review
@@ -52,12 +55,14 @@ import lexicon.resources.generated.resources.learning_progress
 @Composable
 internal fun WordDetailSheetContent(
     word: Word,
+    tags: List<Tag>,
     onEdit: (Word) -> Unit,
     onDelete: (Word) -> Unit,
     onAssignTags: (Word) -> Unit,
 ) {
     val stage = LearningStage.fromLevel(word.level)
     val color = levelColor(stage)
+    val assignedTags = tags.filter { it.id in word.tagIds }
 
     LexiconDialogContent(
         title = word.originalWord,
@@ -164,6 +169,15 @@ internal fun WordDetailSheetContent(
                     label = stringResource(Res.string.detail_reviews),
                     value = "${word.repetitions}"
                 )
+
+                if (assignedTags.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Theme.spacing.extraSmall2))
+                    DetailRow(
+                        icon = Icons.Default.Label,
+                        label = stringResource(Res.string.filter_tag),
+                        value = assignedTags.joinToString(", ") { it.name }
+                    )
+                }
             }
         },
         negativeButton = ButtonState(

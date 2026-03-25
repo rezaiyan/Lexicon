@@ -16,6 +16,10 @@ class TagRepositoryImpl(
 
     override fun getTags(): Flow<List<Tag>> = localDataSource.getTags()
 
+    override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = localDataSource.getTagsByLevel()
+
+    override fun getDueTags(): Flow<List<Tag>> = localDataSource.getDueTags()
+
     override suspend fun createTag(name: String): Try<Tag> = Try {
         val remote = remoteDataSource.createTag(name).getOrThrow()
         val tag = remote.toDomain()
@@ -38,6 +42,11 @@ class TagRepositoryImpl(
     override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try {
         remoteDataSource.updateWordTags(wordId, tagIds).getOrThrow()
         localDataSource.setWordTags(wordId, tagIds)
+    }
+
+    override suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> = Try {
+        remoteDataSource.batchUpdateWordTags(wordIds, tagIds).getOrThrow()
+        localDataSource.batchSetWordTags(wordIds, tagIds)
     }
 
     override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try {

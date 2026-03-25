@@ -1,0 +1,4 @@
+-- Migration from version 6 to version 7
+-- Adds skipTagSelector column to SettingsEntity
+
+ALTER TABLE SettingsEntity ADD COLUMN skipTagSelector INTEGER NOT NULL DEFAULT 0;

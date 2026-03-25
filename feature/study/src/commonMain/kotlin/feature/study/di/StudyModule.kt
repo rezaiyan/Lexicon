@@ -16,8 +16,10 @@ fun studyModule() = module {
             getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
             performanceTracer = get(),
-            getTagsUseCase = get(),
-            getDueWordsUseCase = get(),
+            getDueTagsUseCase = get(),
+            getSkipTagSelectorUseCase = get(),
+            setSkipTagSelectorUseCase = get(),
+            getTagsByLevelUseCase = get(),
         )
     }
     viewModel {

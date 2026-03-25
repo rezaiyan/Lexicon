@@ -26,7 +26,8 @@ CREATE TABLE SettingsEntity (
     dailyReminderTime TEXT NOT NULL DEFAULT '18:00',
     minimumDueCards INTEGER NOT NULL DEFAULT 5,
     ttsSpeed REAL NOT NULL DEFAULT 1.0,
-    ttsSpeakerId INTEGER NOT NULL DEFAULT 0
+    ttsSpeakerId INTEGER NOT NULL DEFAULT 0,
+    skipTagSelector INTEGER NOT NULL DEFAULT 0
 );
 
 -- Word queries
@@ -131,8 +132,8 @@ LIMIT 1;
 -- Settings queries
 
 insertSettings:
-INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId, skipTagSelector)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSettings:
 SELECT * FROM SettingsEntity WHERE id = 1;
@@ -192,6 +193,23 @@ LEFT JOIN WordTagEntity wt ON t.id = wt.tagId
 GROUP BY t.id
 ORDER BY t.name ASC;
 
+getTagWordCountsByLevel:
+SELECT t.id, t.name, t.createdAt, t.updatedAt, w.level AS level, COUNT(w.id) AS wordCount
+FROM TagEntity t
+INNER JOIN WordTagEntity wt ON t.id = wt.tagId
+INNER JOIN WordEntity w ON wt.wordId = w.id
+GROUP BY t.id, w.level
+ORDER BY t.name ASC;
+
+getDueTagWordCounts:
+SELECT t.id, t.name, t.createdAt, t.updatedAt, COUNT(w.id) AS wordCount
+FROM TagEntity t
+INNER JOIN WordTagEntity wt ON t.id = wt.tagId
+INNER JOIN WordEntity w ON wt.wordId = w.id
+WHERE w.nextReviewDate <= :currentTime
+GROUP BY t.id
+ORDER BY t.name ASC;
+
 getTagById:
 SELECT * FROM TagEntity WHERE id = ?;
 
@@ -236,6 +254,24 @@ AND nextReviewDate <= ?
 ORDER BY
     CASE WHEN lastReviewDate = 0 THEN 0 ELSE 1 END,
     lastReviewDate ASC;
+
+-- AnalyticsSyncQueue table (persists failed sync requests across app restarts)
+CREATE TABLE AnalyticsSyncQueue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requestJson TEXT NOT NULL,
+    createdAt INTEGER NOT NULL
+);
+
+-- AnalyticsSyncQueue queries
+
+insertAnalyticsSyncRequest:
+INSERT INTO AnalyticsSyncQueue(requestJson, createdAt) VALUES (?, ?);
+
+getAllAnalyticsSyncRequests:
+SELECT id, requestJson FROM AnalyticsSyncQueue ORDER BY createdAt ASC;
+
+clearAnalyticsSyncQueue:
+DELETE FROM AnalyticsSyncQueue;
 
 -- Progress stats aggregate query
 

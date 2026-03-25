@@ -17,8 +17,8 @@ import lexicon.resources.generated.resources.learning_stages
 fun LearningStagesSection(
     stats: ProgressStats,
     onStageClick: (LearningStage, String) -> Unit,
-    modifier: Modifier = Modifier,
     onStageLongClick: ((LearningStage, String) -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         SectionHeader(

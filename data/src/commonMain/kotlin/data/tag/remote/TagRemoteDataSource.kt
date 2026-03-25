@@ -6,6 +6,7 @@ import data.core.network.client.ApiClient
 import data.tag.remote.model.CreateTagPayload
 import data.tag.remote.model.RemoteTag
 import data.tag.remote.model.RenameTagPayload
+import data.tag.remote.model.BatchUpdateWordTagsPayload
 import data.tag.remote.model.UpdateWordTagsPayload
 
 class TagRemoteDataSource(
@@ -27,4 +28,7 @@ class TagRemoteDataSource(
 
     override suspend fun updateWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> =
         apiClient.putUnit("/words/$wordId/tags", UpdateWordTagsPayload(tagIds))
+
+    override suspend fun batchUpdateWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> =
+        apiClient.postUnit("/words/batch-assign-tags", BatchUpdateWordTagsPayload(wordIds, tagIds))
 }

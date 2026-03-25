@@ -29,6 +29,10 @@ interface ISettingsRepository {
     suspend fun getMinimumDueCards(): Try<Int>
     suspend fun setMinimumDueCards(count: Int): Try<Unit>
 
+    // Review tag selector preference
+    fun getSkipTagSelector(): Flow<Boolean> = flowOf(false)
+    suspend fun setSkipTagSelector(skip: Boolean): Try<Unit> = Try.success(Unit)
+
     // TTS settings — default implementations keep existing fakes compiling
     fun getTtsSettings(): Flow<TtsSettings> = flowOf(TtsSettings())
     suspend fun setTtsSpeechRate(rate: Float): Try<Unit> = Try.success(Unit)

@@ -7,10 +7,12 @@ import core.common.UiState
 import core.common.getOrThrow
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
+import domain.settings.usecase.GetSkipTagSelectorUseCase
+import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.model.Tag
-import domain.tag.usecase.GetTagsUseCase
+import domain.tag.usecase.GetDueTagsUseCase
+import domain.tag.usecase.GetTagsByLevelUseCase
 import domain.word.usecase.EvaluateProgressUseCase
-import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import feature.study.model.ProgressScreenState
 import feature.study.util.NotificationStringHelper
@@ -24,8 +26,9 @@ import performance.IPerformanceTracer
 data class StudyProgressState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,
     val hasPremiumAccess: Boolean = false,
-    val tags: List<Tag> = emptyList(),
-    val dueTagIds: Set<Long> = emptySet(),
+    val dueTags: List<Tag> = emptyList(),
+    val skipTagSelector: Boolean = false,
+    val stageTagsMap: Map<Int, List<Tag>> = emptyMap(),
 )
 
 class StudyProgressViewModel(
@@ -34,9 +37,11 @@ class StudyProgressViewModel(
     private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val performanceTracer: IPerformanceTracer,
+    private val setSkipTagSelectorUseCase: SetSkipTagSelectorUseCase,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
-    getTagsUseCase: GetTagsUseCase,
-    getDueWordsUseCase: GetDueWordsUseCase,
+    getDueTagsUseCase: GetDueTagsUseCase,
+    getSkipTagSelectorUseCase: GetSkipTagSelectorUseCase,
+    getTagsByLevelUseCase: GetTagsByLevelUseCase,
 ) : BaseViewModel<StudyProgressState, Nothing>() {
 
     override fun initialState() = StudyProgressState()
@@ -46,28 +51,37 @@ class StudyProgressViewModel(
     init {
         observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
-        startObservingTags(getTagsUseCase)
-        startObservingDueTagIds(getDueWordsUseCase)
+        startObservingDueTags(getDueTagsUseCase)
+        observeSkipTagSelector(getSkipTagSelectorUseCase)
+        startObservingTagsByLevel(getTagsByLevelUseCase)
     }
 
-    private fun startObservingTags(getTagsUseCase: GetTagsUseCase) {
+    private fun startObservingDueTags(getDueTagsUseCase: GetDueTagsUseCase) {
         viewModelScope.launch {
-            getTagsUseCase()
-                .catch { /* tags unavailable, keep empty list */ }
-                .collect { tags ->
-                    updateState { copy(tags = tags) }
-                }
+            getDueTagsUseCase()
+                .catch { }
+                .collect { tags -> updateState { copy(dueTags = tags) } }
         }
     }
 
-    private fun startObservingDueTagIds(getDueWordsUseCase: GetDueWordsUseCase) {
+    private fun startObservingTagsByLevel(getTagsByLevelUseCase: GetTagsByLevelUseCase) {
         viewModelScope.launch {
-            getDueWordsUseCase()
-                .catch { /* due words unavailable */ }
-                .collect { words ->
-                    updateState { copy(dueTagIds = words.flatMap { it.tagIds }.toSet()) }
-                }
+            getTagsByLevelUseCase()
+                .catch { }
+                .collect { map -> updateState { copy(stageTagsMap = map) } }
         }
+    }
+
+    private fun observeSkipTagSelector(useCase: GetSkipTagSelectorUseCase) {
+        viewModelScope.launch {
+            useCase(Unit)
+                .catch { /* ignore */ }
+                .collect { skip -> updateState { copy(skipTagSelector = skip) } }
+        }
+    }
+
+    fun setSkipTagSelector(skip: Boolean) {
+        viewModelScope.launch { setSkipTagSelectorUseCase(skip) }
     }
 
     private fun observeFeatureAccess(getFeatureAccessUseCase: GetFeatureAccessUseCase) {

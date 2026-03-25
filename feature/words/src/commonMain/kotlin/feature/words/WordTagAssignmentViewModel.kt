@@ -34,12 +34,8 @@ class WordTagAssignmentViewModel(
 
     fun toggleTag(tagId: Long) {
         updateState {
-            val updated = if (selectedTagIds.contains(tagId)) {
-                selectedTagIds - tagId
-            } else {
-                selectedTagIds + tagId
-            }
-            copy(selectedTagIds = updated)
+            val newIds = if (selectedTagIds.contains(tagId)) selectedTagIds - tagId else selectedTagIds + tagId
+            copy(selectedTagIds = newIds)
         }
     }
 

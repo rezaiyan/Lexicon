@@ -41,12 +41,14 @@ import lexicon.resources.generated.resources.error_prefix
 import lexicon.resources.generated.resources.failed_to_update_word
 import lexicon.resources.generated.resources.no_words_to_share
 import lexicon.resources.generated.resources.share_title_format
+import lexicon.resources.generated.resources.tagging_words_please_wait
 import lexicon.resources.generated.resources.updating_words_please_wait
 import lexicon.resources.generated.resources.word_deleted
 import lexicon.resources.generated.resources.word_manager
 import lexicon.resources.generated.resources.word_updated
 import lexicon.resources.generated.resources.words_deleted
 import lexicon.resources.generated.resources.words_language_updated
+import lexicon.resources.generated.resources.words_tagged
 
 fun OverlayHost.showWordManagerSheet() {
     showFullScreen(
@@ -88,6 +90,7 @@ internal fun WordManagerContent(
     val wordsLanguageUpdatedFormat = stringResource(Res.string.words_language_updated)
     val failedToUpdateWord = stringResource(Res.string.failed_to_update_word)
     val errorPrefix = stringResource(Res.string.error_prefix)
+    val wordsTaggedFormat = stringResource(Res.string.words_tagged)
 
     LaunchedEffect(Unit) {
         viewModel.effects.collect { event ->
@@ -122,6 +125,12 @@ internal fun WordManagerContent(
                     val message = wordsLanguageUpdatedFormat.replace(
                         pattern, event.count.toString()
                     )
+                    snackbarHostState.showSnackbar(message)
+                }
+
+                is WordManagerEffect.WordsTagged -> {
+                    val pattern = "%1" + '$' + "d"
+                    val message = wordsTaggedFormat.replace(pattern, event.count.toString())
                     snackbarHostState.showSnackbar(message)
                 }
 
@@ -246,6 +255,23 @@ internal fun WordManagerContent(
                                 }
                             }
                         },
+                        onBatchAssignTags = {
+                            if (state.selectedCount > 0) {
+                                overlayHost.showSizeToFitBottomSheet(
+                                    tag = "batch-assign-tags"
+                                ) { nav ->
+                                    BatchTagAssignmentContent(
+                                        count = state.selectedCount,
+                                        tags = state.tags,
+                                        onConfirm = { tagIds ->
+                                            viewModel.batchAssignTags(tagIds)
+                                            nav.dismiss()
+                                        },
+                                        onDismiss = { nav.dismiss() }
+                                    )
+                                }
+                            }
+                        },
                         onExitSelectionMode = viewModel::exitSelectionMode
                     )
                 }
@@ -262,6 +288,12 @@ internal fun WordManagerContent(
                     message = stringResource(Res.string.deleting_words_please_wait)
                 )
             }
+
+            if (state.isBatchAssigningTags) {
+                ProgressOverlay(
+                    message = stringResource(Res.string.tagging_words_please_wait)
+                )
+            }
         }
     }
 }
@@ -272,16 +304,24 @@ private fun OverlayHost.showWordDetailSheet(
     onDeleteWord: (Word) -> Unit
 ) {
     showSizeToFitBottomSheet(tag = "word-detail") { sheetNav ->
+        val wordManagerViewModel = koinViewModel<WordManagerViewModel>()
+        val liveState by wordManagerViewModel.state()
+
         val pages = rememberBottomSheetPageNavigator<WordDetailPage>(WordDetailPage.Detail(word))
 
         BottomSheetPages(navigator = pages, label = "wordDetailPages") { page ->
             when (page) {
-                is WordDetailPage.Detail -> WordDetailSheetContent(
-                    word = page.word,
-                    onEdit = { w -> pages.navigateTo(WordDetailPage.Edit(w)) },
-                    onDelete = { w -> pages.navigateTo(WordDetailPage.DeleteConfirm(w)) },
-                    onAssignTags = { w -> pages.navigateTo(WordDetailPage.TagAssignment(w)) }
-                )
+                is WordDetailPage.Detail -> {
+                    val liveWord = liveState.words.find { it.id == page.word.id } ?: page.word
+                    val liveTags = liveState.tags
+                    WordDetailSheetContent(
+                        word = liveWord,
+                        tags = liveTags,
+                        onEdit = { w -> pages.navigateTo(WordDetailPage.Edit(w)) },
+                        onDelete = { w -> pages.navigateTo(WordDetailPage.DeleteConfirm(w)) },
+                        onAssignTags = { w -> pages.navigateTo(WordDetailPage.TagAssignment(w)) }
+                    )
+                }
 
                 is WordDetailPage.Edit -> EditWordContent(
                     word = page.word,

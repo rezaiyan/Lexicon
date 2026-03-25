@@ -12,6 +12,7 @@ data class WordManagerScreenState(
     val isLoading: Boolean = false,
     val isDeletingWords: Boolean = false,
     val isBatchUpdatingLanguages: Boolean = false,
+    val isBatchAssigningTags: Boolean = false,
     val searchQuery: String = "",
     val sortOption: WordSortOption = WordSortOption.DATE_ADDED_DESC,
     val filterLanguage: Language? = null,
@@ -90,6 +91,7 @@ sealed class WordManagerEffect {
     data class WordDeleted(val count: Int) : WordManagerEffect()
     data class WordUpdated(val word: Word) : WordManagerEffect()
     data class WordsLanguageUpdated(val count: Int) : WordManagerEffect()
+    data class WordsTagged(val count: Int) : WordManagerEffect()
     data class WordsShared(val count: Int, val text: String, val timestamp: Long) : WordManagerEffect()
     data object ShareFailed : WordManagerEffect()
     data class Error(val message: String) : WordManagerEffect()

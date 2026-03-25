@@ -86,6 +86,14 @@ class SettingsRepositoryImpl(
         localDataSource.saveSettings(updated)
     }
 
+    override fun getSkipTagSelector(): Flow<Boolean> =
+        localDataSource.observeSettings().map { it?.skipTagSelector ?: false }
+
+    override suspend fun setSkipTagSelector(skip: Boolean): Try<Unit> = Try {
+        val current = localDataSource.getSettings() ?: SettingsEntityData()
+        localDataSource.saveSettings(current.copy(skipTagSelector = skip))
+    }
+
     override fun getTtsSettings(): Flow<TtsSettings> {
         return localDataSource.observeSettings().map { settings ->
             TtsSettings(

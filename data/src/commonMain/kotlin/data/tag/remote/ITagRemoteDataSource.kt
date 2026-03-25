@@ -9,4 +9,5 @@ interface ITagRemoteDataSource {
     suspend fun renameTag(id: Long, name: String): Try<RemoteTag>
     suspend fun deleteTag(id: Long): Try<Unit>
     suspend fun updateWordTags(wordId: Long, tagIds: List<Long>): Try<Unit>
+    suspend fun batchUpdateWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit>
 }

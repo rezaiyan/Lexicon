@@ -50,10 +50,10 @@ data class LevelBucketData(
 fun LearningStagesList(
     stats: ProgressStats,
     onStageClick: (LearningStage, String) -> Unit,
+    onStageLongClick: ((LearningStage, String) -> Unit)? = null,
     levelTexts: List<String>? = null,
     levelNames: List<String>? = null,
     levelDescriptions: List<String>? = null,
-    onStageLongClick: ((LearningStage, String) -> Unit)? = null,
 ) {
     val level0Text = levelTexts?.getOrNull(0) ?: stringResource(Res.string.level_0_fresh)
     val level1Text = levelTexts?.getOrNull(1) ?: stringResource(Res.string.level_1_learning)
@@ -139,9 +139,9 @@ fun LearningStagesList(
                         onStageClick(level.stage, clickTexts[index])
                     }
                 },
-                onLongClick = onStageLongClick?.let { callback ->
-                    { callback(level.stage, clickTexts[index]) }
-                },
+                onLongClick = if (level.count > 0 && onStageLongClick != null) {
+                    { onStageLongClick(level.stage, clickTexts[index]) }
+                } else null,
             )
         }
     }

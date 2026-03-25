@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material3.HorizontalDivider
@@ -42,6 +43,7 @@ import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete
 import lexicon.resources.generated.resources.select_all
 import lexicon.resources.generated.resources.selected_format
+import lexicon.resources.generated.resources.set_tag
 import lexicon.resources.generated.resources.share
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
@@ -55,6 +57,7 @@ internal fun SelectionActionBar(
     onSelectAll: () -> Unit,
     onDelete: () -> Unit,
     onBatchEditLanguages: () -> Unit,
+    onBatchAssignTags: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -122,6 +125,13 @@ internal fun SelectionActionBar(
                         label = stringResource(Res.string.batch_edit_languages),
                         color = MaterialTheme.colorScheme.onSurface,
                         onClick = onBatchEditLanguages,
+                        modifier = Modifier.weight(1f)
+                    )
+                    SelectionAction(
+                        icon = Icons.Default.Label,
+                        label = stringResource(Res.string.set_tag),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        onClick = onBatchAssignTags,
                         modifier = Modifier.weight(1f)
                     )
                     SelectionAction(

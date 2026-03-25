@@ -23,8 +23,11 @@ import domain.ai.usecase.ImportFromImageUseCase
 import domain.ai.usecase.IsAiAvailableUseCase
 import domain.tag.repository.ITagRepository
 import domain.tag.usecase.AssignWordTagsUseCase
+import domain.tag.usecase.BatchAssignTagsUseCase
 import domain.tag.usecase.CreateTagUseCase
 import domain.tag.usecase.DeleteTagUseCase
+import domain.tag.usecase.GetDueTagsUseCase
+import domain.tag.usecase.GetTagsByLevelUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.tag.usecase.RenameTagUseCase
 import domain.word.repository.IWordRepository
@@ -60,10 +63,13 @@ fun wordModule() = module {
 
     // Tag Use Cases
     singleOf(::GetTagsUseCase)
+    singleOf(::GetTagsByLevelUseCase)
+    singleOf(::GetDueTagsUseCase)
     singleOf(::CreateTagUseCase)
     singleOf(::RenameTagUseCase)
     singleOf(::DeleteTagUseCase)
     singleOf(::AssignWordTagsUseCase)
+    singleOf(::BatchAssignTagsUseCase)
 
     // Word Data Components
     single<IWordLocalDataSource> { WordLocalDataSource(queries = get(), settingsRepository = get()) }
