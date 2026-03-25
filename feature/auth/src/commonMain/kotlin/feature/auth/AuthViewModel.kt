@@ -12,6 +12,7 @@ import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import core.common.getOrElse
 import core.common.onFailure
+import core.error.toUserMessage
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.subscription.ISubscriptionManager
@@ -127,7 +128,7 @@ class AuthViewModel(
                         )
                     )
                     analyticsTracker.logError(error, "google_login_backend_error")
-                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.message) }
+                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.toUserMessage()) }
                 }
                 .collect { user ->
                     analyticsTracker.logEvent(
@@ -156,7 +157,7 @@ class AuthViewModel(
             loginWithAppleUseCase.invoke(idToken, fullName, appleUserId)
                 .catch { error ->
                     analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
-                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.message) }
+                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.toUserMessage()) }
                 }
                 .collect { user ->
                     analyticsTracker.logEvent(

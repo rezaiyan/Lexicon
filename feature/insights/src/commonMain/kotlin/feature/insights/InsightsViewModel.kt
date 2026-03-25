@@ -16,6 +16,7 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import core.error.toUserMessage
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -89,7 +90,7 @@ class InsightsViewModel(
             updateState { copy(overview = UiState.Loading) }
             getStudyInsightsUseCase(Unit).reduce(
                 onSuccess = { copy(overview = UiState.Loaded(it)) },
-                onFailure = { copy(overview = UiState.Error(it.message ?: "Failed to load insights")) },
+                onFailure = { copy(overview = UiState.Error(it.toUserMessage())) },
             )
         }
     }
@@ -104,7 +105,7 @@ class InsightsViewModel(
                 GetAccuracyTrendUseCase.Params(startDate.toString(), today.toString())
             ).reduce(
                 onSuccess = { copy(accuracyTrend = UiState.Loaded(it)) },
-                onFailure = { copy(accuracyTrend = UiState.Error(it.message ?: "Failed to load trend")) },
+                onFailure = { copy(accuracyTrend = UiState.Error(it.toUserMessage())) },
             )
         }
     }
@@ -116,7 +117,7 @@ class InsightsViewModel(
                 GetDifficultWordsUseCase.Params(minReviews = 3, limit = 20)
             ).reduce(
                 onSuccess = { copy(difficultWords = UiState.Loaded(it)) },
-                onFailure = { copy(difficultWords = UiState.Error(it.message ?: "Failed to load words")) },
+                onFailure = { copy(difficultWords = UiState.Error(it.toUserMessage())) },
             )
         }
     }
@@ -126,7 +127,7 @@ class InsightsViewModel(
             updateState { copy(accuracyByLevel = UiState.Loading) }
             getAccuracyByLevelUseCase(Unit).reduce(
                 onSuccess = { copy(accuracyByLevel = UiState.Loaded(it)) },
-                onFailure = { copy(accuracyByLevel = UiState.Error(it.message ?: "Failed to load levels")) },
+                onFailure = { copy(accuracyByLevel = UiState.Error(it.toUserMessage())) },
             )
         }
     }
@@ -141,7 +142,7 @@ class InsightsViewModel(
                 GetStudyHeatmapUseCase.Params(startDate.toString(), today.toString())
             ).reduce(
                 onSuccess = { copy(heatmap = UiState.Loaded(it)) },
-                onFailure = { copy(heatmap = UiState.Error(it.message ?: "Failed to load heatmap")) },
+                onFailure = { copy(heatmap = UiState.Error(it.toUserMessage())) },
             )
         }
     }
@@ -151,7 +152,7 @@ class InsightsViewModel(
             updateState { copy(bestStudyTime = UiState.Loading) }
             getBestStudyTimeUseCase(Unit).reduce(
                 onSuccess = { copy(bestStudyTime = UiState.Loaded(it)) },
-                onFailure = { copy(bestStudyTime = UiState.Error(it.message ?: "Failed to load time")) },
+                onFailure = { copy(bestStudyTime = UiState.Error(it.toUserMessage())) },
             )
         }
     }

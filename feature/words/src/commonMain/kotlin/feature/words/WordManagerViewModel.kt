@@ -7,6 +7,7 @@ import domain.tag.usecase.GetTagsUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import core.common.fold
+import core.error.toUserMessage
 import domain.tag.usecase.BatchAssignTagsParams
 import domain.tag.usecase.BatchAssignTagsUseCase
 import domain.word.usecase.BatchUpdateLanguagesUseCase
@@ -110,7 +111,7 @@ class WordManagerViewModel(
                     updateState {
                         copy(
                             isLoading = false,
-                            errorMessage = it.message ?: "Failed to load words"
+                            errorMessage = it.toUserMessage()
                         )
                     }
                 }
@@ -224,7 +225,7 @@ class WordManagerViewModel(
                     },
                     onFailure = { error ->
                         updateState { copy(isBatchAssigningTags = false) }
-                        emitEffect(WordManagerEffect.Error(error.message ?: "Failed to update tags"))
+                        emitEffect(WordManagerEffect.Error(error.toUserMessage()))
                     }
                 )
         }

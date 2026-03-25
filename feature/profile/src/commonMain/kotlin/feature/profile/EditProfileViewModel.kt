@@ -3,6 +3,7 @@ package feature.profile
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
 import core.common.fold
+import core.error.toUserMessage
 import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.UpdateProfileUseCase
 import domain.profile.usecase.UploadAvatarUseCase
@@ -86,7 +87,7 @@ class EditProfileViewModel(
                     updateState {
                         copy(
                             isSaving = false,
-                            errorMessage = error.message ?: "Failed to update profile"
+                            errorMessage = error.toUserMessage()
                         )
                     }
                 }
@@ -110,7 +111,7 @@ class EditProfileViewModel(
                     updateState {
                         copy(
                             isUploadingAvatar = false,
-                            errorMessage = error.message ?: "Failed to upload avatar"
+                            errorMessage = error.toUserMessage()
                         )
                     }
                 }
@@ -134,7 +135,7 @@ class EditProfileViewModel(
                     updateState {
                         copy(
                             isUploadingAvatar = false,
-                            errorMessage = error.message ?: "Failed to delete avatar"
+                            errorMessage = error.toUserMessage()
                         )
                     }
                 }

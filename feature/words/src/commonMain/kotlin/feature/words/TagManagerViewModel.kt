@@ -3,6 +3,7 @@ package feature.words
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
+import core.error.toUserMessage
 import domain.settings.usecase.GetSkipTagSelectorUseCase
 import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.usecase.CreateTagUseCase
@@ -44,7 +45,7 @@ class TagManagerViewModel(
             updateState { copy(isLoading = true) }
             getTagsUseCase()
                 .catch { error ->
-                    updateState { copy(isLoading = false, errorMessage = error.message) }
+                    updateState { copy(isLoading = false, errorMessage = error.toUserMessage()) }
                 }
                 .collect { tags ->
                     updateState { copy(tags = tags, isLoading = false, errorMessage = null) }
@@ -56,7 +57,7 @@ class TagManagerViewModel(
         viewModelScope.launch {
             createTagUseCase(name).fold(
                 onSuccess = { tag -> emitEffect(TagManagerEffect.TagCreated(tag)) },
-                onFailure = { error -> emitEffect(TagManagerEffect.Error(error.message ?: "Failed to create tag")) }
+                onFailure = { error -> emitEffect(TagManagerEffect.Error(error.toUserMessage())) }
             )
         }
     }
@@ -65,7 +66,7 @@ class TagManagerViewModel(
         viewModelScope.launch {
             renameTagUseCase(RenameTagParams(id = id, name = name)).fold(
                 onSuccess = { tag -> emitEffect(TagManagerEffect.TagRenamed(tag)) },
-                onFailure = { error -> emitEffect(TagManagerEffect.Error(error.message ?: "Failed to rename tag")) }
+                onFailure = { error -> emitEffect(TagManagerEffect.Error(error.toUserMessage())) }
             )
         }
     }
@@ -74,7 +75,7 @@ class TagManagerViewModel(
         viewModelScope.launch {
             deleteTagUseCase(id).fold(
                 onSuccess = { emitEffect(TagManagerEffect.TagDeleted(id)) },
-                onFailure = { error -> emitEffect(TagManagerEffect.Error(error.message ?: "Failed to delete tag")) }
+                onFailure = { error -> emitEffect(TagManagerEffect.Error(error.toUserMessage())) }
             )
         }
     }

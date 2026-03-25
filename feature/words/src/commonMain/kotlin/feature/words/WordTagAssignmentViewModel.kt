@@ -3,6 +3,7 @@ package feature.words
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
+import core.error.toUserMessage
 import domain.tag.usecase.AssignWordTagsParams
 import domain.tag.usecase.AssignWordTagsUseCase
 import domain.tag.usecase.GetTagsUseCase
@@ -24,7 +25,7 @@ class WordTagAssignmentViewModel(
             getTagsUseCase()
                 .catch { error ->
                     updateState { copy(isLoading = false) }
-                    emitEffect(WordTagAssignmentEffect.Error(error.message ?: "Failed to load tags"))
+                    emitEffect(WordTagAssignmentEffect.Error(error.toUserMessage()))
                 }
                 .collect { tags ->
                     updateState { copy(tags = tags, isLoading = false) }
@@ -55,7 +56,7 @@ class WordTagAssignmentViewModel(
                 },
                 onFailure = { error ->
                     updateState { copy(isSaving = false) }
-                    emitEffect(WordTagAssignmentEffect.Error(error.message ?: "Failed to save tags"))
+                    emitEffect(WordTagAssignmentEffect.Error(error.toUserMessage()))
                 }
             )
         }

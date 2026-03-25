@@ -3,6 +3,7 @@ package feature.leaderboard
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.common.fold
+import core.error.toUserMessage
 import domain.leaderboard.usecase.GetLeaderboardUseCase
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
@@ -49,7 +50,7 @@ class LeaderboardViewModel(
                 onFailure = { error ->
                     updateState {
                         UiState.Error(
-                            message = error.message ?: "Failed to load leaderboard"
+                            message = error.toUserMessage()
                         )
                     }
                 }

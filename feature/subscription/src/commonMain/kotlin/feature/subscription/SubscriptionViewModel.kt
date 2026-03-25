@@ -6,6 +6,7 @@ import domain.subscription.ISubscriptionManager
 import domain.subscription.model.SubscriptionPackage
 import core.common.onFailure
 import core.common.onSuccess
+import core.error.toUserMessage
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -105,7 +106,7 @@ class SubscriptionViewModel(
                 }
                 .onFailure { error ->
                     updateState {
-                        copy(content = UiState.Error(error.message ?: "SUBSCRIPTION_LOAD_FAILED"))
+                        copy(content = UiState.Error(error.toUserMessage()))
                     }
                 }
         }
@@ -142,7 +143,7 @@ class SubscriptionViewModel(
                     updateState {
                         copy(
                             isPurchasing = false,
-                            errorMessage = error.message ?: "PURCHASE_FAILED"
+                            errorMessage = error.toUserMessage()
                         )
                     }
                     analyticsTracker.logEvent(
@@ -174,7 +175,7 @@ class SubscriptionViewModel(
                 }
                 .onFailure { error ->
                     updateState {
-                        copy(errorMessage = error.message ?: "RESTORE_PURCHASES_FAILED")
+                        copy(errorMessage = error.toUserMessage())
                     }
                     analyticsTracker.logEvent(
                         "subscription_restore_result",
@@ -204,7 +205,7 @@ class SubscriptionViewModel(
             subscriptionManager.manageSubscription()
                 .onFailure { error ->
                     updateState {
-                        copy(errorMessage = error.message ?: "SUBSCRIPTION_INFO_UNAVAILABLE")
+                        copy(errorMessage = error.toUserMessage())
                     }
                 }
         }
@@ -217,7 +218,7 @@ class SubscriptionViewModel(
             subscriptionManager.cancelSubscription()
                 .onFailure { error ->
                     updateState {
-                        copy(errorMessage = error.message ?: "CANCEL_SUBSCRIPTION_FAILED")
+                        copy(errorMessage = error.toUserMessage())
                     }
                 }
         }

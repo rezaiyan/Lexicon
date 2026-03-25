@@ -7,6 +7,7 @@ import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
 import core.common.fold
 import core.common.getOrDefault
+import core.error.toUserMessage
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.tag.usecase.CreateTagUseCase
 import domain.tag.usecase.GetTagsUseCase
@@ -370,7 +371,7 @@ class ImportViewModel(
                     emitEffect(ImportEffect.ImageImportSuccessful(count))
                 },
                 onFailure = { error ->
-                    val message = error.message ?: "Import failed"
+                    val message = error.toUserMessage()
                     updateState { copy(imageReviewState = reviewState.copy(isImporting = false)) }
                     performanceTracer.putAttribute(trace, "error", message)
                     performanceTracer.stopTrace(trace)
@@ -457,7 +458,7 @@ class ImportViewModel(
                                 }
                             },
                             onFailure = { error ->
-                                val message = error.message ?: "Import failed"
+                                val message = error.toUserMessage()
                                 updateState {
                                     copy(fileImportState = ImportFileState.Error(message))
                                 }

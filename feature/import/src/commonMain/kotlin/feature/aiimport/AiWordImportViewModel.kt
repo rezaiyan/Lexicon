@@ -8,6 +8,7 @@ import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.tag.usecase.GetTagsUseCase
+import core.error.toUserMessage
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
@@ -139,7 +140,7 @@ class AiWordImportViewModel(
                     )
                 }
                 .onFailure { error ->
-                    updateState { copy(isLoading = false, error = error.message) }
+                    updateState { copy(isLoading = false, error = error.toUserMessage()) }
                     analyticsTracker.logEvent("import_failed", mapOf("reason" to (error.message ?: "unknown")))
                 }
         }
@@ -168,7 +169,7 @@ class AiWordImportViewModel(
                     emitEffect(AiWordImportEffect.ImportSuccess(count))
                 }
                 .onFailure { error ->
-                    updateState { copy(isLoading = false, error = error.message) }
+                    updateState { copy(isLoading = false, error = error.toUserMessage()) }
                     analyticsTracker.logEvent("import_failed", mapOf("reason" to (error.message ?: "unknown")))
                 }
         }

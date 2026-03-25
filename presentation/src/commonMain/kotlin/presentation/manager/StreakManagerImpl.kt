@@ -3,6 +3,7 @@ package presentation.manager
 import core.common.Try
 import core.common.fold
 import core.common.onSuccess
+import core.error.toUserMessage
 import domain.streak.model.StreakData
 import domain.streak.manager.IStreakManager
 import domain.streak.repository.IStreakRepository
@@ -27,7 +28,7 @@ class StreakManagerImpl(
                 emit(IStreakManager.StreakState.Loaded(streakData))
             },
             onFailure = { error ->
-                emit(IStreakManager.StreakState.Error(error.message ?: "Failed to load streak"))
+                emit(IStreakManager.StreakState.Error(error.toUserMessage()))
             }
         )
     }

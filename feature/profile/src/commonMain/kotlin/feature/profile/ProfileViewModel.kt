@@ -7,6 +7,7 @@ import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
 import core.common.fold
 import core.common.getOrNull
+import core.error.toUserMessage
 import domain.profile.model.DayActivity
 import domain.profile.model.ProfileStats
 import domain.profile.usecase.GetProfileStatsUseCase
@@ -84,7 +85,7 @@ class ProfileViewModel(
                     }
                 }
                 .catch { error ->
-                    emit(UiState.Error(error.message ?: "Failed to load streak"))
+                    emit(UiState.Error(error.toUserMessage()))
                 }
                 .collect { streak ->
                     currentStreak = streak

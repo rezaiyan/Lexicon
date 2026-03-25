@@ -8,6 +8,7 @@ import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.UpdateWordUseCase
 import core.common.fold
+import core.error.toUserMessage
 import events.VocabularyEffect
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -36,7 +37,7 @@ class VocabularyViewModel(
                 is ReviewMode.DuoCards -> getDueWordsUseCase()
                 is ReviewMode.ByStage -> getWordsByStageUseCase(reviewMode.stage)
             }
-                .catch { e -> updateState { UiState.Error(e.message ?: "Unknown error") } }
+                .catch { e -> updateState { UiState.Error(e.toUserMessage()) } }
                 .collect { words -> updateState { UiState.Loaded(words) } }
         }
     }

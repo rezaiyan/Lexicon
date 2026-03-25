@@ -8,6 +8,7 @@ import core.common.onSuccess
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import utils.Language
+import core.error.toUserMessage
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
 import feature.onboarding.model.OnboardingEffect
@@ -79,7 +80,7 @@ class OnboardingViewModel(
                     emitEffect(OnboardingEffect.NavigateToPreview(response))
                 }
                 .onFailure { error ->
-                    updateState { copy(isLoading = false, error = error.message) }
+                    updateState { copy(isLoading = false, error = error.toUserMessage()) }
                 }
         }
     }
