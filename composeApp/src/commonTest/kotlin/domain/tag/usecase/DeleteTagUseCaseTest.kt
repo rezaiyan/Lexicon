@@ -19,6 +19,8 @@ class DeleteTagUseCaseTest {
 
     private fun fakeRepo() = object : ITagRepository {
         override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+        override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
+        override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
         override suspend fun createTag(name: String): Try<Tag> =
             Try.success(Tag(id = 1L, name = "", wordCount = 0L, createdAt = 0L, updatedAt = 0L))
         override suspend fun renameTag(id: Long, name: String): Try<Tag> =
@@ -28,7 +30,7 @@ class DeleteTagUseCaseTest {
             return deleteResult
         }
         override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
-        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 

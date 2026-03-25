@@ -1,5 +1,7 @@
 package di
 
+import data.analytics.local.IAnalyticsLocalQueue
+import data.analytics.local.LexiconAnalyticsLocalQueue
 import data.analytics.remote.AnalyticsStatsRemoteDataSource
 import data.analytics.remote.AnalyticsWordRemoteDataSource
 import data.analytics.remote.IAnalyticsStatsDataSource
@@ -32,8 +34,11 @@ fun analyticsModule() = module {
     singleOf(::AnalyticsStatsRemoteDataSource) bind IAnalyticsStatsDataSource::class
     singleOf(::AnalyticsWordRemoteDataSource) bind IAnalyticsWordDataSource::class
 
+    // Local Queue
+    singleOf(::LexiconAnalyticsLocalQueue) bind IAnalyticsLocalQueue::class
+
     // Repositories
-    single { AnalyticsRecorderImpl(remoteDataSource = get(), queries = get()) } bind IAnalyticsRecorder::class
+    singleOf(::AnalyticsRecorderImpl) bind IAnalyticsRecorder::class
     singleOf(::AnalyticsStatsRepositoryImpl) bind IAnalyticsStatsRepository::class
     singleOf(::AnalyticsWordRepositoryImpl) bind IAnalyticsWordRepository::class
 

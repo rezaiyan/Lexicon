@@ -310,7 +310,6 @@ internal fun BatchTagAssignmentContent(
     count: Int,
     tags: List<Tag>,
     onConfirm: (tagIds: List<Long>) -> Unit,
-    onDismiss: () -> Unit
 ) {
     var selectedTagIds by remember { mutableStateOf(emptySet<Long>()) }
 

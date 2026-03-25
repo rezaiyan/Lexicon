@@ -13,6 +13,5 @@ interface ITagRepository {
     suspend fun deleteTag(id: Long): Try<Unit>
     suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit>
     suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit>
-    suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit>
     suspend fun syncTagsFromRemote(): Try<Unit>
 }

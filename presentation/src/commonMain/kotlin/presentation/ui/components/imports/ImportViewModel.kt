@@ -26,6 +26,11 @@ import performance.IPerformanceTracer
 import presentation.model.ImageImportState
 import utils.Language
 
+data class ImportTagUseCases(
+    val getTags: GetTagsUseCase,
+    val createTag: CreateTagUseCase,
+)
+
 class ImportViewModel(
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val importWordsUseCase: ImportWordsUseCase,
@@ -34,8 +39,7 @@ class ImportViewModel(
     private val userManager: IUserManager,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     private val getSourceLanguageUseCase: GetSourceLanguageUseCase,
-    private val getTagsUseCase: GetTagsUseCase,
-    private val createTagUseCase: CreateTagUseCase,
+    private val tagUseCases: ImportTagUseCases,
     private val performanceTracer: IPerformanceTracer,
 ) : BaseViewModel<ImportUiState, ImportEffect>() {
 
@@ -53,7 +57,7 @@ class ImportViewModel(
 
     private fun observeTags() {
         viewModelScope.launch {
-            getTagsUseCase()
+            tagUseCases.getTags()
                 .catch { }
                 .collect { tags -> updateState { copy(tags = tags) } }
         }
@@ -75,7 +79,7 @@ class ImportViewModel(
         val trimmed = name.trim()
         if (trimmed.isBlank()) return
         viewModelScope.launch {
-            createTagUseCase(trimmed).fold(
+            tagUseCases.createTag(trimmed).fold(
                 onSuccess = { tag ->
                     updateState { copy(showCreateTagDialog = false, selectedTagId = tag.id) }
                 },

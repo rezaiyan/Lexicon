@@ -1,6 +1,10 @@
 package feature.words
 
 import core.common.Try
+import domain.settings.model.ThemeMode
+import domain.settings.repository.ISettingsRepository
+import domain.settings.usecase.GetSkipTagSelectorUseCase
+import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.model.Tag
 import domain.tag.repository.ITagRepository
 import domain.tag.usecase.CreateTagUseCase
@@ -10,6 +14,8 @@ import domain.tag.usecase.RenameTagUseCase
 import feature.words.model.TagManagerEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
+import utils.Language
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -32,12 +38,32 @@ class TagManagerViewModelTest : ViewModelTestBase() {
 
     private fun fakeRepo() = object : ITagRepository {
         override fun getTags(): Flow<List<Tag>> = tagsFlow
+        override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
+        override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
         override suspend fun createTag(name: String): Try<Tag> = createResult
         override suspend fun renameTag(id: Long, name: String): Try<Tag> = renameResult
         override suspend fun deleteTag(id: Long): Try<Unit> = deleteResult
         override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
-        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
+    }
+
+    private fun fakeSettingsRepo() = object : ISettingsRepository {
+        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
+        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
+        override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
+        override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
+        override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
+        override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
+        override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+        override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
+        override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+        override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
+        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+        override suspend fun getDailyReminderTime(): Try<String> = Try.success("09:00")
+        override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
+        override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
+        override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
     }
 
     private fun createViewModel() = TagManagerViewModel(
@@ -45,6 +71,8 @@ class TagManagerViewModelTest : ViewModelTestBase() {
         createTagUseCase = CreateTagUseCase(fakeRepo()),
         renameTagUseCase = RenameTagUseCase(fakeRepo()),
         deleteTagUseCase = DeleteTagUseCase(fakeRepo()),
+        setSkipTagSelectorUseCase = SetSkipTagSelectorUseCase(fakeSettingsRepo()),
+        getSkipTagSelectorUseCase = GetSkipTagSelectorUseCase(fakeSettingsRepo()),
     )
 
     // --- init / tag loading ---

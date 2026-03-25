@@ -23,6 +23,13 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import performance.IPerformanceTracer
 
+data class StudyTagUseCases(
+    val getDueTags: GetDueTagsUseCase,
+    val getTagsByLevel: GetTagsByLevelUseCase,
+    val getSkipTagSelector: GetSkipTagSelectorUseCase,
+    val setSkipTagSelector: SetSkipTagSelectorUseCase,
+)
+
 data class StudyProgressState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,
     val hasPremiumAccess: Boolean = false,
@@ -37,11 +44,8 @@ class StudyProgressViewModel(
     private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val performanceTracer: IPerformanceTracer,
-    private val setSkipTagSelectorUseCase: SetSkipTagSelectorUseCase,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
-    getDueTagsUseCase: GetDueTagsUseCase,
-    getSkipTagSelectorUseCase: GetSkipTagSelectorUseCase,
-    getTagsByLevelUseCase: GetTagsByLevelUseCase,
+    private val tagUseCases: StudyTagUseCases,
 ) : BaseViewModel<StudyProgressState, Nothing>() {
 
     override fun initialState() = StudyProgressState()
@@ -51,37 +55,37 @@ class StudyProgressViewModel(
     init {
         observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
-        startObservingDueTags(getDueTagsUseCase)
-        observeSkipTagSelector(getSkipTagSelectorUseCase)
-        startObservingTagsByLevel(getTagsByLevelUseCase)
+        startObservingDueTags()
+        observeSkipTagSelector()
+        startObservingTagsByLevel()
     }
 
-    private fun startObservingDueTags(getDueTagsUseCase: GetDueTagsUseCase) {
+    private fun startObservingDueTags() {
         viewModelScope.launch {
-            getDueTagsUseCase()
+            tagUseCases.getDueTags()
                 .catch { }
                 .collect { tags -> updateState { copy(dueTags = tags) } }
         }
     }
 
-    private fun startObservingTagsByLevel(getTagsByLevelUseCase: GetTagsByLevelUseCase) {
+    private fun startObservingTagsByLevel() {
         viewModelScope.launch {
-            getTagsByLevelUseCase()
+            tagUseCases.getTagsByLevel()
                 .catch { }
                 .collect { map -> updateState { copy(stageTagsMap = map) } }
         }
     }
 
-    private fun observeSkipTagSelector(useCase: GetSkipTagSelectorUseCase) {
+    private fun observeSkipTagSelector() {
         viewModelScope.launch {
-            useCase(Unit)
+            tagUseCases.getSkipTagSelector(Unit)
                 .catch { /* ignore */ }
                 .collect { skip -> updateState { copy(skipTagSelector = skip) } }
         }
     }
 
     fun setSkipTagSelector(skip: Boolean) {
-        viewModelScope.launch { setSkipTagSelectorUseCase(skip) }
+        viewModelScope.launch { tagUseCases.setSkipTagSelector(skip) }
     }
 
     private fun observeFeatureAccess(getFeatureAccessUseCase: GetFeatureAccessUseCase) {

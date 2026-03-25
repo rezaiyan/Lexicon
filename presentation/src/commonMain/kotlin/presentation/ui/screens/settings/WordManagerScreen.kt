@@ -267,7 +267,6 @@ internal fun WordManagerContent(
                                             viewModel.batchAssignTags(tagIds)
                                             nav.dismiss()
                                         },
-                                        onDismiss = { nav.dismiss() }
                                     )
                                 }
                             }

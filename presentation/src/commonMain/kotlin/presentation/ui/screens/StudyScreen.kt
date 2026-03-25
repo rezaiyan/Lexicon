@@ -284,7 +284,10 @@ fun StudyScreen() {
                             if (dueTags.isNotEmpty() && !skipTagSelector) {
                                 overlayHost.showSizeToFitBottomSheet(
                                     tag = "review-selector",
-                                    properties = BottomSheetProperties(dismissOnBackPress = true, dismissOnTouchOutside = true),
+                                    properties = BottomSheetProperties(
+                                        dismissOnBackPress = true,
+                                        dismissOnTouchOutside = true
+                                    ),
                                 ) { nav ->
                                     val sheetProgressState by progressViewModel.state()
                                     ReviewSelectorSheetContent(
@@ -387,7 +390,10 @@ fun StudyScreen() {
                                 }
                                 overlayHost.showSizeToFitBottomSheet(
                                     tag = "stage-selector-${stage}",
-                                    properties = BottomSheetProperties(dismissOnBackPress = true, dismissOnTouchOutside = true),
+                                    properties = BottomSheetProperties(
+                                        dismissOnBackPress = true,
+                                        dismissOnTouchOutside = true
+                                    ),
                                 ) { nav ->
                                     val sheetProgressState by progressViewModel.state()
                                     ReviewSelectorSheetContent(

@@ -61,6 +61,54 @@ data class ReviewState(
     val speechRate: Float = TtsSettings.DEFAULT_SPEECH_RATE,
 )
 
+private class ReviewSessionManager(
+    private val sessionUseCases: ReviewSessionUseCases,
+    private val analyticsTracker: IAnalyticsTracker,
+) {
+    var currentSessionId: String? = null
+    private var sessionStartTime: Long = 0L
+    var reviewedCardCount: Int = 0
+    var correctCardCount: Int = 0
+    var incorrectCardCount: Int = 0
+    var sessionSettings: ReviewSettings = ReviewSettings.BALANCED
+
+    suspend fun begin(reviewType: String) {
+        val sessionId = Clock.System.now().toEpochMilliseconds().toString() +
+            "-" + (0..999999).random().toString().padStart(6, '0')
+        val startTime = Clock.System.now().toEpochMilliseconds()
+        sessionSettings = sessionUseCases.getSettings(Unit)
+            .fold(onSuccess = { it }, onFailure = { ReviewSettings.BALANCED })
+        sessionUseCases.startSession(StartStudySessionUseCase.Params(sessionId, reviewType))
+        currentSessionId = sessionId
+        sessionStartTime = startTime
+        reviewedCardCount = 0
+        correctCardCount = 0
+        incorrectCardCount = 0
+    }
+
+    suspend fun end(completedNormally: Boolean) {
+        val sid = currentSessionId ?: return
+        val now = Clock.System.now().toEpochMilliseconds()
+        sessionUseCases.endSession(
+            EndStudySessionUseCase.Params(
+                sessionId = sid,
+                endedAt = now,
+                durationMs = now - sessionStartTime,
+                totalCards = reviewedCardCount,
+                correctCount = correctCardCount,
+                incorrectCount = incorrectCardCount,
+                completedNormally = completedNormally,
+            )
+        )
+        analyticsTracker.logReviewSessionComplete(
+            cardsReviewed = reviewedCardCount,
+            durationMs = now - sessionStartTime,
+            perfectCount = correctCardCount,
+        )
+        currentSessionId = null
+    }
+}
+
 sealed class ReviewEffect {
     data class StartReview(val firstWord: Word) : ReviewEffect()
 }
@@ -76,13 +124,8 @@ class ReviewViewModel(
 
     override fun initialState() = ReviewState()
 
-    private var currentSessionId: String? = null
-    private var sessionStartTime: Long = 0L
+    private val session = ReviewSessionManager(sessionUseCases, analyticsTracker)
     private var cardShownTimestamp: Long = 0L
-    private var reviewedCardCount: Int = 0
-    private var correctCardCount: Int = 0
-    private var incorrectCardCount: Int = 0
-    private var sessionSettings: ReviewSettings = ReviewSettings.BALANCED
 
     init {
         viewModelScope.launch {
@@ -111,7 +154,7 @@ class ReviewViewModel(
 
     fun startDueReview() {
         viewModelScope.launch {
-            beginAnalyticsSession("REVIEW")
+            session.begin("REVIEW")
             updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
             wordUseCases.getDueWords()
                 .map<List<Word>, UiState<List<Word>>> { UiState.Loaded(it) }
@@ -140,7 +183,7 @@ class ReviewViewModel(
     fun startStageReview(stage: LearningStage) {
         loadWordsByStage(stage)
         viewModelScope.launch {
-            beginAnalyticsSession("BROWSE")
+            session.begin("BROWSE")
             cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
             val wordListState = currentState.review.wordListState
             val cardCount = if (wordListState is UiState.Loaded) wordListState.value.size else 0
@@ -150,7 +193,7 @@ class ReviewViewModel(
 
     fun startStageTagReview(stage: LearningStage, tagId: Long) {
         viewModelScope.launch {
-            beginAnalyticsSession("BROWSE")
+            session.begin("BROWSE")
             updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
             wordUseCases.getWordsByStage(stage)
                 .map<List<Word>, UiState<List<Word>>> { words ->
@@ -167,7 +210,7 @@ class ReviewViewModel(
 
     fun startTagReview(tagId: Long) {
         viewModelScope.launch {
-            beginAnalyticsSession("BROWSE")
+            session.begin("BROWSE")
             cardShownTimestamp = Clock.System.now().toEpochMilliseconds()
             updateState { copy(review = review.copy(wordListState = UiState.Loading)) }
             val result = wordUseCases.getDueWordsByTag(tagId)
@@ -187,16 +230,16 @@ class ReviewViewModel(
             wordUseCases.reviewWord(word, quality)
 
             val wasCorrect = quality >= 1
-            if (wasCorrect) correctCardCount++ else incorrectCardCount++
-            reviewedCardCount++
+            if (wasCorrect) session.correctCardCount++ else session.incorrectCardCount++
+            session.reviewedCardCount++
 
-            val newLevel = computeNewLevel(previousLevel, quality, sessionSettings)
+            val newLevel = computeNewLevel(previousLevel, quality, session.sessionSettings)
 
             if (newLevel == 6 && previousLevel < 6) {
                 analyticsTracker.logWordMastered(level = 6)
             }
 
-            currentSessionId?.let { sid ->
+            session.currentSessionId?.let { sid ->
                 sessionUseCases.recordEvent(
                     ReviewEventParams(
                         sessionId = sid,
@@ -270,7 +313,7 @@ class ReviewViewModel(
         val wordListState = currentState.review.wordListState
         val count = if (wordListState is UiState.Loaded) wordListState.value.size else 0
         viewModelScope.launch {
-            endAnalyticsSession(completedNormally = true)
+            session.end(completedNormally = true)
             if (count > 0) {
                 sessionUseCases.recordStreak(count)
                     .onSuccess { streakData ->
@@ -297,48 +340,11 @@ class ReviewViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        if (currentSessionId != null) {
-            viewModelScope.launch { endAnalyticsSession(completedNormally = false) }
+        if (session.currentSessionId != null) {
+            viewModelScope.launch { session.end(completedNormally = false) }
         }
     }
 
-    private suspend fun beginAnalyticsSession(reviewType: String) {
-        val sessionId = Clock.System.now().toEpochMilliseconds().toString() +
-            "-" + (0..999999).random().toString().padStart(6, '0')
-        val startTime = Clock.System.now().toEpochMilliseconds()
-        sessionSettings = sessionUseCases.getSettings(Unit)
-            .fold(onSuccess = { it }, onFailure = { ReviewSettings.BALANCED })
-        sessionUseCases.startSession(StartStudySessionUseCase.Params(sessionId, reviewType))
-        // Set currentSessionId only after the session is registered in the recorder,
-        // so that recordReviewEvent calls never target an unregistered session.
-        currentSessionId = sessionId
-        sessionStartTime = startTime
-        reviewedCardCount = 0
-        correctCardCount = 0
-        incorrectCardCount = 0
-    }
-
-    private suspend fun endAnalyticsSession(completedNormally: Boolean) {
-        val sid = currentSessionId ?: return
-        val now = Clock.System.now().toEpochMilliseconds()
-        sessionUseCases.endSession(
-            EndStudySessionUseCase.Params(
-                sessionId = sid,
-                endedAt = now,
-                durationMs = now - sessionStartTime,
-                totalCards = reviewedCardCount,
-                correctCount = correctCardCount,
-                incorrectCount = incorrectCardCount,
-                completedNormally = completedNormally,
-            )
-        )
-        analyticsTracker.logReviewSessionComplete(
-            cardsReviewed = reviewedCardCount,
-            durationMs = now - sessionStartTime,
-            perfectCount = correctCardCount,
-        )
-        currentSessionId = null
-    }
 }
 
 private fun computeNewLevel(

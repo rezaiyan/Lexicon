@@ -4,6 +4,7 @@ import feature.study.ReviewSessionUseCases
 import feature.study.ReviewViewModel
 import feature.study.ReviewWordUseCases
 import feature.study.StudyProgressViewModel
+import feature.study.StudyTagUseCases
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -16,10 +17,12 @@ fun studyModule() = module {
             getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
             performanceTracer = get(),
-            getDueTagsUseCase = get(),
-            getSkipTagSelectorUseCase = get(),
-            setSkipTagSelectorUseCase = get(),
-            getTagsByLevelUseCase = get(),
+            tagUseCases = StudyTagUseCases(
+                getDueTags = get(),
+                getTagsByLevel = get(),
+                getSkipTagSelector = get(),
+                setSkipTagSelector = get(),
+            ),
         )
     }
     viewModel {

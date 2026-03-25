@@ -49,15 +49,6 @@ class TagRepositoryImpl(
         localDataSource.batchSetWordTags(wordIds, tagIds)
     }
 
-    override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try {
-        val existingTagIds = localDataSource.getTagIdsForWord(wordId)
-        if (tagId !in existingTagIds) {
-            val mergedTagIds = existingTagIds + tagId
-            remoteDataSource.updateWordTags(wordId, mergedTagIds).getOrThrow()
-        }
-        localDataSource.addWordTag(wordId, tagId)
-    }
-
     override suspend fun syncTagsFromRemote(): Try<Unit> = Try {
         val remoteTags = remoteDataSource.getTags().getOrThrow()
         localDataSource.replaceAllTags(remoteTags.map { it.toDomain() })

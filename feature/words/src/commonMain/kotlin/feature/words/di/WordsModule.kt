@@ -4,7 +4,6 @@ import feature.words.TagManagerViewModel
 import feature.words.VocabularyViewModel
 import feature.words.WordManagerViewModel
 import feature.words.WordTagAssignmentViewModel
-import domain.tag.usecase.BatchAssignTagsUseCase
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 

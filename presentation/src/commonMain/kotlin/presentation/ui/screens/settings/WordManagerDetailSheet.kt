@@ -36,7 +36,7 @@ import components.dialog.LexiconDialogContent
 import domain.tag.model.Tag
 import domain.word.model.LearningStage
 import domain.word.model.Word
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource

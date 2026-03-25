@@ -1,6 +1,7 @@
 package data.auth.remote
 
 import data.core.network.client.ApiClient
+import data.core.network.client.getFlowNotNull
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess

@@ -1,6 +1,7 @@
 package data.analytics.repository
 
 import core.common.Try
+import data.analytics.local.IAnalyticsLocalQueue
 import data.analytics.remote.IAnalyticsStatsDataSource
 import data.analytics.remote.model.DailyStatsRemoteResponse
 import data.analytics.remote.model.HeatmapDayResponse
@@ -19,6 +20,20 @@ import kotlin.test.assertTrue
 
 class AnalyticsRecorderImplTest {
 
+    private class FakeAnalyticsLocalQueue : IAnalyticsLocalQueue {
+        val requests = mutableListOf<String>()
+
+        override suspend fun insertRequest(requestJson: String, createdAt: Long) {
+            requests.add(requestJson)
+        }
+
+        override suspend fun getAllRequests(): List<String> = requests.toList()
+
+        override suspend fun clearQueue() {
+            requests.clear()
+        }
+    }
+
     private class FakeStatsDataSource : IAnalyticsStatsDataSource {
         var syncResult: Try<SyncAnalyticsResponse> = Try.success(SyncAnalyticsResponse(emptyList()))
         val syncRequests = mutableListOf<SyncAnalyticsRequest>()
@@ -34,7 +49,7 @@ class AnalyticsRecorderImplTest {
         override suspend fun getMonthlyStats() = Try.success(emptyList<MonthlyStatsResponse>())
         override suspend fun getDailyStats(start: String, end: String) = Try.success(emptyList<DailyStatsRemoteResponse>())
         override suspend fun getWeeklyReport() = Try.success(WeeklyReportRemoteResponse())
-        override suspend fun getResponseTimeTrend() = Try.success(emptyList<data.analytics.remote.model.ResponseTimeTrendRemoteResponse>())
+        override suspend fun getResponseTimeTrend() = Try.success(emptyList<ResponseTimeTrendRemoteResponse>())
     }
 
     private val defaultEvent = ReviewEventParams(
@@ -54,7 +69,7 @@ class AnalyticsRecorderImplTest {
     @Test
     fun `startSession buffers session in memory`() = runTest {
         val remote = FakeStatsDataSource()
-        val recorder = AnalyticsRecorderImpl(remote)
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
 
         val result = recorder.startSession("s-1", "REVIEW", 1000L)
 
@@ -66,7 +81,7 @@ class AnalyticsRecorderImplTest {
     @Test
     fun `recordReviewEvent buffers events in memory`() = runTest {
         val remote = FakeStatsDataSource()
-        val recorder = AnalyticsRecorderImpl(remote)
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
         recorder.startSession("s-1", "REVIEW", 1000L)
 
         recorder.recordReviewEvent(defaultEvent)
@@ -79,7 +94,7 @@ class AnalyticsRecorderImplTest {
     fun `endSession sends buffered session and events to backend`() = runTest {
         val remote = FakeStatsDataSource()
         remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
-        val recorder = AnalyticsRecorderImpl(remote)
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
 
         recorder.startSession("s-1", "REVIEW", 1000L)
         recorder.recordReviewEvent(defaultEvent)
@@ -120,7 +135,7 @@ class AnalyticsRecorderImplTest {
     fun `endSession succeeds even when remote fails`() = runTest {
         val remote = FakeStatsDataSource()
         remote.syncResult = Try.failure(RuntimeException("Network error"))
-        val recorder = AnalyticsRecorderImpl(remote)
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
 
         recorder.startSession("s-1", "REVIEW", 1000L)
         val result = recorder.endSession("s-1", 5000L, 4000L, 0, 0, 0, true)
@@ -132,7 +147,7 @@ class AnalyticsRecorderImplTest {
     @Test
     fun `endSession without startSession is no-op`() = runTest {
         val remote = FakeStatsDataSource()
-        val recorder = AnalyticsRecorderImpl(remote)
+        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
 
         val result = recorder.endSession("s-unknown", 5000L, 4000L, 0, 0, 0, false)
 

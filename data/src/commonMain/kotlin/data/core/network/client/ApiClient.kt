@@ -216,28 +216,6 @@ class ApiClient(
     }
 
     /**
-     * Executes a GET request and returns Flow<Try<T?>>
-     */
-    inline fun <reified T> getFlow(
-        path: String,
-        crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Flow<Try<T?>> = flow {
-        val result = get<T>(path, block)
-        emit(result)
-    }
-
-    /**
-     * Executes a GET request and returns Flow<Try<T>> (non-null)
-     */
-    inline fun <reified T> getFlowNotNull(
-        path: String,
-        crossinline block: HttpRequestBuilder.() -> Unit = {}
-    ): Flow<Try<T>> = flow {
-        val result = getNotNull<T>(path, block)
-        emit(result)
-    }
-
-    /**
      * Core execution method that handles HTTP responses via ApiResponseMapper
      * Wraps exceptions in Try automatically
      */
@@ -255,4 +233,24 @@ class ApiClient(
     ): Try<Unit> = Try {
         apiResponseMapper.mapUnitResponse(request())
     }.flatMap { it }
+}
+
+/**
+ * Executes a GET request and returns Flow<Try<T?>>
+ */
+inline fun <reified T> ApiClient.getFlow(
+    path: String,
+    crossinline block: HttpRequestBuilder.() -> Unit = {}
+): Flow<Try<T?>> = flow {
+    emit(get<T>(path, block))
+}
+
+/**
+ * Executes a GET request and returns Flow<Try<T>> (non-null)
+ */
+inline fun <reified T> ApiClient.getFlowNotNull(
+    path: String,
+    crossinline block: HttpRequestBuilder.() -> Unit = {}
+): Flow<Try<T>> = flow {
+    emit(getNotNull<T>(path, block))
 }

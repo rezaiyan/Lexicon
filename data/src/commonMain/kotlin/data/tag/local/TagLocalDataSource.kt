@@ -79,13 +79,6 @@ class TagLocalDataSource(
         }
     }
 
-    override suspend fun deleteAllTags() {
-        queries.transaction {
-            queries.deleteAllWordTags()
-            queries.deleteAllTags()
-        }
-    }
-
     override suspend fun replaceAllTags(tags: List<Tag>) {
         queries.transaction {
             queries.deleteAllTags()
@@ -113,10 +106,6 @@ class TagLocalDataSource(
                 }
             }
         }
-    }
-
-    override suspend fun addWordTag(wordId: Long, tagId: Long) {
-        queries.insertWordTag(wordId, tagId)
     }
 
     override suspend fun getTagIdsForWord(wordId: Long): List<Long> {

@@ -4,6 +4,7 @@ import analytics.IAnalyticsTracker
 import core.common.Try
 import fakes.FakePerformanceTracer
 import feature.study.StudyProgressViewModel
+import feature.study.StudyTagUseCases
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
@@ -20,11 +21,13 @@ import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
+import domain.settings.usecase.GetSkipTagSelectorUseCase
+import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.model.Tag
 import domain.tag.repository.ITagRepository
-import domain.tag.usecase.GetTagsUseCase
+import domain.tag.usecase.GetDueTagsUseCase
+import domain.tag.usecase.GetTagsByLevelUseCase
 import domain.word.usecase.EvaluateProgressUseCase
-import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -140,11 +143,13 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
 
     private fun fakeTagRepo() = object : ITagRepository {
         override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+        override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
+        override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
         override suspend fun createTag(name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
         override suspend fun renameTag(id: Long, name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
         override suspend fun deleteTag(id: Long): Try<Unit> = Try.success(Unit)
         override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
-        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 
@@ -159,8 +164,12 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),
-            getTagsUseCase = GetTagsUseCase(fakeTagRepo()),
-            getDueWordsUseCase = GetDueWordsUseCase(wordRepo),
+            tagUseCases = StudyTagUseCases(
+                getDueTags = GetDueTagsUseCase(fakeTagRepo()),
+                getTagsByLevel = GetTagsByLevelUseCase(fakeTagRepo()),
+                getSkipTagSelector = GetSkipTagSelectorUseCase(settingsRepo),
+                setSkipTagSelector = SetSkipTagSelectorUseCase(settingsRepo),
+            ),
         )
     }
 

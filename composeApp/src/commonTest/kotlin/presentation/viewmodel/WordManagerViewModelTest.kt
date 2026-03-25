@@ -16,6 +16,7 @@ import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.tag.model.Tag
 import domain.tag.repository.ITagRepository
+import domain.tag.usecase.BatchAssignTagsUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
@@ -104,11 +105,13 @@ class WordManagerViewModelTest : ViewModelTestBase() {
 
     private fun fakeTagRepo() = object : ITagRepository {
         override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+        override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
+        override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
         override suspend fun createTag(name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
         override suspend fun renameTag(id: Long, name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
         override suspend fun deleteTag(id: Long): Try<Unit> = Try.success(Unit)
         override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
-        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 
@@ -121,6 +124,7 @@ class WordManagerViewModelTest : ViewModelTestBase() {
                 wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)
             ),
             batchUpdateLanguagesUseCase = BatchUpdateLanguagesUseCase(wordRepo),
+            batchAssignTagsUseCase = BatchAssignTagsUseCase(fakeTagRepo()),
             updateWordUseCase = UpdateWordUseCase(wordRepo),
             exportWordsUseCase = ExportWordsUseCase(),
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),

@@ -12,6 +12,7 @@ import performance.IPerformanceTracer
 import performance.createPerformanceTracer
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
+import presentation.ui.components.imports.ImportTagUseCases
 import presentation.ui.components.imports.ImportViewModel
 import presentation.viewmodel.AppNavigationViewModel
 import feature.auth.di.authModule
@@ -65,8 +66,7 @@ fun presentationModule() = module {
             userManager = get(),
             getCurrentLanguageUseCase = get(),
             getSourceLanguageUseCase = get(),
-            getTagsUseCase = get(),
-            createTagUseCase = get(),
+            tagUseCases = ImportTagUseCases(getTags = get(), createTag = get()),
             performanceTracer = get(),
         )
     }

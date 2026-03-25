@@ -1,12 +1,11 @@
 package data.analytics.repository
 
-import app.cash.sqldelight.async.coroutines.awaitAsList
 import core.common.Try
+import data.analytics.local.IAnalyticsLocalQueue
 import data.analytics.remote.IAnalyticsStatsDataSource
 import data.analytics.remote.model.SyncAnalyticsRequest
 import data.analytics.remote.model.SyncReviewEventRequest
 import data.analytics.remote.model.SyncSessionRequest
-import data.core.database.LexiconQueries
 import domain.analytics.model.ReviewEventParams
 import domain.analytics.repository.IAnalyticsRecorder
 import expects.logNetwork
@@ -22,7 +21,7 @@ import kotlinx.serialization.json.Json
  */
 class AnalyticsRecorderImpl(
     private val remoteDataSource: IAnalyticsStatsDataSource,
-    private val queries: LexiconQueries,
+    private val localQueue: IAnalyticsLocalQueue,
 ) : IAnalyticsRecorder {
 
     private data class SessionData(
@@ -79,17 +78,17 @@ class AnalyticsRecorderImpl(
             )
         )
 
-        // Persist to DB before attempting sync so the session survives an app restart on failure
-        queries.insertAnalyticsSyncRequest(
+        // Persist to local queue before attempting sync so the session survives an app restart on failure
+        localQueue.insertRequest(
             requestJson = json.encodeToString(newRequest),
             createdAt = Clock.System.now().toEpochMilliseconds(),
         )
 
         // Load all pending requests (includes the one just inserted + any from prior failures)
-        val pendingItems = queries.getAllAnalyticsSyncRequests().awaitAsList()
-        val allSessions = pendingItems
-            .mapNotNull { item ->
-                runCatching { json.decodeFromString<SyncAnalyticsRequest>(item.requestJson) }
+        val allRequestJsons = localQueue.getAllRequests()
+        val allSessions = allRequestJsons
+            .mapNotNull { requestJson ->
+                runCatching { json.decodeFromString<SyncAnalyticsRequest>(requestJson) }
                     .getOrNull()
             }
             .flatMap { it.sessions }
@@ -99,10 +98,10 @@ class AnalyticsRecorderImpl(
         return remoteDataSource.syncSessions(combinedRequest).let { result ->
             when (result) {
                 is Try.Success -> {
-                    queries.clearAnalyticsSyncQueue()
+                    localQueue.clearQueue()
                     logNetwork(
                         "AnalyticsRecorder",
-                        "Session ${session.sessionId} sent to backend (${pendingItems.size} total in batch)",
+                        "Session ${session.sessionId} sent to backend (${allRequestJsons.size} total in batch)",
                     )
                     Try.success(Unit)
                 }

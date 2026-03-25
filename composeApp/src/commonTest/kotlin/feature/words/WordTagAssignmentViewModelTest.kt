@@ -8,6 +8,7 @@ import domain.tag.usecase.GetTagsUseCase
 import feature.words.model.WordTagAssignmentEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -31,6 +32,8 @@ class WordTagAssignmentViewModelTest : ViewModelTestBase() {
 
     private fun fakeRepo() = object : ITagRepository {
         override fun getTags(): Flow<List<Tag>> = tagsFlow
+        override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
+        override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
         override suspend fun createTag(name: String): Try<Tag> = Try.success(tagA)
         override suspend fun renameTag(id: Long, name: String): Try<Tag> = Try.success(tagA)
         override suspend fun deleteTag(id: Long): Try<Unit> = Try.success(Unit)
@@ -39,7 +42,7 @@ class WordTagAssignmentViewModelTest : ViewModelTestBase() {
             capturedTagIds = tagIds
             return assignResult
         }
-        override suspend fun addTagToWord(wordId: Long, tagId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun batchAssignWordTags(wordIds: List<Long>, tagIds: List<Long>): Try<Unit> = Try.success(Unit)
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 
