@@ -27,6 +27,7 @@ import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
+import domain.auth.usecase.ObserveAuthStateUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import io.ktor.client.HttpClient
 import org.koin.core.module.dsl.singleOf
@@ -92,6 +93,7 @@ fun authModule(backendUrl: String) = module {
     singleOf(::LogoutUseCase)
     singleOf(::DeleteAccountUseCase)
     singleOf(::IsAuthenticatedUseCase)
+    singleOf(::ObserveAuthStateUseCase)
     singleOf(::VerifySessionUseCase)
     singleOf(::ClearAllUserDataUseCase)
 }

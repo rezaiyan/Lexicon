@@ -4,11 +4,12 @@ import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthState
+import domain.auth.model.AuthUser
 import domain.auth.repository.SessionVerificationResult
-import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
+import domain.auth.usecase.ObserveAuthStateUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import core.common.getOrElse
 import core.common.onFailure
@@ -27,7 +28,7 @@ class AuthViewModel(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val loginWithAppleUseCase: LoginWithAppleUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val isAuthenticatedUseCase: IsAuthenticatedUseCase,
+    private val observeAuthStateUseCase: ObserveAuthStateUseCase,
     private val verifySessionUseCase: VerifySessionUseCase,
     private val syncRemoteToLocalUseCase: SyncRemoteToLocalUseCase,
     private val initializePushNotificationsUseCase: InitializePushNotificationsUseCase,
@@ -48,7 +49,7 @@ class AuthViewModel(
 
     private fun observeAuthenticationState() {
         viewModelScope.launch {
-            isAuthenticatedUseCase.asFlow().collect { isAuthenticated ->
+            observeAuthStateUseCase(Unit).collect { isAuthenticated ->
                 if (!isAuthenticated && currentState.isAuthenticated) {
                     analyticsTracker.logEvent(
                         "auto_logout",
@@ -116,7 +117,7 @@ class AuthViewModel(
         )
         updateState { copy(isLoading = true) }
         authMutex.withLock {
-            loginWithGoogleUseCase.invoke(idToken)
+            loginWithGoogleUseCase(idToken)
                 .catch { error ->
                     analyticsTracker.logEvent(
                         "login_failed",
@@ -130,62 +131,47 @@ class AuthViewModel(
                     analyticsTracker.logError(error, "google_login_backend_error")
                     updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.toUserMessage()) }
                 }
-                .collect { user ->
-                    analyticsTracker.logEvent(
-                        "login_success",
-                        mapOf("user_id" to user.id.toString(), "provider" to "google")
-                    )
-                    updateState {
-                        AuthState(
-                            isAuthenticated = true,
-                            isLoading = true,
-                            user = user,
-                            error = null
-                        )
-                    }
-                    userManager.setUser(user)
-                    subscriptionManager.logIn(user.id.toString())
-                    syncRemoteToLocalUseCase(clearFirst = false)
-                    initializePushNotifications()
-                    updateState { copy(isLoading = false) }
-                }
+                .collect { user -> onLoginSuccess(user, provider = "google") }
         }
     }
 
     private suspend fun processLoginWithApple(idToken: String, fullName: String?, appleUserId: String) {
+        updateState { copy(isLoading = true) }
         authMutex.withLock {
-            loginWithAppleUseCase.invoke(idToken, fullName, appleUserId)
+            loginWithAppleUseCase(LoginWithAppleUseCase.Params(idToken, fullName, appleUserId))
                 .catch { error ->
                     analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
                     updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.toUserMessage()) }
                 }
-                .collect { user ->
-                    analyticsTracker.logEvent(
-                        "login_success",
-                        mapOf("user_id" to user.id.toString(), "provider" to "apple")
-                    )
-                    updateState {
-                        AuthState(
-                            isAuthenticated = true,
-                            isLoading = true,
-                            user = user,
-                            error = null
-                        )
-                    }
-                    userManager.setUser(user)
-                    subscriptionManager.logIn(user.id.toString())
-                    syncRemoteToLocalUseCase(clearFirst = false)
-                    initializePushNotifications()
-                    updateState { copy(isLoading = false) }
-                }
+                .collect { user -> onLoginSuccess(user, provider = "apple") }
         }
+    }
+
+    private suspend fun onLoginSuccess(user: AuthUser, provider: String) {
+        analyticsTracker.logEvent(
+            "login_success",
+            mapOf("user_id" to user.id.toString(), "provider" to provider)
+        )
+        updateState {
+            AuthState(
+                isAuthenticated = true,
+                isLoading = true,
+                user = user,
+                error = null
+            )
+        }
+        userManager.setUser(user)
+        subscriptionManager.logIn(user.id.toString())
+        syncRemoteToLocalUseCase(clearFirst = false)
+        initializePushNotifications()
+        updateState { copy(isLoading = false) }
     }
 
     private suspend fun processLogout() {
         analyticsTracker.logEvent("logout")
         registerPushTokenUseCase.deactivateAllTokens()
         userManager.setUser(null)
-        logoutUseCase.invoke()
+        logoutUseCase(Unit)
             .catch { _ ->
                 updateState { AuthState(isAuthenticated = false, isLoading = false) }
             }

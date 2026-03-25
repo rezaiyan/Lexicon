@@ -1,8 +1,10 @@
 package data.core.network.client
 
+import data.core.error.toDomainError
 import data.core.network.mapper.ApiResponseMapper
 import core.common.Try
 import core.common.flatMap
+import core.common.mapFailure
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
@@ -223,7 +225,7 @@ class ApiClient(
         crossinline request: suspend () -> HttpResponse
     ): Try<T?> = Try {
         apiResponseMapper.mapResponse<T>(request())
-    }.flatMap { it }
+    }.flatMap { it }.mapFailure { it.toDomainError() }
 
     /**
      * Core execution method for Unit responses
@@ -232,7 +234,7 @@ class ApiClient(
         crossinline request: suspend () -> HttpResponse
     ): Try<Unit> = Try {
         apiResponseMapper.mapUnitResponse(request())
-    }.flatMap { it }
+    }.flatMap { it }.mapFailure { it.toDomainError() }
 }
 
 /**

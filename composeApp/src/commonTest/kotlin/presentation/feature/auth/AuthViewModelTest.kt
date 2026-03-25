@@ -17,6 +17,7 @@ import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.LogoutUseCase
+import domain.auth.usecase.ObserveAuthStateUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import domain.notifications.repository.IPushTokenRepository
 import domain.notifications.usecase.InitializePushNotificationsUseCase
@@ -180,7 +181,7 @@ class AuthViewModelTest : ViewModelTestBase() {
             loginWithGoogleUseCase = LoginWithGoogleUseCase(service),
             loginWithAppleUseCase = LoginWithAppleUseCase(service),
             logoutUseCase = LogoutUseCase(service, wordRepo, settingsRepo),
-            isAuthenticatedUseCase = isAuthUseCase,
+            observeAuthStateUseCase = ObserveAuthStateUseCase(authRepo),
             verifySessionUseCase = VerifySessionUseCase(fakeSessionRepo(sessionVerificationResult)),
             syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(wordRepo),
             initializePushNotificationsUseCase = InitializePushNotificationsUseCase(isAuthUseCase, registerPushTokenUseCase),

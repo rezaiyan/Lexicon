@@ -17,13 +17,13 @@ package core.error
  */
 sealed class DomainError(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
 
-    sealed class Network : DomainError() {
-        data object NoConnection : Network()
-        data object Timeout : Network()
-        data class ServerError(val code: Int, val body: String? = null) : Network()
+    sealed class Network(message: String? = null) : DomainError(message) {
+        data object NoConnection : Network("No internet connection")
+        data object Timeout : Network("Connection timed out")
+        data class ServerError(val code: Int, val body: String? = null) : Network("Server error: $code")
     }
 
-    sealed class Auth : DomainError() {
+    sealed class Auth(message: String? = null) : DomainError(message) {
         data object NotAuthenticated : Auth()
         data object SessionExpired : Auth()
         data object Unauthorized : Auth()

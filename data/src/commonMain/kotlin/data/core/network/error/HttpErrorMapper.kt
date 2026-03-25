@@ -29,11 +29,11 @@ object HttpErrorMapper {
 
         return when (statusCode) {
             HttpStatusCode.Unauthorized,
-            HttpStatusCode.Forbidden -> AuthenticationException(message)
+            HttpStatusCode.Forbidden -> AuthenticationException(message, statusCode.value)
 
             HttpStatusCode.InternalServerError,
             HttpStatusCode.BadGateway,
-            HttpStatusCode.ServiceUnavailable -> ServerException(message)
+            HttpStatusCode.ServiceUnavailable -> ServerException(message, statusCode.value)
 
             else -> NetworkException(message)
         }
@@ -53,7 +53,7 @@ object HttpErrorMapper {
                     message.contains("connect", ignoreCase = true) ||
                     exception::class.simpleName?.contains("Timeout", ignoreCase = true) == true
                 ) {
-                    NetworkException("Connection timeout. Please check your internet connection and try again.")
+                    TimeoutException("Connection timeout. Please check your internet connection and try again.")
                 } else {
                     NetworkException(message)
                 }

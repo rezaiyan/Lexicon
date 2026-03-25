@@ -76,6 +76,10 @@ Detailed patterns live in `.claude/skills/` — load the relevant skill for impl
 | **UseCase** | `UseCase<P,R>` -> `Try<T>`, `FlowUseCase<P,R>` -> `Flow<T>`, stateless | `usecase-patterns` |
 | **Repository** | suspend -> `Try<T>`, stream -> `Flow<T>`, interface in domain, impl in data | `repository-patterns` |
 | **Data Source** | Interface in domain, impl in data, mappers as extension functions | `repository-patterns` |
+| **Error Handling** | `DomainError` sealed hierarchy, `Try<T>` propagation DataSource→Repository→UseCase→ViewModel, `UiState<T>` for async sections | `error-handling` |
+| **DI** | `singleOf`/`factoryOf`/`viewModelOf`, interface binding, UseCase=factory, Repository=single | `di-patterns` |
+| **Domain Model** | `@JvmInline value class` for invariants, pure data class, zero framework imports, domain events | `domain-model-patterns` |
+| **State Machine** | `sealed interface` states, pure `Reducer.reduce(state, command)` function, ViewModel dispatches side effects | `state-machines` |
 | **Navigation** | Type-safe `@Serializable` routes, `OverlayHost` for dialogs/sheets | `navigation-overlays` |
 | **Design System** | Check existing components first, use `Theme.*` tokens, never hardcode | `design-system` |
 | **Testing** | Turbine for VM, fakes over mocks, MockEngine for DataSource | `testing-patterns` |
@@ -126,6 +130,6 @@ Secrets via `.github/actions/init-config/action.yml`.
 - **Plan first**: Enter plan mode for tasks touching 3+ files or requiring architectural decisions
 - **Commit often**: One logical unit per commit
 - **Use skills**: They auto-trigger based on task context and contain the canonical patterns
-- **Use agents**: `architecture-reviewer` (boundary checks), `test-writer` (generate tests), `kmp-navigator` (trace flows), `migrator` (migrate patterns), `screen-redesigner` (redesign screens), `e2e-feature` (full-stack features)
+- **Use agents**: `architecture-reviewer` (boundary checks), `test-writer` (generate tests), `kmp-navigator` (trace flows), `migrator` (migrate patterns), `screen-redesigner` (redesign screens), `e2e-feature` (full-stack features), `domain-designer` (design value objects/interfaces), `analytics-auditor` (analytics session lifecycle correctness)
 - **Break large tasks**: Delegate independent work to subagents
-- **Custom commands**: `/test`, `/build`, `/review`, `/new-feature`
+- **Custom commands**: `/test`, `/build`, `/review`, `/new-feature`, `/plan` (plan before coding), `/migrate` (legacy→target patterns), `/risk-check` (pre-merge safety check)

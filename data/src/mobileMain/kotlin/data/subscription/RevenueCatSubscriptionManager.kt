@@ -15,6 +15,7 @@ import com.revenuecat.purchases.kmp.models.StoreTransaction
 import com.revenuecat.purchases.kmp.models.freePhase
 import core.common.Try
 import core.common.getOrNull
+import core.error.DomainError
 import domain.subscription.ISubscriptionManager
 import domain.subscription.model.PackagePeriod
 import domain.subscription.model.SubscriptionCustomerInfo
@@ -104,7 +105,7 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
                     if (userCancelled) {
                         continuation.resume(Try.failure(CancelledPurchaseException()))
                     } else {
-                        continuation.resume(Try.failure(Exception(error.message)))
+                        continuation.resume(Try.failure(DomainError.Commerce.PurchaseFailed))
                     }
                 },
                 onSuccess = { _: StoreTransaction, customerInfo: CustomerInfo ->
@@ -119,8 +120,8 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
     override suspend fun restore(): Try<SubscriptionCustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.restorePurchases(
-                onError = { error ->
-                    continuation.resume(Try.failure(Exception(error.message)))
+                onError = { _ ->
+                    continuation.resume(Try.failure(DomainError.Commerce.RestoreFailed))
                 },
                 onSuccess = { customerInfo ->
                     val domainInfo = customerInfo.toDomain()
@@ -191,12 +192,12 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
         val customerInfoResult = getRawCustomerInfo()
 
         val rawCustomerInfo = customerInfoResult.getOrNull()
-            ?: return Try.failure(Exception("Failed to retrieve subscription information"))
+            ?: return Try.failure(DomainError.Commerce.ManagementUnavailable)
 
         val managementURL = rawCustomerInfo.managementUrlString
 
         if (managementURL.isNullOrBlank()) {
-            return Try.failure(Exception("Unable to open subscription management. Please manage your subscription through your device settings."))
+            return Try.failure(DomainError.Commerce.ManagementUnavailable)
         }
 
         return Try.success(openUrl(managementURL))
