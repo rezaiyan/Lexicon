@@ -69,6 +69,8 @@ class AnalyticsUseCaseTests {
             lastRecordWordId = params.wordId
             return recordReviewEventResult
         }
+
+        override suspend fun retryPendingSync(): Try<Unit> = Try.success(Unit)
     }
 
     private class FakeAnalyticsRepository : IAnalyticsStatsRepository, IAnalyticsWordRepository {
