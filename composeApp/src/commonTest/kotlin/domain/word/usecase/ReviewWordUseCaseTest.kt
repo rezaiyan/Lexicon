@@ -1,7 +1,6 @@
 package domain.word.usecase
 
 import core.common.Try
-import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -18,13 +17,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-// GetReviewSettingsUseCase always returns ReviewSettings.BALANCED:
+// Uses ReviewSettings.BALANCED hardcoded in the use case:
 //   successesToAdvance = 1, forgotPenalty = 2
 class ReviewWordUseCaseTest {
 
-    private val reviewSettingsUseCase = GetReviewSettingsUseCase()
     private val wordRepository = FakeWordRepository()
-    private val useCase = ReviewWordUseCase(wordRepository, reviewSettingsUseCase)
+    private val useCase = ReviewWordUseCase(wordRepository)
 
     @Test
     fun `forgot answer drops level by penalty and resets repetitions`() = runTest {
@@ -185,18 +183,17 @@ class ReviewWordUseCaseTest {
     }
 
     @Test
-    fun `invalid quality is treated as forgot with configured penalty`() = runTest {
-        // BALANCED forgotPenalty = 2 → level 2 - 2 = level 0
-        val word = createWord(level = 2, repetitions = 5, easeFactor = 1.5f, interval = 3)
+    fun `any non-zero quality is treated as remembered`() = runTest {
+        // Binary scheme: only quality == 0 is "forgot"; quality == 5 → remembered → advance
+        val word = createWord(level = 2, repetitions = 0, easeFactor = 1.5f, interval = 3)
 
         useCase(word, quality = 5)
 
         val updated = wordRepository.lastUpdatedWord
         assertNotNull(updated)
-        assertEquals(0, updated.level)
+        assertEquals(3, updated.level) // advanced from 2 → 3
         assertEquals(0, updated.repetitions)
-        assertEquals(1, updated.interval)
-        assertEquals(1.3f, updated.easeFactor) // cannot drop below 1.3f
+        assertEquals(3, updated.interval) // level 3 interval
     }
 
     private fun createWord(

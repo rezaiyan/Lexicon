@@ -1,6 +1,7 @@
 package presentation.feature.study
 
 import analytics.IAnalyticsTracker
+import app.cash.turbine.test
 import core.common.Try
 import domain.analytics.model.ReviewEventParams
 import domain.analytics.repository.IAnalyticsRecorder
@@ -10,16 +11,19 @@ import domain.analytics.usecase.StartStudySessionUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
-import domain.settings.usecase.GetReviewSettingsUseCase
+import domain.settings.usecase.ObserveSpeechRateUseCase
+import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.streak.model.StreakData
 import domain.streak.repository.IStreakRepository
 import domain.streak.usecase.RecordStreakActivityUseCase
 import domain.tts.model.TtsModelInfo
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
+import domain.tts.usecase.ObserveTtsStateUseCase
 import domain.tts.usecase.SpeakWordUseCase
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
+import domain.word.model.ReviewSource
 import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
@@ -28,25 +32,35 @@ import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.GetDueWordsByTagUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
+import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
-import feature.study.ReviewSessionUseCases
+import fakes.FakeAnalyticsTracker
+import fakes.FakeWidgetRefresher
+import fakes.fakeGetDailyWidgetDataUseCase
+import feature.study.ReviewEffect
+import feature.study.ReviewState
 import feature.study.ReviewViewModel
-import feature.study.ReviewWordUseCases
+import feature.study.model.ReviewError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import core.common.UiState
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class ReviewViewModelTest : ViewModelTestBase() {
+
+    // ---------------------------------------------------------------------------
+    // Shared test data
+    // ---------------------------------------------------------------------------
 
     private fun testWord(id: Int) = Word(
         id = id,
@@ -55,19 +69,31 @@ class ReviewViewModelTest : ViewModelTestBase() {
         description = "desc$id",
         sourceLanguage = Language.ENGLISH,
         targetLanguage = Language.GERMAN,
-        nextReviewDate = 0L
+        nextReviewDate = 0L,
     )
 
     private var dueWords: List<Word> = listOf(testWord(1), testWord(2))
     private var stageWords: List<Word> = listOf(testWord(3))
     private var deleteResult: Try<Unit> = Try.success(Unit)
     private var updateResult: Try<Unit> = Try.success(Unit)
-    private val loggedEvents = mutableListOf<String>()
+    private var throwOnLoad: Boolean = false
+
+    // ---------------------------------------------------------------------------
+    // Fakes
+    // ---------------------------------------------------------------------------
 
     private fun fakeWordRepo() = object : IWordRepository {
-        override fun getDueCards(): Flow<List<Word>> = flowOf(dueWords)
-        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
-        override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(stageWords)
+        override fun getDueCards(): Flow<List<Word>> = if (throwOnLoad) {
+            flow { throw RuntimeException("network connect failed") }
+        } else {
+            flowOf(dueWords)
+        }
+        override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = if (throwOnLoad) {
+            flow { throw RuntimeException("network connect failed") }
+        } else { flowOf(emptyList()) }
+        override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = if (throwOnLoad) {
+            flow { throw RuntimeException("network connect failed") }
+        } else { flowOf(stageWords) }
         override suspend fun deleteWord(id: Int): Try<Unit> = deleteResult
         override suspend fun updateWord(word: Word): Try<Unit> = updateResult
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
@@ -120,49 +146,25 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override suspend fun downloadModel(languageCode: String): Flow<Float> = flowOf(1f)
         override fun isLanguageSupported(languageCode: String): Boolean = true
         override fun getSupportedLanguageCodes(): Set<String> = setOf("en")
-        override suspend fun getModelInfo(
-            languageCode: String,
-            displayName: String,
-        ): Try<TtsModelInfo> =
+        override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> =
             Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
         override suspend fun deleteModel(languageCode: String): Try<Unit> = Try.success(Unit)
     }
 
-    private fun fakeAnalytics() = object : IAnalyticsTracker {
-        override fun logScreenView(screenName: String) {}
-        override fun logEvent(eventName: String, parameters: Map<String, Any>?) {
-            loggedEvents += eventName
-        }
-        override fun logWordReviewed(rating: Int, wordLevel: Int, wasCorrect: Boolean) {
-            loggedEvents += "word_reviewed"
-        }
-        override fun logReviewSessionStart(cardCount: Int) {
-            loggedEvents += "review_session_start"
-        }
-        override fun logReviewSessionComplete(
-            cardsReviewed: Int,
-            durationMs: Long,
-            perfectCount: Int,
-        ) {}
-        override fun logWordsImported(count: Int, method: String) {}
-        override fun logWordMastered(level: Int) {}
-        override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
-        override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
-        override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
-        override fun logLanguageChanged(language: String) {}
-        override fun setUserProperty(name: String, value: String) {}
-        override fun updateUserProgress(totalWords: Int, matureWords: Int, currentStreak: Int) {}
-        override fun logError(error: Throwable, context: String?) {}
-        override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
-    }
-
     private fun fakeAnalyticsRecorder() = object : IAnalyticsRecorder {
-        override suspend fun startSession(sessionId: String, reviewType: String, startedAt: Long) = Try.success(Unit)
-        override suspend fun endSession(sessionId: String, endedAt: Long, durationMs: Long, totalCards: Int, correctCount: Int, incorrectCount: Int, completedNormally: Boolean) = Try.success(Unit)
-        override suspend fun recordReviewEvent(params: ReviewEventParams) = Try.success(Unit)
-        override suspend fun retryPendingSync() = Try.success(Unit)
+        override suspend fun startSession(sessionId: String, reviewType: String, startedAt: Long): Try<Unit> =
+            Try.success(Unit)
+        override suspend fun endSession(
+            sessionId: String, endedAt: Long, durationMs: Long,
+            totalCards: Int, correctCount: Int, incorrectCount: Int, completedNormally: Boolean,
+        ): Try<Unit> = Try.success(Unit)
+        override suspend fun recordReviewEvent(params: ReviewEventParams): Try<Unit> = Try.success(Unit)
+        override suspend fun retryPendingSync(): Try<Unit> = Try.success(Unit)
     }
 
+    // ---------------------------------------------------------------------------
+    // ViewModel factory
+    // ---------------------------------------------------------------------------
 
     private fun createViewModel(): ReviewViewModel {
         val wordRepo = fakeWordRepo()
@@ -170,124 +172,305 @@ class ReviewViewModelTest : ViewModelTestBase() {
         val ttsRepo = fakeTtsRepo()
         val recorder = fakeAnalyticsRecorder()
         return ReviewViewModel(
-            wordUseCases = ReviewWordUseCases(
+            loadQueueUseCase = LoadReviewQueueUseCase(
                 getDueWords = GetDueWordsUseCase(wordRepo),
                 getWordsByStage = GetWordsByStageUseCase(wordRepo),
                 getDueWordsByTag = GetDueWordsByTagUseCase(wordRepo),
-                reviewWord = ReviewWordUseCase(wordRepo, GetReviewSettingsUseCase()),
-                updateWord = UpdateWordUseCase(wordRepo),
-                deleteWord = DeleteWordUseCase(
-                    wordRepo, fakes.FakeWidgetRefresher(), fakes.fakeGetDailyWidgetDataUseCase(wordRepo)
-                ),
             ),
-            sessionUseCases = ReviewSessionUseCases(
-                startSession = StartStudySessionUseCase(recorder),
-                endSession = EndStudySessionUseCase(recorder),
-                recordEvent = RecordReviewEventUseCase(recorder),
-                recordStreak = RecordStreakActivityUseCase(fakeStreakRepo()),
-                getSettings = GetReviewSettingsUseCase(),
+            reviewWordUseCase = ReviewWordUseCase(wordRepo),
+            updateWordUseCase = UpdateWordUseCase(wordRepo),
+            deleteWordUseCase = DeleteWordUseCase(
+                wordRepo, FakeWidgetRefresher(), fakeGetDailyWidgetDataUseCase(wordRepo),
             ),
+            startSessionUseCase = StartStudySessionUseCase(recorder),
+            endSessionUseCase = EndStudySessionUseCase(recorder),
+            recordEventUseCase = RecordReviewEventUseCase(recorder),
+            recordStreakUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
             speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
-            analyticsTracker = fakeAnalytics(),
-            settingsRepository = settingsRepo,
-            ttsRepository = ttsRepo,
+            observeTtsState = ObserveTtsStateUseCase(ttsRepo),
+            observeSpeechRate = ObserveSpeechRateUseCase(settingsRepo),
+            setSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),
+            analyticsTracker = FakeAnalyticsTracker(),
         )
     }
 
-    @Test
-    fun `startDueReview loads due words`() = runTest {
-        val vm = createViewModel()
-        vm.startDueReview()
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertEquals(2, state.value.size)
-    }
+    // ---------------------------------------------------------------------------
+    // Initial state
+    // ---------------------------------------------------------------------------
 
     @Test
-    fun `loadWordsByStage loads stage words`() = runTest {
+    fun `initial review state is Idle`() {
         val vm = createViewModel()
-        vm.loadWordsByStage(LearningStage.LEVEL_0_FRESH)
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertEquals(1, state.value.size)
-    }
-
-    @Test
-    fun `deleteWord removes word from review list`() = runTest {
-        val vm = createViewModel()
-        vm.startDueReview()
-        vm.deleteWord(1)
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertEquals(1, state.value.size)
-        assertEquals(2, state.value.first().id)
-    }
-
-    @Test
-    fun `deleteWord failure does not remove word`() = runTest {
-        deleteResult = Try.failure(RuntimeException("fail"))
-        val vm = createViewModel()
-        vm.startDueReview()
-        vm.deleteWord(1)
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertEquals(2, state.value.size)
-    }
-
-    @Test
-    fun `updateWord replaces word in review list`() = runTest {
-        val vm = createViewModel()
-        vm.startDueReview()
-        val updatedWord = testWord(1).copy(originalWord = "updated")
-        vm.updateWord(updatedWord)
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertEquals("updated", state.value.first { it.id == 1 }.originalWord)
-    }
-
-    @Test
-    fun `onReviewSessionComplete resets review state`() = runTest {
-        val vm = createViewModel()
-        // Don't load words first — recordActivity calls logNetwork which uses
-        // android.util.Log.d (unmocked in unit tests). With count=0, recordActivity is skipped.
-        vm.onReviewSessionComplete()
-        assertIs<UiState.Loading>(vm.currentState.review.wordListState)
-    }
-
-    @Test
-    fun `reviewWord logs analytics`() = runTest {
-        val vm = createViewModel()
-        vm.reviewWord(testWord(1), quality = 1)
-        assertTrue("word_reviewed" in loggedEvents)
-    }
-
-    @Test
-    fun `startStageReview loads stage words and logs analytics`() = runTest {
-        val vm = createViewModel()
-        vm.startStageReview(LearningStage.LEVEL_0_FRESH)
-
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertTrue("review_session_start" in loggedEvents)
-    }
-
-    @Test
-    fun `updateWord failure does not modify review list`() = runTest {
-        updateResult = Try.failure(RuntimeException("fail"))
-        val vm = createViewModel()
-        vm.startDueReview()
-
-        val updatedWord = testWord(1).copy(originalWord = "should-not-appear")
-        vm.updateWord(updatedWord)
-
-        val state = vm.currentState.review.wordListState
-        assertIs<UiState.Loaded<List<Word>>>(state)
-        assertEquals("word1", state.value.first { it.id == 1 }.originalWord)
+        assertIs<ReviewState.Idle>(vm.currentState.review)
     }
 
     @Test
     fun `initial ttsState is Idle`() {
         val vm = createViewModel()
         assertEquals(TtsState.Idle, vm.currentState.ttsState)
+    }
+
+    // ---------------------------------------------------------------------------
+    // startSession
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `startSession DueCards transitions to Active with due words`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Active>(state)
+        assertEquals(2, state.words.size)
+        assertEquals(0, state.currentIndex)
+    }
+
+    @Test
+    fun `startSession ByStage transitions to Active with stage words`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.ByStage(LearningStage.LEVEL_0_FRESH))
+        val state = vm.currentState.review
+        assertIs<ReviewState.Active>(state)
+        assertEquals(1, state.words.size)
+        assertEquals(testWord(3).id, state.words.first().id)
+    }
+
+    @Test
+    fun `startSession with empty word list transitions to Empty`() = runTest {
+        dueWords = emptyList()
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        assertIs<ReviewState.Empty>(vm.currentState.review)
+    }
+
+    @Test
+    fun `startSession load failure transitions to Error`() = runTest {
+        throwOnLoad = true
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Error>(state)
+        assertIs<ReviewError.Network>(state.error)
+        assertEquals(ReviewSource.DueCards, state.source)
+    }
+
+    @Test
+    fun `startSession error source is preserved for retry`() = runTest {
+        throwOnLoad = true
+        val vm = createViewModel()
+        val source = ReviewSource.ByStage(LearningStage.LEVEL_1_LEARNING)
+        vm.startSession(source)
+        val state = vm.currentState.review as ReviewState.Error
+        assertEquals(source, state.source)
+    }
+
+    // ---------------------------------------------------------------------------
+    // reviewWord
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `reviewWord correct increments knownCount and advances index`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Active>(state)
+        assertEquals(1, state.knownCount)
+        assertEquals(0, state.unknownCount)
+        assertEquals(1, state.currentIndex)
+    }
+
+    @Test
+    fun `reviewWord incorrect increments unknownCount and advances index`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 0)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Active>(state)
+        assertEquals(0, state.knownCount)
+        assertEquals(1, state.unknownCount)
+        assertEquals(1, state.currentIndex)
+    }
+
+    @Test
+    fun `reviewWord on last card transitions to Completed`() = runTest {
+        dueWords = listOf(testWord(1))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1)
+        assertIs<ReviewState.Completed>(vm.currentState.review)
+    }
+
+    @Test
+    fun `completed session tracks known and unknown counts correctly`() = runTest {
+        val vm = createViewModel() // 2 words
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1) // correct → knownCount=1, advance to index 1
+        vm.reviewWord(quality = 0) // incorrect → unknownCount=1, last card → Completed
+        val state = vm.currentState.review
+        assertIs<ReviewState.Completed>(state)
+        assertEquals(1, state.knownCount)
+        assertEquals(1, state.unknownCount)
+    }
+
+    // ---------------------------------------------------------------------------
+    // flipCard
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `flipCard toggles isFlipped`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        assertFalse((vm.currentState.review as ReviewState.Active).isFlipped)
+        vm.flipCard()
+        assertTrue((vm.currentState.review as ReviewState.Active).isFlipped)
+        vm.flipCard()
+        assertFalse((vm.currentState.review as ReviewState.Active).isFlipped)
+    }
+
+    // ---------------------------------------------------------------------------
+    // Navigation
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `navigateForward increments currentIndex and resets isFlipped`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.flipCard()
+        vm.navigateForward()
+        val state = vm.currentState.review as ReviewState.Active
+        assertEquals(1, state.currentIndex)
+        assertFalse(state.isFlipped)
+    }
+
+    @Test
+    fun `navigateBack decrements currentIndex and resets isFlipped`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.navigateForward()
+        vm.flipCard()
+        vm.navigateBack()
+        val state = vm.currentState.review as ReviewState.Active
+        assertEquals(0, state.currentIndex)
+        assertFalse(state.isFlipped)
+    }
+
+    @Test
+    fun `navigateBack at index 0 is a no-op`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.navigateBack()
+        assertEquals(0, (vm.currentState.review as ReviewState.Active).currentIndex)
+    }
+
+    @Test
+    fun `navigateForward at last index is a no-op`() = runTest {
+        dueWords = listOf(testWord(1))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.navigateForward()
+        assertEquals(0, (vm.currentState.review as ReviewState.Active).currentIndex)
+    }
+
+    // ---------------------------------------------------------------------------
+    // deleteWord
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `deleteWord removes word from list and stays Active`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.deleteWord(1)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Active>(state)
+        assertEquals(1, state.words.size)
+        assertEquals(2, state.words.first().id)
+    }
+
+    @Test
+    fun `deleteWord adjusts currentIndex when deleting at last position`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.navigateForward() // move to index 1
+        vm.deleteWord(2)     // delete the word at index 1
+        val state = vm.currentState.review as ReviewState.Active
+        assertEquals(1, state.words.size)
+        assertEquals(0, state.currentIndex) // coerced back to 0
+    }
+
+    @Test
+    fun `deleteWord on last remaining word transitions to Completed`() = runTest {
+        dueWords = listOf(testWord(1))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.deleteWord(1)
+        assertIs<ReviewState.Completed>(vm.currentState.review)
+    }
+
+    @Test
+    fun `deleteWord failure does not modify word list`() = runTest {
+        deleteResult = Try.failure(RuntimeException("fail"))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.deleteWord(1)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Active>(state)
+        assertEquals(2, state.words.size)
+    }
+
+    // ---------------------------------------------------------------------------
+    // updateWord
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `updateWord replaces the matching word in the list`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val updated = testWord(1).copy(originalWord = "updated")
+        vm.updateWord(updated)
+        val state = vm.currentState.review as ReviewState.Active
+        assertEquals("updated", state.words.first { it.id == 1 }.originalWord)
+    }
+
+    @Test
+    fun `updateWord failure does not modify word list`() = runTest {
+        updateResult = Try.failure(RuntimeException("fail"))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.updateWord(testWord(1).copy(originalWord = "should-not-appear"))
+        val state = vm.currentState.review as ReviewState.Active
+        assertEquals("word1", state.words.first { it.id == 1 }.originalWord)
+    }
+
+    // ---------------------------------------------------------------------------
+    // Session lifecycle
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `abandonSession resets review state to Idle`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        assertIs<ReviewState.Active>(vm.currentState.review)
+        vm.abandonSession()
+        assertIs<ReviewState.Idle>(vm.currentState.review)
+    }
+
+    @Test
+    fun `abandonSession before startSession is a no-op`() = runTest {
+        val vm = createViewModel()
+        vm.abandonSession() // no session context — should not throw
+        assertIs<ReviewState.Idle>(vm.currentState.review)
+    }
+
+    @Test
+    fun `acknowledgeCompletion emits SessionComplete and resets to Idle`() = runTest {
+        dueWords = listOf(testWord(1)) // single word for quick completion
+        val vm = createViewModel()
+        vm.effects.test {
+            vm.startSession(ReviewSource.DueCards)
+            vm.reviewWord(quality = 1) // last card → Completed
+            vm.acknowledgeCompletion()
+            assertEquals(ReviewEffect.SessionComplete, awaitItem())
+        }
+        assertIs<ReviewState.Idle>(vm.currentState.review)
     }
 }

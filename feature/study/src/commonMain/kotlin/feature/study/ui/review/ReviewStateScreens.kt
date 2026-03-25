@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import components.EmptyScreen
 import components.ErrorScreen
 import components.LoadingScreen
+import feature.study.model.ReviewError
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.no_words_to_review
 import lexicon.resources.generated.resources.retry
@@ -23,24 +24,23 @@ fun LoadingState() {
 
 @Composable
 fun ErrorState(
-    message: String,
-    onRetry: () -> Unit
+    error: ReviewError,
+    onRetry: () -> Unit,
 ) {
-    val isNetworkError = message.contains("timeout", ignoreCase = true) ||
-        message.contains("connect", ignoreCase = true) ||
-        message.contains("network", ignoreCase = true) ||
-        message.contains("internet", ignoreCase = true)
-
     ErrorScreen(
-        message = if (isNetworkError) {
-            "You're offline -- your words are stored locally, " +
-                "but we couldn't load them right now. Check your connection and try again."
-        } else {
-            message.ifEmpty { "Something went wrong loading your words." }
+        message = when (error) {
+            is ReviewError.Network ->
+                "You're offline -- your words are stored locally, " +
+                    "but we couldn't load them right now. Check your connection and try again."
+            is ReviewError.Unknown ->
+                error.message.ifEmpty { "Something went wrong loading your words." }
         },
-        title = if (isNetworkError) "No Connection" else null,
+        title = when (error) {
+            is ReviewError.Network -> "No Connection"
+            is ReviewError.Unknown -> null
+        },
         retryLabel = stringResource(Res.string.retry),
-        onRetry = onRetry
+        onRetry = onRetry,
     )
 }
 

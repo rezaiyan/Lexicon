@@ -9,6 +9,7 @@ import data.streak.repository.StreakRepositoryImpl
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.settings.usecase.GetReviewSettingsUseCase
+import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.GetSkipTagSelectorUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
@@ -43,6 +44,7 @@ fun settingsModule() = module {
     // Use Cases - Settings Read
     singleOf(::GetCurrentLanguageUseCase)
     single { GetReviewSettingsUseCase() }
+    singleOf(::ObserveSpeechRateUseCase)
 
     // Use Cases - Settings Write
     singleOf(::SetLanguageUseCase)
