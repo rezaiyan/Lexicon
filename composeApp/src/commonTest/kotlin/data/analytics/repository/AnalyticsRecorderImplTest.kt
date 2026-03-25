@@ -66,27 +66,32 @@ class AnalyticsRecorderImplTest {
         reviewedAt = 2000L,
     )
 
+    private fun recorder(
+        remote: FakeStatsDataSource = FakeStatsDataSource(),
+        queue: FakeAnalyticsLocalQueue = FakeAnalyticsLocalQueue(),
+    ) = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = queue)
+
+    // ── Existing tests ────────────────────────────────────────────────────────
+
     @Test
     fun `startSession buffers session in memory`() = runTest {
         val remote = FakeStatsDataSource()
-        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
+        val rec = recorder(remote = remote)
 
-        val result = recorder.startSession("s-1", "REVIEW", 1000L)
+        val result = rec.startSession("s-1", "REVIEW", 1000L)
 
         assertTrue(result.isSuccess)
-        // Nothing sent to remote yet
         assertTrue(remote.syncRequests.isEmpty())
     }
 
     @Test
     fun `recordReviewEvent buffers events in memory`() = runTest {
         val remote = FakeStatsDataSource()
-        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
-        recorder.startSession("s-1", "REVIEW", 1000L)
+        val rec = recorder(remote = remote)
+        rec.startSession("s-1", "REVIEW", 1000L)
 
-        recorder.recordReviewEvent(defaultEvent)
+        rec.recordReviewEvent(defaultEvent)
 
-        // Still nothing sent
         assertTrue(remote.syncRequests.isEmpty())
     }
 
@@ -94,18 +99,18 @@ class AnalyticsRecorderImplTest {
     fun `endSession sends buffered session and events to backend`() = runTest {
         val remote = FakeStatsDataSource()
         remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
-        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
+        val rec = recorder(remote = remote)
 
-        recorder.startSession("s-1", "REVIEW", 1000L)
-        recorder.recordReviewEvent(defaultEvent)
-        recorder.recordReviewEvent(
+        rec.startSession("s-1", "REVIEW", 1000L)
+        rec.recordReviewEvent(defaultEvent)
+        rec.recordReviewEvent(
             defaultEvent.copy(
                 wordId = 43, wordText = "world", wordTranslation = "mundo",
                 rating = 0, previousLevel = 1, newLevel = 0,
                 responseTimeMs = 2000, reviewedAt = 3000L,
             )
         )
-        val result = recorder.endSession("s-1", 5000L, 4000L, 2, 1, 1, true)
+        val result = rec.endSession("s-1", 5000L, 4000L, 2, 1, 1, true)
 
         assertTrue(result.isSuccess)
         assertEquals(1, remote.syncRequests.size)
@@ -135,23 +140,124 @@ class AnalyticsRecorderImplTest {
     fun `endSession succeeds even when remote fails`() = runTest {
         val remote = FakeStatsDataSource()
         remote.syncResult = Try.failure(RuntimeException("Network error"))
-        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
+        val rec = recorder(remote = remote)
 
-        recorder.startSession("s-1", "REVIEW", 1000L)
-        val result = recorder.endSession("s-1", 5000L, 4000L, 0, 0, 0, true)
+        rec.startSession("s-1", "REVIEW", 1000L)
+        rec.recordReviewEvent(defaultEvent)
+        val result = rec.endSession("s-1", 5000L, 4000L, 1, 1, 0, true)
 
-        // Should not propagate failure — analytics are best-effort
         assertTrue(result.isSuccess)
     }
 
     @Test
     fun `endSession without startSession is no-op`() = runTest {
         val remote = FakeStatsDataSource()
-        val recorder = AnalyticsRecorderImpl(remoteDataSource = remote, localQueue = FakeAnalyticsLocalQueue())
+        val rec = recorder(remote = remote)
 
-        val result = recorder.endSession("s-unknown", 5000L, 4000L, 0, 0, 0, false)
+        val result = rec.endSession("s-unknown", 5000L, 4000L, 0, 0, 0, false)
 
         assertTrue(result.isSuccess)
         assertTrue(remote.syncRequests.isEmpty())
+    }
+
+    // ── Empty session skip tests ───────────────────────────────────────────────
+
+    @Test
+    fun `endSession skips insert and sync for 0-card 0-event session`() = runTest {
+        val remote = FakeStatsDataSource()
+        val queue = FakeAnalyticsLocalQueue()
+        val rec = recorder(remote = remote, queue = queue)
+
+        rec.startSession("s-empty", "REVIEW", 1000L)
+        val result = rec.endSession("s-empty", 2000L, 1000L, 0, 0, 0, false)
+
+        assertTrue(result.isSuccess)
+        assertTrue(remote.syncRequests.isEmpty(), "Empty session should not be sent to backend")
+        assertTrue(queue.requests.isEmpty(), "Empty session should not be stored in queue")
+    }
+
+    @Test
+    fun `endSession still sends when totalCards is 0 but events exist`() = runTest {
+        val remote = FakeStatsDataSource()
+        val rec = recorder(remote = remote)
+
+        rec.startSession("s-1", "REVIEW", 1000L)
+        rec.recordReviewEvent(defaultEvent)
+        // totalCards=0 but we have an event — should still sync
+        val result = rec.endSession("s-1", 5000L, 4000L, 0, 0, 0, true)
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, remote.syncRequests.size)
+    }
+
+    // ── retryPendingSync tests ────────────────────────────────────────────────
+
+    @Test
+    fun `retryPendingSync is no-op when queue is empty`() = runTest {
+        val remote = FakeStatsDataSource()
+        val rec = recorder(remote = remote)
+
+        val result = rec.retryPendingSync()
+
+        assertTrue(result.isSuccess)
+        assertTrue(remote.syncRequests.isEmpty())
+    }
+
+    @Test
+    fun `retryPendingSync sends queued sessions to backend`() = runTest {
+        val remote = FakeStatsDataSource()
+        val queue = FakeAnalyticsLocalQueue()
+        val rec = recorder(remote = remote, queue = queue)
+
+        // Simulate a session that was queued but never synced (e.g. app was killed)
+        rec.startSession("s-1", "REVIEW", 1000L)
+        rec.recordReviewEvent(defaultEvent)
+        remote.syncResult = Try.failure(RuntimeException("offline")) // first sync fails
+        rec.endSession("s-1", 5000L, 4000L, 1, 1, 0, true)
+        remote.syncRequests.clear()
+
+        // Now app restarts, comes back online
+        remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
+        val result = rec.retryPendingSync()
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, remote.syncRequests.size)
+        assertEquals(1, remote.syncRequests.first().sessions.size)
+        assertEquals("s-1", remote.syncRequests.first().sessions.first().clientSessionId)
+    }
+
+    @Test
+    fun `retryPendingSync clears queue on success`() = runTest {
+        val remote = FakeStatsDataSource()
+        val queue = FakeAnalyticsLocalQueue()
+        val rec = recorder(remote = remote, queue = queue)
+
+        rec.startSession("s-1", "REVIEW", 1000L)
+        rec.recordReviewEvent(defaultEvent)
+        remote.syncResult = Try.failure(RuntimeException("offline"))
+        rec.endSession("s-1", 5000L, 4000L, 1, 1, 0, true)
+
+        remote.syncResult = Try.success(SyncAnalyticsResponse(listOf("s-1")))
+        rec.retryPendingSync()
+
+        assertTrue(queue.requests.isEmpty(), "Queue should be cleared after successful retry")
+    }
+
+    @Test
+    fun `retryPendingSync keeps queue on network failure`() = runTest {
+        val remote = FakeStatsDataSource()
+        val queue = FakeAnalyticsLocalQueue()
+        val rec = recorder(remote = remote, queue = queue)
+
+        rec.startSession("s-1", "REVIEW", 1000L)
+        rec.recordReviewEvent(defaultEvent)
+        remote.syncResult = Try.failure(RuntimeException("offline"))
+        rec.endSession("s-1", 5000L, 4000L, 1, 1, 0, true)
+        val queueSizeBefore = queue.requests.size
+
+        // Still offline
+        rec.retryPendingSync()
+
+        assertEquals(queueSizeBefore, queue.requests.size, "Queue should be preserved when retry fails")
     }
 }

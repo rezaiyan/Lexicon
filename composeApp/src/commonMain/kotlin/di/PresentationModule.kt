@@ -54,7 +54,7 @@ fun presentationModule() = module {
     }
 
     // App Navigation (stays in presentation — app-level coordinator)
-    viewModel { AppNavigationViewModel(onboardingRepository = get(), wordRepository = get()) }
+    viewModel { AppNavigationViewModel(onboardingRepository = get(), wordRepository = get(), retryAnalyticsSyncUseCase = get()) }
 
     // Import VM (stays in presentation — depends on Compose UI types)
     viewModel {

@@ -21,4 +21,6 @@ interface IAnalyticsRecorder {
     ): Try<Unit>
 
     suspend fun recordReviewEvent(params: ReviewEventParams): Try<Unit>
+
+    suspend fun retryPendingSync(): Try<Unit>
 }

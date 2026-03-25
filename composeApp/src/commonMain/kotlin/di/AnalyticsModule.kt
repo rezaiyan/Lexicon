@@ -13,6 +13,7 @@ import domain.analytics.repository.IAnalyticsRecorder
 import domain.analytics.repository.IAnalyticsStatsRepository
 import domain.analytics.repository.IAnalyticsWordRepository
 import domain.analytics.usecase.EndStudySessionUseCase
+import domain.analytics.usecase.RetryAnalyticsSyncUseCase
 import domain.analytics.usecase.GetAccuracyByLevelUseCase
 import domain.analytics.usecase.GetAccuracyTrendUseCase
 import domain.analytics.usecase.GetBestStudyTimeUseCase
@@ -46,6 +47,7 @@ fun analyticsModule() = module {
     singleOf(::StartStudySessionUseCase)
     singleOf(::EndStudySessionUseCase)
     singleOf(::RecordReviewEventUseCase)
+    singleOf(::RetryAnalyticsSyncUseCase)
 
     // Use Cases — querying
     singleOf(::GetStudyInsightsUseCase)
