@@ -31,6 +31,7 @@ import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.ObserveAuthStateUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import io.ktor.client.HttpClient
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
