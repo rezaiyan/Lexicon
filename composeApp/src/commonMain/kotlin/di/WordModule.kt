@@ -12,6 +12,7 @@ import data.word.local.IWordLocalDataSource
 import data.word.local.WordLocalDataSource
 import data.word.remote.IWordRemoteDataSource
 import data.word.remote.WordRemoteDataSource
+import data.word.repository.ReviewSyncRepository
 import data.word.repository.WordRepositoryImpl
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
@@ -30,6 +31,7 @@ import domain.tag.usecase.GetDueTagsUseCase
 import domain.tag.usecase.GetTagsByLevelUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.tag.usecase.RenameTagUseCase
+import domain.word.repository.IReviewSyncRepository
 import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
 import domain.word.service.ImportValidationService
@@ -47,6 +49,7 @@ import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
+import domain.word.usecase.FlushReviewSyncQueueUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import domain.word.usecase.UpdateWordUseCase
@@ -84,6 +87,8 @@ fun wordModule() = module {
     single<IAiRemoteDataSource> { AiRemoteDataSource(apiClient = get()) }
 
     // Repositories
+    single<IReviewSyncRepository> { ReviewSyncRepository(queries = get()) }
+
     single<IWordRepository> {
         WordRepositoryImpl(
             localDataSource = get(),
@@ -116,6 +121,7 @@ fun wordModule() = module {
     singleOf(::IsAiAvailableUseCase)
     singleOf(::ExtractVocabularyFromImageUseCase)
     singleOf(::SyncRemoteToLocalUseCase)
+    singleOf(::FlushReviewSyncQueueUseCase)
 
     // Use Cases - Word Management
     singleOf(::GetAllWordsUseCase)

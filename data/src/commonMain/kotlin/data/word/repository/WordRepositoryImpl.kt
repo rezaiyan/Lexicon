@@ -97,6 +97,15 @@ class WordRepositoryImpl(
         }
     }
 
+    override suspend fun updateWordLocal(word: Word): Try<Unit> = Try {
+        localDataSource.updateWord(word)
+    }
+
+    override suspend fun batchSyncWords(words: List<Word>): Try<Unit> {
+        if (words.isEmpty()) return Try.success(Unit)
+        return remoteSyncHandler.syncWordsToRemote(words)
+    }
+
     override suspend fun deleteWord(id: Int): Try<Unit> {
         return remoteSyncHandler.syncWordDeletionToRemote(id.toLong())
             .fold(

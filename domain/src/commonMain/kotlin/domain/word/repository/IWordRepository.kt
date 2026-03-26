@@ -19,6 +19,10 @@ interface IWordRepository {
     suspend fun getWordById(id: Int): Word?
     suspend fun insertWords(words: List<Word>): Try<Int>
     suspend fun updateWord(word: Word): Try<Unit>
+    /** Update word in local DB only — no remote sync. Used during review sessions; batch sync via [batchSyncWords]. */
+    suspend fun updateWordLocal(word: Word): Try<Unit>
+    /** Batch-sync already-locally-updated words to the remote backend in a single request. */
+    suspend fun batchSyncWords(words: List<Word>): Try<Unit>
     suspend fun deleteWord(id: Int): Try<Unit>
     fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress>
     fun updateWordsLanguages(

@@ -64,6 +64,8 @@ class VocabularyViewModelTest : ViewModelTestBase() {
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
+        override suspend fun updateWordLocal(word: Word): Try<Unit> = Try.success(Unit)
+        override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeAnalytics() = object : IAnalyticsTracker {
@@ -181,6 +183,8 @@ class VocabularyViewModelTest : ViewModelTestBase() {
             override suspend fun getTotalCount(): Try<Int> = Try.success(0)
             override suspend fun getDueCount(): Try<Int> = Try.success(0)
             override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
+            override suspend fun updateWordLocal(word: Word): Try<Unit> = Try.success(Unit)
+            override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
         }
         val failVm = VocabularyViewModel(
             getDueWordsUseCase = GetDueWordsUseCase(failingRepo),

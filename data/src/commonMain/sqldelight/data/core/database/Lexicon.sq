@@ -255,6 +255,25 @@ ORDER BY
     CASE WHEN lastReviewDate = 0 THEN 0 ELSE 1 END,
     lastReviewDate ASC;
 
+-- ReviewSyncQueue table (persists reviewed word IDs for deferred batch sync)
+CREATE TABLE ReviewSyncQueue (
+    wordId INTEGER NOT NULL PRIMARY KEY
+);
+
+-- ReviewSyncQueue queries
+
+insertReviewSyncEntry:
+INSERT OR IGNORE INTO ReviewSyncQueue(wordId) VALUES (?);
+
+getAllReviewSyncEntries:
+SELECT wordId FROM ReviewSyncQueue;
+
+deleteReviewSyncEntries:
+DELETE FROM ReviewSyncQueue WHERE wordId IN ?;
+
+clearReviewSyncQueue:
+DELETE FROM ReviewSyncQueue;
+
 -- AnalyticsSyncQueue table (persists failed sync requests across app restarts)
 CREATE TABLE AnalyticsSyncQueue (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

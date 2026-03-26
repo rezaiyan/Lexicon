@@ -19,6 +19,8 @@ class FakeWordRepository : IWordRepository {
 
     var insertResult: Try<Int> = Try.success(0)
     var updateResult: Try<Unit> = Try.success(Unit)
+    var updateLocalResult: Try<Unit> = Try.success(Unit)
+    var batchSyncResult: Try<Unit> = Try.success(Unit)
     var deleteResult: Try<Unit> = Try.success(Unit)
     var syncResult: Try<Unit> = Try.success(Unit)
     var totalCountResult: Try<Int> = Try.success(0)
@@ -26,7 +28,11 @@ class FakeWordRepository : IWordRepository {
 
     var insertCallCount = 0
     var updateCallCount = 0
+    var updateLocalCallCount = 0
+    var batchSyncCallCount = 0
     var lastUpdatedWord: Word? = null
+    var lastUpdatedLocalWord: Word? = null
+    var lastBatchSyncedWords: List<Word> = emptyList()
     var syncWithRemoteCalled = false
     var syncRemoteToLocalCalled = false
 
@@ -49,6 +55,18 @@ class FakeWordRepository : IWordRepository {
         lastUpdatedWord = word
         updatedWords.add(word)
         return updateResult
+    }
+
+    override suspend fun updateWordLocal(word: Word): Try<Unit> {
+        updateLocalCallCount++
+        lastUpdatedLocalWord = word
+        return updateLocalResult
+    }
+
+    override suspend fun batchSyncWords(words: List<Word>): Try<Unit> {
+        batchSyncCallCount++
+        lastBatchSyncedWords = words
+        return batchSyncResult
     }
 
     override suspend fun deleteWord(id: Int): Try<Unit> {

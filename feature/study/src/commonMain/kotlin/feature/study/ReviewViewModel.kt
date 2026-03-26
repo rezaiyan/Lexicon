@@ -20,6 +20,7 @@ import domain.word.model.Word
 import domain.study.usecase.GenerateSessionIdUseCase
 import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
+import domain.word.usecase.FlushReviewSyncQueueUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
@@ -39,6 +40,7 @@ import kotlin.time.Clock
 class ReviewViewModel(
     private val loadQueueUseCase: LoadReviewQueueUseCase,
     private val reviewWordUseCase: ReviewWordUseCase,
+    private val flushReviewSyncQueueUseCase: FlushReviewSyncQueueUseCase,
     private val updateWordUseCase: UpdateWordUseCase,
     private val deleteWordUseCase: DeleteWordUseCase,
     private val startSessionUseCase: StartStudySessionUseCase,
@@ -46,8 +48,8 @@ class ReviewViewModel(
     private val recordEventUseCase: RecordReviewEventUseCase,
     private val recordStreakUseCase: RecordStreakActivityUseCase,
     private val speakWordUseCase: SpeakWordUseCase,
-    private val observeTtsState: ObserveTtsStateUseCase,
-    private val observeSpeechRate: ObserveSpeechRateUseCase,
+    observeTtsState: ObserveTtsStateUseCase,
+    observeSpeechRate: ObserveSpeechRateUseCase,
     private val setSpeechRateUseCase: SetTtsSpeechRateUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val generateSessionIdUseCase: GenerateSessionIdUseCase,
@@ -107,6 +109,7 @@ class ReviewViewModel(
     fun startSession(source: ReviewSource) {
         viewModelScope.launch {
             updateState { copy(review = ReviewState.Loading) }
+            flushReviewSyncQueueUseCase() // Retry any pending syncs from prior sessions (best-effort)
             loadQueueUseCase(source)
                 .onSuccess { words ->
                     if (words.isEmpty()) {
@@ -255,7 +258,10 @@ class ReviewViewModel(
 
     fun abandonSession() {
         val ctx = sessionContext ?: return
-        viewModelScope.launch { endSessionInternal(ctx, completedNormally = false) }
+        viewModelScope.launch {
+            endSessionInternal(ctx, completedNormally = false)
+            flushReviewSyncQueueUseCase() // Sync words reviewed before abandoning
+        }
         updateState { copy(review = ReviewState.Idle) }
     }
 
@@ -290,6 +296,7 @@ class ReviewViewModel(
     private suspend fun completeSession(knownCount: Int, unknownCount: Int) {
         val ctx = sessionContext ?: return
         endSessionInternal(ctx, completedNormally = true)
+        flushReviewSyncQueueUseCase() // Batch sync all reviewed words; failure keeps them queued for retry
         if (ctx.reviewed > 0) {
             recordStreakUseCase(ctx.reviewed)
                 .onSuccess { analyticsTracker.logStreakUpdated(days = it.currentStreak, isNewRecord = false) }

@@ -3,8 +3,10 @@ package domain.word.usecase
 import core.common.Try
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
+import domain.word.model.ReviewWordResult
 import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
+import domain.word.repository.IReviewSyncRepository
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +24,94 @@ import kotlin.test.assertTrue
 class ReviewWordUseCaseTest {
 
     private val wordRepository = FakeWordRepository()
-    private val useCase = ReviewWordUseCase(wordRepository)
+    private val reviewSyncRepository = FakeReviewSyncRepository()
+    private val useCase = ReviewWordUseCase(wordRepository, reviewSyncRepository)
+
+    // ---------------------------------------------------------------------------
+    // Outbox / enqueue path tests
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `successful review calls updateWordLocal not updateWord`() = runTest {
+        val word = createWord(level = 2, repetitions = 0, easeFactor = 2.0f, interval = 3)
+
+        useCase(word, quality = 1)
+
+        assertNotNull(wordRepository.lastUpdatedLocalWord)
+        assertEquals(0, wordRepository.updateWordCallCount)
+    }
+
+    @Test
+    fun `successful review enqueues the updated word ID`() = runTest {
+        val word = createWord(id = 7, level = 1, repetitions = 0, easeFactor = 2.0f, interval = 10)
+
+        val result = useCase(word, quality = 1)
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, reviewSyncRepository.enqueueCallCount)
+        assertEquals(7, reviewSyncRepository.lastEnqueuedId)
+    }
+
+    @Test
+    fun `updateWordLocal failure stops chain — enqueue NOT called`() = runTest {
+        wordRepository.updateLocalResult = Try.failure(RuntimeException("local DB write failed"))
+        val word = createWord(level = 0, repetitions = 0, easeFactor = 2.5f, interval = 1)
+
+        val result = useCase(word, quality = 1)
+
+        assertTrue(result.isFailure)
+        assertEquals(0, reviewSyncRepository.enqueueCallCount)
+    }
+
+    @Test
+    fun `updateWordLocal failure returns the original error`() = runTest {
+        val error = RuntimeException("storage full")
+        wordRepository.updateLocalResult = Try.failure(error)
+        val word = createWord(level = 0, repetitions = 0, easeFactor = 2.5f, interval = 1)
+
+        val result = useCase(word, quality = 1)
+
+        assertTrue(result.isFailure)
+        assertEquals("storage full", (result as Try.Failure).throwable.message)
+    }
+
+    @Test
+    fun `enqueue failure returns failure`() = runTest {
+        reviewSyncRepository.enqueueResult = Try.failure(RuntimeException("queue DB error"))
+        val word = createWord(level = 0, repetitions = 0, easeFactor = 2.5f, interval = 1)
+
+        val result = useCase(word, quality = 1)
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `enqueue failure is returned after updateWordLocal succeeds`() = runTest {
+        reviewSyncRepository.enqueueResult = Try.failure(RuntimeException("queue DB error"))
+        val word = createWord(level = 1, repetitions = 0, easeFactor = 2.0f, interval = 10)
+
+        val result = useCase(word, quality = 1)
+
+        assertTrue(result.isFailure)
+        // updateWordLocal was still called
+        assertNotNull(wordRepository.lastUpdatedLocalWord)
+    }
+
+    @Test
+    fun `successful review returns ReviewWordResult with updated word and previous level`() = runTest {
+        val word = createWord(level = 3, repetitions = 0, easeFactor = 2.0f, interval = 3)
+
+        val result = useCase(word, quality = 1)
+
+        assertTrue(result.isSuccess)
+        val reviewResult = (result as Try.Success<ReviewWordResult>).value
+        assertEquals(3, reviewResult.previousLevel)
+        assertEquals(4, reviewResult.updatedWord.level) // advanced level
+    }
+
+    // ---------------------------------------------------------------------------
+    // SRS algorithm tests (quality = 0 → forgot)
+    // ---------------------------------------------------------------------------
 
     @Test
     fun `forgot answer drops level by penalty and resets repetitions`() = runTest {
@@ -31,14 +120,14 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 0)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(1, updated.level)
         assertEquals(0, updated.repetitions)
         assertEquals(10, updated.interval) // level 1 interval (10 minutes)
         assertEquals(2.3f, updated.easeFactor)
         assertTrue(updated.nextReviewDate > word.nextReviewDate)
-        assertEquals(1, wordRepository.updateCount)
+        assertEquals(1, wordRepository.updateLocalCallCount)
     }
 
     @Test
@@ -48,7 +137,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 1)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(1, updated.level)
         assertEquals(0, updated.repetitions)
@@ -64,7 +153,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 0)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(0, updated.level)
         assertEquals(0, updated.repetitions)
@@ -78,7 +167,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 1)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(6, updated.level)
         assertEquals(3, updated.repetitions) // incremented
@@ -92,7 +181,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 1)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(6, updated.level)
         assertEquals(0, updated.repetitions) // Reset for new level
@@ -106,7 +195,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 1)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(6, updated.level) // Stays at 6
     }
@@ -118,7 +207,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 1)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(365, updated.interval) // Capped at 1 year
     }
@@ -129,7 +218,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 0)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(1.3f, updated.easeFactor) // Floor at 1.3
     }
@@ -140,7 +229,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 1)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(2.5f, updated.easeFactor) // Capped at 2.5
     }
@@ -150,7 +239,7 @@ class ReviewWordUseCaseTest {
         // Level 0 → level 1 (10 minutes in millis)
         val word0 = createWord(level = 0, repetitions = 0, easeFactor = 2.5f, interval = 1)
         useCase(word0, quality = 1)
-        val updated0 = wordRepository.lastUpdatedWord
+        val updated0 = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated0)
         assertEquals(1, updated0.level)
         // Level 1 interval = 10 minutes → next review is ~10 min from now
@@ -161,7 +250,7 @@ class ReviewWordUseCaseTest {
         // Level 1 → level 2 (1 day in millis)
         val word1 = createWord(level = 1, repetitions = 0, easeFactor = 2.5f, interval = 10)
         useCase(word1, quality = 1)
-        val updated1 = wordRepository.lastUpdatedWord
+        val updated1 = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated1)
         assertEquals(2, updated1.level)
         val oneDayInMillis = 24 * 60 * 60 * 1000L
@@ -176,7 +265,7 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 0)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(0, updated.level)
         assertEquals(1, updated.interval) // Level 0 interval
@@ -189,12 +278,16 @@ class ReviewWordUseCaseTest {
 
         useCase(word, quality = 5)
 
-        val updated = wordRepository.lastUpdatedWord
+        val updated = wordRepository.lastUpdatedLocalWord
         assertNotNull(updated)
         assertEquals(3, updated.level) // advanced from 2 → 3
         assertEquals(0, updated.repetitions)
         assertEquals(3, updated.interval) // level 3 interval
     }
+
+    // ---------------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------------
 
     private fun createWord(
         id: Int = 1,
@@ -203,7 +296,7 @@ class ReviewWordUseCaseTest {
         easeFactor: Float,
         interval: Int,
         lastReviewDate: Long = 0L,
-        nextReviewDate: Long = 0L
+        nextReviewDate: Long = 0L,
     ) = Word(
         id = id,
         originalWord = "hello",
@@ -216,19 +309,45 @@ class ReviewWordUseCaseTest {
         interval = interval,
         repetitions = repetitions,
         lastReviewDate = lastReviewDate,
-        nextReviewDate = nextReviewDate
+        nextReviewDate = nextReviewDate,
     )
 
+    // ---------------------------------------------------------------------------
+    // Fakes
+    // ---------------------------------------------------------------------------
+
+    private class FakeReviewSyncRepository : IReviewSyncRepository {
+        var enqueueCallCount = 0
+        var lastEnqueuedId: Int? = null
+        var enqueueResult: Try<Unit> = Try.success(Unit)
+
+        override suspend fun enqueue(wordId: Int): Try<Unit> {
+            enqueueCallCount++
+            lastEnqueuedId = wordId
+            return enqueueResult
+        }
+
+        override suspend fun dequeueAll(): Try<List<Int>> = Try.success(emptyList())
+    }
+
     private class FakeWordRepository : IWordRepository {
-        var lastUpdatedWord: Word? = null
-        var updateCount: Int = 0
+        var lastUpdatedLocalWord: Word? = null
+        var updateLocalCallCount: Int = 0
+        var updateWordCallCount: Int = 0
+        var updateLocalResult: Try<Unit> = Try.success(Unit)
+
+        override suspend fun updateWordLocal(word: Word): Try<Unit> {
+            updateLocalCallCount++
+            lastUpdatedLocalWord = word
+            return updateLocalResult
+        }
 
         override suspend fun updateWord(word: Word): Try<Unit> {
-            lastUpdatedWord = word
-            updateCount++
+            updateWordCallCount++
             return Try.success(Unit)
         }
 
+        override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
@@ -238,12 +357,12 @@ class ReviewWordUseCaseTest {
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
-
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
-        override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))
+        override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> =
+            flowOf(DeleteWordsProgress.Completed(0))
         override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
         override fun updateWordsLanguages(
             ids: List<Int>,

@@ -11,7 +11,7 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 fun studyModule() = module {
-    singleOf(::GenerateSessionIdUseCase)
+    single { GenerateSessionIdUseCase() }
     singleOf(::ResolveCardLanguageUseCase)
 
     viewModel {

@@ -1,0 +1,6 @@
+-- Migration from version 8 to version 9
+-- Adds ReviewSyncQueue table to persist reviewed word IDs for deferred batch sync
+
+CREATE TABLE ReviewSyncQueue (
+    wordId INTEGER NOT NULL PRIMARY KEY
+);

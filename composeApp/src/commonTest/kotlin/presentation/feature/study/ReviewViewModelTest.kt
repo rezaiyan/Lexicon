@@ -25,11 +25,13 @@ import domain.word.model.ProgressStats
 import domain.word.model.ReviewSource
 import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
+import domain.word.repository.IReviewSyncRepository
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.study.usecase.GenerateSessionIdUseCase
 import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
+import domain.word.usecase.FlushReviewSyncQueueUseCase
 import domain.word.usecase.GetDueWordsByTagUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
@@ -83,7 +85,27 @@ class ReviewViewModelTest : ViewModelTestBase() {
     // Fakes
     // ---------------------------------------------------------------------------
 
-    private fun fakeWordRepo() = object : IWordRepository {
+    /**
+     * A ReviewSyncRepository fake that tracks how many times dequeueAll is called.
+     * FlushReviewSyncQueueUseCase calls dequeueAll once per flush invocation, so
+     * dequeueAllCallCount is a reliable proxy for flush call count.
+     */
+    private class FakeReviewSyncRepository : IReviewSyncRepository {
+        var enqueueCallCount = 0
+        var dequeueAllCallCount = 0
+
+        override suspend fun enqueue(wordId: Int): Try<Unit> {
+            enqueueCallCount++
+            return Try.success(Unit)
+        }
+
+        override suspend fun dequeueAll(): Try<List<Int>> {
+            dequeueAllCallCount++
+            return Try.success(emptyList())
+        }
+    }
+
+    private inner class FakeWordRepo : IWordRepository {
         override fun getDueCards(): Flow<List<Word>> = if (throwOnLoad) {
             flow { throw RuntimeException("network connect failed") }
         } else {
@@ -97,6 +119,8 @@ class ReviewViewModelTest : ViewModelTestBase() {
         } else { flowOf(stageWords) }
         override suspend fun deleteWord(id: Int): Try<Unit> = deleteResult
         override suspend fun updateWord(word: Word): Try<Unit> = updateResult
+        override suspend fun updateWordLocal(word: Word): Try<Unit> = Try.success(Unit)
+        override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
@@ -167,8 +191,12 @@ class ReviewViewModelTest : ViewModelTestBase() {
     // ViewModel factory
     // ---------------------------------------------------------------------------
 
+    // Captured so individual tests can inspect flush call counts via dequeueAllCallCount.
+    private lateinit var syncRepo: FakeReviewSyncRepository
+
     private fun createViewModel(): ReviewViewModel {
-        val wordRepo = fakeWordRepo()
+        val wordRepo = FakeWordRepo()
+        syncRepo = FakeReviewSyncRepository()
         val settingsRepo = fakeSettingsRepo()
         val ttsRepo = fakeTtsRepo()
         val recorder = fakeAnalyticsRecorder()
@@ -178,7 +206,8 @@ class ReviewViewModelTest : ViewModelTestBase() {
                 getWordsByStage = GetWordsByStageUseCase(wordRepo),
                 getDueWordsByTag = GetDueWordsByTagUseCase(wordRepo),
             ),
-            reviewWordUseCase = ReviewWordUseCase(wordRepo),
+            reviewWordUseCase = ReviewWordUseCase(wordRepo, syncRepo),
+            flushReviewSyncQueueUseCase = FlushReviewSyncQueueUseCase(syncRepo, wordRepo),
             updateWordUseCase = UpdateWordUseCase(wordRepo),
             deleteWordUseCase = DeleteWordUseCase(
                 wordRepo, FakeWidgetRefresher(), fakeGetDailyWidgetDataUseCase(wordRepo),
@@ -266,6 +295,32 @@ class ReviewViewModelTest : ViewModelTestBase() {
         assertEquals(source, state.source)
     }
 
+    @Test
+    fun `startSession flushes the sync queue before loading words`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        // dequeueAll is called exactly once per FlushReviewSyncQueueUseCase invocation
+        assertEquals(1, syncRepo.dequeueAllCallCount)
+    }
+
+    @Test
+    fun `startSession flushes queue even when no words are due`() = runTest {
+        dueWords = emptyList()
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        assertEquals(1, syncRepo.dequeueAllCallCount)
+        assertIs<ReviewState.Empty>(vm.currentState.review)
+    }
+
+    @Test
+    fun `startSession flushes queue even when load fails`() = runTest {
+        throwOnLoad = true
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        assertEquals(1, syncRepo.dequeueAllCallCount)
+        assertIs<ReviewState.Error>(vm.currentState.review)
+    }
+
     // ---------------------------------------------------------------------------
     // reviewWord
     // ---------------------------------------------------------------------------
@@ -313,6 +368,68 @@ class ReviewViewModelTest : ViewModelTestBase() {
         assertIs<ReviewState.Completed>(state)
         assertEquals(1, state.knownCount)
         assertEquals(1, state.unknownCount)
+    }
+
+    // ---------------------------------------------------------------------------
+    // Session completion — flush
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `completing session by reviewing last word flushes the sync queue`() = runTest {
+        dueWords = listOf(testWord(1))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards) // flush call 1 (dequeueAll = 1)
+        vm.reviewWord(quality = 1)             // last card → completeSession → flush call 2
+        // Two flush invocations: startSession + completeSession
+        assertEquals(2, syncRepo.dequeueAllCallCount)
+    }
+
+    @Test
+    fun `completing session transitions to Completed and flush was called`() = runTest {
+        dueWords = listOf(testWord(1))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val dequeueCountBeforeComplete = syncRepo.dequeueAllCallCount
+        vm.reviewWord(quality = 1) // triggers completeSession
+        assertIs<ReviewState.Completed>(vm.currentState.review)
+        assertTrue(syncRepo.dequeueAllCallCount > dequeueCountBeforeComplete)
+    }
+
+    // ---------------------------------------------------------------------------
+    // abandonSession — flush
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `abandonSession resets review state to Idle`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        assertIs<ReviewState.Active>(vm.currentState.review)
+        vm.abandonSession()
+        assertIs<ReviewState.Idle>(vm.currentState.review)
+    }
+
+    @Test
+    fun `abandonSession before startSession is a no-op`() = runTest {
+        val vm = createViewModel()
+        vm.abandonSession() // no session context — should not throw
+        assertIs<ReviewState.Idle>(vm.currentState.review)
+    }
+
+    @Test
+    fun `abandonSession flushes the sync queue`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards) // flush call 1 (dequeueAll = 1)
+        val dequeueBeforeAbandon = syncRepo.dequeueAllCallCount
+        vm.abandonSession()                    // flush call 2
+        assertTrue(syncRepo.dequeueAllCallCount > dequeueBeforeAbandon)
+    }
+
+    @Test
+    fun `abandonSession without active session does not flush`() = runTest {
+        val vm = createViewModel()
+        // abandonSession is a no-op when sessionContext is null (never started)
+        vm.abandonSession()
+        assertEquals(0, syncRepo.dequeueAllCallCount)
     }
 
     // ---------------------------------------------------------------------------
@@ -445,24 +562,8 @@ class ReviewViewModelTest : ViewModelTestBase() {
     }
 
     // ---------------------------------------------------------------------------
-    // Session lifecycle
+    // acknowledgeCompletion
     // ---------------------------------------------------------------------------
-
-    @Test
-    fun `abandonSession resets review state to Idle`() = runTest {
-        val vm = createViewModel()
-        vm.startSession(ReviewSource.DueCards)
-        assertIs<ReviewState.Active>(vm.currentState.review)
-        vm.abandonSession()
-        assertIs<ReviewState.Idle>(vm.currentState.review)
-    }
-
-    @Test
-    fun `abandonSession before startSession is a no-op`() = runTest {
-        val vm = createViewModel()
-        vm.abandonSession() // no session context — should not throw
-        assertIs<ReviewState.Idle>(vm.currentState.review)
-    }
 
     @Test
     fun `acknowledgeCompletion emits SessionComplete and resets to Idle`() = runTest {

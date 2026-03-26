@@ -6,6 +6,7 @@ import core.common.flatMap
 import domain.settings.model.ReviewSettings
 import domain.word.model.ReviewWordResult
 import domain.word.model.Word
+import domain.word.repository.IReviewSyncRepository
 import domain.word.repository.IWordRepository
 import kotlin.math.max
 import kotlin.math.min
@@ -32,6 +33,7 @@ import kotlin.time.Clock
  */
 class ReviewWordUseCase(
     private val wordRepository: IWordRepository,
+    private val reviewSyncRepository: IReviewSyncRepository,
 ) : UseCase<ReviewWordUseCase.Params, ReviewWordResult> {
 
     companion object {
@@ -55,7 +57,8 @@ class ReviewWordUseCase(
     suspend operator fun invoke(word: Word, quality: Int): Try<ReviewWordResult> {
         val previousLevel = word.level
         val computed = applySpacedRepetition(word, quality)
-        return wordRepository.updateWord(computed)
+        return wordRepository.updateWordLocal(computed)
+            .flatMap { reviewSyncRepository.enqueue(computed.id) }
             .flatMap { Try.success(ReviewWordResult(computed, previousLevel)) }
     }
 
