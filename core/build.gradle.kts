@@ -56,6 +56,7 @@ private val revenuecatAndroidKey: String = requireConfigValue("REVENUECAT_ANDROI
 private val revenuecatIosKey: String = requireConfigValue("REVENUECAT_IOS_KEY")
 private val firebaseWebApiKey: String = getConfigValue("FIREBASE_WEB_API_KEY") ?: ""
 private val firebaseProjectId: String = getConfigValue("FIREBASE_PROJECT_ID") ?: ""
+private val firebaseAuthDomain: String = getConfigValue("FIREBASE_AUTH_DOMAIN") ?: "$firebaseProjectId.firebaseapp.com"
 
 val generatedWasmConfigDir = layout.buildDirectory.dir("generated/wasmJsConfig")
 
@@ -74,6 +75,7 @@ val generateWasmJsBuildConfig by tasks.registering {
     inputs.property("revenuecatIosKey", revenuecatIosKey)
     inputs.property("firebaseWebApiKey", firebaseWebApiKey)
     inputs.property("firebaseProjectId", firebaseProjectId)
+    inputs.property("firebaseAuthDomain", firebaseAuthDomain)
 
     doLast {
         fun String.quoted(): String = "\"${replace("\"", "\\\"")}\""
@@ -92,6 +94,7 @@ val generateWasmJsBuildConfig by tasks.registering {
             |    const val REVENUECAT_IOS_KEY: String = ${(props["revenuecatIosKey"] as String).quoted()}
             |    const val FIREBASE_WEB_API_KEY: String = ${(props["firebaseWebApiKey"] as String).quoted()}
             |    const val FIREBASE_PROJECT_ID: String = ${(props["firebaseProjectId"] as String).quoted()}
+            |    const val FIREBASE_AUTH_DOMAIN: String = ${(props["firebaseAuthDomain"] as String).quoted()}
             |}
             """.trimMargin()
         )

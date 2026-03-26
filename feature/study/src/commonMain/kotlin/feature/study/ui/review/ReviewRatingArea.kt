@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,7 +19,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import feature.study.ui.components.ReviewButton
 import lexicon.resources.generated.resources.Res
@@ -31,7 +36,7 @@ import theme.Theme
 /**
  * Review-mode rating area.
  *
- * The button row always occupies 68 dp so the layout never shifts.
+ * The button row always occupies 80 dp so the layout never shifts.
  * When the card is not yet flipped, the buttons fade + slide down out of view
  * using [graphicsLayer] (which doesn't affect measured size).
  * Once flipped, they ease back to their natural position — nudging the user
@@ -59,17 +64,18 @@ internal fun ReviewRatingArea(
     ) {
         Text(
             text = stringResource(Res.string.did_you_remember),
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = Theme.spacing.extraSmall3)
         )
 
-        // Row always has its full 68 dp height; graphicsLayer moves/fades it
+        // Row always has its full 80 dp height; graphicsLayer moves/fades it
         // without affecting sibling layout.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(68.dp)
+                .height(80.dp)
                 .graphicsLayer {
                     alpha = buttonAlpha
                     translationY = buttonTranslationY
@@ -81,6 +87,7 @@ internal fun ReviewRatingArea(
                     text = stringResource(data.textRes),
                     subText = stringResource(data.subTextRes),
                     color = data.color(),
+                    icon = data.icon,
                     modifier = Modifier.weight(1f),
                     enabled = isFlipped,
                     onClick = { onReview(data.rating) }
@@ -94,6 +101,7 @@ internal data class RatingButtonData(
     val rating: Int,
     val textRes: org.jetbrains.compose.resources.StringResource,
     val subTextRes: org.jetbrains.compose.resources.StringResource,
+    val icon: ImageVector,
     val color: @Composable () -> Color
 ) {
     companion object {
@@ -102,12 +110,14 @@ internal data class RatingButtonData(
                 rating = 0,
                 textRes = Res.string.forgot,
                 subTextRes = Res.string.restart,
+                icon = Icons.Default.Close,
                 color = { MaterialTheme.colorScheme.error }
             ),
             RatingButtonData(
                 rating = 1,
                 textRes = Res.string.remembered,
                 subTextRes = Res.string.advance,
+                icon = Icons.Default.Check,
                 color = { MaterialTheme.colorScheme.primary }
             )
         )

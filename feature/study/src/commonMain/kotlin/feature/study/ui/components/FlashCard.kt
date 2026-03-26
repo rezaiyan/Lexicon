@@ -12,6 +12,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -44,6 +45,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
@@ -66,6 +69,7 @@ import lexicon.resources.generated.resources.repeat_pronunciation
 import lexicon.resources.generated.resources.unknown
 import lexicon.resources.generated.resources.young
 import org.jetbrains.compose.resources.stringResource
+import theme.Theme
 
 @Composable
 fun FlashCard(
@@ -73,6 +77,7 @@ fun FlashCard(
     isFlipped: Boolean,
     onFlip: () -> Unit,
     modifier: Modifier = Modifier,
+    dragFeedbackY: Float = 0f,
     ttsState: TtsState = TtsState.Idle,
     onSpeakClick: (text: String, langCode: String) -> Unit = { _, _ -> }
 ) {
@@ -82,19 +87,30 @@ fun FlashCard(
         label = "cardFlip"
     )
 
-    // Front face = slightly elevated surface so it stands out from the background.
-    // Back face = primaryContainer to signal "answer revealed".
+    // Front face = neutral elevated surface — calm, focused "think about it" state.
+    // Back face = secondaryContainer (green) — subconscious "revealed / success" signal,
+    // the same reason spaced-repetition apps universally use green for the answer side.
     val cardColor by animateColorAsState(
-        targetValue = if (rotation > 90f) MaterialTheme.colorScheme.primaryContainer
+        targetValue = if (rotation > 90f) MaterialTheme.colorScheme.secondaryContainer
         else MaterialTheme.colorScheme.surfaceContainerHigh,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "cardColor"
     )
     val mainTextColor by animateColorAsState(
-        targetValue = if (rotation > 90f) MaterialTheme.colorScheme.onPrimaryContainer
+        targetValue = if (rotation > 90f) MaterialTheme.colorScheme.onSecondaryContainer
         else MaterialTheme.colorScheme.onSurface,
         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
         label = "mainTextColor"
+    )
+
+    // Subtle inner border: faint on front, slightly visible on back
+    val borderColor by animateColorAsState(
+        targetValue = if (rotation > 90f)
+            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.12f)
+        else
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.10f),
+        animationSpec = tween(durationMillis = 200),
+        label = "cardBorder"
     )
 
     // Press-to-scale for tactile flip feedback.
@@ -120,15 +136,25 @@ fun FlashCard(
         // Alpha for back-face elements: fades in as the card reveals its back.
         val backFaceAlpha = ((rotation - 90f) / 90f).coerceIn(0f, 1f)
 
+        // Shimmer gradient — a soft top highlight that gives depth to the card surface.
+        val shimmerGradient = Brush.verticalGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.07f),
+                Color.Transparent,
+            )
+        )
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(sizes.cardHeight)
+                .padding(horizontal = Theme.spacing.lg)
                 .graphicsLayer {
                     rotationY = rotation
                     cameraDistance = sizes.cameraDistancePx
                     scaleX = cardScale
                     scaleY = cardScale
+                    translationY = dragFeedbackY
                 },
             shape = RoundedCornerShape(sizes.cardCornerRadius),
             elevation = CardDefaults.cardElevation(sizes.cardElevation),
@@ -153,6 +179,14 @@ fun FlashCard(
                         onClickLabel = if (isFlipped) "Show original word" else "Reveal translation"
                     ) { onFlip() }
             ) {
+                // Top shimmer highlight — gives the card a subtle gloss/depth
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(sizes.cardHeight * 0.45f)
+                        .background(shimmerGradient)
+                )
+
                 // Level badge — top-end: always-visible context, never competes with the word
                 MasteryLevelBadge(
                     level = word.level,
@@ -251,12 +285,23 @@ fun FlashCard(
                         )
                     }
                 }
+
+                // Inner border overlay — last child so it draws on top of content
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(
+                            width = 1.dp,
+                            color = borderColor,
+                            shape = RoundedCornerShape(sizes.cardCornerRadius)
+                        )
+                )
             }
         }
     }
 }
 
-// ── Mastery level badge — lightweight pill chip ───────────────────────────────
+// ── Mastery level badge — pill chip ──────────────────────────────────────────
 
 @Composable
 fun MasteryLevelBadge(level: Int, isBackFace: Boolean = false, modifier: Modifier = Modifier) {
@@ -271,21 +316,27 @@ fun MasteryLevelBadge(level: Int, isBackFace: Boolean = false, modifier: Modifie
         else -> Pair(stringResource(Res.string.unknown), MaterialTheme.colorScheme.surfaceVariant)
     }
 
-    // On the back face (primaryContainer), use onPrimaryContainer so the label
+    // On the back face (secondaryContainer), use onSecondaryContainer so the label
     // always contrasts with the card background instead of blending with the word text.
     val displayColor = if (isBackFace) {
-        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.45f)
+        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.55f)
     } else {
-        masteryColor.copy(alpha = 0.7f)
+        masteryColor.copy(alpha = 0.85f)
     }
 
-    Text(
-        text = masteryText,
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.Medium,
-        color = displayColor,
+    Box(
         modifier = modifier
-    )
+            .clip(RoundedCornerShape(100.dp))
+            .background(displayColor.copy(alpha = 0.12f))
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = masteryText,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = displayColor,
+        )
+    }
 }
 
 // ── Speaker button with pulse & loading overlay ──────────────────────────────

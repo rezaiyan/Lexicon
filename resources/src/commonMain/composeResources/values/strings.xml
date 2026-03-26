@@ -4,14 +4,14 @@
     <string name="app_tagline">Master Your Vocabulary</string>
     <string name="app_description">Lexicon - Vocabulary Learning App</string>
     <string name="version">Version %1$d</string>
-    
+
     <!-- Time-based Greetings -->
     <string name="greeting_midnight">Burning the midnight oil?</string>
     <string name="greeting_morning">Good morning!</string>
     <string name="greeting_afternoon">Good afternoon!</string>
     <string name="greeting_evening">Good evening!</string>
     <string name="greeting_night">Good night!</string>
-    
+
     <!-- Common -->
     <string name="cancel">Cancel</string>
     <string name="done">Done</string>
@@ -21,12 +21,12 @@
     <string name="retry">Retry</string>
     <string name="change">Change</string>
     <string name="logout">Logout</string>
-    
+
     <!-- Navigation -->
     <string name="profile">Profile</string>
     <string name="study">Study</string>
     <string name="settings">Settings</string>
-    
+
     <!-- Settings Screen -->
     <string name="theme">Theme</string>
     <string name="translation_language">Translation Language</string>
@@ -36,7 +36,7 @@
     <string name="notification_on_alerts_enabled">On - Alerts enabled</string>
     <string name="upgrade">UPGRADE</string>
     <string name="version_format">Version %1$s</string>
-    
+
     <!-- Notifications -->
     <string name="notification_enabled">Enabled</string>
     <string name="notification_disabled">Disabled</string>
@@ -58,7 +58,7 @@
     <string name="notification_stay_motivated">Stay motivated with friendly reminders</string>
     <string name="notification_missing_nudges">Missing out on learning nudges</string>
     <string name="notification_gentle_reminders">We'll send you gentle reminders when you have words ready to review. Perfect timing, no spam!</string>
-    
+
     <!-- Profile Screen -->
     <string name="logout_title">Logout</string>
     <string name="logout_message">Are you sure you want to logout?</string>
@@ -76,7 +76,7 @@
     <string name="subscription_cancelled">Subscription Cancelled</string>
     <string name="subscription_expired">Subscription Expired</string>
     <string name="expires">Expires: %1$s</string>
-    
+
     <!-- Enhanced Delete Account Flow -->
     <string name="delete_account_hidden_title">Account Deletion</string>
     <string name="delete_account_hidden_message">You are about to permanently delete your account. This action cannot be undone and will remove all your data.</string>
@@ -125,7 +125,7 @@
     <string name="insights_accuracy_by_level">Accuracy by SRS Level</string>
     <string name="insights_no_review_data">No review data yet. Start studying to see trends!</string>
     <string name="insights_level_format">Level %1$d</string>
-    <string name="insights_accuracy_reviews_format">%1$d%% (%2$d reviews)</string>
+    <string name="insights_accuracy_reviews_format">%1$d% (%2$d reviews)</string>
     <string name="insights_this_week">This Week</string>
     <string name="insights_activity_title">Activity (last 90 days)</string>
     <string name="insights_activity_summary">%1$d active days, %2$d cards reviewed</string>
@@ -138,7 +138,7 @@
     <string name="insights_load_error">Failed to load insights. Please check your connection and try again.</string>
     <string name="languages">Languages</string>
     <string name="member_since">Member since %1$s</string>
-    
+
     <!-- Progress Screen -->
     <string name="total_words">Total Words</string>
     <string name="cards_due_for_review">%1$d cards due for review</string>
@@ -210,7 +210,7 @@
     <string name="level_6_mastered">Fully Mastered</string>
     <string name="level_6_description">Level 7 • Monthly reviews</string>
     <string name="level_format">Lv.%1$d</string>
-    
+
     <!-- Review Screen -->
     <string name="review_due_cards">Review Due Cards</string>
     <string name="stage_words">%1$d Words</string>
@@ -235,7 +235,7 @@
     <string name="less_than_10m">&lt;10m</string>
     <string name="less_than_1d">&lt;1d</string>
     <string name="less_than_4d">&lt;4d</string>
-    
+
     <!-- Dialogs -->
     <string name="exit_review">Exit Review?</string>
     <string name="exit_review_message">Are you sure you want to stop reviewing? Your progress will be saved.</string>
@@ -243,7 +243,7 @@
     <string name="continue_reviewing">Continue Reviewing</string>
     <string name="review_complete">Review Complete!</string>
     <string name="review_complete_message">Great job! Keep practicing to master your vocabulary.</string>
-    
+
     <!-- Import Dialog -->
     <string name="confirm_languages">Confirm Languages</string>
     <string name="original_language">Original Language</string>
@@ -252,7 +252,7 @@
     <string name="processing_file">Importing words from file...</string>
     <string name="enter_words">Enter words</string>
     <string name="import_from_image">Import from Image (AI)</string>
-    
+
     <!-- Import Bottom Sheet - Redesigned -->
     <string name="type_text">Type Text</string>
     <string name="from_file">From File</string>
@@ -299,7 +299,7 @@
     <string name="import_text">Import Text</string>
     <string name="upgrade_to_premium">Upgrade to Premium</string>
     <string name="ai_image_extraction_description">Extract vocabulary from images with AI-powered recognition</string>
-    
+
     <!-- Success/Error Messages -->
     <string name="success_imported_words">Successfully imported %1$d words</string>
     <string name="success_imported_from_image">Successfully imported %1$d words from image</string>
@@ -307,10 +307,10 @@
     <string name="error_prefix">[Error]</string>
     <string name="error">Error</string>
     <string name="error_with_message">Error: %1$d</string>
-    
+
     <!-- Progress Screen -->
     <string name="no_words_yet">• No words yet</string>
-    
+
     <!-- AI Daily Insights -->
     <string name="welcome_insight">Welcome! Start your vocabulary journey by adding your first words!</string>
     <string name="fallback_many_due">You've got %1$d cards ready! Time to power up your skills!</string>
@@ -319,7 +319,7 @@
     <string name="fallback_some_due">Perfect timing! %1$d cards waiting. Let's crush this session!</string>
     <string name="fallback_all_caught_up">You're all caught up! Time to add more words and level up!</string>
     <string name="subscriptions_coming_soon_message">Subscriptions will be available soon to unlock full access. Stay tuned! You can temporarily use features with limited credits.</string>
-    
+
     <!-- Mastery Levels (for badge) -->
     <string name="new">New</string>
     <string name="learning">Learning</string>
@@ -329,12 +329,12 @@
     <string name="mature">Well Known</string>
     <string name="mastered">Mastered</string>
     <string name="unknown">Unknown</string>
-    
+
     <!-- Theme Descriptions -->
     <string name="theme_light_desc">Always use light theme</string>
     <string name="theme_dark_desc">Always use dark theme</string>
     <string name="theme_auto_desc">Follow system settings</string>
-    
+
     <!-- Tag Manager -->
     <string name="tag_manager">Tag Manager</string>
     <string name="tag_manager_subtitle">Organize words with tags</string>
@@ -390,7 +390,7 @@
     <string name="words_exported">Exported %1$d words to clipboard</string>
     <string name="export_all">Export All</string>
     <string name="export_selected">Export Selected</string>
-    
+
     <!-- Batch Tag Assignment -->
     <string name="set_tag">Set Tag</string>
     <string name="words_tagged">Tags updated for %1$d word(s)</string>
@@ -450,33 +450,33 @@
     <string name="learning_mode_settings">Successes: %1$d | Penalty: %2$d levels</string>
     <string name="choose_learning_pace">Choose your learning pace</string>
     <string name="apply_button">Apply</string>
-    
+
     <!-- Learning Mode Options -->
     <string name="mode_easy">Easy</string>
     <string name="mode_easy_subtitle">Fast progression</string>
     <string name="mode_easy_description">1 success to advance · Drop 1 level when forgotten</string>
-    
+
     <string name="mode_balanced">Balanced</string>
     <string name="mode_balanced_subtitle">Recommended for most learners</string>
     <string name="mode_balanced_description">1 success to advance · Drop 2 levels when forgotten</string>
-    
+
     <string name="mode_rigorous">Rigorous</string>
     <string name="mode_rigorous_subtitle">Deep retention</string>
     <string name="mode_rigorous_description">2 successes to advance · Drop 3 levels when forgotten</string>
-    
+
     <!-- Notification Reminder Messages -->
     <string name="notification_title_one_word">Ready for a quick review?</string>
     <string name="notification_title_few_words">Time for your daily practice</string>
     <string name="notification_title_many_words">Your %1$d words are ready</string>
     <string name="notification_title_daily">Daily review time</string>
-    
+
     <string name="notification_message_one_word">Just 1 word to review today. Takes less than a minute!</string>
     <string name="notification_message_few_words">%1$d words waiting for you. Quick %1$d-minute session</string>
     <string name="notification_message_several_words">%1$d words are ready for review. Perfect time for a quick practice!</string>
     <string name="notification_message_many_words">%1$d words to review today. You've got this!</string>
     <string name="notification_message_large_session">%1$d words ready. Great session ahead!</string>
     <string name="notification_message_very_large">%1$d words to review. Take your time and enjoy the practice!</string>
-    
+
     <!-- Vocabulary Import/Review Messages -->
     <string name="please_login_for_ai">Please login to extract vocabulary from images</string>
     <string name="import_failed">Import failed: %1$d</string>
@@ -487,10 +487,10 @@
     <string name="import_error_image_hint">Image extraction failed -- try a clearer photo with visible text.</string>
     <string name="import_error_file_empty">No words found in this file. Use the format: word,translation (one pair per line).</string>
     <string name="import_error_file_format">Could not parse the file. Make sure each line has: word,translation</string>
-    
+
     <!-- Share/Export -->
     <string name="vokab_export_filename">lexicon_words_%1$d.txt</string>
-    
+
     <!-- Image Preview -->
     <string name="preview_selected_image">Preview Selected Image</string>
     <string name="review_before_processing">Review before processing</string>
@@ -499,11 +499,11 @@
     <string name="try_another_image">Try a different photo -- JPEG and PNG work best.</string>
     <string name="confirm_and_extract">Confirm &amp; Extract</string>
     <string name="confirm_image_help_text">Make sure the text is clearly visible for optimal recognition</string>
-    
+
     <!-- Navigation -->
     <string name="navigate_back">Navigate back</string>
     <string name="open">Open</string>
-    
+
     <!-- Subscription -->
     <string name="subscription">Subscription</string>
     <string name="subscription_screen_title">Go Premium</string>

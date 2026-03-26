@@ -2,18 +2,20 @@ package feature.study.ui.review
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,12 +28,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import domain.tts.model.TtsState
 import domain.word.model.Word
@@ -78,6 +84,21 @@ fun ReviewContent(
         label = "hintAlpha"
     )
 
+    // Swipe-up (front→back) or swipe-down (back→front) anywhere in the card slot
+    // so one-handed users can trigger the flip from the bottom thumb zone.
+    // rawDragY resets to 0 on release, spring-animating the card back to rest.
+    var rawDragY by remember { mutableFloatStateOf(0f) }
+    val dragFeedbackY by animateFloatAsState(
+        targetValue = rawDragY.coerceIn(-28f, 28f),
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMedium,
+            dampingRatio = Spring.DampingRatioMediumBouncy
+        ),
+        label = "dragFeedback"
+    )
+    val density = LocalDensity.current
+    val flipThresholdPx = remember(density) { with(density) { 52.dp.toPx() } }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -97,8 +118,19 @@ fun ReviewContent(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.medium)
-                .padding(top = Theme.spacing.medium, bottom = Theme.spacing.extraSmall2),
+                .padding(top = Theme.spacing.lg, bottom = Theme.spacing.xs)
+                .pointerInput(isFlipped) {
+                    detectVerticalDragGestures(
+                        onDragEnd = {
+                            val triggered = if (!isFlipped) rawDragY < -flipThresholdPx
+                                           else rawDragY > flipThresholdPx
+                            rawDragY = 0f
+                            if (triggered) onFlip()
+                        },
+                        onDragCancel = { rawDragY = 0f },
+                        onVerticalDrag = { _, delta -> rawDragY += delta }
+                    )
+                },
             contentAlignment = Alignment.Center
         ) {
             AnimatedContent(
@@ -124,47 +156,49 @@ fun ReviewContent(
                         word = word,
                         isFlipped = isFlipped,
                         onFlip = onFlip,
+                        dragFeedbackY = dragFeedbackY,
                         ttsState = ttsState,
                         onSpeakClick = onSpeakClick
                     )
                 }
             }
 
-            // "Tap to reveal" hint
-            Text(
-                text = stringResource(Res.string.tap_card_to_reveal),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
+            // "Tap to reveal" hint — pill chip
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = Theme.spacing.extraSmall2)
+                    .padding(bottom = Theme.spacing.sm)
                     .graphicsLayer { alpha = hintAlpha }
-            )
-        }
-
-        // ── Edit word ─────────────────────────────────────────────────────
-        if (onEdit != null) {
-            Row(
-                modifier = Modifier
-                    .padding(vertical = Theme.spacing.extraSmall3)
-                    .clip(RoundedCornerShape(50))
-                    .clickable(role = Role.Button, onClick = onEdit)
-                    .padding(horizontal = Theme.spacing.sm, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
+                    .clip(RoundedCornerShape(100.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .padding(horizontal = Theme.spacing.sm, vertical = 4.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = stringResource(Res.string.edit),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                    modifier = Modifier.size(14.dp)
-                )
                 Text(
-                    text = stringResource(Res.string.edit),
+                    text = stringResource(Res.string.tap_card_to_reveal),
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
                 )
+            }
+
+            // ── Edit word — overlaid icon at bottom-end of card slot ───────
+            if (onEdit != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = Theme.spacing.sm, bottom = Theme.spacing.sm)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.85f))
+                        .clickable(role = Role.Button, onClick = onEdit)
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(Res.string.edit),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
 
@@ -172,8 +206,8 @@ fun ReviewContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.medium)
-                .padding(bottom = Theme.spacing.medium)
+                .padding(horizontal = Theme.spacing.lg)
+                .padding(bottom = Theme.spacing.lg)
         ) {
             when (reviewType) {
                 ReviewType.REVIEW -> ReviewRatingArea(isFlipped = isFlipped, onReview = onReview)

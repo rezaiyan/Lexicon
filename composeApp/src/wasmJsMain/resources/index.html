@@ -56,8 +56,13 @@
         window._lexiconFirebase = {
             _app: null,
             _signInState: { pending: false, token: null, error: null },
+            _redirectResult: { pending: true, token: null, error: null },
             _tokenState: { pending: false, token: null, error: null },
             _signOutState: { pending: false, done: false, error: null },
+
+            _isMobile: function() {
+                return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent);
+            },
 
             init: function(apiKey, authDomain, projectId) {
                 if (this._app) return;
@@ -66,12 +71,28 @@
                     authDomain: authDomain,
                     projectId: projectId
                 });
+                var self = this;
+                firebase.auth().getRedirectResult()
+                    .then(function(result) {
+                        if (result && result.user) return result.user.getIdToken();
+                        return null;
+                    })
+                    .then(function(token) {
+                        self._redirectResult = { pending: false, token: token, error: null };
+                    })
+                    .catch(function(error) {
+                        self._redirectResult = { pending: false, token: null, error: error.message || "Redirect sign in failed" };
+                    });
             },
 
             signInWithGoogle: function() {
+                var provider = new firebase.auth.GoogleAuthProvider();
+                if (this._isMobile()) {
+                    firebase.auth().signInWithRedirect(provider);
+                    return;
+                }
                 var self = this;
                 self._signInState = { pending: true, token: null, error: null };
-                var provider = new firebase.auth.GoogleAuthProvider();
                 firebase.auth().signInWithPopup(provider)
                     .then(function(result) { return result.user.getIdToken(); })
                     .then(function(token) {

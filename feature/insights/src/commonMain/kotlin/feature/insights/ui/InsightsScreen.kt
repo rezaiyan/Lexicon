@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +36,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import components.ErrorScreen
+import components.GradientProgressBar
 import components.LoadingScreen
 import components.Pill
 import components.scaffold.LexiconColumn
@@ -74,11 +77,9 @@ import lexicon.resources.generated.resources.insights_accuracy
 import lexicon.resources.generated.resources.insights_accuracy_by_level
 import lexicon.resources.generated.resources.insights_empty_subtitle
 import lexicon.resources.generated.resources.insights_empty_title
-import lexicon.resources.generated.resources.insights_accuracy_format
 import lexicon.resources.generated.resources.insights_best_study_time
 import lexicon.resources.generated.resources.insights_cards_reviewed
 import lexicon.resources.generated.resources.insights_days_studied
-import lexicon.resources.generated.resources.insights_error_rate_format
 import lexicon.resources.generated.resources.insights_level_format
 import lexicon.resources.generated.resources.insights_load_error
 import lexicon.resources.generated.resources.insights_loading
@@ -103,8 +104,11 @@ fun InsightsScreen(
     val viewModel = koinViewModel<InsightsViewModel>()
     val state by viewModel.state()
 
-    LaunchedEffect(Unit) {
-        viewModel.refreshIfNeeded()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.refresh()
+        }
     }
 
     InsightsContent(
@@ -219,6 +223,14 @@ private fun DailyInsightBanner(message: String, onDismiss: () -> Unit) {
         verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
+        Icon(
+            imageVector = Icons.Default.Star,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier
+                .padding(top = Theme.spacing.xxxs)
+                .size(Theme.dimensions.iconSize),
+        )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = "Daily Insight",
@@ -271,7 +283,7 @@ private fun OverviewTab(state: InsightsState) {
                 iconTint = MaterialTheme.colorScheme.tertiary,
                 title = stringResource(Res.string.insights_best_study_time),
                 value = "${bestTime.hour}:00",
-                subtitle = stringResource(Res.string.insights_accuracy_format, bestTime.accuracyPercent.roundToInt()),
+                subtitle = "${bestTime.accuracyPercent.roundToInt()}% accuracy",
             )
         }
     }
@@ -279,46 +291,56 @@ private fun OverviewTab(state: InsightsState) {
 
 @Composable
 private fun HeroSection(insights: StudyInsights) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = Theme.spacing.sm),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(Theme.gradients.primaryWash)
+            .padding(vertical = Theme.spacing.xl, horizontal = Theme.spacing.md),
+        contentAlignment = Alignment.Center,
     ) {
-        SectionLabel(stringResource(Res.string.insights_cards_reviewed))
-        Spacer(modifier = Modifier.height(Theme.spacing.xxs))
-        Text(
-            text = insights.totalCardsReviewed.toString(),
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            SectionLabel(stringResource(Res.string.insights_cards_reviewed))
+            Spacer(modifier = Modifier.height(Theme.spacing.xs))
+            Text(
+                text = insights.totalCardsReviewed.toString(),
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(Theme.spacing.sm))
+            Pill(
+                text = "${insights.accuracyPercent.roundToInt()}% accuracy",
+                color = MaterialTheme.colorScheme.secondary,
+                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+            )
+        }
     }
 }
 
 @Composable
 private fun OverviewCards(insights: StudyInsights) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
         StatCard(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             icon = Icons.AutoMirrored.Filled.TrendingUp,
             iconTint = MaterialTheme.colorScheme.secondary,
             label = stringResource(Res.string.insights_accuracy),
             value = "${insights.accuracyPercent.roundToInt()}%",
         )
         StatCard(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             icon = Icons.Default.Star,
             iconTint = MaterialTheme.colorScheme.tertiary,
             label = stringResource(Res.string.insights_words_mastered),
             value = insights.wordsMasteredCount.toString(),
         )
         StatCard(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
             icon = Icons.Default.BarChart,
             iconTint = MaterialTheme.colorScheme.primary,
             label = stringResource(Res.string.insights_days_studied),
@@ -353,15 +375,16 @@ private fun TrendsTab(state: InsightsState) {
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { levels ->
             if (levels.isNotEmpty()) {
-                SectionLabel(stringResource(Res.string.insights_accuracy_by_level))
-                Spacer(Modifier.height(Theme.spacing.xs))
-                levels.forEachIndexed { index, level ->
-                    LevelAccuracyRow(level)
-                    if (index < levels.lastIndex) {
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            thickness = Theme.dimensions.hairlineThickness,
-                        )
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+                    SectionLabel(stringResource(Res.string.insights_accuracy_by_level))
+                    levels.forEachIndexed { index, level ->
+                        LevelAccuracyRow(level)
+                        if (index < levels.lastIndex) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = Theme.dimensions.hairlineThickness,
+                            )
+                        }
                     }
                 }
             }
@@ -395,6 +418,7 @@ private fun LevelAccuracyRow(level: AccuracyByLevel) {
                 stringResource(Res.string.insights_level_format, level.level),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -413,22 +437,13 @@ private fun LevelAccuracyRow(level: AccuracyByLevel) {
                 )
             }
         }
-        // Custom thin track using Box instead of LinearProgressIndicator
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .clip(RoundedCornerShape(Theme.shapes.pill))
-                .background(trackColor),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(accuracyFraction)
-                    .height(4.dp)
-                    .clip(RoundedCornerShape(Theme.shapes.pill))
-                    .background(primaryColor),
-            )
-        }
+        GradientProgressBar(
+            progress = accuracyFraction,
+            gradientColors = listOf(primaryColor.copy(alpha = 0.7f), primaryColor),
+            trackColor = trackColor,
+            height = 6.dp,
+            modifier = Modifier.clip(RoundedCornerShape(Theme.shapes.pill)),
+        )
     }
 }
 
@@ -447,18 +462,24 @@ private fun ThisWeekSection(heatmapDays: List<StudyHeatmapDay>) {
     }
     val maxCount = last7Days.maxOfOrNull { it.count }.takeIf { it != null && it > 0 } ?: 1
 
-    SectionLabel(stringResource(Res.string.insights_this_week))
-    Spacer(Modifier.height(Theme.spacing.xs))
-    // Bars float directly on the background — no Surface container
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Theme.spacing.md),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        last7Days.forEachIndexed { index, day ->
-            WeekDayBar(day = day, maxCount = maxCount, todayStr = todayStr, index = index)
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+        SectionLabel(stringResource(Res.string.insights_this_week))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Theme.shapes.medium))
+                .background(Theme.colors.surfaceContainer)
+                .padding(Theme.spacing.md),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Bottom,
+            ) {
+                last7Days.forEachIndexed { index, day ->
+                    WeekDayBar(day = day, maxCount = maxCount, todayStr = todayStr, index = index)
+                }
+            }
         }
     }
 }
@@ -539,16 +560,17 @@ private fun WordsTab(state: InsightsState) {
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { words ->
             if (words.isNotEmpty()) {
-                SectionLabel(stringResource(Res.string.insights_most_difficult_words))
-                Spacer(Modifier.height(Theme.spacing.xs))
-                words.forEachIndexed { index, word ->
-                    DifficultWordRow(word)
-                    if (index < words.lastIndex) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = Theme.spacing.xl),
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                            thickness = Theme.dimensions.hairlineThickness,
-                        )
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+                    SectionLabel(stringResource(Res.string.insights_most_difficult_words))
+                    words.forEachIndexed { index, word ->
+                        DifficultWordRow(word)
+                        if (index < words.lastIndex) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = Theme.spacing.xl),
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = Theme.dimensions.hairlineThickness,
+                            )
+                        }
                     }
                 }
             }
@@ -570,6 +592,7 @@ private fun DifficultWordRow(word: WordDifficulty) {
                 word.wordText,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -585,7 +608,7 @@ private fun DifficultWordRow(word: WordDifficulty) {
         Column(horizontalAlignment = Alignment.End) {
             // Error rate as styled pill using design-system Pill component
             Pill(
-                text = stringResource(Res.string.insights_error_rate_format, errorPercent),
+                text = "$errorPercent% error",
                 color = MaterialTheme.colorScheme.error,
                 backgroundColor = MaterialTheme.colorScheme.errorContainer,
                 height = 22.dp,
@@ -606,21 +629,32 @@ private fun DifficultWordRow(word: WordDifficulty) {
 // region Shared components
 
 /**
- * Section label: labelMedium ALL CAPS + letter spacing + onSurfaceVariant.
- * Used as a lightweight alternative to titleMedium for section headers.
+ * Section label: dot accent + labelMedium ALL CAPS + letter spacing + onSurfaceVariant.
  */
 @Composable
 private fun SectionLabel(text: String) {
-    Text(
-        text = text.uppercase(),
-        style = MaterialTheme.typography.labelMedium,
-        letterSpacing = 1.sp,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary),
+        )
+        Text(
+            text = text.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 /**
- * Stat card: no Surface/elevation — thin border + big bold number above small label.
+ * Stat card: surfaceContainerHigh background + tinted icon chip.
  */
 @Composable
 private fun StatCard(
@@ -633,24 +667,30 @@ private fun StatCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .border(
-                width = Theme.dimensions.borderWidth,
-                color = MaterialTheme.colorScheme.outlineVariant,
-                shape = RoundedCornerShape(Theme.shapes.medium),
-            )
+            .clip(RoundedCornerShape(Theme.shapes.medium))
+            .background(Theme.colors.surfaceContainerHigh)
             .padding(Theme.spacing.md),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(Theme.dimensions.iconSize),
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(Theme.shapes.small))
+                .background(iconTint.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+            )
+        }
         Text(
             value,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -665,7 +705,7 @@ private fun StatCard(
 }
 
 /**
- * Metric row: 3dp accent left bar + label above + bold value below — no Surface container.
+ * Metric row: surfaceContainer card + 3dp accent left bar + label above + bold value below.
  */
 @Composable
 private fun MetricRow(
@@ -676,7 +716,12 @@ private fun MetricRow(
     subtitle: String? = null,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+            .clip(RoundedCornerShape(Theme.shapes.medium))
+            .background(Theme.colors.surfaceContainer)
+            .padding(Theme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
     ) {
@@ -704,6 +749,7 @@ private fun MetricRow(
                 value,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             if (subtitle != null) {
                 Text(

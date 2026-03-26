@@ -31,6 +31,25 @@ suspend fun awaitGoogleSignIn(): String {
     return jsSignInToken()?.toString() ?: throw RuntimeException("No token received")
 }
 
+// --- Redirect result (mobile sign-in) ---
+
+private fun jsRedirectPending(): JsAny? =
+    js("window._lexiconFirebase._redirectResult.pending")
+
+private fun jsRedirectToken(): JsAny? =
+    js("window._lexiconFirebase._redirectResult.token")
+
+private fun jsRedirectError(): JsAny? =
+    js("window._lexiconFirebase._redirectResult.error")
+
+suspend fun awaitRedirectResult(): String? {
+    while (jsRedirectPending()?.toString() != "false") {
+        delay(50)
+    }
+    if (jsRedirectError() != null) return null
+    return jsRedirectToken()?.toString()
+}
+
 // --- ID token retrieval ---
 
 fun jsStartGetIdToken(forceRefresh: Boolean): JsAny? =

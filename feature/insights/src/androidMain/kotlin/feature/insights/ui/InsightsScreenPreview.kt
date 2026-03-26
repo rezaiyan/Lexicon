@@ -94,12 +94,71 @@ private fun InsightsScreenLoadingPreview() {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, name = "Insights - Dark")
+@Preview(showBackground = true, showSystemUi = true, name = "Insights - Dark", backgroundColor = 0xFF1C1B1F)
 @Composable
 private fun InsightsScreenDarkPreview() {
     LexiconTheme(darkTheme = true) {
         InsightsContent(
             state = previewState,
+            onNavigateBack = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Insights - Daily Insight")
+@Composable
+private fun InsightsScreenDailyInsightPreview() {
+    LexiconTheme {
+        InsightsContent(
+            state = previewState.copy(dailyInsight = "You study best at 9 AM — try to start your sessions then!"),
+            onNavigateBack = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Insights - Empty")
+@Composable
+private fun InsightsScreenEmptyPreview() {
+    LexiconTheme {
+        InsightsContent(
+            state = InsightsState(
+                overview = UiState.Loaded(
+                    StudyInsights(
+                        totalCardsReviewed = 0,
+                        totalCorrect = 0,
+                        accuracyPercent = 0.0,
+                        totalStudyTimeMs = 0,
+                        totalSessions = 0,
+                        daysStudied = 0,
+                        uniqueWordsReviewed = 0,
+                        averageResponseTimeMs = 0,
+                        averageSessionDurationMs = 0,
+                        wordsMasteredCount = 0,
+                        sessionCompletionRate = 0.0,
+                    )
+                ),
+                accuracyByLevel = UiState.Loaded(emptyList()),
+                difficultWords = UiState.Loaded(emptyList()),
+                heatmap = UiState.Loaded(emptyList()),
+                bestStudyTime = UiState.Loaded(null),
+            ),
+            onNavigateBack = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Insights - Error")
+@Composable
+private fun InsightsScreenErrorPreview() {
+    LexiconTheme {
+        InsightsContent(
+            state = InsightsState(
+                overview = UiState.Error("Failed to load insights"),
+                accuracyByLevel = UiState.Error("Failed to load insights"),
+                difficultWords = UiState.Error("Failed to load insights"),
+                heatmap = UiState.Error("Failed to load insights"),
+                bestStudyTime = UiState.Error("Failed to load insights"),
+            ),
             onNavigateBack = {},
         )
     }
