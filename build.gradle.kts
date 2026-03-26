@@ -28,6 +28,10 @@ kover {
                     "theme",
                     "notification",
                     "com.alirezaiyan.vokab",
+                    // Auto-generated Compose Multiplatform resource accessors — not production logic
+                    "lexicon.resources.generated.resources",
+                    // Shared test-only fakes — not production code
+                    "fakes",
                 )
                 annotatedBy(
                     "androidx.compose.runtime.Composable",
@@ -36,7 +40,7 @@ kover {
         }
         verify {
             rule("Baseline coverage") {
-                minBound(5)
+                minBound(45)
             }
         }
     }
