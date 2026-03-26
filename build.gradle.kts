@@ -30,6 +30,10 @@ kover {
                     "com.alirezaiyan.vokab",
                     // Auto-generated Compose Multiplatform resource accessors — not production logic
                     "lexicon.resources.generated.resources",
+                    "lexicon.design_system.generated.resources",
+                    // SQLDelight auto-generated database query/impl classes — not production logic
+                    "data.core.database",
+                    "data.core.database.data",
                     // Shared test-only fakes — not production code
                     "fakes",
                 )
@@ -40,7 +44,7 @@ kover {
         }
         verify {
             rule("Baseline coverage") {
-                minBound(45)
+                minBound(50)
             }
         }
     }

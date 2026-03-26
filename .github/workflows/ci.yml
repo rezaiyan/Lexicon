@@ -302,7 +302,7 @@ jobs:
           path: build/reports/kover/report.xml
           title: Code Coverage
           update-comment: true
-          min-coverage-overall: 45
+          min-coverage-overall: 50
 
       - name: Test report
         if: always()
