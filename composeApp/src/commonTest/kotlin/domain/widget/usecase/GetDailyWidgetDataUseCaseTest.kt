@@ -75,7 +75,7 @@ class GetDailyWidgetDataUseCaseTest {
     }
 
     @Test
-    fun `same word is selected on same day (deterministic selection)`() = runTest {
+    fun `same word is selected on same day - deterministic selection`() = runTest {
         val words = (1..10).map { testWord(it) }
         val repo = FakeWordRepository().apply { storedWords.addAll(words) }
         val useCase = fakeGetDailyWidgetDataUseCase(repo)
