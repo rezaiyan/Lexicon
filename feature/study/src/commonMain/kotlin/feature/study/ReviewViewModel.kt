@@ -30,6 +30,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
+@Suppress(
+    "TooManyFunctions",   // each public method is a distinct event-sink entry point required by the screen
+    "LongParameterList",  // all parameters are mandatory use-case dependencies injected by Koin
+)
 class ReviewViewModel(
     private val loadQueueUseCase: LoadReviewQueueUseCase,
     private val reviewWordUseCase: ReviewWordUseCase,
@@ -144,7 +148,13 @@ class ReviewViewModel(
                         if (it.id == result.updatedWord.id) result.updatedWord else it
                     }
                     updateState {
-                        copy(review = active.copy(words = updatedWords, knownCount = newKnown, unknownCount = newUnknown))
+                        copy(
+                            review = active.copy(
+                                words = updatedWords,
+                                knownCount = newKnown,
+                                unknownCount = newUnknown,
+                            )
+                        )
                     }
                     advanceOrComplete(newKnown, newUnknown)
                 }
@@ -203,7 +213,13 @@ class ReviewViewModel(
                     } else {
                         val safeIndex = active.currentIndex.coerceAtMost(updatedWords.size - 1)
                         updateState {
-                            copy(review = active.copy(words = updatedWords, currentIndex = safeIndex, isFlipped = false))
+                            copy(
+                                review = active.copy(
+                                    words = updatedWords,
+                                    currentIndex = safeIndex,
+                                    isFlipped = false,
+                                )
+                            )
                         }
                     }
                     analyticsTracker.logEvent("word_deleted_in_review")

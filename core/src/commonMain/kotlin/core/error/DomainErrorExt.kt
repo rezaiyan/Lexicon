@@ -9,6 +9,7 @@ package core.error
  * Use this in ViewModels instead of `error.message ?: "fallback"`.
  * Keep using `error.message` for analytics/logging calls where raw info is needed.
  */
+@Suppress("CyclomaticComplexMethod") // exhaustive mapping of all DomainError subtypes — complexity is inherent
 fun Throwable.toUserMessage(): String = when (this) {
     is DomainError.Network.NoConnection -> "No internet connection"
     is DomainError.Network.Timeout -> "Request timed out. Try again."

@@ -14,7 +14,6 @@ import components.dialog.ButtonType
 import components.dialog.DialogIconState
 import components.dialog.LexiconDialogContent
 import expects.BackHandler
-import feature.study.ReviewEffect
 import feature.study.ReviewState
 import feature.study.ReviewViewModel
 import feature.study.model.ReviewType

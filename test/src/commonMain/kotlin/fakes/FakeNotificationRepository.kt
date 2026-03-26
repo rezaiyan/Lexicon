@@ -2,8 +2,6 @@ package fakes
 
 import core.common.Try
 import domain.notifications.repository.INotificationRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 
 class FakeNotificationRepository : INotificationRepository {
     var permissionGranted = true

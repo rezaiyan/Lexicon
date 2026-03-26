@@ -187,8 +187,12 @@ private fun SubscriptionStatusCard(
                                 }
                             }
                         } else {
-                            val badgeColor = if (isInTrial) AppColors.subscriptionRecommended else AppColors.subscriptionStandard
-                            val badgeText = if (isInTrial) stringResource(Res.string.trial_active) else stringResource(Res.string.subscription_active)
+                            val badgeColor =
+                                if (isInTrial) AppColors.subscriptionRecommended
+                                else AppColors.subscriptionStandard
+                            val badgeText =
+                                if (isInTrial) stringResource(Res.string.trial_active)
+                                else stringResource(Res.string.subscription_active)
                             Surface(
                                 shape = RoundedCornerShape(Theme.spacing.extraSmall),
                                 color = badgeColor.copy(alpha = 0.2f)
