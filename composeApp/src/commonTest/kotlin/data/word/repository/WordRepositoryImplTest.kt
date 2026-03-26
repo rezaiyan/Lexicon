@@ -325,6 +325,55 @@ class WordRepositoryImplTest {
     }
 
     // -------------------------------------------------------------------------
+    // syncWithRemote — auth guard (BUG-7) and timestamp dedup (BUG-2 / BUG-8)
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `syncWithRemote skips remote fetch when not authenticated`() = runTest {
+        val remote = FakeWordRemoteSyncHandler()
+        val session = FakeSessionManager(authenticated = false)
+        val repo = makeRepository(remote = remote, session = session)
+
+        val result = repo.syncWithRemote()
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, remote.syncFromRemoteCallCount)
+    }
+
+    @Test
+    fun `syncWithRemote fires remote fetch when authenticated`() = runTest {
+        val remote = FakeWordRemoteSyncHandler()
+        val session = FakeSessionManager(authenticated = true)
+        val repo = makeRepository(remote = remote, session = session)
+
+        repo.syncWithRemote()
+
+        assertEquals(1, remote.syncFromRemoteCallCount)
+    }
+
+    @Test
+    fun `syncWithRemote called twice in rapid succession only fires remote once`() = runTest {
+        val remote = FakeWordRemoteSyncHandler()
+        val repo = makeRepository(remote = remote)
+
+        repo.syncWithRemote()  // first call — fires remote, stamps lastSyncedAt
+        repo.syncWithRemote()  // second call — should be suppressed by timestamp guard
+
+        assertEquals(1, remote.syncFromRemoteCallCount)
+    }
+
+    @Test
+    fun `insertWords stamps lastSyncedAt so immediate follow-up syncWithRemote is suppressed`() = runTest {
+        val remote = FakeWordRemoteSyncHandler()
+        val repo = makeRepository(remote = remote)
+
+        repo.insertWords(listOf(makeWord()))  // stamps lastSyncedAt
+        repo.syncWithRemote()  // should be suppressed within the 30s threshold
+
+        assertEquals(0, remote.syncFromRemoteCallCount)
+    }
+
+    // -------------------------------------------------------------------------
     // getAllWordsAsync / getTotalCount / deleteAllWords
     // -------------------------------------------------------------------------
 

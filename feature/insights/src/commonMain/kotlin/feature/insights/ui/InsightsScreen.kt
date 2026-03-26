@@ -8,8 +8,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import components.ErrorScreen
@@ -72,7 +75,6 @@ import lexicon.resources.generated.resources.insights_accuracy_by_level
 import lexicon.resources.generated.resources.insights_empty_subtitle
 import lexicon.resources.generated.resources.insights_empty_title
 import lexicon.resources.generated.resources.insights_accuracy_format
-import lexicon.resources.generated.resources.insights_accuracy_reviews_format
 import lexicon.resources.generated.resources.insights_best_study_time
 import lexicon.resources.generated.resources.insights_cards_reviewed
 import lexicon.resources.generated.resources.insights_days_studied
@@ -102,7 +104,7 @@ fun InsightsScreen(
     val state by viewModel.state()
 
     LaunchedEffect(Unit) {
-        viewModel.refresh()
+        viewModel.refreshIfNeeded()
     }
 
     InsightsContent(
@@ -233,7 +235,7 @@ private fun DailyInsightBanner(message: String, onDismiss: () -> Unit) {
         }
         IconButton(
             onClick = onDismiss,
-            modifier = Modifier.size(Theme.dimensions.iconSize),
+            modifier = Modifier.size(Theme.dimensions.touchTargetSmall),
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
@@ -399,11 +401,7 @@ private fun LevelAccuracyRow(level: AccuracyByLevel) {
                 horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
             ) {
                 Text(
-                    stringResource(
-                        Res.string.insights_accuracy_reviews_format,
-                        level.accuracyPercent.roundToInt(),
-                        level.totalReviews.toInt(),
-                    ),
+                    stringResource(Res.string.insights_reviews_format, level.totalReviews.toInt()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -572,11 +570,15 @@ private fun DifficultWordRow(word: WordDifficulty) {
                 word.wordText,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 word.wordTranslation,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Spacer(modifier = Modifier.width(Theme.spacing.sm))
@@ -647,13 +649,17 @@ private fun StatCard(
         )
         Text(
             value,
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
         Text(
             label,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -670,15 +676,15 @@ private fun MetricRow(
     subtitle: String? = null,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
     ) {
-        // 3dp accent left bar
+        // 3dp accent left bar — height follows content via IntrinsicSize.Min
         Box(
             modifier = Modifier
                 .width(3.dp)
-                .height(if (subtitle != null) 56.dp else 40.dp)
+                .fillMaxHeight()
                 .clip(RoundedCornerShape(Theme.shapes.pill))
                 .background(iconTint),
         )

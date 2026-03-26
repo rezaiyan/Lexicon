@@ -22,6 +22,31 @@ class PushTokenRepositoryImplTest {
         return repo to dataSource
     }
 
+    // --- initializeAndRegister (BUG-1) ---
+
+    @Test
+    fun `initializeAndRegister does not call registerToken before callback fires`() = runTest {
+        val dataSource = FakePushNotificationDataSource()
+        val tokenManager = FakePushTokenManager(currentToken = "existing-token")
+        val (repo, _) = buildRepo(tokenManager = tokenManager, dataSource = dataSource)
+
+        repo.initializeAndRegister()
+
+        // Old buggy code had an immediate getCurrentToken() path; it's gone now.
+        assertEquals(0, dataSource.registerCalls.size)
+        assertTrue(tokenManager.initializeCalled)
+    }
+
+    @Test
+    fun `initializeAndRegister sets up callback on token manager`() = runTest {
+        val tokenManager = FakePushTokenManager()
+        val (repo, _) = buildRepo(tokenManager = tokenManager)
+
+        repo.initializeAndRegister()
+
+        assertTrue(tokenManager.initializeCalled)
+    }
+
     // --- registerToken ---
 
     @Test

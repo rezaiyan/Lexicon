@@ -7,10 +7,14 @@ import data.word.local.IWordLocalDataSource
 import data.word.remote.model.RemoteWord
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
+import domain.auth.session.ISessionManager
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import utils.Language
 internal class FakeWordLocalDataSource : IWordLocalDataSource {
@@ -81,6 +85,7 @@ internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
     var syncWordsToRemoteCallCount = 0
     var syncWordUpdateCallCount = 0
     var syncWordDeletionCallCount = 0
+    var syncFromRemoteCallCount = 0
     var lastSyncedUpdateId: Long? = null
     var lastSyncedDeletionId: Long? = null
     var syncedWords = mutableListOf<Word>()
@@ -129,6 +134,7 @@ internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
     ): Try<Unit> = Try.success(Unit)
 
     override suspend fun syncFromRemote(): Try<List<RemoteWord>> {
+        syncFromRemoteCallCount++
         return if (shouldFailSyncFromRemote) {
             Try.failure(RuntimeException("Remote fetch failed"))
         } else {
@@ -210,8 +216,23 @@ internal fun makeWordEntityData(
     dateAdded = 0L
 )
 
+internal class FakeSessionManager(
+    authenticated: Boolean = true,
+) : ISessionManager {
+    private val _flow = MutableStateFlow(authenticated)
+    override val isAuthenticatedFlow: StateFlow<Boolean> = _flow
+    var authenticated: Boolean
+        get() = _flow.value
+        set(value) { _flow.value = value }
+
+    override suspend fun isAuthenticated(): Boolean = _flow.value
+    override suspend fun setAuthenticated(isAuthenticated: Boolean) { _flow.value = isAuthenticated }
+    override fun initialize(scope: CoroutineScope) {}
+}
+
 internal fun makeRepository(
     local: FakeWordLocalDataSource = FakeWordLocalDataSource(),
     remote: FakeWordRemoteSyncHandler = FakeWordRemoteSyncHandler(),
-    resolver: FakeWordConflictResolver = FakeWordConflictResolver()
-) = WordRepositoryImpl(local, remote, resolver)
+    resolver: FakeWordConflictResolver = FakeWordConflictResolver(),
+    session: FakeSessionManager = FakeSessionManager(authenticated = true),
+) = WordRepositoryImpl(local, remote, resolver, session)

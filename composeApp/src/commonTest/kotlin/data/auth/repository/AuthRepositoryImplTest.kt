@@ -258,7 +258,9 @@ class AuthRepositoryImplTest {
 
     private class FakeFeatureAccessDataSource : IFeatureAccessRemoteDataSource {
         var featureAccess = FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = false))
+        var clearCacheCalled = false
         override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(featureAccess)
+        override fun clearCache() { clearCacheCalled = true }
     }
 
     private class FakeAuthDataSource : IAuthDataSource {

@@ -110,4 +110,65 @@ class FeatureAccessRemoteDataSourceTest {
         assertEquals(true, result.featureFlags.pushNotificationsEnabled)
         assertEquals(false, result.userAccess.hasPremiumAccess)
     }
+
+    // --- Cache behavior (BUG-3) ---
+
+    @Test
+    fun `getFeatureAccessAsFlow second call returns cached response without network request`() = runTest {
+        var requestCount = 0
+        val mockEngine = MockEngine {
+            requestCount++
+            respond(
+                successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":true},"userAccess":{"hasPremiumAccess":false}}"""),
+                HttpStatusCode.OK,
+                jsonHeaders()
+            )
+        }
+        val dataSource = buildDataSource(mockEngine)
+
+        dataSource.getFeatureAccessAsFlow().first()  // cache miss — hits network
+        dataSource.getFeatureAccessAsFlow().first()  // cache hit — no network
+
+        assertEquals(1, requestCount)
+    }
+
+    @Test
+    fun `clearCache forces re-fetch on next call`() = runTest {
+        var requestCount = 0
+        val mockEngine = MockEngine {
+            requestCount++
+            respond(
+                successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":true},"userAccess":{"hasPremiumAccess":false}}"""),
+                HttpStatusCode.OK,
+                jsonHeaders()
+            )
+        }
+        val dataSource = buildDataSource(mockEngine)
+
+        dataSource.getFeatureAccessAsFlow().first()  // first fetch
+        assertEquals(1, requestCount)
+
+        dataSource.clearCache()
+
+        dataSource.getFeatureAccessAsFlow().first()  // second fetch after cache cleared
+        assertEquals(2, requestCount)
+    }
+
+    @Test
+    fun `cached response has same values as original fetch`() = runTest {
+        val mockEngine = MockEngine {
+            respond(
+                successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":false},"userAccess":{"hasPremiumAccess":true}}"""),
+                HttpStatusCode.OK,
+                jsonHeaders()
+            )
+        }
+        val dataSource = buildDataSource(mockEngine)
+
+        val firstResult = dataSource.getFeatureAccessAsFlow().first()
+        val cachedResult = dataSource.getFeatureAccessAsFlow().first()
+
+        assertEquals(firstResult.featureFlags.pushNotificationsEnabled, cachedResult.featureFlags.pushNotificationsEnabled)
+        assertEquals(firstResult.userAccess.hasPremiumAccess, cachedResult.userAccess.hasPremiumAccess)
+    }
 }

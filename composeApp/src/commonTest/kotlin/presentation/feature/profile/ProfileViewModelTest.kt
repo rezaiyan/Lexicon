@@ -282,6 +282,7 @@ class ProfileViewModelTest : ViewModelTestBase() {
     @Test
     fun `profile stats are included in Loaded state when available`() = runTest {
         val vm = createViewModel()
+        vm.refreshProfileStats()
 
         val state = assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState)
         val stats = state.value.profileStats
@@ -298,9 +299,37 @@ class ProfileViewModelTest : ViewModelTestBase() {
                 result = Try.failure(RuntimeException("Stats unavailable"))
             )
         )
+        vm.refreshProfileStats()
 
         val state = assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState)
         assertNull(state.value.profileStats)
+    }
+
+    @Test
+    fun `init does not load profile stats`() = runTest {
+        val vm = createViewModel()
+
+        val state = assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState)
+        assertNull(state.value.profileStats)
+    }
+
+    @Test
+    fun `refreshProfileStats loads stats exactly once per call`() = runTest {
+        var callCount = 0
+        val vm = createViewModel(
+            profileStatsRepository = object : IProfileStatsRepository {
+                override suspend fun getProfileStats(): Try<ProfileStats> {
+                    callCount++
+                    return Try.success(testProfileStats)
+                }
+            }
+        )
+
+        vm.refreshProfileStats()
+
+        assertEquals(1, callCount)
+        val stats = assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState).value.profileStats
+        assertIs<feature.profile.model.ProfileStatsUiModel>(stats)
     }
 
     @Test

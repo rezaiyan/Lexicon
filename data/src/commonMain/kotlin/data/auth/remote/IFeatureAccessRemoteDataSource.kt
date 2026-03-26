@@ -5,4 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface IFeatureAccessRemoteDataSource {
     fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse>
+    fun clearCache()
 }

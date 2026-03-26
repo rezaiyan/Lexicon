@@ -77,6 +77,7 @@ class AuthRepositoryImpl(
 
         tokenManager.clearTokens()
         sessionManager.setAuthenticated(false)
+        featureAccessRemoteDataSource.clearCache()
 
         return Try.success(Unit)
     }
@@ -99,6 +100,7 @@ class AuthRepositoryImpl(
 
         tokenManager.clearTokens()
         sessionManager.setAuthenticated(false)
+        featureAccessRemoteDataSource.clearCache()
 
         return Try.success(Unit)
     }

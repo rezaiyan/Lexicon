@@ -88,7 +88,8 @@ fun wordModule() = module {
         WordRepositoryImpl(
             localDataSource = get(),
             remoteSyncHandler = get(),
-            conflictResolver = get()
+            conflictResolver = get(),
+            sessionManager = get()
         )
     }
 

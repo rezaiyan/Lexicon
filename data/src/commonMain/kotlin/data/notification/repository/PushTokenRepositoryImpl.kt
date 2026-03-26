@@ -22,13 +22,6 @@ class PushTokenRepositoryImpl(
     override fun initializeAndRegister() {
         logNetwork("RegisterPushToken", " Initializing push notification manager")
 
-        CoroutineScope(Dispatchers.Default).launch {
-            pushTokenManager.getCurrentToken()?.let { token ->
-                logNetwork("RegisterPushToken", " Current token available: $token")
-                registerToken(token)
-            }
-        }
-
         pushTokenManager.initialize { token ->
             logNetwork("RegisterPushToken", " Token received, registering with backend...")
 

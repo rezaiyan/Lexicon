@@ -149,8 +149,18 @@ class InsightsViewModelTest : ViewModelTestBase() {
     // region Init loading
 
     @Test
+    fun `init does not trigger any network calls`() = runTest {
+        val repo = FakeAnalyticsRepository()
+        val vm = createViewModel(repo)
+
+        assertEquals(0, repo.insightsCallCount)
+        assertIs<UiState.Loading>(vm.currentState.overview)
+    }
+
+    @Test
     fun `all states load to Loaded on init with successful use cases`() = runTest {
         val vm = createViewModel()
+        vm.refresh()
 
         val state = vm.currentState
         val overview = assertIs<UiState.Loaded<StudyInsights>>(state.overview)
@@ -184,6 +194,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             studyInsightsResult = Try.failure(RuntimeException("DB corrupted")),
         )
         val vm = createViewModel(repo)
+        vm.refresh()
 
         val state = vm.currentState
         val overview = assertIs<UiState.Error>(state.overview)
@@ -196,6 +207,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             dailyStatsResult = Try.failure(RuntimeException("Query failed")),
         )
         val vm = createViewModel(repo)
+        vm.refresh()
 
         val state = vm.currentState
         assertIs<UiState.Error>(state.accuracyTrend)
@@ -207,6 +219,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             difficultWordsResult = Try.failure(RuntimeException("Query failed")),
         )
         val vm = createViewModel(repo)
+        vm.refresh()
 
         assertIs<UiState.Error>(vm.currentState.difficultWords)
     }
@@ -217,6 +230,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             accuracyByHourResult = Try.failure(RuntimeException("Hour query failed")),
         )
         val vm = createViewModel(repo)
+        vm.refresh()
 
         assertIs<UiState.Error>(vm.currentState.bestStudyTime)
     }
@@ -229,6 +243,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             ),
         )
         val vm = createViewModel(repo)
+        vm.refresh()
 
         val bestTime = assertIs<UiState.Loaded<HourlyAccuracy?>>(vm.currentState.bestStudyTime)
         assertNull(bestTime.value)
@@ -243,13 +258,13 @@ class InsightsViewModelTest : ViewModelTestBase() {
         val repo = FakeAnalyticsRepository()
         val vm = createViewModel(repo)
 
-        // After init, insights should have been called once
-        assertEquals(1, repo.insightsCallCount)
+        // After init, no network calls should have fired
+        assertEquals(0, repo.insightsCallCount)
 
         vm.refresh()
 
-        // After refresh, insights should be called again
-        assertEquals(2, repo.insightsCallCount)
+        // After refresh, insights should be called once
+        assertEquals(1, repo.insightsCallCount)
         assertIs<UiState.Loaded<StudyInsights>>(vm.currentState.overview)
     }
 
@@ -257,6 +272,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
     fun `refresh updates state when data changes`() = runTest {
         val repo = FakeAnalyticsRepository()
         val vm = createViewModel(repo)
+        vm.refresh()
 
         val initialOverview = assertIs<UiState.Loaded<StudyInsights>>(vm.currentState.overview)
         assertEquals(100, initialOverview.value.totalCardsReviewed)

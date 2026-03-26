@@ -62,11 +62,14 @@ class InsightsViewModel(
 
     override fun initialState() = InsightsState()
 
-    init {
+
+    fun refresh() {
         loadAllData()
     }
 
-    fun refresh() {
+    /** Called on composition entry — skips if data is already loaded to avoid redundant requests on reopen. */
+    fun refreshIfNeeded() {
+        if (currentState.isLoaded) return
         loadAllData()
     }
 

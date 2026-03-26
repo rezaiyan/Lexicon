@@ -7,12 +7,14 @@ import data.word.sync.IWordRemoteSyncHandler
 import core.common.Try
 import core.common.fold
 import core.common.onFailure
+import domain.auth.session.ISessionManager
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -25,8 +27,15 @@ import kotlinx.coroutines.launch
 class WordRepositoryImpl(
     private val localDataSource: IWordLocalDataSource,
     private val remoteSyncHandler: IWordRemoteSyncHandler,
-    private val conflictResolver: IWordConflictResolver
+    private val conflictResolver: IWordConflictResolver,
+    private val sessionManager: ISessionManager,
 ) : IWordRepository {
+
+    private var lastSyncedAt: Long = 0L
+
+    companion object {
+        private const val SYNC_FRESH_THRESHOLD_MS = 30_000L
+    }
 
     override suspend fun getAllWordsAsync(): Try<List<Word>> {
         return Try { localDataSource.getAllWordsAsync() }
@@ -72,6 +81,7 @@ class WordRepositoryImpl(
 
             localDataSource.insertWords(newWords)
             remoteSyncHandler.syncWordsToRemote(newWords)
+            lastSyncedAt = Clock.System.now().toEpochMilliseconds()
             newWords.size + wordsToUpdate.size
         }
     }
@@ -174,6 +184,10 @@ class WordRepositoryImpl(
     }
 
     override suspend fun syncWithRemote(): Try<Unit> {
+        if (!sessionManager.isAuthenticated()) return Try.success(Unit)
+        val now = Clock.System.now().toEpochMilliseconds()
+        if (now - lastSyncedAt < SYNC_FRESH_THRESHOLD_MS) return Try.success(Unit)
+
         return Try {
             val remoteWordsResult = remoteSyncHandler.syncFromRemote()
 
@@ -192,6 +206,7 @@ class WordRepositoryImpl(
                         }
                         localDataSource.insertWords(resolvedWords)
                     }
+                    lastSyncedAt = Clock.System.now().toEpochMilliseconds()
                 },
                 onFailure = { error ->
                     throw error

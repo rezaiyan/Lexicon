@@ -58,7 +58,6 @@ class ProfileViewModel(
         observeUser()
         observeStreak()
         observeFeatureAccess()
-        viewModelScope.launch { loadProfileStats() }
     }
 
     private fun observeUser() {

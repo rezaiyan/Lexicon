@@ -9,6 +9,7 @@ import domain.featureflag.IFeatureFlagProvider
 import core.common.fold
 import expects.logNetwork
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 
@@ -18,11 +19,17 @@ class FeatureAccessRemoteDataSource(
     private val featureFlagProvider: IFeatureFlagProvider,
 ) : IFeatureAccessRemoteDataSource {
 
+    private var cache: FeatureAccessResponse? = null
+
     override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> {
+        val cached = cache
+        if (cached != null) return flowOf(cached)
+
         return apiClient.getFlowNotNull<FeatureAccessResponse>(path)
             .map { result ->
                 result.fold(
                     onSuccess = { featureAccess ->
+                        cache = featureAccess
                         logNetwork(
                             "FeatureAccessRemoteDataSource",
                             "Feature access retrieved=${featureAccess.userAccess.hasPremiumAccess}"
@@ -35,6 +42,10 @@ class FeatureAccessRemoteDataSource(
                     }
                 )
             }
+    }
+
+    override fun clearCache() {
+        cache = null
     }
 
     private fun defaultFeatureAccess(): FeatureAccessResponse {

@@ -104,7 +104,7 @@ fetch_ci_secret() {
 
   info "CI_TEST_SECRET not set — fetching from VPS..."
   if command -v ssh >/dev/null 2>&1; then
-    CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 root@148.230.109.213 \
+    CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 root@alirezaiyan.com \
       "docker inspect vokab-server --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null" 2>/dev/null \
       | grep '^CI_TEST_SECRET=' | cut -d= -f2) || true
   fi
