@@ -295,6 +295,34 @@ jobs:
             build/reports/kover/
           retention-days: 14
 
+      - name: Update coverage badge
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ secrets.COVERAGE_GIST_ID }}
+        run: |
+          COVERAGE=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('build/reports/kover/report.xml')
+          root = tree.getroot()
+          counter = next(c for c in root.findall('counter') if c.get('type') == 'LINE')
+          missed = int(counter.get('missed'))
+          covered = int(counter.get('covered'))
+          print(round(covered / (covered + missed) * 100, 1))
+          ")
+          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then COLOR="brightgreen"
+          elif (( $(echo "$COVERAGE >= 75" | bc -l) )); then COLOR="green"
+          elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then COLOR="yellowgreen"
+          elif (( $(echo "$COVERAGE >= 45" | bc -l) )); then COLOR="yellow"
+          else COLOR="red"; fi
+          gh api -X PATCH /gists/"$GIST_ID" \
+            --field "files[lexicon-coverage.json][content]={\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"${COVERAGE}%\",\"color\":\"${COLOR}\"}"
+          curl -s -X PATCH \
+            -H "Authorization: token $GIST_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "https://api.github.com/gists/$GIST_ID"
+
       - name: Add coverage summary to PR
         if: github.event_name == 'pull_request'
         uses: mi-kas/kover-report@v1
