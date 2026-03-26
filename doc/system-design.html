@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lexicon — System Design</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #7c3aed;
+    --accent2: #2563eb;
+    --accent3: #059669;
+    --accent4: #d97706;
+    --accent5: #dc2626;
+    --purple-dim: rgba(124, 58, 237, 0.15);
+    --blue-dim: rgba(37, 99, 235, 0.15);
+    --green-dim: rgba(5, 150, 105, 0.15);
+    --amber-dim: rgba(217, 119, 6, 0.15);
+    --red-dim: rgba(220, 38, 38, 0.12);
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --mono: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  h2 { font-size: 16px; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; margin-top: 48px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 10px; }
+
+  .subtitle { color: var(--muted); margin-bottom: 40px; font-size: 15px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .badge-purple { background: var(--purple-dim); color: #a78bfa; border: 1px solid rgba(124,58,237,0.4); }
+  .badge-blue   { background: var(--blue-dim);   color: #60a5fa; border: 1px solid rgba(37,99,235,0.4); }
+  .badge-green  { background: var(--green-dim);  color: #34d399; border: 1px solid rgba(5,150,105,0.4); }
+  .badge-amber  { background: var(--amber-dim);  color: #fbbf24; border: 1px solid rgba(217,119,6,0.4); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+
+  /* ── SECTION 1: SYSTEM OVERVIEW ── */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    align-items: stretch;
+    margin-bottom: 12px;
+  }
+
+  .overview-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .connector-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    width: 120px;
+  }
+
+  .box {
+    border-radius: 8px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  .box-title { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; }
+  .box-items { color: var(--muted); font-size: 12px; line-height: 1.8; }
+  .box-items span { display: block; }
+  .box-items span::before { content: '·  '; }
+
+  .box-purple { background: var(--purple-dim); border: 1px solid rgba(124,58,237,0.35); }
+  .box-purple .box-title { color: #a78bfa; }
+  .box-blue   { background: var(--blue-dim);   border: 1px solid rgba(37,99,235,0.35); }
+  .box-blue .box-title   { color: #60a5fa; }
+  .box-green  { background: var(--green-dim);  border: 1px solid rgba(5,150,105,0.35); }
+  .box-green .box-title  { color: #34d399; }
+  .box-amber  { background: var(--amber-dim);  border: 1px solid rgba(217,119,6,0.35); }
+  .box-amber .box-title  { color: #fbbf24; }
+  .box-red    { background: var(--red-dim);    border: 1px solid rgba(220,38,38,0.35); }
+  .box-red .box-title    { color: #f87171; }
+  .box-gray   { background: rgba(139,148,158,0.1); border: 1px solid var(--border); }
+  .box-gray .box-title   { color: var(--text); }
+
+  .protocol-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+
+  .arrow-h {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    width: 100%;
+    position: relative;
+  }
+  .arrow-h::after {
+    content: '▶';
+    position: absolute;
+    right: -8px;
+    top: -8px;
+    font-size: 10px;
+    color: var(--border);
+  }
+  .arrow-h-both::before {
+    content: '◀';
+    position: absolute;
+    left: -8px;
+    top: -8px;
+    font-size: 10px;
+    color: var(--border);
+  }
+
+  /* ── SECTION 2: CLIENT LAYERS ── */
+  .layers-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  .layer {
+    border-radius: 0;
+    padding: 16px 24px;
+    position: relative;
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .layer:first-child { border-radius: 10px 10px 0 0; }
+  .layer:last-child  { border-radius: 0 0 10px 10px; }
+
+  .layer-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding-top: 2px;
+  }
+
+  .layer-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .chip {
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .layer-presentation { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); border-bottom: none; }
+  .layer-presentation .layer-label { color: #a78bfa; }
+  .layer-presentation .chip { background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.3); }
+
+  .layer-domain { background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.3); border-top: none; border-bottom: none; }
+  .layer-domain .layer-label { color: #60a5fa; }
+  .layer-domain .chip { background: rgba(37,99,235,0.2); color: #93c5fd; border: 1px solid rgba(37,99,235,0.3); }
+
+  .layer-data { background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.3); border-top: none; border-bottom: none; }
+  .layer-data .layer-label { color: #34d399; }
+  .layer-data .chip { background: rgba(5,150,105,0.18); color: #6ee7b7; border: 1px solid rgba(5,150,105,0.3); }
+
+  .layer-core { background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.3); border-top: none; border-bottom: none; }
+  .layer-core .layer-label { color: #fbbf24; }
+  .layer-core .chip { background: rgba(217,119,6,0.18); color: #fcd34d; border: 1px solid rgba(217,119,6,0.3); }
+
+  .layer-platforms { background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); border-top: none; }
+  .layer-platforms .layer-label { color: #f87171; }
+  .layer-platforms .chip { background: rgba(220,38,38,0.15); color: #fca5a5; border: 1px solid rgba(220,38,38,0.3); }
+
+  /* ── SECTION 3: DATA FLOWS ── */
+  .flows-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .flow-header {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .flow-purple .flow-header { background: var(--purple-dim); color: #a78bfa; border-bottom-color: rgba(124,58,237,0.3); }
+  .flow-blue .flow-header   { background: var(--blue-dim);   color: #60a5fa; border-bottom-color: rgba(37,99,235,0.3); }
+  .flow-green .flow-header  { background: var(--green-dim);  color: #34d399; border-bottom-color: rgba(5,150,105,0.3); }
+
+  .flow-steps { padding: 14px 16px; }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 22px;
+    bottom: -10px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .flow-purple .step-num { background: rgba(124,58,237,0.3); color: #a78bfa; }
+  .flow-blue .step-num   { background: rgba(37,99,235,0.3);  color: #60a5fa; }
+  .flow-green .step-num  { background: rgba(5,150,105,0.3);  color: #34d399; }
+
+  .step-content { flex: 1; }
+  .step-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .step-detail { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+  /* ── SECTION 4: STORAGE ── */
+  .storage-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: center;
+  }
+
+  .table-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .db-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+  .db-table-name { font-family: var(--mono); font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .db-table-cols { color: var(--muted); font-family: var(--mono); font-size: 11px; line-height: 1.7; }
+
+  .sync-bridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .sync-arrow {
+    font-size: 18px;
+    color: var(--accent3);
+    line-height: 1;
+  }
+
+  /* ── SECTION 5: MODULE GRAPH ── */
+  .module-graph {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mg-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .mg-box {
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .mg-app     { background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.5); color: #c4b5fd; }
+  .mg-feature { background: rgba(37,99,235,0.2);  border: 1px solid rgba(37,99,235,0.5);  color: #93c5fd; }
+  .mg-domain  { background: rgba(5,150,105,0.2);  border: 1px solid rgba(5,150,105,0.5);  color: #6ee7b7; }
+  .mg-data    { background: rgba(217,119,6,0.18); border: 1px solid rgba(217,119,6,0.5);  color: #fcd34d; }
+  .mg-core    { background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.5);  color: #fca5a5; }
+  .mg-platform{ background: rgba(139,148,158,0.15); border: 1px solid var(--border);      color: var(--muted); }
+
+  .mg-arrow {
+    color: var(--border);
+    font-size: 18px;
+    line-height: 1;
+    text-align: center;
+    width: 100%;
+  }
+
+  .mg-divider {
+    width: 80%;
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  /* ── SECTION 6: EXTERNAL SERVICES ── */
+  .ext-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .ext-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .ext-icon { font-size: 24px; margin-bottom: 8px; }
+  .ext-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .ext-role { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .ext-used { font-size: 10px; font-family: var(--mono); color: var(--accent3); margin-top: 6px; }
+
+  /* ── MISC ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .section-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(139,148,158,0.08);
+    border-left: 3px solid var(--border);
+    border-radius: 0 6px 6px 0;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: rgba(139,148,158,0.15);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #e6edf3;
+  }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════ -->
+<h1>Lexicon — System Design</h1>
+<p class="subtitle">End-to-end architecture of a KMP vocabulary learning app &nbsp;·&nbsp; Android + iOS &nbsp;·&nbsp; Offline-first</p>
+
+
+<!-- ═══════════════════════════════════════════
+     1. SYSTEM OVERVIEW
+═══════════════════════════════════════════ -->
+<h2>1 · System Overview</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 100px 1fr 100px 1fr; gap: 0; align-items: center;">
+
+  <!-- Mobile Clients -->
+  <div class="box box-purple" style="height: 100%;">
+    <div class="box-title">Mobile Clients</div>
+    <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 14px;">
+      <div style="flex: 1; background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.3); border-radius: 6px; padding: 10px 12px; text-align: center;">
+        <div style="font-size: 20px;">🤖</div>
+        <div style="font-size: 11px; font-weight: 700; color: #a78bfa; margin-top: 4px;">Android</div>
+        <div style="font-size: 10px; color: var(--muted);">min SDK 24</div>
+      </div>
+      <div style="flex: 1; background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.3); border-radius: 6px; padding: 10px 12px; text-align: center;">
+        <div style="font-size: 20px;">🍎</div>
+        <div style="font-size: 11px; font-weight: 700; color: #a78bfa; margin-top: 4px;">iOS</div>
+        <div style="font-size: 10px; color: var(--muted);">Swift + KMP</div>
+      </div>
+    </div>
+    <hr>
+    <div class="box-items" style="margin-top: 10px;">
+      <span>Compose Multiplatform UI</span>
+      <span>SQLDelight local database</span>
+      <span>Ktor HTTP client</span>
+      <span>Koin DI</span>
+      <span>Offline-first, sync queue</span>
+    </div>
+  </div>
+
+  <!-- Arrow 1 -->
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 4px;">
+    <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; text-align: center; white-space: nowrap;">HTTPS<br>REST/JSON</div>
+    <div style="font-size: 20px; color: var(--accent3); line-height: 1;">⇄</div>
+    <div style="font-size: 9px; color: var(--muted); text-align: center;">JWT Auth<br>Auto-refresh</div>
+  </div>
+
+  <!-- Backend -->
+  <div class="box box-green" style="height: 100%;">
+    <div class="box-title">Vokab Backend</div>
+    <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+      <div style="font-size: 11px; background: rgba(5,150,105,0.2); border: 1px solid rgba(5,150,105,0.3); border-radius: 4px; padding: 3px 9px; color: #6ee7b7; font-family: var(--mono);">Auth</div>
+      <div style="font-size: 11px; background: rgba(5,150,105,0.2); border: 1px solid rgba(5,150,105,0.3); border-radius: 4px; padding: 3px 9px; color: #6ee7b7; font-family: var(--mono);">Words</div>
+      <div style="font-size: 11px; background: rgba(5,150,105,0.2); border: 1px solid rgba(5,150,105,0.3); border-radius: 4px; padding: 3px 9px; color: #6ee7b7; font-family: var(--mono);">Analytics</div>
+      <div style="font-size: 11px; background: rgba(5,150,105,0.2); border: 1px solid rgba(5,150,105,0.3); border-radius: 4px; padding: 3px 9px; color: #6ee7b7; font-family: var(--mono);">Leaderboard</div>
+      <div style="font-size: 11px; background: rgba(5,150,105,0.2); border: 1px solid rgba(5,150,105,0.3); border-radius: 4px; padding: 3px 9px; color: #6ee7b7; font-family: var(--mono);">Profile</div>
+      <div style="font-size: 11px; background: rgba(5,150,105,0.2); border: 1px solid rgba(5,150,105,0.3); border-radius: 4px; padding: 3px 9px; color: #6ee7b7; font-family: var(--mono);">Subscriptions</div>
+    </div>
+    <hr style="margin: 12px 0;">
+    <div class="box-items">
+      <span>Spring Boot (Kotlin)</span>
+      <span>JWT token issuance</span>
+      <span>Word cloud sync</span>
+      <span>Analytics ingestion</span>
+    </div>
+    <hr style="margin: 12px 0;">
+    <div style="display: flex; gap: 8px;">
+      <div style="flex: 1; background: rgba(5,150,105,0.15); border: 1px solid rgba(5,150,105,0.25); border-radius: 5px; padding: 8px 10px;">
+        <div style="font-size: 10px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em;">PostgreSQL</div>
+        <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">Primary store</div>
+      </div>
+      <div style="flex: 1; background: rgba(5,150,105,0.15); border: 1px solid rgba(5,150,105,0.25); border-radius: 5px; padding: 8px 10px;">
+        <div style="font-size: 10px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em;">Redis</div>
+        <div style="font-size: 10px; color: var(--muted); margin-top: 2px;">Session / cache</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Arrow 2 -->
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 4px;">
+    <div style="font-size: 10px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; text-align: center; white-space: nowrap;">SDK<br>Webhooks</div>
+    <div style="font-size: 20px; color: var(--accent3); line-height: 1;">⇄</div>
+    <div style="font-size: 9px; color: var(--muted); text-align: center;">OAuth tokens<br>Events</div>
+  </div>
+
+  <!-- External Services -->
+  <div class="box box-amber" style="height: 100%;">
+    <div class="box-title">External Services</div>
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+      <div style="background: rgba(217,119,6,0.15); border: 1px solid rgba(217,119,6,0.3); border-radius: 5px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 16px;">🔐</span>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #fbbf24;">Firebase Auth</div>
+          <div style="font-size: 10px; color: var(--muted);">Google OAuth · Apple Sign-In</div>
+        </div>
+      </div>
+      <div style="background: rgba(217,119,6,0.15); border: 1px solid rgba(217,119,6,0.3); border-radius: 5px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 16px;">💳</span>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #fbbf24;">RevenueCat</div>
+          <div style="font-size: 10px; color: var(--muted);">In-app subscriptions · Entitlements</div>
+        </div>
+      </div>
+      <div style="background: rgba(217,119,6,0.15); border: 1px solid rgba(217,119,6,0.3); border-radius: 5px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 16px;">🔔</span>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #fbbf24;">FCM / APNs</div>
+          <div style="font-size: 10px; color: var(--muted);">Push notifications · Reminders</div>
+        </div>
+      </div>
+      <div style="background: rgba(217,119,6,0.15); border: 1px solid rgba(217,119,6,0.3); border-radius: 5px; padding: 8px 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 16px;">🔊</span>
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: #fbbf24;">TTS Provider</div>
+          <div style="font-size: 10px; color: var(--muted);">Text-to-speech · Pronunciation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     2. KMP CLIENT ARCHITECTURE
+═══════════════════════════════════════════ -->
+<h2>2 · KMP Client Architecture (Clean Architecture Layers)</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start;">
+
+  <!-- Left: layer stack -->
+  <div>
+    <div class="layers-stack">
+
+      <div class="layer layer-presentation">
+        <div class="layer-label">Presentation<br><span style="font-size: 10px; opacity: 0.7;">:presentation</span></div>
+        <div class="layer-chips">
+          <span class="chip">BaseViewModel&lt;S,F&gt;</span>
+          <span class="chip">Compose Screens</span>
+          <span class="chip">OnEvents(effects)</span>
+          <span class="chip">UiState&lt;T&gt;</span>
+          <span class="chip">NavigationHost</span>
+          <span class="chip">OverlayHost</span>
+          <span class="chip">viewModel.state()</span>
+          <span class="chip">Event Sink (public methods)</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding: 4px 0; background: rgba(255,255,255,0.02); border-left: 1px solid rgba(124,58,237,0.3); border-right: 1px solid rgba(37,99,235,0.3); font-size: 10px; color: var(--muted); letter-spacing: 0.05em;">
+        ▼ &nbsp; depends on domain interfaces only &nbsp; ▼
+      </div>
+
+      <div class="layer layer-domain">
+        <div class="layer-label">Domain<br><span style="font-size: 10px; opacity: 0.7;">:domain</span></div>
+        <div class="layer-chips">
+          <span class="chip">UseCase&lt;P,R&gt; → Try&lt;R&gt;</span>
+          <span class="chip">FlowUseCase&lt;P,R&gt; → Flow&lt;R&gt;</span>
+          <span class="chip">IWordRepository</span>
+          <span class="chip">IAnalyticsRecorder</span>
+          <span class="chip">IAuthRepository</span>
+          <span class="chip">Word · Tag · SRSLevel</span>
+          <span class="chip">SessionState (FSM)</span>
+          <span class="chip">Zero framework imports</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding: 4px 0; background: rgba(255,255,255,0.02); border-left: 1px solid rgba(37,99,235,0.3); border-right: 1px solid rgba(5,150,105,0.3); font-size: 10px; color: var(--muted); letter-spacing: 0.05em;">
+        ▼ &nbsp; implements domain interfaces &nbsp; ▼
+      </div>
+
+      <div class="layer layer-data">
+        <div class="layer-label">Data<br><span style="font-size: 10px; opacity: 0.7;">:data</span></div>
+        <div class="layer-chips">
+          <span class="chip">WordRepositoryImpl</span>
+          <span class="chip">AnalyticsRecorderImpl</span>
+          <span class="chip">AuthRepositoryImpl</span>
+          <span class="chip">WordLocalDataSource</span>
+          <span class="chip">WordRemoteDataSource</span>
+          <span class="chip">SQLDelight (AppDatabase)</span>
+          <span class="chip">Ktor HTTP calls</span>
+          <span class="chip">Dto.toDomain() mappers</span>
+          <span class="chip">WordSyncService</span>
+          <span class="chip">AnalyticsSyncQueue</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding: 4px 0; background: rgba(255,255,255,0.02); border-left: 1px solid rgba(5,150,105,0.3); border-right: 1px solid rgba(217,119,6,0.3); font-size: 10px; color: var(--muted); letter-spacing: 0.05em;">
+        ▼ &nbsp; shared primitives &nbsp; ▼
+      </div>
+
+      <div class="layer layer-core">
+        <div class="layer-label">Core<br><span style="font-size: 10px; opacity: 0.7;">:core</span></div>
+        <div class="layer-chips">
+          <span class="chip">Try&lt;T&gt;</span>
+          <span class="chip">BaseViewModel</span>
+          <span class="chip">UiState&lt;T&gt;</span>
+          <span class="chip">OnEvents</span>
+          <span class="chip">ApiClient (Ktor)</span>
+          <span class="chip">AuthInterceptor</span>
+          <span class="chip">TokenRefreshManager</span>
+          <span class="chip">ErrorInterceptor</span>
+          <span class="chip">AppDatabase driver</span>
+        </div>
+      </div>
+
+      <div style="text-align: center; padding: 4px 0; background: rgba(255,255,255,0.02); border-left: 1px solid rgba(217,119,6,0.3); border-right: 1px solid rgba(220,38,38,0.3); font-size: 10px; color: var(--muted); letter-spacing: 0.05em;">
+        ▼ &nbsp; platform bridges (expect/actual) &nbsp; ▼
+      </div>
+
+      <div class="layer layer-platforms">
+        <div class="layer-label">Platforms<br><span style="font-size: 10px; opacity: 0.7;">:platforms</span></div>
+        <div class="layer-chips">
+          <span class="chip">FirebaseAuth</span>
+          <span class="chip">IOSKeychainSecureStorage</span>
+          <span class="chip">AndroidKeystoreStorage</span>
+          <span class="chip">PushNotificationService</span>
+          <span class="chip">TTSEngine</span>
+          <span class="chip">PerformanceTracer</span>
+          <span class="chip">WidgetRefresher</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-note" style="margin-top: 12px;">
+      <strong>Dependency rule:</strong> arrows flow only downward. <code>:domain</code> has zero imports from any other module.
+      <code>:presentation</code> only knows domain interfaces — never data implementations.
+    </div>
+  </div>
+
+  <!-- Right: DI + data flow -->
+  <div style="display: flex; flex-direction: column; gap: 14px;">
+
+    <div class="card">
+      <h3>Dependency Injection (Koin)</h3>
+      <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 10px; background: rgba(124,58,237,0.1); border-radius: 5px;">
+          <span style="font-family: var(--mono);">ViewModel</span>
+          <span style="font-size: 10px; background: rgba(124,58,237,0.3); color: #c4b5fd; padding: 2px 7px; border-radius: 4px; font-weight: 700;">viewModelOf</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 10px; background: rgba(37,99,235,0.1); border-radius: 5px;">
+          <span style="font-family: var(--mono);">UseCase</span>
+          <span style="font-size: 10px; background: rgba(37,99,235,0.3); color: #93c5fd; padding: 2px 7px; border-radius: 4px; font-weight: 700;">factoryOf</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 10px; background: rgba(5,150,105,0.1); border-radius: 5px;">
+          <span style="font-family: var(--mono);">Repository</span>
+          <span style="font-size: 10px; background: rgba(5,150,105,0.3); color: #6ee7b7; padding: 2px 7px; border-radius: 4px; font-weight: 700;">singleOf + bind</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 10px; background: rgba(217,119,6,0.1); border-radius: 5px;">
+          <span style="font-family: var(--mono);">DataSource</span>
+          <span style="font-size: 10px; background: rgba(217,119,6,0.3); color: #fcd34d; padding: 2px 7px; border-radius: 4px; font-weight: 700;">singleOf + bind</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>State Management</h3>
+      <div style="margin-top: 8px; font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="padding: 8px 10px; background: rgba(124,58,237,0.1); border-radius: 5px; border-left: 3px solid rgba(124,58,237,0.5);">
+          <span style="font-family: var(--mono); color: #a78bfa;">mutableStateOf&lt;S&gt;</span>
+          <div style="color: var(--muted); font-size: 11px; margin-top: 2px;">Single data class per screen. Compose-native snapshot state.</div>
+        </div>
+        <div style="padding: 8px 10px; background: rgba(37,99,235,0.1); border-radius: 5px; border-left: 3px solid rgba(37,99,235,0.5);">
+          <span style="font-family: var(--mono); color: #60a5fa;">Channel&lt;F&gt; for effects</span>
+          <div style="color: var(--muted); font-size: 11px; margin-top: 2px;">One-shot side effects: navigation, toasts, dialogs.</div>
+        </div>
+        <div style="padding: 8px 10px; background: rgba(5,150,105,0.1); border-radius: 5px; border-left: 3px solid rgba(5,150,105,0.5);">
+          <span style="font-family: var(--mono); color: #34d399;">UiState&lt;T&gt;</span>
+          <div style="color: var(--muted); font-size: 11px; margin-top: 2px;">Loading / Loaded / Error for async data sections.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Error Propagation</h3>
+      <div style="font-size: 11px; font-family: var(--mono); display: flex; flex-direction: column; gap: 4px; margin-top: 8px; color: var(--muted);">
+        <div>DataSource &nbsp;<span style="color: #f87171;">throws</span></div>
+        <div style="padding-left: 12px;">↓ wrapped by</div>
+        <div>Repository &nbsp;<span style="color: #fbbf24;">Try&lt;T&gt;</span></div>
+        <div style="padding-left: 12px;">↓ threaded by</div>
+        <div>UseCase &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #fbbf24;">Try&lt;T&gt;</span></div>
+        <div style="padding-left: 12px;">↓ folded by</div>
+        <div>ViewModel &nbsp;&nbsp;<span style="color: #60a5fa;">.reduce()</span></div>
+        <div style="padding-left: 12px;">↓ rendered as</div>
+        <div>Screen &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #a78bfa;">UiState.Error</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     3. KEY DATA FLOWS
+═══════════════════════════════════════════ -->
+<h2>3 · Key Data Flows</h2>
+
+<div class="flows-grid">
+
+  <!-- Auth Flow -->
+  <div class="flow-card flow-purple">
+    <div class="flow-header">🔐 Authentication Flow</div>
+    <div class="flow-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">App Launch</div>
+          <div class="step-detail">AppNavigationViewModel<br>VerifySessionUseCase()</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Token check</div>
+          <div class="step-detail">Read JWT from Keychain<br>Check expiry + refresh if needed</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">OAuth (if needed)</div>
+          <div class="step-detail">KMPAuth → Firebase Auth<br>Google / Apple provider</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Token exchange</div>
+          <div class="step-detail">Firebase ID token → Vokab backend<br>POST /auth/login → JWT pair</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Session established</div>
+          <div class="step-detail">Store tokens in Keychain<br>Init push + subscriptions</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">Navigate</div>
+          <div class="step-detail">Has words → Study tab<br>No words → Onboarding</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Session Flow -->
+  <div class="flow-card flow-blue">
+    <div class="flow-header">📚 Review Session Flow</div>
+    <div class="flow-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Load due cards</div>
+          <div class="step-detail">GetDueWordsUseCase()<br>SQLDelight: WHERE dueAt ≤ now</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Start session</div>
+          <div class="step-detail">SessionReducer: Idle → Active<br>analyticsRecorder.startSession()</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Show card</div>
+          <div class="step-detail">Pure UI state: CardPhase.FRONT<br>No I/O — instant render</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">User rates card</div>
+          <div class="step-detail">ReviewWordUseCase()<br>SM2 algorithm → new level/interval</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Persist locally</div>
+          <div class="step-detail">SQLDelight update (immediate)<br>Add to sync queue</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">Session complete</div>
+          <div class="step-detail">analyticsRecorder.endSession()<br>Background sync to backend</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync Flow -->
+  <div class="flow-card flow-green">
+    <div class="flow-header">🔄 Word Sync Flow</div>
+    <div class="flow-steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Trigger</div>
+          <div class="step-detail">App foreground / login<br>SyncRemoteToLocalUseCase()</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Fetch remote</div>
+          <div class="step-detail">GET /words → WordDto list<br>Ktor + AuthInterceptor</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Conflict resolution</div>
+          <div class="step-detail">WordSyncService<br>Remote wins on conflict</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Write local DB</div>
+          <div class="step-detail">SQLDelight transaction<br>Upsert + delete removed words</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Push local changes</div>
+          <div class="step-detail">WordRemoteSyncHandler<br>Batch PUT /words</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">UI reactive update</div>
+          <div class="step-detail">Flow&lt;List&lt;Word&gt;&gt; emits<br>All screens update automatically</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     4. LOCAL STORAGE SCHEMA
+═══════════════════════════════════════════ -->
+<h2>4 · Local Storage (SQLDelight)</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+
+  <div class="db-table">
+    <div class="db-table-name">WordEntity</div>
+    <div class="db-table-cols">
+      id: INTEGER PK<br>
+      originalWord: TEXT<br>
+      translation: TEXT<br>
+      language: TEXT<br>
+      level: INTEGER (0–6)<br>
+      easeFactor: REAL<br>
+      interval: INTEGER<br>
+      repetitions: INTEGER<br>
+      dueAt: INTEGER (epoch ms)<br>
+      lastReviewedAt: INTEGER<br>
+      isSynced: INTEGER (bool)<br>
+      createdAt: INTEGER
+    </div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-name">TagEntity</div>
+    <div class="db-table-cols">
+      id: INTEGER PK<br>
+      name: TEXT UNIQUE<br>
+      colorHex: TEXT<br>
+      createdAt: INTEGER
+    </div>
+    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+    <div class="db-table-name">WordTagEntity</div>
+    <div class="db-table-cols">
+      wordId: INTEGER FK → Word<br>
+      tagId: INTEGER FK → Tag<br>
+      PRIMARY KEY (wordId, tagId)
+    </div>
+    </div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-name">AnalyticsSessionEntity</div>
+    <div class="db-table-cols">
+      sessionId: TEXT PK<br>
+      startTime: INTEGER<br>
+      endTime: INTEGER?<br>
+      totalCards: INTEGER<br>
+      correctCards: INTEGER<br>
+      isSynced: INTEGER (bool)
+    </div>
+    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+    <div class="db-table-name">AnalyticsSyncQueue</div>
+    <div class="db-table-cols">
+      id: INTEGER PK<br>
+      payload: TEXT (JSON)<br>
+      retryCount: INTEGER<br>
+      createdAt: INTEGER
+    </div>
+    </div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-name">ReviewEventEntity</div>
+    <div class="db-table-cols">
+      id: INTEGER PK<br>
+      sessionId: TEXT FK<br>
+      wordId: INTEGER FK<br>
+      quality: TEXT (REMEMBERED/FORGOT)<br>
+      previousLevel: INTEGER<br>
+      newLevel: INTEGER<br>
+      reviewedAt: INTEGER
+    </div>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-name">SettingsEntity (key-value)</div>
+    <div class="db-table-cols">
+      key: TEXT PK<br>
+      value: TEXT<br><br>
+      <span style="color: var(--accent4);">— stored keys —</span><br>
+      REVIEW_PRESET<br>
+      DAILY_GOAL<br>
+      NOTIFICATIONS_ENABLED<br>
+      ONBOARDING_COMPLETED
+    </div>
+  </div>
+
+  <div class="db-table" style="border-color: rgba(5,150,105,0.3);">
+    <div class="db-table-name" style="color: #34d399;">Migrations</div>
+    <div class="db-table-cols">
+      <span style="color: #34d399;">✓</span> 1.sqm — Initial schema<br>
+      <span style="color: #34d399;">✓</span> 2.sqm — Remove settings cols<br>
+      <span style="color: #34d399;">✓</span> 3–6.sqm — Incremental<br>
+      <span style="color: #34d399;">✓</span> 7.sqm — AnalyticsSyncQueue<br>
+      <br>
+      SQLDelight verifies schema<br>
+      at compile-time
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     5. MODULE DEPENDENCY GRAPH
+═══════════════════════════════════════════ -->
+<h2>5 · Module Dependency Graph</h2>
+
+<div class="module-graph">
+
+  <div class="mg-row">
+    <div class="mg-box mg-app">:composeApp</div>
+  </div>
+
+  <div class="mg-arrow">↓ &nbsp; depends on</div>
+
+  <div class="mg-row">
+    <div class="mg-box mg-feature">:presentation</div>
+  </div>
+
+  <div class="mg-arrow">↓ &nbsp; depends on (interfaces only)</div>
+
+  <div class="mg-row">
+    <div class="mg-box mg-domain">:domain</div>
+    <div style="color: var(--muted); font-size: 18px; margin: 0 8px;">←→</div>
+    <div class="mg-box mg-data">:data</div>
+  </div>
+
+  <div class="mg-arrow">↓ &nbsp; both depend on</div>
+
+  <div class="mg-row">
+    <div class="mg-box mg-core">:core</div>
+  </div>
+
+  <div class="mg-arrow">↓ &nbsp; platform bridges</div>
+
+  <div class="mg-row">
+    <div class="mg-box mg-platform">:platforms</div>
+    <div style="color: var(--muted); font-size: 14px; margin: 0 10px;">+</div>
+    <div class="mg-box mg-core" style="background: rgba(139,148,158,0.12); border-color: var(--border); color: var(--muted);">:design-system</div>
+    <div style="color: var(--muted); font-size: 14px; margin: 0 10px;">+</div>
+    <div class="mg-box mg-core" style="background: rgba(139,148,158,0.12); border-color: var(--border); color: var(--muted);">:resources</div>
+  </div>
+
+  <div style="margin-top: 16px; padding: 12px 20px; background: rgba(5,150,105,0.08); border: 1px solid rgba(5,150,105,0.2); border-radius: 8px; font-size: 12px; color: var(--muted); text-align: center;">
+    <strong style="color: #34d399;">Strict rule enforced:</strong> &nbsp;
+    <code>:domain</code> has zero imports from <code>:data</code>, <code>:presentation</code>, <code>:core</code>, <code>:platforms</code>, or <code>:composeApp</code>. &nbsp;
+    <code>:presentation</code> never imports <code>:data</code> directly.
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     6. SRS ALGORITHM
+═══════════════════════════════════════════ -->
+<h2>6 · SRS Algorithm (SM2-like)</h2>
+
+<div class="two-col">
+
+  <div class="card">
+    <h3>7-Level Bucket System</h3>
+    <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 20px; height: 20px; border-radius: 4px; background: rgba(220,38,38,0.4); border: 1px solid rgba(220,38,38,0.6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fca5a5;">0</div>
+        <div style="flex: 1; font-size: 12px;"><span style="color: var(--text);">Fresh</span> <span style="color: var(--muted);">→ 1 minute</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 20px; height: 20px; border-radius: 4px; background: rgba(220,80,38,0.4); border: 1px solid rgba(220,80,38,0.6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fca5a5;">1</div>
+        <div style="flex: 1; font-size: 12px;"><span style="color: var(--text);">Learning</span> <span style="color: var(--muted);">→ 10 minutes</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 20px; height: 20px; border-radius: 4px; background: rgba(217,119,6,0.4); border: 1px solid rgba(217,119,6,0.6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fcd34d;">2</div>
+        <div style="flex: 1; font-size: 12px;"><span style="color: var(--text);">Familiar</span> <span style="color: var(--muted);">→ 1 day</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 20px; height: 20px; border-radius: 4px; background: rgba(202,138,4,0.4); border: 1px solid rgba(202,138,4,0.6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fde047;">3</div>
+        <div style="flex: 1; font-size: 12px;"><span style="color: var(--text);">Building</span> <span style="color: var(--muted);">→ 3 days</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 20px; height: 20px; border-radius: 4px; background: rgba(21,128,61,0.4); border: 1px solid rgba(21,128,61,0.6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #86efac;">4</div>
+        <div style="flex: 1; font-size: 12px;"><span style="color: var(--text);">Almost</span> <span style="color: var(--muted);">→ 7 days</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 20px; height: 20px; border-radius: 4px; background: rgba(5,150,105,0.4); border: 1px solid rgba(5,150,105,0.6); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #6ee7b7;">5</div>
+        <div style="flex: 1; font-size: 12px;"><span style="color: var(--text);">Strong</span> <span style="color: var(--muted);">→ 14 days</span></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 20px; height: 20px; border-radius: 4px; background: rgba(37,99,235,0.5); border: 1px solid rgba(37,99,235,0.7); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #93c5fd;">6</div>
+        <div style="flex: 1; font-size: 12px;"><span style="color: var(--text);">Mastered</span> <span style="color: var(--muted);">→ 30+ days (grows with easeFactor)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Review Logic</h3>
+    <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="padding: 12px 14px; background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.3); border-radius: 6px;">
+        <div style="font-size: 12px; font-weight: 700; color: #34d399; margin-bottom: 6px;">✓ Remembered</div>
+        <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); line-height: 2;">
+          repetitions++<br>
+          if repetitions ≥ successesToAdvance → level++<br>
+          easeFactor = min(easeFactor + 0.1, 2.5)<br>
+          nextDue = now + LEVEL_INTERVALS[level]
+        </div>
+      </div>
+      <div style="padding: 12px 14px; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.3); border-radius: 6px;">
+        <div style="font-size: 12px; font-weight: 700; color: #f87171; margin-bottom: 6px;">✗ Forgot</div>
+        <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); line-height: 2;">
+          level = max(0, level - forgotPenalty)<br>
+          repetitions = 0<br>
+          easeFactor = max(easeFactor - 0.2, 1.3)<br>
+          nextDue = now + LEVEL_INTERVALS[level]
+        </div>
+      </div>
+      <div style="padding: 10px 14px; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.3); border-radius: 6px; font-size: 11px; color: var(--muted);">
+        <span style="color: #fbbf24; font-weight: 700;">Presets:</span> EASY / BALANCED (default) / RIGOROUS / EXPERT<br>
+        Each adjusts successesToAdvance + forgotPenalty
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     7. ANALYTICS PIPELINE
+═══════════════════════════════════════════ -->
+<h2>7 · Analytics Pipeline</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr 40px 1fr; gap: 0; align-items: center;">
+
+  <div style="background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); border-radius: 8px; padding: 14px 16px; text-align: center;">
+    <div style="font-size: 11px; font-weight: 700; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">User Action</div>
+    <div style="font-size: 11px; color: var(--muted); line-height: 1.8;">
+      Card reviewed<br>Session started<br>Session ended
+    </div>
+  </div>
+
+  <div style="text-align: center; font-size: 18px; color: var(--accent3);">→</div>
+
+  <div style="background: rgba(37,99,235,0.12); border: 1px solid rgba(37,99,235,0.3); border-radius: 8px; padding: 14px 16px; text-align: center;">
+    <div style="font-size: 11px; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">IAnalyticsRecorder</div>
+    <div style="font-size: 11px; color: var(--muted); line-height: 1.8;">
+      startSession()<br>recordReviewEvent()<br>endSession()
+    </div>
+    <div style="font-size: 10px; color: #f87171; margin-top: 6px; font-family: var(--mono);">Mutex-protected</div>
+  </div>
+
+  <div style="text-align: center; font-size: 18px; color: var(--accent3);">→</div>
+
+  <div style="background: rgba(5,150,105,0.1); border: 1px solid rgba(5,150,105,0.3); border-radius: 8px; padding: 14px 16px; text-align: center;">
+    <div style="font-size: 11px; font-weight: 700; color: #34d399; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">SQLDelight</div>
+    <div style="font-size: 11px; color: var(--muted); line-height: 1.8;">
+      AnalyticsSession<br>ReviewEvent<br>SyncQueue (pending)
+    </div>
+    <div style="font-size: 10px; color: #34d399; margin-top: 6px; font-family: var(--mono);">Survives app kill</div>
+  </div>
+
+  <div style="text-align: center; font-size: 18px; color: var(--accent3);">→</div>
+
+  <div style="background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.3); border-radius: 8px; padding: 14px 16px; text-align: center;">
+    <div style="font-size: 11px; font-weight: 700; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Backend</div>
+    <div style="font-size: 11px; color: var(--muted); line-height: 1.8;">
+      POST /analytics<br>Batch upload<br>Retry on failure
+    </div>
+    <div style="font-size: 10px; color: #fbbf24; margin-top: 6px; font-family: var(--mono);">retryPendingSync()<br>on startup</div>
+  </div>
+
+</div>
+
+<div class="section-note" style="margin-top: 12px;">
+  <strong>Critical invariant:</strong> <code>startSession()</code> must complete before any <code>recordReviewEvent()</code> call.
+  All session map access is protected by a <code>Mutex</code> in <code>AnalyticsRecorderImpl</code>.
+  Pending sessions are retried on next app launch via <code>retryPendingSync()</code>.
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     8. FEATURE MAP
+═══════════════════════════════════════════ -->
+<h2>8 · Feature Map</h2>
+
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+
+  <div class="box box-purple">
+    <div class="box-title">📚 Study / SRS</div>
+    <div class="box-items">
+      <span>Due card queue (SQLDelight)</span>
+      <span>7-level SM2 algorithm</span>
+      <span>ReviewViewModel + SessionState FSM</span>
+      <span>Study presets (EASY→EXPERT)</span>
+      <span>Progress tracking</span>
+    </div>
+  </div>
+
+  <div class="box box-blue">
+    <div class="box-title">📖 Word Management</div>
+    <div class="box-items">
+      <span>Add / edit / delete words</span>
+      <span>Tag system (multi-tag)</span>
+      <span>Search + filter</span>
+      <span>Word detail view</span>
+      <span>Bulk operations</span>
+    </div>
+  </div>
+
+  <div class="box box-green">
+    <div class="box-title">📥 Import</div>
+    <div class="box-items">
+      <span>File import (CSV / text)</span>
+      <span>Image import (OCR / AI)</span>
+      <span>AI-powered word extraction</span>
+      <span>Preview + edit before save</span>
+      <span>Premium feature gating</span>
+    </div>
+  </div>
+
+  <div class="box box-amber">
+    <div class="box-title">📊 Analytics & Insights</div>
+    <div class="box-items">
+      <span>Daily / weekly / monthly heatmap</span>
+      <span>Accuracy trends</span>
+      <span>Level distribution</span>
+      <span>Streak tracking</span>
+      <span>16 backend stat endpoints</span>
+    </div>
+  </div>
+
+  <div class="box box-red">
+    <div class="box-title">👤 Profile & Social</div>
+    <div class="box-items">
+      <span>User profile + avatar</span>
+      <span>Leaderboard (weekly/all-time)</span>
+      <span>Achievements</span>
+      <span>Account management</span>
+      <span>Settings</span>
+    </div>
+  </div>
+
+  <div class="box box-gray">
+    <div class="box-title">🔊 TTS & Notifications</div>
+    <div class="box-items">
+      <span>Text-to-speech pronunciation</span>
+      <span>Downloadable TTS packs</span>
+      <span>Daily review reminders</span>
+      <span>Push notification scheduling</span>
+      <span>FCM (Android) / APNs (iOS)</span>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     9. CRITICAL INVARIANTS
+═══════════════════════════════════════════ -->
+<h2>9 · Critical Invariants (never violate)</h2>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+
+  <div style="padding: 14px 16px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px;">
+    <div style="font-size: 12px; font-weight: 700; color: #f87171; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;">SRS Algorithm</div>
+    <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); line-height: 2.2;">
+      level ∈ [0, 6] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; always<br>
+      easeFactor ∈ [1.3, 2.5] &nbsp;&nbsp;&nbsp;&nbsp; always<br>
+      interval &gt; 0 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; always (even at level 6)<br>
+      repetitions → 0 on level advance
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px;">
+    <div style="font-size: 12px; font-weight: 700; color: #f87171; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Analytics Session</div>
+    <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); line-height: 2.2;">
+      startSession() awaited before recordReview()<br>
+      recordReview() inside sessionId != null guard<br>
+      endSession() called on complete + onCleared()<br>
+      sessions map protected by Mutex
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px;">
+    <div style="font-size: 12px; font-weight: 700; color: #f87171; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Token Refresh</div>
+    <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); line-height: 2.2;">
+      double-check after Mutex acquire<br>
+      AuthenticationException ≠ transient error<br>
+      proactive refresh non-blocking
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px;">
+    <div style="font-size: 12px; font-weight: 700; color: #f87171; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;">Tag Cascade</div>
+    <div style="font-size: 11px; font-family: var(--mono); color: var(--muted); line-height: 2.2;">
+      deleteTag: remove WordTags BEFORE Tag row<br>
+      setWordTags: atomic (delete-all + insert)<br>
+      no addTagToWord() loops in batch ops<br>
+      use setWordTags() for batch instead
+    </div>
+  </div>
+
+</div>
+
+<div style="margin-top: 40px; padding: 12px 16px; background: rgba(139,148,158,0.06); border: 1px solid var(--border); border-radius: 8px; font-size: 11px; color: var(--muted); text-align: center;">
+  Lexicon System Design &nbsp;·&nbsp; KMP (Android + iOS) &nbsp;·&nbsp; Offline-first &nbsp;·&nbsp; Clean Architecture + Event Sink MVVM
+</div>
+
+</body>
+</html>

@@ -8,9 +8,6 @@ tags:
 # Verifies that navigating to the Profile tab shows user info
 # and profile action buttons when logged in.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_profile.yaml
 
 # The screen title must be visible.

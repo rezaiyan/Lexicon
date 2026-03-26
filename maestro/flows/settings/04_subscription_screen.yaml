@@ -11,9 +11,6 @@ tags:
 # loading prices, so it is a reliable early render signal.
 # Does NOT trigger actual purchases.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_settings.yaml
 
 # The Subscription card must be visible on the Settings screen.

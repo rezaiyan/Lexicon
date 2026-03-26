@@ -9,9 +9,6 @@ tags:
 # leaderboard overlay with its ranking content, and that pressing back
 # dismisses it and returns to the Profile screen.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_profile.yaml
 
 # The Leaderboard button must be visible on the Profile screen.

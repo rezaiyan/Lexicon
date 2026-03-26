@@ -27,6 +27,8 @@ import domain.word.model.Word
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
+import domain.study.usecase.GenerateSessionIdUseCase
+import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.GetDueWordsByTagUseCase
 import domain.word.usecase.GetDueWordsUseCase
@@ -189,6 +191,8 @@ class ReviewViewModelTest : ViewModelTestBase() {
             observeTtsState = ObserveTtsStateUseCase(ttsRepo),
             observeSpeechRate = ObserveSpeechRateUseCase(settingsRepo),
             setSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),
+            generateSessionIdUseCase = GenerateSessionIdUseCase(),
+            resolveCardLanguageUseCase = ResolveCardLanguageUseCase(),
             analyticsTracker = FakeAnalyticsTracker(),
         )
     }

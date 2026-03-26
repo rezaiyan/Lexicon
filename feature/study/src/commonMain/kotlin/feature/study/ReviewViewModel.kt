@@ -17,6 +17,8 @@ import domain.tts.usecase.SpeakWordUseCase
 import domain.word.model.ReviewSource
 import domain.word.model.ReviewWordResult
 import domain.word.model.Word
+import domain.study.usecase.GenerateSessionIdUseCase
+import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.ReviewWordUseCase
@@ -48,6 +50,8 @@ class ReviewViewModel(
     private val observeSpeechRate: ObserveSpeechRateUseCase,
     private val setSpeechRateUseCase: SetTtsSpeechRateUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val generateSessionIdUseCase: GenerateSessionIdUseCase,
+    private val resolveCardLanguageUseCase: ResolveCardLanguageUseCase,
 ) : BaseViewModel<ReviewViewModelState, ReviewEffect>() {
 
     override fun initialState() = ReviewViewModelState()
@@ -110,7 +114,7 @@ class ReviewViewModel(
                         return@onSuccess
                     }
                     val startedAt = Clock.System.now().toEpochMilliseconds()
-                    val sessionId = buildSessionId()
+                    val sessionId = generateSessionIdUseCase()
                     val sessionType = source.toSessionType()
                     sessionContext = SessionContext(sessionId, sessionType, startedAt)
                     startSessionUseCase(StartStudySessionUseCase.Params(sessionId, sessionType))
@@ -234,8 +238,9 @@ class ReviewViewModel(
     }
 
     fun speakWord(text: String, languageCode: String) {
+        val words = (currentState.review as? ReviewState.Active)?.words ?: emptyList()
         viewModelScope.launch {
-            speakWordUseCase(text, resolveLanguageCode(text, languageCode))
+            speakWordUseCase(text, resolveCardLanguageUseCase(text, languageCode, words))
         }
     }
 
@@ -320,9 +325,6 @@ class ReviewViewModel(
         }
     }
 
-    private fun buildSessionId(): String =
-        "${Clock.System.now().toEpochMilliseconds()}-${(0..999999).random().toString().padStart(6, '0')}"
-
     private fun buildEventParams(
         result: ReviewWordResult,
         quality: Int,
@@ -342,18 +344,6 @@ class ReviewViewModel(
             responseTimeMs = responseTimeMs,
             reviewedAt = Clock.System.now().toEpochMilliseconds(),
         )
-    }
-
-    private fun resolveLanguageCode(text: String, languageCode: String): String {
-        if (languageCode.isNotBlank()) return languageCode
-        val words = (currentState.review as? ReviewState.Active)?.words ?: return languageCode
-        val isTargetSide = words.any { it.originalWord == text }
-        return words
-            .map { if (isTargetSide) it.targetLanguage.code else it.sourceLanguage.code }
-            .groupingBy { it }
-            .eachCount()
-            .maxByOrNull { it.value }
-            ?.key ?: languageCode
     }
 
     private fun ReviewSource.toReviewType() = when (this) {

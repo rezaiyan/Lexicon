@@ -8,9 +8,6 @@ tags:
 # Verifies that tapping "Notifications" on the Settings screen opens
 # the notification settings bottom sheet with expected UI elements.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_settings.yaml
 
 # Tap the Notifications card.

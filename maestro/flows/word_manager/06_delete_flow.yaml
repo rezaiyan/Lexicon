@@ -8,9 +8,6 @@ tags:
 #
 # Creates a test word first to ensure at least one word exists in the library.
 
-- launchApp:
-    clearState: false
-
 # Navigate to Study screen and add a test word so the library is non-empty.
 - runFlow: ../utils/navigate_to_study.yaml
 - runFlow: ../utils/add_test_word.yaml
@@ -48,7 +45,10 @@ tags:
 # Dismiss — do NOT actually delete words.
 - tapOn: "Cancel"
 
-# Wait for the dialog dismiss animation.
+# Wait for the dialog dismiss animation AND the selection bar exit animation.
+# Both animate concurrently after cancel; a single waitForAnimationToEnd may
+# return before the selection bar collapses if the dialog fades faster.
+- waitForAnimationToEnd
 - waitForAnimationToEnd
 
 # The dialog must be dismissed.

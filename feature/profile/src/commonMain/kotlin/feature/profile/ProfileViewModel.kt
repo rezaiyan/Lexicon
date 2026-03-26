@@ -8,8 +8,8 @@ import domain.auth.model.FeatureAccessResponse
 import core.common.fold
 import core.common.getOrNull
 import core.error.toUserMessage
-import domain.profile.model.DayActivity
-import domain.profile.model.ProfileStats
+import domain.profile.model.EnrichedProfileStats
+import domain.profile.usecase.EnrichProfileStatsUseCase
 import domain.profile.usecase.GetProfileStatsUseCase
 import domain.streak.manager.IStreakManager
 import domain.streak.model.StreakData
@@ -19,8 +19,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
-import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import core.base.BaseViewModel
@@ -36,7 +34,8 @@ class ProfileViewModel(
     private val userManager: IUserManager,
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val streakManager: IStreakManager,
-    private val getProfileStatsUseCase: GetProfileStatsUseCase
+    private val getProfileStatsUseCase: GetProfileStatsUseCase,
+    private val enrichProfileStatsUseCase: EnrichProfileStatsUseCase,
 ) : BaseViewModel<UiState<ProfileUiData>, Nothing>() {
 
     override fun initialState(): UiState<ProfileUiData> = UiState.Loading
@@ -105,10 +104,36 @@ class ProfileViewModel(
     }
 
     private suspend fun loadProfileStats() {
-        val result = getProfileStatsUseCase()
-        currentProfileStats = result.getOrNull()?.toUiModel()
+        val stats = getProfileStatsUseCase().getOrNull()
+        currentProfileStats = stats?.let {
+            val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+            enrichProfileStatsUseCase(it, today).toUiModel()
+        }
         rebuildState()
     }
+
+    private fun EnrichedProfileStats.toUiModel(): ProfileStatsUiModel =
+        ProfileStatsUiModel(
+            currentStreak = currentStreak,
+            longestStreak = longestStreak,
+            memberSince = memberSince,
+            weeklyActivity = weeklyActivity.map { day ->
+                DayActivityUiModel(
+                    date = day.date,
+                    dayOfMonth = day.dayOfMonth,
+                    dayOfWeekLabel = day.dayOfWeekLabel,
+                    reviewCount = day.reviewCount,
+                    isToday = day.isToday,
+                )
+            },
+            languages = languages.map { lang ->
+                LanguagePairUiModel(
+                    sourceLanguage = lang.sourceLanguage,
+                    targetLanguage = lang.targetLanguage,
+                    wordCount = lang.wordCount,
+                )
+            },
+        )
 
     private fun rebuildState() {
         updateState {
@@ -160,44 +185,4 @@ class ProfileViewModel(
         observeStreak()
         viewModelScope.launch { loadProfileStats() }
     }
-}
-
-private fun ProfileStats.toUiModel(): ProfileStatsUiModel {
-    val todayStr = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault())
-        .date.toString()
-
-    return ProfileStatsUiModel(
-        currentStreak = currentStreak,
-        longestStreak = longestStreak,
-        memberSince = memberSince,
-        weeklyActivity = weeklyActivity.map { it.toUiModel(todayStr) }.sortedBy { it.date },
-        languages = languages.map { lang ->
-            LanguagePairUiModel(
-                sourceLanguage = lang.sourceLanguage,
-                targetLanguage = lang.targetLanguage,
-                wordCount = lang.wordCount
-            )
-        }
-    )
-}
-
-private fun DayActivity.toUiModel(todayStr: String): DayActivityUiModel {
-    val localDate = LocalDate.parse(date)
-    val dayOfWeekLabel = when (localDate.dayOfWeek) {
-        DayOfWeek.MONDAY -> "MON"
-        DayOfWeek.TUESDAY -> "TUE"
-        DayOfWeek.WEDNESDAY -> "WED"
-        DayOfWeek.THURSDAY -> "THU"
-        DayOfWeek.FRIDAY -> "FRI"
-        DayOfWeek.SATURDAY -> "SAT"
-        DayOfWeek.SUNDAY -> "SUN"
-    }
-    return DayActivityUiModel(
-        date = date,
-        dayOfMonth = localDate.day,
-        dayOfWeekLabel = dayOfWeekLabel,
-        reviewCount = reviewCount,
-        isToday = date == todayStr
-    )
 }

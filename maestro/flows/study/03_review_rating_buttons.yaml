@@ -11,9 +11,6 @@ tags:
 #
 # Requires: At least one word exists in the library.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_study.yaml
 
 # Add a test word so we have something to review.

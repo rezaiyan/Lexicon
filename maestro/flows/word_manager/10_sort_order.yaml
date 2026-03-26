@@ -1,0 +1,77 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - sort
+---
+# Test: Sort order chip changes the list sort order.
+#
+# Flow:
+#   1. Add a test word via the import sheet so the library is non-empty.
+#   2. Navigate to Word Manager.
+#   3. Verify the default sort label "Newest" is shown on the sort chip.
+#   4. Tap the sort chip to open the sort dropdown.
+#   5. Verify all sort options are present in the dropdown.
+#   6. Select "A → Z" and assert the chip label updates to reflect the new sort.
+#   7. Open the dropdown again and switch back to "Newest first" to restore state.
+#
+# The test does not assert list item order (non-deterministic across accounts)
+# but does assert the sort chip label change, which is the UI contract for the
+# sort feature being active.
+
+# Navigate to Study screen and add a test word so the library is non-empty.
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# Navigate to the Word Manager.
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+# Wait for the word list to load (generous timeout for slow emulators).
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 15000
+
+# The filter chips row must be visible.
+# The default sort chip label is "Newest" (DATE_ADDED_DESC is the default).
+- assertVisible: "Newest"
+
+# Tap the sort chip to open the sort dropdown.
+- tapOn: "Newest"
+
+# Wait for the dropdown animation to complete.
+- waitForAnimationToEnd
+
+# All sort option menu items must be present in the dropdown.
+- assertVisible: "Newest first"
+- assertVisible: "Oldest first"
+- assertVisible: "A → Z"
+- assertVisible: "Z → A"
+- assertVisible: "Level (low → high)"
+- assertVisible: "Level (high → low)"
+
+# Select "A → Z" to change the sort order.
+- tapOn: "A → Z"
+
+# Wait for the list reorder animation.
+- waitForAnimationToEnd
+
+# The sort chip label must now reflect the active sort option.
+# When sort is not the default (DATE_ADDED_DESC), the FilterChip shows as
+# selected (filled) and displays the active sort label.
+- assertVisible: "A → Z"
+
+# "Newest" label is gone — it is only shown when the default sort is active.
+- assertNotVisible: "Newest first"
+
+# Open the sort dropdown again to restore the default sort.
+- tapOn: "A → Z"
+
+# Wait for the dropdown animation.
+- waitForAnimationToEnd
+
+# Select "Newest first" to restore the default sort.
+- tapOn: "Newest first"
+
+- waitForAnimationToEnd
+
+# The chip label is back to "Newest" (default sort, unselected chip state).
+- assertVisible: "Newest"

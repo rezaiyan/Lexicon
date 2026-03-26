@@ -7,6 +7,7 @@ import domain.profile.repository.IProfileRepository
 import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.UpdateProfileUseCase
 import domain.profile.usecase.UploadAvatarUseCase
+import domain.profile.usecase.ValidateDisplayAliasUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -56,7 +57,8 @@ class EditProfileViewModelTest : ViewModelTestBase() {
             userManager = fakeUserManager(),
             updateProfileUseCase = UpdateProfileUseCase(repo),
             uploadAvatarUseCase = UploadAvatarUseCase(repo),
-            deleteAvatarUseCase = DeleteAvatarUseCase(repo)
+            deleteAvatarUseCase = DeleteAvatarUseCase(repo),
+            validateDisplayAliasUseCase = ValidateDisplayAliasUseCase(),
         )
     }
 

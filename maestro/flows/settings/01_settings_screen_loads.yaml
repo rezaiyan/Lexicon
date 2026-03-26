@@ -9,9 +9,6 @@ tags:
 # all expected settings cards: Theme, Notifications, Word Manager, Subscription,
 # and About.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_settings.yaml
 
 # The screen title must be visible.

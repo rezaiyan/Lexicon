@@ -11,9 +11,14 @@ import core.error.toUserMessage
 import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.tag.usecase.CreateTagUseCase
 import domain.tag.usecase.GetTagsUseCase
+import domain.word.model.ImportErrorClassification
+import domain.word.model.ParsedWord
+import domain.word.usecase.ClassifyImportErrorUseCase
+import domain.word.usecase.FormatWordsToCsvUseCase
 import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
+import domain.word.usecase.ParseCsvWordsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
@@ -42,6 +47,9 @@ class ImportViewModel(
     private val getSourceLanguageUseCase: GetSourceLanguageUseCase,
     private val tagUseCases: ImportTagUseCases,
     private val performanceTracer: IPerformanceTracer,
+    private val parseCsvWordsUseCase: ParseCsvWordsUseCase,
+    private val formatWordsToCsvUseCase: FormatWordsToCsvUseCase,
+    private val classifyImportErrorUseCase: ClassifyImportErrorUseCase,
 ) : BaseViewModel<ImportUiState, ImportEffect>() {
 
     override fun initialState() = ImportUiState()
@@ -213,14 +221,10 @@ class ImportViewModel(
                 },
                 onFailure = { error ->
                     val raw = error.message.orEmpty()
-                    val isNetwork = raw.contains("timeout", ignoreCase = true) ||
-                        raw.contains("connect", ignoreCase = true) ||
-                        raw.contains("network", ignoreCase = true)
-
-                    val friendlyMessage = when {
-                        isNetwork -> "You're offline -- the word will be saved when you reconnect."
-                        raw.isNotEmpty() -> raw
-                        else -> "Failed to add word. Please try again."
+                    val friendlyMessage = when (classifyImportErrorUseCase(raw)) {
+                        ImportErrorClassification.NetworkError ->
+                            "You're offline -- the word will be saved when you reconnect."
+                        else -> if (raw.isNotEmpty()) raw else "Failed to add word. Please try again."
                     }
 
                     updateState {
@@ -275,7 +279,10 @@ class ImportViewModel(
                         }
 
                         is ExtractVocabularyResult.Success -> {
-                            val wordItems = parseCsvToWordItems(result.csvText)
+                            val wordItems = parseCsvWordsUseCase(result.csvText)
+                                .mapIndexed { index, word ->
+                                    ExtractedWordItem(id = index, word = word.word, translation = word.translation, description = word.description)
+                                }
                             clearSelectedImage()
                             updateState {
                                 copy(
@@ -290,17 +297,13 @@ class ImportViewModel(
                         is ExtractVocabularyResult.Error -> {
                             clearSelectedImage()
                             val raw = result.message
-                            val isNetwork = raw.contains("timeout", ignoreCase = true) ||
-                                raw.contains("connect", ignoreCase = true) ||
-                                raw.contains("network", ignoreCase = true)
-
-                            val friendlyMessage = when {
-                                isNetwork -> "You're offline -- please check your connection and try again."
-                                raw.contains("empty", ignoreCase = true) ||
-                                    raw.contains("no words", ignoreCase = true) ||
-                                    raw.contains("no text", ignoreCase = true) ->
+                            val friendlyMessage = when (classifyImportErrorUseCase(raw)) {
+                                ImportErrorClassification.NetworkError ->
+                                    "You're offline -- please check your connection and try again."
+                                ImportErrorClassification.EmptyContent ->
                                     "No vocabulary found in this image. Try a photo with clearer, larger text."
-                                else -> "Image extraction failed -- try a clearer photo with visible text."
+                                ImportErrorClassification.GenericError ->
+                                    "Image extraction failed -- try a clearer photo with visible text."
                             }
 
                             updateState {
@@ -349,10 +352,7 @@ class ImportViewModel(
         val words = reviewState.words
         if (words.isEmpty()) return
 
-        val csvText = words.joinToString("\n") { item ->
-            if (item.description.isNotBlank()) "${item.word},${item.translation},${item.description}"
-            else "${item.word},${item.translation}"
-        }
+        val csvText = formatWordsToCsvUseCase(words.map { ParsedWord(it.word, it.translation, it.description) })
 
         updateState { copy(imageReviewState = reviewState.copy(isImporting = true)) }
 
@@ -496,21 +496,4 @@ class ImportViewModel(
         }
     }
 
-    private fun parseCsvToWordItems(csvText: String): List<ExtractedWordItem> {
-        return csvText.trim()
-            .split(Regex("[;\n]+"))
-            .map { it.trim() }
-            .filter { it.isNotBlank() && !it.startsWith("#") }
-            .mapIndexedNotNull { index, line ->
-                val parts = line.split(",", limit = 3).map { it.trim() }
-                if (parts.size >= 2 && parts[0].isNotBlank() && parts[1].isNotBlank()) {
-                    ExtractedWordItem(
-                        id = index,
-                        word = parts[0],
-                        translation = parts[1],
-                        description = if (parts.size > 2) parts[2] else "",
-                    )
-                } else null
-            }
-    }
 }

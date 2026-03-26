@@ -1,4 +1,4 @@
-yappId: com.alirezaiyan.vokab
+appId: com.alirezaiyan.vokab
 tags:
   - import
   - method-chooser
@@ -9,9 +9,6 @@ tags:
 # "Manually" — shows all three import method cards: "Type Text", "From File",
 # and "From Image". Then verifies navigation to each method's source language
 # chooser works via back navigation.
-
-- launchApp:
-    clearState: false
 
 - runFlow: ../utils/navigate_to_study.yaml
 

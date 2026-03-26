@@ -1,0 +1,62 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - profile
+  - edit-profile
+---
+# Test: Edit Profile flow — open sheet, verify fields, make a change, save, assert
+# updated value appears on the Profile screen.
+#
+# Flow:
+#   1. Navigate to Profile screen.
+#   2. Open the "More options" bottom sheet.
+#   3. Tap "Edit Profile" to open the edit screen.
+#   4. Assert the edit screen loads with Username and Email fields.
+#   5. Clear the Username field and type a new alias.
+#   6. Tap "Save".
+#   7. Assert the Profile screen is visible again (sheet dismissed after save).
+
+- runFlow: ../utils/navigate_to_profile.yaml
+
+# Tap the "More options" icon in the top bar to open the sheet.
+- tapOn: "More options"
+
+# The more options sheet must appear with the Edit Profile option.
+- assertVisible: "Edit Profile"
+
+# Tap "Edit Profile" to navigate into the edit screen.
+- tapOn: "Edit Profile"
+
+# Wait for the Edit Profile screen to fully render.
+- extendedWaitUntil:
+    visible: "Edit Profile"
+    timeout: 8000
+
+# The Username field must be visible.
+- assertVisible: "Username"
+
+# The read-only Email field must be visible.
+- assertVisible: "Email"
+
+# The Save button must be present.
+- assertVisible: "Save"
+
+# Clear the Username field and type a new display alias.
+# waitForAnimationToEnd after tap ensures Compose establishes the IME connection
+# before eraseText/inputText — without it, inputText intermittently types nothing.
+- tapOn: "Username"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "MaestroUser"
+- hideKeyboard
+
+# Tap "Save" to submit the profile update.
+- tapOn: "Save"
+
+# After a successful save the sheet dismisses and we return to the Profile screen.
+# Wait generously to accommodate the network round-trip for the profile save.
+- extendedWaitUntil:
+    visible: "Leaderboard"
+    timeout: 15000
+
+# The edit screen title must no longer be visible (screen was dismissed).
+- assertNotVisible: "Save"

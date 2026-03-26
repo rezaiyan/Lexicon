@@ -4,9 +4,11 @@ import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
 import core.common.fold
 import core.error.toUserMessage
+import domain.profile.model.AliasValidationResult
 import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.UpdateProfileUseCase
 import domain.profile.usecase.UploadAvatarUseCase
+import domain.profile.usecase.ValidateDisplayAliasUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
@@ -29,7 +31,8 @@ class EditProfileViewModel(
     private val userManager: IUserManager,
     private val updateProfileUseCase: UpdateProfileUseCase,
     private val uploadAvatarUseCase: UploadAvatarUseCase,
-    private val deleteAvatarUseCase: DeleteAvatarUseCase
+    private val deleteAvatarUseCase: DeleteAvatarUseCase,
+    private val validateDisplayAliasUseCase: ValidateDisplayAliasUseCase,
 ) : BaseViewModel<EditProfileState, EditProfileEffect>() {
 
     override fun initialState() = EditProfileState()
@@ -63,14 +66,20 @@ class EditProfileViewModel(
     fun saveProfile() {
         val alias = currentState.displayAlias.trim()
 
-        if (alias.isNotEmpty() && (alias.length < 2 || alias.length > 30)) {
-            updateState { copy(errorMessage = "Username must be 2-30 characters") }
-            return
-        }
-
-        if (alias.isNotEmpty() && !alias.matches("^[a-zA-Z0-9 _-]+$".toRegex())) {
-            updateState { copy(errorMessage = "Only letters, numbers, spaces, underscores, and hyphens allowed") }
-            return
+        when (validateDisplayAliasUseCase(alias)) {
+            AliasValidationResult.TooShort -> {
+                updateState { copy(errorMessage = "Username must be 2-30 characters") }
+                return
+            }
+            AliasValidationResult.TooLong -> {
+                updateState { copy(errorMessage = "Username must be 2-30 characters") }
+                return
+            }
+            AliasValidationResult.InvalidCharacters -> {
+                updateState { copy(errorMessage = "Only letters, numbers, spaces, underscores, and hyphens allowed") }
+                return
+            }
+            AliasValidationResult.Valid -> Unit
         }
 
         viewModelScope.launch {

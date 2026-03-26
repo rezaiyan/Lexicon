@@ -48,16 +48,25 @@ flows:
   # dialog appear in the manual text import flow.
   - "flows/import/04_tag_selector_in_import.yaml"
   - "flows/import/06_image_import_from_gallery.yaml"
+  # 07_import_validation_errors verifies the Add Word button is disabled when
+  # required fields are empty (both empty, and original-only with no translation).
+  - "flows/import/07_import_validation_errors.yaml"
   - "flows/study/*.yaml"
   - "flows/profile/01_profile_screen_loads.yaml"
   - "flows/profile/02_more_options_sheet.yaml"
   - "flows/profile/03_logout_sheet.yaml"
   - "flows/profile/04_leaderboard_screen.yaml"
+  # 05_edit_profile verifies the edit screen loads, accepts a username change,
+  # and dismisses back to the Profile screen after saving.
+  - "flows/profile/05_edit_profile.yaml"
   - "flows/settings/01_settings_screen_loads.yaml"
   - "flows/settings/02_theme_dialog.yaml"
   - "flows/settings/03_notification_settings.yaml"
   - "flows/settings/04_subscription_screen.yaml"
   - "flows/settings/05_tag_manager_screen.yaml"
+  # 06_notification_toggle verifies the Enable Notifications switch changes the
+  # subtitle text when tapped and can be toggled back.
+  - "flows/settings/06_notification_toggle.yaml"
   # word_manager/02_empty_state excluded — see header comment in that file.
   - "flows/word_manager/01_screen_loads.yaml"
   - "flows/word_manager/03_search_functionality.yaml"
@@ -66,6 +75,9 @@ flows:
   - "flows/word_manager/06_delete_flow.yaml"
   - "flows/word_manager/08_word_detail_sheet.yaml"
   - "flows/word_manager/09_tag_assignment.yaml"
+  # 10_sort_order verifies the sort chip label updates when a different sort
+  # option is selected from the dropdown.
+  - "flows/word_manager/10_sort_order.yaml"
 
 executionOrder:
   continueOnFailure: true
@@ -78,23 +90,27 @@ executionOrder:
     - flows/import/03_import_sheet_tabs.yaml
     - flows/import/04_tag_selector_in_import.yaml
     - flows/import/06_image_import_from_gallery.yaml
+    - flows/import/07_import_validation_errors.yaml
     # Study/review tests (need words to exist)
     - flows/study/01_study_screen_loads.yaml
     - flows/study/02_edit_word_from_review.yaml
     - flows/study/03_review_rating_buttons.yaml
     - flows/study/04_review_completion.yaml
     - flows/study/05_tag_filter_long_press.yaml
+    - flows/study/06_nope_rating_path.yaml
     # Profile tests
     - flows/profile/01_profile_screen_loads.yaml
     - flows/profile/02_more_options_sheet.yaml
     - flows/profile/03_logout_sheet.yaml
     - flows/profile/04_leaderboard_screen.yaml
+    - flows/profile/05_edit_profile.yaml
     # Settings tests
     - flows/settings/01_settings_screen_loads.yaml
     - flows/settings/02_theme_dialog.yaml
     - flows/settings/03_notification_settings.yaml
     - flows/settings/04_subscription_screen.yaml
     - flows/settings/05_tag_manager_screen.yaml
+    - flows/settings/06_notification_toggle.yaml
     # Word manager tests run last (some tests delete words — run destructive last)
     - flows/word_manager/01_screen_loads.yaml
     - flows/word_manager/03_search_functionality.yaml
@@ -103,3 +119,4 @@ executionOrder:
     - flows/word_manager/06_delete_flow.yaml
     - flows/word_manager/08_word_detail_sheet.yaml
     - flows/word_manager/09_tag_assignment.yaml
+    - flows/word_manager/10_sort_order.yaml

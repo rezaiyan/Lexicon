@@ -8,9 +8,6 @@ tags:
 #
 # Creates a test word first to ensure at least one word exists in the library.
 
-- launchApp:
-    clearState: false
-
 # Navigate to Study screen and add a test word so the library is non-empty.
 - runFlow: ../utils/navigate_to_study.yaml
 - runFlow: ../utils/add_test_word.yaml

@@ -13,9 +13,6 @@ tags:
 # Requires: At least one word exists in the library (import tests or add_test_word
 # must have run before this test).
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_study.yaml
 
 # Add a test word so we have something to review.

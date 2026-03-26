@@ -25,9 +25,12 @@ import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
 import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.word.service.IImportValidationService
+import domain.word.usecase.ClassifyImportErrorUseCase
+import domain.word.usecase.FormatWordsToCsvUseCase
 import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
+import domain.word.usecase.ParseCsvWordsUseCase
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,6 +79,9 @@ class ImportViewModelTest : ViewModelTestBase() {
         getCurrentLanguageUseCase = getCurrentLanguageUseCase,
         getSourceLanguageUseCase = getSourceLanguageUseCase,
         tagUseCases = ImportTagUseCases(getTags = getTagsUseCase, createTag = createTagUseCase),
+        parseCsvWordsUseCase = ParseCsvWordsUseCase(),
+        formatWordsToCsvUseCase = FormatWordsToCsvUseCase(),
+        classifyImportErrorUseCase = ClassifyImportErrorUseCase(),
         performanceTracer = performanceTracer,
     )
 

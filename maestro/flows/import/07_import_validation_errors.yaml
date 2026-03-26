@@ -1,0 +1,105 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - validation
+---
+# Test: Import form validation — "Add Word" button is disabled when required fields
+# are empty, preventing accidental submission.
+#
+# The ViewModel's isAddEnabled gate (word.isNotBlank() && translation.isNotBlank())
+# disables the button entirely rather than showing an error message. This test
+# verifies that gate by asserting the button is in a non-interactive (disabled)
+# state for two scenarios:
+#
+#   Scenario A — Both fields empty on initial load:
+#     Open the text import form and immediately assert "Add Word" is disabled.
+#
+#   Scenario B — Original filled but Translation empty:
+#     Fill in "Original Word", leave "Translation" blank, assert "Add Word" is
+#     still disabled.
+#
+# The button becomes enabled only once both fields have content. We verify that
+# by filling Translation and asserting the button is now enabled.
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Open the import picker.
+- tapOn: "Import Words"
+
+# The "Add Words" picker sheet appears first. Tap "Manually".
+- tapOn: "Manually"
+
+# Tap "Type Text" to open the manual text import flow.
+- tapOn: "Type Text"
+
+# Wait for the source language chooser to appear.
+- extendedWaitUntil:
+    visible: "What language are the original words?"
+    timeout: 5000
+
+# Select "English" as the source language.
+- tapOn: "English"
+
+# Wait for the text import form to fully render.
+- extendedWaitUntil:
+    visible: "Add a Word"
+    timeout: 5000
+
+# Both fields must be visible.
+- assertVisible: "Original Word"
+- assertVisible: "Translation"
+
+# ── Scenario A: Both fields empty ────────────────────────────────────────────
+#
+# On initial load both fields are empty so isAddEnabled = false.
+# The "Add Word" button must be present but disabled.
+# Maestro assertVisible matches any visible element, including disabled ones.
+# We assert it is visible (rendered), then confirm behaviour by asserting the
+# button's enabled state via a tap that should NOT trigger word submission:
+# if the tap were to succeed we would see "1 word added", but we explicitly
+# check it does NOT appear.
+- assertVisible: "Add Word"
+
+# Attempt to tap the disabled "Add Word" button.
+- tapOn: "Add Word"
+
+# "1 word added" must NOT appear — the disabled button blocked submission.
+- assertNotVisible: "1 word added"
+
+# ── Scenario B: Original Word filled, Translation empty ───────────────────────
+#
+# Fill in the Original Word field only; leave Translation empty.
+- tapOn: "Original Word"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "TestValidation"
+- hideKeyboard
+
+# Attempt to tap "Add Word" while Translation is still empty.
+- tapOn: "Add Word"
+
+# "1 word added" must still NOT appear — Translation is missing.
+- assertNotVisible: "1 word added"
+
+# ── Verify button enables once Translation is also filled ─────────────────────
+#
+# Now fill in the Translation field to satisfy both conditions.
+- tapOn: "Translation"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "TestTranslation"
+- hideKeyboard
+
+# Tap the now-enabled "Add Word" button — submission should succeed.
+- tapOn: "Add Word"
+
+# "1 word added" must appear, confirming the button was truly enabled.
+- extendedWaitUntil:
+    visible: "1 word added"
+    timeout: 8000
+
+# Close the import sheet.
+- tapOn: "Close"
+
+# Verify we are back on the Study screen.
+- assertVisible: "Import Words"

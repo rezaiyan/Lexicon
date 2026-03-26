@@ -1,0 +1,74 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - review
+  - nope
+---
+# Test: Review session completes normally when all cards are rated "Nope".
+#
+# Mirrors 04_review_completion.yaml but uses the "Nope" (hard/again) button
+# exclusively instead of "Got it!". Verifies that:
+#   - The review loop accepts "Nope" ratings without error or stalling.
+#   - The completion screen ("Done") appears after all cards are rated.
+#   - Stats are shown and the "Done" tap returns to the Study screen.
+#
+# Note: The test account may have accumulated many words from server sync and
+# previous test runs. The loop count must be high enough to exhaust all due
+# cards. Using 100 iterations matches the ceiling in 04_review_completion.yaml.
+#
+# The waitForAnimationToEnd before each flip tap is required: after a "Nope"
+# rating the SRS deck animator transitions to the next card (or reshuffles the
+# same card to the back of the queue) with a brief intermediate state where
+# neither "Tap card to reveal" nor "Nope" is visible. Waiting prevents the
+# flip tap from landing on an element mid-animation.
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Add a test word so we have at least one word to review.
+- runFlow: ../utils/add_test_word.yaml
+
+# Start a review session.
+- tapOn: "Start Review"
+
+# Wait for the review card to appear.
+- assertVisible: "Tap card to reveal"
+
+# Flip the first card.
+- tapOn:
+    point: "50%,40%"
+
+- waitForAnimationToEnd
+
+# Rate the first card as "Nope".
+- tapOn: "Nope"
+- waitForAnimationToEnd
+
+# Continue flipping and rating "Nope" until the completion screen appears.
+# Loop body order: wait for card transition → flip → wait → rate.
+- repeat:
+    times: 100
+    while:
+      notVisible: "Done"
+    commands:
+      - waitForAnimationToEnd
+      - tapOn:
+          point: "50%,40%"
+          optional: true
+      - waitForAnimationToEnd
+      - tapOn:
+          text: "Nope"
+          optional: true
+
+# The completion screen must now be visible.
+- assertVisible: "Done"
+
+# Performance stats must be visible (Remembered label is always shown).
+- assertVisible: "Remembered"
+
+# Tap "Done" to dismiss the completion screen.
+- tapOn: "Done"
+
+# We should be back on the Study screen.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

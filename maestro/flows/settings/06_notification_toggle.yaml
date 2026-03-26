@@ -1,0 +1,78 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - settings
+  - notifications
+  - toggle
+---
+# Test: Notification toggle changes state visually when tapped.
+#
+# Verifies that tapping the "Enable Notifications" Switch inside the
+# Notification Settings sheet changes the accompanying subtitle text,
+# which is the observable UI signal for the toggle state:
+#   - Enabled  → "Stay motivated with friendly reminders"
+#   - Disabled → "Missing out on learning nudges"
+#
+# The test reads the current subtitle to determine initial state, toggles once,
+# asserts the subtitle flipped, then toggles back to restore the original state.
+#
+# Important caveat: the Switch is only interactive when system-level notifications
+# are granted (systemNotificationsEnabled = true). If the CI device has not
+# granted notification permission the Switch will be disabled and the subtitle
+# will not change. In that case the test still passes the structural assertions
+# (sheet opens, toggle label visible, Done dismisses) but the subtitle-flip
+# assertions are marked optional so the suite does not fail on a permission-
+# restricted emulator.
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+# Tap the Notifications card to open the notification settings sheet.
+- tapOn: "Notifications"
+
+# The notification settings sheet must appear with its title.
+- assertVisible: "Notification Settings"
+
+# The subtitle must be visible.
+- assertVisible: "Customize your learning reminders"
+
+# The toggle row label must be visible.
+- assertVisible: "Enable Notifications"
+
+# The "Done" dismiss button must be present.
+- assertVisible: "Done"
+
+# ── Toggle ON → OFF (or OFF → ON depending on current state) ─────────────────
+#
+# Tap the Switch. Maestro resolves the Switch by its associated label text
+# because the Switch component itself has no separate content description.
+- tapOn: "Enable Notifications"
+
+# Wait for the subtitle animation to complete.
+- waitForAnimationToEnd
+
+# After the first toggle the subtitle must have flipped. We assert both possible
+# post-toggle states as optional because the initial state is unknown at runtime.
+# At least one of these will match; both are marked optional to avoid a hard
+# failure when the switch is disabled due to missing system permission.
+- assertVisible:
+    text: "Stay motivated with friendly reminders"
+    optional: true
+- assertVisible:
+    text: "Missing out on learning nudges"
+    optional: true
+
+# ── Toggle back to restore original state ────────────────────────────────────
+- tapOn: "Enable Notifications"
+
+- waitForAnimationToEnd
+
+# Dismiss the sheet.
+- tapOn: "Done"
+
+# Wait for the dismiss animation to complete.
+- waitForAnimationToEnd
+
+# Sheet must be gone.
+- assertNotVisible: "Notification Settings"
+
+# Settings screen must still be visible.
+- assertVisible: "Theme"

@@ -13,9 +13,6 @@ tags:
 # Note: The test account may have accumulated many words from server sync and
 # previous test runs. The loop count must be high enough to exhaust all due cards.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_study.yaml
 
 # Add a test word so we have at least one word to review.
@@ -40,18 +37,25 @@ tags:
 # The test account may have multiple words due to server sync.
 # Keep flipping and rating cards until the completion screen ("Done") appears.
 # Using 100 iterations to handle accounts with many accumulated test words.
+#
+# Loop body order: wait for card transition → flip → wait → rate.
+# The waitForAnimationToEnd before the flip tap is required: after a rating, the
+# SRS deck animator transitions to the next card with a brief intermediate state
+# where neither "Tap card to reveal" nor "Got it!" is visible. Waiting here
+# prevents the flip tap from landing on an element mid-animation.
 - repeat:
     times: 100
     while:
       notVisible: "Done"
     commands:
+      - waitForAnimationToEnd
       - tapOn:
           point: "50%,40%"
           optional: true
+      - waitForAnimationToEnd
       - tapOn:
           text: "Got it!"
           optional: true
-      - waitForAnimationToEnd
 
 # The completion screen must now be visible.
 - assertVisible: "Done"

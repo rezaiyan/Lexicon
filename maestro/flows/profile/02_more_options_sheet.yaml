@@ -8,9 +8,6 @@ tags:
 # Verifies that tapping the "More options" icon opens a bottom sheet
 # with "Edit Profile" and "Delete Account" menu items.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_profile.yaml
 
 # Tap the "More options" icon in the top bar.

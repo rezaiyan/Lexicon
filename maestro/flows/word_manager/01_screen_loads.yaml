@@ -14,9 +14,6 @@ tags:
 # present when words exist (see 02_empty_state.yaml and 03_search_functionality.yaml
 # for state-specific coverage).
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_word_manager.yaml
 
 # The top bar title must be visible.

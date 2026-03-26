@@ -7,9 +7,6 @@ tags:
 #
 # Requires: At least one word exists in the library so that WordListContent is rendered.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_word_manager.yaml
 
 # Verify the search field is visible (confirms word list state, not empty state).

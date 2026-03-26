@@ -13,9 +13,10 @@ tags:
     clearState: false
 
 # Wait for the app to fully load and show bottom navigation.
+# 25s timeout: consistent with navigate_to_* utils — accommodates slow CI emulators.
 - extendedWaitUntil:
     visible: "Study"
-    timeout: 15000
+    timeout: 25000
 
 # Navigate to Study tab.
 - tapOn:

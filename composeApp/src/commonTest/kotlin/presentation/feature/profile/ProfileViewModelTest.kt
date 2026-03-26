@@ -12,6 +12,7 @@ import domain.profile.model.DayActivity
 import domain.profile.model.LanguagePair
 import domain.profile.model.ProfileStats
 import domain.profile.repository.IProfileStatsRepository
+import domain.profile.usecase.EnrichProfileStatsUseCase
 import domain.profile.usecase.GetProfileStatsUseCase
 import domain.streak.manager.IStreakManager
 import domain.streak.model.StreakData
@@ -105,7 +106,8 @@ class ProfileViewModelTest : ViewModelTestBase() {
             userManager = userManager,
             getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository),
             streakManager = streakManager,
-            getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepository)
+            getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepository),
+            enrichProfileStatsUseCase = EnrichProfileStatsUseCase(),
         )
     }
 

@@ -9,9 +9,6 @@ tags:
 # confirmation bottom sheet, and that tapping "Cancel" dismisses it
 # without logging out.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_profile.yaml
 
 # Scroll to the Logout button (may require scrolling past several sections).

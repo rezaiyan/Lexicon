@@ -11,9 +11,6 @@ tags:
 # confirmation sheet. All destructive steps confirm then cancel to leave the
 # account clean for subsequent tests.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_settings.yaml
 
 # The Tag Manager card must be visible on the Settings screen.
@@ -60,7 +57,8 @@ tags:
 
 # ── Rename tag ────────────────────────────────────────────────────────────────
 
-# Tap the Edit (rename) icon for the tag.
+# Tap the Edit (rename) icon for the tag (content description "Rename Tag" on
+# the icon button in the list row — this opens the rename bottom sheet).
 - tapOn: "Rename Tag"
 
 # The rename bottom sheet must appear pre-filled with the current name.
@@ -78,7 +76,11 @@ tags:
 - hideKeyboard
 
 # Confirm rename.
-- tapOn: "Rename Tag"
+# index 1: the sheet title text node is index 0 (also "Rename Tag"); the confirm
+# button is index 1. Using index avoids tapping the non-interactive title node.
+- tapOn:
+    text: "Rename Tag"
+    index: 1
 - waitForAnimationToEnd
 
 # The renamed tag must appear in the list.

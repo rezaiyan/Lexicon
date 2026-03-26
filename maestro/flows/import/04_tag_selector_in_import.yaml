@@ -11,9 +11,6 @@ tags:
 # dialog, then cancels without creating a tag — keeping the account clean for
 # subsequent tests.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_study.yaml
 
 # Open the import picker.

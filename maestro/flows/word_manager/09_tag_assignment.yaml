@@ -11,9 +11,6 @@ tags:
 # Does NOT create tags — verifies the no-tags empty state in the assignment sheet,
 # which keeps the test self-contained and non-destructive.
 
-- launchApp:
-    clearState: false
-
 # Navigate to Study screen and add a test word so the library is non-empty.
 - runFlow: ../utils/navigate_to_study.yaml
 - runFlow: ../utils/add_test_word.yaml
@@ -47,6 +44,10 @@ tags:
 - assertVisible: "${output.word}"
 
 # When no tags exist the empty state message must be shown.
+# This assertion relies on study/05_tag_filter_long_press.yaml completing its
+# teardown (deleting "TestFilterTag"). If that test failed mid-teardown, a
+# residual tag may appear here, causing a failure. The assertion is intentionally
+# kept non-optional: if teardown is broken, this test should surface the problem.
 - assertVisible: "No tags yet"
 
 # The save button must still be present (enabled even with no tags).
@@ -56,8 +57,10 @@ tags:
 - tapOn: "Assign Tags"
 - waitForAnimationToEnd
 
-# After dismissal the word detail sheet must be visible again.
-- assertVisible: "Learning Progress"
+# Wait for the sheet dismiss animation before asserting the detail sheet is back.
+- extendedWaitUntil:
+    visible: "Learning Progress"
+    timeout: 5000
 
 # Dismiss the detail sheet.
 - pressKey: back

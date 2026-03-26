@@ -9,9 +9,6 @@ tags:
 # the import button — regardless of whether the word library is empty or
 # populated. State-specific elements are checked with optional assertions.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_study.yaml
 
 # The "Import Words" button must always be visible (content description).

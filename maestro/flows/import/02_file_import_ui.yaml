@@ -9,9 +9,6 @@ tags:
 # that all static UI elements are displayed. Does NOT automate the system file
 # picker (not possible in Maestro), so this is a UI verification test only.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_study.yaml
 
 # Open the import picker.

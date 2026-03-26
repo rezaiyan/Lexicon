@@ -12,6 +12,10 @@ import performance.IPerformanceTracer
 import performance.createPerformanceTracer
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
+import domain.word.usecase.ClassifyImportErrorUseCase
+import domain.word.usecase.FormatWordsToCsvUseCase
+import domain.word.usecase.ParseCsvWordsUseCase
+import org.koin.core.module.dsl.singleOf
 import presentation.ui.components.imports.ImportTagUseCases
 import presentation.ui.components.imports.ImportViewModel
 import presentation.viewmodel.AppNavigationViewModel
@@ -63,6 +67,11 @@ fun presentationModule() = module {
         )
     }
 
+    // Import domain use cases
+    singleOf(::ParseCsvWordsUseCase)
+    singleOf(::FormatWordsToCsvUseCase)
+    singleOf(::ClassifyImportErrorUseCase)
+
     // Import VM (stays in presentation — depends on Compose UI types)
     viewModel {
         ImportViewModel(
@@ -75,6 +84,9 @@ fun presentationModule() = module {
             getSourceLanguageUseCase = get(),
             tagUseCases = ImportTagUseCases(getTags = get(), createTag = get()),
             performanceTracer = get(),
+            parseCsvWordsUseCase = get(),
+            formatWordsToCsvUseCase = get(),
+            classifyImportErrorUseCase = get(),
         )
     }
 

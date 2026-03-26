@@ -7,15 +7,13 @@ import domain.subscription.model.SubscriptionPackage
 import core.common.onFailure
 import core.common.onSuccess
 import core.error.toUserMessage
+import domain.common.util.EpochDateFormatter
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import core.base.BaseViewModel
 import core.common.UiState
 import feature.subscription.ui.SubscriptionData
-import kotlin.time.Instant
 
 data class SubscriptionScreenState(
     val content: UiState<SubscriptionData> = UiState.Loading,
@@ -49,7 +47,7 @@ class SubscriptionViewModel(
 
                 val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
                 val expirationDateMillis = activeEntitlement?.expirationDateMillis
-                val formattedExpirationDate = expirationDateMillis?.let { formatDate(it) }
+                val formattedExpirationDate = expirationDateMillis?.let { EpochDateFormatter.toMediumDate(it) }
                 val willRenew = activeEntitlement?.willRenew == true
 
                 updateState {
@@ -68,17 +66,6 @@ class SubscriptionViewModel(
         }
     }
 
-    private fun formatDate(epochMillis: Long): String {
-        val instant = Instant.fromEpochMilliseconds(epochMillis)
-        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-        val monthNames = listOf(
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        )
-        val monthName = monthNames[localDateTime.month.ordinal]
-        return "$monthName ${localDateTime.day}, ${localDateTime.year}"
-    }
-
     fun loadOfferings() {
         viewModelScope.launch {
             updateState { copy(content = UiState.Loading, errorMessage = null) }
@@ -87,7 +74,7 @@ class SubscriptionViewModel(
                     val isSubscribed = subscriptionManager.isSubscribed().first()
                     val customerInfo = subscriptionManager.customerInfo.value
                     val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
-                    val formattedExpirationDate = activeEntitlement?.expirationDateMillis?.let { formatDate(it) }
+                    val formattedExpirationDate = activeEntitlement?.expirationDateMillis?.let { EpochDateFormatter.toMediumDate(it) }
                     val willRenew = activeEntitlement?.willRenew == true
 
                     updateState {

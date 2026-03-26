@@ -7,9 +7,6 @@ tags:
 # Verifies that tapping the Theme card opens the theme selection bottom sheet
 # and that the sheet can be dismissed.
 
-- launchApp:
-    clearState: false
-
 - runFlow: ../utils/navigate_to_settings.yaml
 
 # Tap the Theme card to open the theme bottom sheet.
