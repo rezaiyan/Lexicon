@@ -87,6 +87,9 @@ tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
 tasks.register("checkModuleBoundaries") {
     group = "verification"
     description = "Fail the build if module dependency boundary rules are violated."
+    // findProject() accesses the Project graph at execution time — not compatible with
+    // Gradle's configuration cache, which forbids Project references in task state.
+    notCompatibleWithConfigurationCache("Uses findProject() at execution time")
     doLast {
         // Rules: module path -> forbidden dependency paths
         // :domain depends on :core for Try<T> — that is intentional and allowed.
