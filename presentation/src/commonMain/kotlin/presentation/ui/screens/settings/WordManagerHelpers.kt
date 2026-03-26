@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import components.EmptyScreen
 import components.ErrorScreen
 import components.LoadingScreen
+import domain.word.model.ImportErrorClassification
 import domain.word.model.LearningStage
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
@@ -49,12 +50,8 @@ internal fun LoadingView() {
 }
 
 @Composable
-internal fun ErrorView(message: String) {
-    val isNetworkError = message.contains("timeout", ignoreCase = true) ||
-        message.contains("connect", ignoreCase = true) ||
-        message.contains("network", ignoreCase = true) ||
-        message.contains("internet", ignoreCase = true)
-
+internal fun ErrorView(message: String, classification: ImportErrorClassification = ImportErrorClassification.GenericError) {
+    val isNetworkError = classification is ImportErrorClassification.NetworkError
     ErrorScreen(
         message = if (isNetworkError) {
             "You're offline -- your word library couldn't be loaded. Check your connection and try again."

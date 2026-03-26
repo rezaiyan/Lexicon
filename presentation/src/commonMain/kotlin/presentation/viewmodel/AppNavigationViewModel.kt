@@ -2,11 +2,12 @@ package presentation.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import core.common.NoParamUseCase
+import core.common.fold
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
-import domain.word.repository.IWordRepository
-import core.common.getOrDefault
-import core.common.getOrElse
+import domain.startup.model.AppStartupDestination
+import domain.startup.usecase.DetermineAppStartupStateUseCase
+import domain.startup.usecase.DeterminePostAuthDestinationUseCase
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
 import feature.auth.AuthPhase
@@ -14,8 +15,9 @@ import presentation.model.AppUiState
 
 class AppNavigationViewModel(
     private val onboardingRepository: IOnboardingRepository,
-    private val wordRepository: IWordRepository,
     private val retryAnalyticsSyncUseCase: NoParamUseCase<Unit>,
+    private val determineAppStartupStateUseCase: DetermineAppStartupStateUseCase,
+    private val determinePostAuthDestinationUseCase: DeterminePostAuthDestinationUseCase,
 ) : BaseViewModel<AppUiState, Nothing>() {
 
     override fun initialState(): AppUiState = AppUiState.Auth()
@@ -29,22 +31,10 @@ class AppNavigationViewModel(
             viewModelScope.launch { retryAnalyticsSyncUseCase(Unit) }
         }
         viewModelScope.launch {
-            val onboardingCompleted = onboardingRepository.hasCompletedOnboarding().getOrDefault(false)
-            when {
-                onboardingCompleted && isAuthenticated -> updateState { AppUiState.Ready }
-                onboardingCompleted -> updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired) }
-                isAuthenticated -> {
-                    // User has a valid session but lost the onboarding flag (e.g. reinstall
-                    // with Keychain-persisted tokens). They're a returning user — skip onboarding.
-                    onboardingRepository.markOnboardingCompleted()
-                    updateState { AppUiState.Ready }
-                }
-                else -> {
-                    // Not authenticated and no onboarding flag — show auth first,
-                    // then decide about onboarding based on whether the user has data.
-                    updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired, needsOnboardingCheck = true) }
-                }
-            }
+            determineAppStartupStateUseCase(isAuthenticated).fold(
+                onSuccess = { destination -> updateState { destination.toAppUiState() } },
+                onFailure = { updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired) } }
+            )
         }
     }
 
@@ -69,17 +59,23 @@ class AppNavigationViewModel(
      */
     fun onAuthCompleteCheckingData() {
         viewModelScope.launch {
-            val wordCount = wordRepository.getTotalCount().getOrElse { 0 }
-            if (wordCount > 0) {
-                onboardingRepository.markOnboardingCompleted()
-                updateState { AppUiState.Ready }
-            } else {
-                updateState { AppUiState.Onboarding }
-            }
+            determinePostAuthDestinationUseCase(Unit).fold(
+                onSuccess = { destination -> updateState { destination.toAppUiState() } },
+                onFailure = { updateState { AppUiState.Onboarding } }
+            )
         }
     }
 
     fun onLogout() {
         updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired) }
+    }
+
+    private fun AppStartupDestination.toAppUiState(): AppUiState = when (this) {
+        is AppStartupDestination.Ready -> AppUiState.Ready
+        is AppStartupDestination.Onboarding -> AppUiState.Onboarding
+        is AppStartupDestination.RequiresAuth -> AppUiState.Auth(
+            phase = AuthPhase.LoginRequired,
+            needsOnboardingCheck = needsOnboardingCheck,
+        )
     }
 }

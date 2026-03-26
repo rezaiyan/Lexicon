@@ -3,8 +3,7 @@ package presentation.ui.components.imports
 import androidx.lifecycle.viewModelScope
 import domain.ai.usecase.ExtractVocabularyFromImageUseCase
 import domain.ai.usecase.ExtractVocabularyResult
-import domain.auth.manager.IUserManager
-import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.word.usecase.ObserveImageImportAccessUseCase
 import core.common.fold
 import core.common.getOrDefault
 import core.error.toUserMessage
@@ -22,9 +21,6 @@ import domain.word.usecase.ParseCsvWordsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import core.base.BaseViewModel
@@ -38,11 +34,9 @@ data class ImportTagUseCases(
 )
 
 class ImportViewModel(
-    private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val importWordsUseCase: ImportWordsUseCase,
     private val importViaFileUseCase: ImportViaFileUseCase,
     private val extractVocabularyFromImageUseCase: ExtractVocabularyFromImageUseCase,
-    private val userManager: IUserManager,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
     private val getSourceLanguageUseCase: GetSourceLanguageUseCase,
     private val tagUseCases: ImportTagUseCases,
@@ -50,6 +44,7 @@ class ImportViewModel(
     private val parseCsvWordsUseCase: ParseCsvWordsUseCase,
     private val formatWordsToCsvUseCase: FormatWordsToCsvUseCase,
     private val classifyImportErrorUseCase: ClassifyImportErrorUseCase,
+    private val observeImageImportAccessUseCase: ObserveImageImportAccessUseCase,
 ) : BaseViewModel<ImportUiState, ImportEffect>() {
 
     override fun initialState() = ImportUiState()
@@ -85,10 +80,8 @@ class ImportViewModel(
     }
 
     fun createTag(name: String) {
-        val trimmed = name.trim()
-        if (trimmed.isBlank()) return
         viewModelScope.launch {
-            tagUseCases.createTag(trimmed).fold(
+            tagUseCases.createTag(name).fold(
                 onSuccess = { tag ->
                     updateState { copy(showCreateTagDialog = false, selectedTagId = tag.id) }
                 },
@@ -97,32 +90,18 @@ class ImportViewModel(
         }
     }
 
-    @Suppress("OPT_IN_USAGE")
     private fun observeFeatureAccess() {
         viewModelScope.launch {
-            userManager.observeUser()
-                .flatMapLatest { user ->
-                    if (user == null) {
-                        flowOf(currentState.tabs.filter { it !is ImportTabV2.Image })
-                    } else {
-                        getFeatureAccessUseCase.invoke()
-                            .map { featureAccess ->
-                                val hasPremiumAccess = featureAccess.userAccess.hasPremiumAccess
-                                val currentTabs = currentState.tabs.toMutableList()
-                                val currentImageTab =
-                                    currentTabs.firstOrNull { it is ImportTabV2.Image }
-                                if (hasPremiumAccess && currentImageTab == null) {
-                                    currentTabs.add(ImportTabV2.Image())
-                                } else if (!hasPremiumAccess && currentImageTab != null) {
-                                    currentTabs.remove(currentImageTab)
-                                }
-                                currentTabs.toList()
-                            }
-                            .catch { emit(currentState.tabs) }
+            observeImageImportAccessUseCase(Unit)
+                .collect { hasImageAccess ->
+                    val currentTabs = currentState.tabs.toMutableList()
+                    val currentImageTab = currentTabs.firstOrNull { it is ImportTabV2.Image }
+                    if (hasImageAccess && currentImageTab == null) {
+                        currentTabs.add(ImportTabV2.Image())
+                    } else if (!hasImageAccess && currentImageTab != null) {
+                        currentTabs.remove(currentImageTab)
                     }
-                }
-                .collect { tabs ->
-                    updateState { copy(tabs = tabs) }
+                    updateState { copy(tabs = currentTabs.toList()) }
                 }
         }
     }
@@ -174,17 +153,16 @@ class ImportViewModel(
     @Suppress("LongMethod")
     fun addWord() {
         val textState = currentState.textInputState
-        val word = textState.word.trim().replace(",", " ")
-        val translation = textState.translation.trim().replace(",", " ")
-        val description = textState.description.trim().replace(",", " ")
 
-        if (word.isBlank() || translation.isBlank()) return
+        if (textState.word.isBlank() || textState.translation.isBlank()) return
 
-        val csvLine = if (description.isNotBlank()) {
-            "$word,$translation,$description"
-        } else {
-            "$word,$translation"
-        }
+        val csvLine = formatWordsToCsvUseCase(
+            ParsedWord(
+                word = textState.word,
+                translation = textState.translation,
+                description = textState.description,
+            )
+        )
 
         updateState {
             copy(

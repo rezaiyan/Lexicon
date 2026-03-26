@@ -45,4 +45,8 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
         data class NotFound(val type: String, val id: String) : Data()
         data class DuplicateEntry(val identifier: String) : Data()
     }
+
+    sealed class Validation(message: String) : DomainError(message) {
+        data class BlankField(val fieldName: String) : Validation("$fieldName cannot be blank")
+    }
 }

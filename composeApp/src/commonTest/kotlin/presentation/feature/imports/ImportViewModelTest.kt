@@ -15,6 +15,7 @@ import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
 import domain.auth.repository.IAuthRepository
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.word.usecase.ObserveImageImportAccessUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
@@ -71,11 +72,9 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val performanceTracer = FakePerformanceTracer()
 
     private fun createViewModel() = ImportViewModel(
-        getFeatureAccessUseCase = getFeatureAccessUseCase,
         importWordsUseCase = importWordsUseCase,
         importViaFileUseCase = importViaFileUseCase,
         extractVocabularyFromImageUseCase = extractVocabularyFromImageUseCase,
-        userManager = userManager,
         getCurrentLanguageUseCase = getCurrentLanguageUseCase,
         getSourceLanguageUseCase = getSourceLanguageUseCase,
         tagUseCases = ImportTagUseCases(getTags = getTagsUseCase, createTag = createTagUseCase),
@@ -83,6 +82,7 @@ class ImportViewModelTest : ViewModelTestBase() {
         formatWordsToCsvUseCase = FormatWordsToCsvUseCase(),
         classifyImportErrorUseCase = ClassifyImportErrorUseCase(),
         performanceTracer = performanceTracer,
+        observeImageImportAccessUseCase = ObserveImageImportAccessUseCase(userManager, getFeatureAccessUseCase),
     )
 
     @Test

@@ -6,6 +6,9 @@ import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.onboarding.repository.IOnboardingRepository
+import domain.startup.model.AppStartupDestination
+import domain.startup.usecase.DetermineAppStartupStateUseCase
+import domain.startup.usecase.DeterminePostAuthDestinationUseCase
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -78,7 +81,14 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         totalWordCount: Int = 0,
         retryAnalyticsSyncUseCase: NoParamUseCase<Unit> = FakeRetryAnalyticsSyncUseCase(),
     ): AppNavigationViewModel {
-        return AppNavigationViewModel(fakeOnboardingRepo(hasCompleted), fakeWordRepo(totalWordCount), retryAnalyticsSyncUseCase)
+        val onboardingRepo = fakeOnboardingRepo(hasCompleted)
+        val wordRepo = fakeWordRepo(totalWordCount)
+        return AppNavigationViewModel(
+            onboardingRepository = onboardingRepo,
+            retryAnalyticsSyncUseCase = retryAnalyticsSyncUseCase,
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
+        )
     }
 
     @Test
@@ -105,14 +115,19 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `onSessionVerified with auth but onboarding not completed marks completed`() =
-        runTest {
-            val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-            val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(), FakeRetryAnalyticsSyncUseCase())
-            vm.onSessionVerified(isAuthenticated = true)
-            assertIs<AppUiState.Ready>(vm.currentState)
-            assertEquals(true, onboardingRepo.markCompletedCalled)
-        }
+    fun `onSessionVerified with auth but onboarding not completed marks completed`() = runTest {
+        val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
+        val wordRepo = fakeWordRepo()
+        val vm = AppNavigationViewModel(
+            onboardingRepository = onboardingRepo,
+            retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
+        )
+        vm.onSessionVerified(isAuthenticated = true)
+        assertIs<AppUiState.Ready>(vm.currentState)
+        assertEquals(true, onboardingRepo.markCompletedCalled)
+    }
 
     @Test
     fun `onSessionVerified unauthenticated and onboarding not completed goes to Auth LoginRequired with onboarding check`() = runTest {
@@ -126,7 +141,13 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthCompleteCheckingData with existing words marks completed and goes to Ready`() = runTest {
         val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 10), FakeRetryAnalyticsSyncUseCase())
+        val wordRepo = fakeWordRepo(totalCount = 10)
+        val vm = AppNavigationViewModel(
+            onboardingRepository = onboardingRepo,
+            retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
+        )
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Ready>(vm.currentState)
         assertEquals(true, onboardingRepo.markCompletedCalled)
@@ -135,7 +156,13 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     @Test
     fun `onAuthCompleteCheckingData with no words goes to Onboarding`() = runTest {
         val onboardingRepo = fakeOnboardingRepo(hasCompleted = false)
-        val vm = AppNavigationViewModel(onboardingRepo, fakeWordRepo(totalCount = 0), FakeRetryAnalyticsSyncUseCase())
+        val wordRepo = fakeWordRepo(totalCount = 0)
+        val vm = AppNavigationViewModel(
+            onboardingRepository = onboardingRepo,
+            retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
+        )
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Onboarding>(vm.currentState)
         assertEquals(false, onboardingRepo.markCompletedCalled)
@@ -151,11 +178,17 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `onAuthComplete marks onboarding completed and goes to Ready`() = runTest {
-        val repo = fakeOnboardingRepo()
-        val vm = AppNavigationViewModel(repo, fakeWordRepo(), FakeRetryAnalyticsSyncUseCase())
+        val onboardingRepo = fakeOnboardingRepo()
+        val wordRepo = fakeWordRepo()
+        val vm = AppNavigationViewModel(
+            onboardingRepository = onboardingRepo,
+            retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
+        )
         vm.onAuthComplete()
         assertIs<AppUiState.Ready>(vm.currentState)
-        assertEquals(true, repo.markCompletedCalled)
+        assertEquals(true, onboardingRepo.markCompletedCalled)
     }
 
     @Test

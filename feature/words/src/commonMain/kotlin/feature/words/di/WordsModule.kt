@@ -1,13 +1,16 @@
 package feature.words.di
 
+import domain.word.usecase.FilterAndSortWordsUseCase
 import feature.words.TagManagerViewModel
 import feature.words.VocabularyViewModel
 import feature.words.WordManagerViewModel
 import feature.words.WordTagAssignmentViewModel
+import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 fun wordsModule() = module {
+    singleOf(::FilterAndSortWordsUseCase)
     viewModel {
         VocabularyViewModel(
             getDueWordsUseCase = get(),
@@ -27,6 +30,8 @@ fun wordsModule() = module {
             updateWordUseCase = get(),
             exportWordsUseCase = get(),
             getFeatureAccessUseCase = get(),
+            filterAndSortWordsUseCase = get(),
+            classifyImportErrorUseCase = get(),
             analyticsTracker = get(),
         )
     }

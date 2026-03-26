@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
@@ -23,7 +24,9 @@ import feature.words.model.WordManagerEffect
 import presentation.ui.LocalSnackbarHostState
 import components.scaffold.TopBarColor
 import components.scaffold.LexiconColumn
+import domain.word.model.ImportErrorClassification
 import domain.word.model.Word
+import domain.word.usecase.ClassifyImportErrorUseCase
 import overlay.LocalOverlayHost
 import overlay.OverlayHost
 import overlay.bottomsheet.BottomSheetPages
@@ -76,7 +79,6 @@ internal fun WordManagerContent(
     val state by viewModel.state()
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
-
     LaunchedEffect(Unit) {
         viewModel.resetState()
     }
@@ -91,6 +93,7 @@ internal fun WordManagerContent(
     val failedToUpdateWord = stringResource(Res.string.failed_to_update_word)
     val errorPrefix = stringResource(Res.string.error_prefix)
     val wordsTaggedFormat = stringResource(Res.string.words_tagged)
+    val classifyError = remember { ClassifyImportErrorUseCase() }
 
     LaunchedEffect(Unit) {
         viewModel.effects.collect { event ->
@@ -136,15 +139,10 @@ internal fun WordManagerContent(
 
                 is WordManagerEffect.Error -> {
                     val raw = event.message
-                    val isNetwork = raw.contains("timeout", ignoreCase = true) ||
-                        raw.contains("connect", ignoreCase = true) ||
-                        raw.contains("network", ignoreCase = true) ||
-                        raw.contains("internet", ignoreCase = true)
-
-                    val errorMsg = when {
-                        isNetwork -> "You're offline -- changes will sync when reconnected."
-                        raw.isEmpty() -> failedToUpdateWord
-                        else -> raw
+                    val errorMsg = when (classifyError(raw)) {
+                        ImportErrorClassification.NetworkError ->
+                            "You're offline -- changes will sync when reconnected."
+                        else -> raw.ifEmpty { failedToUpdateWord }
                     }
                     snackbarHostState.showSnackbar("$errorPrefix $errorMsg")
                 }
@@ -177,7 +175,7 @@ internal fun WordManagerContent(
             ) { (loading, error, empty) ->
                 when {
                     loading -> LoadingView()
-                    error != null -> ErrorView(message = error)
+                    error != null -> ErrorView(message = error, classification = state.errorClassification)
                     empty -> EmptyLibraryView()
                     else -> WordListContent(
                         state = state,

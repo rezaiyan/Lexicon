@@ -6,6 +6,9 @@ import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
+import domain.word.model.WordSortOption
+import domain.word.usecase.ClassifyImportErrorUseCase
+import domain.word.usecase.FilterAndSortWordsUseCase
 import core.common.fold
 import core.error.toUserMessage
 import domain.tag.usecase.BatchAssignTagsParams
@@ -20,8 +23,8 @@ import kotlinx.coroutines.launch
 import core.base.BaseViewModel
 import feature.words.model.WordManagerEffect
 import feature.words.model.WordManagerScreenState
-import feature.words.model.WordSortOption
 import utils.Language
+
 class WordManagerViewModel(
     private val getAllWordsUseCase: GetAllWordsUseCase,
     private val getTagsUseCase: GetTagsUseCase,
@@ -31,7 +34,9 @@ class WordManagerViewModel(
     updateWordUseCase: UpdateWordUseCase,
     private val exportWordsUseCase: ExportWordsUseCase,
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
-    analyticsTracker: IAnalyticsTracker
+    private val filterAndSortWordsUseCase: FilterAndSortWordsUseCase,
+    private val classifyImportErrorUseCase: ClassifyImportErrorUseCase,
+    analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<WordManagerScreenState, WordManagerEffect>() {
 
     override fun initialState() = WordManagerScreenState()
@@ -92,6 +97,7 @@ class WordManagerViewModel(
                 errorMessage = null
             )
         }
+        recomputeFilteredWords()
     }
 
     private fun startObservingTags() {
@@ -108,10 +114,12 @@ class WordManagerViewModel(
 
             getAllWordsUseCase()
                 .catch {
+                    val message = it.toUserMessage()
                     updateState {
                         copy(
                             isLoading = false,
-                            errorMessage = it.toUserMessage()
+                            errorMessage = message,
+                            errorClassification = classifyImportErrorUseCase(message),
                         )
                     }
                 }
@@ -123,6 +131,7 @@ class WordManagerViewModel(
                             errorMessage = null
                         )
                     }
+                    recomputeFilteredWords()
                 }
         }
     }
@@ -160,26 +169,32 @@ class WordManagerViewModel(
 
     fun updateSearchQuery(query: String) {
         updateState { copy(searchQuery = query) }
+        recomputeFilteredWords()
     }
 
     fun clearSearch() {
         updateState { copy(searchQuery = "") }
+        recomputeFilteredWords()
     }
 
     fun setSortOption(option: WordSortOption) {
         updateState { copy(sortOption = option) }
+        recomputeFilteredWords()
     }
 
     fun setFilterLanguage(language: Language?) {
         updateState { copy(filterLanguage = language) }
+        recomputeFilteredWords()
     }
 
     fun setFilterLearningStage(stage: LearningStage?) {
         updateState { copy(filterLearningStage = stage) }
+        recomputeFilteredWords()
     }
 
     fun setFilterTagId(tagId: Long?) {
         updateState { copy(filterTagId = tagId) }
+        recomputeFilteredWords()
     }
 
     fun enterSelectionMode() {
@@ -236,5 +251,20 @@ class WordManagerViewModel(
             words = currentState.words,
             selectedWordIds = currentState.selectedWordIds
         )
+    }
+
+    private fun recomputeFilteredWords() {
+        val state = currentState
+        val filtered = filterAndSortWordsUseCase(
+            FilterAndSortWordsUseCase.Params(
+                words = state.words,
+                query = state.searchQuery,
+                filterLanguage = state.filterLanguage,
+                filterStage = state.filterLearningStage,
+                filterTagId = state.filterTagId,
+                sortOption = state.sortOption,
+            )
+        )
+        updateState { copy(filteredWords = filtered) }
     }
 }

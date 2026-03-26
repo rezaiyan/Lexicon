@@ -115,7 +115,7 @@ class ReviewViewModel(
                     }
                     val startedAt = Clock.System.now().toEpochMilliseconds()
                     val sessionId = generateSessionIdUseCase()
-                    val sessionType = source.toSessionType()
+                    val sessionType = source.sessionTypeLabel
                     sessionContext = SessionContext(sessionId, sessionType, startedAt)
                     startSessionUseCase(StartStudySessionUseCase.Params(sessionId, sessionType))
                     analyticsTracker.logReviewSessionStart(cardCount = words.size)
@@ -349,11 +349,6 @@ class ReviewViewModel(
     private fun ReviewSource.toReviewType() = when (this) {
         is ReviewSource.DueCards, is ReviewSource.ByTag -> ReviewType.REVIEW
         is ReviewSource.ByStage, is ReviewSource.ByStageAndTag -> ReviewType.BROWSE
-    }
-
-    private fun ReviewSource.toSessionType() = when (this) {
-        is ReviewSource.DueCards, is ReviewSource.ByTag -> "REVIEW"
-        is ReviewSource.ByStage, is ReviewSource.ByStageAndTag -> "BROWSE"
     }
 
     private fun Throwable.toReviewError(): ReviewError = when {

@@ -21,6 +21,8 @@ import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.BatchUpdateLanguagesUseCase
 import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
+import domain.word.usecase.ClassifyImportErrorUseCase
+import domain.word.usecase.FilterAndSortWordsUseCase
 import domain.word.usecase.GetAllWordsUseCase
 import domain.word.usecase.UpdateWordUseCase
 import kotlinx.coroutines.flow.Flow
@@ -128,6 +130,8 @@ class WordManagerViewModelTest : ViewModelTestBase() {
             updateWordUseCase = UpdateWordUseCase(wordRepo),
             exportWordsUseCase = ExportWordsUseCase(),
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),
+            filterAndSortWordsUseCase = FilterAndSortWordsUseCase(),
+            classifyImportErrorUseCase = ClassifyImportErrorUseCase(),
             analyticsTracker = fakeAnalytics()
         )
     }
