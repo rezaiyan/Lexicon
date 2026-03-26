@@ -2,10 +2,8 @@ package domain.startup.usecase
 
 import core.common.UseCase
 import core.common.getOrDefault
-import core.common.getOrElse
 import domain.onboarding.repository.IOnboardingRepository
 import domain.startup.model.AppStartupDestination
-import domain.word.repository.IWordRepository
 
 /**
  * Determines where the app should navigate after session verification.
@@ -15,7 +13,6 @@ import domain.word.repository.IWordRepository
  */
 class DetermineAppStartupStateUseCase(
     private val onboardingRepository: IOnboardingRepository,
-    private val wordRepository: IWordRepository,
 ) : UseCase<Boolean, AppStartupDestination> {
 
     override suspend fun invoke(params: Boolean): core.common.Try<AppStartupDestination> {

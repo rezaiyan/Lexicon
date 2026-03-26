@@ -12,6 +12,7 @@ import auth.awaitGoogleSignIn
 import auth.awaitRedirectResult
 import kotlinx.coroutines.launch
 
+@Suppress("TooGenericExceptionCaught", "SwallowedException")
 @Composable
 actual fun GoogleSignInContainer(
     onIdToken: suspend (String) -> Unit,

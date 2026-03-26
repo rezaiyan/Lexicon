@@ -2,8 +2,6 @@ package data.network.interceptor
 
 import core.common.Try
 import data.auth.refresh.ITokenRefreshManager
-import data.core.network.error.AuthenticationException
-import data.core.network.interceptor.ErrorInterceptor
 import data.core.network.interceptor.RefreshAndRetryInterceptor
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -20,8 +18,6 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 /**
  * Tests for RefreshAndRetryInterceptor: verifies 401/403 trigger token refresh + retry,
@@ -287,7 +283,6 @@ class RefreshAndRetryInterceptorTest {
             refreshResult = Try.success("new-token-for-post")
         )
         var callCount = 0
-        val capturedBodies = mutableListOf<String>()
         val engine = MockEngine { request ->
             callCount++
             if (callCount == 1) {

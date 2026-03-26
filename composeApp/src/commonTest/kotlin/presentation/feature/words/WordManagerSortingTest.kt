@@ -1,6 +1,5 @@
 package presentation.feature.words
 
-import domain.word.model.LearningStage
 import domain.word.model.Word
 import domain.word.model.WordSortOption
 import domain.word.usecase.FilterAndSortWordsUseCase

@@ -1,7 +1,6 @@
 package data.core.network.interceptor
 
 import data.auth.refresh.ITokenRefreshManager
-import core.common.Try
 import core.common.fold
 import expects.logNetwork
 import io.ktor.client.HttpClient
@@ -75,13 +74,11 @@ class RefreshAndRetryInterceptor(
         }
     }
 
-    private fun shouldAttemptRefresh(statusCode: Int, request: HttpRequestBuilder): Boolean {
-        if (statusCode !in AUTH_ERROR_CODES) return false
-        if (request.attributes.getOrNull(RETRY_KEY) == true) return false
-        if (request.headers[HttpHeaders.Authorization].isNullOrBlank()) return false
-        if (request.isAuthEndpoint()) return false
-        return true
-    }
+    private fun shouldAttemptRefresh(statusCode: Int, request: HttpRequestBuilder): Boolean =
+        statusCode in AUTH_ERROR_CODES &&
+            request.attributes.getOrNull(RETRY_KEY) != true &&
+            !request.headers[HttpHeaders.Authorization].isNullOrBlank() &&
+            !request.isAuthEndpoint()
 
     private fun HttpRequestBuilder.isAuthEndpoint(): Boolean {
         return url.build().encodedPath.lowercase().contains("/auth/")

@@ -29,14 +29,15 @@ class FlushReviewSyncQueueUseCase(
         val allWords = wordRepository.getAllWordsAsync()
             .getOrElse { return reEnqueueAndFail(wordIds, it) }
 
-        val wordIdSet = wordIds.toSet()
-        val wordsToSync = allWords.filter { it.id in wordIdSet }
+        val wordsToSync = allWords.filter { it.id in wordIds.toSet() }
 
-        if (wordsToSync.isEmpty()) return Try.success(Unit)
-
-        return wordRepository.batchSyncWords(wordsToSync)
-            .flatMap { Try.success(Unit) }
-            .onFailure { reEnqueueAndFail(wordIds, it) }
+        return if (wordsToSync.isEmpty()) {
+            Try.success(Unit)
+        } else {
+            wordRepository.batchSyncWords(wordsToSync)
+                .flatMap { Try.success(Unit) }
+                .onFailure { reEnqueueAndFail(wordIds, it) }
+        }
     }
 
     private suspend fun reEnqueueAndFail(wordIds: List<Int>, cause: Throwable): Try<Unit> {

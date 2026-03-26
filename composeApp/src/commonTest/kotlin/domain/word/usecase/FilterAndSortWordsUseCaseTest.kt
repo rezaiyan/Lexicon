@@ -12,6 +12,7 @@ class FilterAndSortWordsUseCaseTest {
 
     private val useCase = FilterAndSortWordsUseCase()
 
+    @Suppress("LongParameterList")
     private fun word(
         id: Int,
         original: String = "word$id",

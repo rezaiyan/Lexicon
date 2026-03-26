@@ -193,6 +193,9 @@ jobs:
 
       - name: Generate and submit dependency graph
         uses: gradle/actions/dependency-submission@v4
+        with:
+          gradle-version: wrapper
+          additional-arguments: -Dorg.gradle.java.installations.auto-download=false
 
   bump-version:
     name: Bump Version
@@ -297,6 +300,7 @@ jobs:
 
       - name: Update coverage badge
         if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GIST_TOKEN }}
           GIST_ID: ${{ secrets.COVERAGE_GIST_ID }}

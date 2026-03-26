@@ -25,6 +25,7 @@ import feature.words.model.WordManagerEffect
 import feature.words.model.WordManagerScreenState
 import utils.Language
 
+@Suppress("LongParameterList")
 class WordManagerViewModel(
     private val getAllWordsUseCase: GetAllWordsUseCase,
     private val getTagsUseCase: GetTagsUseCase,

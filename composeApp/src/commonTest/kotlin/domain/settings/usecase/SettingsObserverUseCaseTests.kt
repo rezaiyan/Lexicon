@@ -2,7 +2,6 @@ package domain.settings.usecase
 
 import app.cash.turbine.test
 import core.common.Try
-import core.common.getOrThrow
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsSettings

@@ -50,7 +50,10 @@ internal fun LoadingView() {
 }
 
 @Composable
-internal fun ErrorView(message: String, classification: ImportErrorClassification = ImportErrorClassification.GenericError) {
+internal fun ErrorView(
+    message: String,
+    classification: ImportErrorClassification = ImportErrorClassification.GenericError
+) {
     val isNetworkError = classification is ImportErrorClassification.NetworkError
     ErrorScreen(
         message = if (isNetworkError) {

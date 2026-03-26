@@ -74,7 +74,8 @@ class SubscriptionViewModel(
                     val isSubscribed = subscriptionManager.isSubscribed().first()
                     val customerInfo = subscriptionManager.customerInfo.value
                     val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
-                    val formattedExpirationDate = activeEntitlement?.expirationDateMillis?.let { EpochDateFormatter.toMediumDate(it) }
+                    val formattedExpirationDate = activeEntitlement?.expirationDateMillis
+                        ?.let { EpochDateFormatter.toMediumDate(it) }
                     val willRenew = activeEntitlement?.willRenew == true
 
                     updateState {

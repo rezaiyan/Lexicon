@@ -6,7 +6,6 @@ import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.onboarding.repository.IOnboardingRepository
-import domain.startup.model.AppStartupDestination
 import domain.startup.usecase.DetermineAppStartupStateUseCase
 import domain.startup.usecase.DeterminePostAuthDestinationUseCase
 import domain.word.model.LearningStage
@@ -88,7 +87,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         return AppNavigationViewModel(
             onboardingRepository = onboardingRepo,
             retryAnalyticsSyncUseCase = retryAnalyticsSyncUseCase,
-            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
         )
     }
@@ -123,7 +122,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         val vm = AppNavigationViewModel(
             onboardingRepository = onboardingRepo,
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
-            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
         )
         vm.onSessionVerified(isAuthenticated = true)
@@ -147,7 +146,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         val vm = AppNavigationViewModel(
             onboardingRepository = onboardingRepo,
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
-            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
         )
         vm.onAuthCompleteCheckingData()
@@ -162,7 +161,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         val vm = AppNavigationViewModel(
             onboardingRepository = onboardingRepo,
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
-            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
         )
         vm.onAuthCompleteCheckingData()
@@ -185,7 +184,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         val vm = AppNavigationViewModel(
             onboardingRepository = onboardingRepo,
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
-            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo, wordRepo),
+            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
         )
         vm.onAuthComplete()

@@ -33,6 +33,7 @@ data class ImportTagUseCases(
     val createTag: CreateTagUseCase,
 )
 
+@Suppress("LongParameterList")
 class ImportViewModel(
     private val importWordsUseCase: ImportWordsUseCase,
     private val importViaFileUseCase: ImportViaFileUseCase,
@@ -259,7 +260,12 @@ class ImportViewModel(
                         is ExtractVocabularyResult.Success -> {
                             val wordItems = parseCsvWordsUseCase(result.csvText)
                                 .mapIndexed { index, word ->
-                                    ExtractedWordItem(id = index, word = word.word, translation = word.translation, description = word.description)
+                                    ExtractedWordItem(
+                                        id = index,
+                                        word = word.word,
+                                        translation = word.translation,
+                                        description = word.description
+                                    )
                                 }
                             clearSelectedImage()
                             updateState {
