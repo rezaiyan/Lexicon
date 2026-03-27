@@ -3,6 +3,8 @@ package feature.study.ui.review
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +72,7 @@ fun ReviewScreen(
 
     BackHandler(
         enabled = reviewState is ReviewState.Active &&
-            (reviewState as ReviewState.Active).reviewType == ReviewType.REVIEW,
+            reviewState.reviewType == ReviewType.REVIEW,
     ) {
         showExitConfirmation()
     }
@@ -78,25 +80,26 @@ fun ReviewScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.surface)
+            .pointerInput(Unit) { detectTapGestures { } },
     ) {
-        when (val rs = reviewState) {
+        when (reviewState) {
             ReviewState.Idle,
             ReviewState.Loading -> LoadingState()
 
             is ReviewState.Error -> ErrorState(
-                error = rs.error,
-                onRetry = { viewModel.startSession(rs.source) },
+                error = reviewState.error,
+                onRetry = { viewModel.startSession(reviewState.source) },
             )
 
             ReviewState.Empty -> EmptyState()
 
             is ReviewState.Active -> ReviewContent(
-                words = rs.words,
-                currentIndex = rs.currentIndex,
-                isFlipped = rs.isFlipped,
-                reviewType = rs.reviewType,
-                onClose = if (rs.reviewType == ReviewType.BROWSE) onDismiss else showExitConfirmation,
+                words = reviewState.words,
+                currentIndex = reviewState.currentIndex,
+                isFlipped = reviewState.isFlipped,
+                reviewType = reviewState.reviewType,
+                onClose = if (reviewState.reviewType == ReviewType.BROWSE) onDismiss else showExitConfirmation,
                 onFlip = viewModel::flipCard,
                 onNavigateBack = viewModel::navigateBack,
                 onNavigateForward = viewModel::navigateForward,
@@ -104,24 +107,24 @@ fun ReviewScreen(
                 onEdit = {
                     overlayHost.showSizeToFitBottomSheet(tag = "edit-word") { nav ->
                         EditWordSheetContent(
-                            word = rs.currentWord,
+                            word = reviewState.currentWord,
                             navigator = nav,
                             onSave = viewModel::updateWord,
-                            onDelete = { viewModel.deleteWord(rs.currentWord.id) },
+                            onDelete = { viewModel.deleteWord(reviewState.currentWord.id) },
                         )
                     }
                 },
                 ttsState = state.ttsState,
                 onSpeakClick = viewModel::speakWord,
-                isAutoPlayEnabled = rs.isAutoPlayEnabled,
+                isAutoPlayEnabled = reviewState.isAutoPlayEnabled,
                 onAutoPlayToggle = viewModel::setAutoPlay,
                 speechRate = state.speechRate,
                 onSpeechRateChanged = viewModel::setTtsSpeechRate,
             )
 
             is ReviewState.Completed -> ReviewCompletionContent(
-                knownCount = rs.knownCount,
-                unknownCount = rs.unknownCount,
+                knownCount = reviewState.knownCount,
+                unknownCount = reviewState.unknownCount,
                 onDismiss = viewModel::acknowledgeCompletion,
             )
         }

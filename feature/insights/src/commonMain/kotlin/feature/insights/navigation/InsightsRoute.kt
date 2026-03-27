@@ -24,6 +24,7 @@ fun OverlayHost.showInsightsSheet() {
         tag = "insights",
         properties = FullScreenProperties(
             dismissOnBackPress = true,
+            dismissOnSwipe = true,
             isStatusBarsPaddingEnabled = false,
         ),
     ) { navigator ->

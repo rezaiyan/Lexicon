@@ -100,7 +100,8 @@ fun ReviewContent(
     val flipThresholdPx = remember(density) { with(density) { 52.dp.toPx() } }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         ReviewTopBar(
