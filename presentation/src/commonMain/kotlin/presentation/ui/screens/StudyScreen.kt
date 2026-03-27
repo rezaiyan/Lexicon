@@ -48,6 +48,10 @@ import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
 import feature.study.ui.study.StatsSection
 import feature.study.ui.study.WordDistributionBar
+import feature.study.ui.wordrush.WordRushCard
+import feature.study.ui.wordrush.WordRushGameScreen
+import feature.study.wordrush.WordRushEffect
+import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
@@ -88,6 +92,7 @@ private sealed interface ImportFlowPage {
 fun StudyScreen() {
     val progressViewModel = koinViewModel<StudyProgressViewModel>()
     val reviewViewModel = koinViewModel<ReviewViewModel>()
+    val wordRushViewModel = koinViewModel<WordRushViewModel>()
     val overlayHost = LocalOverlayHost.current
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
@@ -296,6 +301,41 @@ fun StudyScreen() {
                     )
 
                     WordDistributionBar(stats = loadedStats)
+
+                    val wordRushState by wordRushViewModel.state()
+                    WordRushCard(
+                        bestStreak = wordRushState.bestStreak,
+                        hasEnoughWords = wordRushState.hasEnoughWords,
+                        onPlay = {
+                            wordRushViewModel.startGame()
+                            overlayHost.showFullScreen(
+                                tag = "word-rush",
+                                properties = FullScreenProperties(
+                                    dismissOnBackPress = false,
+                                    isNavigationBarsPaddingEnabled = true,
+                                ),
+                            ) { navigator ->
+                                val gameState by wordRushViewModel.state()
+                                OnEvents(wordRushViewModel.effects) { effect ->
+                                    when (effect) {
+                                        WordRushEffect.GameComplete -> {
+                                            progressViewModel.refreshStats()
+                                        }
+                                    }
+                                }
+                                WordRushGameScreen(
+                                    state = gameState,
+                                    onSelectAnswer = wordRushViewModel::selectAnswer,
+                                    onPlayAgain = wordRushViewModel::startGame,
+                                    onDismiss = {
+                                        wordRushViewModel.dismiss()
+                                        navigator.dismiss()
+                                    },
+                                )
+                            }
+                        },
+                        modifier = Modifier.padding(vertical = Theme.spacing.sm),
+                    )
 
                     LearningStagesSection(
                         stats = loadedStats,

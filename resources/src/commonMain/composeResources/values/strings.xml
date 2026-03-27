@@ -730,5 +730,23 @@
     <string name="leaderboard_longest_streak">Longest Streak</string>
     <string name="leaderboard_mastered">Mastered</string>
     <string name="leaderboard_your_ranking">Your Ranking</string>
+
+    <!-- Word Rush Game -->
+    <string name="word_rush">Word Rush</string>
+    <string name="word_rush_subtitle">Quick-fire vocabulary challenge</string>
+    <string name="word_rush_play">Play</string>
+    <string name="word_rush_best_streak">Best streak: %1$d</string>
+    <string name="word_rush_add_words">Add at least 4 words to play</string>
+    <string name="word_rush_score">Score</string>
+    <string name="word_rush_streak">Streak</string>
+    <string name="word_rush_time_up">Time\'s up!</string>
+    <string name="word_rush_correct">Correct!</string>
+    <string name="word_rush_wrong">Wrong!</string>
+    <string name="word_rush_game_over">Game Over</string>
+    <string name="word_rush_result_score">%1$d / %2$d</string>
+    <string name="word_rush_best_streak_result">Best Streak: %1$d</string>
+    <string name="word_rush_new_best">New Best!</string>
+    <string name="word_rush_play_again">Play Again</string>
+    <string name="word_rush_question_counter">%1$d / %2$d</string>
 </resources>
 
