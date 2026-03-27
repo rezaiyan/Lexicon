@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.alirezaiyan.vokab"><img src="https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white" alt="Google Play"/></a>
   <a href="https://apps.apple.com/us/app/lexicon-learn-vocabulary/id6753774009"><img src="https://img.shields.io/badge/App_Store-0D96F6?style=for-the-badge&logo=app-store&logoColor=white" alt="App Store"/></a>
-  <a href="https://github.com/rezaiyan/Lexicon/actions/workflows/ci.yml"><img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rezaiyan/GIST_ID/raw/lexicon-coverage.json" alt="Coverage"/></a>
+  <a href="https://github.com/rezaiyan/Lexicon/actions/workflows/ci.yml"><img src="https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/rezaiyan/40293ddad3e7fe183f1f4239a7fb62a2/raw/lexicon-coverage.json" alt="Coverage"/></a>
 </p>
 
 ---
