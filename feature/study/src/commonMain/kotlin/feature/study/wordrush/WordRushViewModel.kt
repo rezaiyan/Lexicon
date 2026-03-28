@@ -184,23 +184,16 @@ class WordRushViewModel(
     private fun startTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            val startTime = kotlin.time.Clock.System.now()
-            var running = true
-            while (running) {
+            var elapsed = 0L
+            while (elapsed < TIME_PER_QUESTION_MS) {
                 delay(TIMER_TICK_MS)
-                val elapsed = (kotlin.time.Clock.System.now() - startTime).inWholeMilliseconds
+                elapsed += TIMER_TICK_MS
                 val remaining = (TIME_PER_QUESTION_MS - elapsed).coerceAtLeast(0)
                 val phase = currentState.phase
-                if (phase is WordRushPhase.Playing && phase.selectedIndex == null) {
-                    updateState { copy(phase = phase.copy(timeRemainingMs = remaining)) }
-                    if (remaining <= 0) {
-                        onTimeUp()
-                        running = false
-                    }
-                } else {
-                    running = false
-                }
+                if (phase !is WordRushPhase.Playing || phase.selectedIndex != null) return@launch
+                updateState { copy(phase = phase.copy(timeRemainingMs = remaining)) }
             }
+            onTimeUp()
         }
     }
 
