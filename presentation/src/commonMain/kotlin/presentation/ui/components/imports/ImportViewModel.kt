@@ -233,7 +233,7 @@ class ImportViewModel(
         }
     }
 
-    @Suppress("CyclomaticComplexMethod")
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
     fun importImage() {
         val imageTab = when (val selected = currentState.selectedTab) {
             is ImportTabV2.Image -> selected
