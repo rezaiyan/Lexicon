@@ -12,9 +12,10 @@ data class InsightsAvailability(
     val hasOverview: Boolean,
     val hasTrends: Boolean,
     val hasWords: Boolean,
+    val hasWordRush: Boolean,
 ) {
     val hasAnyContent: Boolean
-        get() = hasOverview || hasTrends || hasWords
+        get() = hasOverview || hasTrends || hasWords || hasWordRush
 
     companion object {
         fun from(state: InsightsState): InsightsAvailability = InsightsAvailability(
@@ -22,6 +23,7 @@ data class InsightsAvailability(
             hasTrends = state.accuracyByLevel.hasNonEmptyList()
                     || state.heatmap.hasNonEmptyList(),
             hasWords = state.difficultWords.hasNonEmptyList(),
+            hasWordRush = state.wordRushInsights.hasNonEmptyData { it.totalGames > 0 },
         )
 
         private fun <T> UiState<T>.hasNonEmptyData(predicate: (T) -> Boolean): Boolean =

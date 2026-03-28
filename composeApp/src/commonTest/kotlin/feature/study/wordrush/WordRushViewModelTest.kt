@@ -1,7 +1,11 @@
 package feature.study.wordrush
 
+import core.common.Try
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
+import domain.wordrush.model.WordRushGameRecord
+import domain.wordrush.repository.IWordRushRecorder
+import domain.wordrush.usecase.RecordWordRushGameUseCase
 import fakes.FakeWordRepository
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
@@ -13,6 +17,18 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class WordRushViewModelTest : ViewModelTestBase() {
+
+    private class FakeWordRushRecorder : IWordRushRecorder {
+        val recordedGames = mutableListOf<WordRushGameRecord>()
+        var recordResult: Try<Unit> = Try.success(Unit)
+
+        override suspend fun recordGame(game: WordRushGameRecord): Try<Unit> {
+            recordedGames.add(game)
+            return recordResult
+        }
+
+        override suspend fun retryPendingSync(): Try<Unit> = Try.success(Unit)
+    }
 
     private fun createWords(count: Int): List<Word> = (1..count).map { i ->
         Word(
@@ -32,10 +48,16 @@ class WordRushViewModelTest : ViewModelTestBase() {
         }
     }
 
-    private fun createViewModel(words: List<Word> = createWords(10)): WordRushViewModel {
+    private val defaultRecorder = FakeWordRushRecorder()
+
+    private fun createViewModel(
+        words: List<Word> = createWords(10),
+        recorder: FakeWordRushRecorder = defaultRecorder,
+    ): WordRushViewModel {
         val repo = fakeRepo(words)
         val useCase = GetWordRushWordsUseCase(repo)
-        return WordRushViewModel(useCase)
+        val recordUseCase = RecordWordRushGameUseCase(recorder)
+        return WordRushViewModel(useCase, recordUseCase)
     }
 
     @Test
@@ -496,5 +518,73 @@ class WordRushViewModelTest : ViewModelTestBase() {
         assertTrue(updated.score >= 1)
         assertTrue(updated.lastPointsEarned != null)
         assertTrue(updated.lastPointsEarned!! >= 1)
+    }
+
+    // ── Game recording tests ──────────────────────────────────────────────
+
+    @Test
+    fun `game recorded after finishing all questions`() = runTest {
+        val recorder = FakeWordRushRecorder()
+        val vm = createViewModel(recorder = recorder)
+        vm.startGame()
+
+        // Answer all 10 questions correctly
+        repeat(WordRushViewModel.ROUND_COUNT) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        // Wait for any remaining coroutines
+        advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+
+        assertEquals(1, recorder.recordedGames.size)
+        val record = recorder.recordedGames.first()
+        assertEquals(WordRushViewModel.ROUND_COUNT, record.totalQuestions)
+        assertEquals(WordRushViewModel.ROUND_COUNT, record.correctCount)
+        assertTrue(record.score > 0)
+        assertTrue(record.completedNormally)
+        assertTrue(record.clientGameId.startsWith("wr_"))
+        assertTrue(record.durationMs >= 0)
+        assertTrue(record.playedAt > 0)
+    }
+
+    @Test
+    fun `game recorded when lives run out`() = runTest {
+        val recorder = FakeWordRushRecorder()
+        val vm = createViewModel(recorder = recorder)
+        vm.startGame()
+
+        // Answer wrong until lives run out
+        repeat(WordRushViewModel.INITIAL_LIVES) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                val wrongIndex = (0..3).first { it != phase.question.correctIndex }
+                vm.selectAnswer(wrongIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+
+        assertEquals(1, recorder.recordedGames.size)
+        val record = recorder.recordedGames.first()
+        assertEquals(0, record.correctCount)
+        assertEquals(0, record.livesRemaining)
+        assertTrue(record.completedNormally)
+    }
+
+    @Test
+    fun `game NOT recorded when user dismisses mid-game`() = runTest {
+        val recorder = FakeWordRushRecorder()
+        val vm = createViewModel(recorder = recorder)
+        vm.startGame()
+
+        // Dismiss without finishing
+        vm.dismiss()
+
+        assertEquals(0, recorder.recordedGames.size)
     }
 }

@@ -25,6 +25,9 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import domain.wordrush.model.WordRushInsights
+import domain.wordrush.repository.IWordRushStatsRepository
+import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import feature.insights.InsightsViewModel
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
@@ -32,6 +35,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class InsightsViewModelTest : ViewModelTestBase() {
 
@@ -72,6 +76,14 @@ class InsightsViewModelTest : ViewModelTestBase() {
         override suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>> = Try.success(emptyList())
         override suspend fun getComebackWords(): Try<List<ComebackWord>> = Try.success(emptyList())
         override suspend fun getLevelTransitions(): Try<List<domain.analytics.model.LevelTransition>> = Try.success(emptyList())
+    }
+
+    // endregion
+
+    private class FakeWordRushStatsRepository(
+        var insightsResult: Try<WordRushInsights> = Try.success(defaultWordRushInsights()),
+    ) : IWordRushStatsRepository {
+        override suspend fun getInsights(): Try<WordRushInsights> = insightsResult
     }
 
     // endregion
@@ -127,10 +139,23 @@ class InsightsViewModelTest : ViewModelTestBase() {
         fun defaultHourlyAccuracy() = listOf(
             HourlyAccuracy(hour = 14, totalReviews = 20, correctCount = 18, accuracyPercent = 90.0),
         )
+
+        fun defaultWordRushInsights() = WordRushInsights(
+            totalGames = 15,
+            totalCompleted = 12,
+            completionRatePercent = 80.0,
+            bestStreakEver = 8,
+            avgScore = 42.5,
+            avgAccuracyPercent = 75.0,
+            totalTimePlayedMs = 180000,
+            avgDurationMs = 12000.0,
+            avgResponseMs = 2500.0,
+        )
     }
 
     private fun createViewModel(
         repo: FakeAnalyticsRepository = FakeAnalyticsRepository(),
+        wordRushStatsRepo: FakeWordRushStatsRepository = FakeWordRushStatsRepository(),
         dailyInsightCache: DailyInsightCache = FakeDailyInsightCache(),
     ): InsightsViewModel {
         return InsightsViewModel(
@@ -140,6 +165,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             getAccuracyByLevelUseCase = GetAccuracyByLevelUseCase(repo),
             getStudyHeatmapUseCase = GetStudyHeatmapUseCase(repo),
             getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
+            getWordRushInsightsUseCase = GetWordRushInsightsUseCase(wordRushStatsRepo),
             dailyInsightCache = dailyInsightCache,
         )
     }
@@ -286,6 +312,52 @@ class InsightsViewModelTest : ViewModelTestBase() {
 
         val updatedOverview = assertIs<UiState.Loaded<StudyInsights>>(vm.currentState.overview)
         assertEquals(200, updatedOverview.value.totalCardsReviewed)
+    }
+
+    // endregion
+
+    // region Word Rush Insights
+
+    @Test
+    fun `wordRushInsights loaded successfully`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        val state = vm.currentState
+        val wordRush = assertIs<UiState.Loaded<WordRushInsights>>(state.wordRushInsights)
+        assertEquals(15, wordRush.value.totalGames)
+        assertEquals(8, wordRush.value.bestStreakEver)
+        assertEquals(75.0, wordRush.value.avgAccuracyPercent)
+    }
+
+    @Test
+    fun `wordRushInsights shows error when use case fails`() = runTest {
+        val wordRushRepo = FakeWordRushStatsRepository(
+            insightsResult = Try.failure(RuntimeException("Rush stats failed")),
+        )
+        val vm = createViewModel(wordRushStatsRepo = wordRushRepo)
+        vm.refresh()
+
+        assertIs<UiState.Error>(vm.currentState.wordRushInsights)
+    }
+
+    @Test
+    fun `availability hasWordRush is true when totalGames greater than zero`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        assertTrue(vm.currentState.availability.hasWordRush)
+    }
+
+    @Test
+    fun `availability hasWordRush is false when totalGames is zero`() = runTest {
+        val wordRushRepo = FakeWordRushStatsRepository(
+            insightsResult = Try.success(defaultWordRushInsights().copy(totalGames = 0)),
+        )
+        val vm = createViewModel(wordRushStatsRepo = wordRushRepo)
+        vm.refresh()
+
+        assertEquals(false, vm.currentState.availability.hasWordRush)
     }
 
     // endregion

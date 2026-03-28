@@ -5,6 +5,8 @@ import core.base.BaseViewModel
 import core.common.fold
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
+import domain.wordrush.model.WordRushGameRecord
+import domain.wordrush.usecase.RecordWordRushGameUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -71,6 +73,7 @@ sealed interface WordRushEffect {
 
 class WordRushViewModel(
     private val getWordRushWordsUseCase: GetWordRushWordsUseCase,
+    private val recordWordRushGameUseCase: RecordWordRushGameUseCase,
 ) : BaseViewModel<WordRushState, WordRushEffect>() {
 
     override fun initialState() = WordRushState()
@@ -85,6 +88,7 @@ class WordRushViewModel(
     private var timerJob: Job? = null
     private var questionStartTimeMs: Long = 0L
     private var responseTimes: MutableList<Long> = mutableListOf()
+    private var gameStartedAt: Long = 0L
 
     init {
         checkWordAvailability()
@@ -112,6 +116,7 @@ class WordRushViewModel(
                     score = 0
                     correctCount = 0
                     responseTimes = mutableListOf()
+                    gameStartedAt = Clock.System.now().toEpochMilliseconds()
                     showQuestion()
                 },
                 onFailure = { error ->
@@ -349,7 +354,25 @@ class WordRushViewModel(
             )
         }
         emitEffect(WordRushEffect.GameComplete)
+
+        val record = WordRushGameRecord(
+            clientGameId = generateClientGameId(),
+            score = score,
+            totalQuestions = totalQuestions,
+            correctCount = correctCount,
+            bestStreak = bestSessionStreak,
+            durationMs = Clock.System.now().toEpochMilliseconds() - gameStartedAt,
+            avgResponseMs = avgResponseTimeMs,
+            grade = grade,
+            livesRemaining = livesRemaining,
+            completedNormally = true,
+            playedAt = Clock.System.now().toEpochMilliseconds(),
+        )
+        viewModelScope.launch { recordWordRushGameUseCase(record) }
     }
+
+    private fun generateClientGameId(): String =
+        "wr_${Clock.System.now().toEpochMilliseconds()}_${(0..9999).random()}"
 
     private fun buildQuestions(words: List<Word>): List<WordRushQuestion> {
         return words.map { word ->

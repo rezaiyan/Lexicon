@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,6 +61,8 @@ import domain.analytics.model.AccuracyByLevel
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.WordDifficulty
+import domain.wordrush.model.WordRushInsights
+import feature.insights.InsightsAvailability
 import feature.insights.InsightsState
 import feature.insights.InsightsViewModel
 import kotlin.math.roundToInt
@@ -90,6 +93,13 @@ import lexicon.resources.generated.resources.insights_title
 import lexicon.resources.generated.resources.insights_total_study_time
 import lexicon.resources.generated.resources.retry
 import lexicon.resources.generated.resources.insights_words_mastered
+import lexicon.resources.generated.resources.word_rush_insights_avg_accuracy
+import lexicon.resources.generated.resources.word_rush_insights_avg_score
+import lexicon.resources.generated.resources.word_rush_insights_best_streak
+import lexicon.resources.generated.resources.word_rush_insights_completion_rate
+import lexicon.resources.generated.resources.word_rush_insights_title
+import lexicon.resources.generated.resources.word_rush_insights_total_games
+import lexicon.resources.generated.resources.word_rush_insights_total_time
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import theme.Theme
@@ -150,6 +160,9 @@ internal fun InsightsContent(
                     DailyInsightBanner(message = message, onDismiss = onDismissInsight)
                 }
                 OverviewTab(state)
+                if (state.availability.hasWordRush) {
+                    WordRushInsightsSection(state)
+                }
                 TrendsTab(state)
                 WordsTab(state)
                 Spacer(modifier = Modifier.height(Theme.spacing.xl))
@@ -356,6 +369,68 @@ private fun OverviewCards(insights: StudyInsights) {
             insights.uniqueWordsReviewed.toInt(),
         ),
     )
+}
+
+// endregion
+
+// region Word Rush
+
+@Composable
+private fun WordRushInsightsSection(state: InsightsState) {
+    state.wordRushInsights.onLoaded { insights ->
+        if (insights.totalGames > 0) {
+            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Bolt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+                    )
+                    SectionLabel(stringResource(Res.string.word_rush_insights_title))
+                }
+                MetricRow(
+                    icon = Icons.Default.BarChart,
+                    iconTint = MaterialTheme.colorScheme.tertiary,
+                    title = stringResource(Res.string.word_rush_insights_total_games),
+                    value = insights.totalGames.toString(),
+                )
+                MetricRow(
+                    icon = Icons.Default.Star,
+                    iconTint = MaterialTheme.colorScheme.secondary,
+                    title = stringResource(Res.string.word_rush_insights_best_streak),
+                    value = insights.bestStreakEver.toString(),
+                )
+                MetricRow(
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    title = stringResource(Res.string.word_rush_insights_avg_accuracy),
+                    value = "${"%.1f".format(insights.avgAccuracyPercent)}%",
+                )
+                MetricRow(
+                    icon = Icons.Rounded.Bolt,
+                    iconTint = MaterialTheme.colorScheme.tertiary,
+                    title = stringResource(Res.string.word_rush_insights_avg_score),
+                    value = "%.1f".format(insights.avgScore),
+                )
+                MetricRow(
+                    icon = Icons.Default.Schedule,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    title = stringResource(Res.string.word_rush_insights_total_time),
+                    value = "${insights.totalTimePlayedMs / 60000} min",
+                )
+                MetricRow(
+                    icon = Icons.Default.BarChart,
+                    iconTint = MaterialTheme.colorScheme.secondary,
+                    title = stringResource(Res.string.word_rush_insights_completion_rate),
+                    value = "${"%.1f".format(insights.completionRatePercent)}%",
+                )
+            }
+        }
+    }
 }
 
 // endregion
