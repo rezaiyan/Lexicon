@@ -19,6 +19,7 @@ fun insightsModule() = module {
             getStudyHeatmapUseCase = get(),
             getBestStudyTimeUseCase = get(),
             getWordRushInsightsUseCase = get(),
+            getProfileStatsUseCase = get(),
             dailyInsightCache = get<DailyInsightCache>(),
         )
     }

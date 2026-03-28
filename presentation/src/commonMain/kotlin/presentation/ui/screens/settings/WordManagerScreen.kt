@@ -193,7 +193,6 @@ internal fun WordManagerContent(
                             )
                         },
                         onEnterSelectionMode = { wordId ->
-                            viewModel.enterSelectionMode()
                             viewModel.toggleWordSelection(wordId)
                         },
                         onSelectAll = viewModel::selectAll,

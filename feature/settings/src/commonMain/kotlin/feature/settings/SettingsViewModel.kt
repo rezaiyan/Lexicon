@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import platform.IAppVersionProvider
 import core.base.BaseViewModel
-import feature.settings.model.SettingsEffect
 import feature.settings.model.SettingsScreenState
 import domain.settings.model.ThemeMode
 import utils.Language
@@ -38,7 +37,6 @@ data class SettingsState(
     val ttsModels: List<TtsModelInfo> = emptyList(),
     val ttsModelsLoading: Boolean = false,
     val ttsTotalSizeBytes: Long = 0L,
-    val ttsDownloadedCount: Int = 0,
     val ttsSettings: TtsSettings = TtsSettings(),
     val ttsDownloadProgress: Map<String, Float> = emptyMap(),
 )
@@ -61,7 +59,7 @@ class SettingsViewModel(
     settingsRepository: ISettingsRepository,
     authRepository: IAuthRepository,
     appVersionProvider: IAppVersionProvider,
-) : BaseViewModel<SettingsState, SettingsEffect>() {
+) : BaseViewModel<SettingsState, Nothing>() {
 
     override fun initialState() = SettingsState()
 
@@ -145,11 +143,9 @@ class SettingsViewModel(
     fun requestNotificationPermission() {
         viewModelScope.launch {
             val granted = requestNotificationPermissionUseCase().getOrDefault(false)
-            emitEffect(SettingsEffect.NotificationPermissionGranted(granted))
             if (granted) {
                 setNotificationsEnabledUseCase(true)
             } else {
-                emitEffect(SettingsEffect.OpenSystemNotificationSettings)
                 openNotificationSettingsUseCase()
             }
             notificationPermissionMonitor.refresh()
@@ -172,7 +168,6 @@ class SettingsViewModel(
                             ttsModels = models,
                             ttsModelsLoading = false,
                             ttsTotalSizeBytes = models.filter { it.isDownloaded }.sumOf { it.sizeBytes },
-                            ttsDownloadedCount = models.count { it.isDownloaded },
                         )
                     }
                 },

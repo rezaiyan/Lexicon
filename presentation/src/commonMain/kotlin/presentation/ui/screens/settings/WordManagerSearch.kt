@@ -34,7 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import domain.tag.model.Tag
 import domain.word.model.LearningStage
-import feature.words.model.WordSortOption
+import domain.word.model.WordSortOption
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.filter_all_languages

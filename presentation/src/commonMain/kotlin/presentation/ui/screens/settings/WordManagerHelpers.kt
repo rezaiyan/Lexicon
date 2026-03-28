@@ -63,7 +63,6 @@ internal fun ErrorView(
         },
         title = if (isNetworkError) "No Connection" else stringResource(Res.string.error),
         icon = Icons.Default.Error,
-        retryLabel = "Try Again",
     )
 }
 

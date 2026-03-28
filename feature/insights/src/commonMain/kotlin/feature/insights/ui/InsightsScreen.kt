@@ -34,7 +34,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,7 +57,9 @@ import androidx.compose.ui.unit.sp
 import components.ErrorScreen
 import components.GradientProgressBar
 import components.LoadingScreen
+import components.LottieMotionIcon
 import components.Pill
+import components.animation.rememberAnimatedCounter
 import components.scaffold.LexiconColumn
 import components.scaffold.TopBarColor
 import core.common.UiState
@@ -81,6 +82,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.best_streak
+import lexicon.resources.generated.resources.day_streak
 import lexicon.resources.generated.resources.insights_accuracy
 import lexicon.resources.generated.resources.insights_accuracy_by_level
 import lexicon.resources.generated.resources.insights_empty_subtitle
@@ -164,10 +167,14 @@ internal fun InsightsContent(
                     .padding(horizontal = Theme.spacing.md),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
             ) {
-                state.dailyInsight?.let { message ->
-                    DailyInsightBanner(message = message, onDismiss = onDismissInsight)
+                val currentStreak = state.currentStreak
+                if (currentStreak != null) {
+                    StreakCard(
+                        currentStreak = currentStreak,
+                        longestStreak = state.longestStreak,
+                    )
                 }
-                OverviewTab(state)
+                OverviewTab(state, onDismissInsight)
                 if (state.availability.hasWordRush) {
                     WordRushInsightsSection(state)
                 }
@@ -225,51 +232,74 @@ private fun EmptyInsightsContent() {
 
 // endregion
 
-// region Daily Insight Banner
+// region Streak
+
+private const val FIRE_LOTTIE_URL =
+    "https://assets-v2.lottiefiles.com/a/9d140e5e-1121-11ef-a147-0f8f2c5fd446/12M9FMZfjS.json"
 
 @Composable
-private fun DailyInsightBanner(message: String, onDismiss: () -> Unit) {
+private fun StreakCard(
+    currentStreak: Int,
+    longestStreak: Int?,
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val animatedCurrent = rememberAnimatedCounter(target = currentStreak)
+    val animatedLongest = rememberAnimatedCounter(target = longestStreak ?: 0)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+            .clip(RoundedCornerShape(20.dp))
+            .background(surfaceColor.copy(alpha = 0.9f))
+            .padding(start = Theme.spacing.xxs, end = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
-        Icon(
-            imageVector = Icons.Default.Star,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
+        Box(
             modifier = Modifier
-                .padding(top = Theme.spacing.xxxs)
-                .size(Theme.dimensions.iconSize),
-        )
-        Column(modifier = Modifier.weight(1f)) {
+                .padding(bottom = Theme.spacing.sm)
+                .size(64.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            LottieMotionIcon(url = FIRE_LOTTIE_URL, modifier = Modifier.size(64.dp))
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Daily Insight",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                text = "$animatedCurrent",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = primaryColor,
+                lineHeight = 30.sp,
             )
             Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
             Text(
-                text = message,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                text = stringResource(Res.string.day_streak),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 0.3.sp,
             )
         }
-        IconButton(
-            onClick = onDismiss,
-            modifier = Modifier.size(Theme.dimensions.touchTargetSmall),
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Dismiss",
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.size(16.dp),
-            )
+        if (longestStreak != null) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "$animatedLongest",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = tertiaryColor,
+                    lineHeight = 30.sp,
+                )
+                Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
+                Text(
+                    text = stringResource(Res.string.best_streak),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.3.sp,
+                )
+            }
         }
     }
 }
@@ -279,20 +309,33 @@ private fun DailyInsightBanner(message: String, onDismiss: () -> Unit) {
 // region Overview
 
 @Composable
-private fun OverviewTab(state: InsightsState) {
+private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit) {
     state.overview
         .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading)) }
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { insights ->
             if (state.availability.hasOverview) {
                 val bestTime = (state.bestStudyTime as? UiState.Loaded)?.value
-                StudyInsightsCard(insights = insights, bestStudyTime = bestTime)
+                val heatmapDays = (state.heatmap as? UiState.Loaded)?.value ?: emptyList()
+                StudyInsightsCard(
+                    insights = insights,
+                    bestStudyTime = bestTime,
+                    heatmapDays = heatmapDays,
+                    dailyInsight = state.dailyInsight,
+                    onDismissInsight = onDismissInsight,
+                )
             }
         }
 }
 
 @Composable
-private fun StudyInsightsCard(insights: StudyInsights, bestStudyTime: HourlyAccuracy?) {
+private fun StudyInsightsCard(
+    insights: StudyInsights,
+    bestStudyTime: HourlyAccuracy?,
+    heatmapDays: List<StudyHeatmapDay>,
+    dailyInsight: String?,
+    onDismissInsight: () -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     val chevronDegrees by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
@@ -374,6 +417,46 @@ private fun StudyInsightsCard(insights: StudyInsights, bestStudyTime: HourlyAccu
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            // Daily insight (always visible when present)
+            if (dailyInsight != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(Theme.shapes.small))
+                        .background(tint.copy(alpha = 0.10f))
+                        .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = tint,
+                        modifier = Modifier
+                            .padding(top = 2.dp)
+                            .size(14.dp),
+                    )
+                    Text(
+                        text = dailyInsight,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable { onDismissInsight() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Dismiss",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(12.dp),
+                        )
+                    }
+                }
+            }
             // Expandable details
             AnimatedVisibility(
                 visible = expanded,
@@ -423,6 +506,10 @@ private fun StudyInsightsCard(insights: StudyInsights, bestStudyTime: HourlyAccu
                             value = "${bestStudyTime.hour}:00",
                             subtitle = "${bestStudyTime.accuracyPercent.roundToInt()}% accuracy",
                         )
+                    }
+                    if (heatmapDays.isNotEmpty()) {
+                        HorizontalDivider(color = tint.copy(alpha = 0.15f))
+                        ThisWeekSection(heatmapDays = heatmapDays)
                     }
                 }
             }
@@ -623,11 +710,6 @@ private fun TrendsTab(state: InsightsState) {
             }
         }
 
-    val heatmapDays = when (val h = state.heatmap) {
-        is UiState.Loaded -> h.value
-        else -> emptyList()
-    }
-    ThisWeekSection(heatmapDays = heatmapDays)
 }
 
 @Composable
@@ -815,8 +897,6 @@ private fun ThisWeekSection(heatmapDays: List<StudyHeatmapDay>) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(Theme.shapes.medium))
-                .background(Theme.colors.surfaceContainer)
                 .padding(Theme.spacing.md),
         ) {
             Row(

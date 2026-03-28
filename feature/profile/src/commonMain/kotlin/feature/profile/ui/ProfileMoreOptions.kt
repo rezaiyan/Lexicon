@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Icon
@@ -22,8 +23,11 @@ import org.jetbrains.compose.resources.stringResource
 import components.dialog.LexiconDialogContent
 import theme.Theme
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.change_photo
+import lexicon.resources.generated.resources.choose_from_gallery
 import lexicon.resources.generated.resources.delete_account
 import lexicon.resources.generated.resources.edit_profile
+import lexicon.resources.generated.resources.remove_photo
 
 @Composable
 internal fun ProfileMoreOptionsSheet(
@@ -81,9 +85,28 @@ internal fun ProfileMoreOptionsSheet(
     )
 }
 
-internal sealed interface MoreOptionsPage {
-    data object Options : MoreOptionsPage
-    data object EditProfile : MoreOptionsPage
-    data object DeleteConfirm : MoreOptionsPage
-    data object DeleteCooling : MoreOptionsPage
+@Composable
+internal fun AvatarOptionsPage(
+    hasExistingAvatar: Boolean,
+    onChooseFromGallery: () -> Unit,
+    onRemovePhoto: () -> Unit,
+) {
+    LexiconDialogContent(
+        icon = Icons.Default.CameraAlt,
+        title = stringResource(Res.string.change_photo),
+        primaryButtonText = stringResource(Res.string.choose_from_gallery),
+        primaryButtonOnClick = onChooseFromGallery,
+        secondaryButtonText = if (hasExistingAvatar) stringResource(Res.string.remove_photo) else null,
+        secondaryButtonOnClick = if (hasExistingAvatar) onRemovePhoto else null,
+    )
+}
+
+internal sealed interface ProfileSheetPage {
+    data object Profile : ProfileSheetPage
+    data object Options : ProfileSheetPage
+    data object EditProfile : ProfileSheetPage
+    data object AvatarOptions : ProfileSheetPage
+    data object DeleteConfirm : ProfileSheetPage
+    data object DeleteCooling : ProfileSheetPage
+    data object Logout : ProfileSheetPage
 }

@@ -24,6 +24,7 @@
 
     <!-- Navigation -->
     <string name="profile">Profile</string>
+    <string name="dashboard">Dashboard</string>
     <string name="study">Study</string>
     <string name="settings">Settings</string>
 
@@ -143,6 +144,7 @@
     <string name="total_words">Total Words</string>
     <string name="cards_due_for_review">%1$d cards due for review</string>
     <string name="start_review">Start Review</string>
+    <string name="skip_tag_selector_label">Don\'t ask again, always review all words</string>
     <string name="learning_stages">Learning Stages</string>
     <string name="import_words">Import Words</string>
     <string name="choose_import_method">How would you like to add words?</string>

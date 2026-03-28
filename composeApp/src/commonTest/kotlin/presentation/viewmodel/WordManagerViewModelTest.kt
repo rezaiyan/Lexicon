@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import feature.words.model.WordSortOption
+import domain.word.model.WordSortOption
 import feature.words.WordManagerViewModel
 import utils.Language
 import kotlin.test.Test

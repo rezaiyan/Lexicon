@@ -1,121 +1,82 @@
 package feature.profile.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.stringResource
+import components.animation.staggeredFadeSlide
 import feature.profile.model.ProfileUiData
 import feature.profile.ui.components.MemberSinceSection
-import feature.profile.ui.components.StreakSection
 import feature.profile.ui.components.UserInfoSection
-import components.animation.staggeredFadeSlide
-import theme.Theme
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.leaderboard
 import lexicon.resources.generated.resources.logout
+import org.jetbrains.compose.resources.stringResource
+import theme.Theme
 
 @Composable
 internal fun ProfileContent(
     profileData: ProfileUiData,
-    onNavigateToLeaderboard: () -> Unit,
     onLogout: () -> Unit,
 ) {
     val userInfo = profileData.userInfo ?: return
+    val stats = profileData.profileStats
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Theme.spacing.md),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        var sectionIndex = 0
+        var idx = 0
 
-        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+        Spacer(Modifier.height(Theme.spacing.md))
 
-        // 1. User Info
         UserInfoSection(
             userInfo = userInfo,
-            modifier = Modifier.staggeredFadeSlide(sectionIndex++)
+            modifier = Modifier.staggeredFadeSlide(idx++),
         )
 
-        // 2. Streak Section (with optional longest streak from server)
-        if (profileData.streak != null) {
-            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
-            StreakSection(
-                streak = profileData.streak,
-                longestStreak = profileData.profileStats?.longestStreak,
-                modifier = Modifier.staggeredFadeSlide(sectionIndex++)
-            )
-        }
-
-        // 3. Leaderboard Button
-        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
-        OutlinedButton(
-            onClick = onNavigateToLeaderboard,
-            modifier = Modifier
-                .fillMaxWidth()
-                .staggeredFadeSlide(sectionIndex++),
-            border = BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.primary),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Leaderboard,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(Theme.spacing.xs))
-            Text(stringResource(Res.string.leaderboard))
-        }
-
-        // 5. Member Since (server data — loads async)
-        val memberSince = profileData.profileStats?.memberSince
+        val memberSince = stats?.memberSince
         if (memberSince != null) {
-            Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
+            Spacer(Modifier.height(Theme.spacing.md))
             MemberSinceSection(
                 memberSince = memberSince,
-                modifier = Modifier
-                    .staggeredFadeSlide(sectionIndex++)
+                modifier = Modifier.staggeredFadeSlide(idx++),
             )
         }
 
-        // 7. Logout Button
-        Spacer(modifier = Modifier.height(Theme.spacing.sectionSpacing))
-
-        OutlinedButton(
+        Spacer(Modifier.height(Theme.spacing.lg))
+        TextButton(
             onClick = onLogout,
-            modifier = Modifier
-                .fillMaxWidth()
-                .staggeredFadeSlide(sectionIndex),
-            border = BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.error),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.error
-            )
+            modifier = Modifier.fillMaxWidth().staggeredFadeSlide(idx),
+            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.Logout,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(16.dp),
             )
-            Spacer(modifier = Modifier.width(Theme.spacing.xs))
-            Text(stringResource(Res.string.logout))
+            Spacer(Modifier.width(Theme.spacing.xs))
+            Text(
+                text = stringResource(Res.string.logout),
+                style = MaterialTheme.typography.labelLarge,
+            )
         }
 
-        Spacer(modifier = Modifier.height(Theme.spacing.cardPadding))
+        Spacer(Modifier.height(Theme.spacing.md))
     }
 }

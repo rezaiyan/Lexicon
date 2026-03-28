@@ -27,6 +27,7 @@ kotlin {
             implementation(project(":feature:words"))
             implementation(project(":feature:import"))
             implementation(project(":feature:insights"))
+            implementation(project(":feature:leaderboard"))
             implementation(project(":resources"))
             implementation(compose.runtime)
             implementation(compose.foundation)

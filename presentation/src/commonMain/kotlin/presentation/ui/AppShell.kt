@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -23,11 +22,9 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.jetbrains.compose.resources.stringResource
-import feature.profile.navigation.ProfileRoute
 import presentation.model.TabDestination
 import presentation.ui.components.AnimatedNavIcon
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.profile
 import lexicon.resources.generated.resources.settings
 import lexicon.resources.generated.resources.study
 import theme.Theme
@@ -44,22 +41,9 @@ internal fun AppContent(
     NavigationSuiteScaffold(
         layoutType = layoutType,
         navigationSuiteItems = {
-            val profileSelected = currentDestination?.hasRoute<ProfileRoute>() == true
             val studySelected = currentDestination?.hasRoute<TabDestination.Study>() == true
             val settingsSelected = currentDestination?.hasRoute<TabDestination.Settings>() == true
 
-            item(
-                selected = profileSelected,
-                onClick = { navController.navigateToTab(ProfileRoute) },
-                icon = {
-                    AnimatedNavIcon(
-                        icon = Icons.Filled.Person,
-                        contentDescription = stringResource(Res.string.profile),
-                        selected = profileSelected
-                    )
-                },
-                label = { Text(stringResource(Res.string.profile)) }
-            )
             item(
                 selected = studySelected,
                 onClick = { navController.navigateToTab(TabDestination.Study) },

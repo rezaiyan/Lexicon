@@ -2,6 +2,7 @@ package feature.profile
 
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
+import core.common.UiState
 import core.common.fold
 import core.error.toUserMessage
 import domain.profile.model.AliasValidationResult
@@ -18,9 +19,8 @@ data class EditProfileState(
     val profileImageUrl: String? = null,
     val name: String = "",
     val email: String = "",
-    val isSaving: Boolean = false,
+    val saveState: UiState<Unit> = UiState.Loaded(Unit),
     val isUploadingAvatar: Boolean = false,
-    val errorMessage: String? = null
 )
 
 sealed interface EditProfileEffect {
@@ -56,49 +56,42 @@ class EditProfileViewModel(
     }
 
     fun updateDisplayAlias(value: String) {
-        updateState { copy(displayAlias = value) }
-    }
-
-    fun dismissError() {
-        updateState { copy(errorMessage = null) }
+        updateState { copy(displayAlias = value, saveState = UiState.Loaded(Unit)) }
     }
 
     fun saveProfile() {
+        if (currentState.saveState is UiState.Loading) return
+
         val alias = currentState.displayAlias.trim()
 
         when (validateDisplayAliasUseCase(alias)) {
             AliasValidationResult.TooShort -> {
-                updateState { copy(errorMessage = "Username must be 2-30 characters") }
+                updateState { copy(saveState = UiState.Error("Username must be 2-30 characters")) }
                 return
             }
             AliasValidationResult.TooLong -> {
-                updateState { copy(errorMessage = "Username must be 2-30 characters") }
+                updateState { copy(saveState = UiState.Error("Username must be 2-30 characters")) }
                 return
             }
             AliasValidationResult.InvalidCharacters -> {
-                updateState { copy(errorMessage = "Only letters, numbers, spaces, underscores, and hyphens allowed") }
+                updateState { copy(saveState = UiState.Error("Only letters, numbers, spaces, underscores, and hyphens allowed")) }
                 return
             }
             AliasValidationResult.Valid -> Unit
         }
 
         viewModelScope.launch {
-            updateState { copy(isSaving = true, errorMessage = null) }
+            updateState { copy(saveState = UiState.Loading) }
 
             val aliasToSend = alias.ifEmpty { null }
             updateProfileUseCase(name = null, displayAlias = aliasToSend).fold(
                 onSuccess = { updatedUser ->
                     userManager.setUser(updatedUser)
-                    updateState { copy(isSaving = false) }
+                    updateState { copy(saveState = UiState.Loaded(Unit)) }
                     emitEffect(EditProfileEffect.ProfileSaved)
                 },
                 onFailure = { error ->
-                    updateState {
-                        copy(
-                            isSaving = false,
-                            errorMessage = error.toUserMessage()
-                        )
-                    }
+                    updateState { copy(saveState = UiState.Error(error.toUserMessage())) }
                 }
             )
         }
@@ -106,7 +99,7 @@ class EditProfileViewModel(
 
     fun uploadAvatar(imageBytes: ByteArray, mimeType: String) {
         viewModelScope.launch {
-            updateState { copy(isUploadingAvatar = true, errorMessage = null) }
+            updateState { copy(isUploadingAvatar = true) }
 
             uploadAvatarUseCase(imageBytes, mimeType).fold(
                 onSuccess = { url ->
@@ -120,7 +113,7 @@ class EditProfileViewModel(
                     updateState {
                         copy(
                             isUploadingAvatar = false,
-                            errorMessage = error.toUserMessage()
+                            saveState = UiState.Error(error.toUserMessage()),
                         )
                     }
                 }
@@ -130,7 +123,7 @@ class EditProfileViewModel(
 
     fun deleteAvatar() {
         viewModelScope.launch {
-            updateState { copy(isUploadingAvatar = true, errorMessage = null) }
+            updateState { copy(isUploadingAvatar = true) }
 
             deleteAvatarUseCase().fold(
                 onSuccess = {
@@ -144,7 +137,7 @@ class EditProfileViewModel(
                     updateState {
                         copy(
                             isUploadingAvatar = false,
-                            errorMessage = error.toUserMessage()
+                            saveState = UiState.Error(error.toUserMessage()),
                         )
                     }
                 }

@@ -1,12 +1,20 @@
 package feature.profile.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -14,33 +22,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
+import core.common.UiState
 import feature.profile.ProfileViewModel
 import feature.profile.model.ProfileUiData
-import core.common.UiState
-import components.scaffold.ActionIconConfig
-import components.scaffold.LexiconColumn
-import feature.profile.ui.components.DeleteAccountCoolingContent
-import feature.profile.ui.components.DeleteAccountHiddenContent
-import feature.profile.ui.components.EditProfileSheetContent
-import feature.profile.ui.components.LogoutDialogContent
-import overlay.OverlayHost
-import overlay.bottomsheet.BottomSheetPageConfig
-import overlay.bottomsheet.BottomSheetPages
-import overlay.bottomsheet.BottomSheetProperties
-import overlay.bottomsheet.rememberBottomSheetPageNavigator
-import overlay.bottomsheet.showSizeToFitBottomSheet
-import feature.leaderboard.navigation.showLeaderboard
-import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.more_options
-import lexicon.resources.generated.resources.profile
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import theme.Theme
 
 @Composable
 fun ProfileScreen(
     snackbarHostState: SnackbarHostState,
-    overlayHost: OverlayHost,
+    onMoreOptions: () -> Unit,
+    onLogout: () -> Unit,
 ) {
     val profileViewModel = koinViewModel<ProfileViewModel>()
 
@@ -62,73 +57,26 @@ fun ProfileScreen(
     val isLoggedIn = profileData?.userInfo != null
     val isLoading = uiState is UiState.Loading
 
-    LexiconColumn(
-        title = stringResource(Res.string.profile),
-        actionIcon1 = if (isLoggedIn) {
-            ActionIconConfig(
-                icon = Icons.Default.MoreVert,
-                contentDescription = stringResource(Res.string.more_options),
-                onClick = {
-                    overlayHost.showSizeToFitBottomSheet(tag = "more-options") { sheetNav ->
-                        val pages = rememberBottomSheetPageNavigator<MoreOptionsPage>(MoreOptionsPage.Options)
-
-                        BottomSheetPages(
-                            navigator = pages,
-                            onClose = { sheetNav.dismiss() },
-                            pageConfig = { page ->
-                                when (page) {
-                                    is MoreOptionsPage.Options -> BottomSheetPageConfig(
-                                        showBackButton = false,
-                                    )
-                                    is MoreOptionsPage.EditProfile -> BottomSheetPageConfig(
-                                        showBackButton = false,
-                                        showCloseButton = false,
-                                        properties = BottomSheetProperties(
-                                            dismissOnTouchOutside = false,
-                                            sheetGesturesEnabled = false,
-                                        ),
-                                    )
-                                    is MoreOptionsPage.DeleteCooling -> BottomSheetPageConfig(
-                                        properties = BottomSheetProperties(
-                                            dismissOnTouchOutside = false,
-                                            sheetGesturesEnabled = false,
-                                        ),
-                                    )
-                                    else -> BottomSheetPageConfig()
-                                }
-                            },
-                        ) { currentPage ->
-                            when (currentPage) {
-                                is MoreOptionsPage.Options -> ProfileMoreOptionsSheet(
-                                    onEditProfile = { pages.navigateTo(MoreOptionsPage.EditProfile) },
-                                    onDeleteAccount = { pages.navigateTo(MoreOptionsPage.DeleteConfirm) }
-                                )
-                                is MoreOptionsPage.EditProfile -> EditProfileSheetContent(
-                                    snackbarHostState = snackbarHostState,
-                                    overlayHost = overlayHost,
-                                    onBack = { pages.navigateBack() },
-                                    onDismiss = { sheetNav.dismiss() }
-                                )
-                                is MoreOptionsPage.DeleteConfirm -> DeleteAccountHiddenContent(
-                                    onConfirm = { pages.navigateTo(MoreOptionsPage.DeleteCooling) },
-                                    onDismiss = { sheetNav.dismiss() }
-                                )
-                                is MoreOptionsPage.DeleteCooling -> DeleteAccountCoolingContent(
-                                    onConfirm = {
-                                        sheetNav.dismiss()
-                                        profileViewModel.deleteAccount()
-                                    },
-                                    onDismiss = { sheetNav.dismiss() }
-                                )
-                            }
-                        }
-                    }
-                },
-                size = Theme.dimensions.iconSize
-            )
-        } else null,
-        scrollable = true
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
     ) {
+        if (isLoggedIn) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                IconButton(onClick = onMoreOptions) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(Res.string.more_options),
+                        modifier = Modifier.size(Theme.dimensions.iconSize),
+                    )
+                }
+            }
+        }
+
         Box(modifier = Modifier.fillMaxWidth()) {
             when {
                 isLoading -> {
@@ -143,18 +91,7 @@ fun ProfileScreen(
                 isLoggedIn -> {
                     ProfileContent(
                         profileData = profileData,
-                        onNavigateToLeaderboard = { overlayHost.showLeaderboard() },
-                        onLogout = {
-                            overlayHost.showSizeToFitBottomSheet(tag = "logout") { nav ->
-                                LogoutDialogContent(
-                                    onConfirm = {
-                                        nav.dismiss()
-                                        profileViewModel.logout()
-                                    },
-                                    onDismiss = { nav.dismiss() }
-                                )
-                            }
-                        }
+                        onLogout = onLogout,
                     )
                 }
             }

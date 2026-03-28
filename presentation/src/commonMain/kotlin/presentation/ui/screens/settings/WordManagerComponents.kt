@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import feature.words.model.WordManagerScreenState
-import feature.words.model.WordSortOption
+import domain.word.model.WordSortOption
 import theme.Theme
 import utils.Language
 

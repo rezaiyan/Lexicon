@@ -16,6 +16,7 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import domain.profile.usecase.GetProfileStatsUseCase
 import domain.wordrush.model.WordRushInsights
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import core.error.toUserMessage
@@ -35,6 +36,8 @@ data class InsightsState(
     val bestStudyTime: UiState<HourlyAccuracy?> = UiState.Loading,
     val wordRushInsights: UiState<WordRushInsights> = UiState.Loading,
     val dailyInsight: String? = null,
+    val currentStreak: Int? = null,
+    val longestStreak: Int? = null,
 ) {
     val availability: InsightsAvailability get() = InsightsAvailability.from(this)
 
@@ -63,6 +66,7 @@ class InsightsViewModel(
     private val getStudyHeatmapUseCase: GetStudyHeatmapUseCase,
     private val getBestStudyTimeUseCase: GetBestStudyTimeUseCase,
     private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
+    private val getProfileStatsUseCase: GetProfileStatsUseCase,
     private val dailyInsightCache: DailyInsightCache,
 ) : BaseViewModel<InsightsState, Nothing>() {
 
@@ -92,6 +96,7 @@ class InsightsViewModel(
         loadHeatmap()
         loadBestStudyTime()
         loadWordRushInsights()
+        loadStreak()
         updateState { copy(dailyInsight = dailyInsightCache.getDailyInsight()) }
     }
 
@@ -173,6 +178,15 @@ class InsightsViewModel(
             getWordRushInsightsUseCase(Unit).reduce(
                 onSuccess = { copy(wordRushInsights = UiState.Loaded(it)) },
                 onFailure = { copy(wordRushInsights = UiState.Error(it.toUserMessage())) },
+            )
+        }
+    }
+
+    private fun loadStreak() {
+        viewModelScope.launch {
+            getProfileStatsUseCase(Unit).reduce(
+                onSuccess = { copy(currentStreak = it.currentStreak, longestStreak = it.longestStreak) },
+                onFailure = { this },
             )
         }
     }

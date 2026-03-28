@@ -37,9 +37,11 @@ fun LexiconColumn(
     title: String? = null,
     showNavigationIcon: Boolean = false,
     navigationIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowBack,
+    navigationIconContentDescription: String? = null,
     onNavigationClick: () -> Unit = {},
     actionIcon1: ActionIconConfig? = null,
     actionIcon2: ActionIconConfig? = null,
+    actionIcon3: ActionIconConfig? = null,
     scrollable: Boolean = true,
     scrollState: ScrollState? = null,
     topBarColor: TopBarColor = TopBarColor.Background,
@@ -47,7 +49,7 @@ fun LexiconColumn(
     content: @Composable () -> Unit
 ) {
     val hasTopBar =
-        title != null || showNavigationIcon || actionIcon1 != null || actionIcon2 != null
+        title != null || showNavigationIcon || actionIcon1 != null || actionIcon2 != null || actionIcon3 != null
 
     if (scrollable) {
         val resolvedScrollState = scrollState ?: rememberScrollState()
@@ -59,9 +61,11 @@ fun LexiconColumn(
                     title = title,
                     showNavigationIcon = showNavigationIcon,
                     navigationIcon = navigationIcon,
+                    navigationIconContentDescription = navigationIconContentDescription,
                     onNavigationClick = onNavigationClick,
                     actionIcon1 = actionIcon1,
                     actionIcon2 = actionIcon2,
+                    actionIcon3 = actionIcon3,
                     topBarColor = topBarColor,
                     collapsedContent = collapsedContent,
                 )
@@ -81,9 +85,11 @@ fun LexiconColumn(
                     title = title,
                     showNavigationIcon = showNavigationIcon,
                     navigationIcon = navigationIcon,
+                    navigationIconContentDescription = navigationIconContentDescription,
                     onNavigationClick = onNavigationClick,
                     actionIcon1 = actionIcon1,
                     actionIcon2 = actionIcon2,
+                    actionIcon3 = actionIcon3,
                     topBarColor = topBarColor,
                     collapsedContent = collapsedContent,
                 )
@@ -106,9 +112,11 @@ private fun FlexibleTopBar(
     title: String?,
     showNavigationIcon: Boolean,
     navigationIcon: ImageVector,
+    navigationIconContentDescription: String? = null,
     onNavigationClick: () -> Unit,
     actionIcon1: ActionIconConfig?,
     actionIcon2: ActionIconConfig?,
+    actionIcon3: ActionIconConfig? = null,
     topBarColor: TopBarColor,
     collapsedContent: (@Composable () -> Unit)? = null,
 ) {
@@ -131,7 +139,8 @@ private fun FlexibleTopBar(
                 IconButton(onClick = onNavigationClick) {
                     Icon(
                         imageVector = navigationIcon,
-                        contentDescription = stringResource(Res.string.navigate_back)
+                        contentDescription = navigationIconContentDescription
+                            ?: stringResource(Res.string.navigate_back)
                     )
                 }
             }
@@ -149,6 +158,17 @@ private fun FlexibleTopBar(
             }
 
             actionIcon2?.let { config ->
+                IconButton(onClick = config.onClick) {
+                    Icon(
+                        imageVector = config.icon,
+                        contentDescription = config.contentDescription,
+                        tint = config.tint ?: LocalContentColor.current,
+                        modifier = Modifier.size(config.size)
+                    )
+                }
+            }
+
+            actionIcon3?.let { config ->
                 IconButton(onClick = config.onClick) {
                     Icon(
                         imageVector = config.icon,

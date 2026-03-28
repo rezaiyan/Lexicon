@@ -7,16 +7,24 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Sell
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -40,6 +48,8 @@ import domain.word.model.LearningStage
 import domain.word.model.ReviewSource
 import events.OnEvents
 import feature.insights.navigation.showInsightsSheet
+import feature.leaderboard.navigation.showLeaderboard
+import feature.profile.navigation.showProfileSheet
 import feature.study.ReviewEffect
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
@@ -55,8 +65,12 @@ import feature.study.wordrush.WordRushEffect
 import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.dashboard
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.insights_title
+import lexicon.resources.generated.resources.more_options
+import lexicon.resources.generated.resources.profile
+import lexicon.resources.generated.resources.skip_tag_selector_label
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
@@ -206,7 +220,17 @@ fun StudyScreen() {
 
     LexiconColumn(
         title = null,
-        showNavigationIcon = false,
+        showNavigationIcon = true,
+        navigationIcon = Icons.Default.MoreVert,
+        navigationIconContentDescription = stringResource(Res.string.more_options),
+        onNavigationClick = {
+            overlayHost.showSizeToFitBottomSheet(tag = "study-menu") { nav ->
+                StudyMenuSheet(
+                    onProfile = { nav.dismiss(); overlayHost.showProfileSheet(snackbarHostState) },
+                    onDashboard = { nav.dismiss(); overlayHost.showLeaderboard() },
+                )
+            }
+        },
         scrollState = scrollState,
         collapsedContent = {
             CollapsedStatsBar(
@@ -404,6 +428,58 @@ fun StudyScreen() {
 }
 
 @Composable
+private fun StudyMenuSheet(
+    onProfile: () -> Unit,
+    onDashboard: () -> Unit,
+) {
+    Column(modifier = Modifier.padding(vertical = Theme.spacing.sm)) {
+        StudyMenuItem(
+            icon = Icons.Default.Person,
+            label = stringResource(Res.string.profile),
+            onClick = onProfile,
+        )
+        StudyMenuItem(
+            icon = Icons.Default.Dashboard,
+            label = stringResource(Res.string.dashboard),
+            onClick = onDashboard,
+        )
+        Spacer(Modifier.height(Theme.spacing.sm))
+    }
+}
+
+@Composable
+private fun StudyMenuItem(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(Theme.dimensions.iconSize),
+            )
+            Spacer(Modifier.width(Theme.spacing.md))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
 private fun ReviewSelectorSheetContent(
     title: String,
     allLabel: String,
@@ -449,13 +525,11 @@ private fun ReviewSelectorSheetContent(
                 checked = skipTagSelector,
                 onCheckedChange = onSkipTagSelectorChanged,
             )
-            Column {
-                Text(
-                    text = "Don't ask again, always review all words",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+            Text(
+                text = stringResource(Res.string.skip_tag_selector_label),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
         Spacer(Modifier.height(Theme.spacing.xs))
     }
