@@ -408,13 +408,13 @@ private fun WordRushInsightsSection(state: InsightsState) {
                     icon = Icons.AutoMirrored.Filled.TrendingUp,
                     iconTint = MaterialTheme.colorScheme.primary,
                     title = stringResource(Res.string.word_rush_insights_avg_accuracy),
-                    value = "${"%.1f".format(insights.avgAccuracyPercent)}%",
+                    value = "${insights.avgAccuracyPercent.toOneDecimalString()}%",
                 )
                 MetricRow(
                     icon = Icons.Rounded.Bolt,
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     title = stringResource(Res.string.word_rush_insights_avg_score),
-                    value = "%.1f".format(insights.avgScore),
+                    value = insights.avgScore.toOneDecimalString(),
                 )
                 MetricRow(
                     icon = Icons.Default.Schedule,
@@ -426,11 +426,22 @@ private fun WordRushInsightsSection(state: InsightsState) {
                     icon = Icons.Default.BarChart,
                     iconTint = MaterialTheme.colorScheme.secondary,
                     title = stringResource(Res.string.word_rush_insights_completion_rate),
-                    value = "${"%.1f".format(insights.completionRatePercent)}%",
+                    value = "${insights.completionRatePercent.toOneDecimalString()}%",
                 )
             }
         }
     }
+}
+
+// endregion
+
+// region Helpers
+
+private fun Double.toOneDecimalString(): String {
+    val rounded = kotlin.math.round(this * 10) / 10.0
+    val whole = rounded.toLong()
+    val decimal = kotlin.math.round((rounded - whole) * 10).toInt()
+    return "$whole.$decimal"
 }
 
 // endregion
