@@ -42,6 +42,7 @@ fun studyModule() = module {
         WordRushViewModel(
             getWordRushWordsUseCase = get(),
             recordWordRushGameUseCase = get(),
+            analyticsTracker = get(),
         )
     }
 }

@@ -56,11 +56,9 @@ class WordRushViewModelTest : ViewModelTestBase() {
 
         ): WordRushViewModel {
         val repo = fakeRepo(words)
-        val useCase = GetWordRushWordsUseCase(repo)
-        val recordUseCase = RecordWordRushGameUseCase(recorder)
-
         return WordRushViewModel(
             getWordRushWordsUseCase = GetWordRushWordsUseCase(repo),
+            recordWordRushGameUseCase = RecordWordRushGameUseCase(recorder),
             analyticsTracker = FakeAnalyticsTracker(),
         )
     }

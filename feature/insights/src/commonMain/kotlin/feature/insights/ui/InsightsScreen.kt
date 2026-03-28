@@ -61,8 +61,6 @@ import domain.analytics.model.AccuracyByLevel
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.WordDifficulty
-import domain.wordrush.model.WordRushInsights
-import feature.insights.InsightsAvailability
 import feature.insights.InsightsState
 import feature.insights.InsightsViewModel
 import kotlin.math.roundToInt

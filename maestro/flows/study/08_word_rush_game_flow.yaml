@@ -57,44 +57,31 @@ tags:
     timeout: 5000
     optional: true
 
-# Answer remaining questions quickly by tapping the first option each time.
-# The game has 10 rounds with 5s timer + 1.2s reveal = ~6.2s per round.
-# We tap through several more rounds.
+# Answer all remaining questions by tapping at 50%,50%.
+# - In Playing phase: lands on an answer card → registers answer
+# - In Result (Game Over) phase: lands in non-interactive area → loop exits
+# (50%,68% would hit "Play Again" button on result screen, restarting the game)
 - repeat:
-    times: 4
+    times: 60
+    while:
+      notVisible: "Game Over"
     commands:
       - tapOn:
-          point: "50%,68%"
-      - waitForAnimationToEnd
-      - extendedWaitUntil:
-          visible: "Score"
-          timeout: 8000
-          optional: true
-
-# Let the remaining rounds time out or continue tapping.
-# Wait for the Game Over result screen (up to 60s for remaining rounds to time out).
-- repeat:
-    times: 5
-    commands:
-      - tapOn:
-          point: "50%,68%"
+          point: "50%,50%"
           optional: true
       - waitForAnimationToEnd
-      - extendedWaitUntil:
-          visible: "Game Over"
-          timeout: 10000
-          optional: true
 
-# The result screen should eventually appear.
+# Safety net: wait up to 90s for remaining questions to auto-advance via timer.
 - extendedWaitUntil:
     visible: "Game Over"
-    timeout: 60000
+    timeout: 90000
 
 # Take screenshot of the result screen.
 - takeScreenshot: screenshots/word_rush_game_over
 
-# The score should be displayed (e.g., "5 / 10").
-- assertVisible: "Best Streak:"
+# Best streak is shown as "Best Streak: N" — use full-string regex match.
+- assertVisible:
+    text: 'Best Streak: \d+'
 
 # Play Again button should be visible.
 - assertVisible: "Play Again"

@@ -309,7 +309,9 @@ fun StudyScreen() {
                     // hasEnoughWords actually changes (rare), not on every timer tick.
                     val wordRushStateHolder = wordRushViewModel.state()
                     val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }
-                    val wordRushHasEnoughWords by remember { derivedStateOf { wordRushStateHolder.value.hasEnoughWords } }
+                    val wordRushHasEnoughWords by remember {
+                        derivedStateOf { wordRushStateHolder.value.hasEnoughWords }
+                    }
                     WordRushCard(
                         bestStreak = wordRushBestStreak,
                         hasEnoughWords = wordRushHasEnoughWords,

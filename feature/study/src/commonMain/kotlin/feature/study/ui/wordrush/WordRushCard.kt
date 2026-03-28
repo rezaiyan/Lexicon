@@ -32,7 +32,6 @@ import lexicon.resources.generated.resources.word_rush_add_words
 import lexicon.resources.generated.resources.word_rush_best_streak
 import lexicon.resources.generated.resources.word_rush_combo_hint
 import lexicon.resources.generated.resources.word_rush_play
-import lexicon.resources.generated.resources.word_rush_subtitle
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
