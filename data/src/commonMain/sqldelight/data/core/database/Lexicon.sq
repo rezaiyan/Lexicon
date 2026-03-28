@@ -306,3 +306,32 @@ SELECT
     COUNT(*) AS totalWords,
     COALESCE(SUM(CASE WHEN nextReviewDate <= :currentTime THEN 1 ELSE 0 END), 0) AS dueCards
 FROM WordEntity;
+
+-- WordRushPendingGames table (offline queue for Word Rush game results)
+CREATE TABLE WordRushPendingGames (
+    client_game_id    TEXT    NOT NULL PRIMARY KEY,
+    score             INTEGER NOT NULL,
+    total_questions   INTEGER NOT NULL,
+    correct_count     INTEGER NOT NULL,
+    best_streak       INTEGER NOT NULL,
+    duration_ms       INTEGER NOT NULL,
+    avg_response_ms   INTEGER NOT NULL,
+    grade             TEXT    NOT NULL,
+    lives_remaining   INTEGER NOT NULL,
+    completed_normally INTEGER NOT NULL,
+    played_at         INTEGER NOT NULL
+);
+
+-- WordRushPendingGames queries
+
+insertWordRushPendingGame:
+INSERT OR IGNORE INTO WordRushPendingGames VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllWordRushPendingGames:
+SELECT * FROM WordRushPendingGames;
+
+deleteWordRushPendingGameById:
+DELETE FROM WordRushPendingGames WHERE client_game_id = ?;
+
+deleteAllWordRushPendingGames:
+DELETE FROM WordRushPendingGames;

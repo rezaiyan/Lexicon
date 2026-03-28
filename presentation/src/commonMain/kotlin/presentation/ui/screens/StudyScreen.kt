@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -302,10 +303,16 @@ fun StudyScreen() {
 
                     WordDistributionBar(stats = loadedStats)
 
-                    val wordRushState by wordRushViewModel.state()
+                    // Do NOT use `by` here — `wordRushViewModel.state()` updates every 50 ms
+                    // (timer tick) and would cause StudyScreen to recompose at 20 fps.
+                    // derivedStateOf ensures StudyScreen only recomposes when bestStreak or
+                    // hasEnoughWords actually changes (rare), not on every timer tick.
+                    val wordRushStateHolder = wordRushViewModel.state()
+                    val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }
+                    val wordRushHasEnoughWords by remember { derivedStateOf { wordRushStateHolder.value.hasEnoughWords } }
                     WordRushCard(
-                        bestStreak = wordRushState.bestStreak,
-                        hasEnoughWords = wordRushState.hasEnoughWords,
+                        bestStreak = wordRushBestStreak,
+                        hasEnoughWords = wordRushHasEnoughWords,
                         onPlay = {
                             wordRushViewModel.startGame()
                             overlayHost.showFullScreen(
@@ -315,7 +322,10 @@ fun StudyScreen() {
                                     isNavigationBarsPaddingEnabled = true,
                                 ),
                             ) { navigator ->
-                                val gameState by wordRushViewModel.state()
+                                // No `by` — stateHolder is passed directly to WordRushGameScreen,
+                                // which uses derivedStateOf internally. This overlay composable
+                                // itself does not recompose on every 50 ms timer tick.
+                                val gameStateHolder = wordRushViewModel.state()
                                 OnEvents(wordRushViewModel.effects) { effect ->
                                     when (effect) {
                                         WordRushEffect.GameComplete -> {
@@ -324,8 +334,9 @@ fun StudyScreen() {
                                     }
                                 }
                                 WordRushGameScreen(
-                                    state = gameState,
+                                    stateHolder = gameStateHolder,
                                     onSelectAnswer = wordRushViewModel::selectAnswer,
+                                    onUsePowerUp = wordRushViewModel::usePowerUp,
                                     onPlayAgain = wordRushViewModel::startGame,
                                     onDismiss = {
                                         wordRushViewModel.dismiss()
