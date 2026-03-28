@@ -127,6 +127,12 @@ kotlin {
                     open = mapOf("app" to mapOf("name" to "Google Chrome"))
                 )
             }
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    useConfigDirectory(project.projectDir.resolve("karma.config.d"))
+                }
+            }
         }
         binaries.executable()
     }
