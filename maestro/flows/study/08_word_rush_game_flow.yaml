@@ -1,0 +1,120 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - word-rush
+  - game
+---
+# Test: Word Rush full game flow — start, answer, and complete.
+#
+# Verifies the complete game lifecycle: tap Play → game screen loads with
+# question and options → tap an answer → feedback shown → game eventually
+# reaches the result screen → dismiss back to Study.
+#
+# Requires: At least 4 words in the library (import tests run first).
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Scroll down if needed to find the Word Rush card.
+- scrollUntilVisible:
+    element: "Play"
+    direction: DOWN
+    timeout: 5000
+
+# Take screenshot before starting the game.
+- takeScreenshot: screenshots/word_rush_before_play
+
+# Tap Play to start the game.
+- tapOn: "Play"
+
+# The game screen should load — wait for the Word Rush title in the game header.
+- extendedWaitUntil:
+    visible: "Score"
+    timeout: 8000
+
+# The question counter should be visible (e.g., "1 / 10").
+- assertVisible: "1 / 10"
+
+# The Streak label should be visible.
+- assertVisible: "Streak"
+
+# Take screenshot of the game in progress with a question displayed.
+- takeScreenshot: screenshots/word_rush_playing
+
+# Tap the first answer option (top option in the list).
+# We tap at approximately where the first option card is.
+- tapOn:
+    point: "50%,68%"
+
+# After tapping, wait briefly for the answer reveal animation.
+- waitForAnimationToEnd
+
+# Take screenshot showing the answer feedback (green/red highlight).
+- takeScreenshot: screenshots/word_rush_answer_feedback
+
+# Wait for the next question or result screen (auto-advances after 1.2s).
+- extendedWaitUntil:
+    visible: "2 / 10"
+    timeout: 5000
+    optional: true
+
+# Answer remaining questions quickly by tapping the first option each time.
+# The game has 10 rounds with 5s timer + 1.2s reveal = ~6.2s per round.
+# We tap through several more rounds.
+- repeat:
+    times: 4
+    commands:
+      - tapOn:
+          point: "50%,68%"
+      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible: "Score"
+          timeout: 8000
+          optional: true
+
+# Let the remaining rounds time out or continue tapping.
+# Wait for the Game Over result screen (up to 60s for remaining rounds to time out).
+- repeat:
+    times: 5
+    commands:
+      - tapOn:
+          point: "50%,68%"
+          optional: true
+      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible: "Game Over"
+          timeout: 10000
+          optional: true
+
+# The result screen should eventually appear.
+- extendedWaitUntil:
+    visible: "Game Over"
+    timeout: 60000
+
+# Take screenshot of the result screen.
+- takeScreenshot: screenshots/word_rush_game_over
+
+# The score should be displayed (e.g., "5 / 10").
+- assertVisible: "Best Streak:"
+
+# Play Again button should be visible.
+- assertVisible: "Play Again"
+
+# Close button should be visible.
+- assertVisible: "Close"
+
+# Dismiss the game by tapping Close.
+- tapOn: "Close"
+
+# Wait for navigation back to the Study screen.
+- waitForAnimationToEnd
+
+# Verify we're back on the Study screen.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 8000
+
+# Word Rush card should still be visible.
+- assertVisible: "Word Rush"
+
+# Take final screenshot showing the study screen after game completion.
+- takeScreenshot: screenshots/word_rush_back_to_study

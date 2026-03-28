@@ -231,6 +231,7 @@ jobs:
     permissions:
       checks: write
       contents: read
+      pull-requests: write
       security-events: write
 
     steps:
