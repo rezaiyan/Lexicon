@@ -18,6 +18,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +37,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,12 +47,15 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -60,6 +63,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.LoadingScreen
 import feature.study.wordrush.WordRushPhase
+import feature.study.wordrush.WordRushPowerUp
 import feature.study.wordrush.WordRushState
 import feature.study.wordrush.WordRushViewModel
 import lexicon.resources.generated.resources.Res
@@ -79,16 +83,18 @@ import lexicon.resources.generated.resources.word_rush_new_best
 import lexicon.resources.generated.resources.word_rush_play_again
 import lexicon.resources.generated.resources.word_rush_result_score
 import lexicon.resources.generated.resources.word_rush_score
-import lexicon.resources.generated.resources.word_rush_seconds
 import lexicon.resources.generated.resources.word_rush_streak
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
 
+private val IceBlue = Color(0xFF64B5F6)
+
 @Composable
 fun WordRushGameScreen(
-    state: WordRushState,
+    stateHolder: State<WordRushState>,
     onSelectAnswer: (Int) -> Unit,
+    onUsePowerUp: (WordRushPowerUp) -> Unit,
     onPlayAgain: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -96,6 +102,7 @@ fun WordRushGameScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .pointerInput(Unit) { detectTapGestures { } }
             .padding(Theme.spacing.md),
     ) {
         // Top bar
@@ -119,32 +126,65 @@ fun WordRushGameScreen(
 
         Spacer(Modifier.height(Theme.spacing.md))
 
+        // derivedStateOf: phaseKey only changes on phase TYPE transitions — not on every
+        // 50 ms timer tick — so WordRushGameScreen itself only recomposes on phase changes.
+        val phaseKey by remember {
+            derivedStateOf {
+                when (stateHolder.value.phase) {
+                    is WordRushPhase.Loading -> 1
+                    is WordRushPhase.Playing -> 2
+                    is WordRushPhase.Result  -> 3
+                    is WordRushPhase.Error   -> 4
+                    is WordRushPhase.Idle    -> 0
+                }
+            }
+        }
         AnimatedContent(
-            targetState = state.phase,
+            targetState = phaseKey,
             transitionSpec = {
                 (fadeIn(tween(200)) + scaleIn(tween(200), initialScale = 0.95f))
                     .togetherWith(fadeOut(tween(150)))
             },
             label = "phase-transition",
-        ) { phase ->
-            when (phase) {
-                is WordRushPhase.Loading -> {
-                    LoadingScreen(message = "Preparing your challenge...")
-                }
-                is WordRushPhase.Playing -> {
+        ) { key ->
+            when (key) {
+                1 -> LoadingScreen(message = "Preparing your challenge...")
+                2 -> {
+                    // stablePhase strips timeRemainingMs/isTimerFrozen so PlayingContent
+                    // only recomposes on real game-state changes (answer, lives, streak),
+                    // not on every 50 ms timer tick. Timer data is passed as lambdas read
+                    // in the draw phase, preventing layout thrashing.
+                    val stablePhase by remember {
+                        derivedStateOf {
+                            (stateHolder.value.phase as? WordRushPhase.Playing)
+                                ?.copy(timeRemainingMs = 0L, isTimerFrozen = false)
+                        }
+                    }
+                    val sp = stablePhase ?: return@AnimatedContent
                     PlayingContent(
-                        phase = phase,
+                        phase = sp,
+                        timerProgressProvider = {
+                            (stateHolder.value.phase as? WordRushPhase.Playing)
+                                ?.let { it.timeRemainingMs.toFloat() / WordRushViewModel.TIME_PER_QUESTION_MS }
+                                ?: 0f
+                        },
+                        isTimerFrozenProvider = {
+                            (stateHolder.value.phase as? WordRushPhase.Playing)?.isTimerFrozen ?: false
+                        },
                         onSelectAnswer = onSelectAnswer,
+                        onUsePowerUp = onUsePowerUp,
                     )
                 }
-                is WordRushPhase.Result -> {
+                3 -> {
+                    val phase = stateHolder.value.phase as? WordRushPhase.Result ?: return@AnimatedContent
                     ResultContent(
                         phase = phase,
                         onPlayAgain = onPlayAgain,
                         onDismiss = onDismiss,
                     )
                 }
-                is WordRushPhase.Error -> {
+                4 -> {
+                    val phase = stateHolder.value.phase as? WordRushPhase.Error ?: return@AnimatedContent
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -158,7 +198,6 @@ fun WordRushGameScreen(
                         )
                     }
                 }
-                is WordRushPhase.Idle -> { /* Should not appear in game screen */ }
             }
         }
     }
@@ -167,33 +206,42 @@ fun WordRushGameScreen(
 @Composable
 private fun PlayingContent(
     phase: WordRushPhase.Playing,
+    timerProgressProvider: () -> Float,
+    isTimerFrozenProvider: () -> Boolean,
     onSelectAnswer: (Int) -> Unit,
+    onUsePowerUp: (WordRushPowerUp) -> Unit,
 ) {
     val motion = Theme.motion
-    val timerProgress by animateFloatAsState(
-        targetValue = phase.timeRemainingMs.toFloat() / WordRushViewModel.TIME_PER_QUESTION_MS,
-        animationSpec = tween(durationMillis = WordRushViewModel.TIMER_TICK_MS.toInt()),
-        label = "timer-progress",
-    )
+
+    // derivedStateOf: timerColorTarget re-evaluates on every 50 ms tick but the RESULT (a Color)
+    // only changes when progress crosses a threshold (0.5 / 0.25) or the timer freezes.
+    // PlayingContent therefore recomposes only during those 2 brief color transitions per question.
+    val timerColorTarget by remember {
+        derivedStateOf {
+            val p = timerProgressProvider()
+            when {
+                isTimerFrozenProvider() -> IceBlue
+                p > 0.5f -> AppColors.secondary
+                p > 0.25f -> AppColors.tertiary
+                else -> AppColors.error
+            }
+        }
+    }
     val timerColor by animateColorAsState(
-        targetValue = when {
-            timerProgress > 0.5f -> AppColors.secondary
-            timerProgress > 0.25f -> AppColors.tertiary
-            else -> AppColors.error
-        },
+        targetValue = timerColorTarget,
         label = "timer-color",
     )
 
-    // Animated score counter
     val animatedScore by animateIntAsState(
         targetValue = phase.score,
         animationSpec = tween(durationMillis = motion.durationMedium),
         label = "score-counter",
     )
 
-    // Pulse animation for timer when low
+    // Keep State<Float> (not `by`) so the infinite transition value is only read inside
+    // graphicsLayer {} (draw phase), not in composition scope — no 60 fps recompositions.
     val infiniteTransition = rememberInfiniteTransition(label = "timer-pulse")
-    val timerPulseScale by infiniteTransition.animateFloat(
+    val timerPulseScaleState = infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.08f,
         animationSpec = infiniteRepeatable(
@@ -202,31 +250,25 @@ private fun PlayingContent(
         ),
         label = "timer-pulse-scale",
     )
-    val shouldPulse = timerProgress <= 0.25f && phase.selectedIndex == null
+    // remember(phase.selectedIndex): recreate the derivedState when answer is selected so the
+    // closure captures the updated selectedIndex. The derived value re-evaluates on timer ticks
+    // but only notifies observers when shouldPulse actually flips (threshold crossing or answer).
+    val shouldPulse by remember(phase.selectedIndex) {
+        derivedStateOf {
+            phase.selectedIndex == null && !isTimerFrozenProvider() && timerProgressProvider() <= 0.25f
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Score & Multiplier & Streak row
+
+        // ── Row 1: Lives · Combo badge · Power-ups ────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Animated score
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = animatedScore.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.primary,
-                )
-                Text(
-                    text = stringResource(Res.string.word_rush_score),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.primary.copy(alpha = 0.7f),
-                )
-            }
+            LivesRow(lives = phase.lives, totalLives = WordRushViewModel.INITIAL_LIVES)
 
-            // Multiplier badge
             AnimatedVisibility(
                 visible = phase.multiplier > 1,
                 enter = fadeIn(tween(motion.durationShort2)) + scaleIn(
@@ -253,7 +295,35 @@ private fun PlayingContent(
                 }
             }
 
-            // Streak
+            PowerUpsRow(
+                powerUps = phase.powerUps,
+                enabled = phase.selectedIndex == null,
+                onUsePowerUp = onUsePowerUp,
+            )
+        }
+
+        Spacer(Modifier.height(Theme.spacing.xs))
+
+        // ── Row 2: Score · Streak ─────────────────────────────────────────
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = animatedScore.toString(),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.primary,
+                )
+                Text(
+                    text = stringResource(Res.string.word_rush_score),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AppColors.primary.copy(alpha = 0.7f),
+                )
+            }
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (phase.streak > 1) {
                     Icon(
@@ -274,7 +344,7 @@ private fun PlayingContent(
 
         Spacer(Modifier.height(Theme.spacing.xs))
 
-        // Progress dots
+        // ── Progress dots ─────────────────────────────────────────────────
         ProgressDots(
             currentIndex = phase.questionIndex,
             totalCount = phase.totalQuestions,
@@ -284,17 +354,20 @@ private fun PlayingContent(
 
         Spacer(Modifier.height(Theme.spacing.sm))
 
-        // Timer bar with pulse when low
+        // ── Timer bar (ice-blue when frozen, pulses when low) ─────────────
         LinearProgressIndicator(
-            progress = { timerProgress },
+            progress = { timerProgressProvider() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
                 .graphicsLayer {
+                    // Read .value here (draw phase) — not in composition scope — so the
+                    // infinite transition drives only re-draws, not recompositions.
                     if (shouldPulse) {
-                        scaleX = timerPulseScale
-                        scaleY = timerPulseScale
+                        val s = timerPulseScaleState.value
+                        scaleX = s
+                        scaleY = s
                     }
                 },
             color = timerColor,
@@ -303,12 +376,10 @@ private fun PlayingContent(
 
         Spacer(Modifier.height(Theme.spacing.xl))
 
-        // Word display with gradient background
+        // ── Word card ─────────────────────────────────────────────────────
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Transparent,
-            ),
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         ) {
             Box(
                 modifier = Modifier
@@ -337,7 +408,7 @@ private fun PlayingContent(
 
         Spacer(Modifier.height(Theme.spacing.md))
 
-        // Streak fire row
+        // ── Streak fire row ───────────────────────────────────────────────
         AnimatedVisibility(
             visible = phase.streak >= 3,
             enter = fadeIn(tween(motion.durationShort2)) + slideInHorizontally { -it },
@@ -372,7 +443,7 @@ private fun PlayingContent(
 
         Spacer(Modifier.height(Theme.spacing.md))
 
-        // Points earned overlay
+        // ── +Points earned indicator ──────────────────────────────────────
         AnimatedVisibility(
             visible = phase.lastPointsEarned != null && phase.isCorrect == true,
             enter = fadeIn(tween(motion.durationShort2)) + scaleIn(
@@ -397,39 +468,46 @@ private fun PlayingContent(
 
         Spacer(Modifier.height(Theme.spacing.sm))
 
-        // Answer options with scale animation
+        // ── Answer options ────────────────────────────────────────────────
         Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
             phase.question.options.forEachIndexed { index, option ->
                 val isSelected = phase.selectedIndex == index
-                val isCorrect = index == phase.question.correctIndex
+                val isCorrectOption = index == phase.question.correctIndex
                 val hasAnswered = phase.selectedIndex != null
+                val isHidden = phase.hiddenOptionIndices.contains(index)
+                val isPeekTarget = phase.isPeeking && isCorrectOption
 
                 val backgroundColor by animateColorAsState(
                     targetValue = when {
-                        hasAnswered && isCorrect -> AppColors.secondary.copy(alpha = 0.15f)
-                        hasAnswered && isSelected && !isCorrect -> AppColors.error.copy(alpha = 0.15f)
+                        isPeekTarget -> AppColors.secondary.copy(alpha = 0.25f)
+                        isHidden -> MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
+                        hasAnswered && isCorrectOption -> AppColors.secondary.copy(alpha = 0.15f)
+                        hasAnswered && isSelected && !isCorrectOption -> AppColors.error.copy(alpha = 0.15f)
                         else -> MaterialTheme.colorScheme.surface
                     },
                     label = "option-bg-$index",
                 )
                 val borderColor by animateColorAsState(
                     targetValue = when {
-                        hasAnswered && isCorrect -> AppColors.secondary
-                        hasAnswered && isSelected && !isCorrect -> AppColors.error
+                        isPeekTarget -> AppColors.secondary
+                        isHidden -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+                        hasAnswered && isCorrectOption -> AppColors.secondary
+                        hasAnswered && isSelected && !isCorrectOption -> AppColors.error
                         else -> MaterialTheme.colorScheme.outlineVariant
                     },
                     label = "option-border-$index",
                 )
                 val textColor by animateColorAsState(
                     targetValue = when {
-                        hasAnswered && isCorrect -> AppColors.secondary
-                        hasAnswered && isSelected && !isCorrect -> AppColors.error
+                        isPeekTarget -> AppColors.secondary
+                        isHidden -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
+                        hasAnswered && isCorrectOption -> AppColors.secondary
+                        hasAnswered && isSelected && !isCorrectOption -> AppColors.error
                         else -> MaterialTheme.colorScheme.onSurface
                     },
                     label = "option-text-$index",
                 )
 
-                // Press scale feedback
                 val interactionSource = remember { MutableInteractionSource() }
                 val isPressed by interactionSource.collectIsPressedAsState()
                 val optionScale by animateFloatAsState(
@@ -446,20 +524,28 @@ private fun PlayingContent(
                             scaleY = optionScale
                         }
                         .clickable(
-                            enabled = !hasAnswered,
+                            enabled = !hasAnswered && !isHidden,
                             interactionSource = interactionSource,
                             indication = null,
                         ) { onSelectAnswer(index) },
                     colors = CardDefaults.cardColors(containerColor = backgroundColor),
                     border = androidx.compose.foundation.BorderStroke(
-                        width = if (hasAnswered && (isCorrect || isSelected)) 2.dp else 1.dp,
+                        width = when {
+                            isPeekTarget -> 2.dp
+                            hasAnswered && (isCorrectOption || isSelected) -> 2.dp
+                            else -> 1.dp
+                        },
                         color = borderColor,
                     ),
                 ) {
                     Text(
                         text = option,
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (hasAnswered && isCorrect) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = when {
+                            isPeekTarget -> FontWeight.Bold
+                            hasAnswered && isCorrectOption -> FontWeight.Bold
+                            else -> FontWeight.Normal
+                        },
                         color = textColor,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -473,14 +559,117 @@ private fun PlayingContent(
 }
 
 @Composable
+private fun LivesRow(lives: Int, totalLives: Int) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(totalLives) { index ->
+            val isAlive = index < lives
+            val heartScale by animateFloatAsState(
+                targetValue = if (isAlive) 1f else 0.8f,
+                animationSpec = spring(dampingRatio = 0.6f),
+                label = "heart-scale-$index",
+            )
+            Text(
+                text = if (isAlive) "\u2764\uFE0F" else "\uD83D\uDDA4",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.graphicsLayer {
+                    scaleX = heartScale
+                    scaleY = heartScale
+                    alpha = if (isAlive) 1f else 0.4f
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun PowerUpsRow(
+    powerUps: List<WordRushPowerUp>,
+    enabled: Boolean,
+    onUsePowerUp: (WordRushPowerUp) -> Unit,
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
+        PowerUpButton(
+            powerUp = WordRushPowerUp.Freeze,
+            available = enabled && powerUps.contains(WordRushPowerUp.Freeze),
+            onUsePowerUp = onUsePowerUp,
+        )
+        PowerUpButton(
+            powerUp = WordRushPowerUp.FiftyFifty,
+            available = enabled && powerUps.contains(WordRushPowerUp.FiftyFifty),
+            onUsePowerUp = onUsePowerUp,
+        )
+        PowerUpButton(
+            powerUp = WordRushPowerUp.Peek,
+            available = enabled && powerUps.contains(WordRushPowerUp.Peek),
+            onUsePowerUp = onUsePowerUp,
+        )
+    }
+}
+
+@Composable
+private fun PowerUpButton(
+    powerUp: WordRushPowerUp,
+    available: Boolean,
+    onUsePowerUp: (WordRushPowerUp) -> Unit,
+) {
+    val (emoji, color) = when (powerUp) {
+        WordRushPowerUp.Freeze -> "\u2744\uFE0F" to IceBlue
+        WordRushPowerUp.FiftyFifty -> "\u2702\uFE0F" to AppColors.accentAmber
+        WordRushPowerUp.Peek -> "\uD83D\uDC41\uFE0F" to AppColors.tertiary
+    }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val buttonScale by animateFloatAsState(
+        targetValue = when {
+            !available -> 1f
+            isPressed -> 0.90f
+            else -> 1f
+        },
+        animationSpec = spring(stiffness = 600f),
+        label = "powerup-scale",
+    )
+
+    Box(
+        modifier = Modifier
+            .size(40.dp)
+            .graphicsLayer {
+                scaleX = buttonScale
+                scaleY = buttonScale
+                alpha = if (available) 1f else 0.25f
+            }
+            .background(
+                color = if (available) color.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(Theme.shapes.small),
+            )
+            .clickable(
+                enabled = available,
+                interactionSource = interactionSource,
+                indication = null,
+            ) { onUsePowerUp(powerUp) },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = emoji,
+            style = MaterialTheme.typography.titleSmall,
+        )
+    }
+}
+
+@Composable
 private fun ProgressDots(
     currentIndex: Int,
     totalCount: Int,
     hasAnswered: Boolean,
     isCorrect: Boolean?,
 ) {
+    // Fixed height prevents layout shifts when the active dot grows/shrinks.
+    // Dot scale is applied via graphicsLayer so it never affects layout.
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(10.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -495,20 +684,19 @@ private fun ProgressDots(
                 },
                 label = "dot-color-$index",
             )
-            val dotSize by animateFloatAsState(
-                targetValue = if (index == currentIndex) 10f else 6f,
+            // Keep State<Float> so .value is read in graphicsLayer (draw phase only).
+            val dotScaleState = animateFloatAsState(
+                targetValue = if (index == currentIndex) 1f else 0.6f,
                 animationSpec = spring(dampingRatio = 0.7f),
-                label = "dot-size-$index",
+                label = "dot-scale-$index",
             )
 
             Box(
                 modifier = Modifier
                     .padding(horizontal = 3.dp)
-                    .size(dotSize.dp)
-                    .background(
-                        color = dotColor,
-                        shape = CircleShape,
-                    ),
+                    .size(10.dp)
+                    .graphicsLayer { scaleX = dotScaleState.value; scaleY = dotScaleState.value }
+                    .background(color = dotColor, shape = CircleShape),
             )
         }
     }
@@ -542,14 +730,11 @@ private fun ResultContent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Grade badge - large letter in a circle
+        // Grade badge
         Box(
             modifier = Modifier
                 .size(96.dp)
-                .background(
-                    color = gradeColor.copy(alpha = 0.15f),
-                    shape = CircleShape,
-                ),
+                .background(color = gradeColor.copy(alpha = 0.15f), shape = CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -570,13 +755,29 @@ private fun ResultContent(
 
         Spacer(Modifier.height(Theme.spacing.xs))
 
-        // Motivational message
         Text(
             text = motivationalMessage,
             style = MaterialTheme.typography.titleMedium,
             color = gradeColor,
             fontWeight = FontWeight.Medium,
         )
+
+        Spacer(Modifier.height(Theme.spacing.md))
+
+        // Lives remaining
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            repeat(WordRushViewModel.INITIAL_LIVES) { index ->
+                val isAlive = index < phase.livesRemaining
+                Text(
+                    text = if (isAlive) "\u2764\uFE0F" else "\uD83D\uDDA4",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.graphicsLayer { alpha = if (isAlive) 1f else 0.35f },
+                )
+            }
+        }
 
         Spacer(Modifier.height(Theme.spacing.lg))
 
@@ -596,7 +797,7 @@ private fun ResultContent(
                 color = AppColors.secondary,
             )
             ResultStatColumn(
-                value = stringResource(Res.string.word_rush_seconds, phase.avgResponseTimeMs / 1000f),
+                value = formatSecondsOneDecimal(phase.avgResponseTimeMs),
                 label = stringResource(Res.string.word_rush_avg_speed),
                 color = AppColors.tertiary,
             )
@@ -612,10 +813,7 @@ private fun ResultContent(
             val fireCount = phase.bestStreak.coerceAtMost(5)
             if (fireCount > 0) {
                 repeat(fireCount) {
-                    Text(
-                        text = "\uD83D\uDD25",
-                        style = MaterialTheme.typography.titleMedium,
-                    )
+                    Text(text = "\uD83D\uDD25", style = MaterialTheme.typography.titleMedium)
                 }
                 Spacer(Modifier.width(Theme.spacing.xs))
             }
@@ -674,12 +872,14 @@ private fun ResultContent(
     }
 }
 
+/** Formats milliseconds as "X.Xs" with one decimal — KMP-safe, no String.format. */
+private fun formatSecondsOneDecimal(ms: Long): String {
+    val tenths = ms / 100
+    return "${tenths / 10}.${tenths % 10}s"
+}
+
 @Composable
-private fun ResultStatColumn(
-    value: String,
-    label: String,
-    color: Color,
-) {
+private fun ResultStatColumn(value: String, label: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
@@ -697,11 +897,7 @@ private fun ResultStatColumn(
 }
 
 @Composable
-private fun StatChip(
-    label: String,
-    value: String,
-    color: Color,
-) {
+private fun StatChip(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (value.isNotEmpty()) {
             Text(

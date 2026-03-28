@@ -758,5 +758,14 @@
     <string name="word_rush_grade_c">Keep Practicing!</string>
     <string name="word_rush_grade_d">Don\'t Give Up!</string>
     <string name="word_rush_combo_hint">Earn up to 5x combo bonus!</string>
+
+    <!-- Word Rush Insights -->
+    <string name="word_rush_insights_title">Word Rush</string>
+    <string name="word_rush_insights_total_games">Games Played</string>
+    <string name="word_rush_insights_best_streak">Best Streak</string>
+    <string name="word_rush_insights_avg_accuracy">Avg Accuracy</string>
+    <string name="word_rush_insights_avg_score">Avg Score</string>
+    <string name="word_rush_insights_total_time">Time Played</string>
+    <string name="word_rush_insights_completion_rate">Completion Rate</string>
 </resources>
 

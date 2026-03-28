@@ -1,0 +1,16 @@
+-- Migration from version 9 to version 10
+-- Adds WordRushPendingGames table for offline-first Word Rush game sync queue
+
+CREATE TABLE WordRushPendingGames (
+    client_game_id    TEXT    NOT NULL PRIMARY KEY,
+    score             INTEGER NOT NULL,
+    total_questions   INTEGER NOT NULL,
+    correct_count     INTEGER NOT NULL,
+    best_streak       INTEGER NOT NULL,
+    duration_ms       INTEGER NOT NULL,
+    avg_response_ms   INTEGER NOT NULL,
+    grade             TEXT    NOT NULL,
+    lives_remaining   INTEGER NOT NULL,
+    completed_normally INTEGER NOT NULL,
+    played_at         INTEGER NOT NULL
+);

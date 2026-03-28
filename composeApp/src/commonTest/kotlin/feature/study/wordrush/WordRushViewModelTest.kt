@@ -3,6 +3,7 @@ package feature.study.wordrush
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeWordRepository
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import kotlin.test.Test
@@ -78,6 +79,22 @@ class WordRushViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `playing phase starts with full lives`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        assertEquals(WordRushViewModel.INITIAL_LIVES, phase.lives)
+    }
+
+    @Test
+    fun `playing phase starts with no power-ups`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(phase.powerUps.isEmpty())
+    }
+
+    @Test
     fun `question has correct answer in options`() = runTest {
         val vm = createViewModel()
         vm.startGame()
@@ -100,7 +117,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `selecting wrong answer resets streak`() = runTest {
+    fun `selecting wrong answer resets streak and decrements lives`() = runTest {
         val vm = createViewModel()
         vm.startGame()
         val phase = vm.currentState.phase as WordRushPhase.Playing
@@ -110,6 +127,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
         assertEquals(0, updated.score)
         assertEquals(0, updated.streak)
         assertEquals(false, updated.isCorrect)
+        assertEquals(WordRushViewModel.INITIAL_LIVES - 1, updated.lives)
     }
 
     @Test
@@ -141,13 +159,193 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val correctIndex = phase.question.correctIndex
         vm.selectAnswer(correctIndex)
         val stateAfterFirst = vm.currentState.phase
-        // Second selection should be ignored
         val wrongIndex = (0..3).first { it != correctIndex }
         vm.selectAnswer(wrongIndex)
         assertEquals(stateAfterFirst, vm.currentState.phase)
     }
 
-    // --- Multiplier tests ---
+    // ── Lives ─────────────────────────────────────────────────────────────
+
+    @Test
+    fun `lives decrement on each wrong answer`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        val wrongIndex = (0..3).first { it != phase.question.correctIndex }
+        vm.selectAnswer(wrongIndex)
+        val updated = vm.currentState.phase as WordRushPhase.Playing
+        assertEquals(WordRushViewModel.INITIAL_LIVES - 1, updated.lives)
+    }
+
+    @Test
+    fun `lives do not go below zero`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Exhaust all lives
+        repeat(WordRushViewModel.INITIAL_LIVES) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                val wrongIndex = (0..3).first { it != phase.question.correctIndex }
+                vm.selectAnswer(wrongIndex)
+            }
+        }
+
+        val resultPhase = vm.currentState.phase
+        if (resultPhase is WordRushPhase.Playing) {
+            assertTrue(resultPhase.lives >= 0)
+        }
+    }
+
+    @Test
+    fun `result phase includes lives remaining`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Answer all questions correctly
+        repeat(10) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+            }
+        }
+
+        val result = vm.currentState.phase
+        if (result is WordRushPhase.Result) {
+            assertEquals(WordRushViewModel.INITIAL_LIVES, result.livesRemaining)
+        }
+    }
+
+    // ── Power-ups ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `streak 3 earns Freeze power-up`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        repeat(3) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(phase.powerUps.contains(WordRushPowerUp.Freeze))
+    }
+
+    @Test
+    fun `streak 5 earns FiftyFifty power-up`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        repeat(5) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(phase.powerUps.contains(WordRushPowerUp.FiftyFifty))
+    }
+
+    @Test
+    fun `streak 8 earns Peek power-up`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        repeat(8) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(phase.powerUps.contains(WordRushPowerUp.Peek))
+    }
+
+    @Test
+    fun `FiftyFifty hides two wrong options`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Earn FiftyFifty at streak 5
+        repeat(5) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        vm.usePowerUp(WordRushPowerUp.FiftyFifty)
+
+        val updated = vm.currentState.phase as WordRushPhase.Playing
+        assertEquals(2, updated.hiddenOptionIndices.size)
+        // Correct answer must never be hidden
+        assertTrue(!updated.hiddenOptionIndices.contains(updated.question.correctIndex))
+    }
+
+    @Test
+    fun `Peek sets isPeeking to true`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Earn Peek at streak 8
+        repeat(8) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        vm.usePowerUp(WordRushPowerUp.Peek)
+
+        val updated = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(updated.isPeeking)
+    }
+
+    @Test
+    fun `using power-up removes it from the list`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Earn Freeze at streak 3
+        repeat(3) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        val before = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(before.powerUps.contains(WordRushPowerUp.Freeze))
+
+        vm.usePowerUp(WordRushPowerUp.Freeze)
+
+        val after = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(!after.powerUps.contains(WordRushPowerUp.Freeze))
+    }
+
+    @Test
+    fun `using power-up not in list is a no-op`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+        val before = vm.currentState.phase
+        vm.usePowerUp(WordRushPowerUp.Freeze)
+        assertEquals(before, vm.currentState.phase)
+    }
+
+    // ── Multiplier tests ─────────────────────────────────────────────────
 
     @Test
     fun `multiplier is 1x for streak below 3`() {
@@ -176,7 +374,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
         assertEquals(5, WordRushViewModel.calculateMultiplier(20))
     }
 
-    // --- Grade tests ---
+    // ── Grade tests ───────────────────────────────────────────────────────
 
     @Test
     fun `grade is S for 90 percent or higher accuracy`() {
@@ -209,7 +407,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
         assertEquals("D", WordRushViewModel.calculateGrade(0.39f))
     }
 
-    // --- Speed bonus tests ---
+    // ── Speed bonus tests ─────────────────────────────────────────────────
 
     @Test
     fun `speed bonus is 2 for answers under 2 seconds`() {
@@ -231,19 +429,17 @@ class WordRushViewModelTest : ViewModelTestBase() {
         assertEquals(0, WordRushViewModel.calculateSpeedBonus(5000))
     }
 
-    // --- Result state tests ---
+    // ── Result state tests ────────────────────────────────────────────────
 
     @Test
     fun `result state includes accuracy`() = runTest {
         val vm = createViewModel()
         vm.startGame()
 
-        // Answer all 10 questions - get correct indices and answer them
         repeat(10) {
             val phase = vm.currentState.phase
             if (phase is WordRushPhase.Playing) {
                 vm.selectAnswer(phase.question.correctIndex)
-                // Wait for advance (the delay is handled by UnconfinedTestDispatcher)
             }
         }
 
@@ -260,7 +456,6 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val vm = createViewModel()
         vm.startGame()
 
-        // Answer questions: first 6 correct, last 4 wrong
         repeat(10) { i ->
             val phase = vm.currentState.phase
             if (phase is WordRushPhase.Playing) {
