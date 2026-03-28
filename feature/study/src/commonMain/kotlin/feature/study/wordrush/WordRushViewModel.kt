@@ -8,6 +8,7 @@ import domain.word.usecase.GetWordRushWordsUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 
 data class WordRushQuestion(
     val word: Word,
@@ -27,13 +28,20 @@ sealed interface WordRushPhase {
         val timeRemainingMs: Long,
         val selectedIndex: Int? = null,
         val isCorrect: Boolean? = null,
+        val multiplier: Int = 1,
+        val lastPointsEarned: Int? = null,
+        val answerTimeMs: Long? = null,
     ) : WordRushPhase
 
     data class Result(
         val score: Int,
         val totalQuestions: Int,
+        val correctCount: Int,
         val bestStreak: Int,
         val isNewBest: Boolean,
+        val accuracy: Float,
+        val avgResponseTimeMs: Long,
+        val grade: String,
     ) : WordRushPhase
 
     data class Error(val message: String) : WordRushPhase
@@ -61,7 +69,10 @@ class WordRushViewModel(
     private var currentStreak = 0
     private var bestSessionStreak = 0
     private var score = 0
+    private var correctCount = 0
     private var timerJob: Job? = null
+    private var questionStartTimeMs: Long = 0L
+    private var responseTimes: MutableList<Long> = mutableListOf()
 
     init {
         checkWordAvailability()
@@ -87,6 +98,8 @@ class WordRushViewModel(
                     currentStreak = 0
                     bestSessionStreak = 0
                     score = 0
+                    correctCount = 0
+                    responseTimes = mutableListOf()
                     showQuestion()
                 },
                 onFailure = { error ->
@@ -103,23 +116,50 @@ class WordRushViewModel(
         timerJob?.cancel()
         val isCorrect = index == phase.question.correctIndex
 
+        val answerTimeMs = Clock.System.now().toEpochMilliseconds() - questionStartTimeMs
+        responseTimes.add(answerTimeMs)
+
+        var pointsEarned = 0
+
         if (isCorrect) {
             currentStreak++
-            score++
+            correctCount++
             if (currentStreak > bestSessionStreak) bestSessionStreak = currentStreak
+
+            val multiplier = calculateMultiplier(currentStreak)
+            val basePoints = 1
+            val speedBonus = calculateSpeedBonus(answerTimeMs)
+            pointsEarned = (basePoints * multiplier) + speedBonus
+            score += pointsEarned
+
+            updateState {
+                copy(
+                    phase = phase.copy(
+                        selectedIndex = index,
+                        isCorrect = true,
+                        streak = currentStreak,
+                        score = score,
+                        multiplier = multiplier,
+                        lastPointsEarned = pointsEarned,
+                        answerTimeMs = answerTimeMs,
+                    ),
+                )
+            }
         } else {
             currentStreak = 0
-        }
-
-        updateState {
-            copy(
-                phase = phase.copy(
-                    selectedIndex = index,
-                    isCorrect = isCorrect,
-                    streak = currentStreak,
-                    score = score,
-                ),
-            )
+            updateState {
+                copy(
+                    phase = phase.copy(
+                        selectedIndex = index,
+                        isCorrect = false,
+                        streak = 0,
+                        score = score,
+                        multiplier = 1,
+                        lastPointsEarned = null,
+                        answerTimeMs = answerTimeMs,
+                    ),
+                )
+            }
         }
 
         viewModelScope.launch {
@@ -145,6 +185,9 @@ class WordRushViewModel(
                     isCorrect = false,
                     streak = 0,
                     timeRemainingMs = 0,
+                    multiplier = 1,
+                    lastPointsEarned = null,
+                    answerTimeMs = null,
                 ),
             )
         }
@@ -166,6 +209,7 @@ class WordRushViewModel(
 
     private fun showQuestion() {
         val question = questions[currentIndex]
+        questionStartTimeMs = Clock.System.now().toEpochMilliseconds()
         updateState {
             copy(
                 phase = WordRushPhase.Playing(
@@ -175,6 +219,7 @@ class WordRushViewModel(
                     streak = currentStreak,
                     score = score,
                     timeRemainingMs = TIME_PER_QUESTION_MS,
+                    multiplier = calculateMultiplier(currentStreak),
                 ),
             )
         }
@@ -200,13 +245,26 @@ class WordRushViewModel(
     private fun finishGame() {
         val isNewBest = bestSessionStreak > currentState.bestStreak
         val newBest = if (isNewBest) bestSessionStreak else currentState.bestStreak
+        val totalQuestions = questions.size
+        val accuracy = if (totalQuestions > 0) correctCount.toFloat() / totalQuestions else 0f
+        val avgResponseTimeMs = if (responseTimes.isNotEmpty()) {
+            responseTimes.average().toLong()
+        } else {
+            0L
+        }
+        val grade = calculateGrade(accuracy)
+
         updateState {
             copy(
                 phase = WordRushPhase.Result(
                     score = score,
-                    totalQuestions = questions.size,
+                    totalQuestions = totalQuestions,
+                    correctCount = correctCount,
                     bestStreak = bestSessionStreak,
                     isNewBest = isNewBest,
+                    accuracy = accuracy,
+                    avgResponseTimeMs = avgResponseTimeMs,
+                    grade = grade,
                 ),
                 bestStreak = newBest,
             )
@@ -239,5 +297,26 @@ class WordRushViewModel(
         const val TIME_PER_QUESTION_MS = 5000L
         const val ANSWER_REVEAL_MS = 1200L
         const val TIMER_TICK_MS = 50L
+
+        fun calculateMultiplier(streak: Int): Int = when {
+            streak >= 8 -> 5
+            streak >= 5 -> 3
+            streak >= 3 -> 2
+            else -> 1
+        }
+
+        fun calculateSpeedBonus(answerTimeMs: Long): Int = when {
+            answerTimeMs < 2000L -> 2
+            answerTimeMs < 3000L -> 1
+            else -> 0
+        }
+
+        fun calculateGrade(accuracy: Float): String = when {
+            accuracy >= 0.9f -> "S"
+            accuracy >= 0.8f -> "A"
+            accuracy >= 0.6f -> "B"
+            accuracy >= 0.4f -> "C"
+            else -> "D"
+        }
     }
 }

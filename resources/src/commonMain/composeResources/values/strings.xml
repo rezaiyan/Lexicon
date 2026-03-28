@@ -748,5 +748,15 @@
     <string name="word_rush_new_best">New Best!</string>
     <string name="word_rush_play_again">Play Again</string>
     <string name="word_rush_question_counter">%1$d / %2$d</string>
+    <string name="word_rush_combo">%1$dx COMBO!</string>
+    <string name="word_rush_accuracy">Accuracy</string>
+    <string name="word_rush_avg_speed">Avg Speed</string>
+    <string name="word_rush_seconds">%1$.1fs</string>
+    <string name="word_rush_grade_s">Lightning Fast!</string>
+    <string name="word_rush_grade_a">Excellent!</string>
+    <string name="word_rush_grade_b">Good Work!</string>
+    <string name="word_rush_grade_c">Keep Practicing!</string>
+    <string name="word_rush_grade_d">Don\'t Give Up!</string>
+    <string name="word_rush_combo_hint">Earn up to 5x combo bonus!</string>
 </resources>
 

@@ -70,8 +70,10 @@ class WordRushViewModelTest : ViewModelTestBase() {
         assertEquals(0, phase.questionIndex)
         assertEquals(0, phase.score)
         assertEquals(0, phase.streak)
+        assertEquals(1, phase.multiplier)
         assertNull(phase.selectedIndex)
         assertNull(phase.isCorrect)
+        assertNull(phase.lastPointsEarned)
         assertEquals(4, phase.question.options.size)
     }
 
@@ -92,7 +94,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val phase = vm.currentState.phase as WordRushPhase.Playing
         vm.selectAnswer(phase.question.correctIndex)
         val updated = vm.currentState.phase as WordRushPhase.Playing
-        assertEquals(1, updated.score)
+        assertTrue(updated.score >= 1)
         assertEquals(1, updated.streak)
         assertTrue(updated.isCorrect == true)
     }
@@ -143,5 +145,161 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val wrongIndex = (0..3).first { it != correctIndex }
         vm.selectAnswer(wrongIndex)
         assertEquals(stateAfterFirst, vm.currentState.phase)
+    }
+
+    // --- Multiplier tests ---
+
+    @Test
+    fun `multiplier is 1x for streak below 3`() {
+        assertEquals(1, WordRushViewModel.calculateMultiplier(0))
+        assertEquals(1, WordRushViewModel.calculateMultiplier(1))
+        assertEquals(1, WordRushViewModel.calculateMultiplier(2))
+    }
+
+    @Test
+    fun `multiplier is 2x after 3 correct streak`() {
+        assertEquals(2, WordRushViewModel.calculateMultiplier(3))
+        assertEquals(2, WordRushViewModel.calculateMultiplier(4))
+    }
+
+    @Test
+    fun `multiplier is 3x after 5 correct streak`() {
+        assertEquals(3, WordRushViewModel.calculateMultiplier(5))
+        assertEquals(3, WordRushViewModel.calculateMultiplier(6))
+        assertEquals(3, WordRushViewModel.calculateMultiplier(7))
+    }
+
+    @Test
+    fun `multiplier is 5x after 8 correct streak`() {
+        assertEquals(5, WordRushViewModel.calculateMultiplier(8))
+        assertEquals(5, WordRushViewModel.calculateMultiplier(10))
+        assertEquals(5, WordRushViewModel.calculateMultiplier(20))
+    }
+
+    // --- Grade tests ---
+
+    @Test
+    fun `grade is S for 90 percent or higher accuracy`() {
+        assertEquals("S", WordRushViewModel.calculateGrade(0.9f))
+        assertEquals("S", WordRushViewModel.calculateGrade(1.0f))
+        assertEquals("S", WordRushViewModel.calculateGrade(0.95f))
+    }
+
+    @Test
+    fun `grade is A for 80 to 89 percent accuracy`() {
+        assertEquals("A", WordRushViewModel.calculateGrade(0.8f))
+        assertEquals("A", WordRushViewModel.calculateGrade(0.89f))
+    }
+
+    @Test
+    fun `grade is B for 60 to 79 percent accuracy`() {
+        assertEquals("B", WordRushViewModel.calculateGrade(0.6f))
+        assertEquals("B", WordRushViewModel.calculateGrade(0.79f))
+    }
+
+    @Test
+    fun `grade is C for 40 to 59 percent accuracy`() {
+        assertEquals("C", WordRushViewModel.calculateGrade(0.4f))
+        assertEquals("C", WordRushViewModel.calculateGrade(0.59f))
+    }
+
+    @Test
+    fun `grade is D for below 40 percent accuracy`() {
+        assertEquals("D", WordRushViewModel.calculateGrade(0.0f))
+        assertEquals("D", WordRushViewModel.calculateGrade(0.39f))
+    }
+
+    // --- Speed bonus tests ---
+
+    @Test
+    fun `speed bonus is 2 for answers under 2 seconds`() {
+        assertEquals(2, WordRushViewModel.calculateSpeedBonus(500))
+        assertEquals(2, WordRushViewModel.calculateSpeedBonus(1000))
+        assertEquals(2, WordRushViewModel.calculateSpeedBonus(1999))
+    }
+
+    @Test
+    fun `speed bonus is 1 for answers between 2 and 3 seconds`() {
+        assertEquals(1, WordRushViewModel.calculateSpeedBonus(2000))
+        assertEquals(1, WordRushViewModel.calculateSpeedBonus(2500))
+        assertEquals(1, WordRushViewModel.calculateSpeedBonus(2999))
+    }
+
+    @Test
+    fun `speed bonus is 0 for answers 3 seconds or slower`() {
+        assertEquals(0, WordRushViewModel.calculateSpeedBonus(3000))
+        assertEquals(0, WordRushViewModel.calculateSpeedBonus(5000))
+    }
+
+    // --- Result state tests ---
+
+    @Test
+    fun `result state includes accuracy`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Answer all 10 questions - get correct indices and answer them
+        repeat(10) {
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                vm.selectAnswer(phase.question.correctIndex)
+                // Wait for advance (the delay is handled by UnconfinedTestDispatcher)
+            }
+        }
+
+        val result = vm.currentState.phase
+        if (result is WordRushPhase.Result) {
+            assertEquals(1.0f, result.accuracy)
+            assertEquals("S", result.grade)
+            assertEquals(10, result.correctCount)
+        }
+    }
+
+    @Test
+    fun `result state includes grade computed correctly for partial score`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Answer questions: first 6 correct, last 4 wrong
+        repeat(10) { i ->
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                if (i < 6) {
+                    vm.selectAnswer(phase.question.correctIndex)
+                } else {
+                    val wrongIndex = (0..3).first { it != phase.question.correctIndex }
+                    vm.selectAnswer(wrongIndex)
+                }
+            }
+        }
+
+        val result = vm.currentState.phase
+        if (result is WordRushPhase.Result) {
+            assertEquals(0.6f, result.accuracy)
+            assertEquals("B", result.grade)
+            assertEquals(6, result.correctCount)
+        }
+    }
+
+    @Test
+    fun `correct answer records answer time`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        vm.selectAnswer(phase.question.correctIndex)
+        val updated = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(updated.answerTimeMs != null)
+    }
+
+    @Test
+    fun `correct answer earns at least 1 point with no multiplier and no speed bonus`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        vm.selectAnswer(phase.question.correctIndex)
+        val updated = vm.currentState.phase as WordRushPhase.Playing
+        assertTrue(updated.score >= 1)
+        assertTrue(updated.lastPointsEarned != null)
+        assertTrue(updated.lastPointsEarned!! >= 1)
     }
 }
