@@ -1,5 +1,6 @@
 package feature.study.wordrush
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
@@ -10,7 +11,7 @@ import domain.wordrush.usecase.RecordWordRushGameUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 sealed interface WordRushPowerUp {
     data object Freeze : WordRushPowerUp      // Pause timer for 3 s
@@ -74,6 +75,7 @@ sealed interface WordRushEffect {
 class WordRushViewModel(
     private val getWordRushWordsUseCase: GetWordRushWordsUseCase,
     private val recordWordRushGameUseCase: RecordWordRushGameUseCase,
+    private val analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<WordRushState, WordRushEffect>() {
 
     override fun initialState() = WordRushState()
@@ -85,12 +87,13 @@ class WordRushViewModel(
     private var bestSessionStreak = 0
     private var score = 0
     private var correctCount = 0
+    private var gameStartedAt: Long = 0L
     private var timerJob: Job? = null
     private var questionStartTimeMs: Long = 0L
     private var responseTimes: MutableList<Long> = mutableListOf()
-    private var gameStartedAt: Long = 0L
 
     init {
+        analyticsTracker.logScreenView("WordRush")
         checkWordAvailability()
     }
 
@@ -117,6 +120,10 @@ class WordRushViewModel(
                     correctCount = 0
                     responseTimes = mutableListOf()
                     gameStartedAt = Clock.System.now().toEpochMilliseconds()
+                    analyticsTracker.logEvent(
+                        eventName = "word_rush_game_start",
+                        parameters = mapOf("question_count" to words.size),
+                    )
                     showQuestion()
                 },
                 onFailure = { error ->
@@ -214,6 +221,17 @@ class WordRushViewModel(
 
     fun dismiss() {
         timerJob?.cancel()
+        val questionsAnswered = currentIndex + (if (currentState.phase is WordRushPhase.Playing &&
+            (currentState.phase as WordRushPhase.Playing).selectedIndex != null) 1 else 0)
+        if (currentState.phase is WordRushPhase.Playing || currentState.phase is WordRushPhase.Loading) {
+            analyticsTracker.logEvent(
+                eventName = "word_rush_dropped_out",
+                parameters = mapOf(
+                    "questions_answered" to questionsAnswered,
+                    "score" to score,
+                ),
+            )
+        }
         updateState { copy(phase = WordRushPhase.Idle) }
     }
 
@@ -330,6 +348,17 @@ class WordRushViewModel(
     private fun finishGame() {
         val phase = currentState.phase as? WordRushPhase.Playing
         val livesRemaining = phase?.lives ?: 0
+
+        val durationMs = Clock.System.now().toEpochMilliseconds() - gameStartedAt
+        analyticsTracker.logEvent(
+            eventName = "word_rush_game_complete",
+            parameters = mapOf(
+                "score" to score,
+                "total_questions" to questions.size,
+                "best_streak" to bestSessionStreak,
+                "duration_ms" to durationMs,
+            ),
+        )
         val isNewBest = bestSessionStreak > currentState.bestStreak
         val newBest = if (isNewBest) bestSessionStreak else currentState.bestStreak
         val totalQuestions = questions.size

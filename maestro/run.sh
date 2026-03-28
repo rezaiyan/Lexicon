@@ -50,7 +50,7 @@ if [ -z "$CI_TEST_SECRET" ]; then
   # Try reading from docker on VPS (for local dev convenience)
   if command -v ssh >/dev/null 2>&1; then
     CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 root@alirezaiyan.com \
-      "docker inspect vokab-server --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null" 2>/dev/null \
+      "docker exec lexicon-server env 2>/dev/null" 2>/dev/null \
       | grep '^CI_TEST_SECRET=' | cut -d= -f2) || true
   fi
   [ -n "$CI_TEST_SECRET" ] || die "CI_TEST_SECRET not set. Export it or ensure VPS is reachable."

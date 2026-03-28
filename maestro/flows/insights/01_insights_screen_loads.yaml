@@ -1,0 +1,59 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - insights
+  - smoke
+---
+# Test: Insights screen opens from the Study screen and loads successfully.
+#
+# Flow:
+#   1. Navigate to Study screen.
+#   2. Tap the Insights icon in the top bar (content description "Insights").
+#   3. Wait for the Insights screen to appear and finish loading.
+#   4. Verify key screen elements are visible.
+#   5. Dismiss via the Close/back action → back on Study screen.
+#
+# The test account always has study data (from prior review sessions and
+# import tests), so the loaded state (not empty, not error) is expected.
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Tap the Insights icon in the Study screen top bar.
+- tapOn: "Insights"
+
+# Wait for the Insights screen title to appear.
+- extendedWaitUntil:
+    visible: "Insights"
+    timeout: 10000
+
+# Wait for loading to complete — the overview hero card or an error/empty
+# state must appear.  15 s allows for slow network on CI.
+- extendedWaitUntil:
+    visible: "Cards Reviewed"
+    timeout: 15000
+
+# Verify the overview hero metric is visible.
+- assertVisible: "Cards Reviewed"
+
+# Accuracy pill must be visible.
+- assertVisible:
+    text: "accuracy"
+    optional: true
+
+# This Week section label (always rendered regardless of data).
+- assertVisible:
+    text: "This Week"
+    optional: true
+
+# Word Rush insights card is shown when Word Rush analytics are available.
+# Currently optional — will be required once the backend feature ships.
+- assertVisible:
+    text: "Word Rush"
+    optional: true
+
+# Dismiss the Insights screen.
+- pressKey: back
+
+# Verify we are back on the Study screen.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 8000

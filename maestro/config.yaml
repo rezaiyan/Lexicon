@@ -52,6 +52,7 @@ flows:
   # required fields are empty (both empty, and original-only with no translation).
   - "flows/import/07_import_validation_errors.yaml"
   - "flows/study/*.yaml"
+  - "flows/insights/*.yaml"
   - "flows/profile/01_profile_screen_loads.yaml"
   - "flows/profile/02_more_options_sheet.yaml"
   - "flows/profile/03_logout_sheet.yaml"
@@ -102,6 +103,8 @@ executionOrder:
     - flows/study/07_word_rush_card_visible.yaml
     - flows/study/08_word_rush_game_flow.yaml
     - flows/study/09_word_rush_play_again.yaml
+    # Insights tests
+    - flows/insights/01_insights_screen_loads.yaml
     # Profile tests
     - flows/profile/01_profile_screen_loads.yaml
     - flows/profile/02_more_options_sheet.yaml

@@ -3,6 +3,7 @@ package feature.study.wordrush
 import core.common.Try
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
+import fakes.FakeAnalyticsTracker
 import domain.wordrush.model.WordRushGameRecord
 import domain.wordrush.repository.IWordRushRecorder
 import domain.wordrush.usecase.RecordWordRushGameUseCase
@@ -51,13 +52,17 @@ class WordRushViewModelTest : ViewModelTestBase() {
     private val defaultRecorder = FakeWordRushRecorder()
 
     private fun createViewModel(
-        words: List<Word> = createWords(10),
-        recorder: FakeWordRushRecorder = defaultRecorder,
-    ): WordRushViewModel {
+        words: List<Word> = createWords(10),     recorder: FakeWordRushRecorder = defaultRecorder,
+
+        ): WordRushViewModel {
         val repo = fakeRepo(words)
         val useCase = GetWordRushWordsUseCase(repo)
         val recordUseCase = RecordWordRushGameUseCase(recorder)
-        return WordRushViewModel(useCase, recordUseCase)
+
+        return WordRushViewModel(
+            getWordRushWordsUseCase = GetWordRushWordsUseCase(repo),
+            analyticsTracker = FakeAnalyticsTracker(),
+        )
     }
 
     @Test
