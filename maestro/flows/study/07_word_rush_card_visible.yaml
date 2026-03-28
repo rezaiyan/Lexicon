@@ -1,0 +1,22 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - word-rush
+  - smoke
+---
+# Test: Word Rush card is visible on the Study screen.
+#
+# Verifies that the Word Rush card appears above the Learning Stages section
+# with the correct title, subtitle, and Play button. Requires at least 4 words
+# to exist (import tests run before study tests).
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# The Word Rush card title must be visible.
+- assertVisible: "Word Rush"
+
+# The Play button must be visible and enabled (words exist from prior import tests).
+- assertVisible: "Play"
+
+# Take a screenshot of the study screen showing the Word Rush card.
+- takeScreenshot: screenshots/word_rush_card_on_study

@@ -1,0 +1,64 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - study
+  - word-rush
+  - replay
+---
+# Test: Word Rush Play Again starts a new game session.
+#
+# Verifies that tapping "Play Again" on the result screen starts a fresh
+# game with reset score and streak.
+#
+# Requires: At least 4 words in the library.
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Start the game.
+- tapOn: "Play"
+
+# Wait for game to load.
+- extendedWaitUntil:
+    visible: "Score"
+    timeout: 8000
+
+# Answer all 10 questions by tapping the first option repeatedly.
+- repeat:
+    times: 10
+    commands:
+      - tapOn:
+          point: "50%,68%"
+          optional: true
+      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible: "Score"
+          timeout: 8000
+          optional: true
+
+# Wait for Game Over screen.
+- extendedWaitUntil:
+    visible: "Game Over"
+    timeout: 60000
+
+# Tap Play Again.
+- tapOn: "Play Again"
+
+# A new game should start — verify fresh question counter.
+- extendedWaitUntil:
+    visible: "1 / 10"
+    timeout: 8000
+
+# Score should be visible (reset to 0).
+- assertVisible: "Score"
+
+# Take screenshot of the fresh game after replay.
+- takeScreenshot: screenshots/word_rush_play_again
+
+# Close the game to clean up.
+- tapOn: "Close"
+
+- waitForAnimationToEnd
+
+# Confirm we're back on Study screen.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 8000

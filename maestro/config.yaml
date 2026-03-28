@@ -98,6 +98,10 @@ executionOrder:
     - flows/study/04_review_completion.yaml
     - flows/study/05_tag_filter_long_press.yaml
     - flows/study/06_nope_rating_path.yaml
+    # Word Rush game tests
+    - flows/study/07_word_rush_card_visible.yaml
+    - flows/study/08_word_rush_game_flow.yaml
+    - flows/study/09_word_rush_play_again.yaml
     # Profile tests
     - flows/profile/01_profile_screen_loads.yaml
     - flows/profile/02_more_options_sheet.yaml
