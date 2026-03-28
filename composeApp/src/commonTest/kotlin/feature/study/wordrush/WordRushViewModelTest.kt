@@ -1,6 +1,5 @@
 package feature.study.wordrush
 
-import core.common.Try
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeWordRepository

@@ -11,7 +11,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -171,7 +170,11 @@ private fun PlayingContent(
                 color = AppColors.primary,
             )
             StatChip(
-                label = stringResource(Res.string.word_rush_question_counter, phase.questionIndex + 1, phase.totalQuestions),
+                label = stringResource(
+                    Res.string.word_rush_question_counter,
+                    phase.questionIndex + 1,
+                    phase.totalQuestions,
+                ),
                 value = "",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
