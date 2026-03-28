@@ -17,12 +17,12 @@ tags:
 
 - runFlow: ../utils/navigate_to_study.yaml
 
-# Tap the Insights icon in the Study screen top bar.
-- tapOn: "Insights"
+# Tap the Insights icon in the Study screen top bar (content description "Study Insights").
+- tapOn: "Study Insights"
 
 # Wait for the Insights screen title to appear.
 - extendedWaitUntil:
-    visible: "Insights"
+    visible: "Study Insights"
     timeout: 10000
 
 # Wait for loading to complete — the overview hero card or an error/empty

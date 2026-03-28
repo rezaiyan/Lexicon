@@ -26,52 +26,23 @@ tags:
 # Tap Play to start the game.
 - tapOn: "Play"
 
-# The game screen should load — wait for the Word Rush title in the game header.
+# The game screen should load — wait for the Score label which only appears in
+# the game's Playing state header (not on the Study screen).
 - extendedWaitUntil:
     visible: "Score"
     timeout: 8000
 
-# The question counter should be visible (e.g., "1 / 10").
-- assertVisible: "1 / 10"
-
-# The Streak label should be visible.
+# The Streak label should be visible in the game header.
 - assertVisible: "Streak"
 
 # Take screenshot of the game in progress with a question displayed.
 - takeScreenshot: screenshots/word_rush_playing
 
-# Tap the first answer option (top option in the list).
-# We tap at approximately where the first option card is.
-- tapOn:
-    point: "50%,68%"
-
-# After tapping, wait briefly for the answer reveal animation.
-- waitForAnimationToEnd
-
-# Take screenshot showing the answer feedback (green/red highlight).
-- takeScreenshot: screenshots/word_rush_answer_feedback
-
-# Wait for the next question or result screen (auto-advances after 1.2s).
-- extendedWaitUntil:
-    visible: "2 / 10"
-    timeout: 5000
-    optional: true
-
-# Answer all remaining questions by tapping at 50%,50%.
-# - In Playing phase: lands on an answer card → registers answer
-# - In Result (Game Over) phase: lands in non-interactive area → loop exits
-# (50%,68% would hit "Play Again" button on result screen, restarting the game)
-- repeat:
-    times: 60
-    while:
-      notVisible: "Game Over"
-    commands:
-      - tapOn:
-          point: "50%,50%"
-          optional: true
-      - waitForAnimationToEnd
-
-# Safety net: wait up to 90s for remaining questions to auto-advance via timer.
+# Let all questions time out via the 5s per-question timer + 1.2s reveal.
+# With INITIAL_LIVES=3, three timer-outs drain all lives in ≈19s → Game Over.
+# We do NOT tap by coordinate: on the unfolded display the game is a centered
+# dialog, and off-center coordinate taps land on the dimmed overlay behind it,
+# dismissing the game before Game Over can appear.
 - extendedWaitUntil:
     visible: "Game Over"
     timeout: 90000

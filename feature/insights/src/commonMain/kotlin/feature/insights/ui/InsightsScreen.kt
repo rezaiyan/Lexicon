@@ -1,16 +1,19 @@
 package feature.insights.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Bolt
@@ -36,10 +40,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +66,8 @@ import core.common.onError
 import core.common.onLoaded
 import core.common.onLoading
 import domain.analytics.model.AccuracyByLevel
+import domain.analytics.model.HourlyAccuracy
+import domain.wordrush.model.WordRushInsights
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.WordDifficulty
@@ -96,10 +106,10 @@ import lexicon.resources.generated.resources.word_rush_insights_avg_score
 import lexicon.resources.generated.resources.word_rush_insights_best_streak
 import lexicon.resources.generated.resources.word_rush_insights_completion_rate
 import lexicon.resources.generated.resources.word_rush_insights_title
-import lexicon.resources.generated.resources.word_rush_insights_total_games
 import lexicon.resources.generated.resources.word_rush_insights_total_time
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import theme.AppColors
 import theme.Theme
 
 @Composable
@@ -275,98 +285,149 @@ private fun OverviewTab(state: InsightsState) {
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { insights ->
             if (state.availability.hasOverview) {
-                HeroSection(insights)
-                Spacer(modifier = Modifier.height(Theme.spacing.sm))
-                OverviewCards(insights)
+                val bestTime = (state.bestStudyTime as? UiState.Loaded)?.value
+                StudyInsightsCard(insights = insights, bestStudyTime = bestTime)
             }
         }
-
-    state.bestStudyTime.onLoaded { bestTime ->
-        if (bestTime != null && state.availability.hasOverview) {
-            MetricRow(
-                icon = Icons.Default.Schedule,
-                iconTint = MaterialTheme.colorScheme.tertiary,
-                title = stringResource(Res.string.insights_best_study_time),
-                value = "${bestTime.hour}:00",
-                subtitle = "${bestTime.accuracyPercent.roundToInt()}% accuracy",
-            )
-        }
-    }
 }
 
 @Composable
-private fun HeroSection(insights: StudyInsights) {
+private fun StudyInsightsCard(insights: StudyInsights, bestStudyTime: HourlyAccuracy?) {
+    var expanded by remember { mutableStateOf(false) }
+    val chevronDegrees by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+    )
+    val tint = MaterialTheme.colorScheme.primary
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(Theme.shapes.large))
             .background(Theme.gradients.primaryWash)
-            .padding(vertical = Theme.spacing.xl, horizontal = Theme.spacing.md),
-        contentAlignment = Alignment.Center,
+            .clickable { expanded = !expanded }
+            .padding(Theme.spacing.md),
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            SectionLabel(stringResource(Res.string.insights_cards_reviewed))
-            Spacer(modifier = Modifier.height(Theme.spacing.xs))
-            Text(
-                text = insights.totalCardsReviewed.toString(),
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(modifier = Modifier.height(Theme.spacing.sm))
-            Pill(
-                text = "${insights.accuracyPercent.roundToInt()}% accuracy",
-                color = MaterialTheme.colorScheme.secondary,
-                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
-            )
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+            // Header: icon + label / sessions pill + chevron
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(Res.string.insights_cards_reviewed).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Pill(
+                        text = "${insights.totalSessions.toInt()} sessions",
+                        color = tint,
+                        backgroundColor = tint.copy(alpha = 0.12f),
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(Theme.dimensions.iconSize)
+                            .rotate(chevronDegrees),
+                    )
+                }
+            }
+            // Hero: total cards reviewed (always visible)
+            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                Text(
+                    text = insights.totalCardsReviewed.toString(),
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = tint,
+                )
+                Text(
+                    text = "${insights.accuracyPercent.roundToInt()}% accuracy",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Expandable details
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+                exit = shrinkVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+                    HorizontalDivider(color = tint.copy(alpha = 0.15f))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                    ) {
+                        InsightsStatCell(
+                            value = "${insights.accuracyPercent.roundToInt()}%",
+                            label = stringResource(Res.string.insights_accuracy),
+                            tint = MaterialTheme.colorScheme.secondary,
+                        )
+                        InsightsStatCell(
+                            value = insights.wordsMasteredCount.toString(),
+                            label = stringResource(Res.string.insights_words_mastered),
+                            tint = MaterialTheme.colorScheme.tertiary,
+                        )
+                        InsightsStatCell(
+                            value = insights.daysStudied.toString(),
+                            label = stringResource(Res.string.insights_days_studied),
+                            tint = tint,
+                        )
+                    }
+                    HorizontalDivider(color = tint.copy(alpha = 0.15f))
+                    val totalTimeMinutes = insights.totalStudyTimeMs / 60_000
+                    val hours = totalTimeMinutes / 60
+                    val minutes = totalTimeMinutes % 60
+                    InsightsFooterRow(
+                        icon = Icons.Default.Schedule,
+                        title = stringResource(Res.string.insights_total_study_time),
+                        value = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m",
+                        subtitle = stringResource(
+                            Res.string.insights_sessions_words,
+                            insights.totalSessions.toInt(),
+                            insights.uniqueWordsReviewed.toInt(),
+                        ),
+                    )
+                    if (bestStudyTime != null) {
+                        InsightsFooterRow(
+                            icon = Icons.Default.Schedule,
+                            title = stringResource(Res.string.insights_best_study_time),
+                            value = "${bestStudyTime.hour}:00",
+                            subtitle = "${bestStudyTime.accuracyPercent.roundToInt()}% accuracy",
+                        )
+                    }
+                }
+            }
         }
     }
-}
-
-@Composable
-private fun OverviewCards(insights: StudyInsights) {
-    Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
-    ) {
-        StatCard(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            icon = Icons.AutoMirrored.Filled.TrendingUp,
-            iconTint = MaterialTheme.colorScheme.secondary,
-            label = stringResource(Res.string.insights_accuracy),
-            value = "${insights.accuracyPercent.roundToInt()}%",
-        )
-        StatCard(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            icon = Icons.Default.Star,
-            iconTint = MaterialTheme.colorScheme.tertiary,
-            label = stringResource(Res.string.insights_words_mastered),
-            value = insights.wordsMasteredCount.toString(),
-        )
-        StatCard(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            icon = Icons.Default.BarChart,
-            iconTint = MaterialTheme.colorScheme.primary,
-            label = stringResource(Res.string.insights_days_studied),
-            value = insights.daysStudied.toString(),
-        )
-    }
-
-    val totalTimeMinutes = insights.totalStudyTimeMs / 60_000
-    val hours = totalTimeMinutes / 60
-    val minutes = totalTimeMinutes % 60
-    MetricRow(
-        icon = Icons.Default.Schedule,
-        iconTint = MaterialTheme.colorScheme.primary,
-        title = stringResource(Res.string.insights_total_study_time),
-        value = if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m",
-        subtitle = stringResource(
-            Res.string.insights_sessions_words,
-            insights.totalSessions.toInt(),
-            insights.uniqueWordsReviewed.toInt(),
-        ),
-    )
 }
 
 // endregion
@@ -377,57 +438,162 @@ private fun OverviewCards(insights: StudyInsights) {
 private fun WordRushInsightsSection(state: InsightsState) {
     state.wordRushInsights.onLoaded { insights ->
         if (insights.totalGames > 0) {
-            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+            WordRushInsightsCard(insights)
+        }
+    }
+}
+
+@Composable
+private fun WordRushInsightsCard(insights: WordRushInsights) {
+    var expanded by remember { mutableStateOf(false) }
+    val chevronDegrees by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        AppColors.tertiary.copy(alpha = 0.14f),
+                        AppColors.accentAmber.copy(alpha = 0.08f),
+                    ),
+                ),
+            )
+            .clickable { expanded = !expanded }
+            .padding(Theme.spacing.md),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+            // Header: icon + title / games pill + chevron
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Bolt,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(AppColors.tertiary.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Bolt,
+                            contentDescription = null,
+                            tint = AppColors.tertiary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(Res.string.word_rush_insights_title).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    SectionLabel(stringResource(Res.string.word_rush_insights_title))
                 }
-                MetricRow(
-                    icon = Icons.Default.BarChart,
-                    iconTint = MaterialTheme.colorScheme.tertiary,
-                    title = stringResource(Res.string.word_rush_insights_total_games),
-                    value = insights.totalGames.toString(),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Pill(
+                        text = "${insights.totalGames} games",
+                        color = AppColors.tertiary,
+                        backgroundColor = AppColors.tertiary.copy(alpha = 0.12f),
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(Theme.dimensions.iconSize)
+                            .rotate(chevronDegrees),
+                    )
+                }
+            }
+            // Hero: best streak (always visible)
+            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                Text(
+                    text = insights.bestStreakEver.toString(),
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AppColors.tertiary,
                 )
-                MetricRow(
-                    icon = Icons.Default.Star,
-                    iconTint = MaterialTheme.colorScheme.secondary,
-                    title = stringResource(Res.string.word_rush_insights_best_streak),
-                    value = insights.bestStreakEver.toString(),
-                )
-                MetricRow(
-                    icon = Icons.AutoMirrored.Filled.TrendingUp,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = stringResource(Res.string.word_rush_insights_avg_accuracy),
-                    value = "${insights.avgAccuracyPercent.toOneDecimalString()}%",
-                )
-                MetricRow(
-                    icon = Icons.Rounded.Bolt,
-                    iconTint = MaterialTheme.colorScheme.tertiary,
-                    title = stringResource(Res.string.word_rush_insights_avg_score),
-                    value = insights.avgScore.toOneDecimalString(),
-                )
-                MetricRow(
-                    icon = Icons.Default.Schedule,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = stringResource(Res.string.word_rush_insights_total_time),
-                    value = "${insights.totalTimePlayedMs / 60000} min",
-                )
-                MetricRow(
-                    icon = Icons.Default.BarChart,
-                    iconTint = MaterialTheme.colorScheme.secondary,
-                    title = stringResource(Res.string.word_rush_insights_completion_rate),
-                    value = "${insights.completionRatePercent.toOneDecimalString()}%",
+                Text(
+                    text = stringResource(Res.string.word_rush_insights_best_streak),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            // Expandable details
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+                exit = shrinkVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+                    HorizontalDivider(color = AppColors.tertiary.copy(alpha = 0.15f))
+                    // 3-col stat row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                    ) {
+                        InsightsStatCell(
+                            value = "${insights.avgAccuracyPercent.toOneDecimalString()}%",
+                            label = stringResource(Res.string.word_rush_insights_avg_accuracy),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        InsightsStatCell(
+                            value = insights.avgScore.toOneDecimalString(),
+                            label = stringResource(Res.string.word_rush_insights_avg_score),
+                            tint = AppColors.tertiary,
+                        )
+                        InsightsStatCell(
+                            value = "${insights.completionRatePercent.toOneDecimalString()}%",
+                            label = stringResource(Res.string.word_rush_insights_completion_rate),
+                            tint = MaterialTheme.colorScheme.secondary,
+                        )
+                    }
+                    HorizontalDivider(color = AppColors.tertiary.copy(alpha = 0.15f))
+                    InsightsFooterRow(
+                        icon = Icons.Default.Schedule,
+                        title = stringResource(Res.string.word_rush_insights_total_time),
+                        value = "${insights.totalTimePlayedMs / 60000} min",
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun InsightsStatCell(
+    value: String,
+    label: String,
+    tint: Color,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs),
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = tint,
+        )
     }
 }
 
@@ -453,8 +619,117 @@ private fun TrendsTab(state: InsightsState) {
         .onError { msg, _ -> ErrorScreen(message = msg) }
         .onLoaded { levels ->
             if (levels.isNotEmpty()) {
-                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
-                    SectionLabel(stringResource(Res.string.insights_accuracy_by_level))
+                AccuracyByLevelCard(levels)
+            }
+        }
+
+    val heatmapDays = when (val h = state.heatmap) {
+        is UiState.Loaded -> h.value
+        else -> emptyList()
+    }
+    ThisWeekSection(heatmapDays = heatmapDays)
+}
+
+@Composable
+private fun AccuracyByLevelCard(levels: List<AccuracyByLevel>) {
+    var expanded by remember { mutableStateOf(false) }
+    val chevronDegrees by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+    )
+    val tint = MaterialTheme.colorScheme.secondary
+    val avgAccuracy = remember(levels) { levels.map { it.accuracyPercent }.average() }
+    val totalReviews = remember(levels) { levels.sumOf { it.totalReviews } }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        AppColors.secondary.copy(alpha = 0.14f),
+                        AppColors.accentEmerald.copy(alpha = 0.08f),
+                    ),
+                ),
+            )
+            .clickable { expanded = !expanded }
+            .padding(Theme.spacing.md),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+            // Header: icon + label / levels pill + chevron
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.BarChart,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(Res.string.insights_accuracy_by_level).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Pill(
+                        text = "${levels.size} levels",
+                        color = tint,
+                        backgroundColor = tint.copy(alpha = 0.12f),
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(Theme.dimensions.iconSize)
+                            .rotate(chevronDegrees),
+                    )
+                }
+            }
+            // Hero: average accuracy (always visible)
+            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                Text(
+                    text = "${avgAccuracy.roundToInt()}%",
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = tint,
+                )
+                Text(
+                    text = stringResource(Res.string.insights_reviews_format, totalReviews.toInt()),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Expandable level rows
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+                exit = shrinkVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                    HorizontalDivider(color = tint.copy(alpha = 0.15f))
                     levels.forEachIndexed { index, level ->
                         LevelAccuracyRow(level)
                         if (index < levels.lastIndex) {
@@ -467,12 +742,7 @@ private fun TrendsTab(state: InsightsState) {
                 }
             }
         }
-
-    val heatmapDays = when (val h = state.heatmap) {
-        is UiState.Loaded -> h.value
-        else -> emptyList()
     }
-    ThisWeekSection(heatmapDays = heatmapDays)
 }
 
 @Composable
@@ -706,6 +976,52 @@ private fun DifficultWordRow(word: WordDifficulty) {
 
 // region Shared components
 
+@Composable
+private fun InsightsFooterRow(
+    icon: ImageVector,
+    title: String,
+    value: String,
+    subtitle: String? = null,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(Theme.dimensions.iconSize),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (subtitle != null) {
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    )
+                }
+            }
+        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
 /**
  * Section label: dot accent + labelMedium ALL CAPS + letter spacing + onSurfaceVariant.
  */
@@ -728,115 +1044,6 @@ private fun SectionLabel(text: String) {
             letterSpacing = 1.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-}
-
-/**
- * Stat card: surfaceContainerHigh background + tinted icon chip.
- */
-@Composable
-private fun StatCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    iconTint: Color,
-    label: String,
-    value: String,
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .background(Theme.colors.surfaceContainerHigh)
-            .padding(Theme.spacing.md),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(Theme.shapes.small))
-                .background(iconTint.copy(alpha = 0.15f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
-            )
-        }
-        Text(
-            value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/**
- * Metric row: surfaceContainer card + 3dp accent left bar + label above + bold value below.
- */
-@Composable
-private fun MetricRow(
-    icon: ImageVector,
-    iconTint: Color,
-    title: String,
-    value: String,
-    subtitle: String? = null,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .background(Theme.colors.surfaceContainer)
-            .padding(Theme.spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
-    ) {
-        // 3dp accent left bar — height follows content via IntrinsicSize.Min
-        Box(
-            modifier = Modifier
-                .width(3.dp)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(Theme.shapes.pill))
-                .background(iconTint),
-        )
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(Theme.dimensions.iconSize),
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                title,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                value,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            if (subtitle != null) {
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
     }
 }
 
