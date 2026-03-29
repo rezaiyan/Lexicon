@@ -1,0 +1,1 @@
+ALTER TABLE SettingsEntity ADD COLUMN word_sync_timestamp INTEGER NOT NULL DEFAULT 0;

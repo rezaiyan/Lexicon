@@ -1,12 +1,12 @@
 package data.word.repository
 
+import data.settings.local.ISettingsLocalDataSource
 import data.word.local.IWordLocalDataSource
 import data.word.mapper.toDomain
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
 import core.common.Try
 import core.common.fold
-import core.common.onFailure
 import domain.auth.session.ISessionManager
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
@@ -29,9 +29,8 @@ class WordRepositoryImpl(
     private val remoteSyncHandler: IWordRemoteSyncHandler,
     private val conflictResolver: IWordConflictResolver,
     private val sessionManager: ISessionManager,
+    private val settingsLocalDataSource: ISettingsLocalDataSource,
 ) : IWordRepository {
-
-    private var lastSyncedAt: Long = 0L
 
     companion object {
         private const val SYNC_FRESH_THRESHOLD_MS = 30_000L
@@ -81,7 +80,7 @@ class WordRepositoryImpl(
 
             localDataSource.insertWords(newWords)
             remoteSyncHandler.syncWordsToRemote(newWords)
-            lastSyncedAt = Clock.System.now().toEpochMilliseconds()
+            settingsLocalDataSource.setWordSyncTimestamp(Clock.System.now().toEpochMilliseconds())
             newWords.size + wordsToUpdate.size
         }
     }
@@ -159,13 +158,19 @@ class WordRepositoryImpl(
                     )
                     result.fold(
                         onSuccess = { emit(UpdateWordsLanguagesProgress.UpdatingLocal(ids.size)) },
-                        onFailure = { emit(UpdateWordsLanguagesProgress.UpdatingLocal(ids.size)) }
+                        onFailure = { error ->
+                            emit(UpdateWordsLanguagesProgress.Failed(error.message ?: "Failed to update languages"))
+                        }
                     )
                 }
             }
-            .flatMapConcat { updatingLocalState ->
+            .flatMapConcat { state ->
                 flow {
-                    emit(updatingLocalState)
+                    if (state is UpdateWordsLanguagesProgress.Failed) {
+                        emit(state)
+                        return@flow
+                    }
+                    emit(state)
                     val updatedCount = localDataSource.updateWordsLanguages(
                         ids = ids,
                         sourceLanguage = sourceLanguage,
@@ -175,30 +180,17 @@ class WordRepositoryImpl(
                 }
             }
             .catch { error ->
-                Try {
-                    val updatedCount = localDataSource.updateWordsLanguages(
-                        ids = ids,
-                        sourceLanguage = sourceLanguage,
-                        targetLanguage = targetLanguage
-                    )
-                    emit(UpdateWordsLanguagesProgress.Completed(updatedCount))
-                }.onFailure {
-                    emit(
-                        UpdateWordsLanguagesProgress.Failed(
-                            error.message ?: "Failed to update languages"
-                        )
-                    )
-                }
+                emit(UpdateWordsLanguagesProgress.Failed(error.message ?: "Failed to update languages"))
             }
     }
 
     override suspend fun syncWithRemote(): Try<Unit> {
         if (!sessionManager.isAuthenticated()) return Try.success(Unit)
-        val now = Clock.System.now().toEpochMilliseconds()
-        if (now - lastSyncedAt < SYNC_FRESH_THRESHOLD_MS) return Try.success(Unit)
-
+        val lastSyncedAt = settingsLocalDataSource.getWordSyncTimestamp()
+        val syncStartedAt = Clock.System.now().toEpochMilliseconds()
+        if (syncStartedAt - lastSyncedAt < SYNC_FRESH_THRESHOLD_MS) return Try.success(Unit)
         return Try {
-            val remoteWordsResult = remoteSyncHandler.syncFromRemote()
+            val remoteWordsResult = remoteSyncHandler.syncFromRemote(updatedAfter = lastSyncedAt)
 
             remoteWordsResult.fold(
                 onSuccess = { remoteWords ->
@@ -215,7 +207,7 @@ class WordRepositoryImpl(
                         }
                         localDataSource.insertWords(resolvedWords)
                     }
-                    lastSyncedAt = Clock.System.now().toEpochMilliseconds()
+                    settingsLocalDataSource.setWordSyncTimestamp(syncStartedAt)
                 },
                 onFailure = { error ->
                     throw error

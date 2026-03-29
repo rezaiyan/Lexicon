@@ -3,6 +3,7 @@ package data.word.repository
 import core.common.Try
 import data.core.database.WordEntity
 import data.core.database.WordEntityData
+import data.settings.local.ISettingsLocalDataSource
 import data.word.local.IWordLocalDataSource
 import data.word.remote.model.RemoteWord
 import data.word.sync.IWordConflictResolver
@@ -133,7 +134,7 @@ internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
         targetLanguage: String?
     ): Try<Unit> = Try.success(Unit)
 
-    override suspend fun syncFromRemote(): Try<List<RemoteWord>> {
+    override suspend fun syncFromRemote(updatedAfter: Long): Try<List<RemoteWord>> {
         syncFromRemoteCallCount++
         return if (shouldFailSyncFromRemote) {
             Try.failure(RuntimeException("Remote fetch failed"))
@@ -216,6 +217,17 @@ internal fun makeWordEntityData(
     dateAdded = 0L
 )
 
+internal class FakeSettingsLocalDataSource : ISettingsLocalDataSource {
+    var wordSyncTimestamp: Long = 0L
+
+    override suspend fun getSettings() = null
+    override fun observeSettings() = flowOf(null)
+    override suspend fun saveSettings(data: data.core.database.SettingsEntityData) {}
+    override suspend fun clearSettings() {}
+    override suspend fun getWordSyncTimestamp(): Long = wordSyncTimestamp
+    override suspend fun setWordSyncTimestamp(timestamp: Long) { wordSyncTimestamp = timestamp }
+}
+
 internal class FakeSessionManager(
     authenticated: Boolean = true,
 ) : ISessionManager {
@@ -235,4 +247,5 @@ internal fun makeRepository(
     remote: FakeWordRemoteSyncHandler = FakeWordRemoteSyncHandler(),
     resolver: FakeWordConflictResolver = FakeWordConflictResolver(),
     session: FakeSessionManager = FakeSessionManager(authenticated = true),
-) = WordRepositoryImpl(local, remote, resolver, session)
+    settings: FakeSettingsLocalDataSource = FakeSettingsLocalDataSource(),
+) = WordRepositoryImpl(local, remote, resolver, session, settings)

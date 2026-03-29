@@ -10,6 +10,9 @@ interface ISettingsLocalDataSource {
     suspend fun saveSettings(data: SettingsEntityData)
     suspend fun clearSettings()
 
+    suspend fun getWordSyncTimestamp(): Long = 0L
+    suspend fun setWordSyncTimestamp(timestamp: Long) {}
+
     // Per-language voice preferences — default implementations keep existing fakes compiling
     fun observeVoicePreferences(): Flow<Map<String, Int>> = flowOf(emptyMap())
     suspend fun setVoiceForLanguage(languageCode: String, speakerId: Int) {}

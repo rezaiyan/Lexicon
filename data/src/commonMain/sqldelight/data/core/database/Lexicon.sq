@@ -27,7 +27,8 @@ CREATE TABLE SettingsEntity (
     minimumDueCards INTEGER NOT NULL DEFAULT 5,
     ttsSpeed REAL NOT NULL DEFAULT 1.0,
     ttsSpeakerId INTEGER NOT NULL DEFAULT 0,
-    skipTagSelector INTEGER NOT NULL DEFAULT 0
+    skipTagSelector INTEGER NOT NULL DEFAULT 0,
+    word_sync_timestamp INTEGER NOT NULL DEFAULT 0
 );
 
 -- Word queries
@@ -123,6 +124,9 @@ UPDATE WordEntity SET level = :level, easeFactor = :easeFactor, interval = :inte
 deleteAllWords:
 DELETE FROM WordEntity;
 
+lastInsertRowId:
+SELECT last_insert_rowid();
+
 getMostCommonSourceLanguage:
 SELECT sourceLanguage FROM WordEntity
 GROUP BY sourceLanguage
@@ -140,6 +144,12 @@ SELECT * FROM SettingsEntity WHERE id = 1;
 
 clearSettings:
 DELETE FROM SettingsEntity;
+
+getWordSyncTimestamp:
+SELECT word_sync_timestamp FROM SettingsEntity WHERE id = 1;
+
+setWordSyncTimestamp:
+UPDATE SettingsEntity SET word_sync_timestamp = ? WHERE id = 1;
 
 -- TtsVoicePreference table
 CREATE TABLE TtsVoicePreference (

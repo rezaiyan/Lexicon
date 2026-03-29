@@ -94,7 +94,8 @@ fun wordModule() = module {
             localDataSource = get(),
             remoteSyncHandler = get(),
             conflictResolver = get(),
-            sessionManager = get()
+            sessionManager = get(),
+            settingsLocalDataSource = get()
         )
     }
 

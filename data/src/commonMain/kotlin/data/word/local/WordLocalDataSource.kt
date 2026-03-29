@@ -134,7 +134,7 @@ class WordLocalDataSource(
     override suspend fun insertWords(words: List<Word>) {
         val entities = words.toEntityDataList()
         queries.transaction {
-            entities.forEach { entity ->
+            entities.zip(words).forEach { (entity, word) ->
                 if (entity.id == 0) {
                     queries.insertWord(
                         originalWord = entity.originalWord,
@@ -150,6 +150,12 @@ class WordLocalDataSource(
                         nextReviewDate = entity.nextReviewDate,
                         dateAdded = entity.dateAdded
                     )
+                    // Immediately capture the AUTOINCREMENT ID while still inside the transaction
+                    if (word.tagIds.isNotEmpty()) {
+                        val realId = queries.lastInsertRowId().executeAsOne()
+                        queries.deleteWordTagsForWord(realId)
+                        word.tagIds.forEach { tagId -> queries.insertWordTag(realId, tagId) }
+                    }
                 } else {
                     queries.upsertWord(
                         id = entity.id.toLong(),
@@ -166,25 +172,13 @@ class WordLocalDataSource(
                         nextReviewDate = entity.nextReviewDate,
                         dateAdded = entity.dateAdded
                     )
+                    // Only update tags when tagIds is non-empty — an empty list means "no tag info
+                    // provided" (e.g. words from a remote sync), so existing local tags are preserved.
+                    if (word.tagIds.isNotEmpty()) {
+                        queries.deleteWordTagsForWord(word.id.toLong())
+                        word.tagIds.forEach { tagId -> queries.insertWordTag(word.id.toLong(), tagId) }
+                    }
                 }
-            }
-            // Handle tags for existing words (real IDs known).
-            // Only update when tagIds is non-empty — an empty list means "no tag info provided"
-            // (e.g. words coming from a remote sync), so existing local tags are preserved.
-            words.filter { it.id != 0 && it.tagIds.isNotEmpty() }.forEach { word ->
-                queries.deleteWordTagsForWord(word.id.toLong())
-                word.tagIds.forEach { tagId ->
-                    queries.insertWordTag(word.id.toLong(), tagId)
-                }
-            }
-        }
-        // Handle tags for new words: look up real AUTOINCREMENT IDs after insert
-        words.filter { it.id == 0 && it.tagIds.isNotEmpty() }.forEach { word ->
-            val realId = queries.findWordByContent(word.originalWord, word.translation)
-                .awaitAsOneOrNull()?.id ?: return@forEach
-            queries.deleteWordTagsForWord(realId)
-            word.tagIds.forEach { tagId ->
-                queries.insertWordTag(realId, tagId)
             }
         }
     }

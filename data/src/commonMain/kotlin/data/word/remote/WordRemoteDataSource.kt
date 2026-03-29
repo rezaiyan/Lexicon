@@ -15,9 +15,14 @@ class WordRemoteDataSource(
     private val apiClient: ApiClient
 ) : IWordRemoteDataSource {
 
-    override suspend fun getWords(): Try<List<RemoteWord>> =
-        apiClient.get<List<RemoteWord>>("/words")
-            .map { it ?: emptyList() }
+    override suspend fun getWords(updatedAfter: Long?): Try<List<RemoteWord>> {
+        val path = if (updatedAfter != null) {
+            "/words?updatedAfter=$updatedAfter"
+        } else {
+            "/words"
+        }
+        return apiClient.get<List<RemoteWord>>(path).map { it ?: emptyList() }
+    }
 
     override suspend fun upsertWords(words: List<RemoteWord>): Try<Unit> =
         apiClient.postUnit(

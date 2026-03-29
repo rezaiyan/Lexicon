@@ -19,7 +19,7 @@ interface IWordRemoteSyncHandler {
         targetLanguage: String?
     ): Try<Unit>
 
-    suspend fun syncFromRemote(): Try<List<RemoteWord>>
+    suspend fun syncFromRemote(updatedAfter: Long = 0L): Try<List<RemoteWord>>
 }
 
 class WordRemoteSyncHandler(
@@ -68,9 +68,9 @@ class WordRemoteSyncHandler(
         return wordRemoteDataSource.batchUpdateLanguages(request)
     }
 
-    override suspend fun syncFromRemote(): Try<List<RemoteWord>> {
+    override suspend fun syncFromRemote(updatedAfter: Long): Try<List<RemoteWord>> {
         val trace = performanceTracer.startTrace("word_sync_from_remote")
-        return wordRemoteDataSource.getWords().also {
+        return wordRemoteDataSource.getWords(updatedAfter = updatedAfter.takeIf { it > 0 }).also {
             performanceTracer.stopTrace(trace)
         }
     }

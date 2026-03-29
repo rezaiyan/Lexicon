@@ -17,6 +17,7 @@ data class RemoteWord(
     val lastReviewDate: Long,
     val nextReviewDate: Long,
     val createdAt: Long? = null,
+    val updatedAt: Long? = null,
     val tagIds: List<Long> = emptyList()
 )
 

@@ -32,7 +32,7 @@ class WordRemoteSyncHandlerTest {
         var deletedIds: List<Long>? = null
         var batchUpdateRequest: BatchUpdateLanguagesRequest? = null
 
-        override suspend fun getWords(): Try<List<RemoteWord>> = getWordsResult
+        override suspend fun getWords(updatedAfter: Long?): Try<List<RemoteWord>> = getWordsResult
         override suspend fun upsertWords(words: List<RemoteWord>): Try<Unit> {
             upsertedWords = words
             return upsertWordsResult

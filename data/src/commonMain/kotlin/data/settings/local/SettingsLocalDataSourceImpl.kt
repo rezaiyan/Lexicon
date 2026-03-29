@@ -71,6 +71,13 @@ class SettingsLocalDataSourceImpl(
         queries.clearSettings()
     }
 
+    override suspend fun getWordSyncTimestamp(): Long =
+        queries.getWordSyncTimestamp().awaitAsOneOrNull() ?: 0L
+
+    override suspend fun setWordSyncTimestamp(timestamp: Long) {
+        queries.setWordSyncTimestamp(timestamp)
+    }
+
     override fun observeVoicePreferences(): Flow<Map<String, Int>> =
         queries.selectAllVoicePreferences().asFlow().mapToList(Dispatchers.Default)
             .map { rows -> rows.associate { it.languageCode to it.speakerId.toInt() } }
