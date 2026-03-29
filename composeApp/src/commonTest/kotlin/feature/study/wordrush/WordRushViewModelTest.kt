@@ -83,6 +83,34 @@ class WordRushViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `hasEnoughWords is true when 4 words exist at different learning stages`() {
+        // Regression: words at non-zero levels must NOT be excluded from Word Rush.
+        // A user with exactly 4 words spanning FRESH(0), FAMILIAR(2), ALMOST(4), MASTERED(6)
+        // must see hasEnoughWords = true.
+        val words = listOf(
+            Word(id = 1, originalWord = "word_1", translation = "translation_1", description = "desc_1", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 0, nextReviewDate = 0L),
+            Word(id = 2, originalWord = "word_2", translation = "translation_2", description = "desc_2", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 2, nextReviewDate = 0L),
+            Word(id = 3, originalWord = "word_3", translation = "translation_3", description = "desc_3", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 4, nextReviewDate = 0L),
+            Word(id = 4, originalWord = "word_4", translation = "translation_4", description = "desc_4", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 6, nextReviewDate = 0L),
+        )
+        val vm = createViewModel(words)
+        assertTrue(vm.currentState.hasEnoughWords)
+    }
+
+    @Test
+    fun `startGame succeeds when exactly 4 words exist at different learning stages`() = runTest {
+        val words = listOf(
+            Word(id = 1, originalWord = "word_1", translation = "translation_1", description = "desc_1", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 0, nextReviewDate = 0L),
+            Word(id = 2, originalWord = "word_2", translation = "translation_2", description = "desc_2", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 2, nextReviewDate = 0L),
+            Word(id = 3, originalWord = "word_3", translation = "translation_3", description = "desc_3", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 4, nextReviewDate = 0L),
+            Word(id = 4, originalWord = "word_4", translation = "translation_4", description = "desc_4", sourceLanguage = utils.Language.ENGLISH, targetLanguage = utils.Language.GERMAN, level = 6, nextReviewDate = 0L),
+        )
+        val vm = createViewModel(words)
+        vm.startGame()
+        assertIs<WordRushPhase.Playing>(vm.currentState.phase)
+    }
+
+    @Test
     fun `startGame transitions to Playing phase`() = runTest {
         val vm = createViewModel()
         vm.startGame()

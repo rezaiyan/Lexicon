@@ -61,23 +61,8 @@ ORDER BY
         ELSE -lastReviewDate
     END ASC;
 
-getWordsByLevelRange:
-SELECT * FROM WordEntity
-WHERE level >= :minLevel AND level <= :maxLevel
-ORDER BY
-    CASE WHEN nextReviewDate <= :currentTime THEN 0 ELSE 1 END,
-    CASE
-        WHEN nextReviewDate <= :currentTime THEN nextReviewDate
-        ELSE -lastReviewDate
-    END ASC;
-
 getWordById:
 SELECT * FROM WordEntity WHERE id = ?;
-
-findWordByContent:
-SELECT * FROM WordEntity
-WHERE LOWER(TRIM(originalWord)) = LOWER(TRIM(:originalWord))
-AND LOWER(TRIM(translation)) = LOWER(TRIM(:translation));
 
 deleteWord:
 DELETE FROM WordEntity WHERE id = ?;
@@ -88,38 +73,11 @@ DELETE FROM WordEntity WHERE id IN ?;
 updateWordLanguages:
 UPDATE WordEntity SET sourceLanguage = ?, targetLanguage = ? WHERE id IN ?;
 
-updateWordContent:
-UPDATE WordEntity SET originalWord = ?, translation = ?, description = ? WHERE id = ?;
-
 countWords:
 SELECT count(*) FROM WordEntity;
 
 countDueCards:
 SELECT count(*) FROM WordEntity WHERE nextReviewDate <= ?;
-
-countLevel0:
-SELECT count(*) FROM WordEntity WHERE level = 0;
-
-countLevel1:
-SELECT count(*) FROM WordEntity WHERE level = 1;
-
-countLevel2:
-SELECT count(*) FROM WordEntity WHERE level = 2;
-
-countLevel3:
-SELECT count(*) FROM WordEntity WHERE level = 3;
-
-countLevel4:
-SELECT count(*) FROM WordEntity WHERE level = 4;
-
-countLevel5:
-SELECT count(*) FROM WordEntity WHERE level = 5;
-
-countLevel6:
-SELECT count(*) FROM WordEntity WHERE level = 6;
-
-updateProgress:
-UPDATE WordEntity SET level = :level, easeFactor = :easeFactor, interval = :interval, repetitions = :repetitions, lastReviewDate = :lastReviewDate, nextReviewDate = :nextReviewDate WHERE id = :id;
 
 deleteAllWords:
 DELETE FROM WordEntity;
@@ -160,9 +118,6 @@ CREATE TABLE TtsVoicePreference (
 
 -- TtsVoicePreference queries
 
-selectVoiceForLanguage:
-SELECT speakerId FROM TtsVoicePreference WHERE languageCode = ?;
-
 selectVoicePreferenceForLanguage:
 SELECT speakerId, numSpeakers FROM TtsVoicePreference WHERE languageCode = ?;
 
@@ -188,9 +143,6 @@ CREATE TABLE WordTagEntity (
 );
 
 -- Tag queries
-
-countTags:
-SELECT count(*) FROM TagEntity;
 
 insertOrReplaceTag:
 INSERT OR REPLACE INTO TagEntity(id, name, createdAt, updatedAt)
@@ -220,9 +172,6 @@ WHERE w.nextReviewDate <= :currentTime
 GROUP BY t.id
 ORDER BY t.name ASC;
 
-getTagById:
-SELECT * FROM TagEntity WHERE id = ?;
-
 deleteTag:
 DELETE FROM TagEntity WHERE id = ?;
 
@@ -243,17 +192,11 @@ DELETE FROM WordTagEntity WHERE tagId = ?;
 countWordTags:
 SELECT count(*) FROM WordTagEntity;
 
-getAllWordTagMappings:
-SELECT wordId, tagId FROM WordTagEntity;
-
 getTagIdsForWord:
 SELECT tagId FROM WordTagEntity WHERE wordId = ?;
 
 getTagMappingsForWords:
 SELECT wordId, tagId FROM WordTagEntity WHERE wordId IN ?;
-
-deleteAllWordTags:
-DELETE FROM WordTagEntity;
 
 getDueCardsByTag:
 SELECT * FROM WordEntity
@@ -277,9 +220,6 @@ INSERT OR IGNORE INTO ReviewSyncQueue(wordId) VALUES (?);
 
 getAllReviewSyncEntries:
 SELECT wordId FROM ReviewSyncQueue;
-
-deleteReviewSyncEntries:
-DELETE FROM ReviewSyncQueue WHERE wordId IN ?;
 
 clearReviewSyncQueue:
 DELETE FROM ReviewSyncQueue;
@@ -339,9 +279,6 @@ INSERT OR IGNORE INTO WordRushPendingGames VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
 
 selectAllWordRushPendingGames:
 SELECT * FROM WordRushPendingGames;
-
-deleteWordRushPendingGameById:
-DELETE FROM WordRushPendingGames WHERE client_game_id = ?;
 
 deleteAllWordRushPendingGames:
 DELETE FROM WordRushPendingGames;

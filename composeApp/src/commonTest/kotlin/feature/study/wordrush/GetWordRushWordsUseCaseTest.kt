@@ -65,4 +65,23 @@ class GetWordRushWordsUseCaseTest {
         val result = useCase(4)
         assertTrue(result.isSuccess)
     }
+
+    @Test
+    fun `succeeds when 4 words span different learning stages`() = runTest {
+        // Regression: words at non-zero levels must NOT be excluded from Word Rush.
+        // A user with words at FRESH(0), FAMILIAR(2), ALMOST(4), MASTERED(6) should be able to play.
+        val words = listOf(
+            Word(id = 1, originalWord = "word_1", translation = "translation_1", description = "desc_1", sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN, level = 0, nextReviewDate = 0L),
+            Word(id = 2, originalWord = "word_2", translation = "translation_2", description = "desc_2", sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN, level = 2, nextReviewDate = 0L),
+            Word(id = 3, originalWord = "word_3", translation = "translation_3", description = "desc_3", sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN, level = 4, nextReviewDate = 0L),
+            Word(id = 4, originalWord = "word_4", translation = "translation_4", description = "desc_4", sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN, level = 6, nextReviewDate = 0L),
+        )
+        val useCase = GetWordRushWordsUseCase(fakeRepo(words))
+        val result = useCase(GetWordRushWordsUseCase.MINIMUM_WORDS)
+        assertTrue(result.isSuccess)
+        result.fold(
+            onSuccess = { assertEquals(GetWordRushWordsUseCase.MINIMUM_WORDS, it.size) },
+            onFailure = { throw it },
+        )
+    }
 }

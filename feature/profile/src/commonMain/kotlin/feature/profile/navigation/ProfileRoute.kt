@@ -58,34 +58,47 @@ fun OverlayHost.showProfileSheet(snackbarHostState: SnackbarHostState) {
 
         BottomSheetPages(
             navigator = pages,
+            onClose = { sheetNav.dismiss() },
             pageConfig = { page ->
                 when (page) {
                     is ProfileSheetPage.Profile -> BottomSheetPageConfig(
                         showBackButton = false,
+                        showCloseButton = false,
+                        properties = BottomSheetProperties(),
                     )
+
                     is ProfileSheetPage.Options -> BottomSheetPageConfig(
                         showBackButton = true,
+                        showCloseButton = false,
+                        properties = BottomSheetProperties(),
                     )
+
                     is ProfileSheetPage.EditProfile -> BottomSheetPageConfig(
                         showBackButton = true,
                         showCloseButton = false,
-                        properties = BottomSheetProperties(
-                            dismissOnTouchOutside = false,
-                            sheetGesturesEnabled = false,
-                        ),
+                        properties = BottomSheetProperties(),
                     )
+
                     is ProfileSheetPage.AvatarOptions -> BottomSheetPageConfig(
                         showBackButton = true,
                         showCloseButton = false,
+                        properties = BottomSheetProperties(),
                     )
-                    is ProfileSheetPage.DeleteConfirm -> BottomSheetPageConfig()
+
+                    is ProfileSheetPage.DeleteConfirm -> BottomSheetPageConfig(
+                        showCloseButton = false,
+                        properties = BottomSheetProperties(),
+                    )
+
                     is ProfileSheetPage.DeleteCooling -> BottomSheetPageConfig(
-                        properties = BottomSheetProperties(
-                            dismissOnTouchOutside = false,
-                            sheetGesturesEnabled = false,
-                        ),
+                        showCloseButton = false,
+                        properties = BottomSheetProperties(),
                     )
-                    is ProfileSheetPage.Logout -> BottomSheetPageConfig()
+
+                    is ProfileSheetPage.Logout -> BottomSheetPageConfig(
+                        showCloseButton = false,
+                        properties = BottomSheetProperties(),
+                    )
                 }
             },
         ) { currentPage ->
@@ -95,10 +108,12 @@ fun OverlayHost.showProfileSheet(snackbarHostState: SnackbarHostState) {
                     onMoreOptions = { pages.navigateTo(ProfileSheetPage.Options) },
                     onLogout = { pages.navigateTo(ProfileSheetPage.Logout) },
                 )
+
                 is ProfileSheetPage.Options -> ProfileMoreOptionsSheet(
                     onEditProfile = { pages.navigateTo(ProfileSheetPage.EditProfile) },
                     onDeleteAccount = { pages.navigateTo(ProfileSheetPage.DeleteConfirm) },
                 )
+
                 is ProfileSheetPage.EditProfile -> EditProfileSheetContent(
                     viewModel = editProfileViewModel,
                     onChangeAvatar = { pages.navigateTo(ProfileSheetPage.AvatarOptions) },
@@ -107,6 +122,7 @@ fun OverlayHost.showProfileSheet(snackbarHostState: SnackbarHostState) {
                         scope.launch { snackbarHostState.showSnackbar(profileUpdatedMessage) }
                     },
                 )
+
                 is ProfileSheetPage.AvatarOptions -> AvatarOptionsPage(
                     hasExistingAvatar = editProfileState.profileImageUrl != null,
                     onChooseFromGallery = {
@@ -118,10 +134,12 @@ fun OverlayHost.showProfileSheet(snackbarHostState: SnackbarHostState) {
                         editProfileViewModel.deleteAvatar()
                     },
                 )
+
                 is ProfileSheetPage.DeleteConfirm -> DeleteAccountHiddenContent(
                     onConfirm = { pages.navigateTo(ProfileSheetPage.DeleteCooling) },
                     onDismiss = { sheetNav.dismiss() },
                 )
+
                 is ProfileSheetPage.DeleteCooling -> DeleteAccountCoolingContent(
                     onConfirm = {
                         sheetNav.dismiss()
@@ -129,6 +147,7 @@ fun OverlayHost.showProfileSheet(snackbarHostState: SnackbarHostState) {
                     },
                     onDismiss = { sheetNav.dismiss() },
                 )
+
                 is ProfileSheetPage.Logout -> LogoutDialogContent(
                     onConfirm = {
                         sheetNav.dismiss()
