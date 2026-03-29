@@ -3,8 +3,8 @@ tags:
   - word-manager
   - tags
 ---
-# Test: "Assign Tags" button in the word detail sheet opens the tag assignment
-# bottom sheet. When no tags exist the empty state is shown. Tapping "Assign Tags"
+# Test: "Assign Tag" button in the word detail sheet opens the tag assignment
+# bottom sheet. When no tags exist the empty state is shown. Tapping "Assign Tag"
 # (save) dismisses the sheet.
 #
 # Creates a test word first to ensure at least one word exists in the library.
@@ -29,15 +29,15 @@ tags:
 # The detail sheet must be visible.
 - assertVisible: "Learning Progress"
 
-# The "Assign Tags" button must be present in the detail sheet.
-- assertVisible: "Assign Tags"
+# The "Assign Tag" button must be present in the detail sheet.
+- assertVisible: "Assign Tag"
 
-# Tap "Assign Tags" to open the tag assignment bottom sheet.
-- tapOn: "Assign Tags"
+# Tap "Assign Tag" to open the tag assignment bottom sheet.
+- tapOn: "Assign Tag"
 
 # The assignment sheet title must appear.
 - extendedWaitUntil:
-    visible: "Assign Tags"
+    visible: "Assign Tag"
     timeout: 8000
 
 # The word name must be shown as context below the title.
@@ -51,10 +51,10 @@ tags:
 - assertVisible: "No tags yet"
 
 # The save button must still be present (enabled even with no tags).
-- assertVisible: "Assign Tags"
+- assertVisible: "Assign Tag"
 
 # Tap save — dismisses the sheet (no-op when no tags are selected).
-- tapOn: "Assign Tags"
+- tapOn: "Assign Tag"
 - waitForAnimationToEnd
 
 # Wait for the sheet dismiss animation before asserting the detail sheet is back.

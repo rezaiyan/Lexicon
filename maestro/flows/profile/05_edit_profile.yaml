@@ -52,11 +52,11 @@ tags:
 # Tap "Save" to submit the profile update.
 - tapOn: "Save"
 
-# After a successful save the sheet dismisses and we return to the Profile screen.
+# After a successful save, navigateBack() returns to the Options page.
 # Wait generously to accommodate the network round-trip for the profile save.
 - extendedWaitUntil:
-    visible: "Leaderboard"
+    visible: "Delete Account"
     timeout: 15000
 
-# The edit screen title must no longer be visible (screen was dismissed).
+# The Save button must no longer be visible (EditProfile screen was dismissed).
 - assertNotVisible: "Save"

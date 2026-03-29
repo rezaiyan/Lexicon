@@ -46,8 +46,7 @@ tags:
 - assertNotVisible:
     text: "Cancel"
 
-# We should still be on the Profile screen with the user logged in.
+# We should still be on the Profile sheet with the user logged in.
 - extendedWaitUntil:
-    visible: "Profile"
+    visible: "Logout"
     timeout: 5000
-- assertVisible: "Leaderboard"
