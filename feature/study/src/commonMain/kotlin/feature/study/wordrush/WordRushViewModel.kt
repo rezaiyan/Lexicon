@@ -7,6 +7,7 @@ import core.common.fold
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
 import domain.wordrush.model.WordRushGameRecord
+import domain.wordrush.model.WordRushGrade
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -55,7 +56,7 @@ sealed interface WordRushPhase {
         val isNewBest: Boolean,
         val accuracy: Float,
         val avgResponseTimeMs: Long,
-        val grade: String,
+        val grade: WordRushGrade,
         val livesRemaining: Int,
     ) : WordRushPhase
 
@@ -364,7 +365,7 @@ class WordRushViewModel(
         val totalQuestions = questions.size
         val accuracy = if (totalQuestions > 0) correctCount.toFloat() / totalQuestions else 0f
         val avgResponseTimeMs = if (responseTimes.isNotEmpty()) responseTimes.average().toLong() else 0L
-        val grade = calculateGrade(accuracy)
+        val grade = WordRushGrade.fromAccuracy(accuracy)
 
         updateState {
             copy(
@@ -439,12 +440,5 @@ class WordRushViewModel(
             else -> 0
         }
 
-        fun calculateGrade(accuracy: Float): String = when {
-            accuracy >= 0.9f -> "S"
-            accuracy >= 0.8f -> "A"
-            accuracy >= 0.6f -> "B"
-            accuracy >= 0.4f -> "C"
-            else -> "D"
-        }
     }
 }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -17,7 +16,6 @@ import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Sell
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
@@ -62,7 +60,6 @@ import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.insights_title
-import lexicon.resources.generated.resources.more_options
 import lexicon.resources.generated.resources.profile
 import lexicon.resources.generated.resources.skip_tag_selector_label
 import org.jetbrains.compose.resources.stringResource

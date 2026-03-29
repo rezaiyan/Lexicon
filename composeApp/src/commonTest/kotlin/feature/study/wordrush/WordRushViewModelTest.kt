@@ -5,6 +5,7 @@ import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeAnalyticsTracker
 import domain.wordrush.model.WordRushGameRecord
+import domain.wordrush.model.WordRushGrade
 import domain.wordrush.repository.IWordRushRecorder
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import fakes.FakeWordRepository
@@ -308,7 +309,6 @@ class WordRushViewModelTest : ViewModelTestBase() {
             }
         }
 
-        val phase = vm.currentState.phase as WordRushPhase.Playing
         vm.usePowerUp(WordRushPowerUp.FiftyFifty)
 
         val updated = vm.currentState.phase as WordRushPhase.Playing
@@ -331,7 +331,6 @@ class WordRushViewModelTest : ViewModelTestBase() {
             }
         }
 
-        val phase = vm.currentState.phase as WordRushPhase.Playing
         vm.usePowerUp(WordRushPowerUp.Peek)
 
         val updated = vm.currentState.phase as WordRushPhase.Playing
@@ -403,33 +402,33 @@ class WordRushViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `grade is S for 90 percent or higher accuracy`() {
-        assertEquals("S", WordRushViewModel.calculateGrade(0.9f))
-        assertEquals("S", WordRushViewModel.calculateGrade(1.0f))
-        assertEquals("S", WordRushViewModel.calculateGrade(0.95f))
+        assertEquals(WordRushGrade.S, WordRushGrade.fromAccuracy(0.9f))
+        assertEquals(WordRushGrade.S, WordRushGrade.fromAccuracy(1.0f))
+        assertEquals(WordRushGrade.S, WordRushGrade.fromAccuracy(0.95f))
     }
 
     @Test
     fun `grade is A for 80 to 89 percent accuracy`() {
-        assertEquals("A", WordRushViewModel.calculateGrade(0.8f))
-        assertEquals("A", WordRushViewModel.calculateGrade(0.89f))
+        assertEquals(WordRushGrade.A, WordRushGrade.fromAccuracy(0.8f))
+        assertEquals(WordRushGrade.A, WordRushGrade.fromAccuracy(0.89f))
     }
 
     @Test
     fun `grade is B for 60 to 79 percent accuracy`() {
-        assertEquals("B", WordRushViewModel.calculateGrade(0.6f))
-        assertEquals("B", WordRushViewModel.calculateGrade(0.79f))
+        assertEquals(WordRushGrade.B, WordRushGrade.fromAccuracy(0.6f))
+        assertEquals(WordRushGrade.B, WordRushGrade.fromAccuracy(0.79f))
     }
 
     @Test
     fun `grade is C for 40 to 59 percent accuracy`() {
-        assertEquals("C", WordRushViewModel.calculateGrade(0.4f))
-        assertEquals("C", WordRushViewModel.calculateGrade(0.59f))
+        assertEquals(WordRushGrade.C, WordRushGrade.fromAccuracy(0.4f))
+        assertEquals(WordRushGrade.C, WordRushGrade.fromAccuracy(0.59f))
     }
 
     @Test
     fun `grade is D for below 40 percent accuracy`() {
-        assertEquals("D", WordRushViewModel.calculateGrade(0.0f))
-        assertEquals("D", WordRushViewModel.calculateGrade(0.39f))
+        assertEquals(WordRushGrade.D, WordRushGrade.fromAccuracy(0.0f))
+        assertEquals(WordRushGrade.D, WordRushGrade.fromAccuracy(0.39f))
     }
 
     // ── Speed bonus tests ─────────────────────────────────────────────────
@@ -471,7 +470,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val result = vm.currentState.phase
         if (result is WordRushPhase.Result) {
             assertEquals(1.0f, result.accuracy)
-            assertEquals("S", result.grade)
+            assertEquals(WordRushGrade.S, result.grade)
             assertEquals(10, result.correctCount)
         }
     }
@@ -496,7 +495,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val result = vm.currentState.phase
         if (result is WordRushPhase.Result) {
             assertEquals(0.6f, result.accuracy)
-            assertEquals("B", result.grade)
+            assertEquals(WordRushGrade.B, result.grade)
             assertEquals(6, result.correctCount)
         }
     }

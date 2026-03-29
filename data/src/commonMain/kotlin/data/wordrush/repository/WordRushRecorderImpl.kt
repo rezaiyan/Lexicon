@@ -6,6 +6,7 @@ import data.core.database.LexiconQueries
 import data.wordrush.toSyncRequest
 import data.wordrush.remote.IWordRushDataSource
 import domain.wordrush.model.WordRushGameRecord
+import domain.wordrush.model.WordRushGrade
 import domain.wordrush.repository.IWordRushRecorder
 import expects.logNetwork
 
@@ -28,7 +29,7 @@ class WordRushRecorderImpl(
             best_streak = game.bestStreak.toLong(),
             duration_ms = game.durationMs,
             avg_response_ms = game.avgResponseMs,
-            grade = game.grade,
+            grade = game.grade.code,
             lives_remaining = game.livesRemaining.toLong(),
             completed_normally = if (game.completedNormally) 1L else 0L,
             played_at = game.playedAt,
@@ -53,7 +54,7 @@ class WordRushRecorderImpl(
                 bestStreak = row.best_streak.toInt(),
                 durationMs = row.duration_ms,
                 avgResponseMs = row.avg_response_ms,
-                grade = row.grade,
+                grade = WordRushGrade.fromCode(row.grade),
                 livesRemaining = row.lives_remaining.toInt(),
                 completedNormally = row.completed_normally != 0L,
                 playedAt = row.played_at,

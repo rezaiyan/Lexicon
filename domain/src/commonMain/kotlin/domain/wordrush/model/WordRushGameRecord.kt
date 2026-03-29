@@ -8,7 +8,7 @@ data class WordRushGameRecord(
     val bestStreak: Int,
     val durationMs: Long,
     val avgResponseMs: Long,
-    val grade: String,
+    val grade: WordRushGrade,
     val livesRemaining: Int,
     val completedNormally: Boolean,
     val playedAt: Long,
