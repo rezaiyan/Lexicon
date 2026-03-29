@@ -4,6 +4,7 @@ import data.core.database.SettingsEntityData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
+@Suppress("TooManyFunctions")
 interface ISettingsLocalDataSource {
     fun observeSettings(): Flow<SettingsEntityData?>
     suspend fun getSettings(): SettingsEntityData?

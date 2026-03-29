@@ -95,10 +95,6 @@ class WordRushViewModel(
 
     init {
         analyticsTracker.logScreenView("WordRush")
-        checkWordAvailability()
-    }
-
-    private fun checkWordAvailability() {
         viewModelScope.launch {
             getWordRushWordsUseCase(GetWordRushWordsUseCase.MINIMUM_WORDS).fold(
                 onSuccess = { updateState { copy(hasEnoughWords = true) } },
@@ -146,41 +142,7 @@ class WordRushViewModel(
         var isGameOver = false
 
         if (isCorrect) {
-            currentStreak++
-            correctCount++
-            if (currentStreak > bestSessionStreak) bestSessionStreak = currentStreak
-
-            val multiplier = calculateMultiplier(currentStreak)
-            val speedBonus = calculateSpeedBonus(answerTimeMs)
-            val pointsEarned = (1 * multiplier) + speedBonus
-            score += pointsEarned
-
-            val earnedPowerUp: WordRushPowerUp? = when (currentStreak) {
-                3 -> WordRushPowerUp.Freeze
-                5 -> WordRushPowerUp.FiftyFifty
-                8 -> WordRushPowerUp.Peek
-                else -> null
-            }
-            val updatedPowerUps = if (earnedPowerUp != null && !phase.powerUps.contains(earnedPowerUp)) {
-                phase.powerUps + earnedPowerUp
-            } else {
-                phase.powerUps
-            }
-
-            updateState {
-                copy(
-                    phase = phase.copy(
-                        selectedIndex = index,
-                        isCorrect = true,
-                        streak = currentStreak,
-                        score = score,
-                        multiplier = multiplier,
-                        lastPointsEarned = pointsEarned,
-                        answerTimeMs = answerTimeMs,
-                        powerUps = updatedPowerUps,
-                    ),
-                )
-            }
+            processCorrectAnswer(phase, index, answerTimeMs)
         } else {
             currentStreak = 0
             val newLives = (phase.lives - 1).coerceAtLeast(0)
@@ -203,7 +165,50 @@ class WordRushViewModel(
 
         viewModelScope.launch {
             delay(ANSWER_REVEAL_MS)
-            if (isGameOver) finishGame() else advanceOrFinish()
+            if (isGameOver) {
+                finishGame()
+            } else {
+                currentIndex++
+                if (currentIndex < questions.size) showQuestion() else finishGame()
+            }
+        }
+    }
+
+    private fun processCorrectAnswer(phase: WordRushPhase.Playing, index: Int, answerTimeMs: Long) {
+        currentStreak++
+        correctCount++
+        if (currentStreak > bestSessionStreak) bestSessionStreak = currentStreak
+
+        val multiplier = calculateMultiplier(currentStreak)
+        val speedBonus = calculateSpeedBonus(answerTimeMs)
+        val pointsEarned = (1 * multiplier) + speedBonus
+        score += pointsEarned
+
+        val earnedPowerUp: WordRushPowerUp? = when (currentStreak) {
+            3 -> WordRushPowerUp.Freeze
+            5 -> WordRushPowerUp.FiftyFifty
+            8 -> WordRushPowerUp.Peek
+            else -> null
+        }
+        val updatedPowerUps = if (earnedPowerUp != null && !phase.powerUps.contains(earnedPowerUp)) {
+            phase.powerUps + earnedPowerUp
+        } else {
+            phase.powerUps
+        }
+
+        updateState {
+            copy(
+                phase = phase.copy(
+                    selectedIndex = index,
+                    isCorrect = true,
+                    streak = currentStreak,
+                    score = score,
+                    multiplier = multiplier,
+                    lastPointsEarned = pointsEarned,
+                    answerTimeMs = answerTimeMs,
+                    powerUps = updatedPowerUps,
+                ),
+            )
         }
     }
 
@@ -293,16 +298,12 @@ class WordRushViewModel(
 
         viewModelScope.launch {
             delay(ANSWER_REVEAL_MS)
-            if (isGameOver) finishGame() else advanceOrFinish()
-        }
-    }
-
-    private fun advanceOrFinish() {
-        currentIndex++
-        if (currentIndex < questions.size) {
-            showQuestion()
-        } else {
-            finishGame()
+            if (isGameOver) {
+                finishGame()
+            } else {
+                currentIndex++
+                if (currentIndex < questions.size) showQuestion() else finishGame()
+            }
         }
     }
 
@@ -386,7 +387,7 @@ class WordRushViewModel(
         emitEffect(WordRushEffect.GameComplete)
 
         val record = WordRushGameRecord(
-            clientGameId = generateClientGameId(),
+            clientGameId = "wr_${Clock.System.now().toEpochMilliseconds()}_${(0..9999).random()}",
             score = score,
             totalQuestions = totalQuestions,
             correctCount = correctCount,
@@ -400,9 +401,6 @@ class WordRushViewModel(
         )
         viewModelScope.launch { recordWordRushGameUseCase(record) }
     }
-
-    private fun generateClientGameId(): String =
-        "wr_${Clock.System.now().toEpochMilliseconds()}_${(0..9999).random()}"
 
     private fun buildQuestions(words: List<Word>): List<WordRushQuestion> {
         return words.map { word ->

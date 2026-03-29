@@ -45,7 +45,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.outlined.AcUnit
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -526,6 +525,11 @@ private fun OptionsColumn(
                 label = "option-press-scale-$index",
             )
 
+            val shouldHighlightBorder = isPeekTarget || (hasAnswered && (isCorrectOption || isSelected))
+            val optionFontWeight = when {
+                isPeekTarget || (hasAnswered && isCorrectOption) -> FontWeight.Bold
+                else -> FontWeight.Normal
+            }
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -543,7 +547,7 @@ private fun OptionsColumn(
                     ) { onSelectAnswer(index) },
                 colors = CardDefaults.cardColors(containerColor = backgroundColor),
                 border = BorderStroke(
-                    width = if (isPeekTarget || (hasAnswered && (isCorrectOption || isSelected))) 2.dp else 1.dp,
+                    width = if (shouldHighlightBorder) 2.dp else 1.dp,
                     color = borderColor,
                 ),
             ) {
@@ -573,7 +577,7 @@ private fun OptionsColumn(
                     Text(
                         text = option,
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = if (isPeekTarget || (hasAnswered && isCorrectOption)) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = optionFontWeight,
                         color = textColor,
                         modifier = Modifier.weight(1f),
                     )
