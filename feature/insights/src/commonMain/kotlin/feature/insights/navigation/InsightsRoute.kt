@@ -13,13 +13,19 @@ data object InsightsRoute
 
 fun NavGraphBuilder.insightsGraph(
     onNavigateBack: () -> Unit,
+    onShowLeaderboard: () -> Unit = {},
 ) {
     composable<InsightsRoute> {
-        InsightsScreen(onNavigateBack = onNavigateBack)
+        InsightsScreen(
+            onNavigateBack = onNavigateBack,
+            onShowLeaderboard = onShowLeaderboard,
+        )
     }
 }
 
-fun OverlayHost.showInsightsSheet() {
+fun OverlayHost.showInsightsSheet(
+    onShowLeaderboard: () -> Unit = {},
+) {
     showFullScreen(
         tag = "insights",
         properties = FullScreenProperties(
@@ -28,6 +34,9 @@ fun OverlayHost.showInsightsSheet() {
             isStatusBarsPaddingEnabled = false,
         ),
     ) { navigator ->
-        InsightsScreen(onNavigateBack = { navigator.dismiss() })
+        InsightsScreen(
+            onNavigateBack = { navigator.dismiss() },
+            onShowLeaderboard = onShowLeaderboard,
+        )
     }
 }

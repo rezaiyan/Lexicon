@@ -101,7 +101,6 @@ fun WordRushGameScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) { detectTapGestures { } }
             .padding(Theme.spacing.md),
     ) {

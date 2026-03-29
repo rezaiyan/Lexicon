@@ -15,7 +15,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import org.koin.compose.koinInject
 import feature.insights.navigation.insightsGraph
+import feature.leaderboard.navigation.showLeaderboard
 import feature.profile.navigation.profileGraph
+import overlay.LocalOverlayHost
 import feature.subscription.navigation.SubscriptionRoute
 import feature.subscription.navigation.subscriptionGraph
 import presentation.model.TabDestination
@@ -28,6 +30,7 @@ internal fun NavigationGraph(
     navController: NavHostController,
 ) {
     val snackbarHostState = LocalSnackbarHostState.current
+    val overlayHost = LocalOverlayHost.current
     val analyticsTracker = koinInject<IAnalyticsTracker>()
 
     DisposableEffect(navController) {
@@ -63,6 +66,7 @@ internal fun NavigationGraph(
 
         insightsGraph(
             onNavigateBack = { navController.navigateUp() },
+            onShowLeaderboard = { overlayHost.showLeaderboard() },
         )
 
         // Presentation-owned routes (screens still in :presentation)

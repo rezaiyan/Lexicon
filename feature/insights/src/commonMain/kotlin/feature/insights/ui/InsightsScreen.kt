@@ -32,6 +32,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.EmojiEvents
+import components.scaffold.ActionIconConfig
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -92,6 +94,7 @@ import lexicon.resources.generated.resources.insights_best_study_time
 import lexicon.resources.generated.resources.insights_cards_reviewed
 import lexicon.resources.generated.resources.insights_days_studied
 import lexicon.resources.generated.resources.insights_level_format
+import lexicon.resources.generated.resources.leaderboard
 import lexicon.resources.generated.resources.insights_load_error
 import lexicon.resources.generated.resources.insights_loading
 import lexicon.resources.generated.resources.insights_loading_levels
@@ -118,6 +121,7 @@ import theme.Theme
 @Composable
 fun InsightsScreen(
     onNavigateBack: () -> Unit,
+    onShowLeaderboard: () -> Unit = {},
 ) {
     val viewModel = koinViewModel<InsightsViewModel>()
     val state by viewModel.state()
@@ -129,6 +133,7 @@ fun InsightsScreen(
     InsightsContent(
         state = state,
         onNavigateBack = onNavigateBack,
+        onShowLeaderboard = onShowLeaderboard,
         onDismissInsight = { viewModel.dismissDailyInsight() },
         onRetry = { viewModel.refresh() },
     )
@@ -138,6 +143,7 @@ fun InsightsScreen(
 internal fun InsightsContent(
     state: InsightsState,
     onNavigateBack: () -> Unit,
+    onShowLeaderboard: () -> Unit = {},
     onDismissInsight: () -> Unit = {},
     onRetry: () -> Unit = {},
 ) {
@@ -148,6 +154,12 @@ internal fun InsightsContent(
         onNavigationClick = onNavigateBack,
         scrollable = false,
         topBarColor = TopBarColor.Background,
+        actionIcon1 = ActionIconConfig(
+            icon = Icons.Rounded.EmojiEvents,
+            contentDescription = stringResource(Res.string.leaderboard),
+            onClick = onShowLeaderboard,
+            size = Theme.dimensions.iconSize,
+        ),
     ) {
         if (!state.isLoaded) {
             LoadingScreen(message = stringResource(Res.string.insights_loading))

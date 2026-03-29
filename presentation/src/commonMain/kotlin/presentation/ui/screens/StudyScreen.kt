@@ -8,14 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.rounded.MenuBook
@@ -24,7 +20,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -65,7 +60,6 @@ import feature.study.wordrush.WordRushEffect
 import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.dashboard
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.insights_title
 import lexicon.resources.generated.resources.more_options
@@ -221,16 +215,9 @@ fun StudyScreen() {
     LexiconColumn(
         title = null,
         showNavigationIcon = true,
-        navigationIcon = Icons.Default.MoreVert,
-        navigationIconContentDescription = stringResource(Res.string.more_options),
-        onNavigationClick = {
-            overlayHost.showSizeToFitBottomSheet(tag = "study-menu") { nav ->
-                StudyMenuSheet(
-                    onProfile = { nav.dismiss(); overlayHost.showProfileSheet(snackbarHostState) },
-                    onDashboard = { nav.dismiss(); overlayHost.showLeaderboard() },
-                )
-            }
-        },
+        navigationIcon = Icons.Default.Person,
+        navigationIconContentDescription = stringResource(Res.string.profile),
+        onNavigationClick = { overlayHost.showProfileSheet(snackbarHostState) },
         scrollState = scrollState,
         collapsedContent = {
             CollapsedStatsBar(
@@ -241,7 +228,7 @@ fun StudyScreen() {
         actionIcon1 = ActionIconConfig(
             icon = Icons.Default.Insights,
             contentDescription = stringResource(Res.string.insights_title),
-            onClick = { overlayHost.showInsightsSheet() },
+            onClick = { overlayHost.showInsightsSheet(onShowLeaderboard = { overlayHost.showLeaderboard() }) },
             size = Theme.dimensions.iconSize,
         ),
         actionIcon2 = ActionIconConfig(
@@ -427,57 +414,6 @@ fun StudyScreen() {
     }
 }
 
-@Composable
-private fun StudyMenuSheet(
-    onProfile: () -> Unit,
-    onDashboard: () -> Unit,
-) {
-    Column(modifier = Modifier.padding(vertical = Theme.spacing.sm)) {
-        StudyMenuItem(
-            icon = Icons.Default.Person,
-            label = stringResource(Res.string.profile),
-            onClick = onProfile,
-        )
-        StudyMenuItem(
-            icon = Icons.Default.Dashboard,
-            label = stringResource(Res.string.dashboard),
-            onClick = onDashboard,
-        )
-        Spacer(Modifier.height(Theme.spacing.sm))
-    }
-}
-
-@Composable
-private fun StudyMenuItem(
-    icon: ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(Theme.dimensions.iconSize),
-            )
-            Spacer(Modifier.width(Theme.spacing.md))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-    }
-}
 
 @Composable
 private fun ReviewSelectorSheetContent(
