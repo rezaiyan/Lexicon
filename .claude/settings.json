@@ -50,5 +50,29 @@
   },
   "enabledPlugins": {
     "everything-claude-code@everything-claude-code": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-edit-block-secrets.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/post-edit-detekt.sh"
+          }
+        ]
+      }
+    ]
   }
 }
