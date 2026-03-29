@@ -6,32 +6,131 @@ tags:
 ---
 # Test: Review session completes normally when all cards are rated "Nope".
 #
-# Mirrors 04_review_completion.yaml but uses the "Nope" (hard/again) button
-# exclusively instead of "Got it!". Verifies that:
-#   - The review loop accepts "Nope" ratings without error or stalling.
-#   - The completion screen ("Done") appears after all cards are rated.
-#   - Stats are shown and the "Done" tap returns to the Study screen.
+# Uses a tag-filtered 1-word session to avoid the ~15-minute loop previously
+# needed to exhaust all accumulated words in the test account.
 #
-# Note: The test account may have accumulated many words from server sync and
-# previous test runs. The loop count must be high enough to exhaust all due
-# cards. Using 100 iterations matches the ceiling in 04_review_completion.yaml.
+# "Nope" (hard/again) re-queues the card at the back of the session, so the
+# session completes after a small number of iterations. A 20-iteration loop
+# handles any re-queuing without risk of timeout.
 #
-# The waitForAnimationToEnd before each flip tap is required: after a "Nope"
-# rating the SRS deck animator transitions to the next card (or reshuffles the
-# same card to the back of the queue) with a brief intermediate state where
-# neither "Tap card to reveal" nor "Nope" is visible. Waiting prevents the
-# flip tap from landing on an element mid-animation.
+# Flow:
+#   Setup   — create "NopeTag", add test word, assign "NopeTag" to it
+#   Test    — long-press "Start Review" → select "NopeTag" → flip →
+#             rate "Nope" in loop until "Done" appears → tap "Done"
+#   Teardown — delete "NopeTag"
+
+# ── Setup: Create tag ─────────────────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+- extendedWaitUntil:
+    visible: "Tag Manager"
+    timeout: 8000
+
+- tapOn: "New Tag"
+
+- extendedWaitUntil:
+    visible: "New Tag"
+    timeout: 5000
+
+- tapOn: "Tag name"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "NopeTag"
+- hideKeyboard
+
+- tapOn: "Create Tag"
+- waitForAnimationToEnd
+
+- extendedWaitUntil:
+    visible: "NopeTag"
+    timeout: 5000
+
+# Close Tag Manager (dismissOnBackPress=false — must tap Close).
+- tapOn: "Close"
+
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000
+
+# ── Setup: Add a test word ────────────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# ── Setup: Assign tag to the test word ───────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 15000
+
+# Open the detail sheet for the test word.
+- tapOn: "${output.word}"
+
+# Wait for the detail sheet to appear.
+- assertVisible: "Learning Progress"
+
+# Open tag assignment.
+- tapOn: "Assign Tag"
+
+- extendedWaitUntil:
+    visible: "Assign Tag"
+    timeout: 8000
+
+# Select the "NopeTag" chip.
+- assertVisible: "NopeTag"
+- tapOn: "NopeTag"
+- waitForAnimationToEnd
+
+# Save the assignment.
+- tapOn: "Assign Tag"
+- waitForAnimationToEnd
+
+# Wait for the Assign Tag sheet to dismiss and detail sheet to reappear.
+- extendedWaitUntil:
+    visible: "Learning Progress"
+    timeout: 5000
+
+# Dismiss the detail sheet.
+- pressKey: back
+
+# ── Test: Tag-filtered review completes with "Nope" ratings ──────────────────
 
 - runFlow: ../utils/navigate_to_study.yaml
 
-# Add a test word so we have at least one word to review.
-- runFlow: ../utils/add_test_word.yaml
+# Wait for "Start Review" to appear.
+- extendedWaitUntil:
+    visible: "Start Review"
+    timeout: 8000
 
-# Start a review session.
-- tapOn: "Start Review"
+# Long-press "Start Review" to open the tag-filter picker.
+- longPressOn: "Start Review"
 
-# Wait for the review card to appear.
-- assertVisible: "Tap card to reveal"
+# The picker sheet must appear with the "Tags" section header.
+- extendedWaitUntil:
+    visible: "Tags"
+    timeout: 8000
+
+# "NopeTag" must be listed.
+- assertVisible: "NopeTag"
+
+# Tap the tag to start a 1-word tag-filtered review.
+- tapOn: "NopeTag"
+- waitForAnimationToEnd
+
+# The review card must appear.
+- extendedWaitUntil:
+    visible: "Tap card to reveal"
+    timeout: 8000
 
 # Flip the first card.
 - tapOn:
@@ -39,14 +138,14 @@ tags:
 
 - waitForAnimationToEnd
 
-# Rate the first card as "Nope".
+# Rate the card as "Nope".
 - tapOn: "Nope"
 - waitForAnimationToEnd
 
 # Continue flipping and rating "Nope" until the completion screen appears.
-# Loop body order: wait for card transition → flip → wait → rate.
+# With 1 word, the SRS may re-queue it a few times before completing the session.
 - repeat:
-    times: 100
+    times: 20
     while:
       notVisible: "Done"
     commands:
@@ -71,4 +170,38 @@ tags:
 # We should be back on the Study screen.
 - extendedWaitUntil:
     visible: "Import Words"
+    timeout: 5000
+
+# ── Teardown: Delete "NopeTag" ────────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+- extendedWaitUntil:
+    visible: "NopeTag"
+    timeout: 8000
+
+- tapOn: "Delete Tag"
+
+- extendedWaitUntil:
+    visible: "Delete Tag"
+    timeout: 5000
+
+- tapOn: "Delete Tag"
+- waitForAnimationToEnd
+
+# Empty state must appear — confirms the tag was deleted.
+- assertVisible: "No tags yet"
+
+# Close Tag Manager.
+- tapOn: "Close"
+
+- extendedWaitUntil:
+    visible: "Theme"
     timeout: 5000

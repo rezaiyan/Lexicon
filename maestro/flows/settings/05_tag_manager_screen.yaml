@@ -53,7 +53,9 @@ tags:
 - waitForAnimationToEnd
 
 # The new tag must now appear in the list.
-- assertVisible: "TestTag"
+- extendedWaitUntil:
+    visible: "TestTag"
+    timeout: 5000
 
 # ── Rename tag ────────────────────────────────────────────────────────────────
 
@@ -108,7 +110,8 @@ tags:
 # ── Close Tag Manager ─────────────────────────────────────────────────────────
 
 # Close the Tag Manager full-screen overlay via the close (X) icon.
-- pressKey: back
+# pressKey: back does NOT work here — Tag Manager uses dismissOnBackPress=false.
+- tapOn: "Close"
 
 # Settings screen must be visible again.
 - extendedWaitUntil:

@@ -28,6 +28,9 @@ import domain.analytics.usecase.GetStudyInsightsUseCase
 import domain.wordrush.model.WordRushInsights
 import domain.wordrush.repository.IWordRushStatsRepository
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
+import domain.profile.model.ProfileStats
+import domain.profile.repository.IProfileStatsRepository
+import domain.profile.usecase.GetProfileStatsUseCase
 import feature.insights.InsightsViewModel
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
@@ -89,6 +92,14 @@ class InsightsViewModelTest : ViewModelTestBase() {
     // endregion
 
     // region Helpers
+
+    private class FakeProfileStatsRepository(
+        var result: Try<ProfileStats> = Try.success(
+            ProfileStats(currentStreak = 0, longestStreak = 0, memberSince = "", weeklyActivity = emptyList(), languages = emptyList())
+        )
+    ) : IProfileStatsRepository {
+        override suspend fun getProfileStats(): Try<ProfileStats> = result
+    }
 
     private class FakeDailyInsightCache(initial: String? = null) : DailyInsightCache {
         private var value: String? = initial
@@ -156,6 +167,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
     private fun createViewModel(
         repo: FakeAnalyticsRepository = FakeAnalyticsRepository(),
         wordRushStatsRepo: FakeWordRushStatsRepository = FakeWordRushStatsRepository(),
+        profileStatsRepo: FakeProfileStatsRepository = FakeProfileStatsRepository(),
         dailyInsightCache: DailyInsightCache = FakeDailyInsightCache(),
     ): InsightsViewModel {
         return InsightsViewModel(
@@ -166,6 +178,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             getStudyHeatmapUseCase = GetStudyHeatmapUseCase(repo),
             getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(wordRushStatsRepo),
+            getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepo),
             dailyInsightCache = dailyInsightCache,
         )
     }

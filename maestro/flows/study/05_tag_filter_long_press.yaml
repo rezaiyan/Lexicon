@@ -58,7 +58,8 @@ tags:
 - assertVisible: "TestFilterTag"
 
 # Close Tag Manager.
-- pressKey: back
+# pressKey: back does NOT work — Tag Manager uses dismissOnBackPress=false.
+- tapOn: "Close"
 
 - extendedWaitUntil:
     visible: "Theme"
@@ -84,10 +85,10 @@ tags:
 - assertVisible: "Learning Progress"
 
 # Open tag assignment.
-- tapOn: "Assign Tags"
+- tapOn: "Assign Tag"
 
 - extendedWaitUntil:
-    visible: "Assign Tags"
+    visible: "Assign Tag"
     timeout: 8000
 
 # "TestFilterTag" chip must be present (wordCount=0 so shows plain name).
@@ -98,7 +99,7 @@ tags:
 - waitForAnimationToEnd
 
 # Save the assignment.
-- tapOn: "Assign Tags"
+- tapOn: "Assign Tag"
 - waitForAnimationToEnd
 
 # Wait for the Assign Tags sheet to fully dismiss before asserting the detail sheet.
@@ -189,7 +190,8 @@ tags:
 - assertVisible: "No tags yet"
 
 # Close Tag Manager.
-- pressKey: back
+# pressKey: back does NOT work — Tag Manager uses dismissOnBackPress=false.
+- tapOn: "Close"
 
 - extendedWaitUntil:
     visible: "Theme"

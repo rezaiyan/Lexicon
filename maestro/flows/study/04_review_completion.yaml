@@ -6,23 +6,128 @@ tags:
 ---
 # Test: Review completion screen appears after reviewing all cards.
 #
-# Flow: Study → add test word → Start Review → flip → rate "Got it!" →
-# completion screen appears with stats → tap "Done" → back to Study screen.
+# Uses a tag-filtered 1-word session to guarantee the session completes
+# after rating exactly one card — avoiding the ~14-minute loop previously
+# needed to exhaust all accumulated words in the test account.
 #
-# Requires: The add_test_word utility must work to ensure at least one word.
-# Note: The test account may have accumulated many words from server sync and
-# previous test runs. The loop count must be high enough to exhaust all due cards.
+# Flow:
+#   Setup   — create "ReviewTag", add test word, assign "ReviewTag" to it
+#   Test    — long-press "Start Review" → select "ReviewTag" → flip →
+#             rate "Got it!" → completion screen ("Done") appears immediately
+#   Teardown — delete "ReviewTag"
+
+# ── Setup: Create tag ─────────────────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+- extendedWaitUntil:
+    visible: "Tag Manager"
+    timeout: 8000
+
+- tapOn: "New Tag"
+
+- extendedWaitUntil:
+    visible: "New Tag"
+    timeout: 5000
+
+- tapOn: "Tag name"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "ReviewTag"
+- hideKeyboard
+
+- tapOn: "Create Tag"
+- waitForAnimationToEnd
+
+- extendedWaitUntil:
+    visible: "ReviewTag"
+    timeout: 5000
+
+# Close Tag Manager (dismissOnBackPress=false — must tap Close).
+- tapOn: "Close"
+
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000
+
+# ── Setup: Add a test word ────────────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/add_test_word.yaml
+
+# ── Setup: Assign tag to the test word ───────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+
+- extendedWaitUntil:
+    visible: "Search words..."
+    timeout: 15000
+
+# Open the detail sheet for the test word.
+- tapOn: "${output.word}"
+
+# Wait for the detail sheet to appear.
+- assertVisible: "Learning Progress"
+
+# Open tag assignment.
+- tapOn: "Assign Tag"
+
+- extendedWaitUntil:
+    visible: "Assign Tag"
+    timeout: 8000
+
+# Select the "ReviewTag" chip.
+- assertVisible: "ReviewTag"
+- tapOn: "ReviewTag"
+- waitForAnimationToEnd
+
+# Save the assignment.
+- tapOn: "Assign Tag"
+- waitForAnimationToEnd
+
+# Wait for the Assign Tag sheet to dismiss and detail sheet to reappear.
+- extendedWaitUntil:
+    visible: "Learning Progress"
+    timeout: 5000
+
+# Dismiss the detail sheet.
+- pressKey: back
+
+# ── Test: Tag-filtered review completes after 1 card ─────────────────────────
 
 - runFlow: ../utils/navigate_to_study.yaml
 
-# Add a test word so we have at least one word to review.
-- runFlow: ../utils/add_test_word.yaml
+# Wait for "Start Review" to appear.
+- extendedWaitUntil:
+    visible: "Start Review"
+    timeout: 8000
 
-# Start a review session.
-- tapOn: "Start Review"
+# Long-press "Start Review" to open the tag-filter picker.
+- longPressOn: "Start Review"
 
-# Wait for the review card to appear.
-- assertVisible: "Tap card to reveal"
+# The picker sheet must appear with the "Tags" section header.
+- extendedWaitUntil:
+    visible: "Tags"
+    timeout: 8000
+
+# "ReviewTag" must be listed.
+- assertVisible: "ReviewTag"
+
+# Tap the tag to start a 1-word tag-filtered review.
+- tapOn: "ReviewTag"
+- waitForAnimationToEnd
+
+# The review card must appear.
+- extendedWaitUntil:
+    visible: "Tap card to reveal"
+    timeout: 8000
 
 # Flip the card.
 - tapOn:
@@ -34,43 +139,10 @@ tags:
 - tapOn: "Got it!"
 - waitForAnimationToEnd
 
-# The test account may have multiple words due to server sync.
-# Keep flipping and rating cards until the completion screen ("Done") appears.
-# Using 100 iterations to handle accounts with many accumulated test words.
-#
-# Loop body order: wait for card transition → flip → wait → rate.
-# The waitForAnimationToEnd before the flip tap is required: after a rating, the
-# SRS deck animator transitions to the next card with a brief intermediate state
-# where neither "Tap card to reveal" nor "Got it!" is visible. Waiting here
-# prevents the flip tap from landing on an element mid-animation.
-- repeat:
-    times: 100
-    while:
-      notVisible: "Done"
-    commands:
-      - waitForAnimationToEnd
-      - tapOn:
-          point: "50%,40%"
-          optional: true
-      - waitForAnimationToEnd
-      - tapOn:
-          text: "Got it!"
-          optional: true
-
-# The completion screen must now be visible.
-- assertVisible: "Done"
-
-# The completion screen should appear with performance stats.
-# One of the tier titles must be visible (depends on performance).
-- assertVisible:
-    text: "Perfect Score!"
-    optional: true
-- assertVisible:
-    text: "Outstanding!"
-    optional: true
-- assertVisible:
-    text: "Solid Session!"
-    optional: true
+# With only 1 word in the session, the completion screen appears immediately.
+- extendedWaitUntil:
+    visible: "Done"
+    timeout: 10000
 
 # The "Remembered" stat label must be visible.
 - assertVisible: "Remembered"
@@ -78,7 +150,41 @@ tags:
 # Tap "Done" to dismiss the completion screen.
 - tapOn: "Done"
 
-# We should be back on the Study screen (wait for the + icon to render).
+# We should be back on the Study screen.
 - extendedWaitUntil:
     visible: "Import Words"
+    timeout: 5000
+
+# ── Teardown: Delete "ReviewTag" ─────────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+- extendedWaitUntil:
+    visible: "ReviewTag"
+    timeout: 8000
+
+- tapOn: "Delete Tag"
+
+- extendedWaitUntil:
+    visible: "Delete Tag"
+    timeout: 5000
+
+- tapOn: "Delete Tag"
+- waitForAnimationToEnd
+
+# Empty state must appear — confirms the tag was deleted.
+- assertVisible: "No tags yet"
+
+# Close Tag Manager.
+- tapOn: "Close"
+
+- extendedWaitUntil:
+    visible: "Theme"
     timeout: 5000

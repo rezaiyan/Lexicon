@@ -3,12 +3,11 @@ tags:
   - settings
   - subscription
 ---
-# Test: Subscription screen opens from Settings and renders core UI.
+# Test: Subscription screen opens from Settings and renders the active-subscriber UI.
 #
-# Verifies that tapping the Subscription card in Settings opens the
-# subscription screen. "Unlock Premium" is the hero heading present on
-# the non-subscribed paywall — it appears before RevenueCat finishes
-# loading prices, so it is a reliable early render signal.
+# The CI test user has an active subscription, so the screen shows
+# SubscriptionActiveContent with "Manage Subscription" and an "Active" badge —
+# not the paywall ("Unlock Premium" / "Restore My Purchases").
 # Does NOT trigger actual purchases.
 
 - runFlow: ../utils/navigate_to_settings.yaml
@@ -21,28 +20,22 @@ tags:
 
 - waitForAnimationToEnd
 
-# "Unlock Premium" is the hero heading rendered immediately on the paywall
-# before RevenueCat loads. Waiting for it confirms the screen opened.
+# "Manage Subscription" is the button shown for active subscribers.
+# Waiting for it confirms the subscription screen opened for an active user.
 - extendedWaitUntil:
-    visible: "Unlock Premium"
+    visible: "Manage Subscription"
     timeout: 10000
 
-# The comparison table header confirms the full screen layout loaded.
-- assertVisible: "Features"
-
-# The restore link must be present (bottom of screen — may need scroll).
-- scrollUntilVisible:
-    element: "Restore My Purchases"
-    direction: DOWN
-    timeout: 5000
+# The "Active" badge must be visible confirming the subscription is active.
+- assertVisible: "Active"
 
 # Dismiss by pressing the system back button.
 - pressKey: back
 
 - waitForAnimationToEnd
 
-# "Unlock Premium" must no longer be visible (screen is gone).
-- assertNotVisible: "Unlock Premium"
+# "Manage Subscription" must no longer be visible (screen is gone).
+- assertNotVisible: "Manage Subscription"
 
 # We should be back on the Settings screen.
 - extendedWaitUntil:

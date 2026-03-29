@@ -114,11 +114,11 @@ tags:
 
 - waitForAnimationToEnd
 
-# The seeded image is the most recently added — it appears at the bottom-left
+# The seeded image is the most recently added — it appears at the top-left
 # of the grid (first thumbnail, left column) after the banner is dismissed.
-# Coordinates: x≈17% (left column), y≈58% (below toolbar + privacy banner).
+# Coordinates: x≈17% (left column), y≈30% (near top of photo grid).
 - tapOn:
-    point: "17%,58%"
+    point: "17%,30%"
 
 - waitForAnimationToEnd
 - waitForAnimationToEnd

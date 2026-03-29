@@ -21,6 +21,7 @@ import components.scaffold.LexiconColumn
 import feature.leaderboard.LeaderboardViewModel
 import feature.leaderboard.model.LeaderboardUiData
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.content_description_back
 import lexicon.resources.generated.resources.leaderboard
 import lexicon.resources.generated.resources.refresh
 import org.jetbrains.compose.resources.stringResource
@@ -37,6 +38,7 @@ fun LeaderboardScreen(
     LexiconColumn(
         title = stringResource(Res.string.leaderboard),
         showNavigationIcon = true,
+        navigationIconContentDescription = stringResource(Res.string.content_description_back),
         onNavigationClick = onDismiss,
         actionIcon1 = ActionIconConfig(
             icon = Icons.Default.Refresh,

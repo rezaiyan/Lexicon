@@ -26,7 +26,7 @@ tags:
 # Sheet must be gone — "Edit Profile" option should no longer be visible.
 - assertNotVisible: "Edit Profile"
 
-# We should still be on the Profile screen.
+# We should still be on the Profile sheet (back at the Profile page).
 - extendedWaitUntil:
-    visible: "Profile"
+    visible: "Logout"
     timeout: 5000

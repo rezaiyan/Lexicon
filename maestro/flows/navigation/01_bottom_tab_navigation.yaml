@@ -6,7 +6,7 @@ tags:
 # Test: Bottom tab navigation works across all tabs.
 #
 # Verifies that tapping each bottom navigation tab loads the corresponding
-# screen. The app has three tabs: Profile, Study, and Settings.
+# screen. The app has two tabs: Study and Settings.
 
 - stopApp
 - launchApp:
@@ -30,13 +30,6 @@ tags:
     text: "Settings"
 - extendedWaitUntil:
     visible: "Theme"
-    timeout: 5000
-
-# Navigate to Profile tab.
-- tapOn:
-    text: "Profile"
-- extendedWaitUntil:
-    visible: "Leaderboard"
     timeout: 5000
 
 # Navigate back to Study tab to verify round-trip.

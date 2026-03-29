@@ -3,41 +3,51 @@ tags:
   - profile
   - leaderboard
 ---
-# Test: Leaderboard screen opens from Profile and can be dismissed.
+# Test: Leaderboard screen opens from the Study menu and can be dismissed.
 #
-# Verifies that tapping "Leaderboard" on the Profile screen opens the
-# leaderboard overlay with its ranking content, and that pressing back
-# dismisses it and returns to the Profile screen.
+# Leaderboard is accessed via Study screen → "More options" → "Dashboard".
+# The leaderboard opens as a fullscreen bottom sheet with dismissOnBackPress=false,
+# so it must be dismissed via the back arrow in the top navigation bar.
 
-- runFlow: ../utils/navigate_to_profile.yaml
+- stopApp
+- launchApp:
+    clearState: false
 
-# The Leaderboard button must be visible on the Profile screen.
-- assertVisible: "Leaderboard"
+# Wait for the Study screen to load.
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 25000
 
-# Tap the Leaderboard button to open the leaderboard overlay.
-- tapOn: "Leaderboard"
+# Tap the "More options" icon on the Study screen to open the menu.
+- tapOn: "More options"
+
+# Wait for the menu with the Dashboard option.
+- extendedWaitUntil:
+    visible: "Dashboard"
+    timeout: 5000
+
+# Tap "Dashboard" to open the Leaderboard.
+- tapOn: "Dashboard"
 
 - waitForAnimationToEnd
 
-# "Your Ranking" is the footer label unique to the leaderboard screen.
-# Waiting for it confirms the screen loaded — not just that the navigation
-# started (which would still show "Leaderboard" from the Profile button).
+# The Leaderboard screen title must be visible.
 - extendedWaitUntil:
-    visible: "Your Ranking"
+    visible: "Leaderboard"
     timeout: 10000
 
-# The refresh button is also unique to the leaderboard screen.
+# The refresh action button must also be visible.
 - assertVisible: "Refresh"
 
-# Dismiss by pressing the system back button.
-- pressKey: back
+# Dismiss by tapping the back arrow in the navigation bar.
+- tapOn: "Back"
 
 - waitForAnimationToEnd
 
-# "Your Ranking" must no longer be visible (leaderboard overlay is gone).
-- assertNotVisible: "Your Ranking"
+# "Leaderboard" title must no longer be visible (screen is gone).
+- assertNotVisible: "Leaderboard"
 
-# We should be back on the Profile screen.
+# We should be back on the Study screen.
 - extendedWaitUntil:
-    visible: "Profile"
+    visible: "Import Words"
     timeout: 5000

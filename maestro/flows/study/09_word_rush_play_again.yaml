@@ -42,13 +42,11 @@ tags:
 # Tap Play Again.
 - tapOn: "Play Again"
 
-# A new game should start — verify fresh question counter.
+# A new game should start — verify the Score is visible (reset to 0).
+# Word Rush uses a ProgressDots indicator, not a "1 / 10" text counter.
 - extendedWaitUntil:
-    visible: "1 / 10"
+    visible: "Score"
     timeout: 8000
-
-# Score should be visible (reset to 0).
-- assertVisible: "Score"
 
 # Take screenshot of the fresh game after replay.
 - takeScreenshot: screenshots/word_rush_play_again

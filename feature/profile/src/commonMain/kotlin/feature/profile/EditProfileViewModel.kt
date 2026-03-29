@@ -2,7 +2,6 @@ package feature.profile
 
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
-import core.common.UiState
 import core.common.fold
 import core.error.toUserMessage
 import domain.profile.model.AliasValidationResult
@@ -19,7 +18,8 @@ data class EditProfileState(
     val profileImageUrl: String? = null,
     val name: String = "",
     val email: String = "",
-    val saveState: UiState<Unit> = UiState.Loaded(Unit),
+    val isSaving: Boolean = false,
+    val errorMessage: String? = null,
     val isUploadingAvatar: Boolean = false,
 )
 
@@ -56,42 +56,46 @@ class EditProfileViewModel(
     }
 
     fun updateDisplayAlias(value: String) {
-        updateState { copy(displayAlias = value, saveState = UiState.Loaded(Unit)) }
+        updateState { copy(displayAlias = value, errorMessage = null) }
+    }
+
+    fun dismissError() {
+        updateState { copy(errorMessage = null) }
     }
 
     fun saveProfile() {
-        if (currentState.saveState is UiState.Loading) return
+        if (currentState.isSaving) return
 
         val alias = currentState.displayAlias.trim()
 
         when (validateDisplayAliasUseCase(alias)) {
             AliasValidationResult.TooShort -> {
-                updateState { copy(saveState = UiState.Error("Username must be 2-30 characters")) }
+                updateState { copy(errorMessage = "Username must be 2-30 characters") }
                 return
             }
             AliasValidationResult.TooLong -> {
-                updateState { copy(saveState = UiState.Error("Username must be 2-30 characters")) }
+                updateState { copy(errorMessage = "Username must be 2-30 characters") }
                 return
             }
             AliasValidationResult.InvalidCharacters -> {
-                updateState { copy(saveState = UiState.Error("Only letters, numbers, spaces, underscores, and hyphens allowed")) }
+                updateState { copy(errorMessage = "Only letters, numbers, spaces, underscores, and hyphens allowed") }
                 return
             }
             AliasValidationResult.Valid -> Unit
         }
 
         viewModelScope.launch {
-            updateState { copy(saveState = UiState.Loading) }
+            updateState { copy(isSaving = true, errorMessage = null) }
 
             val aliasToSend = alias.ifEmpty { null }
             updateProfileUseCase(name = null, displayAlias = aliasToSend).fold(
                 onSuccess = { updatedUser ->
                     userManager.setUser(updatedUser)
-                    updateState { copy(saveState = UiState.Loaded(Unit)) }
+                    updateState { copy(isSaving = false) }
                     emitEffect(EditProfileEffect.ProfileSaved)
                 },
                 onFailure = { error ->
-                    updateState { copy(saveState = UiState.Error(error.toUserMessage())) }
+                    updateState { copy(isSaving = false, errorMessage = error.toUserMessage()) }
                 }
             )
         }
@@ -113,7 +117,7 @@ class EditProfileViewModel(
                     updateState {
                         copy(
                             isUploadingAvatar = false,
-                            saveState = UiState.Error(error.toUserMessage()),
+                            errorMessage = error.toUserMessage(),
                         )
                     }
                 }
@@ -137,7 +141,7 @@ class EditProfileViewModel(
                     updateState {
                         copy(
                             isUploadingAvatar = false,
-                            saveState = UiState.Error(error.toUserMessage()),
+                            errorMessage = error.toUserMessage(),
                         )
                     }
                 }

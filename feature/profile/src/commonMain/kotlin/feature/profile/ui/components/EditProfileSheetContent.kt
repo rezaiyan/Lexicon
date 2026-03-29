@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import core.common.UiState
 import events.OnEvents
 import feature.profile.EditProfileEffect
 import feature.profile.EditProfileViewModel
@@ -56,8 +55,8 @@ fun EditProfileSheetContent(
         }
     }
 
-    val isSaving = state.saveState is UiState.Loading
-    val saveError = (state.saveState as? UiState.Error)?.message
+    val isSaving = state.isSaving
+    val saveError = state.errorMessage
     val isBusy = isSaving || state.isUploadingAvatar
 
     Column(

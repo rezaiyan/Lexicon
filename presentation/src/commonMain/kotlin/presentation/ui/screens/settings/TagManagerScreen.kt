@@ -64,6 +64,7 @@ import feature.words.TagManagerViewModel
 import feature.words.model.TagManagerEffect
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.content_description_close
 import lexicon.resources.generated.resources.create_tag
 import lexicon.resources.generated.resources.delete_tag
 import lexicon.resources.generated.resources.delete_tag_confirm
@@ -114,6 +115,7 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
         title = stringResource(Res.string.tag_manager),
         showNavigationIcon = true,
         navigationIcon = Icons.Default.Close,
+        navigationIconContentDescription = stringResource(Res.string.content_description_close),
         onNavigationClick = onDismiss,
         scrollable = false,
         topBarColor = TopBarColor.Background
