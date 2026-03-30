@@ -192,7 +192,7 @@ jobs:
           java-version: '17'
 
       - name: Generate and submit dependency graph
-        uses: gradle/actions/dependency-submission@v4
+        uses: gradle/actions/dependency-submission@v6
         with:
           gradle-version: wrapper
           additional-arguments: -Dorg.gradle.java.installations.auto-download=false
@@ -258,7 +258,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       # KAN-18: Run detekt with SARIF output for GitHub Code Scanning annotations
       - name: Run detekt
@@ -378,7 +378,7 @@ jobs:
           architecture: 'aarch64'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Set up Xcode
         run: xcodebuild -version
@@ -446,7 +446,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build Android APK
         run: ./gradlew composeApp:assembleDebug --stacktrace
@@ -668,7 +668,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build wasmJs distribution
         run: ./gradlew composeApp:wasmJsBrowserDistribution --stacktrace
@@ -811,7 +811,7 @@ jobs:
           architecture: 'aarch64'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Set up Xcode
         run: xcodebuild -version
