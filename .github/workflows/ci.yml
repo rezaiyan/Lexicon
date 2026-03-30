@@ -335,7 +335,7 @@ jobs:
 
       - name: Test report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: Test Results
           path: composeApp/build/test-results/**/TEST-*.xml
@@ -404,7 +404,7 @@ jobs:
 
       - name: iOS test report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: iOS Test Results
           path: composeApp/build/test-results/iosSimulatorArm64Test/**/TEST-*.xml
