@@ -559,6 +559,8 @@ extension AppleSignInNotificationHandler: ASAuthorizationControllerDelegate {
             fullName = "\(given) \(family)"
         } else if let given = credential.fullName?.givenName {
             fullName = given
+        } else if let family = credential.fullName?.familyName {
+            fullName = family
         }
         
         let appleUserId = credential.user
