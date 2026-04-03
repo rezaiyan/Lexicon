@@ -120,8 +120,7 @@
     <ID>NewLineAtEndOfFile:IAppleAuthStateProvider.kt$auth.IAppleAuthStateProvider.kt</ID>
     <ID>NewLineAtEndOfFile:IOSAppleAuthStateProvider.kt$auth.IOSAppleAuthStateProvider.kt</ID>
     <ID>NewLineAtEndOfFile:ImagePicker.kt$expects.ImagePicker.kt</ID>
-    <ID>NewLineAtEndOfFile:ImportState.kt$presentation.model.ImportState.kt</ID>
-    <ID>NewLineAtEndOfFile:ImportTabV2.kt$presentation.ui.components.imports.ImportTabV2.kt</ID>
+<ID>NewLineAtEndOfFile:ImportTabV2.kt$presentation.ui.components.imports.ImportTabV2.kt</ID>
     <ID>NewLineAtEndOfFile:Language.kt$utils.Language.kt</ID>
     <ID>NewLineAtEndOfFile:LexiconFirebaseMessagingService.kt$com.alirezaiyan.vokab.LexiconFirebaseMessagingService.kt</ID>
     <ID>NewLineAtEndOfFile:LexiconIcons.kt$components.icons.LexiconIcons.kt</ID>

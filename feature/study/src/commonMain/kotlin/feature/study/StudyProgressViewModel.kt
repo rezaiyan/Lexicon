@@ -112,7 +112,6 @@ class StudyProgressViewModel(
                     val screenState = ProgressScreenState(
                         progressStats = stats,
                         progressEvaluation = evaluateProgressUseCase(stats).getOrThrow(),
-                        messageState = null
                     )
                     updateState { copy(progress = UiState.Loaded(screenState)) }
                     performanceTracer.putMetric(trace, "total_words", stats.totalWords.toLong())

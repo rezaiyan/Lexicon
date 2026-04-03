@@ -222,12 +222,14 @@ fun StudyScreen() {
                 stats = progressStats ?: return@LexiconColumn,
             )
         },
-        actionIcon1 = ActionIconConfig(
+        actionIcon1 = if (hasPremiumAccess) ActionIconConfig(
             icon = Icons.Default.Insights,
             contentDescription = stringResource(Res.string.insights_title),
-            onClick = { overlayHost.showInsightsSheet(onShowLeaderboard = { overlayHost.showLeaderboard() }) },
+            onClick = {
+                overlayHost.showInsightsSheet(onShowLeaderboard = { overlayHost.showLeaderboard() })
+            },
             size = Theme.dimensions.iconSize,
-        ),
+        ) else null,
         actionIcon2 = ActionIconConfig(
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),
@@ -311,16 +313,12 @@ fun StudyScreen() {
 
                     WordDistributionBar(stats = loadedStats)
 
-                    // Do NOT use `by` here — `wordRushViewModel.state()` updates every 50 ms
-                    // (timer tick) and would cause StudyScreen to recompose at 20 fps.
-                    // derivedStateOf ensures StudyScreen only recomposes when bestStreak or
-                    // hasEnoughWords actually changes (rare), not on every timer tick.
                     val wordRushStateHolder = wordRushViewModel.state()
                     val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }
                     val wordRushHasEnoughWords by remember {
                         derivedStateOf { wordRushStateHolder.value.hasEnoughWords }
                     }
-                    WordRushCard(
+                    if (hasPremiumAccess) WordRushCard(
                         bestStreak = wordRushBestStreak,
                         hasEnoughWords = wordRushHasEnoughWords,
                         onPlay = {

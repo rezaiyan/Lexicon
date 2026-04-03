@@ -1,0 +1,26 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - premium-gates
+  - word-rush
+  - subscription
+---
+# Test: Word Rush card is hidden for non-premium users.
+#
+# Requires: App authenticated with a NON-PREMIUM CI token (?premium=false).
+# The run.sh Phase 2 injects non-premium tokens before running this suite.
+#
+# Flow:
+#   1. Navigate to Study screen.
+#   2. Scroll down to where the Word Rush card would appear.
+#   3. Verify "Word Rush" and "Play" are NOT visible.
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+# Scroll down to where Word Rush normally appears.
+- scroll
+
+- takeScreenshot: screenshots/premium_gate_word_rush_hidden
+
+# The Word Rush card must NOT be visible for non-premium users.
+- assertNotVisible: "Word Rush"
+- assertNotVisible: "Play"

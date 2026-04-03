@@ -69,7 +69,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
     }
 
-    private fun fakeAuthRepo() = object : IAuthRepository {
+    private fun fakeAuthRepo(hasPremiumAccess: Boolean = false) = object : IAuthRepository {
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> =
             Try.failure(RuntimeException(""))
         override suspend fun loginWithApple(
@@ -85,7 +85,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(
             FeatureAccessResponse(
                 FeatureFlags(),
-                UserFeatureAccess(hasPremiumAccess = false),
+                UserFeatureAccess(hasPremiumAccess = hasPremiumAccess),
             )
         )
     }
@@ -155,7 +155,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 
-    private fun createViewModel(): StudyProgressViewModel {
+    private fun createViewModel(hasPremiumAccess: Boolean = false): StudyProgressViewModel {
         val wordRepo = fakeWordRepo()
         val settingsRepo = fakeSettingsRepo()
         val notifRepo = fakeNotifRepo()
@@ -165,7 +165,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
-            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),
+            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(hasPremiumAccess)),
             tagUseCases = StudyTagUseCases(
                 getDueTags = GetDueTagsUseCase(fakeTagRepo()),
                 getTagsByLevel = GetTagsByLevelUseCase(fakeTagRepo()),
@@ -185,5 +185,11 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
     fun `initial hasPremiumAccess is false`() = runTest {
         val vm = createViewModel()
         assertEquals(false, vm.currentState.hasPremiumAccess)
+    }
+
+    @Test
+    fun `hasPremiumAccess is true when server returns premium`() = runTest {
+        val vm = createViewModel(hasPremiumAccess = true)
+        assertEquals(true, vm.currentState.hasPremiumAccess)
     }
 }

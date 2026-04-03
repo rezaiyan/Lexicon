@@ -1,0 +1,21 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - premium-gates
+  - insights
+  - subscription
+---
+# Test: Insights icon is hidden in the Study top bar for non-premium users.
+#
+# Requires: App authenticated with a NON-PREMIUM CI token (?premium=false).
+# The run.sh Phase 2 injects non-premium tokens before running this suite.
+#
+# Flow:
+#   1. Navigate to Study screen.
+#   2. Verify the "Study Insights" icon is NOT visible in the top bar.
+
+- runFlow: ../utils/navigate_to_study.yaml
+
+- takeScreenshot: screenshots/premium_gate_insights_hidden
+
+# The Insights icon must NOT be visible for non-premium users.
+- assertNotVisible: "Study Insights"

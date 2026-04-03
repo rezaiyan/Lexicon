@@ -6,8 +6,7 @@ import presentation.model.ImageImportState
 import utils.Language
 
 data class ImportUiState(
-    private val defaultTab: ImportTabV2 = ImportTabV2.Text(),
-    val tabs: List<ImportTabV2> = listOf(defaultTab, ImportTabV2.File()),
+    val tabs: List<ImportTabV2> = listOf(ImportTabV2.Text(), ImportTabV2.File()),
     val selectedTab: ImportTabV2 = tabs.first(),
     val textInputState: TextInputState = TextInputState(),
     val fileImportState: ImportFileState = ImportFileState.Idle,

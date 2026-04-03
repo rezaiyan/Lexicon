@@ -188,7 +188,6 @@ class ImportViewModel(
                             )
                         )
                     }
-                    emitEffect(ImportEffect.WordAddedSuccessfully(count))
                     delay(1500)
                     updateState {
                         copy(

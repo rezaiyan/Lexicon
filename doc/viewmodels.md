@@ -108,7 +108,7 @@ sealed interface WordManagerEvent {
 **State**: `state: ImportUiState` (tabs, selectedTab, textInputState, fileImportState, imageImportState)
 Uses `@Composable` state function with `produceState` for dynamic tab visibility based on feature access.
 
-**Events**: WordAddedSuccessfully, FileImportSuccessful, ImageImportSuccessful, Error
+**Events**: FileImportSuccessful, ImageImportSuccessful, Error
 
 **Methods**: `selectTab()`, `updateWord()`, `updateTranslation()`, `addWord()`, `selectImage()`, `importImage()`, `importFile()`, `confirmImport()`, `selectSourceLanguage()`, `selectTargetLanguage()`
 

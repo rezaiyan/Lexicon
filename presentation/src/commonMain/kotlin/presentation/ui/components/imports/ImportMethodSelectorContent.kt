@@ -36,10 +36,8 @@ import theme.Theme
 fun ImportMethodSelectorContent(
     onManual: () -> Unit,
     onAiAssistant: () -> Unit,
-    onClose: (() -> Unit)? = null,
 ) {
     LexiconDialogContent(
-        onClose = onClose,
         title = "Add Words",
         message = "Choose how you'd like to build your vocabulary",
         content = {

@@ -81,7 +81,6 @@ fun ImportBottomSheet(
 
     OnEvents(viewModel.effects) { effect ->
         when (effect) {
-            is ImportEffect.WordAddedSuccessfully -> Unit
             is ImportEffect.FileImportSuccessful -> {
                 onShowSnackBar(formatCount(latestSuccessFormat.value, effect.count))
                 onDismiss()
