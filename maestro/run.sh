@@ -6,9 +6,10 @@
 #   ./maestro/run.sh maestro/flows/study/     # run a category
 #   ./maestro/run.sh maestro/flows/study/01_study_screen_loads.yaml  # single flow
 #
-# Required environment variables (or will be fetched automatically):
-#   BACKEND_URL       — Vokab backend URL (defaults to production)
-#   CI_TEST_SECRET    — CI auth secret
+# Required environment variables:
+#   BACKEND_URL       — Vokab backend URL (required, e.g. http://10.0.2.2:8080)
+#   CI_TEST_SECRET    — CI auth secret (or set VPS_SSH_HOST for auto-fetch)
+#   VPS_SSH_HOST      — (optional) SSH host to auto-fetch CI_TEST_SECRET (e.g. root@your-server.com)
 #
 # The script will:
 #   1. Install the debug APK
@@ -27,7 +28,7 @@ PACKAGE="com.alirezaiyan.vokab"
 APK_PATTERN="$PROJECT_DIR/composeApp/build/outputs/apk/debug/*.apk"
 
 # --- Defaults ---
-BACKEND_URL="${BACKEND_URL:-https://vokab.alirezaiyan.com}"
+BACKEND_URL="${BACKEND_URL:-}"
 CI_TEST_SECRET="${CI_TEST_SECRET:-}"
 TEST_TARGET="${1:-maestro/}"
 
@@ -61,6 +62,9 @@ command -v maestro >/dev/null 2>&1 || die "maestro not found"
 command -v jq      >/dev/null 2>&1 || die "jq not found"
 adb get-state >/dev/null 2>&1     || die "No device/emulator connected"
 
+# Check BACKEND_URL
+[ -n "$BACKEND_URL" ] || die "BACKEND_URL not set. Export it (e.g. export BACKEND_URL=http://10.0.2.2:8080)"
+
 # Check APK exists
 APK=$(ls $APK_PATTERN 2>/dev/null | head -1)
 [ -n "$APK" ] || die "Debug APK not found. Run: ./gradlew composeApp:assembleDebug"
@@ -68,12 +72,13 @@ APK=$(ls $APK_PATTERN 2>/dev/null | head -1)
 # Check CI secret
 if [ -z "$CI_TEST_SECRET" ]; then
   # Try reading from docker on VPS (for local dev convenience)
-  if command -v ssh >/dev/null 2>&1; then
-    CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 root@alirezaiyan.com \
+  # Set VPS_SSH_HOST to your VPS SSH host (e.g. root@your-server.com)
+  if [ -n "$VPS_SSH_HOST" ] && command -v ssh >/dev/null 2>&1; then
+    CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 "$VPS_SSH_HOST" \
       "docker exec lexicon-server env 2>/dev/null" 2>/dev/null \
       | grep '^CI_TEST_SECRET=' | cut -d= -f2) || true
   fi
-  [ -n "$CI_TEST_SECRET" ] || die "CI_TEST_SECRET not set. Export it or ensure VPS is reachable."
+  [ -n "$CI_TEST_SECRET" ] || die "CI_TEST_SECRET not set. Export it or set VPS_SSH_HOST for auto-fetch."
 fi
 
 # --- 1. Install APK ---

@@ -30,7 +30,7 @@ OUTPUT_DIR="$PROJECT_DIR/docs/demos"
 PACKAGE="com.alirezaiyan.vokab"
 APK_PATTERN="$PROJECT_DIR/composeApp/build/outputs/apk/debug/*.apk"
 
-BACKEND_URL="${BACKEND_URL:-https://vokab.alirezaiyan.com}"
+BACKEND_URL="${BACKEND_URL:-}"
 CI_TEST_SECRET="${CI_TEST_SECRET:-}"
 
 # Showcase flows — onboarding FIRST (needs clearState), then authenticated flows.
@@ -103,12 +103,13 @@ fetch_ci_secret() {
   fi
 
   info "CI_TEST_SECRET not set — fetching from VPS..."
-  if command -v ssh >/dev/null 2>&1; then
-    CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 root@alirezaiyan.com \
+  # Set VPS_SSH_HOST to your VPS SSH host (e.g. root@your-server.com)
+  if [ -n "$VPS_SSH_HOST" ] && command -v ssh >/dev/null 2>&1; then
+    CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 "$VPS_SSH_HOST" \
       "docker inspect vokab-server --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null" 2>/dev/null \
       | grep '^CI_TEST_SECRET=' | cut -d= -f2) || true
   fi
-  [ -n "$CI_TEST_SECRET" ] || fail "CI_TEST_SECRET not set. Export it or ensure VPS is reachable."
+  [ -n "$CI_TEST_SECRET" ] || fail "CI_TEST_SECRET not set. Export it or set VPS_SSH_HOST for auto-fetch."
   ok "CI secret obtained"
 }
 

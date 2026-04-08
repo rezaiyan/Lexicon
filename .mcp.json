@@ -5,8 +5,8 @@
       "args": ["-y", "@upstash/context7-mcp"]
     },
     "github": {
-      "command": "gh",
-      "args": ["mcp", "serve"]
+      "command": "bash",
+      "args": ["-c", "GITHUB_PERSONAL_ACCESS_TOKEN=$(gh auth token) github-mcp-server stdio"]
     }
   }
 }
