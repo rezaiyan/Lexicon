@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.EmojiEvents
 import components.scaffold.ActionIconConfig
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -77,6 +78,8 @@ import domain.wordrush.model.WordRushInsights
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.WordDifficulty
+import events.OnEvents
+import feature.insights.InsightsEffect
 import feature.insights.InsightsState
 import feature.insights.InsightsViewModel
 import kotlin.math.roundToInt
@@ -113,6 +116,8 @@ import lexicon.resources.generated.resources.insights_response_time_improving
 import lexicon.resources.generated.resources.insights_response_time_stable
 import lexicon.resources.generated.resources.insights_response_time_trend
 import lexicon.resources.generated.resources.insights_response_time_week
+import lexicon.resources.generated.resources.insights_set_reminder
+import lexicon.resources.generated.resources.insights_study_these_words
 import lexicon.resources.generated.resources.insights_most_difficult_words
 import lexicon.resources.generated.resources.insights_reviews_format
 import lexicon.resources.generated.resources.insights_sessions_words
@@ -140,6 +145,8 @@ import theme.Theme
 fun InsightsScreen(
     onNavigateBack: () -> Unit,
     onShowLeaderboard: () -> Unit = {},
+    onNavigateToReview: (List<Long>) -> Unit = {},
+    onNavigateToNotificationSettings: () -> Unit = {},
 ) {
     val viewModel = koinViewModel<InsightsViewModel>()
     val state by viewModel.state()
@@ -148,12 +155,21 @@ fun InsightsScreen(
         viewModel.refresh()
     }
 
+    OnEvents(viewModel.effects) { effect ->
+        when (effect) {
+            is InsightsEffect.NavigateToReviewWithWords -> onNavigateToReview(effect.wordIds)
+            InsightsEffect.NavigateToNotificationSettings -> onNavigateToNotificationSettings()
+        }
+    }
+
     InsightsContent(
         state = state,
         onNavigateBack = onNavigateBack,
         onShowLeaderboard = onShowLeaderboard,
         onDismissInsight = { viewModel.dismissDailyInsight() },
         onRetry = { viewModel.refresh() },
+        onStudyDifficultWords = viewModel::studyDifficultWords,
+        onSetReminder = viewModel::setReminderForBestTime,
     )
 }
 
@@ -164,6 +180,8 @@ internal fun InsightsContent(
     onShowLeaderboard: () -> Unit = {},
     onDismissInsight: () -> Unit = {},
     onRetry: () -> Unit = {},
+    onStudyDifficultWords: () -> Unit = {},
+    onSetReminder: () -> Unit = {},
 ) {
     LexiconColumn(
         title = stringResource(Res.string.insights_title),
@@ -208,12 +226,12 @@ internal fun InsightsContent(
                 if (weeklyReport is feature.insights.WeeklyReportUiModel.Content) {
                     WeeklyReportCard(report = weeklyReport)
                 }
-                OverviewTab(state, onDismissInsight)
+                OverviewTab(state, onDismissInsight, onSetReminder)
                 if (state.availability.hasWordRush) {
                     WordRushInsightsSection(state)
                 }
                 TrendsTab(state)
-                WordsTab(state)
+                WordsTab(state, onStudyDifficultWords)
                 Spacer(modifier = Modifier.height(Theme.spacing.xl))
             }
         }
@@ -464,7 +482,7 @@ private fun WeeklyStatCell(
 // region Overview
 
 @Composable
-private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit) {
+private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit, onSetReminder: () -> Unit = {}) {
     state.overview
         .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading)) }
         .onError { msg, _ -> ErrorScreen(message = msg) }
@@ -478,6 +496,7 @@ private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit) {
                     heatmapDays = heatmapDays,
                     dailyInsight = state.dailyInsight,
                     onDismissInsight = onDismissInsight,
+                    onSetReminder = onSetReminder,
                 )
             }
         }
@@ -490,6 +509,7 @@ private fun StudyInsightsCard(
     heatmapDays: List<StudyHeatmapDay>,
     dailyInsight: String?,
     onDismissInsight: () -> Unit,
+    onSetReminder: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     val chevronDegrees by animateFloatAsState(
@@ -661,6 +681,12 @@ private fun StudyInsightsCard(
                             value = "${bestStudyTime.hour}:00",
                             subtitle = "${bestStudyTime.accuracyPercent.roundToInt()}% accuracy",
                         )
+                        Button(
+                            onClick = onSetReminder,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(Res.string.insights_set_reminder))
+                        }
                     }
                     if (heatmapDays.isNotEmpty()) {
                         HorizontalDivider(color = tint.copy(alpha = 0.15f))
@@ -1447,7 +1473,7 @@ private fun WeekDayBar(day: StudyHeatmapDay, maxCount: Int, todayStr: String, in
 // region Words
 
 @Composable
-private fun WordsTab(state: InsightsState) {
+private fun WordsTab(state: InsightsState, onStudyDifficultWords: () -> Unit = {}) {
     state.difficultWords
         .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading_words)) }
         .onError { msg, _ -> ErrorScreen(message = msg) }
@@ -1464,6 +1490,12 @@ private fun WordsTab(state: InsightsState) {
                                 thickness = Theme.dimensions.hairlineThickness,
                             )
                         }
+                    }
+                    Button(
+                        onClick = onStudyDifficultWords,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(Res.string.insights_study_these_words))
                     }
                 }
             }

@@ -73,6 +73,11 @@ data class InsightsState(
     )
 }
 
+sealed class InsightsEffect {
+    data class NavigateToReviewWithWords(val wordIds: List<Long>) : InsightsEffect()
+    data object NavigateToNotificationSettings : InsightsEffect()
+}
+
 class InsightsViewModel(
     private val getStudyInsightsUseCase: GetStudyInsightsUseCase,
     private val getDifficultWordsUseCase: GetDifficultWordsUseCase,
@@ -86,7 +91,7 @@ class InsightsViewModel(
     private val getResponseTimeTrendUseCase: GetResponseTimeTrendUseCase,
     private val getProfileStatsUseCase: GetProfileStatsUseCase,
     private val dailyInsightCache: DailyInsightCache,
-) : BaseViewModel<InsightsState, Nothing>() {
+) : BaseViewModel<InsightsState, InsightsEffect>() {
 
     override fun initialState() = InsightsState()
 
@@ -104,6 +109,17 @@ class InsightsViewModel(
     fun dismissDailyInsight() {
         dailyInsightCache.clearDailyInsight()
         updateState { copy(dailyInsight = null) }
+    }
+
+    fun studyDifficultWords() {
+        val loaded = currentState.difficultWords as? UiState.Loaded ?: return
+        val wordIds = loaded.value.map { it.wordId }
+        if (wordIds.isEmpty()) return
+        emitEffect(InsightsEffect.NavigateToReviewWithWords(wordIds))
+    }
+
+    fun setReminderForBestTime() {
+        emitEffect(InsightsEffect.NavigateToNotificationSettings)
     }
 
     private fun loadAllData() {

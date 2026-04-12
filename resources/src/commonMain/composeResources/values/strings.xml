@@ -148,6 +148,8 @@
     <string name="insights_response_time_declining">Slowing down</string>
     <string name="insights_response_time_stable">Consistent pace</string>
     <string name="insights_response_time_week">Week %1$d</string>
+    <string name="insights_study_these_words">Study These Words</string>
+    <string name="insights_set_reminder">Set Reminder</string>
     <string name="languages">Languages</string>
     <string name="member_since">Member since %1$s</string>
 

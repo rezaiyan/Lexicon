@@ -37,7 +37,9 @@ import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.profile.model.ProfileStats
 import domain.profile.repository.IProfileStatsRepository
 import domain.profile.usecase.GetProfileStatsUseCase
+import feature.insights.InsightsEffect
 import feature.insights.InsightsViewModel
+import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import kotlin.test.Test
@@ -464,6 +466,63 @@ class InsightsViewModelTest : ViewModelTestBase() {
         vm.refresh()
 
         assertIs<UiState.Loaded<List<ResponseTimeTrend>>>(vm.currentState.responseTimeTrend)
+    }
+
+    // endregion
+
+    // region Actionable CTAs
+
+    @Test
+    fun `studyDifficultWords emits NavigateToReviewWithWords with correct word IDs`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        vm.effects.test {
+            vm.studyDifficultWords()
+            val effect = awaitItem()
+            assertIs<InsightsEffect.NavigateToReviewWithWords>(effect)
+            assertEquals(listOf(1L), effect.wordIds)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `studyDifficultWords does nothing when difficultWords is not loaded`() = runTest {
+        val vm = createViewModel()
+        // Do NOT call refresh — difficultWords stays at UiState.Loading
+
+        vm.effects.test {
+            vm.studyDifficultWords()
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `studyDifficultWords does nothing when difficult words list is empty`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            difficultWordsResult = Try.success(emptyList()),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        vm.effects.test {
+            vm.studyDifficultWords()
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setReminderForBestTime emits NavigateToNotificationSettings`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        vm.effects.test {
+            vm.setReminderForBestTime()
+            assertIs<InsightsEffect.NavigateToNotificationSettings>(awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     // endregion

@@ -1,9 +1,9 @@
 # Plan: Insights Actionable CTAs
 
-**Status:** PENDING
+**Status:** COMPLETE
 **Type:** Feature
 **Worktree:** No
-**Approved:** No
+**Approved:** Yes
 
 ## Goal
 
@@ -21,27 +21,27 @@ Turn the Insights screen from a passive dashboard into an action driver. Two hig
 
 ## Implementation Tasks
 
-- [ ] **T1** Introduce `InsightsEffect` sealed class (currently `Nothing`)
+- [x] **T1** Introduce `InsightsEffect` sealed class (currently `Nothing`)
   - `data class NavigateToReviewWithWords(val wordIds: List<Long>): InsightsEffect`
   - `data object NavigateToNotificationSettings: InsightsEffect`
   - Change `InsightsViewModel` type parameter from `Nothing` to `InsightsEffect`
 
-- [ ] **T2** Add `studyDifficultWords()` function to `InsightsViewModel`
+- [x] **T2** Add `studyDifficultWords()` function to `InsightsViewModel`
   - Extract word IDs from current `difficultWords` state
   - Emit `NavigateToReviewWithWords(wordIds)`
 
-- [ ] **T3** Check if `LoadReviewQueueUseCase` supports filtering by specific word IDs
+- [x] **T3** Check if `LoadReviewQueueUseCase` supports filtering by specific word IDs
   - If not, add filtered launch support or use existing `ReviewSource` enum
 
-- [ ] **T4** Add `setReminderForBestTime()` to `InsightsViewModel`
+- [x] **T4** Add `setReminderForBestTime()` to `InsightsViewModel`
   - Extract hour from `bestStudyTime` state
   - Emit `NavigateToNotificationSettings` (for now, navigate to settings; future: schedule directly)
 
-- [ ] **T5** Update `InsightsScreen` to handle effects and add CTA buttons
+- [x] **T5** Update `InsightsScreen` to handle effects and add CTA buttons
   - "Study these words" button below difficult words list
   - "Study at best time" chip/button below best study time display
 
-- [ ] **T6** Tests
+- [x] **T6** Tests
   - `InsightsViewModelTest`: verify `studyDifficultWords()` emits correct effect with correct IDs
   - `InsightsViewModelTest`: verify `setReminderForBestTime()` emits correct effect
 
@@ -53,4 +53,4 @@ Turn the Insights screen from a passive dashboard into an action driver. Two hig
 | `feature/insights/src/.../ui/InsightsScreen.kt` | Add CTA buttons + effect handler |
 | `composeApp/src/commonTest/.../InsightsViewModelTest.kt` | New effect tests |
 
-## Done: 0 / Left: 6
+## Done: 6 / Left: 0
