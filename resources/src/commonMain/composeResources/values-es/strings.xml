@@ -461,6 +461,10 @@
     <string name="onboarding_loading_tip_3">Creando tu pack de inicio…</string>
     <string name="onboarding_loading_tip_4">Casi listo…</string>
     <string name="onboarding_language_flag">Bandera de %1$s</string>
+    <string name="onboarding_daily_goal_title1">¿Cuántas palabras</string>
+    <string name="onboarding_daily_goal_title2">al día?</string>
+    <string name="onboarding_daily_goal_subtitle">Establece un objetivo diario que se adapte a tu horario. Puedes cambiarlo en cualquier momento en los ajustes.</string>
+    <string name="onboarding_words_per_day">palabras/día</string>
     <string name="login_required_title">Bienvenido a Lexicon</string>
     <string name="login_required_subtitle">Inicia sesión para empezar a aprender vocabulario</string>
     <string name="sign_in_google">Iniciar sesión con Google</string>

@@ -40,6 +40,7 @@ import feature.onboarding.ui.components.OnboardingIntroContent
 import feature.onboarding.ui.components.OnboardingStep1Content
 import feature.onboarding.ui.components.OnboardingStep2Content
 import feature.onboarding.ui.components.OnboardingStep3Content
+import feature.onboarding.ui.components.OnboardingStep4Content
 import theme.Theme
 
 private const val OnboardingTransitionDuration = 300
@@ -50,6 +51,7 @@ fun OnboardingScreen(
     onTargetLanguageSelected: (String) -> Unit,
     onNativeLanguageSelected: (String) -> Unit,
     onLevelSelected: (String) -> Unit,
+    onDailyGoalSelected: (Int) -> Unit,
     onNextStep: () -> Unit,
     onPreviousStep: () -> Unit,
     onSubmit: () -> Unit,
@@ -159,9 +161,16 @@ fun OnboardingScreen(
                     onSkip = onSkip
                 )
 
-                else -> OnboardingStep3Content(
+                3 -> OnboardingStep3Content(
                     state = state,
                     onLevelSelected = onLevelSelected,
+                    onNextStep = onNextStep,
+                    onBack = onPreviousStep
+                )
+
+                else -> OnboardingStep4Content(
+                    state = state,
+                    onDailyGoalSelected = onDailyGoalSelected,
                     onSubmit = onSubmit,
                     onBack = onPreviousStep
                 )

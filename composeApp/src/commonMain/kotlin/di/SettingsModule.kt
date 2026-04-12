@@ -8,6 +8,7 @@ import data.streak.remote.StreakRemoteDataSource
 import data.streak.repository.StreakRepositoryImpl
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
+import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.settings.usecase.GetReviewSettingsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.GetSkipTagSelectorUseCase
@@ -15,6 +16,7 @@ import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.settings.usecase.SetThemeModeUseCase
+import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetTtsVoiceUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.streak.repository.IStreakRepository
@@ -43,11 +45,13 @@ fun settingsModule() = module {
 
     // Use Cases - Settings Read
     singleOf(::GetCurrentLanguageUseCase)
+    singleOf(::GetDailyGoalWordsUseCase)
     single { GetReviewSettingsUseCase() }
     singleOf(::ObserveSpeechRateUseCase)
 
     // Use Cases - Settings Write
     singleOf(::SetLanguageUseCase)
+    singleOf(::SetDailyGoalWordsUseCase)
     singleOf(::SetThemeModeUseCase)
     singleOf(::SetNotificationsEnabledUseCase)
     singleOf(::SetTtsSpeechRateUseCase)

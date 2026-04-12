@@ -10,9 +10,10 @@ data class OnboardingUiState(
     val selectedTargetLanguage: String? = null,
     val selectedNativeLanguage: String? = null,
     val selectedLevel: String? = null,
+    val selectedDailyGoal: Int = 10,
     val interests: List<String> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null
 ) {
-    val totalSteps: Int get() = 3
+    val totalSteps: Int get() = 4
 }

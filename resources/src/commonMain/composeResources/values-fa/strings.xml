@@ -460,6 +460,10 @@
     <string name="onboarding_loading_tip_3">بسته شروع شما در حال ساخت…</string>
     <string name="onboarding_loading_tip_4">تقریباً آماده…</string>
     <string name="onboarding_language_flag">پرچم %1$s</string>
+    <string name="onboarding_daily_goal_title1">چند کلمه</string>
+    <string name="onboarding_daily_goal_title2">در روز؟</string>
+    <string name="onboarding_daily_goal_subtitle">یک هدف روزانه تعیین کنید که با برنامه شما مناسب باشد. می‌توانید این را هر زمان در تنظیمات تغییر دهید.</string>
+    <string name="onboarding_words_per_day">کلمه/روز</string>
     <string name="login_required_title">به Lexicon خوش آمدید</string>
     <string name="login_required_subtitle">برای شروع یادگیری واژگان وارد شوید</string>
     <string name="sign_in_google">ورود با گوگل</string>

@@ -16,11 +16,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,7 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.back
-import lexicon.resources.generated.resources.lets_go
+import lexicon.resources.generated.resources.onboarding_continue
 import lexicon.resources.generated.resources.onboarding_current_level
 import lexicon.resources.generated.resources.onboarding_level_subtitle
 import lexicon.resources.generated.resources.onboarding_whats_your
@@ -43,7 +40,7 @@ import theme.Theme
 internal fun OnboardingStep3Content(
     state: OnboardingUiState,
     onLevelSelected: (String) -> Unit,
-    onSubmit: () -> Unit,
+    onNextStep: () -> Unit,
     onBack: () -> Unit
 ) {
     val spacing = Theme.spacing
@@ -109,7 +106,7 @@ internal fun OnboardingStep3Content(
                             )
                         }
                         Button(
-                            onClick = onSubmit,
+                            onClick = onNextStep,
                             modifier = Modifier.weight(2f),
                             enabled = state.selectedLevel != null,
                             contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
@@ -119,13 +116,7 @@ internal fun OnboardingStep3Content(
                             ),
                             shape = RoundedCornerShape(50)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(dimensions.iconSizeMedium)
-                            )
-                            Spacer(modifier = Modifier.size(spacing.xs))
-                            Text(stringResource(Res.string.lets_go), style = MaterialTheme.typography.labelLarge)
+                            Text(stringResource(Res.string.onboarding_continue), style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }

@@ -7,6 +7,7 @@ import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.onboarding.repository.IOnboardingRepository
 import domain.settings.model.ThemeMode
+import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.repository.ISettingsRepository
 import fakes.FakeAnalyticsTracker
@@ -28,6 +29,7 @@ class OnboardingViewModelTest : ViewModelTestBase() {
 
     private var submitResult: Try<SuggestedVocabularyResponse> = Try.success(testResponse())
     private var languageSet: Language? = null
+    private var dailyGoalSet: Int? = null
 
     private fun testResponse() = SuggestedVocabularyResponse(
         suggestedVocabulary = listOf(
@@ -73,9 +75,35 @@ class OnboardingViewModelTest : ViewModelTestBase() {
         return SetLanguageUseCase(repo)
     }
 
+    private fun fakeSetDailyGoalWordsUseCase(): SetDailyGoalWordsUseCase {
+        val repo = object : ISettingsRepository {
+            override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
+            override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
+            override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
+            override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
+            override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
+            override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(false)
+            override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+            override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(false)
+            override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+            override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(false)
+            override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+            override suspend fun getDailyReminderTime(): Try<String> = Try.success("09:00")
+            override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
+            override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
+            override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
+            override suspend fun setDailyGoalWords(count: Int): Try<Unit> {
+                dailyGoalSet = count
+                return Try.success(Unit)
+            }
+        }
+        return SetDailyGoalWordsUseCase(repo)
+    }
+
     private fun createViewModel() = OnboardingViewModel(
         submitPreferencesUseCase = fakeSubmitUseCase(),
         setLanguageUseCase = fakeSetLanguageUseCase(),
+        setDailyGoalWordsUseCase = fakeSetDailyGoalWordsUseCase(),
         analyticsTracker = FakeAnalyticsTracker(),
     )
 
@@ -193,4 +221,31 @@ class OnboardingViewModelTest : ViewModelTestBase() {
         val event = vm.effects.first()
         assertIs<OnboardingEffect.NavigateToMain>(event)
     }
+
+    @Test
+    fun `selectDailyGoal updates selectedDailyGoal state`() {
+        val vm = createViewModel()
+        vm.selectDailyGoal(20)
+        assertEquals(20, vm.currentState.selectedDailyGoal)
+    }
+
+    @Test
+    fun `default goal is 10 when not explicitly selected`() {
+        val vm = createViewModel()
+        assertEquals(10, vm.currentState.selectedDailyGoal)
+    }
+
+    @Test
+    fun `submit persists the daily goal via SetDailyGoalWordsUseCase`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val vm = createViewModel()
+            vm.selectTargetLanguage("Spanish")
+            vm.selectNativeLanguage("English")
+            vm.selectLevel("beginner")
+            vm.selectDailyGoal(20)
+
+            vm.submit()
+
+            assertEquals(20, dailyGoalSet)
+        }
 }

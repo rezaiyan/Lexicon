@@ -2,6 +2,10 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.getOrNull
+import domain.settings.repository.ISettingsRepository
+import domain.settings.usecase.GetDailyGoalWordsUseCase
+import domain.settings.model.ThemeMode
+import domain.tts.model.TtsSettings
 import domain.word.model.LearningStage
 import domain.word.model.ReviewSource
 import domain.word.model.Word
@@ -81,11 +85,37 @@ class LoadReviewQueueUseCaseTest {
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
     }
 
-    private fun buildUseCase(repo: IWordRepository): LoadReviewQueueUseCase {
+    private inner class FakeSettingsRepository(
+        private val dailyGoal: Int = Int.MAX_VALUE,
+    ) : ISettingsRepository {
+        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
+        override suspend fun setLanguage(language: Language) = Try.success(Unit)
+        override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
+        override suspend fun setThemeMode(mode: ThemeMode) = Try.success(Unit)
+        override suspend fun clearSettings() = Try.success(Unit)
+        override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(false)
+        override suspend fun setNotificationsEnabled(enabled: Boolean) = Try.success(Unit)
+        override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(false)
+        override suspend fun setReviewRemindersEnabled(enabled: Boolean) = Try.success(Unit)
+        override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(false)
+        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean) = Try.success(Unit)
+        override suspend fun getDailyReminderTime() = Try.success("09:00")
+        override suspend fun setDailyReminderTime(time: String) = Try.success(Unit)
+        override suspend fun getMinimumDueCards() = Try.success(1)
+        override suspend fun setMinimumDueCards(count: Int) = Try.success(Unit)
+        override suspend fun getDailyGoalWords() = Try.success(dailyGoal)
+        override suspend fun setDailyGoalWords(count: Int) = Try.success(Unit)
+    }
+
+    private fun buildUseCase(
+        repo: IWordRepository,
+        dailyGoal: Int = Int.MAX_VALUE,
+    ): LoadReviewQueueUseCase {
         val getDueWords = GetDueWordsUseCase(repo)
         val getWordsByStage = GetWordsByStageUseCase(repo)
         val getDueWordsByTag = GetDueWordsByTagUseCase(repo)
-        return LoadReviewQueueUseCase(getDueWords, getWordsByStage, getDueWordsByTag)
+        val getDailyGoalWords = GetDailyGoalWordsUseCase(FakeSettingsRepository(dailyGoal))
+        return LoadReviewQueueUseCase(getDueWords, getWordsByStage, getDueWordsByTag, getDailyGoalWords)
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -148,5 +178,17 @@ class LoadReviewQueueUseCaseTest {
         val words = result.getOrNull()!!
         assertEquals(1, words.size)
         assertEquals(matchingWord, words.first())
+    }
+
+    @Test
+    fun `DueCards source caps queue at daily goal`() = runTest {
+        val dueWords = listOf(testWord(1), testWord(2), testWord(3), testWord(4), testWord(5))
+        val repo = ConfigurableWordRepository(dueCards = dueWords)
+        val useCase = buildUseCase(repo, dailyGoal = 3)
+
+        val result = useCase(ReviewSource.DueCards)
+
+        assertTrue(result.isSuccess)
+        assertEquals(3, result.getOrNull()!!.size)
     }
 }

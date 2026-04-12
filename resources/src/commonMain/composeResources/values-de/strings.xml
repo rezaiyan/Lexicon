@@ -461,6 +461,10 @@
     <string name="onboarding_loading_tip_3">Dein Starterpaket wird erstellt…</string>
     <string name="onboarding_loading_tip_4">Fast fertig…</string>
     <string name="onboarding_language_flag">%1$s Flagge</string>
+    <string name="onboarding_daily_goal_title1">Wie viele Wörter</string>
+    <string name="onboarding_daily_goal_title2">pro Tag?</string>
+    <string name="onboarding_daily_goal_subtitle">Setze ein Tagesziel, das zu deinem Zeitplan passt. Du kannst dies jederzeit in den Einstellungen ändern.</string>
+    <string name="onboarding_words_per_day">Wörter/Tag</string>
     <string name="login_required_title">Willkommen bei Lexicon</string>
     <string name="login_required_subtitle">Melde dich an, um Vokabeln zu lernen</string>
     <string name="sign_in_google">Mit Google anmelden</string>

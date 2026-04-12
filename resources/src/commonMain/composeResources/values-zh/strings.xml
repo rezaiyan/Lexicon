@@ -461,6 +461,10 @@
     <string name="onboarding_loading_tip_3">正在创建你的入门包…</string>
     <string name="onboarding_loading_tip_4">即将完成…</string>
     <string name="onboarding_language_flag">%1$s 国旗</string>
+    <string name="onboarding_daily_goal_title1">每天学多少</string>
+    <string name="onboarding_daily_goal_title2">单词？</string>
+    <string name="onboarding_daily_goal_subtitle">设置一个适合您日程的每日目标。您可以随时在设置中更改。</string>
+    <string name="onboarding_words_per_day">词/天</string>
     <string name="login_required_title">欢迎来到 Lexicon</string>
     <string name="login_required_subtitle">登录开始学习词汇</string>
     <string name="sign_in_google">使用 Google 登录</string>

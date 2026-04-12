@@ -239,6 +239,7 @@ fun LexiconApp() {
                             onTargetLanguageSelected = onboardingViewModel::selectTargetLanguage,
                             onNativeLanguageSelected = onboardingViewModel::selectNativeLanguage,
                             onLevelSelected = onboardingViewModel::selectLevel,
+                            onDailyGoalSelected = onboardingViewModel::selectDailyGoal,
                             onNextStep = onboardingViewModel::nextStep,
                             onPreviousStep = onboardingViewModel::previousStep,
                             onSubmit = onboardingViewModel::submit,

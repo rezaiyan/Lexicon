@@ -604,6 +604,10 @@
     <string name="onboarding_loading_tip_3">スターターパックを構築中…</string>
     <string name="onboarding_loading_tip_4">もうすぐです…</string>
     <string name="onboarding_language_flag">%1$sの旗</string>
+    <string name="onboarding_daily_goal_title1">1日に何単語</string>
+    <string name="onboarding_daily_goal_title2">学びますか？</string>
+    <string name="onboarding_daily_goal_subtitle">スケジュールに合った1日の目標を設定しましょう。設定でいつでも変更できます。</string>
+    <string name="onboarding_words_per_day">単語/日</string>
     <string name="login_required_title">Lexiconへようこそ</string>
     <string name="login_required_subtitle">サインインして語彙学習を始めましょう</string>
     <string name="sign_in_google">Googleでサインイン</string>

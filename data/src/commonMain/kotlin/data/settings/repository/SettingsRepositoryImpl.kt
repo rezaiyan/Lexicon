@@ -123,6 +123,15 @@ class SettingsRepositoryImpl(
         localDataSource.cacheNumSpeakersForLanguage(languageCode, numSpeakers)
     }
 
+    override suspend fun getDailyGoalWords(): Try<Int> = Try {
+        localDataSource.getSettings()?.dailyGoalWords ?: 10
+    }
+
+    override suspend fun setDailyGoalWords(count: Int): Try<Unit> = Try {
+        val current = localDataSource.getSettings() ?: SettingsEntityData()
+        localDataSource.saveSettings(current.copy(dailyGoalWords = count))
+    }
+
     override suspend fun clearSettings(): Try<Unit> = Try {
         localDataSource.clearSettings()
     }

@@ -2,6 +2,7 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.UseCase
+import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.word.model.ReviewSource
 import domain.word.model.Word
 import kotlinx.coroutines.flow.first
@@ -11,17 +12,23 @@ import kotlinx.coroutines.flow.first
  *
  * Dispatches on [ReviewSource] so callers don't need to pick among five
  * different use cases or special-case tag filtering in the ViewModel.
+ *
+ * For [ReviewSource.DueCards] the queue is capped at the user's daily goal
+ * so a single study session stays focused and achievable.
  */
 class LoadReviewQueueUseCase(
     private val getDueWords: GetDueWordsUseCase,
     private val getWordsByStage: GetWordsByStageUseCase,
     private val getDueWordsByTag: GetDueWordsByTagUseCase,
+    private val getDailyGoalWords: GetDailyGoalWordsUseCase,
 ) : UseCase<ReviewSource, List<Word>> {
 
     override suspend fun invoke(params: ReviewSource): Try<List<Word>> = Try {
         when (params) {
-            is ReviewSource.DueCards ->
-                getDueWords().first()
+            is ReviewSource.DueCards -> {
+                val limit = getDailyGoalWords().getOrDefault(Int.MAX_VALUE)
+                getDueWords().first().take(limit)
+            }
 
             is ReviewSource.ByStage ->
                 getWordsByStage(params.stage).first()
