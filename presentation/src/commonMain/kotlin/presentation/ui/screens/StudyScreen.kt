@@ -63,6 +63,7 @@ import lexicon.resources.generated.resources.insights_title
 import lexicon.resources.generated.resources.profile
 import lexicon.resources.generated.resources.skip_tag_selector_label
 import org.jetbrains.compose.resources.stringResource
+import feature.settings.SettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetPageConfig
@@ -73,9 +74,13 @@ import overlay.bottomsheet.showSizeToFitBottomSheet
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
 import presentation.ui.LocalSnackbarHostState
+import presentation.ui.components.NotificationPermissionContent
+import presentation.ui.components.NotificationSettingsContent
 import presentation.ui.components.imports.AiWordImportBottomSheet
 import presentation.ui.components.imports.ImportBottomSheet
 import presentation.ui.components.imports.ImportMethodSelectorContent
+import presentation.ui.permissions.rememberNotificationPermissionRequester
+import presentation.ui.permissions.wasNotificationPermissionDenied
 import theme.AppColors
 import theme.Theme
 
@@ -226,7 +231,42 @@ fun StudyScreen() {
             icon = Icons.Default.Insights,
             contentDescription = stringResource(Res.string.insights_title),
             onClick = {
-                overlayHost.showInsightsSheet(onShowLeaderboard = { overlayHost.showLeaderboard() })
+                overlayHost.showInsightsSheet(
+                    onShowLeaderboard = { overlayHost.showLeaderboard() },
+                    onNavigateToNotificationSettings = {
+                        overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
+                            val settingsViewModel = koinViewModel<SettingsViewModel>()
+                            val currentState by settingsViewModel.state()
+                            if (currentState.screen.systemNotificationsEnabled) {
+                                NotificationSettingsContent(
+                                    notificationsEnabled = currentState.screen.notificationsEnabled,
+                                    systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
+                                    onNotificationsToggle = { settingsViewModel.setNotificationsEnabled(it) },
+                                    onDismiss = { nav.dismiss() }
+                                )
+                            } else {
+                                val deniedPreviously = wasNotificationPermissionDenied()
+                                val requestPermission = rememberNotificationPermissionRequester { granted ->
+                                    if (granted) settingsViewModel.setNotificationsEnabled(true)
+                                    settingsViewModel.refreshNotificationPermissionStatus()
+                                    nav.dismiss()
+                                }
+                                NotificationPermissionContent(
+                                    onDismiss = { nav.dismiss() },
+                                    onEnableNotifications = {
+                                        if (deniedPreviously) {
+                                            nav.dismiss()
+                                            settingsViewModel.requestNotificationPermission()
+                                            settingsViewModel.refreshNotificationPermissionStatus()
+                                        } else {
+                                            requestPermission()
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                )
             },
             size = Theme.dimensions.iconSize,
         ) else null,

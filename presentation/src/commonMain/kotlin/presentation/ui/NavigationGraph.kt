@@ -7,20 +7,28 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import org.koin.compose.koinInject
 import feature.insights.navigation.insightsGraph
 import feature.leaderboard.navigation.showLeaderboard
 import feature.profile.navigation.profileGraph
-import overlay.LocalOverlayHost
+import feature.settings.SettingsViewModel
 import feature.subscription.navigation.SubscriptionRoute
 import feature.subscription.navigation.subscriptionGraph
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import overlay.LocalOverlayHost
+import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.model.TabDestination
+import presentation.ui.components.NotificationPermissionContent
+import presentation.ui.components.NotificationSettingsContent
+import presentation.ui.permissions.rememberNotificationPermissionRequester
+import presentation.ui.permissions.wasNotificationPermissionDenied
 import presentation.ui.screens.SettingsScreen
 import presentation.ui.screens.StudyScreen
 
@@ -67,6 +75,39 @@ internal fun NavigationGraph(
         insightsGraph(
             onNavigateBack = { navController.navigateUp() },
             onShowLeaderboard = { overlayHost.showLeaderboard() },
+            onNavigateToNotificationSettings = {
+                overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
+                    val settingsViewModel = koinViewModel<SettingsViewModel>()
+                    val currentState by settingsViewModel.state()
+                    if (currentState.screen.systemNotificationsEnabled) {
+                        NotificationSettingsContent(
+                            notificationsEnabled = currentState.screen.notificationsEnabled,
+                            systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
+                            onNotificationsToggle = { settingsViewModel.setNotificationsEnabled(it) },
+                            onDismiss = { nav.dismiss() }
+                        )
+                    } else {
+                        val deniedPreviously = wasNotificationPermissionDenied()
+                        val requestPermission = rememberNotificationPermissionRequester { granted ->
+                            if (granted) settingsViewModel.setNotificationsEnabled(true)
+                            settingsViewModel.refreshNotificationPermissionStatus()
+                            nav.dismiss()
+                        }
+                        NotificationPermissionContent(
+                            onDismiss = { nav.dismiss() },
+                            onEnableNotifications = {
+                                if (deniedPreviously) {
+                                    nav.dismiss()
+                                    settingsViewModel.requestNotificationPermission()
+                                    settingsViewModel.refreshNotificationPermissionStatus()
+                                } else {
+                                    requestPermission()
+                                }
+                            }
+                        )
+                    }
+                }
+            }
         )
 
         // Presentation-owned routes (screens still in :presentation)
