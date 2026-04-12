@@ -36,6 +36,7 @@ import domain.word.usecase.GetDueWordsByTagUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
+import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
 import fakes.FakeAnalyticsTracker
@@ -80,6 +81,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
     private var deleteResult: Try<Unit> = Try.success(Unit)
     private var updateResult: Try<Unit> = Try.success(Unit)
     private var throwOnLoad: Boolean = false
+    private var nextDueAt: Long? = null
 
     // ---------------------------------------------------------------------------
     // Fakes
@@ -137,6 +139,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override fun getProgressStats(): Flow<ProgressStats> = emptyFlow()
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getNextDueAt(): Try<Long?> = Try.success(nextDueAt)
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 
@@ -222,6 +225,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             setSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),
             generateSessionIdUseCase = GenerateSessionIdUseCase(),
             resolveCardLanguageUseCase = ResolveCardLanguageUseCase(),
+            getNextDueDateUseCase = GetNextDueDateUseCase(wordRepo),
             analyticsTracker = FakeAnalyticsTracker(),
         )
     }
@@ -272,6 +276,28 @@ class ReviewViewModelTest : ViewModelTestBase() {
         val vm = createViewModel()
         vm.startSession(ReviewSource.DueCards)
         assertIs<ReviewState.Empty>(vm.currentState.review)
+    }
+
+    @Test
+    fun `startSession empty queue with next due date sets nextDueAt on Empty state`() = runTest {
+        dueWords = emptyList()
+        nextDueAt = 9_999_999_000L
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Empty>(state)
+        assertEquals(9_999_999_000L, state.nextDueAt)
+    }
+
+    @Test
+    fun `startSession empty queue with no scheduled words has null nextDueAt`() = runTest {
+        dueWords = emptyList()
+        nextDueAt = null
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Empty>(state)
+        assertEquals(null, state.nextDueAt)
     }
 
     @Test

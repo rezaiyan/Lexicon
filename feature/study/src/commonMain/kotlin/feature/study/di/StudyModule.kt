@@ -2,6 +2,7 @@ package feature.study.di
 
 import domain.study.usecase.GenerateSessionIdUseCase
 import domain.study.usecase.ResolveCardLanguageUseCase
+import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.GetWordRushWordsUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import feature.study.ReviewViewModel
@@ -17,6 +18,7 @@ import org.koin.dsl.module
 fun studyModule() = module {
     single { GenerateSessionIdUseCase() }
     singleOf(::ResolveCardLanguageUseCase)
+    factoryOf(::GetNextDueDateUseCase)
     factoryOf(::GetWordRushWordsUseCase)
     factoryOf(::RecordWordRushGameUseCase)
 

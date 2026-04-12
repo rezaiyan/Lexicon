@@ -12,7 +12,10 @@ import components.EmptyScreen
 import components.ErrorScreen
 import components.LoadingScreen
 import feature.study.model.ReviewError
+import kotlin.time.Clock
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.next_review_in
+import lexicon.resources.generated.resources.no_words_scheduled
 import lexicon.resources.generated.resources.no_words_to_review
 import lexicon.resources.generated.resources.retry
 import org.jetbrains.compose.resources.stringResource
@@ -45,10 +48,17 @@ fun ErrorState(
 }
 
 @Composable
-fun EmptyState() {
+fun EmptyState(nextDueAt: Long? = null) {
+    val subtitle = if (nextDueAt != null) {
+        val remainingMs = nextDueAt - Clock.System.now().toEpochMilliseconds()
+        val countdownLabel = formatCountdown(remainingMs)
+        stringResource(Res.string.next_review_in, countdownLabel)
+    } else {
+        stringResource(Res.string.no_words_scheduled)
+    }
     EmptyScreen(
         title = stringResource(Res.string.no_words_to_review),
-        subtitle = "All caught up! Import more words to keep learning.",
+        subtitle = subtitle,
         icon = {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
@@ -58,4 +68,17 @@ fun EmptyState() {
             )
         }
     )
+}
+
+private fun formatCountdown(remainingMs: Long): String {
+    if (remainingMs <= 0) return "a moment"
+    val totalMinutes = remainingMs / 60_000
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return when {
+        hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+        hours > 0 -> "${hours}h"
+        minutes > 0 -> "${minutes}m"
+        else -> "a moment"
+    }
 }

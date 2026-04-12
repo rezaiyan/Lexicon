@@ -92,7 +92,7 @@ fun ReviewScreen(
                 onRetry = { viewModel.startSession(reviewState.source) },
             )
 
-            ReviewState.Empty -> EmptyState()
+            is ReviewState.Empty -> EmptyState(reviewState.nextDueAt)
 
             is ReviewState.Active -> ReviewContent(
                 words = reviewState.words,

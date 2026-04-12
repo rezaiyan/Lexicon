@@ -36,6 +36,7 @@ interface IWordRepository {
     fun getProgressStats(): Flow<ProgressStats>
     suspend fun getTotalCount(): Try<Int>
     suspend fun getDueCount(): Try<Int>
+    suspend fun getNextDueAt(): Try<Long?>
     suspend fun getMostCommonSourceLanguage(): Try<String?>
 }
 

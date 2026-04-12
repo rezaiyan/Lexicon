@@ -357,6 +357,7 @@ class ReviewWordUseCaseTest {
         override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> = Try.success(Unit)
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getNextDueAt(): Try<Long?> = Try.success(null)
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())

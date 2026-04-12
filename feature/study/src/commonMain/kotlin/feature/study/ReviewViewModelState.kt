@@ -17,7 +17,7 @@ sealed class ReviewState {
     data object Idle : ReviewState()
     data object Loading : ReviewState()
     data class Error(val error: ReviewError, val source: ReviewSource) : ReviewState()
-    data object Empty : ReviewState()
+    data class Empty(val nextDueAt: Long? = null) : ReviewState()
 
     data class Active(
         val words: List<Word>,

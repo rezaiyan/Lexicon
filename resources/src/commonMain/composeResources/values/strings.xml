@@ -246,6 +246,8 @@
     <string name="show_answer">Show Answer</string>
     <string name="think_of_answer_first">Take a moment to think first</string>
     <string name="no_words_to_review">All caught up!</string>
+    <string name="next_review_in">Next review in %1$s</string>
+    <string name="no_words_scheduled">Great work — no reviews scheduled yet. Import more words to keep growing.</string>
     <string name="less_than_1m">&lt;1m</string>
     <string name="less_than_10m">&lt;10m</string>
     <string name="less_than_1d">&lt;1d</string>

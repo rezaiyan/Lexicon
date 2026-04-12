@@ -79,6 +79,9 @@ SELECT count(*) FROM WordEntity;
 countDueCards:
 SELECT count(*) FROM WordEntity WHERE nextReviewDate <= ?;
 
+getNextDueAt:
+SELECT MIN(nextReviewDate) FROM WordEntity WHERE nextReviewDate > ?;
+
 deleteAllWords:
 DELETE FROM WordEntity;
 

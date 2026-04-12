@@ -3,6 +3,7 @@ package feature.study
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
+import core.common.getOrNull
 import core.common.onFailure
 import core.common.onSuccess
 import domain.analytics.model.ReviewEventParams
@@ -21,6 +22,7 @@ import domain.study.usecase.GenerateSessionIdUseCase
 import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.FlushReviewSyncQueueUseCase
+import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
@@ -54,6 +56,7 @@ class ReviewViewModel(
     private val analyticsTracker: IAnalyticsTracker,
     private val generateSessionIdUseCase: GenerateSessionIdUseCase,
     private val resolveCardLanguageUseCase: ResolveCardLanguageUseCase,
+    private val getNextDueDateUseCase: GetNextDueDateUseCase,
 ) : BaseViewModel<ReviewViewModelState, ReviewEffect>() {
 
     override fun initialState() = ReviewViewModelState()
@@ -113,7 +116,8 @@ class ReviewViewModel(
             loadQueueUseCase(source)
                 .onSuccess { words ->
                     if (words.isEmpty()) {
-                        updateState { copy(review = ReviewState.Empty) }
+                        val nextDueAt = getNextDueDateUseCase(Unit).getOrNull()
+                        updateState { copy(review = ReviewState.Empty(nextDueAt)) }
                         return@onSuccess
                     }
                     val startedAt = Clock.System.now().toEpochMilliseconds()
