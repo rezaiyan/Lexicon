@@ -5,6 +5,7 @@ import core.base.BaseViewModel
 import core.common.UiState
 import data.storage.DailyInsightCache
 import domain.analytics.model.AccuracyByLevel
+import domain.analytics.model.DayOfWeekAccuracy
 import domain.analytics.model.WeeklyReport
 import domain.analytics.model.DailyStudyStats
 import domain.analytics.model.HourlyAccuracy
@@ -39,6 +40,7 @@ import kotlinx.datetime.toLocalDateTime
 data class InsightsState(
     val overview: UiState<StudyInsights> = UiState.Loading,
     val accuracyTrend: UiState<List<DailyStudyStats>> = UiState.Loading,
+    val accuracyByDayOfWeek: List<DayOfWeekAccuracy> = emptyList(),
     val difficultWords: UiState<List<WordDifficulty>> = UiState.Loading,
     val accuracyByLevel: UiState<List<AccuracyByLevel>> = UiState.Loading,
     val heatmap: UiState<List<StudyHeatmapDay>> = UiState.Loading,
@@ -156,7 +158,7 @@ class InsightsViewModel(
             getAccuracyTrendUseCase(
                 GetAccuracyTrendUseCase.Params(startDate.toString(), today.toString())
             ).reduce(
-                onSuccess = { copy(accuracyTrend = UiState.Loaded(it)) },
+                onSuccess = { copy(accuracyTrend = UiState.Loaded(it), accuracyByDayOfWeek = computeDayOfWeekAccuracy(it)) },
                 onFailure = { copy(accuracyTrend = UiState.Error(it.toUserMessage())) },
             )
         }
@@ -256,6 +258,27 @@ class InsightsViewModel(
                 onFailure = { this },
             )
         }
+    }
+}
+
+// ─── Day-of-week aggregation ─────────────────────────────────────────────────
+
+private fun computeDayOfWeekAccuracy(stats: List<DailyStudyStats>): List<DayOfWeekAccuracy> {
+    return (1..7).map { dow ->
+        val dayStats = stats.filter { stat ->
+            runCatching { LocalDate.parse(stat.date).dayOfWeek.ordinal + 1 }
+                .getOrElse { -1 } == dow
+        }
+        val totalReviews = dayStats.sumOf { (it.correctCount + it.incorrectCount).toLong() }
+        val correctCount = dayStats.sumOf { it.correctCount.toLong() }
+        val accuracyPercent = if (totalReviews == 0L) 0.0
+        else (correctCount.toDouble() / totalReviews) * 100.0
+        DayOfWeekAccuracy(
+            dayOfWeek = dow,
+            totalReviews = totalReviews,
+            correctCount = correctCount,
+            accuracyPercent = accuracyPercent,
+        )
     }
 }
 

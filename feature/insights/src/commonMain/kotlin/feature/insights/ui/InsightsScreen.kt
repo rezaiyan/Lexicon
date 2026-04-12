@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -71,6 +72,7 @@ import core.common.onError
 import core.common.onLoaded
 import core.common.onLoading
 import domain.analytics.model.AccuracyByLevel
+import domain.analytics.model.DayOfWeekAccuracy
 import domain.analytics.model.HourlyAccuracy
 import domain.analytics.model.LevelTransition
 import domain.analytics.model.ResponseTimeTrend
@@ -894,6 +896,9 @@ private fun TrendsTab(state: InsightsState) {
                     AccuracyByLevelCard(levels)
                 }
             }
+        if (state.accuracyByDayOfWeek.isNotEmpty()) {
+            DayOfWeekAccuracyChart(state.accuracyByDayOfWeek)
+        }
         state.levelTransitions
             .onLoaded { transitions ->
                 if (transitions.isNotEmpty()) {
@@ -1071,6 +1076,114 @@ private fun LevelAccuracyRow(level: AccuracyByLevel) {
             height = 6.dp,
             modifier = Modifier.clip(RoundedCornerShape(Theme.shapes.pill)),
         )
+    }
+}
+
+@Composable
+private fun DayOfWeekAccuracyChart(days: List<DayOfWeekAccuracy>) {
+    val currentDayOfWeek = remember {
+        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).dayOfWeek.ordinal + 1
+    }
+    val dayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val maxAccuracy = days.maxOfOrNull { it.accuracyPercent }.takeIf { (it ?: 0.0) > 0.0 } ?: 100.0
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        AppColors.accentAmber.copy(alpha = 0.12f),
+                        AppColors.secondary.copy(alpha = 0.06f),
+                    ),
+                ),
+            )
+            .padding(Theme.spacing.md),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        Icons.Filled.BarChart,
+                        contentDescription = null,
+                        tint = AppColors.accentAmber,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Text(
+                        "Accuracy by Day",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(110.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                days.forEach { day ->
+                    val isToday = day.dayOfWeek == currentDayOfWeek
+                    val fraction = if (maxAccuracy > 0.0) (day.accuracyPercent / maxAccuracy).toFloat().coerceIn(0f, 1f) else 0f
+                    val barColor = when {
+                        day.totalReviews == 0L -> MaterialTheme.colorScheme.surfaceContainerHighest
+                        day.accuracyPercent >= 80.0 -> AppColors.accentEmerald
+                        day.accuracyPercent >= 60.0 -> AppColors.accentAmber
+                        else -> AppColors.error
+                    }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom,
+                    ) {
+                        if (day.totalReviews > 0L) {
+                            Text(
+                                "${day.accuracyPercent.roundToInt()}%",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 9.sp,
+                                color = barColor,
+                                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                            )
+                            Spacer(Modifier.height(2.dp))
+                        }
+                        val barPx = (fraction * 80f).dp
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 3.dp)
+                                .height(if (barPx > 4.dp) barPx else 4.dp)
+                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                                .background(if (isToday) barColor else barColor.copy(alpha = 0.65f)),
+                        )
+                    }
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                days.forEach { day ->
+                    val isToday = day.dayOfWeek == currentDayOfWeek
+                    Text(
+                        dayNames[day.dayOfWeek - 1],
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Center,
+                        color = if (isToday) AppColors.accentAmber else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                    )
+                }
+            }
+        }
     }
 }
 

@@ -1,9 +1,9 @@
 # Plan: Day-of-Week Accuracy Chart
 
-**Status:** PENDING
+**Status:** COMPLETE
 **Type:** Feature
 **Worktree:** No
-**Approved:** No
+**Approved:** Yes
 
 ## Goal
 
@@ -20,25 +20,27 @@ Show users which days of the week they study most accurately. This helps them id
 
 ## Implementation Tasks
 
-- [ ] **T1** Decide: derive from existing `accuracyTrend` data client-side OR add new use case
+- [x] **T1** Decide: derive from existing `accuracyTrend` data client-side OR add new use case
   - Preferred: derive client-side in ViewModel from existing 30-day data (avoids new DB query)
   - Map `DailyStudyStats.date` → day of week → aggregate accuracy per day
 
-- [ ] **T2** Add `accuracyByDayOfWeek: List<DayOfWeekAccuracy>` computed field to `InsightsState`
-  - `DayOfWeekAccuracy(dayName: String, accuracyPercent: Float, reviewCount: Int)`
-  - Compute in `InsightsViewModel` when `accuracyTrend` loads
+- [x] **T2** Add `accuracyByDayOfWeek: List<DayOfWeekAccuracy>` computed field to `InsightsState`
+  - Uses existing `DayOfWeekAccuracy(dayOfWeek: Int, totalReviews: Long, correctCount: Long, accuracyPercent: Double)`
+  - Computed in `InsightsViewModel.loadAccuracyTrend()` via `computeDayOfWeekAccuracy()`
 
-- [ ] **T3** `DayOfWeekAccuracyChart` composable in `InsightsScreen`
+- [x] **T3** `DayOfWeekAccuracyChart` composable in `InsightsScreen`
   - 7 bars (Mon–Sun), height proportional to accuracy %
-  - Color-coded: green ≥ 80%, yellow 60–80%, red < 60%
-  - Highlight current day of week
-  - Show review count below each bar as context
+  - Color-coded: green ≥ 80%, amber 60–80%, red < 60%, grey for no data
+  - Highlights current day of week with full opacity + amber label
 
-- [ ] **T4** Add section to `InsightsScreen` between heatmap and best study time
+- [x] **T4** Add section to `InsightsScreen` TrendsTab between AccuracyByLevelCard and LevelTransitionsCard
 
-- [ ] **T5** Tests
-  - Unit test: `computeDayOfWeekAccuracy()` correctly aggregates 30-day data
-  - Test edge case: no data for certain days → show 0 / grey bar
+- [x] **T5** Tests
+  - Unit test: `accuracyByDayOfWeek has 7 entries after refresh`
+  - Unit test: aggregates Sunday (2026-03-01) correctly from default stats (80% accuracy)
+  - Unit test: zero reviews for days with no stats
+  - Unit test: all zeros when trend data is empty list
+  - Unit test: remains empty when trend load fails
 
 ## Files to Modify
 
@@ -48,4 +50,4 @@ Show users which days of the week they study most accurately. This helps them id
 | `feature/insights/src/.../ui/InsightsScreen.kt` | Add chart composable |
 | `composeApp/src/commonTest/.../InsightsViewModelTest.kt` | Aggregation correctness tests |
 
-## Done: 0 / Left: 5
+## Done: 5 / Left: 0

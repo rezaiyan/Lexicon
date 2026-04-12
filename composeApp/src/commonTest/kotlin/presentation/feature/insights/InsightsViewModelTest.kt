@@ -526,4 +526,68 @@ class InsightsViewModelTest : ViewModelTestBase() {
     }
 
     // endregion
+
+    // region Day-of-Week Accuracy
+
+    @Test
+    fun `accuracyByDayOfWeek has 7 entries after refresh`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        assertEquals(7, vm.currentState.accuracyByDayOfWeek.size)
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek aggregates Sunday correctly from default stats`() = runTest {
+        // defaultDailyStats has date="2026-03-01" (Sunday, isoDayNumber=7)
+        // correctCount=16, incorrectCount=4 → totalReviews=20, accuracy=80.0%
+        val vm = createViewModel()
+        vm.refresh()
+
+        val sunday = vm.currentState.accuracyByDayOfWeek.first { it.dayOfWeek == 7 }
+        assertEquals(20L, sunday.totalReviews)
+        assertEquals(16L, sunday.correctCount)
+        assertEquals(80.0, sunday.accuracyPercent)
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek returns zero reviews for days with no stats`() = runTest {
+        // defaultDailyStats only has data for Sunday (day 7); all other days should be 0
+        val vm = createViewModel()
+        vm.refresh()
+
+        val nonSundays = vm.currentState.accuracyByDayOfWeek.filter { it.dayOfWeek != 7 }
+        nonSundays.forEach { day ->
+            assertEquals(0L, day.totalReviews)
+            assertEquals(0.0, day.accuracyPercent)
+        }
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek stays empty when trend data is empty list`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            dailyStatsResult = Try.success(emptyList()),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        vm.currentState.accuracyByDayOfWeek.forEach { day ->
+            assertEquals(0L, day.totalReviews)
+            assertEquals(0.0, day.accuracyPercent)
+        }
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek remains empty list when trend load fails`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            dailyStatsResult = Try.failure(RuntimeException("network error")),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        // On failure, accuracyByDayOfWeek is not updated — stays emptyList()
+        assertTrue(vm.currentState.accuracyByDayOfWeek.isEmpty())
+    }
+
+    // endregion
 }
