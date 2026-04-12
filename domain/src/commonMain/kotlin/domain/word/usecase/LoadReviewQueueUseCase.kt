@@ -2,6 +2,7 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.UseCase
+import core.common.getOrDefault
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.word.model.ReviewSource
 import domain.word.model.Word
