@@ -33,6 +33,7 @@ import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.FlushReviewSyncQueueUseCase
 import domain.word.usecase.GetDueWordsByTagUseCase
+import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
@@ -208,6 +209,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
                 getDueWords = GetDueWordsUseCase(wordRepo),
                 getWordsByStage = GetWordsByStageUseCase(wordRepo),
                 getDueWordsByTag = GetDueWordsByTagUseCase(wordRepo),
+                getDailyGoalWords = GetDailyGoalWordsUseCase(settingsRepo),
             ),
             reviewWordUseCase = ReviewWordUseCase(wordRepo, syncRepo),
             flushReviewSyncQueueUseCase = FlushReviewSyncQueueUseCase(syncRepo, wordRepo),
