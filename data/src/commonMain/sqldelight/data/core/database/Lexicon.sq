@@ -28,7 +28,8 @@ CREATE TABLE SettingsEntity (
     ttsSpeed REAL NOT NULL DEFAULT 1.0,
     ttsSpeakerId INTEGER NOT NULL DEFAULT 0,
     skipTagSelector INTEGER NOT NULL DEFAULT 0,
-    word_sync_timestamp INTEGER NOT NULL DEFAULT 0
+    word_sync_timestamp INTEGER NOT NULL DEFAULT 0,
+    dailyGoalWords INTEGER NOT NULL DEFAULT 10
 );
 
 -- Word queries
@@ -79,6 +80,9 @@ SELECT count(*) FROM WordEntity;
 countDueCards:
 SELECT count(*) FROM WordEntity WHERE nextReviewDate <= ?;
 
+getNextDueAt:
+SELECT MIN(nextReviewDate) FROM WordEntity WHERE nextReviewDate > ?;
+
 deleteAllWords:
 DELETE FROM WordEntity;
 
@@ -94,8 +98,8 @@ LIMIT 1;
 -- Settings queries
 
 insertSettings:
-INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId, skipTagSelector)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId, skipTagSelector, dailyGoalWords)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSettings:
 SELECT * FROM SettingsEntity WHERE id = 1;

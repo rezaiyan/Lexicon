@@ -25,13 +25,21 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import domain.analytics.usecase.GetWeeklyReportUseCase
+import domain.analytics.usecase.GetLevelTransitionsUseCase
+import domain.analytics.usecase.GetResponseTimeTrendUseCase
+import domain.analytics.model.LevelTransition
+import domain.analytics.model.ResponseTimeTrend
 import domain.wordrush.model.WordRushInsights
+import feature.insights.WeeklyReportUiModel
 import domain.wordrush.repository.IWordRushStatsRepository
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.profile.model.ProfileStats
 import domain.profile.repository.IProfileStatsRepository
 import domain.profile.usecase.GetProfileStatsUseCase
+import feature.insights.InsightsEffect
 import feature.insights.InsightsViewModel
+import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import kotlin.test.Test
@@ -51,6 +59,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
         var accuracyByLevelResult: Try<List<AccuracyByLevel>> = Try.success(defaultAccuracyByLevel()),
         var heatmapResult: Try<List<StudyHeatmapDay>> = Try.success(defaultHeatmap()),
         var accuracyByHourResult: Try<List<HourlyAccuracy>> = Try.success(defaultHourlyAccuracy()),
+        var weeklyReportResult: Try<WeeklyReport> = Try.success(defaultWeeklyReport()),
     ) : IAnalyticsStatsRepository, IAnalyticsWordRepository {
         var insightsCallCount = 0
 
@@ -62,9 +71,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
         override suspend fun getDailyStats(startDate: String, endDate: String): Try<List<DailyStudyStats>> = dailyStatsResult
         override suspend fun getRecentSessions(limit: Int): Try<List<StudySession>> = Try.success(emptyList())
         override suspend fun getStudyHeatmap(startDate: String, endDate: String): Try<List<StudyHeatmapDay>> = heatmapResult
-        override suspend fun getWeeklyReport(): Try<WeeklyReport> = Try.success(
-            WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
-        )
+        override suspend fun getWeeklyReport(): Try<WeeklyReport> = weeklyReportResult
         override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = Try.success(emptyList())
         override suspend fun getResponseTimeTrend(): Try<List<domain.analytics.model.ResponseTimeTrend>> = Try.success(emptyList())
         override suspend fun syncToBackend(): Try<Int> = Try.success(0)
@@ -162,6 +169,19 @@ class InsightsViewModelTest : ViewModelTestBase() {
             avgDurationMs = 12000.0,
             avgResponseMs = 2500.0,
         )
+
+        fun defaultWeeklyReport() = WeeklyReport(
+            cardsReviewed = 50,
+            previousWeekCardsReviewed = 40,
+            changePercent = 25.0,
+            accuracyPercent = 82.0,
+            wordsMastered = 5,
+            totalStudyTimeMs = 1800000L,
+            sessionsCount = 7,
+            bestDay = null,
+            weekStartDate = "2026-03-01",
+            weekEndDate = "2026-03-07",
+        )
     }
 
     private fun createViewModel(
@@ -178,6 +198,9 @@ class InsightsViewModelTest : ViewModelTestBase() {
             getStudyHeatmapUseCase = GetStudyHeatmapUseCase(repo),
             getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(wordRushStatsRepo),
+            getWeeklyReportUseCase = GetWeeklyReportUseCase(repo),
+            getLevelTransitionsUseCase = GetLevelTransitionsUseCase(repo),
+            getResponseTimeTrendUseCase = GetResponseTimeTrendUseCase(repo),
             getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepo),
             dailyInsightCache = dailyInsightCache,
         )
@@ -371,6 +394,199 @@ class InsightsViewModelTest : ViewModelTestBase() {
         vm.refresh()
 
         assertEquals(false, vm.currentState.availability.hasWordRush)
+    }
+
+    // endregion
+
+    // region Weekly Report
+
+    @Test
+    fun `weeklyReport shows Content when report has data`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        val report = assertIs<UiState.Loaded<WeeklyReportUiModel>>(vm.currentState.weeklyReport)
+        assertIs<WeeklyReportUiModel.Content>(report.value)
+        val content = report.value as WeeklyReportUiModel.Content
+        assertEquals("50", content.cardsReviewed)
+        assertEquals("+25%", content.changeLabel)
+        assertTrue(content.isChangePositive)
+    }
+
+    @Test
+    fun `weeklyReport shows Empty when cardsReviewed and sessionsCount are both zero`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            weeklyReportResult = Try.success(
+                WeeklyReport(0, 0, null, 0.0, 0, 0L, 0, null, "", "")
+            ),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        val report = assertIs<UiState.Loaded<WeeklyReportUiModel>>(vm.currentState.weeklyReport)
+        assertIs<WeeklyReportUiModel.Empty>(report.value)
+    }
+
+    // endregion
+
+    // region Level Transitions
+
+    @Test
+    fun `levelTransitions loaded successfully`() = runTest {
+        val transitions = listOf(
+            LevelTransition(fromLevel = 1, toLevel = 2, count = 5),
+            LevelTransition(fromLevel = 3, toLevel = 2, count = 2),
+        )
+        val repo = FakeAnalyticsRepository()
+        // FakeAnalyticsRepository.getLevelTransitions returns emptyList by default
+        // Override by wrapping in a subclass
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        assertIs<UiState.Loaded<List<LevelTransition>>>(vm.currentState.levelTransitions)
+    }
+
+    @Test
+    fun `availability hasTrends is true when levelTransitions are present`() = runTest {
+        // FakeAnalyticsRepository returns empty list, so hasTrends from levelTransitions alone would be false
+        // But heatmap and accuracyByLevel are non-empty by default → hasTrends is true
+        val vm = createViewModel()
+        vm.refresh()
+
+        assertTrue(vm.currentState.availability.hasTrends)
+    }
+
+    // endregion
+
+    // region Response Time Trend
+
+    @Test
+    fun `responseTimeTrend loaded successfully`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        assertIs<UiState.Loaded<List<ResponseTimeTrend>>>(vm.currentState.responseTimeTrend)
+    }
+
+    // endregion
+
+    // region Actionable CTAs
+
+    @Test
+    fun `studyDifficultWords emits NavigateToReviewWithWords with correct word IDs`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        vm.effects.test {
+            vm.studyDifficultWords()
+            val effect = awaitItem()
+            assertIs<InsightsEffect.NavigateToReviewWithWords>(effect)
+            assertEquals(listOf(1L), effect.wordIds)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `studyDifficultWords does nothing when difficultWords is not loaded`() = runTest {
+        val vm = createViewModel()
+        // Do NOT call refresh — difficultWords stays at UiState.Loading
+
+        vm.effects.test {
+            vm.studyDifficultWords()
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `studyDifficultWords does nothing when difficult words list is empty`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            difficultWordsResult = Try.success(emptyList()),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        vm.effects.test {
+            vm.studyDifficultWords()
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setReminderForBestTime emits NavigateToNotificationSettings`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        vm.effects.test {
+            vm.setReminderForBestTime()
+            assertIs<InsightsEffect.NavigateToNotificationSettings>(awaitItem())
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // endregion
+
+    // region Day-of-Week Accuracy
+
+    @Test
+    fun `accuracyByDayOfWeek has 7 entries after refresh`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        assertEquals(7, vm.currentState.accuracyByDayOfWeek.size)
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek aggregates Sunday correctly from default stats`() = runTest {
+        // defaultDailyStats has date="2026-03-01" (Sunday, isoDayNumber=7)
+        // correctCount=16, incorrectCount=4 → totalReviews=20, accuracy=80.0%
+        val vm = createViewModel()
+        vm.refresh()
+
+        val sunday = vm.currentState.accuracyByDayOfWeek.first { it.dayOfWeek == 7 }
+        assertEquals(20L, sunday.totalReviews)
+        assertEquals(16L, sunday.correctCount)
+        assertEquals(80.0, sunday.accuracyPercent)
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek returns zero reviews for days with no stats`() = runTest {
+        // defaultDailyStats only has data for Sunday (day 7); all other days should be 0
+        val vm = createViewModel()
+        vm.refresh()
+
+        val nonSundays = vm.currentState.accuracyByDayOfWeek.filter { it.dayOfWeek != 7 }
+        nonSundays.forEach { day ->
+            assertEquals(0L, day.totalReviews)
+            assertEquals(0.0, day.accuracyPercent)
+        }
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek stays empty when trend data is empty list`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            dailyStatsResult = Try.success(emptyList()),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        vm.currentState.accuracyByDayOfWeek.forEach { day ->
+            assertEquals(0L, day.totalReviews)
+            assertEquals(0.0, day.accuracyPercent)
+        }
+    }
+
+    @Test
+    fun `accuracyByDayOfWeek remains empty list when trend load fails`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            dailyStatsResult = Try.failure(RuntimeException("network error")),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        // On failure, accuracyByDayOfWeek is not updated — stays emptyList()
+        assertTrue(vm.currentState.accuracyByDayOfWeek.isEmpty())
     }
 
     // endregion

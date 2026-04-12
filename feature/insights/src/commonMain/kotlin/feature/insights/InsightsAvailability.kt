@@ -21,7 +21,9 @@ data class InsightsAvailability(
         fun from(state: InsightsState): InsightsAvailability = InsightsAvailability(
             hasOverview = state.overview.hasNonEmptyData { it.totalCardsReviewed > 0 },
             hasTrends = state.accuracyByLevel.hasNonEmptyList()
-                    || state.heatmap.hasNonEmptyList(),
+                    || state.heatmap.hasNonEmptyList()
+                    || state.levelTransitions.hasNonEmptyList()
+                    || state.responseTimeTrend.hasNonEmptyList(),
             hasWords = state.difficultWords.hasNonEmptyList(),
             hasWordRush = state.wordRushInsights.hasNonEmptyData { it.totalGames > 0 },
         )

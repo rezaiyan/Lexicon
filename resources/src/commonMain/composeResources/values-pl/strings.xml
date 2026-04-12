@@ -604,6 +604,10 @@
     <string name="onboarding_loading_tip_3">Tworzenie pakietu startowego…</string>
     <string name="onboarding_loading_tip_4">Już prawie…</string>
     <string name="onboarding_language_flag">Flaga %1$s</string>
+    <string name="onboarding_daily_goal_title1">Ile słów</string>
+    <string name="onboarding_daily_goal_title2">dziennie?</string>
+    <string name="onboarding_daily_goal_subtitle">Ustaw dzienny cel pasujący do Twojego harmonogramu. Możesz go zmienić w dowolnym momencie w ustawieniach.</string>
+    <string name="onboarding_words_per_day">słów/dzień</string>
     <string name="login_required_title">Witaj w Lexicon</string>
     <string name="login_required_subtitle">Zaloguj się, aby rozpocząć naukę słownictwa</string>
     <string name="sign_in_google">Zaloguj się przez Google</string>

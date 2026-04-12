@@ -137,6 +137,19 @@
     <string name="insights_empty_title">No activity yet</string>
     <string name="insights_empty_subtitle">Complete a study session to unlock your learning insights</string>
     <string name="insights_load_error">Failed to load insights. Please check your connection and try again.</string>
+    <string name="insights_level_transitions">Level Transitions</string>
+    <string name="insights_level_transitions_promotions">promotions</string>
+    <string name="insights_level_transitions_demotions">demotions</string>
+    <string name="insights_level_from_to">Level %1$d → %2$d</string>
+    <string name="insights_level_transitions_words">%1$d words</string>
+    <string name="insights_response_time_trend">Response Time</string>
+    <string name="insights_response_time_avg_ms">%1$d ms avg</string>
+    <string name="insights_response_time_improving">Getting faster!</string>
+    <string name="insights_response_time_declining">Slowing down</string>
+    <string name="insights_response_time_stable">Consistent pace</string>
+    <string name="insights_response_time_week">Week %1$d</string>
+    <string name="insights_study_these_words">Study These Words</string>
+    <string name="insights_set_reminder">Set Reminder</string>
     <string name="languages">Languages</string>
     <string name="member_since">Member since %1$s</string>
 
@@ -195,6 +208,8 @@
     <string name="completion_forgot">Forgot</string>
     <string name="completion_score_percent">%1$d%%</string>
     <string name="completion_cards_reviewed">%1$d cards reviewed</string>
+    <string name="completion_streak_days">%1$d-day streak</string>
+    <string name="completion_missed_title">Missed this session</string>
 
     <!-- Learning Stages (7 Levels) -->
     <string name="level_0_fresh">First Encounter</string>
@@ -233,6 +248,8 @@
     <string name="show_answer">Show Answer</string>
     <string name="think_of_answer_first">Take a moment to think first</string>
     <string name="no_words_to_review">All caught up!</string>
+    <string name="next_review_in">Next review in %1$s</string>
+    <string name="no_words_scheduled">Great work — no reviews scheduled yet. Import more words to keep growing.</string>
     <string name="less_than_1m">&lt;1m</string>
     <string name="less_than_10m">&lt;10m</string>
     <string name="less_than_1d">&lt;1d</string>
@@ -673,6 +690,10 @@
     <string name="onboarding_loading_tip_3">Building your starter pack…</string>
     <string name="onboarding_loading_tip_4">Almost there…</string>
     <string name="onboarding_language_flag">%1$s flag</string>
+    <string name="onboarding_daily_goal_title1">How many words</string>
+    <string name="onboarding_daily_goal_title2">per day?</string>
+    <string name="onboarding_daily_goal_subtitle">Set a daily goal that fits your schedule. You can change this anytime in settings.</string>
+    <string name="onboarding_words_per_day">words/day</string>
     <string name="login_required_title">Welcome to Lexicon</string>
     <string name="login_required_subtitle">Sign in to start learning vocabulary</string>
     <string name="sign_in_google">Sign in with Google</string>

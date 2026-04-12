@@ -75,6 +75,8 @@ internal class FakeWordLocalDataSource : IWordLocalDataSource {
 
     override suspend fun getDueCount(): Int = 0
 
+        override suspend fun getNextDueAt(): Long? = null
+
     override suspend fun deleteAllWords() {
         storedWords.clear()
     }

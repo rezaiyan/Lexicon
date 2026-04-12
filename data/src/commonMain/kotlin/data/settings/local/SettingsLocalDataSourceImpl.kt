@@ -30,6 +30,7 @@ class SettingsLocalDataSourceImpl(
                         ttsSpeed = it.ttsSpeed.toFloat(),
                         ttsSpeakerId = it.ttsSpeakerId.toInt(),
                         skipTagSelector = it.skipTagSelector != 0L,
+                        dailyGoalWords = it.dailyGoalWords.toInt(),
                     )
                 }
             }
@@ -48,6 +49,7 @@ class SettingsLocalDataSourceImpl(
             ttsSpeed = entity.ttsSpeed.toFloat(),
             ttsSpeakerId = entity.ttsSpeakerId.toInt(),
             skipTagSelector = entity.skipTagSelector != 0L,
+            dailyGoalWords = entity.dailyGoalWords.toInt(),
         )
     }
 
@@ -64,6 +66,7 @@ class SettingsLocalDataSourceImpl(
             ttsSpeed = data.ttsSpeed.toDouble(),
             ttsSpeakerId = data.ttsSpeakerId.toLong(),
             skipTagSelector = if (data.skipTagSelector) 1L else 0L,
+            dailyGoalWords = data.dailyGoalWords.toLong(),
         )
     }
 

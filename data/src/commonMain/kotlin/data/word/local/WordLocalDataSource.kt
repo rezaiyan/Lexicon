@@ -39,6 +39,7 @@ interface IWordLocalDataSource {
     fun getProgressStats(): Flow<ProgressStats>
     suspend fun getTotalCount(): Int
     suspend fun getDueCount(): Int
+    suspend fun getNextDueAt(): Long?
     suspend fun deleteAllWords()
     suspend fun getMostCommonSourceLanguage(): String?
 }
@@ -258,6 +259,11 @@ class WordLocalDataSource(
     override suspend fun getDueCount(): Int {
         val currentTime = Clock.System.now().toEpochMilliseconds()
         return queries.countDueCards(currentTime).awaitAsOne().toInt()
+    }
+
+    override suspend fun getNextDueAt(): Long? {
+        val currentTime = Clock.System.now().toEpochMilliseconds()
+        return queries.getNextDueAt(currentTime).awaitAsOne().MIN
     }
 
     override suspend fun deleteAllWords() {

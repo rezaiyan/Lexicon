@@ -279,6 +279,7 @@ internal class FakeWordRepositoryForDelete : IWordRepository {
     override fun getProgressStats() = kotlinx.coroutines.flow.flowOf(domain.word.model.ProgressStats())
     override suspend fun getTotalCount(): Try<Int> = Try.success(0)
     override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getNextDueAt(): Try<Long?> = Try.success(null)
     override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): kotlinx.coroutines.flow.Flow<UpdateWordsLanguagesProgress> = kotlinx.coroutines.flow.flow { emit(UpdateWordsLanguagesProgress.Completed(ids.size)) }
     override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     override suspend fun updateWordLocal(word: domain.word.model.Word): Try<Unit> = Try.success(Unit)

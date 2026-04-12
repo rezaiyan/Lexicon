@@ -44,5 +44,9 @@ interface ISettingsRepository {
     // Cached speaker count per language (persisted after first model load)
     fun getNumSpeakersForLanguage(languageCode: String): Flow<Int> = flowOf(1)
     suspend fun cacheNumSpeakersForLanguage(languageCode: String, numSpeakers: Int): Try<Unit> = Try.success(Unit)
+
+    // Daily goal — default implementations keep existing fakes compiling
+    suspend fun getDailyGoalWords(): Try<Int> = Try.success(10)
+    suspend fun setDailyGoalWords(count: Int): Try<Unit> = Try.success(Unit)
 }
 

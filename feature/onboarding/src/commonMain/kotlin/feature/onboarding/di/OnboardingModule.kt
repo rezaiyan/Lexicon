@@ -10,6 +10,7 @@ fun onboardingModule() = module {
         OnboardingViewModel(
             submitPreferencesUseCase = get(),
             setLanguageUseCase = get(),
+            setDailyGoalWordsUseCase = get(),
             analyticsTracker = get()
         )
     }

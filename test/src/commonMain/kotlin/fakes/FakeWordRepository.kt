@@ -105,5 +105,6 @@ class FakeWordRepository : IWordRepository {
     override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
     override suspend fun getTotalCount(): Try<Int> = totalCountResult
     override suspend fun getDueCount(): Try<Int> = dueCountResult
+    override suspend fun getNextDueAt(): Try<Long?> = Try.success(null)
     override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
 }

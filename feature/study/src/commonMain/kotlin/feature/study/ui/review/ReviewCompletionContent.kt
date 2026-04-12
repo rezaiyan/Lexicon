@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +15,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -25,8 +28,10 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import components.animation.ConfettiOverlay
 import components.animation.staggeredFadeSlide
+import domain.word.model.Word
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
@@ -35,10 +40,12 @@ import lexicon.resources.generated.resources.completion_good_message
 import lexicon.resources.generated.resources.completion_good_title
 import lexicon.resources.generated.resources.completion_great_message
 import lexicon.resources.generated.resources.completion_great_title
+import lexicon.resources.generated.resources.completion_missed_title
 import lexicon.resources.generated.resources.completion_okay_message
 import lexicon.resources.generated.resources.completion_okay_title
 import lexicon.resources.generated.resources.completion_perfect_message
 import lexicon.resources.generated.resources.completion_perfect_title
+import lexicon.resources.generated.resources.completion_streak_days
 import lexicon.resources.generated.resources.completion_tough_message
 import lexicon.resources.generated.resources.completion_tough_title
 import lexicon.resources.generated.resources.done
@@ -58,6 +65,8 @@ import lexicon.resources.generated.resources.done
 fun ReviewCompletionContent(
     knownCount: Int,
     unknownCount: Int,
+    missedWords: List<Word>,
+    newStreak: Int?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -145,13 +154,31 @@ fun ReviewCompletionContent(
 
             Spacer(Modifier.height(Theme.spacing.xxl))
 
+            // ── Streak badge ────────────────────────────────────────────
+            if (newStreak != null && newStreak > 0) {
+                StreakBadge(
+                    streakDays = newStreak,
+                    modifier = Modifier.staggeredFadeSlide(index = 4),
+                )
+                Spacer(Modifier.height(Theme.spacing.md))
+            }
+
+            // ── Missed words ────────────────────────────────────────────
+            if (missedWords.isNotEmpty()) {
+                MissedWordsSection(
+                    words = missedWords,
+                    modifier = Modifier.staggeredFadeSlide(index = 5),
+                )
+                Spacer(Modifier.height(Theme.spacing.xxl))
+            }
+
             // ── Done button ─────────────────────────────────────────────
             Button(
                 onClick = onDismiss,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(Theme.dimensions.buttonHeight)
-                    .staggeredFadeSlide(index = 4),
+                    .staggeredFadeSlide(index = 6),
                 shape = RoundedCornerShape(Theme.shapes.medium),
             ) {
                 Text(
@@ -206,6 +233,97 @@ internal enum class PerformanceTier(
             percent >= 60 -> GOOD
             percent >= 40 -> OKAY
             else -> TOUGH
+        }
+    }
+}
+
+// ─── Streak Badge ────────────────────────────────────────────────────────────
+
+@Composable
+private fun StreakBadge(
+    streakDays: Int,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(Theme.shapes.pill),
+        color = AppColors.tertiary.copy(alpha = 0.15f),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = Theme.spacing.lg, vertical = Theme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        ) {
+            Text(
+                text = "🔥",
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = stringResource(Res.string.completion_streak_days, streakDays),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors.tertiary,
+            )
+        }
+    }
+}
+
+// ─── Missed Words Section ────────────────────────────────────────────────────
+
+@Composable
+private fun MissedWordsSection(
+    words: List<Word>,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.shapes.large),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+    ) {
+        Column(modifier = Modifier.padding(Theme.spacing.md)) {
+            Text(
+                text = stringResource(Res.string.completion_missed_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = Theme.spacing.xs),
+            )
+            words.forEachIndexed { index, word ->
+                if (index > 0) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = Theme.spacing.xxs),
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Theme.spacing.xxs),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = word.originalWord,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = word.translation,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = Theme.spacing.sm),
+                        textAlign = TextAlign.End,
+                    )
+                }
+            }
         }
     }
 }

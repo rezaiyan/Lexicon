@@ -6,6 +6,7 @@ import domain.onboarding.model.OnboardingPreferences
 import core.common.onFailure
 import core.common.onSuccess
 import domain.onboarding.usecase.SubmitPreferencesUseCase
+import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import utils.Language
 import core.error.toUserMessage
@@ -17,6 +18,7 @@ import feature.onboarding.model.OnboardingUiState
 class OnboardingViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val setLanguageUseCase: SetLanguageUseCase,
+    private val setDailyGoalWordsUseCase: SetDailyGoalWordsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
 ) : BaseViewModel<OnboardingUiState, OnboardingEffect>() {
 
@@ -39,6 +41,10 @@ class OnboardingViewModel(
     fun selectLevel(level: String) {
         updateState { copy(selectedLevel = level) }
         analyticsTracker.logEvent("onboarding_level_selected", mapOf("level" to level))
+    }
+
+    fun selectDailyGoal(goal: Int) {
+        updateState { copy(selectedDailyGoal = goal) }
     }
 
     fun nextStep() {
@@ -75,6 +81,7 @@ class OnboardingViewModel(
             submitPreferencesUseCase(preferences)
                 .onSuccess { response ->
                     setLanguageUseCase(Language.fromCodeOrName(targetLang))
+                    setDailyGoalWordsUseCase(state.selectedDailyGoal)
                     updateState { copy(isLoading = false) }
                     analyticsTracker.logEvent("onboarding_completed")
                     emitEffect(OnboardingEffect.NavigateToPreview(response))

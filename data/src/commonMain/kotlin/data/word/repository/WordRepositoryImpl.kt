@@ -239,6 +239,10 @@ class WordRepositoryImpl(
         return Try { localDataSource.getDueCount() }
     }
 
+    override suspend fun getNextDueAt(): Try<Long?> {
+        return Try { localDataSource.getNextDueAt() }
+    }
+
     override suspend fun deleteAllWords(): Try<Unit> {
         return Try {
             localDataSource.deleteAllWords()

@@ -63,6 +63,7 @@ class VocabularyViewModelTest : ViewModelTestBase() {
         override fun getProgressStats(): Flow<ProgressStats> = flowOf()
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getNextDueAt(): Try<Long?> = Try.success(null)
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
         override suspend fun updateWordLocal(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
@@ -185,6 +186,7 @@ class VocabularyViewModelTest : ViewModelTestBase() {
             override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
             override suspend fun updateWordLocal(word: Word): Try<Unit> = Try.success(Unit)
             override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
+            override suspend fun getNextDueAt(): Try<Long?> = Try.success(null)
         }
         val failVm = VocabularyViewModel(
             getDueWordsUseCase = GetDueWordsUseCase(failingRepo),

@@ -604,6 +604,10 @@
     <string name="onboarding_loading_tip_3">스타터 팩 구성 중…</string>
     <string name="onboarding_loading_tip_4">거의 다 됐어요…</string>
     <string name="onboarding_language_flag">%1$s 국기</string>
+    <string name="onboarding_daily_goal_title1">하루에 몇 단어를</string>
+    <string name="onboarding_daily_goal_title2">학습할까요?</string>
+    <string name="onboarding_daily_goal_subtitle">일정에 맞는 일일 목표를 설정하세요. 설정에서 언제든지 변경할 수 있습니다.</string>
+    <string name="onboarding_words_per_day">단어/일</string>
     <string name="login_required_title">Lexicon에 오신 것을 환영합니다</string>
     <string name="login_required_subtitle">로그인하여 어휘 학습을 시작하세요</string>
     <string name="sign_in_google">Google로 로그인</string>

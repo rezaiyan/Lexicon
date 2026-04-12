@@ -5,6 +5,8 @@ import core.base.BaseViewModel
 import core.common.UiState
 import data.storage.DailyInsightCache
 import domain.analytics.model.AccuracyByLevel
+import domain.analytics.model.DayOfWeekAccuracy
+import domain.analytics.model.WeeklyReport
 import domain.analytics.model.DailyStudyStats
 import domain.analytics.model.HourlyAccuracy
 import domain.analytics.model.StudyHeatmapDay
@@ -16,13 +18,21 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import domain.analytics.model.LevelTransition
+import domain.analytics.model.ResponseTimeTrend
+import domain.analytics.usecase.GetLevelTransitionsUseCase
+import domain.analytics.usecase.GetResponseTimeTrendUseCase
+import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.profile.usecase.GetProfileStatsUseCase
 import domain.wordrush.model.WordRushInsights
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import core.error.toUserMessage
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
@@ -30,11 +40,15 @@ import kotlinx.datetime.toLocalDateTime
 data class InsightsState(
     val overview: UiState<StudyInsights> = UiState.Loading,
     val accuracyTrend: UiState<List<DailyStudyStats>> = UiState.Loading,
+    val accuracyByDayOfWeek: List<DayOfWeekAccuracy> = emptyList(),
     val difficultWords: UiState<List<WordDifficulty>> = UiState.Loading,
     val accuracyByLevel: UiState<List<AccuracyByLevel>> = UiState.Loading,
     val heatmap: UiState<List<StudyHeatmapDay>> = UiState.Loading,
     val bestStudyTime: UiState<HourlyAccuracy?> = UiState.Loading,
     val wordRushInsights: UiState<WordRushInsights> = UiState.Loading,
+    val weeklyReport: UiState<WeeklyReportUiModel> = UiState.Loading,
+    val levelTransitions: UiState<List<LevelTransition>> = UiState.Loading,
+    val responseTimeTrend: UiState<List<ResponseTimeTrend>> = UiState.Loading,
     val dailyInsight: String? = null,
     val currentStreak: Int? = null,
     val longestStreak: Int? = null,
@@ -47,6 +61,9 @@ data class InsightsState(
             && heatmap !is UiState.Loading
             && bestStudyTime !is UiState.Loading
             && wordRushInsights !is UiState.Loading
+            && weeklyReport !is UiState.Loading
+            && levelTransitions !is UiState.Loading
+            && responseTimeTrend !is UiState.Loading
 
     val isError: Boolean get() = isLoaded && !availability.hasAnyContent && (
             overview is UiState.Error
@@ -58,6 +75,11 @@ data class InsightsState(
     )
 }
 
+sealed class InsightsEffect {
+    data class NavigateToReviewWithWords(val wordIds: List<Long>) : InsightsEffect()
+    data object NavigateToNotificationSettings : InsightsEffect()
+}
+
 class InsightsViewModel(
     private val getStudyInsightsUseCase: GetStudyInsightsUseCase,
     private val getDifficultWordsUseCase: GetDifficultWordsUseCase,
@@ -66,9 +88,12 @@ class InsightsViewModel(
     private val getStudyHeatmapUseCase: GetStudyHeatmapUseCase,
     private val getBestStudyTimeUseCase: GetBestStudyTimeUseCase,
     private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
+    private val getWeeklyReportUseCase: GetWeeklyReportUseCase,
+    private val getLevelTransitionsUseCase: GetLevelTransitionsUseCase,
+    private val getResponseTimeTrendUseCase: GetResponseTimeTrendUseCase,
     private val getProfileStatsUseCase: GetProfileStatsUseCase,
     private val dailyInsightCache: DailyInsightCache,
-) : BaseViewModel<InsightsState, Nothing>() {
+) : BaseViewModel<InsightsState, InsightsEffect>() {
 
     override fun initialState() = InsightsState()
 
@@ -88,6 +113,17 @@ class InsightsViewModel(
         updateState { copy(dailyInsight = null) }
     }
 
+    fun studyDifficultWords() {
+        val loaded = currentState.difficultWords as? UiState.Loaded ?: return
+        val wordIds = loaded.value.map { it.wordId }
+        if (wordIds.isEmpty()) return
+        emitEffect(InsightsEffect.NavigateToReviewWithWords(wordIds))
+    }
+
+    fun setReminderForBestTime() {
+        emitEffect(InsightsEffect.NavigateToNotificationSettings)
+    }
+
     private fun loadAllData() {
         loadOverview()
         loadAccuracyTrend()
@@ -96,6 +132,9 @@ class InsightsViewModel(
         loadHeatmap()
         loadBestStudyTime()
         loadWordRushInsights()
+        loadWeeklyReport()
+        loadLevelTransitions()
+        loadResponseTimeTrend()
         loadStreak()
         updateState { copy(dailyInsight = dailyInsightCache.getDailyInsight()) }
     }
@@ -119,7 +158,7 @@ class InsightsViewModel(
             getAccuracyTrendUseCase(
                 GetAccuracyTrendUseCase.Params(startDate.toString(), today.toString())
             ).reduce(
-                onSuccess = { copy(accuracyTrend = UiState.Loaded(it)) },
+                onSuccess = { copy(accuracyTrend = UiState.Loaded(it), accuracyByDayOfWeek = computeDayOfWeekAccuracy(it)) },
                 onFailure = { copy(accuracyTrend = UiState.Error(it.toUserMessage())) },
             )
         }
@@ -182,6 +221,36 @@ class InsightsViewModel(
         }
     }
 
+    private fun loadWeeklyReport() {
+        viewModelScope.launch {
+            updateState { copy(weeklyReport = UiState.Loading) }
+            getWeeklyReportUseCase(Unit).reduce(
+                onSuccess = { report -> copy(weeklyReport = UiState.Loaded(report.toUiModel())) },
+                onFailure = { copy(weeklyReport = UiState.Loaded(WeeklyReportUiModel.Empty)) },
+            )
+        }
+    }
+
+    private fun loadLevelTransitions() {
+        viewModelScope.launch {
+            updateState { copy(levelTransitions = UiState.Loading) }
+            getLevelTransitionsUseCase(Unit).reduce(
+                onSuccess = { copy(levelTransitions = UiState.Loaded(it)) },
+                onFailure = { copy(levelTransitions = UiState.Error(it.toUserMessage())) },
+            )
+        }
+    }
+
+    private fun loadResponseTimeTrend() {
+        viewModelScope.launch {
+            updateState { copy(responseTimeTrend = UiState.Loading) }
+            getResponseTimeTrendUseCase(Unit).reduce(
+                onSuccess = { copy(responseTimeTrend = UiState.Loaded(it)) },
+                onFailure = { copy(responseTimeTrend = UiState.Error(it.toUserMessage())) },
+            )
+        }
+    }
+
     private fun loadStreak() {
         viewModelScope.launch {
             getProfileStatsUseCase(Unit).reduce(
@@ -189,5 +258,76 @@ class InsightsViewModel(
                 onFailure = { this },
             )
         }
+    }
+}
+
+// ─── Day-of-week aggregation ─────────────────────────────────────────────────
+
+private fun computeDayOfWeekAccuracy(stats: List<DailyStudyStats>): List<DayOfWeekAccuracy> {
+    return (1..7).map { dow ->
+        val dayStats = stats.filter { stat ->
+            runCatching { LocalDate.parse(stat.date).dayOfWeek.ordinal + 1 }
+                .getOrElse { -1 } == dow
+        }
+        val totalReviews = dayStats.sumOf { (it.correctCount + it.incorrectCount).toLong() }
+        val correctCount = dayStats.sumOf { it.correctCount.toLong() }
+        val accuracyPercent = if (totalReviews == 0L) 0.0
+        else (correctCount.toDouble() / totalReviews) * 100.0
+        DayOfWeekAccuracy(
+            dayOfWeek = dow,
+            totalReviews = totalReviews,
+            correctCount = correctCount,
+            accuracyPercent = accuracyPercent,
+        )
+    }
+}
+
+// ─── Mapper ──────────────────────────────────────────────────────────────────
+
+private fun WeeklyReport.toUiModel(): WeeklyReportUiModel {
+    if (cardsReviewed == 0 && sessionsCount == 0) return WeeklyReportUiModel.Empty
+    val changeLabel = changePercent?.let { pct ->
+        val rounded = abs(pct).roundToInt()
+        if (pct >= 0) "+$rounded%" else "-$rounded%"
+    }
+    return WeeklyReportUiModel.Content(
+        weekRangeLabel = buildWeekRangeLabel(weekStartDate, weekEndDate),
+        cardsReviewed = cardsReviewed.toString(),
+        changeLabel = changeLabel,
+        isChangePositive = (changePercent ?: 0.0) >= 0.0,
+        accuracyValue = "${accuracyPercent.roundToInt()}%",
+        masteredValue = wordsMastered.toString(),
+        studyTimeValue = formatStudyTime(totalStudyTimeMs),
+        sessionsValue = sessionsCount.toString(),
+        bestDayLabel = bestDay?.let { "${it.dayName} (${it.cardsReviewed})" },
+    )
+}
+
+private fun buildWeekRangeLabel(startDate: String, endDate: String): String {
+    val start = runCatching { LocalDate.parse(startDate) }.getOrNull()
+    val end = runCatching { LocalDate.parse(endDate) }.getOrNull()
+    if (start == null || end == null) return "$startDate – $endDate"
+    return "${start.toShortLabel()} – ${end.toShortLabel()}"
+}
+
+private fun LocalDate.toShortLabel(): String {
+    val month = when (monthNumber) {
+        1 -> "Jan"; 2 -> "Feb"; 3 -> "Mar"; 4 -> "Apr"
+        5 -> "May"; 6 -> "Jun"; 7 -> "Jul"; 8 -> "Aug"
+        9 -> "Sep"; 10 -> "Oct"; 11 -> "Nov"
+        else -> "Dec"
+    }
+    return "$month $dayOfMonth"
+}
+
+private fun formatStudyTime(ms: Long): String {
+    val totalMinutes = ms / 60_000
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return when {
+        hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+        hours > 0 -> "${hours}h"
+        minutes > 0 -> "${minutes}m"
+        else -> "<1m"
     }
 }

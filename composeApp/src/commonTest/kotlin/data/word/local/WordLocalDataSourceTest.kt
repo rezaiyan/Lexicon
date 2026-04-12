@@ -146,6 +146,8 @@ class WordLocalDataSourceTest {
 
         override suspend fun getDueCount(): Int = words.values.count { it.nextReviewDate <= 0L }
 
+        override suspend fun getNextDueAt(): Long? = null
+
         override suspend fun deleteAllWords() {
             words.clear()
             tagMap.clear()

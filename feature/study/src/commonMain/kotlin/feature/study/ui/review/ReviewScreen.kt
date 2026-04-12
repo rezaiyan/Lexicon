@@ -92,7 +92,7 @@ fun ReviewScreen(
                 onRetry = { viewModel.startSession(reviewState.source) },
             )
 
-            ReviewState.Empty -> EmptyState()
+            is ReviewState.Empty -> EmptyState(reviewState.nextDueAt)
 
             is ReviewState.Active -> ReviewContent(
                 words = reviewState.words,
@@ -125,6 +125,8 @@ fun ReviewScreen(
             is ReviewState.Completed -> ReviewCompletionContent(
                 knownCount = reviewState.knownCount,
                 unknownCount = reviewState.unknownCount,
+                missedWords = reviewState.missedWords,
+                newStreak = reviewState.newStreak,
                 onDismiss = viewModel::acknowledgeCompletion,
             )
         }

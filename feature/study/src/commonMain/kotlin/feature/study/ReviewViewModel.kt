@@ -3,6 +3,7 @@ package feature.study
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
+import core.common.getOrNull
 import core.common.onFailure
 import core.common.onSuccess
 import domain.analytics.model.ReviewEventParams
@@ -21,6 +22,7 @@ import domain.study.usecase.GenerateSessionIdUseCase
 import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.FlushReviewSyncQueueUseCase
+import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
@@ -54,6 +56,7 @@ class ReviewViewModel(
     private val analyticsTracker: IAnalyticsTracker,
     private val generateSessionIdUseCase: GenerateSessionIdUseCase,
     private val resolveCardLanguageUseCase: ResolveCardLanguageUseCase,
+    private val getNextDueDateUseCase: GetNextDueDateUseCase,
 ) : BaseViewModel<ReviewViewModelState, ReviewEffect>() {
 
     override fun initialState() = ReviewViewModelState()
@@ -113,7 +116,8 @@ class ReviewViewModel(
             loadQueueUseCase(source)
                 .onSuccess { words ->
                     if (words.isEmpty()) {
-                        updateState { copy(review = ReviewState.Empty) }
+                        val nextDueAt = getNextDueDateUseCase(Unit).getOrNull()
+                        updateState { copy(review = ReviewState.Empty(nextDueAt)) }
                         return@onSuccess
                     }
                     val startedAt = Clock.System.now().toEpochMilliseconds()
@@ -143,6 +147,7 @@ class ReviewViewModel(
                 .onSuccess { result ->
                     val newKnown = if (wasCorrect) active.knownCount + 1 else active.knownCount
                     val newUnknown = if (!wasCorrect) active.unknownCount + 1 else active.unknownCount
+                    val newMissed = if (!wasCorrect) active.missedWords + active.currentWord else active.missedWords
                     sessionContext = sessionContext?.withReview(wasCorrect)
                     buildEventParams(result, quality, responseTime)?.let { recordEventUseCase(it) }
                     if (result.wasMastered) analyticsTracker.logWordMastered(level = 6)
@@ -160,6 +165,7 @@ class ReviewViewModel(
                                 words = updatedWords,
                                 knownCount = newKnown,
                                 unknownCount = newUnknown,
+                                missedWords = newMissed,
                             )
                         )
                     }
@@ -295,13 +301,18 @@ class ReviewViewModel(
 
     private suspend fun completeSession(knownCount: Int, unknownCount: Int) {
         val ctx = sessionContext ?: return
+        val missedWords = (currentState.review as? ReviewState.Active)?.missedWords ?: emptyList()
         endSessionInternal(ctx, completedNormally = true)
         flushReviewSyncQueueUseCase() // Batch sync all reviewed words; failure keeps them queued for retry
+        var newStreak: Int? = null
         if (ctx.reviewed > 0) {
             recordStreakUseCase(ctx.reviewed)
-                .onSuccess { analyticsTracker.logStreakUpdated(days = it.currentStreak, isNewRecord = false) }
+                .onSuccess {
+                    newStreak = it.currentStreak
+                    analyticsTracker.logStreakUpdated(days = it.currentStreak, isNewRecord = false)
+                }
         }
-        updateState { copy(review = ReviewState.Completed(knownCount, unknownCount)) }
+        updateState { copy(review = ReviewState.Completed(knownCount, unknownCount, missedWords, newStreak)) }
     }
 
     private suspend fun endSessionInternal(ctx: SessionContext, completedNormally: Boolean) {

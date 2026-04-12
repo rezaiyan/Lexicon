@@ -33,9 +33,11 @@ import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.FlushReviewSyncQueueUseCase
 import domain.word.usecase.GetDueWordsByTagUseCase
+import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
+import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
 import fakes.FakeAnalyticsTracker
@@ -80,6 +82,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
     private var deleteResult: Try<Unit> = Try.success(Unit)
     private var updateResult: Try<Unit> = Try.success(Unit)
     private var throwOnLoad: Boolean = false
+    private var nextDueAt: Long? = null
 
     // ---------------------------------------------------------------------------
     // Fakes
@@ -137,6 +140,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override fun getProgressStats(): Flow<ProgressStats> = emptyFlow()
         override suspend fun getTotalCount(): Try<Int> = Try.success(0)
         override suspend fun getDueCount(): Try<Int> = Try.success(0)
+        override suspend fun getNextDueAt(): Try<Long?> = Try.success(nextDueAt)
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
     }
 
@@ -205,6 +209,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
                 getDueWords = GetDueWordsUseCase(wordRepo),
                 getWordsByStage = GetWordsByStageUseCase(wordRepo),
                 getDueWordsByTag = GetDueWordsByTagUseCase(wordRepo),
+                getDailyGoalWords = GetDailyGoalWordsUseCase(settingsRepo),
             ),
             reviewWordUseCase = ReviewWordUseCase(wordRepo, syncRepo),
             flushReviewSyncQueueUseCase = FlushReviewSyncQueueUseCase(syncRepo, wordRepo),
@@ -222,6 +227,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             setSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),
             generateSessionIdUseCase = GenerateSessionIdUseCase(),
             resolveCardLanguageUseCase = ResolveCardLanguageUseCase(),
+            getNextDueDateUseCase = GetNextDueDateUseCase(wordRepo),
             analyticsTracker = FakeAnalyticsTracker(),
         )
     }
@@ -272,6 +278,28 @@ class ReviewViewModelTest : ViewModelTestBase() {
         val vm = createViewModel()
         vm.startSession(ReviewSource.DueCards)
         assertIs<ReviewState.Empty>(vm.currentState.review)
+    }
+
+    @Test
+    fun `startSession empty queue with next due date sets nextDueAt on Empty state`() = runTest {
+        dueWords = emptyList()
+        nextDueAt = 9_999_999_000L
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Empty>(state)
+        assertEquals(9_999_999_000L, state.nextDueAt)
+    }
+
+    @Test
+    fun `startSession empty queue with no scheduled words has null nextDueAt`() = runTest {
+        dueWords = emptyList()
+        nextDueAt = null
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Empty>(state)
+        assertEquals(null, state.nextDueAt)
     }
 
     @Test
@@ -559,6 +587,87 @@ class ReviewViewModelTest : ViewModelTestBase() {
         vm.updateWord(testWord(1).copy(originalWord = "should-not-appear"))
         val state = vm.currentState.review as ReviewState.Active
         assertEquals("word1", state.words.first { it.id == 1 }.originalWord)
+    }
+
+    // ---------------------------------------------------------------------------
+    // Missed words tracking (Improvement 1)
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `reviewWord with quality 0 adds current word to missedWords`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 0) // incorrect
+        val state = vm.currentState.review as ReviewState.Active
+        assertEquals(1, state.missedWords.size)
+        assertEquals(testWord(1).id, state.missedWords.first().id)
+    }
+
+    @Test
+    fun `reviewWord with quality 1 does not add word to missedWords`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1) // correct
+        val state = vm.currentState.review as ReviewState.Active
+        assertEquals(0, state.missedWords.size)
+    }
+
+    @Test
+    fun `reviewWord accumulates multiple missed words across reviews`() = runTest {
+        val vm = createViewModel() // 2 words
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 0) // miss word 1
+        vm.reviewWord(quality = 0) // miss word 2 → triggers completion
+        val state = vm.currentState.review
+        assertIs<ReviewState.Completed>(state)
+        assertEquals(2, state.missedWords.size)
+    }
+
+    @Test
+    fun `completed state contains only missed words not correct ones`() = runTest {
+        val vm = createViewModel() // 2 words
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1) // correct — word1 NOT in missedWords
+        vm.reviewWord(quality = 0) // incorrect — word2 IN missedWords
+        val state = vm.currentState.review as ReviewState.Completed
+        assertEquals(1, state.missedWords.size)
+        assertEquals(testWord(2).id, state.missedWords.first().id)
+    }
+
+    @Test
+    fun `completed state has empty missedWords when all cards were correct`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1)
+        vm.reviewWord(quality = 1)
+        val state = vm.currentState.review as ReviewState.Completed
+        assertEquals(0, state.missedWords.size)
+    }
+
+    // ---------------------------------------------------------------------------
+    // Streak in Completed state (Improvement 1)
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `completed state carries newStreak from streak repository`() = runTest {
+        dueWords = listOf(testWord(1))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1) // triggers completeSession → recordStreakUseCase
+        val state = vm.currentState.review as ReviewState.Completed
+        // fakeStreakRepo().recordActivity returns StreakData(1) → currentStreak = 1
+        assertEquals(1, state.newStreak)
+    }
+
+    @Test
+    fun `acknowledgeCompletion resets state to Idle after Completed with missedWords`() = runTest {
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 0)
+        vm.reviewWord(quality = 0) // Completed with 2 missed words
+        assertIs<ReviewState.Completed>(vm.currentState.review)
+        vm.acknowledgeCompletion()
+        assertIs<ReviewState.Idle>(vm.currentState.review)
     }
 
     // ---------------------------------------------------------------------------
