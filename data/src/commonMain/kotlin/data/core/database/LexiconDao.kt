@@ -36,4 +36,5 @@ data class SettingsEntityData(
     val ttsSpeed: Float = 1.0f,
     val ttsSpeakerId: Int = 0,
     val skipTagSelector: Boolean = false,
+    val dailyGoalWords: Int = 10,
 )

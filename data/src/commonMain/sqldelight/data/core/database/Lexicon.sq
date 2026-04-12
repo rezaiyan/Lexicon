@@ -98,8 +98,8 @@ LIMIT 1;
 -- Settings queries
 
 insertSettings:
-INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId, skipTagSelector)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId, skipTagSelector, dailyGoalWords)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSettings:
 SELECT * FROM SettingsEntity WHERE id = 1;
