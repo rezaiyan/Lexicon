@@ -25,7 +25,9 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.wordrush.model.WordRushInsights
+import feature.insights.WeeklyReportUiModel
 import domain.wordrush.repository.IWordRushStatsRepository
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.profile.model.ProfileStats
@@ -51,6 +53,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
         var accuracyByLevelResult: Try<List<AccuracyByLevel>> = Try.success(defaultAccuracyByLevel()),
         var heatmapResult: Try<List<StudyHeatmapDay>> = Try.success(defaultHeatmap()),
         var accuracyByHourResult: Try<List<HourlyAccuracy>> = Try.success(defaultHourlyAccuracy()),
+        var weeklyReportResult: Try<WeeklyReport> = Try.success(defaultWeeklyReport()),
     ) : IAnalyticsStatsRepository, IAnalyticsWordRepository {
         var insightsCallCount = 0
 
@@ -62,9 +65,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
         override suspend fun getDailyStats(startDate: String, endDate: String): Try<List<DailyStudyStats>> = dailyStatsResult
         override suspend fun getRecentSessions(limit: Int): Try<List<StudySession>> = Try.success(emptyList())
         override suspend fun getStudyHeatmap(startDate: String, endDate: String): Try<List<StudyHeatmapDay>> = heatmapResult
-        override suspend fun getWeeklyReport(): Try<WeeklyReport> = Try.success(
-            WeeklyReport(0, 0, null, 0.0, 0, 0, 0, null, "", "")
-        )
+        override suspend fun getWeeklyReport(): Try<WeeklyReport> = weeklyReportResult
         override suspend fun getMonthlyStats(): Try<List<MonthlyStats>> = Try.success(emptyList())
         override suspend fun getResponseTimeTrend(): Try<List<domain.analytics.model.ResponseTimeTrend>> = Try.success(emptyList())
         override suspend fun syncToBackend(): Try<Int> = Try.success(0)
@@ -162,6 +163,19 @@ class InsightsViewModelTest : ViewModelTestBase() {
             avgDurationMs = 12000.0,
             avgResponseMs = 2500.0,
         )
+
+        fun defaultWeeklyReport() = WeeklyReport(
+            cardsReviewed = 50,
+            previousWeekCardsReviewed = 40,
+            changePercent = 25.0,
+            accuracyPercent = 82.0,
+            wordsMastered = 5,
+            totalStudyTimeMs = 1800000L,
+            sessionsCount = 7,
+            bestDay = null,
+            weekStartDate = "2026-03-01",
+            weekEndDate = "2026-03-07",
+        )
     }
 
     private fun createViewModel(
@@ -178,6 +192,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
             getStudyHeatmapUseCase = GetStudyHeatmapUseCase(repo),
             getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(wordRushStatsRepo),
+            getWeeklyReportUseCase = GetWeeklyReportUseCase(repo),
             getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepo),
             dailyInsightCache = dailyInsightCache,
         )
@@ -371,6 +386,37 @@ class InsightsViewModelTest : ViewModelTestBase() {
         vm.refresh()
 
         assertEquals(false, vm.currentState.availability.hasWordRush)
+    }
+
+    // endregion
+
+    // region Weekly Report
+
+    @Test
+    fun `weeklyReport shows Content when report has data`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        val report = assertIs<UiState.Loaded<WeeklyReportUiModel>>(vm.currentState.weeklyReport)
+        assertIs<WeeklyReportUiModel.Content>(report.value)
+        val content = report.value as WeeklyReportUiModel.Content
+        assertEquals("50", content.cardsReviewed)
+        assertEquals("+25%", content.changeLabel)
+        assertTrue(content.isChangePositive)
+    }
+
+    @Test
+    fun `weeklyReport shows Empty when cardsReviewed and sessionsCount are both zero`() = runTest {
+        val repo = FakeAnalyticsRepository(
+            weeklyReportResult = Try.success(
+                WeeklyReport(0, 0, null, 0.0, 0, 0L, 0, null, "", "")
+            ),
+        )
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        val report = assertIs<UiState.Loaded<WeeklyReportUiModel>>(vm.currentState.weeklyReport)
+        assertIs<WeeklyReportUiModel.Empty>(report.value)
     }
 
     // endregion

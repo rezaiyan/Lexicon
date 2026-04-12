@@ -104,6 +104,10 @@ import lexicon.resources.generated.resources.insights_reviews_format
 import lexicon.resources.generated.resources.insights_sessions_words
 import lexicon.resources.generated.resources.insights_this_week
 import lexicon.resources.generated.resources.insights_title
+import lexicon.resources.generated.resources.weekly_report_accuracy
+import lexicon.resources.generated.resources.weekly_report_best_day
+import lexicon.resources.generated.resources.weekly_report_cards_reviewed
+import lexicon.resources.generated.resources.weekly_report_sessions
 import lexicon.resources.generated.resources.insights_total_study_time
 import lexicon.resources.generated.resources.retry
 import lexicon.resources.generated.resources.insights_words_mastered
@@ -185,6 +189,10 @@ internal fun InsightsContent(
                         currentStreak = currentStreak,
                         longestStreak = state.longestStreak,
                     )
+                }
+                val weeklyReport = (state.weeklyReport as? UiState.Loaded)?.value
+                if (weeklyReport is feature.insights.WeeklyReportUiModel.Content) {
+                    WeeklyReportCard(report = weeklyReport)
                 }
                 OverviewTab(state, onDismissInsight)
                 if (state.availability.hasWordRush) {
@@ -313,6 +321,127 @@ private fun StreakCard(
                 )
             }
         }
+    }
+}
+
+// endregion
+
+// region Weekly Report
+
+@Composable
+private fun WeeklyReportCard(
+    report: feature.insights.WeeklyReportUiModel.Content,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(Theme.gradients.primaryWash)
+            .padding(Theme.spacing.md),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+            // Header: title + date range label + optional change badge
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(
+                        text = stringResource(Res.string.insights_this_week).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        text = report.weekRangeLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (report.changeLabel != null) {
+                    val badgeColor = if (report.isChangePositive) AppColors.accentEmerald else AppColors.error
+                    Pill(
+                        text = report.changeLabel,
+                        color = badgeColor,
+                        backgroundColor = badgeColor.copy(alpha = 0.12f),
+                    )
+                }
+            }
+
+            // Stats row: cards reviewed (hero) + accuracy + sessions
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                WeeklyStatCell(
+                    value = report.cardsReviewed,
+                    label = stringResource(Res.string.weekly_report_cards_reviewed),
+                    color = MaterialTheme.colorScheme.primary,
+                    isHero = true,
+                )
+                WeeklyStatCell(
+                    value = report.accuracyValue,
+                    label = stringResource(Res.string.weekly_report_accuracy),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                WeeklyStatCell(
+                    value = report.sessionsValue,
+                    label = stringResource(Res.string.weekly_report_sessions),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+
+            // Optional best day label
+            if (report.bestDayLabel != null) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Star,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = "${stringResource(Res.string.weekly_report_best_day)}: ${report.bestDayLabel}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyStatCell(
+    value: String,
+    label: String,
+    color: Color,
+    isHero: Boolean = false,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs),
+    ) {
+        Text(
+            text = value,
+            style = if (isHero) MaterialTheme.typography.displaySmall else MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = color,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
