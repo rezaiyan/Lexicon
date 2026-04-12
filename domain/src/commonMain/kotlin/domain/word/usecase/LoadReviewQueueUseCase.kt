@@ -23,7 +23,7 @@ class LoadReviewQueueUseCase(
     private val getDailyGoalWords: GetDailyGoalWordsUseCase,
 ) : UseCase<ReviewSource, List<Word>> {
 
-    override suspend fun invoke(params: ReviewSource): Try<List<Word>> = Try {
+    override suspend fun invoke(params: ReviewSource): Try<List<Word>> = Try<List<Word>> {
         when (params) {
             is ReviewSource.DueCards -> {
                 val limit = getDailyGoalWords().getOrDefault(Int.MAX_VALUE)
