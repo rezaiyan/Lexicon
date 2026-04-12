@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Close
@@ -70,6 +71,8 @@ import core.common.onLoaded
 import core.common.onLoading
 import domain.analytics.model.AccuracyByLevel
 import domain.analytics.model.HourlyAccuracy
+import domain.analytics.model.LevelTransition
+import domain.analytics.model.ResponseTimeTrend
 import domain.wordrush.model.WordRushInsights
 import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
@@ -97,8 +100,19 @@ import lexicon.resources.generated.resources.insights_level_format
 import lexicon.resources.generated.resources.leaderboard
 import lexicon.resources.generated.resources.insights_load_error
 import lexicon.resources.generated.resources.insights_loading
+import lexicon.resources.generated.resources.insights_level_from_to
+import lexicon.resources.generated.resources.insights_level_transitions
+import lexicon.resources.generated.resources.insights_level_transitions_demotions
+import lexicon.resources.generated.resources.insights_level_transitions_promotions
+import lexicon.resources.generated.resources.insights_level_transitions_words
 import lexicon.resources.generated.resources.insights_loading_levels
 import lexicon.resources.generated.resources.insights_loading_words
+import lexicon.resources.generated.resources.insights_response_time_avg_ms
+import lexicon.resources.generated.resources.insights_response_time_declining
+import lexicon.resources.generated.resources.insights_response_time_improving
+import lexicon.resources.generated.resources.insights_response_time_stable
+import lexicon.resources.generated.resources.insights_response_time_trend
+import lexicon.resources.generated.resources.insights_response_time_week
 import lexicon.resources.generated.resources.insights_most_difficult_words
 import lexicon.resources.generated.resources.insights_reviews_format
 import lexicon.resources.generated.resources.insights_sessions_words
@@ -842,15 +856,31 @@ private fun Double.toOneDecimalString(): String {
 
 @Composable
 private fun TrendsTab(state: InsightsState) {
-    state.accuracyByLevel
-        .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading_levels)) }
-        .onError { msg, _ -> ErrorScreen(message = msg) }
-        .onLoaded { levels ->
-            if (levels.isNotEmpty()) {
-                AccuracyByLevelCard(levels)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+    ) {
+        state.accuracyByLevel
+            .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading_levels)) }
+            .onError { msg, _ -> ErrorScreen(message = msg) }
+            .onLoaded { levels ->
+                if (levels.isNotEmpty()) {
+                    AccuracyByLevelCard(levels)
+                }
             }
-        }
-
+        state.levelTransitions
+            .onLoaded { transitions ->
+                if (transitions.isNotEmpty()) {
+                    LevelTransitionsCard(transitions)
+                }
+            }
+        state.responseTimeTrend
+            .onLoaded { trend ->
+                if (trend.isNotEmpty()) {
+                    ResponseTimeTrendCard(trend)
+                }
+            }
+    }
 }
 
 @Composable
@@ -1015,6 +1045,300 @@ private fun LevelAccuracyRow(level: AccuracyByLevel) {
             height = 6.dp,
             modifier = Modifier.clip(RoundedCornerShape(Theme.shapes.pill)),
         )
+    }
+}
+
+@Composable
+private fun LevelTransitionsCard(transitions: List<LevelTransition>) {
+    var expanded by remember { mutableStateOf(false) }
+    val chevronDegrees by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+    )
+    val tint = AppColors.accentEmerald
+    val promotions = remember(transitions) { transitions.filter { it.toLevel > it.fromLevel } }
+    val demotions = remember(transitions) { transitions.filter { it.toLevel < it.fromLevel } }
+    val promotionCount = remember(promotions) { promotions.sumOf { it.count } }
+    val demotionCount = remember(demotions) { demotions.sumOf { it.count } }
+    val sortedTransitions = remember(transitions) { transitions.sortedByDescending { it.count } }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        tint.copy(alpha = 0.12f),
+                        AppColors.secondary.copy(alpha = 0.06f),
+                    ),
+                ),
+            )
+            .clickable { expanded = !expanded }
+            .padding(Theme.spacing.md),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(Res.string.insights_level_transitions).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Pill(
+                        text = "${transitions.size}",
+                        color = tint,
+                        backgroundColor = tint.copy(alpha = 0.12f),
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(Theme.dimensions.iconSize)
+                            .rotate(chevronDegrees),
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xl),
+            ) {
+                InsightsStatCell(
+                    value = promotionCount.toString(),
+                    label = stringResource(Res.string.insights_level_transitions_promotions),
+                    tint = AppColors.accentEmerald,
+                )
+                InsightsStatCell(
+                    value = demotionCount.toString(),
+                    label = stringResource(Res.string.insights_level_transitions_demotions),
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+                exit = shrinkVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                    HorizontalDivider(color = tint.copy(alpha = 0.15f))
+                    sortedTransitions.forEachIndexed { index, transition ->
+                        LevelTransitionRow(transition)
+                        if (index < sortedTransitions.lastIndex) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = Theme.dimensions.hairlineThickness,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LevelTransitionRow(transition: LevelTransition) {
+    val isPromotion = transition.toLevel > transition.fromLevel
+    val rowColor = if (isPromotion) AppColors.accentEmerald else MaterialTheme.colorScheme.error
+    val icon = if (isPromotion) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Theme.spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = rowColor,
+                modifier = Modifier.size(Theme.dimensions.iconSize),
+            )
+            Text(
+                text = stringResource(Res.string.insights_level_from_to, transition.fromLevel, transition.toLevel),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        Text(
+            text = stringResource(Res.string.insights_level_transitions_words, transition.count.toInt()),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = rowColor,
+        )
+    }
+}
+
+@Composable
+private fun ResponseTimeTrendCard(trend: List<ResponseTimeTrend>) {
+    var expanded by remember { mutableStateOf(false) }
+    val chevronDegrees by animateFloatAsState(
+        targetValue = if (expanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+    )
+    val tint = MaterialTheme.colorScheme.secondary
+    val sortedTrend = remember(trend) { trend.sortedWith(compareBy({ it.year }, { it.week })) }
+    val latest = sortedTrend.lastOrNull()
+    val previous = sortedTrend.dropLast(1).lastOrNull()
+    val trendLabel = remember(latest, previous) {
+        when {
+            latest == null || previous == null -> "stable"
+            latest.avgResponseTimeMs < previous.avgResponseTimeMs * 0.95 -> "improving"
+            latest.avgResponseTimeMs > previous.avgResponseTimeMs * 1.05 -> "declining"
+            else -> "stable"
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        tint.copy(alpha = 0.14f),
+                        AppColors.accentEmerald.copy(alpha = 0.06f),
+                    ),
+                ),
+            )
+            .clickable { expanded = !expanded }
+            .padding(Theme.spacing.md),
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(tint.copy(alpha = 0.18f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Schedule,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                    Text(
+                        text = stringResource(Res.string.insights_response_time_trend).uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                ) {
+                    val trendIcon = when (trendLabel) {
+                        "improving" -> Icons.AutoMirrored.Filled.TrendingUp
+                        "declining" -> Icons.AutoMirrored.Filled.TrendingDown
+                        else -> null
+                    }
+                    if (trendIcon != null) {
+                        Icon(
+                            imageVector = trendIcon,
+                            contentDescription = null,
+                            tint = if (trendLabel == "improving") AppColors.accentEmerald else MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(Theme.dimensions.iconSize),
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .size(Theme.dimensions.iconSize)
+                            .rotate(chevronDegrees),
+                    )
+                }
+            }
+            if (latest != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                    Text(
+                        text = stringResource(Res.string.insights_response_time_avg_ms, latest.avgResponseTimeMs.toInt()),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = tint,
+                    )
+                    Text(
+                        text = when (trendLabel) {
+                            "improving" -> stringResource(Res.string.insights_response_time_improving)
+                            "declining" -> stringResource(Res.string.insights_response_time_declining)
+                            else -> stringResource(Res.string.insights_response_time_stable)
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+                exit = shrinkVertically(tween(durationMillis = 300, easing = FastOutSlowInEasing)),
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                    HorizontalDivider(color = tint.copy(alpha = 0.15f))
+                    sortedTrend.forEachIndexed { index, entry ->
+                        InsightsFooterRow(
+                            icon = Icons.Default.Schedule,
+                            title = stringResource(Res.string.insights_response_time_week, entry.week),
+                            value = stringResource(Res.string.insights_response_time_avg_ms, entry.avgResponseTimeMs.toInt()),
+                        )
+                        if (index < sortedTrend.lastIndex) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                                thickness = Theme.dimensions.hairlineThickness,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

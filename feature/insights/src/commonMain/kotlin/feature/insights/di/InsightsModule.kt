@@ -1,6 +1,8 @@
 package feature.insights.di
 
 import data.storage.DailyInsightCache
+import domain.analytics.usecase.GetLevelTransitionsUseCase
+import domain.analytics.usecase.GetResponseTimeTrendUseCase
 import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import feature.insights.InsightsViewModel
@@ -21,6 +23,8 @@ fun insightsModule() = module {
             getBestStudyTimeUseCase = get(),
             getWordRushInsightsUseCase = get(),
             getWeeklyReportUseCase = get(),
+            getLevelTransitionsUseCase = get(),
+            getResponseTimeTrendUseCase = get(),
             getProfileStatsUseCase = get(),
             dailyInsightCache = get<DailyInsightCache>(),
         )

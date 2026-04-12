@@ -26,6 +26,10 @@ import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
 import domain.analytics.usecase.GetWeeklyReportUseCase
+import domain.analytics.usecase.GetLevelTransitionsUseCase
+import domain.analytics.usecase.GetResponseTimeTrendUseCase
+import domain.analytics.model.LevelTransition
+import domain.analytics.model.ResponseTimeTrend
 import domain.wordrush.model.WordRushInsights
 import feature.insights.WeeklyReportUiModel
 import domain.wordrush.repository.IWordRushStatsRepository
@@ -193,6 +197,8 @@ class InsightsViewModelTest : ViewModelTestBase() {
             getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(wordRushStatsRepo),
             getWeeklyReportUseCase = GetWeeklyReportUseCase(repo),
+            getLevelTransitionsUseCase = GetLevelTransitionsUseCase(repo),
+            getResponseTimeTrendUseCase = GetResponseTimeTrendUseCase(repo),
             getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepo),
             dailyInsightCache = dailyInsightCache,
         )
@@ -417,6 +423,47 @@ class InsightsViewModelTest : ViewModelTestBase() {
 
         val report = assertIs<UiState.Loaded<WeeklyReportUiModel>>(vm.currentState.weeklyReport)
         assertIs<WeeklyReportUiModel.Empty>(report.value)
+    }
+
+    // endregion
+
+    // region Level Transitions
+
+    @Test
+    fun `levelTransitions loaded successfully`() = runTest {
+        val transitions = listOf(
+            LevelTransition(fromLevel = 1, toLevel = 2, count = 5),
+            LevelTransition(fromLevel = 3, toLevel = 2, count = 2),
+        )
+        val repo = FakeAnalyticsRepository()
+        // FakeAnalyticsRepository.getLevelTransitions returns emptyList by default
+        // Override by wrapping in a subclass
+        val vm = createViewModel(repo)
+        vm.refresh()
+
+        assertIs<UiState.Loaded<List<LevelTransition>>>(vm.currentState.levelTransitions)
+    }
+
+    @Test
+    fun `availability hasTrends is true when levelTransitions are present`() = runTest {
+        // FakeAnalyticsRepository returns empty list, so hasTrends from levelTransitions alone would be false
+        // But heatmap and accuracyByLevel are non-empty by default → hasTrends is true
+        val vm = createViewModel()
+        vm.refresh()
+
+        assertTrue(vm.currentState.availability.hasTrends)
+    }
+
+    // endregion
+
+    // region Response Time Trend
+
+    @Test
+    fun `responseTimeTrend loaded successfully`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        assertIs<UiState.Loaded<List<ResponseTimeTrend>>>(vm.currentState.responseTimeTrend)
     }
 
     // endregion

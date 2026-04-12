@@ -17,6 +17,10 @@ import domain.analytics.usecase.GetBestStudyTimeUseCase
 import domain.analytics.usecase.GetDifficultWordsUseCase
 import domain.analytics.usecase.GetStudyHeatmapUseCase
 import domain.analytics.usecase.GetStudyInsightsUseCase
+import domain.analytics.model.LevelTransition
+import domain.analytics.model.ResponseTimeTrend
+import domain.analytics.usecase.GetLevelTransitionsUseCase
+import domain.analytics.usecase.GetResponseTimeTrendUseCase
 import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.profile.usecase.GetProfileStatsUseCase
 import domain.wordrush.model.WordRushInsights
@@ -41,6 +45,8 @@ data class InsightsState(
     val bestStudyTime: UiState<HourlyAccuracy?> = UiState.Loading,
     val wordRushInsights: UiState<WordRushInsights> = UiState.Loading,
     val weeklyReport: UiState<WeeklyReportUiModel> = UiState.Loading,
+    val levelTransitions: UiState<List<LevelTransition>> = UiState.Loading,
+    val responseTimeTrend: UiState<List<ResponseTimeTrend>> = UiState.Loading,
     val dailyInsight: String? = null,
     val currentStreak: Int? = null,
     val longestStreak: Int? = null,
@@ -54,6 +60,8 @@ data class InsightsState(
             && bestStudyTime !is UiState.Loading
             && wordRushInsights !is UiState.Loading
             && weeklyReport !is UiState.Loading
+            && levelTransitions !is UiState.Loading
+            && responseTimeTrend !is UiState.Loading
 
     val isError: Boolean get() = isLoaded && !availability.hasAnyContent && (
             overview is UiState.Error
@@ -74,6 +82,8 @@ class InsightsViewModel(
     private val getBestStudyTimeUseCase: GetBestStudyTimeUseCase,
     private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
     private val getWeeklyReportUseCase: GetWeeklyReportUseCase,
+    private val getLevelTransitionsUseCase: GetLevelTransitionsUseCase,
+    private val getResponseTimeTrendUseCase: GetResponseTimeTrendUseCase,
     private val getProfileStatsUseCase: GetProfileStatsUseCase,
     private val dailyInsightCache: DailyInsightCache,
 ) : BaseViewModel<InsightsState, Nothing>() {
@@ -105,6 +115,8 @@ class InsightsViewModel(
         loadBestStudyTime()
         loadWordRushInsights()
         loadWeeklyReport()
+        loadLevelTransitions()
+        loadResponseTimeTrend()
         loadStreak()
         updateState { copy(dailyInsight = dailyInsightCache.getDailyInsight()) }
     }
@@ -197,6 +209,26 @@ class InsightsViewModel(
             getWeeklyReportUseCase(Unit).reduce(
                 onSuccess = { report -> copy(weeklyReport = UiState.Loaded(report.toUiModel())) },
                 onFailure = { copy(weeklyReport = UiState.Loaded(WeeklyReportUiModel.Empty)) },
+            )
+        }
+    }
+
+    private fun loadLevelTransitions() {
+        viewModelScope.launch {
+            updateState { copy(levelTransitions = UiState.Loading) }
+            getLevelTransitionsUseCase(Unit).reduce(
+                onSuccess = { copy(levelTransitions = UiState.Loaded(it)) },
+                onFailure = { copy(levelTransitions = UiState.Error(it.toUserMessage())) },
+            )
+        }
+    }
+
+    private fun loadResponseTimeTrend() {
+        viewModelScope.launch {
+            updateState { copy(responseTimeTrend = UiState.Loading) }
+            getResponseTimeTrendUseCase(Unit).reduce(
+                onSuccess = { copy(responseTimeTrend = UiState.Loaded(it)) },
+                onFailure = { copy(responseTimeTrend = UiState.Error(it.toUserMessage())) },
             )
         }
     }
