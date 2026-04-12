@@ -27,6 +27,7 @@ sealed class ReviewState {
         val knownCount: Int = 0,
         val unknownCount: Int = 0,
         val isAutoPlayEnabled: Boolean = false,
+        val missedWords: List<Word> = emptyList(),
     ) : ReviewState() {
         val currentWord: Word get() = words[currentIndex]
         val isLastCard: Boolean get() = currentIndex == words.size - 1
@@ -34,7 +35,12 @@ sealed class ReviewState {
         val total: Int get() = words.size
     }
 
-    data class Completed(val knownCount: Int, val unknownCount: Int) : ReviewState()
+    data class Completed(
+        val knownCount: Int,
+        val unknownCount: Int,
+        val missedWords: List<Word> = emptyList(),
+        val newStreak: Int? = null,
+    ) : ReviewState()
 }
 
 sealed class ReviewEffect {

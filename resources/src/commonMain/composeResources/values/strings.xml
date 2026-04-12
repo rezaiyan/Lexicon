@@ -195,6 +195,8 @@
     <string name="completion_forgot">Forgot</string>
     <string name="completion_score_percent">%1$d%%</string>
     <string name="completion_cards_reviewed">%1$d cards reviewed</string>
+    <string name="completion_streak_days">%1$d-day streak</string>
+    <string name="completion_missed_title">Missed this session</string>
 
     <!-- Learning Stages (7 Levels) -->
     <string name="level_0_fresh">First Encounter</string>
