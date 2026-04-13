@@ -326,7 +326,7 @@ jobs:
       - name: Add coverage summary to PR
         if: github.event_name == 'pull_request'
         continue-on-error: true
-        uses: mi-kas/kover-report@v1
+        uses: mi-kas/kover-report@v2
         with:
           path: build/reports/kover/report.xml
           title: Code Coverage
