@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import presentation.ui.components.imports.ImportTabV2
@@ -83,6 +84,7 @@ class ImportViewModelTest : ViewModelTestBase() {
         classifyImportErrorUseCase = ClassifyImportErrorUseCase(),
         performanceTracer = performanceTracer,
         observeImageImportAccessUseCase = ObserveImageImportAccessUseCase(userManager, getFeatureAccessUseCase),
+        backgroundDispatcher = UnconfinedTestDispatcher(),
     )
 
     @Test

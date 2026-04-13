@@ -37,6 +37,9 @@ import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.profile.model.ProfileStats
 import domain.profile.repository.IProfileStatsRepository
 import domain.profile.usecase.GetProfileStatsUseCase
+import domain.settings.usecase.ObserveReviewRemindersEnabledUseCase
+import domain.settings.usecase.SetReviewRemindersEnabledUseCase
+import fakes.FakeSettingsRepository
 import feature.insights.InsightsEffect
 import feature.insights.InsightsViewModel
 import app.cash.turbine.test
@@ -189,6 +192,8 @@ class InsightsViewModelTest : ViewModelTestBase() {
         wordRushStatsRepo: FakeWordRushStatsRepository = FakeWordRushStatsRepository(),
         profileStatsRepo: FakeProfileStatsRepository = FakeProfileStatsRepository(),
         dailyInsightCache: DailyInsightCache = FakeDailyInsightCache(),
+        setReviewRemindersEnabledUseCase: SetReviewRemindersEnabledUseCase = SetReviewRemindersEnabledUseCase(FakeSettingsRepository()),
+        observeReviewRemindersEnabledUseCase: ObserveReviewRemindersEnabledUseCase = ObserveReviewRemindersEnabledUseCase(FakeSettingsRepository()),
     ): InsightsViewModel {
         return InsightsViewModel(
             getStudyInsightsUseCase = GetStudyInsightsUseCase(repo),
@@ -203,6 +208,8 @@ class InsightsViewModelTest : ViewModelTestBase() {
             getResponseTimeTrendUseCase = GetResponseTimeTrendUseCase(repo),
             getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepo),
             dailyInsightCache = dailyInsightCache,
+            setReviewRemindersEnabledUseCase = setReviewRemindersEnabledUseCase,
+            observeReviewRemindersEnabledUseCase = observeReviewRemindersEnabledUseCase,
         )
     }
 
@@ -514,12 +521,25 @@ class InsightsViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `setReminderForBestTime emits NavigateToNotificationSettings`() = runTest {
+    fun `setReminder when use case succeeds emits no effect`() = runTest {
         val vm = createViewModel()
         vm.refresh()
 
         vm.effects.test {
-            vm.setReminderForBestTime()
+            vm.setReminder(true)
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setReminder when use case fails emits NavigateToNotificationSettings`() = runTest {
+        val settingsRepo = FakeSettingsRepository().apply { failSetReviewReminders = true }
+        val vm = createViewModel(setReviewRemindersEnabledUseCase = SetReviewRemindersEnabledUseCase(settingsRepo))
+        vm.refresh()
+
+        vm.effects.test {
+            vm.setReminder(true)
             assertIs<InsightsEffect.NavigateToNotificationSettings>(awaitItem())
             cancelAndIgnoreRemainingEvents()
         }

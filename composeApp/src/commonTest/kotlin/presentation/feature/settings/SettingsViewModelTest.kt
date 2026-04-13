@@ -14,6 +14,7 @@ import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
+import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
 import domain.tts.model.TtsModelInfo
 import domain.tts.repository.ITtsRepository
@@ -48,6 +49,8 @@ class SettingsViewModelTest : ViewModelTestBase() {
     private var lastSetLanguage: Language? = null
     private var lastSetThemeMode: ThemeMode? = null
     private var lastSetNotificationsEnabled: Boolean? = null
+    private var lastSetReviewRemindersEnabled: Boolean? = null
+    private var reviewRemindersEnabledFlow = MutableStateFlow(true)
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
         override fun getLanguage(): Flow<Language> = languageFlow
@@ -66,8 +69,12 @@ class SettingsViewModelTest : ViewModelTestBase() {
             lastSetNotificationsEnabled = enabled
             return Try.success(Unit)
         }
-        override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
+        override fun getReviewRemindersEnabled(): Flow<Boolean> = reviewRemindersEnabledFlow
+        override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> {
+            lastSetReviewRemindersEnabled = enabled
+            reviewRemindersEnabledFlow.value = enabled
+            return Try.success(Unit)
+        }
         override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
         override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
         override suspend fun getDailyReminderTime(): Try<String> = Try.success("09:00")
@@ -149,6 +156,7 @@ class SettingsViewModelTest : ViewModelTestBase() {
             setLanguageUseCase = SetLanguageUseCase(settingsRepo),
             setThemeModeUseCase = SetThemeModeUseCase(settingsRepo),
             setNotificationsEnabledUseCase = SetNotificationsEnabledUseCase(settingsRepo),
+            setReviewRemindersEnabledUseCase = SetReviewRemindersEnabledUseCase(settingsRepo),
             requestNotificationPermissionUseCase = RequestNotificationPermissionUseCase(notifRepo),
             openNotificationSettingsUseCase = OpenNotificationSettingsUseCase(notifRepo),
             analyticsTracker = fakeAnalytics(),
@@ -206,5 +214,18 @@ class SettingsViewModelTest : ViewModelTestBase() {
         assertEquals(Language.ENGLISH, screen.currentLanguage)
         assertEquals(ThemeMode.AUTO, screen.themeMode)
         assertEquals("1.0.0", screen.appVersion)
+    }
+
+    @Test
+    fun `setReviewRemindersEnabled delegates to use case`() = runTest {
+        val vm = createViewModel()
+        vm.setReviewRemindersEnabled(false)
+        assertEquals(false, lastSetReviewRemindersEnabled)
+    }
+
+    @Test
+    fun `reviewRemindersEnabled default state is true`() = runTest {
+        val vm = createViewModel()
+        assertEquals(true, vm.currentState.screen.reviewRemindersEnabled)
     }
 }

@@ -1,6 +1,6 @@
 package domain.common.util
 
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -15,5 +15,16 @@ object EpochDateFormatter {
         val localDateTime = Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(timeZone)
         val monthName = monthNames[localDateTime.month.ordinal]
         return "$monthName ${localDateTime.dayOfMonth}, ${localDateTime.year}"
+    }
+
+    fun toShortDate(
+        epochMillis: Long,
+        timeZone: TimeZone = TimeZone.currentSystemDefault(),
+        fallback: String = "—",
+    ): String {
+        if (epochMillis <= 0L) return fallback
+        val localDateTime = Instant.fromEpochMilliseconds(epochMillis).toLocalDateTime(timeZone)
+        val monthName = monthNames[localDateTime.month.ordinal]
+        return "${localDateTime.dayOfMonth} $monthName ${localDateTime.year}"
     }
 }

@@ -15,6 +15,7 @@ fun settingsModule() = module {
             setLanguageUseCase = get(),
             setThemeModeUseCase = get(),
             setNotificationsEnabledUseCase = get(),
+            setReviewRemindersEnabledUseCase = get(),
             requestNotificationPermissionUseCase = get(),
             openNotificationSettingsUseCase = get(),
             analyticsTracker = get(),

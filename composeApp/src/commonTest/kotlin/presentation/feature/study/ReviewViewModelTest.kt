@@ -20,6 +20,7 @@ import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
 import domain.tts.usecase.ObserveTtsStateUseCase
 import domain.tts.usecase.SpeakWordUseCase
+import domain.tts.usecase.StopSpeakingUseCase
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.ReviewSource
@@ -228,6 +229,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             generateSessionIdUseCase = GenerateSessionIdUseCase(),
             resolveCardLanguageUseCase = ResolveCardLanguageUseCase(),
             getNextDueDateUseCase = GetNextDueDateUseCase(wordRepo),
+            stopSpeakingUseCase = StopSpeakingUseCase(ttsRepo),
             analyticsTracker = FakeAnalyticsTracker(),
         )
     }

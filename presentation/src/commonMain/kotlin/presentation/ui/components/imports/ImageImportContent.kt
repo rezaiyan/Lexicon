@@ -31,10 +31,12 @@ internal fun ImageImportContent(
     imageTab: ImportTabV2.Image,
     isEnabled: Boolean,
     isLoading: Boolean,
+    imageQuality: Float,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
     onImportImage: () -> Unit,
     onClearSelectedImage: () -> Unit,
+    onQualityChange: (Float) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val hasImage = imageTab.selectedImage != null
@@ -68,6 +70,8 @@ internal fun ImageImportContent(
                         onConfirm = onImportImage,
                         onCancel = onClearSelectedImage,
                         isEnabled = isEnabled,
+                        imageQuality = imageQuality,
+                        onQualityChange = onQualityChange,
                     )
                 } else {
                     ImageSelectionContent(

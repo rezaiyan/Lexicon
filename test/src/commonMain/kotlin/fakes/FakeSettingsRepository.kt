@@ -12,6 +12,7 @@ class FakeSettingsRepository : ISettingsRepository {
     var themeMode: ThemeMode = ThemeMode.AUTO
     var notificationsEnabled = true
     var reviewRemindersEnabled = true
+    var failSetReviewReminders = false
     var motivationalMessagesEnabled = true
     var dailyReminderTime = "09:00"
     var minimumDueCards = 5
@@ -32,6 +33,7 @@ class FakeSettingsRepository : ISettingsRepository {
     }
     override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(reviewRemindersEnabled)
     override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> {
+        if (failSetReviewReminders) return Try.failure(RuntimeException("forced failure"))
         reviewRemindersEnabled = enabled
         return Try.success(Unit)
     }

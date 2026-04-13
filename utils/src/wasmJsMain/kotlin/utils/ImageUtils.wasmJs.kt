@@ -7,3 +7,5 @@ import androidx.compose.ui.graphics.ImageBitmap
  * Returns null as image conversion is not supported on web
  */
 actual fun ByteArray.toImageBitmap(): ImageBitmap? = null
+
+actual fun ByteArray.compressImage(quality: Float): ByteArray = this

@@ -1,9 +1,7 @@
 package feature.insights.di
 
 import data.storage.DailyInsightCache
-import domain.analytics.usecase.GetLevelTransitionsUseCase
-import domain.analytics.usecase.GetResponseTimeTrendUseCase
-import domain.analytics.usecase.GetWeeklyReportUseCase
+import domain.settings.usecase.ObserveReviewRemindersEnabledUseCase
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import feature.insights.InsightsViewModel
 import org.koin.core.module.dsl.factoryOf
@@ -12,6 +10,7 @@ import org.koin.dsl.module
 
 fun insightsModule() = module {
     factoryOf(::GetWordRushInsightsUseCase)
+    factoryOf(::ObserveReviewRemindersEnabledUseCase)
 
     viewModel {
         InsightsViewModel(
@@ -27,6 +26,8 @@ fun insightsModule() = module {
             getResponseTimeTrendUseCase = get(),
             getProfileStatsUseCase = get(),
             dailyInsightCache = get<DailyInsightCache>(),
+            setReviewRemindersEnabledUseCase = get(),
+            observeReviewRemindersEnabledUseCase = get(),
         )
     }
 }

@@ -8,6 +8,7 @@ data class SettingsScreenState(
     val themeMode: ThemeMode = ThemeMode.AUTO,
     val notificationsEnabled: Boolean = true,
     val systemNotificationsEnabled: Boolean = true,
+    val reviewRemindersEnabled: Boolean = true,
     val isPremiumFeatureEnabled: Boolean = false,
     val appVersion: String = "Loading.."
 )

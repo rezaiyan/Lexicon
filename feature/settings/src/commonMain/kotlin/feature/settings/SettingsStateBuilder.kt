@@ -24,6 +24,7 @@ internal object SettingsStateBuilder {
         systemNotificationsEnabled: Flow<Boolean>,
         appVersion: Flow<String>,
         featureAccessFlow: Flow<FeatureAccessResponse>,
+        reviewRemindersEnabled: Flow<Boolean>,
     ): Flow<SettingsScreenState> {
         return combine(
             currentLanguage.catch { emit(Language.ENGLISH) },
@@ -32,6 +33,7 @@ internal object SettingsStateBuilder {
             systemNotificationsEnabled.catch { emit(true) },
             appVersion.catch { emit("Unknown") },
             featureAccessFlow.catch { emit(defaultFeatureAccess()) },
+            reviewRemindersEnabled.catch { emit(true) },
         ) { values: Array<Any?> ->
             val language = values[0] as Language
             val mode = values[1] as ThemeMode
@@ -39,12 +41,14 @@ internal object SettingsStateBuilder {
             val systemNotifications = values[3] as Boolean
             val version = values[4] as String
             val featureAccess = values[5] as FeatureAccessResponse
+            val reviewReminders = values[6] as Boolean
 
             SettingsScreenState(
                 currentLanguage = language,
                 themeMode = mode,
                 notificationsEnabled = appNotifications,
                 systemNotificationsEnabled = systemNotifications,
+                reviewRemindersEnabled = reviewReminders,
                 appVersion = version,
                 isPremiumFeatureEnabled = featureAccess.userAccess.hasPremiumAccess,
             )

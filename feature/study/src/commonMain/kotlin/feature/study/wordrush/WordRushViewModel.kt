@@ -8,6 +8,7 @@ import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
 import domain.wordrush.model.WordRushGameRecord
 import domain.wordrush.model.WordRushGrade
+import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -77,6 +78,7 @@ class WordRushViewModel(
     private val getWordRushWordsUseCase: GetWordRushWordsUseCase,
     private val recordWordRushGameUseCase: RecordWordRushGameUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
 ) : BaseViewModel<WordRushState, WordRushEffect>() {
 
     override fun initialState() = WordRushState()
@@ -99,6 +101,12 @@ class WordRushViewModel(
             getWordRushWordsUseCase(GetWordRushWordsUseCase.MINIMUM_WORDS).fold(
                 onSuccess = { updateState { copy(hasEnoughWords = true) } },
                 onFailure = { updateState { copy(hasEnoughWords = false) } },
+            )
+        }
+        viewModelScope.launch {
+            getWordRushInsightsUseCase(Unit).fold(
+                onSuccess = { insights -> updateState { copy(bestStreak = insights.bestStreakEver) } },
+                onFailure = { /* keep default 0 — isNewBest comparison degrades gracefully */ },
             )
         }
     }
@@ -364,7 +372,8 @@ class WordRushViewModel(
         val isNewBest = bestSessionStreak > currentState.bestStreak
         val newBest = if (isNewBest) bestSessionStreak else currentState.bestStreak
         val totalQuestions = questions.size
-        val accuracy = if (totalQuestions > 0) correctCount.toFloat() / totalQuestions else 0f
+        val answeredCount = responseTimes.size
+        val accuracy = if (answeredCount > 0) correctCount.toFloat() / answeredCount else 0f
         val avgResponseTimeMs = if (responseTimes.isNotEmpty()) responseTimes.average().toLong() else 0L
         val grade = WordRushGrade.fromAccuracy(accuracy)
 
@@ -392,7 +401,7 @@ class WordRushViewModel(
             totalQuestions = totalQuestions,
             correctCount = correctCount,
             bestStreak = bestSessionStreak,
-            durationMs = Clock.System.now().toEpochMilliseconds() - gameStartedAt,
+            durationMs = durationMs,
             avgResponseMs = avgResponseTimeMs,
             grade = grade,
             livesRemaining = livesRemaining,

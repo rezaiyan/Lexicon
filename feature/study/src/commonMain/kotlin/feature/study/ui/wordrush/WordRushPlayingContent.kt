@@ -230,7 +230,15 @@ internal fun PlayingContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .background(
+                        color = AppColors.primary.copy(alpha = 0.08f),
+                        shape = RoundedCornerShape(Theme.shapes.small),
+                    )
+                    .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xxs),
+            ) {
                 Text(
                     text = animatedScore.toString(),
                     style = MaterialTheme.typography.titleMedium,
@@ -282,8 +290,8 @@ internal fun PlayingContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp))
+                .height(12.dp)
+                .clip(RoundedCornerShape(6.dp))
                 .graphicsLayer {
                     if (shouldPulse) {
                         val s = timerPulseScaleState.value
@@ -322,7 +330,7 @@ internal fun PlayingContent(
             )
         }
 
-        Spacer(Modifier.height(Theme.spacing.xl))
+        Spacer(Modifier.height(Theme.spacing.lg))
 
         val cardBorderColor by animateColorAsState(
             targetValue = when {
@@ -356,21 +364,9 @@ internal fun PlayingContent(
                         shape = RoundedCornerShape(Theme.shapes.large),
                     ),
                 shape = RoundedCornerShape(Theme.shapes.large),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                colors = CardDefaults.cardColors(containerColor = scheme.primaryContainer),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    scheme.primaryContainer,
-                                    scheme.surface,
-                                ),
-                                radius = 600f,
-                            ),
-                        ),
-                ) {
+                Box(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "${phase.questionIndex + 1} / ${phase.totalQuestions}",
                         style = MaterialTheme.typography.labelSmall,
@@ -381,12 +377,12 @@ internal fun PlayingContent(
                     )
                     Text(
                         text = phase.question.word.originalWord,
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = Theme.spacing.xxl, horizontal = Theme.spacing.md),
+                            .padding(vertical = Theme.spacing.xxxl, horizontal = Theme.spacing.md),
                         color = scheme.onPrimaryContainer,
                     )
                 }
@@ -554,7 +550,7 @@ private fun OptionsColumn(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.sm),
+                        .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.md),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
@@ -697,7 +693,7 @@ private fun ProgressDots(
     isCorrect: Boolean?,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().height(10.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -730,7 +726,15 @@ private fun ProgressDots(
 
 @Composable
 private fun StatChip(label: String, value: String, color: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .background(
+                color = color.copy(alpha = 0.08f),
+                shape = RoundedCornerShape(Theme.shapes.small),
+            )
+            .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xxs),
+    ) {
         if (value.isNotEmpty()) {
             Text(
                 text = value,

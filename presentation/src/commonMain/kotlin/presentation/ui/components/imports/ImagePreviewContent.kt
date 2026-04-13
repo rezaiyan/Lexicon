@@ -10,6 +10,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,12 +24,17 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,12 +45,14 @@ import androidx.compose.ui.unit.dp
 import components.animation.AiScanOverlay
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.image_too_large_warning
 import lexicon.resources.generated.resources.confirm_and_extract
 import lexicon.resources.generated.resources.failed_to_load_image
 import lexicon.resources.generated.resources.preview_selected_image
 import lexicon.resources.generated.resources.try_another_image
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
+import utils.LexiconFormatters
 import utils.toImageBitmap
 
 @Composable
@@ -54,6 +62,8 @@ internal fun ImagePreviewCard(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     isEnabled: Boolean,
+    imageQuality: Float,
+    onQualityChange: (Float) -> Unit,
 ) {
     val imageBitmap = remember(imageBytes) { imageBytes.toImageBitmap() }
 
@@ -84,7 +94,7 @@ internal fun ImagePreviewCard(
                     contentScale = ContentScale.Fit,
                 )
 
-                androidx.compose.animation.AnimatedVisibility(
+                AnimatedVisibility(
                     visible = isLoading,
                     enter = fadeIn(tween(400)),
                     exit = fadeOut(tween(300)),
@@ -115,6 +125,9 @@ internal fun ImagePreviewCard(
             }
         }
 
+        val isTooBig = imageBytes.size > 5 * 1024 * 1024
+        var sliderValue by remember(imageQuality) { mutableStateOf(imageQuality) }
+
         AnimatedVisibility(
             visible = imageBitmap != null && !isLoading,
             enter = fadeIn(tween(300, 150)) + expandVertically(tween(300, 150)),
@@ -126,12 +139,56 @@ internal fun ImagePreviewCard(
                     .imePadding(),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Theme.spacing.xxs),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        "Quality",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        LexiconFormatters.fileSizeApprox(imageBytes.size),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (isTooBig) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Slider(
+                    value = sliderValue,
+                    onValueChange = { sliderValue = it },
+                    onValueChangeFinished = { onQualityChange(sliderValue) },
+                    valueRange = 0.2f..1.0f,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = isEnabled,
+                )
+                if (isTooBig) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Theme.spacing.xxs),
+                        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Filled.Warning,
+                            contentDescription = null,
+                            modifier = Modifier.size(Theme.dimensions.iconSize / 2),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                        Text(
+                            stringResource(Res.string.image_too_large_warning),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
                 Button(
                     onClick = onConfirm,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(Theme.dimensions.buttonHeight),
-                    enabled = isEnabled && imageBitmap != null,
+                    enabled = isEnabled && imageBitmap != null && !isTooBig,
                     shape = RoundedCornerShape(Theme.shapes.medium),
                 ) {
                     Text(stringResource(Res.string.confirm_and_extract))

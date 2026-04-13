@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.exifinterface.media.ExifInterface
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap? {
     return try {
@@ -69,5 +70,14 @@ private fun transverseBitmap(bitmap: Bitmap): Bitmap {
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 }
 
-
-
+actual fun ByteArray.compressImage(quality: Float): ByteArray {
+    return try {
+        val bitmap = BitmapFactory.decodeByteArray(this, 0, this.size) ?: return this
+        val qualityInt = (quality.coerceIn(0f, 1f) * 100).toInt()
+        val output = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, qualityInt, output)
+        output.toByteArray()
+    } catch (_: Exception) {
+        this
+    }
+}

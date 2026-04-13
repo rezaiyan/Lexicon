@@ -6,7 +6,10 @@ import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeAnalyticsTracker
 import domain.wordrush.model.WordRushGameRecord
 import domain.wordrush.model.WordRushGrade
+import domain.wordrush.model.WordRushInsights
 import domain.wordrush.repository.IWordRushRecorder
+import domain.wordrush.repository.IWordRushStatsRepository
+import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import fakes.FakeWordRepository
 import kotlinx.coroutines.test.advanceTimeBy
@@ -14,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -50,17 +54,37 @@ class WordRushViewModelTest : ViewModelTestBase() {
         }
     }
 
+    private class FakeWordRushStatsRepository(
+        private val bestStreakEver: Int = 0,
+    ) : IWordRushStatsRepository {
+        override suspend fun getInsights(): Try<WordRushInsights> = Try.success(
+            WordRushInsights(
+                totalGames = 0,
+                totalCompleted = 0,
+                completionRatePercent = 0.0,
+                bestStreakEver = bestStreakEver,
+                avgScore = 0.0,
+                avgAccuracyPercent = 0.0,
+                totalTimePlayedMs = 0,
+                avgDurationMs = 0.0,
+                avgResponseMs = 0.0,
+            )
+        )
+    }
+
     private val defaultRecorder = FakeWordRushRecorder()
 
     private fun createViewModel(
-        words: List<Word> = createWords(10),     recorder: FakeWordRushRecorder = defaultRecorder,
-
-        ): WordRushViewModel {
+        words: List<Word> = createWords(10),
+        recorder: FakeWordRushRecorder = defaultRecorder,
+        bestStreakEver: Int = 0,
+    ): WordRushViewModel {
         val repo = fakeRepo(words)
         return WordRushViewModel(
             getWordRushWordsUseCase = GetWordRushWordsUseCase(repo),
             recordWordRushGameUseCase = RecordWordRushGameUseCase(recorder),
             analyticsTracker = FakeAnalyticsTracker(),
+            getWordRushInsightsUseCase = GetWordRushInsightsUseCase(FakeWordRushStatsRepository(bestStreakEver)),
         )
     }
 
@@ -529,6 +553,34 @@ class WordRushViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `accuracy uses answered question count as denominator when game ends early due to lives`() = runTest {
+        val vm = createViewModel()
+        vm.startGame()
+
+        // Alternate correct/wrong: 3 correct, 3 wrong → all lives lost after 6 questions
+        // Fix:  accuracy = 3/6 = 0.5f → Grade C
+        // Bug:  accuracy = 3/10 = 0.3f → Grade D (uses questions.size instead of answered count)
+        repeat(WordRushViewModel.INITIAL_LIVES * 2) { i ->
+            val phase = vm.currentState.phase
+            if (phase is WordRushPhase.Playing) {
+                if (i % 2 == 0) {
+                    vm.selectAnswer(phase.question.correctIndex)
+                } else {
+                    val wrongIndex = (0..3).first { it != phase.question.correctIndex }
+                    vm.selectAnswer(wrongIndex)
+                }
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        val result = vm.currentState.phase
+        assertIs<WordRushPhase.Result>(result)
+        assertEquals(3, result.correctCount)
+        assertEquals(0.5f, result.accuracy)
+        assertEquals(WordRushGrade.C, result.grade)
+    }
+
+    @Test
     fun `correct answer records answer time`() = runTest {
         val vm = createViewModel()
         vm.startGame()
@@ -616,5 +668,63 @@ class WordRushViewModelTest : ViewModelTestBase() {
         vm.dismiss()
 
         assertEquals(0, recorder.recordedGames.size)
+    }
+
+    // ── isNewBest regression tests ────────────────────────────────────────────
+
+    @Test
+    fun `isNewBest is false when session streak is below historical best`() = runTest {
+        // Regression: user had historical best of 10, plays a bad round (streak=1)
+        // → must NOT see "New Streak Record!" badge
+        val vm = createViewModel(bestStreakEver = 10)
+        vm.startGame()
+
+        // Answer 1 correctly (streak = 1)
+        val phase = vm.currentState.phase as WordRushPhase.Playing
+        vm.selectAnswer(phase.question.correctIndex)
+        advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+
+        // Drain remaining lives with wrong answers to trigger game-over result
+        repeat(WordRushViewModel.INITIAL_LIVES) {
+            val p = vm.currentState.phase
+            if (p is WordRushPhase.Playing) {
+                val wrongIndex = (0..3).first { it != p.question.correctIndex }
+                vm.selectAnswer(wrongIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+        advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+
+        val result = assertIs<WordRushPhase.Result>(vm.currentState.phase)
+        assertFalse(result.isNewBest, "Session streak of 1 must NOT beat historical best of 10")
+    }
+
+    @Test
+    fun `isNewBest is true when session streak exceeds historical best`() = runTest {
+        val vm = createViewModel(bestStreakEver = 2)
+        vm.startGame()
+
+        // Answer 3 correctly to beat historical best of 2
+        repeat(3) {
+            val p = vm.currentState.phase
+            if (p is WordRushPhase.Playing) {
+                vm.selectAnswer(p.question.correctIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+
+        // Drain remaining lives to trigger result
+        repeat(WordRushViewModel.INITIAL_LIVES) {
+            val p = vm.currentState.phase
+            if (p is WordRushPhase.Playing) {
+                val wrongIndex = (0..3).first { it != p.question.correctIndex }
+                vm.selectAnswer(wrongIndex)
+                advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+            }
+        }
+        advanceTimeBy(WordRushViewModel.ANSWER_REVEAL_MS + 100)
+
+        val result = assertIs<WordRushPhase.Result>(vm.currentState.phase)
+        assertTrue(result.isNewBest, "Session streak of 3 must beat historical best of 2")
     }
 }

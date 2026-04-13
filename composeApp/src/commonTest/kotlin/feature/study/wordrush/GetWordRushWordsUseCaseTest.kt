@@ -67,6 +67,51 @@ class GetWordRushWordsUseCaseTest {
     }
 
     @Test
+    fun `selects words from all levels even when one level dominates`() = runTest {
+        // 8 level-0 words, 2 level-5 words — pure random shuffle would likely miss the minority
+        val level0 = (1..8).map { i ->
+            Word(id = i, originalWord = "word_$i", translation = "translation_$i", description = "",
+                sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN,
+                level = 0, nextReviewDate = 0L)
+        }
+        val level5 = (9..10).map { i ->
+            Word(id = i, originalWord = "word_$i", translation = "translation_$i", description = "",
+                sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN,
+                level = 5, nextReviewDate = 0L)
+        }
+        val useCase = GetWordRushWordsUseCase(fakeRepo(level0 + level5))
+        val result = useCase(6)
+        assertTrue(result.isSuccess)
+        result.fold(
+            onSuccess = { selected ->
+                assertEquals(6, selected.size)
+                // Round-robin guarantees both level-5 words appear despite being a minority (2 out of 10)
+                assertEquals(2, selected.count { it.level == 5 })
+            },
+            onFailure = { throw it },
+        )
+    }
+
+    @Test
+    fun `mixed selection contains no duplicate words`() = runTest {
+        val words = (1..20).map { i ->
+            Word(id = i, originalWord = "word_$i", translation = "translation_$i", description = "",
+                sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN,
+                level = i % 5, nextReviewDate = 0L)
+        }
+        val useCase = GetWordRushWordsUseCase(fakeRepo(words))
+        val result = useCase(10)
+        assertTrue(result.isSuccess)
+        result.fold(
+            onSuccess = { selected ->
+                assertEquals(10, selected.size)
+                assertEquals(10, selected.map { it.id }.toSet().size)
+            },
+            onFailure = { throw it },
+        )
+    }
+
+    @Test
     fun `succeeds when 4 words span different learning stages`() = runTest {
         // Regression: words at non-zero levels must NOT be excluded from Word Rush.
         // A user with words at FRESH(0), FAMILIAR(2), ALMOST(4), MASTERED(6) should be able to play.

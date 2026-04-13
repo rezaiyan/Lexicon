@@ -18,6 +18,7 @@ import domain.word.usecase.GetSourceLanguageUseCase
 import domain.word.usecase.ImportViaFileUseCase
 import domain.word.usecase.ImportWordsUseCase
 import domain.word.usecase.ParseCsvWordsUseCase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
@@ -27,6 +28,7 @@ import core.base.BaseViewModel
 import performance.IPerformanceTracer
 import presentation.model.ImageImportState
 import utils.Language
+import utils.compressImage
 
 data class ImportTagUseCases(
     val getTags: GetTagsUseCase,
@@ -46,6 +48,7 @@ class ImportViewModel(
     private val formatWordsToCsvUseCase: FormatWordsToCsvUseCase,
     private val classifyImportErrorUseCase: ClassifyImportErrorUseCase,
     private val observeImageImportAccessUseCase: ObserveImageImportAccessUseCase,
+    private val backgroundDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : BaseViewModel<ImportUiState, ImportEffect>() {
 
     override fun initialState() = ImportUiState()
@@ -219,6 +222,25 @@ class ImportViewModel(
     }
 
     fun selectImage(imageBytes: ByteArray) {
+        viewModelScope.launch {
+            val (compressed, quality) = withContext(backgroundDispatcher) {
+                autoCompress(imageBytes)
+            }
+            setImageBytes(compressed, originalBytes = imageBytes, quality = quality)
+        }
+    }
+
+    fun adjustImageQuality(quality: Float) {
+        val original = currentState.originalImageBytes ?: return
+        viewModelScope.launch {
+            val compressed = withContext(backgroundDispatcher) {
+                original.compressImage(quality)
+            }
+            setImageBytes(compressed, originalBytes = original, quality = quality)
+        }
+    }
+
+    private fun setImageBytes(imageBytes: ByteArray, originalBytes: ByteArray, quality: Float) {
         updateState {
             val updatedTabs = tabs.map { tab ->
                 if (tab is ImportTabV2.Image) tab.copy(selectedImage = imageBytes) else tab
@@ -228,8 +250,21 @@ class ImportViewModel(
                 else -> tabs.filterIsInstance<ImportTabV2.Image>()
                     .firstOrNull() ?: selected
             }
-            copy(tabs = updatedTabs, selectedTab = updatedSelected)
+            copy(
+                tabs = updatedTabs,
+                selectedTab = updatedSelected,
+                originalImageBytes = originalBytes,
+                imageQuality = quality,
+            )
         }
+    }
+
+    private fun autoCompress(imageBytes: ByteArray): Pair<ByteArray, Float> {
+        val maxSize = 3 * 1024 * 1024
+        if (imageBytes.size <= maxSize) return imageBytes to 1.0f
+        val at70 = imageBytes.compressImage(0.7f)
+        if (at70.size <= maxSize) return at70 to 0.7f
+        return imageBytes.compressImage(0.5f) to 0.5f
     }
 
     @Suppress("CyclomaticComplexMethod", "LongMethod")
@@ -285,6 +320,8 @@ class ImportViewModel(
                                     "You're offline -- please check your connection and try again."
                                 ImportErrorClassification.EmptyContent ->
                                     "No vocabulary found in this image. Try a photo with clearer, larger text."
+                                ImportErrorClassification.FileTooLarge ->
+                                    "Image is too large. Please use an image smaller than 5 MB."
                                 ImportErrorClassification.GenericError ->
                                     "Image extraction failed -- try a clearer photo with visible text."
                             }
@@ -475,7 +512,12 @@ class ImportViewModel(
                 else -> tabs.filterIsInstance<ImportTabV2.Image>()
                     .firstOrNull() ?: selected
             }
-            copy(tabs = updatedTabs, selectedTab = updatedSelected)
+            copy(
+                tabs = updatedTabs,
+                selectedTab = updatedSelected,
+                originalImageBytes = null,
+                imageQuality = 1.0f,
+            )
         }
     }
 

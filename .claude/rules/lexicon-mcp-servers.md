@@ -40,7 +40,7 @@ Smoke-test result: `resolve-library-id` query "Kotlin Multiplatform" returned 5 
 ## github — GitHub MCP Server
 
 **Status:** ✅ Working (fixed 2026-04-08)
-**Binary:** `github-mcp-server` v0.33.0 (`brew install github-mcp-server`)
+**Binary:** `github-mcp-server` (`brew install github-mcp-server` on macOS, or install via your package manager and ensure it's on PATH)
 
 Official GitHub MCP server (`github/github-mcp-server`). Exposes tools for repos, issues, PRs, Actions, code search, and more.
 
@@ -51,7 +51,7 @@ Official GitHub MCP server (`github/github-mcp-server`). Exposes tools for repos
 ```json
 "github": {
   "command": "bash",
-  "args": ["-c", "GITHUB_PERSONAL_ACCESS_TOKEN=$(gh auth token) /opt/homebrew/bin/github-mcp-server stdio"]
+  "args": ["-c", "GITHUB_PERSONAL_ACCESS_TOKEN=$(gh auth token) github-mcp-server stdio"]
 }
 ```
 

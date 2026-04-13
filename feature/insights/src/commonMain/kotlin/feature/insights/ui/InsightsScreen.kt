@@ -40,6 +40,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -142,6 +144,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import theme.AppColors
 import theme.Theme
+import utils.LexiconFormatters
 
 @Composable
 fun InsightsScreen(
@@ -149,6 +152,7 @@ fun InsightsScreen(
     onShowLeaderboard: () -> Unit = {},
     onNavigateToReview: (List<Long>) -> Unit = {},
     onNavigateToNotificationSettings: () -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     val viewModel = koinViewModel<InsightsViewModel>()
     val state by viewModel.state()
@@ -171,7 +175,7 @@ fun InsightsScreen(
         onDismissInsight = { viewModel.dismissDailyInsight() },
         onRetry = { viewModel.refresh() },
         onStudyDifficultWords = viewModel::studyDifficultWords,
-        onSetReminder = viewModel::setReminderForBestTime,
+        onSetReminder = viewModel::setReminder,
     )
 }
 
@@ -183,7 +187,7 @@ internal fun InsightsContent(
     onDismissInsight: () -> Unit = {},
     onRetry: () -> Unit = {},
     onStudyDifficultWords: () -> Unit = {},
-    onSetReminder: () -> Unit = {},
+    onSetReminder: (Boolean) -> Unit = {},
 ) {
     LexiconColumn(
         title = stringResource(Res.string.insights_title),
@@ -484,7 +488,7 @@ private fun WeeklyStatCell(
 // region Overview
 
 @Composable
-private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit, onSetReminder: () -> Unit = {}) {
+private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit, onSetReminder: (Boolean) -> Unit = {}) {
     state.overview
         .onLoading { LoadingScreen(message = stringResource(Res.string.insights_loading)) }
         .onError { msg, _ -> ErrorScreen(message = msg) }
@@ -497,6 +501,7 @@ private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit, onSe
                     bestStudyTime = bestTime,
                     heatmapDays = heatmapDays,
                     dailyInsight = state.dailyInsight,
+                    reviewRemindersEnabled = state.reviewRemindersEnabled,
                     onDismissInsight = onDismissInsight,
                     onSetReminder = onSetReminder,
                 )
@@ -510,8 +515,9 @@ private fun StudyInsightsCard(
     bestStudyTime: HourlyAccuracy?,
     heatmapDays: List<StudyHeatmapDay>,
     dailyInsight: String?,
+    reviewRemindersEnabled: Boolean = false,
     onDismissInsight: () -> Unit,
-    onSetReminder: () -> Unit = {},
+    onSetReminder: (Boolean) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     val chevronDegrees by animateFloatAsState(
@@ -683,11 +689,19 @@ private fun StudyInsightsCard(
                             value = "${bestStudyTime.hour}:00",
                             subtitle = "${bestStudyTime.accuracyPercent.roundToInt()}% accuracy",
                         )
-                        Button(
-                            onClick = onSetReminder,
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
-                            Text(stringResource(Res.string.insights_set_reminder))
+                            Text(
+                                text = stringResource(Res.string.insights_set_reminder),
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            Switch(
+                                checked = reviewRemindersEnabled,
+                                onCheckedChange = onSetReminder,
+                            )
                         }
                     }
                     if (heatmapDays.isNotEmpty()) {
@@ -1439,7 +1453,7 @@ private fun ResponseTimeTrendCard(trend: List<ResponseTimeTrend>) {
             if (latest != null) {
                 Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
                     Text(
-                        text = stringResource(Res.string.insights_response_time_avg_ms, latest.avgResponseTimeMs.toInt()),
+                        text = stringResource(Res.string.insights_response_time_avg_ms, LexiconFormatters.secondsOneDecimal(latest.avgResponseTimeMs)),
                         style = MaterialTheme.typography.displayMedium,
                         fontWeight = FontWeight.Bold,
                         color = tint,
@@ -1466,7 +1480,7 @@ private fun ResponseTimeTrendCard(trend: List<ResponseTimeTrend>) {
                         InsightsFooterRow(
                             icon = Icons.Default.Schedule,
                             title = stringResource(Res.string.insights_response_time_week, entry.week),
-                            value = stringResource(Res.string.insights_response_time_avg_ms, entry.avgResponseTimeMs.toInt()),
+                            value = stringResource(Res.string.insights_response_time_avg_ms, LexiconFormatters.secondsOneDecimal(entry.avgResponseTimeMs)),
                         )
                         if (index < sortedTrend.lastIndex) {
                             HorizontalDivider(

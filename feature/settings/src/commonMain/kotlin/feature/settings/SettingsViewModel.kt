@@ -9,6 +9,7 @@ import domain.notifications.usecase.RequestNotificationPermissionUseCase
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
+import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
 import domain.settings.usecase.SetTtsVoiceUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
@@ -47,6 +48,7 @@ class SettingsViewModel(
     private val setLanguageUseCase: SetLanguageUseCase,
     private val setThemeModeUseCase: SetThemeModeUseCase,
     private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase,
+    private val setReviewRemindersEnabledUseCase: SetReviewRemindersEnabledUseCase,
     private val requestNotificationPermissionUseCase: RequestNotificationPermissionUseCase,
     private val openNotificationSettingsUseCase: OpenNotificationSettingsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
@@ -89,7 +91,8 @@ class SettingsViewModel(
                 notificationsEnabled = settingsRepository.getNotificationsEnabled(),
                 systemNotificationsEnabled = systemNotificationsEnabled,
                 appVersion = flowOf(appVersionProvider.getVersion()),
-                featureAccessFlow = authRepository.getFeatureAccessAsFlow()
+                featureAccessFlow = authRepository.getFeatureAccessAsFlow(),
+                reviewRemindersEnabled = settingsRepository.getReviewRemindersEnabled()
             ).catch { e ->
                 analyticsTracker.logNonFatalError(
                     message = "Settings state build failed",
@@ -137,6 +140,12 @@ class SettingsViewModel(
     fun setNotificationsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             setNotificationsEnabledUseCase(enabled)
+        }
+    }
+
+    fun setReviewRemindersEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            setReviewRemindersEnabledUseCase(enabled)
         }
     }
 

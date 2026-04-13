@@ -69,6 +69,7 @@ import lexicon.resources.generated.resources.close
 import lexicon.resources.generated.resources.tts_playback_speed
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
+import utils.LexiconFormatters
 
 /**
  * Compact top bar: close button (left), session title (center), card counter chip (right).
@@ -170,7 +171,7 @@ private fun SpeedSliderContent(
             modifier = Modifier.weight(1f),
         )
         Text(
-            text = formatSpeed(sliderValue) + "x",
+            text = LexiconFormatters.speed(sliderValue) + "x",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary,
@@ -178,12 +179,6 @@ private fun SpeedSliderContent(
     }
 }
 
-private fun formatSpeed(speed: Float): String {
-    val rounded = kotlin.math.round(speed * 10) / 10.0
-    val whole = rounded.toLong()
-    val decimal = kotlin.math.round((rounded - whole) * 10).toInt()
-    return "$whole.$decimal"
-}
 
 /**
  * Auto-play toggle with morphing icon animation.

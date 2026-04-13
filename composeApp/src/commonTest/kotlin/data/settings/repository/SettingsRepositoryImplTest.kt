@@ -1,12 +1,19 @@
 package data.settings.repository
 
+import core.common.Try
 import core.common.getOrThrow
 import data.core.database.SettingsEntityData
 import data.settings.local.ISettingsLocalDataSource
+import data.settings.remote.ISettingsRemoteDataSource
+import data.settings.remote.SettingsSyncDto
 import domain.settings.model.ThemeMode
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import utils.Language
 import kotlin.test.Test
@@ -19,7 +26,10 @@ class SettingsRepositoryImplTest {
 
     private val localDataSource = FakeSettingsLocalDataSource()
 
-    private fun createRepo() = SettingsRepositoryImpl(localDataSource)
+    private fun createRepo(
+        remote: ISettingsRemoteDataSource = FakeSettingsRemoteDataSource(),
+        scope: CoroutineScope = CoroutineScope(UnconfinedTestDispatcher()),
+    ) = SettingsRepositoryImpl(localDataSource, remote, scope)
 
     // --- Language ---
 
@@ -285,6 +295,43 @@ class SettingsRepositoryImplTest {
         assertEquals(20, saved.minimumDueCards)
     }
 
+    // --- Background Sync ---
+
+    @Test
+    fun `setReviewRemindersEnabled triggers background sync with correct dto`() = runTest {
+        val remote = FakeSettingsRemoteDataSource()
+        val repo = createRepo(remote = remote, scope = CoroutineScope(StandardTestDispatcher(testScheduler)))
+
+        repo.setReviewRemindersEnabled(false)
+        advanceUntilIdle()
+
+        assertEquals(1, remote.syncCallCount)
+        assertEquals(false, remote.lastSyncedDto?.reviewRemindersEnabled)
+    }
+
+    @Test
+    fun `setNotificationsEnabled triggers background sync with correct dto`() = runTest {
+        val remote = FakeSettingsRemoteDataSource()
+        val repo = createRepo(remote = remote, scope = CoroutineScope(StandardTestDispatcher(testScheduler)))
+
+        repo.setNotificationsEnabled(false)
+        advanceUntilIdle()
+
+        assertEquals(1, remote.syncCallCount)
+        assertEquals(false, remote.lastSyncedDto?.notificationsEnabled)
+    }
+
+    @Test
+    fun `setReviewRemindersEnabled local write succeeds even when sync fails`() = runTest {
+        val remote = FakeSettingsRemoteDataSource(shouldFail = true)
+        val repo = createRepo(remote = remote, scope = backgroundScope)
+
+        val result = repo.setReviewRemindersEnabled(true)
+        advanceUntilIdle()
+
+        assertTrue(result.isSuccess)
+    }
+
     // --- Fakes ---
 
     private class FakeSettingsLocalDataSource : ISettingsLocalDataSource {
@@ -309,6 +356,19 @@ class SettingsRepositoryImplTest {
             settings = null
             settingsFlow.value = null
             clearCalled = true
+        }
+    }
+
+    private class FakeSettingsRemoteDataSource(
+        private val shouldFail: Boolean = false,
+    ) : ISettingsRemoteDataSource {
+        var syncCallCount = 0
+        var lastSyncedDto: SettingsSyncDto? = null
+
+        override suspend fun syncSettings(settings: SettingsSyncDto): Try<Unit> {
+            syncCallCount++
+            lastSyncedDto = settings
+            return if (shouldFail) Try { error("sync failed") } else Try.Success(Unit)
         }
     }
 }

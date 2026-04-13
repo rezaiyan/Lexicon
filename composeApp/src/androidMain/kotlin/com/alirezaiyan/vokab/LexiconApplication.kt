@@ -135,7 +135,9 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val notificationManager = getSystemService(NotificationManager::class.java)
+
+            val generalChannel = NotificationChannel(
                 "lexicon_notifications",
                 "Lexicon Notifications",
                 NotificationManager.IMPORTANCE_HIGH
@@ -145,10 +147,20 @@ class LexiconApplication : Application(), SingletonImageLoader.Factory,
                 enableVibration(true)
                 setShowBadge(true)
             }
+            notificationManager.createNotificationChannel(generalChannel)
 
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(channel)
-            Log.d(TAG, "Notification channel created")
+            val reviewRemindersChannel = NotificationChannel(
+                "review_reminders",
+                "Study Reminders",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Reminders to review at your best study time"
+                enableLights(true)
+                setShowBadge(true)
+            }
+            notificationManager.createNotificationChannel(reviewRemindersChannel)
+
+            Log.d(TAG, "Notification channels created")
         }
     }
 

@@ -13,7 +13,8 @@ class AndroidNotificationDisplayService(
 ) : NotificationDisplayService {
     
     companion object {
-        private const val CHANNEL_ID = "lexicon_notifications"
+        private const val CHANNEL_GENERAL = "lexicon_notifications"
+        private const val CHANNEL_REVIEW_REMINDERS = "review_reminders"
         private var NOTIFICATION_ID = 1000
     }
     
@@ -42,14 +43,18 @@ class AndroidNotificationDisplayService(
             android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT
         )
         
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val channelId = when (data["type"]) {
+            "review_reminder" -> CHANNEL_REVIEW_REMINDERS
+            else -> CHANNEL_GENERAL
+        }
+
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setVibrate(longArrayOf(0, 500, 200, 500))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
         
         notificationManager.notify(NOTIFICATION_ID++, notification)
@@ -57,8 +62,10 @@ class AndroidNotificationDisplayService(
     
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            val generalChannel = NotificationChannel(
+                CHANNEL_GENERAL,
                 "Lexicon Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
@@ -66,8 +73,17 @@ class AndroidNotificationDisplayService(
                 enableLights(true)
                 enableVibration(true)
             }
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(generalChannel)
+
+            val reviewRemindersChannel = NotificationChannel(
+                CHANNEL_REVIEW_REMINDERS,
+                "Study Reminders",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Reminders to review at your best study time"
+                enableLights(true)
+            }
+            notificationManager.createNotificationChannel(reviewRemindersChannel)
         }
     }
 }

@@ -53,6 +53,7 @@ import domain.wordrush.model.WordRushGrade
 import feature.study.wordrush.WordRushPhase
 import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.launch
+import utils.LexiconFormatters
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.close
 import lexicon.resources.generated.resources.word_rush_accuracy
@@ -228,7 +229,7 @@ private fun ResultStatsRow(phase: WordRushPhase.Result) {
     val accuracyAnim = remember { Animatable(0f) }
     val speedAnim = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        launch { scoreAnim.animateTo(phase.score.toFloat(), tween(1200, easing = LinearEasing)) }
+        launch { scoreAnim.animateTo(phase.correctCount.toFloat(), tween(1200, easing = LinearEasing)) }
         launch { accuracyAnim.animateTo(phase.accuracy, tween(1200, easing = LinearEasing)) }
         speedAnim.animateTo(phase.avgResponseTimeMs.toFloat(), tween(1200, easing = LinearEasing))
     }
@@ -251,7 +252,7 @@ private fun ResultStatsRow(phase: WordRushPhase.Result) {
             color = AppColors.secondary,
         )
         ResultStatColumn(
-            value = formatSecondsOneDecimal(speedAnim.value.toLong()),
+            value = LexiconFormatters.secondsOneDecimal(speedAnim.value.toLong()),
             label = stringResource(Res.string.word_rush_avg_speed),
             color = AppColors.tertiary,
         )
@@ -414,8 +415,3 @@ private fun ResultStatColumn(value: String, label: String, color: Color) {
     }
 }
 
-/** Formats milliseconds as "X.Xs" with one decimal — KMP-safe, no String.format. */
-private fun formatSecondsOneDecimal(ms: Long): String {
-    val tenths = ms / 100
-    return "${tenths / 10}.${tenths % 10}s"
-}

@@ -94,7 +94,9 @@ fun SettingsScreen(
                             NotificationSettingsContent(
                                 notificationsEnabled = currentState.screen.notificationsEnabled,
                                 systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
+                                reviewRemindersEnabled = currentState.screen.reviewRemindersEnabled,
                                 onNotificationsToggle = { viewModel.setNotificationsEnabled(it) },
+                                onReviewRemindersToggle = { viewModel.setReviewRemindersEnabled(it) },
                                 onDismiss = { nav.dismiss() }
                             )
                         }

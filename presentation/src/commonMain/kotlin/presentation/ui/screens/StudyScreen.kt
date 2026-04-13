@@ -233,6 +233,7 @@ fun StudyScreen() {
             onClick = {
                 overlayHost.showInsightsSheet(
                     onShowLeaderboard = { overlayHost.showLeaderboard() },
+                    snackbarHostState = snackbarHostState,
                     onNavigateToNotificationSettings = {
                         overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
                             val settingsViewModel = koinViewModel<SettingsViewModel>()
@@ -241,7 +242,9 @@ fun StudyScreen() {
                                 NotificationSettingsContent(
                                     notificationsEnabled = currentState.screen.notificationsEnabled,
                                     systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
+                                    reviewRemindersEnabled = currentState.screen.reviewRemindersEnabled,
                                     onNotificationsToggle = { settingsViewModel.setNotificationsEnabled(it) },
+                                    onReviewRemindersToggle = { settingsViewModel.setReviewRemindersEnabled(it) },
                                     onDismiss = { nav.dismiss() }
                                 )
                             } else {

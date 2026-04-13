@@ -59,6 +59,8 @@
     <string name="notification_stay_motivated">Stay motivated with friendly reminders</string>
     <string name="notification_missing_nudges">Missing out on learning nudges</string>
     <string name="notification_gentle_reminders">We'll send you gentle reminders when you have words ready to review. Perfect timing, no spam!</string>
+    <string name="notification_study_reminders">Study Reminders</string>
+    <string name="notification_study_reminders_subtitle">Get reminded at your best study time</string>
 
     <!-- Profile Screen -->
     <string name="logout_title">Logout</string>
@@ -143,13 +145,14 @@
     <string name="insights_level_from_to">Level %1$d → %2$d</string>
     <string name="insights_level_transitions_words">%1$d words</string>
     <string name="insights_response_time_trend">Response Time</string>
-    <string name="insights_response_time_avg_ms">%1$d ms avg</string>
+    <string name="insights_response_time_avg_ms">%1$s avg</string>
     <string name="insights_response_time_improving">Getting faster!</string>
     <string name="insights_response_time_declining">Slowing down</string>
     <string name="insights_response_time_stable">Consistent pace</string>
     <string name="insights_response_time_week">Week %1$d</string>
     <string name="insights_study_these_words">Study These Words</string>
     <string name="insights_set_reminder">Set Reminder</string>
+    <string name="review_reminders_enabled">Reminder set for your best study time</string>
     <string name="languages">Languages</string>
     <string name="member_since">Member since %1$s</string>
 
@@ -518,6 +521,7 @@
     <string name="try_another_image">Try a different photo -- JPEG and PNG work best.</string>
     <string name="confirm_and_extract">Confirm &amp; Extract</string>
     <string name="confirm_image_help_text">Make sure the text is clearly visible for optimal recognition</string>
+    <string name="image_too_large_warning">Image exceeds 5 MB — reduce quality or choose a smaller photo</string>
 
     <!-- Navigation -->
     <string name="navigate_back">Navigate back</string>
@@ -765,10 +769,10 @@
     <string name="word_rush_time_up">Time\'s up!</string>
     <string name="word_rush_correct">Correct!</string>
     <string name="word_rush_wrong">Wrong!</string>
-    <string name="word_rush_game_over">Game Over</string>
+    <string name="word_rush_game_over">Round Complete</string>
     <string name="word_rush_result_score">%1$d / %2$d</string>
     <string name="word_rush_best_streak_result">Best Streak: %1$d</string>
-    <string name="word_rush_new_best">New Best!</string>
+    <string name="word_rush_new_best">New Streak Record!</string>
     <string name="word_rush_play_again">Play Again</string>
     <string name="word_rush_question_counter">%1$d / %2$d</string>
     <string name="word_rush_combo">%1$dx COMBO!</string>

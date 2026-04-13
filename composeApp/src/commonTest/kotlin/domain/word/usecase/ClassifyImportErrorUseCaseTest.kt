@@ -38,6 +38,13 @@ class ClassifyImportErrorUseCaseTest {
     }
 
     @Test
+    fun `too large message is file too large error`() {
+        assertIs<ImportErrorClassification.FileTooLarge>(useCase("Image too large. Maximum size is 5MB."))
+        assertIs<ImportErrorClassification.FileTooLarge>(useCase("maximum size exceeded"))
+        assertIs<ImportErrorClassification.FileTooLarge>(useCase("file size is too large"))
+    }
+
+    @Test
     fun `generic message is generic error`() {
         assertIs<ImportErrorClassification.GenericError>(useCase("Something went wrong"))
         assertIs<ImportErrorClassification.GenericError>(useCase("Unknown failure"))

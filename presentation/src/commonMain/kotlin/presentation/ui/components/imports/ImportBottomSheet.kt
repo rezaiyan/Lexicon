@@ -325,10 +325,12 @@ private fun ImageContentPage(
             imageTab = imageTab,
             isEnabled = !isImageLoading && state.fileImportState !is ImportFileState.Loading,
             isLoading = isImageLoading,
+            imageQuality = state.imageQuality,
             onCameraClick = cameraLauncher,
             onGalleryClick = imagePickerLauncher,
             onImportImage = viewModel::importImage,
             onClearSelectedImage = viewModel::clearSelectedImage,
+            onQualityChange = viewModel::adjustImageQuality,
             onDismiss = onDismiss,
         )
     }

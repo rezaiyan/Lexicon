@@ -102,6 +102,7 @@ Detailed patterns live in `.claude/skills/` — load the relevant skill for impl
 - Fragmented StateFlows — single `data class` state per screen
 - Stateful use cases — no mutable fields in use cases
 - Bare-throwing suspend methods — always return `Try<T>`
+- `"format".format(args)` in common code — `String.format` is JVM-only; use `kotlin.math.round` + manual string construction or arithmetic formatting instead
 
 ## Testing
 

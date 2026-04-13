@@ -11,6 +11,8 @@ class ClassifyImportErrorUseCase {
                 ImportErrorClassification.NetworkError
             msg.contains("empty") || msg.contains("no words") || msg.contains("no text") ->
                 ImportErrorClassification.EmptyContent
+            msg.contains("too large") || msg.contains("maximum size") || msg.contains("file size") ->
+                ImportErrorClassification.FileTooLarge
             else -> ImportErrorClassification.GenericError
         }
     }

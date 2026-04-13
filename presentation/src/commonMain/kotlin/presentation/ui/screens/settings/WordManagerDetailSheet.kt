@@ -36,9 +36,7 @@ import components.dialog.LexiconDialogContent
 import domain.tag.model.Tag
 import domain.word.model.LearningStage
 import domain.word.model.Word
-import kotlin.time.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import domain.common.util.EpochDateFormatter
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -151,7 +149,7 @@ internal fun WordDetailSheetContent(
                 DetailRow(
                     icon = Icons.Default.CalendarToday,
                     label = stringResource(Res.string.detail_added),
-                    value = formatDetailDate(word.dateAdded)
+                    value = EpochDateFormatter.toShortDate(word.dateAdded)
                 )
                 Spacer(modifier = Modifier.height(Theme.spacing.extraSmall2))
 
@@ -159,7 +157,7 @@ internal fun WordDetailSheetContent(
                     DetailRow(
                         icon = Icons.Default.School,
                         label = stringResource(Res.string.detail_next_review),
-                        value = formatDetailDate(word.nextReviewDate)
+                        value = EpochDateFormatter.toShortDate(word.nextReviewDate)
                     )
                     Spacer(modifier = Modifier.height(Theme.spacing.extraSmall2))
                 }
@@ -230,12 +228,3 @@ private fun DetailRow(
     }
 }
 
-private fun formatDetailDate(timestamp: Long): String {
-    if (timestamp <= 0L) return "—"
-    val instant = Instant.fromEpochMilliseconds(timestamp)
-    val timeZone = TimeZone.currentSystemDefault()
-    val localDateTime = instant.toLocalDateTime(timeZone)
-    val month = localDateTime.month.name.take(3).lowercase()
-        .replaceFirstChar { it.uppercase() }
-    return "${localDateTime.dayOfMonth} $month ${localDateTime.year}"
-}

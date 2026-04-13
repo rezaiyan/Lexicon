@@ -4,6 +4,7 @@ import data.auth.refresh.ITokenRefreshManager
 import data.core.network.interceptor.AuthInterceptor
 import data.core.network.interceptor.ErrorInterceptor
 import data.core.network.interceptor.LoggingTimingInterceptor
+import data.core.network.interceptor.PlatformHeaderInterceptor
 import data.core.network.interceptor.RefreshAndRetryInterceptor
 import core.isDebugMode
 import expects.logNetwork
@@ -55,6 +56,9 @@ object HttpClientProvider {
 
             // Logging + timing: always installed first so it wraps all other interceptors
             install(LoggingTimingInterceptor)
+
+            // Platform header: appended to every outgoing request
+            install(PlatformHeaderInterceptor)
 
             // Install interceptors if provided
             // Order matters: AuthInterceptor first, then RefreshAndRetryInterceptor, then ErrorInterceptor

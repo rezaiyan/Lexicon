@@ -24,9 +24,7 @@ import components.ErrorScreen
 import components.LoadingScreen
 import domain.word.model.ImportErrorClassification
 import domain.word.model.LearningStage
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import domain.common.util.EpochDateFormatter
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.empty_library
 import lexicon.resources.generated.resources.error
@@ -112,14 +110,7 @@ internal fun EmptySearchView() {
     }
 }
 
-internal fun formatDateAdded(timestamp: Long): String {
-    val instant = Instant.fromEpochMilliseconds(timestamp)
-    val timeZone = TimeZone.currentSystemDefault()
-    val localDateTime = instant.toLocalDateTime(timeZone)
-    val month = localDateTime.month.name.take(3).lowercase()
-        .replaceFirstChar { it.uppercase() }
-    return "${localDateTime.dayOfMonth} $month ${localDateTime.year}"
-}
+internal fun formatDateAdded(timestamp: Long): String = EpochDateFormatter.toShortDate(timestamp)
 
 internal fun levelColor(stage: LearningStage): Color {
     return when (stage) {

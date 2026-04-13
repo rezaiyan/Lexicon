@@ -24,6 +24,10 @@ import domain.analytics.usecase.GetLevelTransitionsUseCase
 import domain.analytics.usecase.GetResponseTimeTrendUseCase
 import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.profile.usecase.GetProfileStatsUseCase
+import domain.settings.usecase.ObserveReviewRemindersEnabledUseCase
+import domain.settings.usecase.SetReviewRemindersEnabledUseCase
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import domain.wordrush.model.WordRushInsights
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import core.error.toUserMessage
@@ -36,6 +40,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
+import utils.LexiconFormatters
 
 data class InsightsState(
     val overview: UiState<StudyInsights> = UiState.Loading,
@@ -52,6 +57,7 @@ data class InsightsState(
     val dailyInsight: String? = null,
     val currentStreak: Int? = null,
     val longestStreak: Int? = null,
+    val reviewRemindersEnabled: Boolean = false,
 ) {
     val availability: InsightsAvailability get() = InsightsAvailability.from(this)
 
@@ -93,18 +99,19 @@ class InsightsViewModel(
     private val getResponseTimeTrendUseCase: GetResponseTimeTrendUseCase,
     private val getProfileStatsUseCase: GetProfileStatsUseCase,
     private val dailyInsightCache: DailyInsightCache,
+    private val setReviewRemindersEnabledUseCase: SetReviewRemindersEnabledUseCase,
+    private val observeReviewRemindersEnabledUseCase: ObserveReviewRemindersEnabledUseCase,
 ) : BaseViewModel<InsightsState, InsightsEffect>() {
 
     override fun initialState() = InsightsState()
 
-
-    fun refresh() {
-        loadAllData()
+    init {
+        observeReviewRemindersEnabledUseCase(Unit)
+            .onEach { enabled -> updateState { copy(reviewRemindersEnabled = enabled) } }
+            .launchIn(viewModelScope)
     }
 
-    /** Called on composition entry — skips if data is already loaded to avoid redundant requests on reopen. */
-    fun refreshIfNeeded() {
-        if (currentState.isLoaded) return
+    fun refresh() {
         loadAllData()
     }
 
@@ -120,8 +127,13 @@ class InsightsViewModel(
         emitEffect(InsightsEffect.NavigateToReviewWithWords(wordIds))
     }
 
-    fun setReminderForBestTime() {
-        emitEffect(InsightsEffect.NavigateToNotificationSettings)
+    fun setReminder(enabled: Boolean) {
+        viewModelScope.launch {
+            val result = setReviewRemindersEnabledUseCase(enabled)
+            if (!result.isSuccess) {
+                emitEffect(InsightsEffect.NavigateToNotificationSettings)
+            }
+        }
     }
 
     private fun loadAllData() {
@@ -297,7 +309,7 @@ private fun WeeklyReport.toUiModel(): WeeklyReportUiModel {
         isChangePositive = (changePercent ?: 0.0) >= 0.0,
         accuracyValue = "${accuracyPercent.roundToInt()}%",
         masteredValue = wordsMastered.toString(),
-        studyTimeValue = formatStudyTime(totalStudyTimeMs),
+        studyTimeValue = LexiconFormatters.duration(totalStudyTimeMs),
         sessionsValue = sessionsCount.toString(),
         bestDayLabel = bestDay?.let { "${it.dayName} (${it.cardsReviewed})" },
     )
@@ -320,14 +332,3 @@ private fun LocalDate.toShortLabel(): String {
     return "$month $dayOfMonth"
 }
 
-private fun formatStudyTime(ms: Long): String {
-    val totalMinutes = ms / 60_000
-    val hours = totalMinutes / 60
-    val minutes = totalMinutes % 60
-    return when {
-        hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
-        hours > 0 -> "${hours}h"
-        minutes > 0 -> "${minutes}m"
-        else -> "<1m"
-    }
-}

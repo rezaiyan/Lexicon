@@ -1,5 +1,6 @@
 package feature.insights.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import feature.insights.ui.InsightsScreen
@@ -15,12 +16,14 @@ fun NavGraphBuilder.insightsGraph(
     onNavigateBack: () -> Unit,
     onShowLeaderboard: () -> Unit = {},
     onNavigateToNotificationSettings: () -> Unit = {},
+    snackbarHostState: SnackbarHostState,
 ) {
     composable<InsightsRoute> {
         InsightsScreen(
             onNavigateBack = onNavigateBack,
             onShowLeaderboard = onShowLeaderboard,
             onNavigateToNotificationSettings = onNavigateToNotificationSettings,
+            snackbarHostState = snackbarHostState,
         )
     }
 }
@@ -28,6 +31,7 @@ fun NavGraphBuilder.insightsGraph(
 fun OverlayHost.showInsightsSheet(
     onShowLeaderboard: () -> Unit = {},
     onNavigateToNotificationSettings: () -> Unit = {},
+    snackbarHostState: SnackbarHostState,
 ) {
     showFullScreen(
         tag = "insights",
@@ -41,6 +45,7 @@ fun OverlayHost.showInsightsSheet(
             onNavigateBack = { navigator.dismiss() },
             onShowLeaderboard = onShowLeaderboard,
             onNavigateToNotificationSettings = onNavigateToNotificationSettings,
+            snackbarHostState = snackbarHostState,
         )
     }
 }

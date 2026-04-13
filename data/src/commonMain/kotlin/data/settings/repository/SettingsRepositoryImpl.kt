@@ -3,15 +3,22 @@ package data.settings.repository
 import core.common.Try
 import data.core.database.SettingsEntityData
 import data.settings.local.ISettingsLocalDataSource
+import data.settings.remote.ISettingsRemoteDataSource
+import data.settings.remote.SettingsSyncDto
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsSettings
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import utils.Language
 
 class SettingsRepositoryImpl(
-    private val localDataSource: ISettingsLocalDataSource
+    private val localDataSource: ISettingsLocalDataSource,
+    private val remoteDataSource: ISettingsRemoteDataSource,
+    private val scope: CoroutineScope,
 ) : ISettingsRepository {
 
     override fun getLanguage(): Flow<Language> {
@@ -40,20 +47,31 @@ class SettingsRepositoryImpl(
         return localDataSource.observeSettings().map { it?.notificationsEnabled ?: true }
     }
 
-    override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> = Try {
-        val current = localDataSource.getSettings() ?: SettingsEntityData()
-        val updated = current.copy(notificationsEnabled = enabled)
-        localDataSource.saveSettings(updated)
+    override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> {
+        return Try {
+            val current = localDataSource.getSettings() ?: SettingsEntityData()
+            val updated = current.copy(notificationsEnabled = enabled)
+            localDataSource.saveSettings(updated)
+            scope.launch { remoteDataSource.syncSettings(updated.toSyncDto()) }
+        }
     }
 
     override fun getReviewRemindersEnabled(): Flow<Boolean> {
         return localDataSource.observeSettings().map { it?.reviewReminders ?: true }
     }
 
-    override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try {
-        val current = localDataSource.getSettings() ?: SettingsEntityData()
-        val updated = current.copy(reviewReminders = enabled)
-        localDataSource.saveSettings(updated)
+    override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> {
+        return try {
+            val current = localDataSource.getSettings() ?: SettingsEntityData()
+            val updated = current.copy(reviewReminders = enabled)
+            localDataSource.saveSettings(updated)
+            scope.launch { remoteDataSource.syncSettings(updated.toSyncDto()) }
+            Try.Success(Unit)
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (e: Throwable) {
+            Try.Failure(e)
+        }
     }
 
     override fun getMotivationalMessagesEnabled(): Flow<Boolean> {
@@ -136,3 +154,11 @@ class SettingsRepositoryImpl(
         localDataSource.clearSettings()
     }
 }
+
+private fun SettingsEntityData.toSyncDto() = SettingsSyncDto(
+    languageCode = languageCode,
+    themeMode = themeMode,
+    notificationsEnabled = notificationsEnabled,
+    dailyReminderTime = dailyReminderTime,
+    reviewRemindersEnabled = reviewReminders,
+)

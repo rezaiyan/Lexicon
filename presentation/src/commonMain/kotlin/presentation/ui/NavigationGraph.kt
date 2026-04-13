@@ -75,6 +75,7 @@ internal fun NavigationGraph(
         insightsGraph(
             onNavigateBack = { navController.navigateUp() },
             onShowLeaderboard = { overlayHost.showLeaderboard() },
+            snackbarHostState = snackbarHostState,
             onNavigateToNotificationSettings = {
                 overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
                     val settingsViewModel = koinViewModel<SettingsViewModel>()
@@ -83,7 +84,9 @@ internal fun NavigationGraph(
                         NotificationSettingsContent(
                             notificationsEnabled = currentState.screen.notificationsEnabled,
                             systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
+                            reviewRemindersEnabled = currentState.screen.reviewRemindersEnabled,
                             onNotificationsToggle = { settingsViewModel.setNotificationsEnabled(it) },
+                            onReviewRemindersToggle = { settingsViewModel.setReviewRemindersEnabled(it) },
                             onDismiss = { nav.dismiss() }
                         )
                     } else {

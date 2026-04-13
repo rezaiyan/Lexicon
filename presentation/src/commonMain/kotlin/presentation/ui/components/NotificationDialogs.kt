@@ -34,6 +34,8 @@ import lexicon.resources.generated.resources.notification_permission_title
 import lexicon.resources.generated.resources.notification_settings_subtitle
 import lexicon.resources.generated.resources.notification_settings_title
 import lexicon.resources.generated.resources.notification_stay_motivated
+import lexicon.resources.generated.resources.notification_study_reminders
+import lexicon.resources.generated.resources.notification_study_reminders_subtitle
 
 @Composable
 fun NotificationPermissionContent(
@@ -55,7 +57,9 @@ fun NotificationPermissionContent(
 fun NotificationSettingsContent(
     notificationsEnabled: Boolean,
     systemNotificationsEnabled: Boolean,
+    reviewRemindersEnabled: Boolean,
     onNotificationsToggle: (Boolean) -> Unit,
+    onReviewRemindersToggle: (Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     LexiconDialogContent(
@@ -105,6 +109,42 @@ fun NotificationSettingsContent(
                                 checked = notificationsEnabled,
                                 onCheckedChange = if (systemNotificationsEnabled) onNotificationsToggle else null,
                                 enabled = systemNotificationsEnabled
+                            )
+                        }
+                    }
+
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(Theme.spacing.cardPadding),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    stringResource(Res.string.notification_study_reminders),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    stringResource(Res.string.notification_study_reminders_subtitle),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 2
+                                )
+                            }
+                            Switch(
+                                checked = reviewRemindersEnabled,
+                                onCheckedChange = if (notificationsEnabled) onReviewRemindersToggle else null,
+                                enabled = notificationsEnabled
                             )
                         }
                     }

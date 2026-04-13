@@ -19,6 +19,8 @@ data class ImportUiState(
     val tags: List<Tag> = emptyList(),
     val selectedTagId: Long? = null,
     val showCreateTagDialog: Boolean = false,
+    val originalImageBytes: ByteArray? = null,
+    val imageQuality: Float = 1.0f,
 )
 
 data class ExtractedWordItem(

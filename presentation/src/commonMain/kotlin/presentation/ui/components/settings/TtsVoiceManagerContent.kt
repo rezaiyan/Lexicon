@@ -72,6 +72,7 @@ import lexicon.resources.generated.resources.tts_voice_speaker
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
+import utils.LexiconFormatters
 
 @Composable
 fun TtsVoiceManagerContent(
@@ -90,7 +91,7 @@ fun TtsVoiceManagerContent(
     val summaryMessage = if (downloadedModels.isNotEmpty()) {
         stringResource(Res.string.tts_models_downloaded_count, downloadedModels.size) +
             " \u2022 " +
-            stringResource(Res.string.tts_models_total_size, formatFileSize(totalSizeBytes))
+            stringResource(Res.string.tts_models_total_size, LexiconFormatters.fileSize(totalSizeBytes))
     } else {
         stringResource(Res.string.tts_models_none_downloaded)
     }
@@ -174,7 +175,7 @@ private fun TtsSpeedSection(
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
-                        text = stringResource(Res.string.tts_playback_speed_value, formatSpeed(sliderValue)),
+                        text = stringResource(Res.string.tts_playback_speed_value, LexiconFormatters.speed(sliderValue)),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,
@@ -229,7 +230,7 @@ private fun TtsLanguageRow(
                         maxLines = 1,
                     )
                     model.isDownloaded -> Text(
-                        text = formatFileSize(model.sizeBytes),
+                        text = LexiconFormatters.fileSize(model.sizeBytes),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -400,29 +401,3 @@ fun TtsDeleteConfirmationContent(
     )
 }
 
-private fun formatFileSize(bytes: Long): String {
-    if (bytes <= 0) return "0 B"
-    val kb = bytes / 1024.0
-    val mb = kb / 1024.0
-    val gb = mb / 1024.0
-    return when {
-        gb >= 1.0 -> "${roundToOneDecimal(gb)} GB"
-        mb >= 1.0 -> "${roundToOneDecimal(mb)} MB"
-        kb >= 1.0 -> "${roundToOneDecimal(kb)} KB"
-        else -> "$bytes B"
-    }
-}
-
-private fun roundToOneDecimal(value: Double): String {
-    val rounded = kotlin.math.round(value * 10) / 10.0
-    val whole = rounded.toLong()
-    val decimal = kotlin.math.round((rounded - whole) * 10).toInt()
-    return "$whole.$decimal"
-}
-
-private fun formatSpeed(speed: Float): String {
-    val rounded = kotlin.math.round(speed * 10) / 10.0
-    val whole = rounded.toLong()
-    val decimal = kotlin.math.round((rounded - whole) * 10).toInt()
-    return "$whole.$decimal"
-}

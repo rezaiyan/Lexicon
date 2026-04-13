@@ -4,6 +4,7 @@ import domain.study.usecase.GenerateSessionIdUseCase
 import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.GetWordRushWordsUseCase
+import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
@@ -21,6 +22,7 @@ fun studyModule() = module {
     factoryOf(::GetNextDueDateUseCase)
     factoryOf(::GetWordRushWordsUseCase)
     factoryOf(::RecordWordRushGameUseCase)
+    factoryOf(::GetWordRushInsightsUseCase)
 
     viewModel {
         StudyProgressViewModel(
@@ -45,6 +47,7 @@ fun studyModule() = module {
             getWordRushWordsUseCase = get(),
             recordWordRushGameUseCase = get(),
             analyticsTracker = get(),
+            getWordRushInsightsUseCase = get(),
         )
     }
 }

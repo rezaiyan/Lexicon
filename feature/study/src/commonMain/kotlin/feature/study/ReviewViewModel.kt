@@ -15,6 +15,7 @@ import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
 import domain.tts.usecase.ObserveTtsStateUseCase
 import domain.tts.usecase.SpeakWordUseCase
+import domain.tts.usecase.StopSpeakingUseCase
 import domain.word.model.ReviewSource
 import domain.word.model.ReviewWordResult
 import domain.word.model.Word
@@ -28,6 +29,7 @@ import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
 import feature.study.model.ReviewError
 import feature.study.model.ReviewType
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
@@ -50,6 +52,7 @@ class ReviewViewModel(
     private val recordEventUseCase: RecordReviewEventUseCase,
     private val recordStreakUseCase: RecordStreakActivityUseCase,
     private val speakWordUseCase: SpeakWordUseCase,
+    private val stopSpeakingUseCase: StopSpeakingUseCase,
     observeTtsState: ObserveTtsStateUseCase,
     observeSpeechRate: ObserveSpeechRateUseCase,
     private val setSpeechRateUseCase: SetTtsSpeechRateUseCase,
@@ -92,6 +95,7 @@ class ReviewViewModel(
 
     private var sessionContext: SessionContext? = null
     private var cardShownTimestamp: Long = 0L
+    private var ttsJob: Job? = null
 
     init {
         observeTtsState(Unit)
@@ -248,7 +252,9 @@ class ReviewViewModel(
 
     fun speakWord(text: String, languageCode: String) {
         val words = (currentState.review as? ReviewState.Active)?.words ?: emptyList()
-        viewModelScope.launch {
+        ttsJob?.cancel()
+        ttsJob = viewModelScope.launch {
+            stopSpeakingUseCase()
             speakWordUseCase(text, resolveCardLanguageUseCase(text, languageCode, words))
         }
     }
@@ -278,8 +284,12 @@ class ReviewViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        ttsJob?.cancel()
         val ctx = sessionContext ?: return
-        viewModelScope.launch(NonCancellable) { endSessionInternal(ctx, completedNormally = false) }
+        viewModelScope.launch(NonCancellable) {
+            stopSpeakingUseCase()
+            endSessionInternal(ctx, completedNormally = false)
+        }
     }
 
     // ---------------------------------------------------------------------------
@@ -338,7 +348,9 @@ class ReviewViewModel(
     private fun autoPlayIfEnabled() {
         val active = currentState.review as? ReviewState.Active ?: return
         if (!active.isAutoPlayEnabled) return
-        viewModelScope.launch {
+        ttsJob?.cancel()
+        ttsJob = viewModelScope.launch {
+            stopSpeakingUseCase()
             speakWordUseCase(active.currentWord.originalWord, active.currentWord.sourceLanguage.code)
         }
     }
