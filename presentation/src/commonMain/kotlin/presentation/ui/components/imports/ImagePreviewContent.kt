@@ -94,16 +94,18 @@ internal fun ImagePreviewCard(
                     contentScale = ContentScale.Fit,
                 )
 
-                AnimatedVisibility(
-                    visible = isLoading,
-                    enter = fadeIn(tween(400)),
-                    exit = fadeOut(tween(300)),
-                ) {
-                    AiScanOverlay(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(aspectRatio),
-                    )
+                Column {
+                    AnimatedVisibility(
+                        visible = isLoading,
+                        enter = fadeIn(tween(400)),
+                        exit = fadeOut(tween(300)),
+                    ) {
+                        AiScanOverlay(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(aspectRatio),
+                        )
+                    }
                 }
             }
         } else {
