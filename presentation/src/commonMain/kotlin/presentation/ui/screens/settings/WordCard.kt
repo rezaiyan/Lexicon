@@ -43,7 +43,7 @@ internal fun WordCard(
     isSelected: Boolean,
     isSelectionMode: Boolean,
     onTap: () -> Unit,
-    onLongPress: () -> Unit,
+    onLongPress: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val stage = LearningStage.fromLevel(word.level)
@@ -63,7 +63,7 @@ internal fun WordCard(
             .clip(RoundedCornerShape(Theme.dimensions.cardCornerRadius))
             .combinedClickable(
                 onClick = onTap,
-                onLongClick = onLongPress
+                onLongClick = onLongPress,
             ),
         shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius),
         color = backgroundColor,

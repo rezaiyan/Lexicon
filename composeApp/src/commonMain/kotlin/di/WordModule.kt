@@ -31,6 +31,7 @@ import domain.tag.usecase.GetDueTagsUseCase
 import domain.tag.usecase.GetTagsByLevelUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.tag.usecase.RenameTagUseCase
+import domain.tag.usecase.SyncTagsFromRemoteUseCase
 import domain.word.repository.IReviewSyncRepository
 import domain.word.repository.IWordRepository
 import domain.word.service.IImportValidationService
@@ -74,6 +75,7 @@ fun wordModule() = module {
     singleOf(::DeleteTagUseCase)
     singleOf(::AssignWordTagsUseCase)
     singleOf(::BatchAssignTagsUseCase)
+    singleOf(::SyncTagsFromRemoteUseCase)
 
     // Word Data Components
     single<IWordLocalDataSource> { WordLocalDataSource(queries = get(), settingsRepository = get()) }

@@ -160,7 +160,7 @@
     <string name="total_words">Total Words</string>
     <string name="cards_due_for_review">%1$d cards due for review</string>
     <string name="start_review">Start Review</string>
-    <string name="skip_tag_selector_label">Don\'t ask again, always review all words</string>
+    <string name="skip_tag_selector_label">Don't ask again, always review all words</string>
     <string name="learning_stages">Learning Stages</string>
     <string name="import_words">Import Words</string>
     <string name="choose_import_method">How would you like to add words?</string>
@@ -579,7 +579,7 @@
     <string name="feature_ai_extraction_desc">Point your camera at any text — a menu, a book, a screenshot — and import vocabulary instantly.</string>
     <string name="feature_ai_image_extraction">AI photo import</string>
     <string name="feature_advanced_analytics">Full analytics dashboard</string>
-    <string name="feature_advanced_analytics_desc">Track your progress and see how awesome you\'re becoming!</string>
+    <string name="feature_advanced_analytics_desc">Track your progress and see how awesome you're becoming!</string>
     <string name="feature_export_data">Export &amp; Backup</string>
     <string name="feature_export_data_desc">Export your vocabulary as a text file anytime. Your words are always yours to keep.</string>
     <string name="feature_export_backup">Export &amp; backup</string>
@@ -766,7 +766,7 @@
     <string name="word_rush_add_words">Add at least 4 words to play</string>
     <string name="word_rush_score">Score</string>
     <string name="word_rush_streak">Streak</string>
-    <string name="word_rush_time_up">Time\'s up!</string>
+    <string name="word_rush_time_up">Time's up!</string>
     <string name="word_rush_correct">Correct!</string>
     <string name="word_rush_wrong">Wrong!</string>
     <string name="word_rush_game_over">Round Complete</string>

@@ -1,6 +1,7 @@
 package data.tag.repository
 
 import core.common.Try
+import core.common.doOnSuccess
 import core.common.getOrThrow
 import data.tag.local.ITagLocalDataSource
 import data.tag.mapper.toDomain
@@ -34,10 +35,10 @@ class TagRepositoryImpl(
         tag
     }
 
-    override suspend fun deleteTag(id: Long): Try<Unit> = Try {
-        remoteDataSource.deleteTag(id).getOrThrow()
-        localDataSource.deleteTag(id)
-    }
+    override suspend fun deleteTag(id: Long): Try<Unit> = remoteDataSource.deleteTag(id)
+        .doOnSuccess {
+            localDataSource.deleteTag(id)
+        }
 
     override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = Try {
         remoteDataSource.updateWordTags(wordId, tagIds).getOrThrow()

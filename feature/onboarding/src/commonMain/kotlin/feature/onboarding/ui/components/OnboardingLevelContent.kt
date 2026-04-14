@@ -24,7 +24,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.back
@@ -85,39 +84,35 @@ internal fun OnboardingStep3Content(
                     .padding(horizontal = spacing.md),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (state.isLoading) {
-                    OnboardingLoadingCard()
-                } else {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .widthIn(max = dimensions.contentMaxWidth),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.sm)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = dimensions.contentMaxWidth),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.sm)
+                ) {
+                    TextButton(
+                        onClick = onBack,
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 14.dp)
                     ) {
-                        TextButton(
-                            onClick = onBack,
-                            modifier = Modifier.weight(1f),
-                            contentPadding = PaddingValues(vertical = 14.dp)
-                        ) {
-                            Text(
-                                stringResource(Res.string.back),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Button(
-                            onClick = onNextStep,
-                            modifier = Modifier.weight(2f),
-                            enabled = state.selectedLevel != null,
-                            contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            shape = RoundedCornerShape(50)
-                        ) {
-                            Text(stringResource(Res.string.onboarding_continue), style = MaterialTheme.typography.labelLarge)
-                        }
+                        Text(
+                            stringResource(Res.string.back),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Button(
+                        onClick = onNextStep,
+                        modifier = Modifier.weight(2f),
+                        enabled = state.selectedLevel != null,
+                        contentPadding = PaddingValues(vertical = 14.dp, horizontal = spacing.lg),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        shape = RoundedCornerShape(50)
+                    ) {
+                        Text(stringResource(Res.string.onboarding_continue), style = MaterialTheme.typography.labelLarge)
                     }
                 }
                 Spacer(modifier = Modifier.height(spacing.md))
@@ -128,8 +123,10 @@ internal fun OnboardingStep3Content(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Transparent)
-            )
+                    .background(MaterialTheme.colorScheme.background)
+            ) {
+                OnboardingLoadingCard()
+            }
         }
     }
 }

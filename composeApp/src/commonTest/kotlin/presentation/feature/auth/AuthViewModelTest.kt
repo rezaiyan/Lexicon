@@ -35,7 +35,9 @@ import domain.word.repository.UpdateWordsLanguagesProgress
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
+import domain.tag.usecase.SyncTagsFromRemoteUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
+import fakes.FakeTagRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -189,6 +191,7 @@ class AuthViewModelTest : ViewModelTestBase() {
             verifySessionUseCase = VerifySessionUseCase(fakeSessionRepo(sessionVerificationResult)),
             handleLoginSuccessUseCase = HandleLoginSuccessUseCase(
                 subscriptionManager = fakeSubscriptionManager(),
+                syncTagsFromRemoteUseCase = SyncTagsFromRemoteUseCase(FakeTagRepository()),
                 syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(wordRepo),
                 initializePushNotificationsUseCase = InitializePushNotificationsUseCase(isAuthUseCase, registerPushTokenUseCase),
             ),

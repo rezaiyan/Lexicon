@@ -1,5 +1,6 @@
 package presentation.ui.screens.settings
 
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,11 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import domain.word.model.LearningStage
 import domain.word.model.Word
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import feature.words.model.WordManagerScreenState
 import domain.word.model.WordSortOption
 import theme.Theme
@@ -40,6 +47,24 @@ internal fun WordListContent(
     onBatchAssignTags: () -> Unit,
     onExitSelectionMode: () -> Unit,
 ) {
+    DragSelectScrollViewSetup()
+    val lazyListState = rememberLazyListState()
+    val dragSelectState = remember { DragSelectState() }
+    // rememberUpdatedState ensures the gesture lambda reads the latest list
+    // even though pointerInput keeps a single coroutine alive across recompositions.
+    val currentFilteredWords = rememberUpdatedState(state.filteredWords)
+
+    // Auto-scroll: runs whenever the gesture sets a non-zero speed.
+    // Pattern from jordond/drag-select-compose: LaunchedEffect watches the speed
+    // state so it restarts automatically when scrolling starts/stops.
+    LaunchedEffect(dragSelectState.autoScrollSpeed) {
+        if (dragSelectState.autoScrollSpeed == 0f) return@LaunchedEffect
+        while (isActive) {
+            lazyListState.scrollBy(dragSelectState.autoScrollSpeed)
+            delay(16L)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchBar(
@@ -69,9 +94,25 @@ internal fun WordListContent(
 
             val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             LazyColumn(
+                state = lazyListState,
+                userScrollEnabled = !dragSelectState.isDragging,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .dragSelectGesture(
+                        lazyListState = lazyListState,
+                        dragSelectState = dragSelectState,
+                        onDragStarted = { index ->
+                            currentFilteredWords.value.getOrNull(index)?.let { word ->
+                                onEnterSelectionMode(word.id)
+                            }
+                        },
+                        onItemEntered = { index ->
+                            currentFilteredWords.value.getOrNull(index)?.let { word ->
+                                onToggleSelection(word.id)
+                            }
+                        },
+                    ),
                 contentPadding = PaddingValues(
                     bottom = if (state.isSelectionMode) {
                         Theme.dimensions.bottomBarHeight + navBarBottom
@@ -91,11 +132,6 @@ internal fun WordListContent(
                                 onToggleSelection(word.id)
                             } else {
                                 onOpenDetail(word)
-                            }
-                        },
-                        onLongPress = {
-                            if (!state.isSelectionMode) {
-                                onEnterSelectionMode(word.id)
                             }
                         },
                         modifier = Modifier.animateItem()

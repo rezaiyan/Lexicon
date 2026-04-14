@@ -9,9 +9,11 @@ import domain.subscription.ISubscriptionManager
 import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
+import domain.tag.usecase.SyncTagsFromRemoteUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import fakes.FakeAuthRepository
 import fakes.FakePushTokenRepository
+import fakes.FakeTagRepository
 import fakes.FakeWordRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +29,7 @@ class HandleLoginSuccessUseCaseTest {
     private val testUser = AuthUser(id = 42L, email = "user@example.com", name = "Test User")
 
     private val fakeWordRepository = FakeWordRepository()
+    private val fakeTagRepository = FakeTagRepository()
     // authenticated=true so InitializePushNotificationsUseCase actually calls initializeAndRegister
     private val fakeAuthRepository = FakeAuthRepository().also { it.authenticated = true }
     private val fakePushTokenRepository = FakePushTokenRepository()
@@ -70,6 +73,7 @@ class HandleLoginSuccessUseCaseTest {
         pushTokenRepo: IPushTokenRepository = fakePushTokenRepository,
     ) = HandleLoginSuccessUseCase(
         subscriptionManager = buildFakeSubscriptionManager(),
+        syncTagsFromRemoteUseCase = SyncTagsFromRemoteUseCase(fakeTagRepository),
         syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(fakeWordRepository),
         initializePushNotificationsUseCase = InitializePushNotificationsUseCase(
             IsAuthenticatedUseCase(fakeAuthRepository),
@@ -149,5 +153,44 @@ class HandleLoginSuccessUseCaseTest {
         useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = true))
 
         assertTrue(fakeWordRepository.syncRemoteToLocalCalled, "sync SHOULD be called when syncData=true")
+    }
+
+    @Test
+    fun `tag sync is called when syncData=true`() = runTest {
+        val useCase = buildUseCase()
+
+        useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = true))
+
+        assertTrue(fakeTagRepository.syncTagsFromRemoteCalled, "tag sync MUST be called when syncData=true")
+    }
+
+    @Test
+    fun `tag sync is not called when syncData=false`() = runTest {
+        val useCase = buildUseCase()
+
+        useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = false))
+
+        assertFalse(fakeTagRepository.syncTagsFromRemoteCalled, "tag sync must NOT be called when syncData=false")
+    }
+
+    @Test
+    fun `failure when tag sync fails propagates`() = runTest {
+        fakeTagRepository.syncTagsFromRemoteResult = Try.failure(RuntimeException("Tag sync error"))
+        val useCase = buildUseCase()
+
+        val result = useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = true))
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `tag sync runs before word sync`() = runTest {
+        // If tag sync fails, word sync must NOT run — proves tags are synced first
+        fakeTagRepository.syncTagsFromRemoteResult = Try.failure(RuntimeException("Tag sync error"))
+        val useCase = buildUseCase()
+
+        useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = true))
+
+        assertFalse(fakeWordRepository.syncRemoteToLocalCalled, "word sync must NOT run if tag sync fails first")
     }
 }

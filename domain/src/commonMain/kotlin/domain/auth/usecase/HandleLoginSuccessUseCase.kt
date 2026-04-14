@@ -6,6 +6,7 @@ import core.common.getOrThrow
 import domain.auth.model.AuthUser
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.subscription.ISubscriptionManager
+import domain.tag.usecase.SyncTagsFromRemoteUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
 
 /**
@@ -16,6 +17,7 @@ import domain.word.usecase.SyncRemoteToLocalUseCase
  */
 class HandleLoginSuccessUseCase(
     private val subscriptionManager: ISubscriptionManager,
+    private val syncTagsFromRemoteUseCase: SyncTagsFromRemoteUseCase,
     private val syncRemoteToLocalUseCase: SyncRemoteToLocalUseCase,
     private val initializePushNotificationsUseCase: InitializePushNotificationsUseCase,
 ) : UseCase<HandleLoginSuccessUseCase.Params, Unit> {
@@ -25,6 +27,7 @@ class HandleLoginSuccessUseCase(
     override suspend operator fun invoke(params: Params): Try<Unit> = Try {
         subscriptionManager.logIn(params.user.id.toString()).getOrThrow()
         if (params.syncData) {
+            syncTagsFromRemoteUseCase(Unit).getOrThrow()
             syncRemoteToLocalUseCase(clearFirst = false).getOrThrow()
         }
         initializePushNotificationsUseCase(Unit).getOrThrow()
