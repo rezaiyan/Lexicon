@@ -1,12 +1,12 @@
 # Lexicon App — Critical Functionality Reference
 
-> Use this file to understand the full scope of the app before implementing any feature, fix, or refactor. Cross-reference with skills in `.claude/skills/` for implementation patterns.
+> Use before implementing any feature, fix, or refactor. Cross-reference with skills in `.claude/skills/` for implementation patterns.
 
 ---
 
 ## What the App Is
 
-Lexicon is an **offline-first, multilingual vocabulary learning app** for Android and iOS (KMP). Users add words, study them via a 7-level spaced repetition system, and track their progress through rich analytics. The app supports Google/Apple Sign-In, cloud sync, leaderboards, TTS, AI-powered import, subscriptions (RevenueCat), and push notifications.
+Lexicon = **offline-first, multilingual vocabulary learning app** for Android and iOS (KMP). Users add words, study via 7-level spaced repetition, track progress through analytics. Supports Google/Apple Sign-In, cloud sync, leaderboards, TTS, AI-powered import, subscriptions (RevenueCat), push notifications.
 
 ---
 
@@ -51,7 +51,7 @@ App Launch
 **Key use case**: `ReviewWordUseCase`
 **ViewModels**: `ReviewViewModel`, `StudyProgressViewModel`
 
-Study sessions are tracked: start time, end time, cards reviewed, accuracy, completion status.
+Study sessions tracked: start time, end time, cards reviewed, accuracy, completion status.
 
 ---
 
@@ -78,15 +78,15 @@ On login: sync words from backend → init push notifications → init RevenueCa
 - Duplicate detection: `isSameContent()` — compares `originalWord` + `translation`
 - Progress stats: `GetProgressStatsUseCase` → counts per level, due count
 
-**Sync**: `SyncRemoteToLocalUseCase` (backend is source of truth on fresh sync)
+**Sync**: `SyncRemoteToLocalUseCase` (backend = source of truth on fresh sync)
 
-**Tags**: Words carry a `tagIds: List<Long>` field populated by joining `WordTagEntity` at query time. Tag assignment is a separate concern — use `AssignWordTagsUseCase`.
+**Tags**: Words carry `tagIds: List<Long>` populated by joining `WordTagEntity` at query time. Tag assignment separate — use `AssignWordTagsUseCase`.
 
 ---
 
 ### 3b. Tag System
 
-Tags let users organise their vocabulary and do focused study sessions on specific groups of words.
+Tags let users organise vocabulary and do focused study sessions on specific word groups.
 
 **Domain model** (`domain/src/commonMain/kotlin/domain/tag/model/Tag.kt`):
 ```kotlin
@@ -96,7 +96,7 @@ data class Tag(val id: Long, val name: String, val wordCount: Long, val createdA
 **Database schema** (migration `5.sqm`):
 - `TagEntity` — primary tag record
 - `WordTagEntity (wordId, tagId)` — many-to-many junction table (composite PK)
-- `wordCount` is computed in SQL via `LEFT JOIN + COUNT()` on every tag read
+- `wordCount` computed in SQL via `LEFT JOIN + COUNT()` on every tag read
 
 **Repository**: `ITagRepository` (domain) / `TagRepositoryImpl` (data)
 ```
@@ -116,23 +116,23 @@ syncTagsFromRemote(): Try<Unit>
 | `CreateTagUseCase` | `UseCase<String, Tag>` | Create new tag |
 | `RenameTagUseCase` | `UseCase<RenameTagParams, Tag>` | Rename existing tag |
 | `DeleteTagUseCase` | `UseCase<Long, Unit>` | Delete tag (cascades) |
-| `AssignWordTagsUseCase` | `UseCase<AssignWordTagsParams, Unit>` | Atomically replace all tags on a word |
+| `AssignWordTagsUseCase` | `UseCase<AssignWordTagsParams, Unit>` | Atomically replace all tags on word |
 | `GetDueWordsByTagUseCase` | `FlowUseCase<Long, List<Word>>` | Due cards filtered by tag |
 
 **ViewModels** (in `feature/words/`):
 - `TagManagerViewModel` — CRUD for tags; state: `TagManagerState(tags, isLoading, errorMessage)`
-- `WordTagAssignmentViewModel` — tag assignment for a single word; state: `WordTagAssignmentState(wordId, tags, selectedTagIds, isLoading, isSaving)`
+- `WordTagAssignmentViewModel` — tag assignment for single word; state: `WordTagAssignmentState(wordId, tags, selectedTagIds, isLoading, isSaving)`
 
 **Screens/components** (in `presentation/`):
 - `TagManagerScreen` — full-screen manager: create / rename / delete tags
-- `TagAssignmentSheet` — bottom sheet to assign tags to a word (accessed from `WordManagerDetailSheet`)
-- `TagManagerCard` — settings card that navigates to `TagManagerScreen`
-- `TagsSection` — study progress screen component showing tags as clickable `LevelBucketCard` rows (each click launches a tag-filtered review)
+- `TagAssignmentSheet` — bottom sheet to assign tags to word (accessed from `WordManagerDetailSheet`)
+- `TagManagerCard` — settings card navigating to `TagManagerScreen`
+- `TagsSection` — study progress screen component showing tags as clickable `LevelBucketCard` rows (each click launches tag-filtered review)
 
 **Study integration**:
-- `StudyProgressViewModel` subscribes to `GetTagsUseCase` → `state.tags` list shown in `TagsSection`
-- `ReviewViewModel.ReviewWordUseCases` includes `getDueWordsByTag` — clicking a tag on the Study screen launches a review filtered to that tag's due words
-- Word list flows (`getAllWords`, `getDueCards`) use `combine()` to re-emit whenever `WordTagEntity` rows change — tag assignment instantly refreshes all dependent screens
+- `StudyProgressViewModel` subscribes to `GetTagsUseCase` → `state.tags` shown in `TagsSection`
+- `ReviewViewModel.ReviewWordUseCases` includes `getDueWordsByTag` — clicking tag on Study screen launches review filtered to that tag's due words
+- Word list flows (`getAllWords`, `getDueCards`) use `combine()` to re-emit when `WordTagEntity` rows change — tag assignment instantly refreshes all dependent screens
 
 ---
 
@@ -143,7 +143,7 @@ Three import paths:
 | Path | Use case | Description |
 |------|----------|-------------|
 | **File** | `ImportViaFileUseCase` | CSV / plain text, word-translation pairs |
-| **AI Image** | `ImportFromImageUseCase` | Extract vocabulary from a photo via AI |
+| **AI Image** | `ImportFromImageUseCase` | Extract vocabulary from photo via AI |
 | **AI Text** | (within ImportViewModel) | Paste text, AI extracts vocabulary |
 | **Onboarding** | `ImportSuggestedVocabularyUseCase` | AI-suggested words based on user preferences |
 
@@ -211,7 +211,7 @@ All stored locally via `ISettingsRepository`:
 
 **Operations**: `SpeakWordUseCase`, `DownloadTtsModelUseCase`, `DeleteTtsModelUseCase`, `GetTtsModelsInfoUseCase`
 
-Language models are downloaded on demand. Each platform uses its own engine:
+Language models downloaded on demand. Each platform uses own engine:
 - Android: on-device TTS engine
 - iOS: AVFoundation
 - WASM: Web Speech API
@@ -246,7 +246,7 @@ Global ranking by streak / mastered words. Each `LeaderboardEntry`: rank, displa
 
 Collected: `targetLanguage`, `nativeLanguage`, `level`, `interests` → submitted via `SubmitPreferencesUseCase` → backend returns suggested vocabulary → user previews/approves → `ImportSuggestedVocabularyUseCase`.
 
-Onboarding is skipped if user already has words in the local DB.
+Onboarding skipped if user already has words in local DB.
 
 ---
 
@@ -283,7 +283,7 @@ Onboarding is skipped if user already has words in the local DB.
 
 ## Progress Evaluation Tiers
 
-`EvaluateProgressUseCase` maps `progressFraction` (0.0–1.0) to a tier:
+`EvaluateProgressUseCase` maps `progressFraction` (0.0–1.0) to tier:
 
 `EMPTY → GETTING_STARTED → BUILDING → PROGRESSING → HALFWAY → STRONG → ALMOST_MASTER → MASTERED`
 
@@ -301,11 +301,11 @@ Analytics split: `AnalyticsModule.kt` in same package.
 ## What Claude Should Know Before Touching Any Feature
 
 1. **Study flow** touches `ReviewViewModel`, `StudyProgressViewModel`, `ReviewWordUseCase`, `IWordRepository`, `IAnalyticsRecorder` — all must stay in sync.
-2. **Analytics** has a **write side** (`IAnalyticsRecorder` / `AnalyticsRecorderImpl`) and a separate **read side** (`IAnalyticsStatsRepository`, `IAnalyticsWordRepository`). Do not conflate them.
-3. **Auth state** drives the entire app shell — changes to `AppNavigationViewModel` affect all feature entry points.
-4. **Word model level field** is the SR bucket (0–6), not a UI display level — arithmetic on it has direct learning consequences.
-5. **Sync** treats backend as source of truth. Local DB is primary for offline reads; writes are queued and synced.
-6. **TTS state** is a `StateFlow` on `ITtsRepository` — UI observes it to show download progress, speaking indicator, etc.
-7. **FeatureFlags** gate premium features — check `GetFeatureAccessUseCase` before adding features gated on subscription.
-8. **Tags** are a cross-cutting concern on `Word`. Word list flows re-emit on `WordTagEntity` changes — any operation that touches `WordTagEntity` will cause all word list collectors to fire. Keep tag-assignment operations transactional (`setWordTags` is atomic: delete-all then insert-all).
-9. **Tag deletion** cascades synchronously in SQLDelight (delete `WordTagEntity` rows first, then `TagEntity`) — words themselves are unaffected, their `tagIds` simply becomes empty on next query.
+2. **Analytics** has **write side** (`IAnalyticsRecorder` / `AnalyticsRecorderImpl`) and separate **read side** (`IAnalyticsStatsRepository`, `IAnalyticsWordRepository`). Don't conflate.
+3. **Auth state** drives entire app shell — changes to `AppNavigationViewModel` affect all feature entry points.
+4. **Word model level field** = SR bucket (0–6), not UI display level — arithmetic has direct learning consequences.
+5. **Sync** treats backend as source of truth. Local DB primary for offline reads; writes queued and synced.
+6. **TTS state** = `StateFlow` on `ITtsRepository` — UI observes to show download progress, speaking indicator, etc.
+7. **FeatureFlags** gate premium features — check `GetFeatureAccessUseCase` before adding subscription-gated features.
+8. **Tags** = cross-cutting concern on `Word`. Word list flows re-emit on `WordTagEntity` changes — any operation touching `WordTagEntity` fires all word list collectors. Keep tag-assignment transactional (`setWordTags` = atomic: delete-all then insert-all).
+9. **Tag deletion** cascades synchronously in SQLDelight (delete `WordTagEntity` rows first, then `TagEntity`) — words unaffected, `tagIds` simply empty on next query.

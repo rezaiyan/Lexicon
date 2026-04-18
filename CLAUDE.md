@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+Guides Claude Code in this repo.
 
 ## Project Overview
 
-Lexicon is a Kotlin Multiplatform (KMP) vocabulary learning app targeting Android and iOS. Jetpack Compose Multiplatform for UI, Clean Architecture + Event Sink MVVM.
+Lexicon = Kotlin Multiplatform (KMP) vocabulary app, Android + iOS. Jetpack Compose Multiplatform for UI, Clean Architecture + Event Sink MVVM.
 
 ## Build & Run Commands
 
@@ -19,7 +19,7 @@ Lexicon is a Kotlin Multiplatform (KMP) vocabulary learning app targeting Androi
 
 ## Setup
 
-Copy `local.defaults.properties` to `local.properties` and fill in backend URL, OAuth client IDs, RevenueCat keys, and signing config. For iOS: also run `./scripts/sync-ios-config.sh`.
+Copy `local.defaults.properties` → `local.properties`. Fill backend URL, OAuth client IDs, RevenueCat keys, signing config. iOS: also run `./scripts/sync-ios-config.sh`.
 
 ## Module Architecture
 
@@ -54,7 +54,7 @@ State flows back via Compose `mutableStateOf` snapshot state.
 
 ## Key Technical Details
 
-- Dependency versions centralized in `gradle/libs.versions.toml`
+- Dependency versions in `gradle/libs.versions.toml`
 - **Android SDK**: minSdk 24, compileSdk/targetSdk 36
 - **DI**: Koin — `composeApp/src/commonMain/kotlin/di/AppModule.kt`
 - **Database**: SQLDelight (multiplatform)
@@ -67,7 +67,7 @@ State flows back via Compose `mutableStateOf` snapshot state.
 
 ## Architecture Rules
 
-Detailed patterns live in `.claude/skills/` — load the relevant skill for implementation details. These are the guardrails:
+Patterns in `.claude/skills/` — load relevant skill for implementation. Guardrails:
 
 | Layer | Contract | Skill |
 |---|---|---|
@@ -94,15 +94,15 @@ Detailed patterns live in `.claude/skills/` — load the relevant skill for impl
 ### Anti-patterns (NEVER use in new code)
 
 - `!!` (non-null assertion) — use safe calls, Elvis, `requireNotNull` with justification
-- `try-catch` for control flow — use Flow `.catch {}` operator or `Try<T>`
+- `try-catch` for control flow — use Flow `.catch {}` or `Try<T>`
 - Unnecessary `runCatching` — prefer `Try<T>`-returning APIs
 - Sealed Event/Intent classes — use event sink pattern (public ViewModel methods)
 - `collectAsStateWithLifecycle()` — use `viewModel.state()` (Compose-native)
 - `LaunchedEffect` for effects — use `OnEvents(viewModel.effects)`
 - Fragmented StateFlows — single `data class` state per screen
-- Stateful use cases — no mutable fields in use cases
+- Stateful use cases — no mutable fields
 - Bare-throwing suspend methods — always return `Try<T>`
-- `"format".format(args)` in common code — `String.format` is JVM-only; use `kotlin.math.round` + manual string construction or arithmetic formatting instead
+- `"format".format(args)` in common code — `String.format` is JVM-only; use `kotlin.math.round` + manual string construction or arithmetic formatting
 
 ## Testing
 
@@ -110,27 +110,27 @@ Test pyramid: ViewModel (Turbine) -> Repository (fakes) -> DataSource (MockEngin
 
 - Common tests: `composeApp/src/commonTest/kotlin/` — kotlin-test + coroutines-test + Turbine
 - Android tests: `composeApp/src/androidTest/kotlin/` — JUnit 4
-- **Fakes over mocks** — manual fakes for all dependencies
+- **Fakes over mocks** — manual fakes for all deps
 - **Shared fakes**: reusable test utilities in `:core:testing`
-- Tests required for all new code: ViewModel + UseCase at minimum
+- Tests required for all new code: ViewModel + UseCase minimum
 
 ## CI/CD
 
-GitHub Actions: `build.yml` (compile -> APK -> iOS framework) and `test.yml` (tests -> iOS build).
+GitHub Actions: `build.yml` (compile -> APK -> iOS framework), `test.yml` (tests -> iOS build).
 Secrets via `.github/actions/init-config/action.yml`.
 
 ## Conventions
 
-- All new code follows target patterns — never perpetuate legacy patterns
+- All new code follows target patterns — never perpetuate legacy
 - Old code migrates gradually (see `doc/architecture-vision.html`)
 - Register new DI components in `AppModule.kt`
-- Conventional commit messages, SOLID principles
+- Conventional commits, SOLID principles
 
 ## Workflow
 
-- **Plan first**: Enter plan mode for tasks touching 3+ files or requiring architectural decisions
+- **Plan first**: Plan mode for tasks touching 3+ files or needing architectural decisions
 - **Commit often**: One logical unit per commit
-- **Use skills**: They auto-trigger based on task context and contain the canonical patterns
+- **Use skills**: Auto-trigger on context, contain canonical patterns
 - **Use agents**: `architecture-reviewer` (boundary checks), `test-writer` (generate tests), `kmp-navigator` (trace flows), `migrator` (migrate patterns), `screen-redesigner` (redesign screens), `e2e-feature` (full-stack features), `domain-designer` (design value objects/interfaces), `analytics-auditor` (analytics session lifecycle correctness)
 - **Break large tasks**: Delegate independent work to subagents
 - **Custom commands**: `/test`, `/build`, `/review`, `/new-feature`, `/plan` (plan before coding), `/migrate` (legacy→target patterns), `/risk-check` (pre-merge safety check)

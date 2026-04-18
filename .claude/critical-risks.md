@@ -1,69 +1,69 @@
 # Critical Risks & Invariants — Handle With Care
 
-> These are the areas where a small mistake causes outsized damage: data loss, broken learning progress, silent failures, or stuck app state. Read the relevant section before touching any of these systems.
+> Areas where small mistake causes outsized damage: data loss, broken learning progress, silent failures, stuck app state. Read relevant section before touching these systems.
 
 ---
 
 ## 1. Spaced Repetition Algorithm (`ReviewWordUseCase`)
 
-**What must never break:**
-- `repetitions` MUST reset to 0 whenever the word advances a level
-- Ease factor bounds: min 1.3, max 2.5 — these are tuned for algorithm convergence
+**Must never break:**
+- `repetitions` MUST reset to 0 when word advances level
+- Ease factor bounds: min 1.3, max 2.5 — tuned for algorithm convergence
 - Level 6 interval grows exponentially via `(word.interval * easeFactor).toInt()` capped at 365 days
-- Any quality value that is not 0 or 1 is silently treated as FORGOT — this is intentional
+- Quality value not 0 or 1 silently treated as FORGOT — intentional
 
 **Traps:**
 - `word.interval` must never be 0 at level 6. If it is, `0 * easeFactor = 0` → word reviews every minute forever
-- Float-to-Int truncation on the interval calculation loses fractional days — do not add rounding without testing convergence
-- `LEVEL_INTERVALS[level] ?: 1` silently falls back to 1 minute if the level key is missing from the map — never remove entries from that map
+- Float-to-Int truncation on interval calc loses fractional days — don't add rounding without testing convergence
+- `LEVEL_INTERVALS[level] ?: 1` silently falls back to 1 minute if level key missing from map — never remove entries
 
-**Invariant:** `interval > 0` and `easeFactor > 0` must hold at all times on every Word in the DB.
+**Invariant:** `interval > 0` and `easeFactor > 0` must hold at all times on every Word in DB.
 
 ---
 
 ## 2. Analytics Session Lifecycle — MOST CRITICAL
 
-**The fundamental risk:** Analytics sessions exist **only in memory**. If the app is killed mid-session, all buffered review events are permanently lost. There is no local persistence for pending sync.
+**Fundamental risk:** Analytics sessions exist **only in memory**. App killed mid-session → all buffered review events permanently lost. No local persistence for pending sync.
 
 **In `AnalyticsRecorderImpl`:**
-- `startSession()` / `endSession()` use an in-memory Mutex-protected map — no disk persistence
-- On sync failure, the session goes into `retryQueue` — but retry queue is also in memory and is lost on process death
-- `recordReviewEvent()` on a non-existent session ID is a **silent no-op** — no error, no warning
+- `startSession()` / `endSession()` use in-memory Mutex-protected map — no disk persistence
+- On sync failure, session goes into `retryQueue` — also in memory, lost on process death
+- `recordReviewEvent()` on non-existent session ID = **silent no-op** — no error, no warning
 
 **In `ReviewViewModel`:**
-- `beginAnalyticsSession()` launches `startSession()` as a **fire-and-forget coroutine** — it is NOT awaited
-- `reviewWord()` is called immediately after; if `startSession` hasn't completed yet, events are recorded against a session the backend has never seen
-- Session settings (successesToAdvance, forgotPenalty) are also loaded fire-and-forget — `reviewWord()` may run with defaults if settings haven't loaded yet
-- `onCleared()` launches `endAnalyticsSession()` without awaiting it — if the ViewModel is destroyed quickly, the final session may not be sent
+- `beginAnalyticsSession()` launches `startSession()` as **fire-and-forget coroutine** — NOT awaited
+- `reviewWord()` called immediately after; if `startSession` not complete, events recorded against session backend never saw
+- Session settings (successesToAdvance, forgotPenalty) also loaded fire-and-forget — `reviewWord()` may run with defaults
+- `onCleared()` launches `endAnalyticsSession()` without await — ViewModel destroyed quickly → final session may not send
 
 **Do not:**
-- Assume `startSession` has completed before `reviewWord` is first called
-- Move `recordEvent()` outside the `if (currentSessionId != null)` guard
-- Remove the Mutex from `AnalyticsRecorderImpl.sessions`
-- Change `endSession` to throw on network failure (it must succeed locally even when sync fails)
+- Assume `startSession` completed before first `reviewWord` call
+- Move `recordEvent()` outside `if (currentSessionId != null)` guard
+- Remove Mutex from `AnalyticsRecorderImpl.sessions`
+- Change `endSession` to throw on network failure (must succeed locally even when sync fails)
 
-**The divergence risk:** `ReviewViewModel` computes `newLevel` locally (using `sessionSettings`) and sends it to analytics. `ReviewWordUseCase` computes the actual new level independently. If settings differ between the two, analytics shows different level progressions than what's in the DB.
+**Divergence risk:** `ReviewViewModel` computes `newLevel` locally (using `sessionSettings`) and sends to analytics. `ReviewWordUseCase` computes actual new level independently. If settings differ, analytics shows different level progressions than DB.
 
 ---
 
 ## 3. Auth Token Refresh — Race Conditions
 
 **In `TokenRefreshManager`:**
-- Uses a Mutex for single-flight refresh (only one refresh in-flight at a time)
+- Uses Mutex for single-flight refresh (only one refresh in-flight at a time)
 - After acquiring Mutex, double-checks if another caller already refreshed — do not remove this double-check
-- Distinguishes `AuthenticationException` (clears tokens → forces logout) from transient errors (keeps tokens) — this distinction must be preserved
+- Distinguishes `AuthenticationException` (clears tokens → forces logout) from transient errors (keeps tokens) — must preserve this distinction
 
 **In `AuthInterceptor`:**
-- Proactive refresh triggers when token expires in < 5 minutes — this is **fire-and-forget**, the request continues with the current token
-- **Race condition:** A request may be sent with an old token even during a proactive refresh, resulting in a 401
-- There is no 401-retry handler in the interceptor — the app relies on proactive refresh being early enough
+- Proactive refresh triggers when token expires in < 5 minutes — **fire-and-forget**, request continues with current token
+- **Race condition:** Request may send with old token during proactive refresh, resulting in 401
+- No 401-retry handler in interceptor — app relies on proactive refresh being early enough
 
-**Token expiry trap:** If the backend does not return `expiresIn`, `tokenExpiresAt` is stored as 0. Then `timeUntilExpiry` is always negative, proactive refresh never triggers, and the user eventually hits a 401 with no auto-recovery.
+**Token expiry trap:** Backend doesn't return `expiresIn` → `tokenExpiresAt` stored as 0 → `timeUntilExpiry` always negative → proactive refresh never triggers → user eventually hits 401 with no auto-recovery.
 
 **Do not:**
-- Make the proactive refresh blocking (would deadlock concurrent requests)
-- Remove the `AuthenticationException` vs. transient-error distinction
-- Change `getTokenExpiresAt()` to a suspend function (it is called from a synchronous context)
+- Make proactive refresh blocking (would deadlock concurrent requests)
+- Remove `AuthenticationException` vs. transient-error distinction
+- Change `getTokenExpiresAt()` to suspend function (called from synchronous context)
 
 ---
 
@@ -78,101 +78,101 @@ Any → Auth(LoginRequired)  [on logout]
 ```
 
 **Traps:**
-- `hasCompletedOnboarding()` is a persisted flag — it can be true even when the user has no auth tokens (e.g., reinstall with Keychain surviving). The code handles this edge case explicitly; do not remove it.
-- `getTotalCount()` failing returns 0 by default — this sends the user to Onboarding instead of skipping it. This is the safe fallback.
-- `markOnboardingCompleted()` is called in multiple branches — if it fails, subsequent logic assumes it succeeded. There is no compensation.
+- `hasCompletedOnboarding()` is persisted flag — can be true even when user has no auth tokens (e.g., reinstall with Keychain surviving). Code handles this edge case explicitly; don't remove it.
+- `getTotalCount()` failing returns 0 by default — sends user to Onboarding instead of skipping. Safe fallback.
+- `markOnboardingCompleted()` called in multiple branches — if fails, subsequent logic assumes success. No compensation.
 
-**Invariant:** `AppUiState.Ready` must only be reached if the user is authenticated AND onboarding is complete. Never transition to Ready without both checks passing.
+**Invariant:** `AppUiState.Ready` reached only if user authenticated AND onboarding complete. Never transition to Ready without both checks.
 
 ---
 
 ## 5. Word Sync & Deletion
 
-**Sync strategy:** Backend is source of truth. `syncRemoteToLocal()` fetches remote words and resolves conflicts. The conflict resolver must remain deterministic — same inputs must always pick the same winner.
+**Sync strategy:** Backend = source of truth. `syncRemoteToLocal()` fetches remote words and resolves conflicts. Conflict resolver must remain deterministic — same inputs always pick same winner.
 
-**Delete ordering:** Delete from backend FIRST, then local. This is intentional — if local delete fails after backend success, the word re-appears on next sync (safe). The reverse (local first) would cause a permanent phantom word.
+**Delete ordering:** Delete from backend FIRST, then local. Intentional — local delete fails after backend success → word re-appears on next sync (safe). Reverse (local first) → permanent phantom word.
 
-**Partial failure risk:** Batch language updates (`BatchUpdateLanguagesUseCase`) update words one by one. If it fails on word #3, words 1–2 are updated and synced, words 3–N are not. There is no rollback. Code touching batch updates must tolerate partial success.
+**Partial failure risk:** `BatchUpdateLanguagesUseCase` updates words one by one. Fails on word #3 → words 1–2 updated and synced, 3–N not. No rollback. Code touching batch updates must tolerate partial success.
 
-**Widget:** `DeleteWordsUseCase` refreshes the daily widget after deletion via a fire-and-forget call. Widget refresh failure does not roll back the deletion.
+**Widget:** `DeleteWordsUseCase` refreshes daily widget after deletion via fire-and-forget. Widget refresh failure doesn't roll back deletion.
 
 ---
 
 ## 9. Tag System — Cascades & Reactivity
 
 **Cascade ordering in `deleteTag()`:**
-`TagLocalDataSource.deleteTag()` runs a SQLDelight transaction: `deleteWordTagsForTag(id)` first, then `deleteTag(id)`. Reversing this order will violate the implicit FK constraint and leave orphan `WordTagEntity` rows that can never be cleaned up.
+`TagLocalDataSource.deleteTag()` runs SQLDelight transaction: `deleteWordTagsForTag(id)` first, then `deleteTag(id)`. Reversing violates implicit FK constraint and leaves orphan `WordTagEntity` rows that can never be cleaned up.
 
 **Atomic assignment in `setWordTags()`:**
-`deleteWordTagsForWord(wordId)` followed by per-tag `insertWordTag()` calls — all inside one SQLDelight transaction. If you add error handling that returns early inside this transaction without rolling back, words may end up with no tags instead of their previous assignment.
+`deleteWordTagsForWord(wordId)` followed by per-tag `insertWordTag()` calls — all inside one SQLDelight transaction. Adding error handling that returns early inside this transaction without rollback → words end up with no tags instead of previous assignment.
 
 **Reactivity blast radius:**
-Word list flows (`getAllWords`, `getDueCards`) use `combine()` with a `countWordTags()` trigger. Every tag assignment/unassignment re-emits the entire word list to all subscribers. Tag operations that loop over many words will cause N re-emissions. Batch-assign operations should use `setWordTags()` (single transaction) rather than repeated `addTagToWord()` calls.
+Word list flows (`getAllWords`, `getDueCards`) use `combine()` with `countWordTags()` trigger. Every tag assignment/unassignment re-emits entire word list to all subscribers. Batch-assign operations must use `setWordTags()` (single transaction) not repeated `addTagToWord()` calls.
 
 **Remote sync divergence risk:**
-`syncTagsFromRemote()` calls `replaceAllTags()` (delete-all + re-insert). This wipes all local tag metadata but does NOT touch `WordTagEntity`. If the remote sync succeeds but the subsequent remote call to re-fetch word-tag mappings fails, the local DB has tags with no associations — silent data loss for tag assignments.
+`syncTagsFromRemote()` calls `replaceAllTags()` (delete-all + re-insert). Wipes all local tag metadata but does NOT touch `WordTagEntity`. If remote sync succeeds but subsequent remote call to re-fetch word-tag mappings fails → local DB has tags with no associations — silent data loss.
 
 **Do not:**
-- Split the `setWordTags()` transaction into separate suspend calls
-- Add tag reads outside the `getTagIdsForWord()` path (would bypass reactive trigger)
-- Remove the `countWordTags()` combine trigger from word flows — doing so breaks live tag-count updates on the word list screen
+- Split `setWordTags()` transaction into separate suspend calls
+- Add tag reads outside `getTagIdsForWord()` path (bypasses reactive trigger)
+- Remove `countWordTags()` combine trigger from word flows — breaks live tag-count updates on word list screen
 
 ---
 
 ## 6. Settings Persistence (`SettingsLocalDataSourceImpl`)
 
 **Type conversion traps:**
-- DB stores Boolean as `Long` (0L or 1L). The equality check is `!= 0L` — any non-zero value reads as true. Never write a value other than 0 or 1 for boolean fields.
-- DB stores `Int` fields as `Long`. There are `.toInt()` casts without bounds checks. TTS speaker IDs, minimumDueCards, and ID fields must fit in 32-bit signed range.
-- TTS speech rate: DB stores as `Double`, domain uses `Float`. The round-trip loses precision — do not compare persisted and in-memory values with `==`.
+- DB stores Boolean as `Long` (0L or 1L). Equality check is `!= 0L` — any non-zero reads as true. Never write value other than 0 or 1 for boolean fields.
+- DB stores `Int` fields as `Long`. `.toInt()` casts without bounds checks. TTS speaker IDs, minimumDueCards, ID fields must fit in 32-bit signed range.
+- TTS speech rate: DB stores as `Double`, domain uses `Float`. Round-trip loses precision — don't compare persisted and in-memory values with `==`.
 
-**Race condition:** TTS voice preference upsert is a read-then-write pattern with no transaction. Concurrent calls to `setVoice()` for the same language can lose data.
+**Race condition:** TTS voice preference upsert is read-then-write with no transaction. Concurrent `setVoice()` calls for same language can lose data.
 
 ---
 
 ## 7. iOS Keychain (`IOSKeychainSecureStorage`)
 
 **Memory safety:**
-- All CF allocations are scoped inside `memScoped {}` blocks — do not lift CF object creation outside these blocks
-- `CFDataRef` created by `toCFData()` is NOT manually released — this is a known minor leak per save operation
-- Never call `CFRelease()` on a pointer that could be null — the `requireNotNull` calls before release are load-bearing
+- All CF allocations scoped inside `memScoped {}` blocks — don't lift CF object creation outside these blocks
+- `CFDataRef` created by `toCFData()` NOT manually released — known minor leak per save operation
+- Never call `CFRelease()` on pointer that could be null — `requireNotNull` calls before release are load-bearing
 
 **Token loss risk:**
-- Migration from NSUserDefaults to Keychain runs on every token read until the migration flag is saved. If the flag fails to persist, migration re-runs (idempotent but causes redundant writes)
-- Keychain reads have no timeout — if the Keychain is locked (OS update, backup), the app will block
-- `tokenExpiresAt` is stored in NSUserDefaults (not Keychain) — it is not encrypted and not available during OS backup restrictions
+- Migration from NSUserDefaults to Keychain runs on every token read until migration flag saved. Flag fails to persist → migration re-runs (idempotent but causes redundant writes)
+- Keychain reads have no timeout — if Keychain locked (OS update, backup), app blocks
+- `tokenExpiresAt` stored in NSUserDefaults (not Keychain) — not encrypted, not available during OS backup restrictions
 
-**Invariant:** `ensureMigrationCompleted()` must be called before any Keychain read. Do not add Keychain reads that bypass this call.
+**Invariant:** `ensureMigrationCompleted()` must be called before any Keychain read. Don't add Keychain reads that bypass this call.
 
 ---
 
 ## 8. `Try<T>` Error Handling (`core/common/Try.kt`)
 
 **Non-obvious contracts:**
-- `CancellationException` is **always re-thrown**, never wrapped in `Failure` — coroutine cancellation works correctly because of this. Never catch `CancellationException` inside a `Try` transform.
-- `Error` (JVM fatal) is also re-thrown — do not catch `Error` and wrap it in `Failure`
-- `map()` and `flatMap()` catch all `Throwable` except the above — a bug in a transform lambda becomes a silent `Failure`, not a crash
-- `recover()` swallows the original exception — the stack trace of the original failure is not preserved in the new `Failure`
+- `CancellationException` **always re-thrown**, never wrapped in `Failure` — coroutine cancellation works because of this. Never catch `CancellationException` inside `Try` transform.
+- `Error` (JVM fatal) also re-thrown — don't catch `Error` and wrap in `Failure`
+- `map()` and `flatMap()` catch all `Throwable` except above — bug in transform lambda becomes silent `Failure`, not crash
+- `recover()` swallows original exception — stack trace of original failure not preserved in new `Failure`
 
 **Do not:**
-- Use `getOrThrow()` without handling `CancellationException` at the call site
-- Chain `.map { }.map { }.map { }` deeply — if any lambda throws, the original context is lost
-- Catch `CancellationException` inside a lambda passed to `Try` operators
+- Use `getOrThrow()` without handling `CancellationException` at call site
+- Chain `.map { }.map { }.map { }` deeply — any lambda throws, original context lost
+- Catch `CancellationException` inside lambda passed to `Try` operators
 
 ---
 
 ## 10. Batch Remote Operations — Sequential Request Anti-Pattern
 
-**The bug this section prevents:** Batch tag assignment originally looped `assignWordTags(wordId)` for each selected word, sending N sequential HTTP requests. Two failure modes caused partial updates:
+**Bug this section prevents:** Batch tag assignment originally looped `assignWordTags(wordId)` for each selected word, sending N sequential HTTP requests. Two failure modes caused partial updates:
 
-1. **Fail-fast partial failure:** `forEach { remoteDataSource.updateWordTags(wordId, tagIds).getOrThrow() }` — if word #3 fails, words 1–2 are updated and synced, words 3–N are not. No rollback. Client and backend end up in inconsistent state.
-2. **JPA `@Version` optimistic locking failure:** The original `updateWordTags` backend endpoint loaded the `Word` entity, called `wordRepository.save(word)` to persist tag changes. `save()` bumps the `@Version` field. Under concurrent load (e.g., sync running while batch-assign runs), the version in DB doesn't match the loaded version → `OptimisticLockingFailureException` → random words in the batch silently fail.
+1. **Fail-fast partial failure:** `forEach { remoteDataSource.updateWordTags(wordId, tagIds).getOrThrow() }` — word #3 fails → words 1–2 updated and synced, 3–N not. No rollback. Client and backend inconsistent.
+2. **JPA `@Version` optimistic locking failure:** Original `updateWordTags` endpoint loaded `Word` entity, called `wordRepository.save(word)` to persist tag changes. `save()` bumps `@Version`. Under concurrent load (sync + batch-assign), version mismatch → `OptimisticLockingFailureException` → random words silently fail.
 
 **Rules:**
 
-- **Never loop N sequential HTTP requests for batch mutations.** Always add a dedicated batch endpoint (e.g., `POST /words/batch-assign-tags`) that processes all items in a single `@Transactional` on the server.
-- **Never modify join table data by loading + saving the parent entity.** If you only need to touch a join table (e.g., `word_tags`), use a native `@Modifying @Query` directly on the join table — bypasses the parent entity's `@Version` entirely.
-- **Client batch local writes must also be a single transaction.** Use SQLDelight `queries.transaction { wordIds.forEach { ... } }` — not `wordIds.forEach { queries.transaction { ... } }` (one transaction per word).
+- **Never loop N sequential HTTP requests for batch mutations.** Always add dedicated batch endpoint (e.g., `POST /words/batch-assign-tags`) that processes all items in single `@Transactional` on server.
+- **Never modify join table data by loading + saving parent entity.** Use native `@Modifying @Query` directly on join table — bypasses parent entity's `@Version` entirely.
+- **Client batch local writes must also be single transaction.** Use SQLDelight `queries.transaction { wordIds.forEach { ... } }` — not `wordIds.forEach { queries.transaction { ... } }` (one transaction per word).
 
 **Correct backend pattern (Spring Boot):**
 ```kotlin
@@ -229,8 +229,8 @@ override suspend fun batchSetWordTags(wordIds: List<Long>, tagIds: List<Long>) {
 
 **Do not:**
 - Use `forEach { singleItemRepository.doX(id).getOrThrow() }` for any remote batch operation
-- Call `wordRepository.save(entity)` just to persist join table changes — use native SQL `@Modifying @Query` on the join table directly
-- Wrap each item in its own `queries.transaction {}` inside a loop
+- Call `wordRepository.save(entity)` just to persist join table changes — use native SQL `@Modifying @Query` on join table directly
+- Wrap each item in its own `queries.transaction {}` inside loop
 
 ---
 

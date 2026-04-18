@@ -1,0 +1,21 @@
+{
+  "version": "1.1",
+  "last_updated": "2026-04-17",
+  "repos": {
+    "android-skills": {
+      "url": "https://github.com/android/skills",
+      "skills": {
+        "r8-analyzer": {
+          "remote_path": "performance/r8-analyzer/SKILL.md",
+          "local_path": "synced/android-skills/r8-analyzer/SKILL.md",
+          "last_synced": "2026-04-17"
+        },
+        "edge-to-edge": {
+          "remote_path": "system/edge-to-edge/SKILL.md",
+          "local_path": "synced/android-skills/edge-to-edge/SKILL.md",
+          "last_synced": "2026-04-17"
+        }
+      }
+    }
+  }
+}
