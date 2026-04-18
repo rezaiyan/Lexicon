@@ -25,9 +25,9 @@ class LoadReviewQueueUseCase(
 ) : UseCase<ReviewSource, List<Word>> {
 
     override suspend fun invoke(params: ReviewSource): Try<List<Word>> = Try<List<Word>> {
+        val limit = getDailyGoalWords().getOrDefault(Int.MAX_VALUE)
         when (params) {
             is ReviewSource.DueCards -> {
-                val limit = getDailyGoalWords().getOrDefault(Int.MAX_VALUE)
                 getDueWords().first().take(limit)
             }
 
@@ -35,7 +35,7 @@ class LoadReviewQueueUseCase(
                 getWordsByStage(params.stage).first()
 
             is ReviewSource.ByTag ->
-                getDueWordsByTag(params.tagId).first()
+                getDueWordsByTag(params.tagId).first().take(limit)
 
             is ReviewSource.ByStageAndTag ->
                 getWordsByStage(params.stage).first()

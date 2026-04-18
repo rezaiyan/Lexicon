@@ -12,6 +12,8 @@ import domain.notifications.usecase.OpenNotificationSettingsUseCase
 import domain.notifications.usecase.RequestNotificationPermissionUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
+import domain.settings.usecase.GetDailyGoalWordsUseCase
+import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
@@ -51,6 +53,8 @@ class SettingsViewModelTest : ViewModelTestBase() {
     private var lastSetNotificationsEnabled: Boolean? = null
     private var lastSetReviewRemindersEnabled: Boolean? = null
     private var reviewRemindersEnabledFlow = MutableStateFlow(true)
+    private var lastSetDailyGoalWords: Int? = null
+    private var storedDailyGoalWords: Int = 10
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
         override fun getLanguage(): Flow<Language> = languageFlow
@@ -81,6 +85,12 @@ class SettingsViewModelTest : ViewModelTestBase() {
         override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
         override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
         override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
+        override suspend fun getDailyGoalWords(): Try<Int> = Try.success(storedDailyGoalWords)
+        override suspend fun setDailyGoalWords(count: Int): Try<Unit> {
+            lastSetDailyGoalWords = count
+            storedDailyGoalWords = count
+            return Try.success(Unit)
+        }
     }
 
     private fun fakeNotificationRepo() = object : INotificationRepository {
@@ -166,6 +176,8 @@ class SettingsViewModelTest : ViewModelTestBase() {
             downloadTtsModelUseCase = DownloadTtsModelUseCase(ttsRepo),
             setTtsSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),
             setTtsVoiceUseCase = SetTtsVoiceUseCase(settingsRepo),
+            getDailyGoalWordsUseCase = GetDailyGoalWordsUseCase(settingsRepo),
+            setDailyGoalWordsUseCase = SetDailyGoalWordsUseCase(settingsRepo),
             settingsRepository = settingsRepo,
             authRepository = fakeAuthRepo(),
             appVersionProvider = fakeAppVersionProvider()
@@ -227,5 +239,20 @@ class SettingsViewModelTest : ViewModelTestBase() {
     fun `reviewRemindersEnabled default state is true`() = runTest {
         val vm = createViewModel()
         assertEquals(true, vm.currentState.screen.reviewRemindersEnabled)
+    }
+
+    @Test
+    fun `dailyGoalWords loads from repository on init`() = runTest {
+        storedDailyGoalWords = 20
+        val vm = createViewModel()
+        assertEquals(20, vm.currentState.dailyGoalWords)
+    }
+
+    @Test
+    fun `setDailyGoalWords updates state and delegates to use case`() = runTest {
+        val vm = createViewModel()
+        vm.setDailyGoalWords(30)
+        assertEquals(30, lastSetDailyGoalWords)
+        assertEquals(30, vm.currentState.dailyGoalWords)
     }
 }

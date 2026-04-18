@@ -210,8 +210,8 @@ fun ImportBottomSheet(
             }
 
             is ImportPage.LanguageConfirmation -> ImportLanguageConfirmationContent(
-                sourceLanguage = state.targetLanguage,
-                targetLanguage = state.sourceLanguage,
+                sourceLanguage = state.sourceLanguage,
+                targetLanguage = state.targetLanguage,
                 onConfirm = {
                     viewModel.confirmImport()
                     pages.navigateBack()

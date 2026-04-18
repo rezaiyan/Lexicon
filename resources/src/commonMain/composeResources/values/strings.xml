@@ -34,6 +34,8 @@
     <string name="notifications">Notifications</string>
     <string name="about">About</string>
     <string name="customize_appearance">Customize appearance</string>
+    <string name="daily_goal">Daily Goal</string>
+    <string name="settings_daily_goal_subtitle">Words to review per day</string>
     <string name="notification_on_alerts_enabled">On - Alerts enabled</string>
     <string name="upgrade">UPGRADE</string>
     <string name="version_format">Version %1$s</string>

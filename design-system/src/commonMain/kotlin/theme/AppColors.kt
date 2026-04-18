@@ -43,6 +43,7 @@ object AppColors {
     val settingsNotificationIcon = Color(0xFF5C6BC0)
     val settingsTtsIcon = Color(0xFF00897B)
     val settingsTagManagerIcon = Color(0xFF4CAF50)
+    val settingsDailyGoalIcon = Color(0xFF2196F3)
 
     @Deprecated(
         "Use MaterialTheme.colorScheme.background",

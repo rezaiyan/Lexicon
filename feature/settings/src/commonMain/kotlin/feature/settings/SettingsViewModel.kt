@@ -7,6 +7,8 @@ import domain.notifications.repository.INotificationRepository
 import domain.notifications.usecase.OpenNotificationSettingsUseCase
 import domain.notifications.usecase.RequestNotificationPermissionUseCase
 import domain.settings.repository.ISettingsRepository
+import domain.settings.usecase.GetDailyGoalWordsUseCase
+import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
@@ -40,6 +42,7 @@ data class SettingsState(
     val ttsTotalSizeBytes: Long = 0L,
     val ttsSettings: TtsSettings = TtsSettings(),
     val ttsDownloadProgress: Map<String, Float> = emptyMap(),
+    val dailyGoalWords: Int = 10,
 )
 
 @Suppress("LongParameterList")
@@ -58,6 +61,8 @@ class SettingsViewModel(
     private val downloadTtsModelUseCase: DownloadTtsModelUseCase,
     private val setTtsSpeechRateUseCase: SetTtsSpeechRateUseCase,
     private val setTtsVoiceUseCase: SetTtsVoiceUseCase,
+    private val getDailyGoalWordsUseCase: GetDailyGoalWordsUseCase,
+    private val setDailyGoalWordsUseCase: SetDailyGoalWordsUseCase,
     settingsRepository: ISettingsRepository,
     authRepository: IAuthRepository,
     appVersionProvider: IAppVersionProvider,
@@ -77,6 +82,7 @@ class SettingsViewModel(
         initializeNotificationState()
         observeSettingsState(settingsRepository, authRepository, appVersionProvider)
         observeTtsSettings(settingsRepository)
+        loadDailyGoal()
     }
 
     private fun observeSettingsState(
@@ -108,6 +114,15 @@ class SettingsViewModel(
         settingsRepository.getTtsSettings()
             .onEach { settings -> updateState { copy(ttsSettings = settings) } }
             .launchIn(viewModelScope)
+    }
+
+    private fun loadDailyGoal() {
+        viewModelScope.launch {
+            getDailyGoalWordsUseCase(Unit).fold(
+                onSuccess = { count -> updateState { copy(dailyGoalWords = count) } },
+                onFailure = { /* keep default */ }
+            )
+        }
     }
 
     private fun initializeNotificationState() {
@@ -210,6 +225,15 @@ class SettingsViewModel(
     fun setTtsSpeechRate(rate: Float) {
         viewModelScope.launch {
             setTtsSpeechRateUseCase(rate)
+        }
+    }
+
+    fun setDailyGoalWords(count: Int) {
+        viewModelScope.launch {
+            setDailyGoalWordsUseCase(count).fold(
+                onSuccess = { updateState { copy(dailyGoalWords = count) } },
+                onFailure = { /* silent — state remains unchanged */ }
+            )
         }
     }
 

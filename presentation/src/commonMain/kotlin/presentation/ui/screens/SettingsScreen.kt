@@ -14,7 +14,9 @@ import presentation.ui.components.LanguageSelectionContent
 import presentation.ui.components.NotificationPermissionContent
 import presentation.ui.components.NotificationSettingsContent
 import presentation.ui.components.ThemeModeContent
+import presentation.ui.components.DailyGoalContent
 import presentation.ui.components.settings.AboutSettingsCard
+import presentation.ui.components.settings.DailyGoalSettingsCard
 import presentation.ui.components.settings.LanguageSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
 import presentation.ui.components.settings.SubscriptionCard
@@ -43,6 +45,7 @@ fun SettingsScreen(
     val themeMode = state.themeMode
     val notificationsEnabled = state.notificationsEnabled
     val systemNotificationsEnabled = state.systemNotificationsEnabled
+    val dailyGoalWords = settingsState.dailyGoalWords
     val overlayHost = LocalOverlayHost.current
 
     LexiconColumn(
@@ -77,6 +80,22 @@ fun SettingsScreen(
                             currentThemeMode = themeMode,
                             onThemeModeSelected = { mode ->
                                 viewModel.setThemeMode(mode)
+                                nav.dismiss()
+                            }
+                        )
+                    }
+                }
+            )
+
+            DailyGoalSettingsCard(
+                dailyGoalWords = dailyGoalWords,
+                onClick = {
+                    overlayHost.showSizeToFitBottomSheet(tag = "daily-goal") { nav ->
+                        val currentState by viewModel.state()
+                        DailyGoalContent(
+                            selectedGoal = currentState.dailyGoalWords,
+                            onGoalSelected = { count ->
+                                viewModel.setDailyGoalWords(count)
                                 nav.dismiss()
                             }
                         )
