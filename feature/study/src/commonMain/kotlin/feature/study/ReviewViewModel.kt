@@ -261,7 +261,10 @@ class ReviewViewModel(
 
     fun setAutoPlay(enabled: Boolean) {
         updateActiveState { copy(isAutoPlayEnabled = enabled) }
-        if (enabled) autoPlayIfEnabled()
+        if (enabled) {
+            val active = currentState.review as? ReviewState.Active ?: return
+            speakWord(active.currentWord.originalWord, active.currentWord.targetLanguage.code)
+        }
     }
 
     fun setTtsSpeechRate(rate: Float) {
@@ -348,11 +351,7 @@ class ReviewViewModel(
     private fun autoPlayIfEnabled() {
         val active = currentState.review as? ReviewState.Active ?: return
         if (!active.isAutoPlayEnabled) return
-        ttsJob?.cancel()
-        ttsJob = viewModelScope.launch {
-            stopSpeakingUseCase()
-            speakWordUseCase(active.currentWord.originalWord, active.currentWord.sourceLanguage.code)
-        }
+        speakWord(active.currentWord.originalWord, active.currentWord.targetLanguage.code)
     }
 
     private fun buildEventParams(
