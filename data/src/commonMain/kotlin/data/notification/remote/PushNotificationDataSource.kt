@@ -5,6 +5,8 @@ import data.notification.remote.model.RegisterPushTokenRequest
 import core.common.Try
 import core.common.doOnFailure
 import core.common.map
+import core.common.onFailure
+import core.common.onSuccess
 import expects.logNetwork
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -12,6 +14,7 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 
 /**
@@ -50,25 +53,41 @@ class PushNotificationDataSource(
     }
 
     /**
-     * Deactivate all push tokens for the current user (useful for logout)
+     * Deactivate all push tokens for the current user (useful for account deletion)
      */
     override suspend fun deactivateAllTokens(): Try<Unit> {
+        return deactivate(logLabel = "all push tokens") {
+            httpClient.delete("$baseUrl/notifications/tokens")
+        }
+    }
+
+    /**
+     * Deactivate a single push token (the current device's), e.g. on single-device logout
+     */
+    override suspend fun deactivateToken(token: String): Try<Unit> {
+        return deactivate(logLabel = "push token") {
+            httpClient.delete("$baseUrl/notifications/token") {
+                url { appendPathSegments(token) }
+            }
+        }
+    }
+
+    /**
+     * Best-effort token deactivation: any outcome (success, HTTP error, or being
+     * unauthenticated) resolves to Try.success(Unit) — callers cannot act on a
+     * server-side dereg failure anyway, so we just log it.
+     */
+    private suspend fun deactivate(logLabel: String, request: suspend () -> Unit): Try<Unit> {
         if (getAuthToken() == null) {
             return Try.success(Unit)
         }
 
-        logNetwork("PushNotification", "Deactivating all push tokens")
+        logNetwork("PushNotification", "Deactivating $logLabel")
 
-        return Try {
-            httpClient.delete("$baseUrl/notifications/tokens")
-        }.let {
-            // Best effort cleanup – still report success to callers
-            if (it.isSuccess) {
-                logNetwork("PushNotification", "Push tokens deactivated")
-            } else {
-                logNetwork("PushNotification", "Error deactivating tokens: ${(it as Try.Failure).throwable.message}")
-            }
-            Try.success(Unit)
-        }
+        Try { request() }
+            .onSuccess { logNetwork("PushNotification", "Deactivated $logLabel") }
+            .onFailure { error -> logNetwork("PushNotification", "Error deactivating $logLabel: ${error.message}") }
+
+        return Try.success(Unit)
     }
 }

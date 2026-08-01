@@ -160,5 +160,8 @@ class SessionRepositoryImplTest {
         override fun getTokenExpiresAt(): Long = 0L
         override suspend fun hasCompletedOnboarding(): Boolean = false
         override suspend fun markOnboardingCompleted() {}
+        override suspend fun savePushToken(token: String) {}
+        override fun getPushToken(): String? = null
+        override suspend fun clearPushToken() {}
     }
 }

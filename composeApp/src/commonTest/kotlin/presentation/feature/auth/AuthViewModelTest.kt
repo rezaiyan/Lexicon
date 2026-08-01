@@ -17,14 +17,12 @@ import domain.auth.usecase.HandleLoginSuccessUseCase
 import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
-import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.ObserveAuthStateUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import domain.notifications.repository.IPushTokenRepository
+import domain.notifications.usecase.DeactivatePushTokenUseCase
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
-import domain.settings.model.ThemeMode
-import domain.settings.repository.ISettingsRepository
 import domain.subscription.ISubscriptionManager
 import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionOffering
@@ -45,7 +43,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -107,37 +104,28 @@ class AuthViewModelTest : ViewModelTestBase() {
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
     }
 
-    private fun fakeSettingsRepo() = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
-        override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
-        override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
-
-        override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
-        override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setNotificationsEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
-        override fun getReviewRemindersEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
-        override fun getMotivationalMessagesEnabled(): Flow<Boolean> = flowOf(true)
-        override suspend fun setMotivationalMessagesEnabled(enabled: Boolean): Try<Unit> = Try.success(Unit)
-        override suspend fun getDailyReminderTime(): Try<String> = Try.success("09:00")
-        override suspend fun setDailyReminderTime(time: String): Try<Unit> = Try.success(Unit)
-        override suspend fun getMinimumDueCards(): Try<Int> = Try.success(5)
-        override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
-    }
+    private var deactivateCurrentTokenCalled = false
 
     private fun fakePushTokenRepo() = object : IPushTokenRepository {
         override suspend fun registerToken(token: String): Try<Unit> = Try.success(Unit)
         override suspend fun deactivateAllTokens(): Try<Unit> = Try.success(Unit)
+        override suspend fun deactivateCurrentToken(): Try<Unit> {
+            deactivateCurrentTokenCalled = true
+            return Try.success(Unit)
+        }
         override fun initializeAndRegister() {}
     }
 
     private val setUserCalls = mutableListOf<AuthUser?>()
+    private var userManagerLogoutCalled = false
 
     private fun fakeUserManager() = object : IUserManager {
         override fun observeUser(): Flow<AuthUser?> = flowOf(null)
         override fun setUser(user: AuthUser?) { setUserCalls += user }
-        override suspend fun logout(): Try<Unit> = Try.success(Unit)
+        override suspend fun logout(): Try<Unit> {
+            userManagerLogoutCalled = true
+            return Try.success(Unit)
+        }
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
     }
 
@@ -179,14 +167,12 @@ class AuthViewModelTest : ViewModelTestBase() {
         val authRepo = fakeAuthRepo()
         val service = authService ?: AuthenticationService(authRepo)
         val wordRepo = fakeWordRepo()
-        val settingsRepo = fakeSettingsRepo()
         val pushTokenRepo = fakePushTokenRepo()
         val isAuthUseCase = IsAuthenticatedUseCase(authRepo)
         val registerPushTokenUseCase = RegisterPushTokenUseCase(pushTokenRepo)
         return AuthViewModel(
             loginWithGoogleUseCase = LoginWithGoogleUseCase(service),
             loginWithAppleUseCase = LoginWithAppleUseCase(service),
-            logoutUseCase = LogoutUseCase(service, wordRepo, settingsRepo),
             observeAuthStateUseCase = ObserveAuthStateUseCase(authRepo),
             verifySessionUseCase = VerifySessionUseCase(fakeSessionRepo(sessionVerificationResult)),
             handleLoginSuccessUseCase = HandleLoginSuccessUseCase(
@@ -195,7 +181,7 @@ class AuthViewModelTest : ViewModelTestBase() {
                 syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(wordRepo),
                 initializePushNotificationsUseCase = InitializePushNotificationsUseCase(isAuthUseCase, registerPushTokenUseCase),
             ),
-            registerPushTokenUseCase = registerPushTokenUseCase,
+            deactivatePushTokenUseCase = DeactivatePushTokenUseCase(pushTokenRepo),
             analyticsTracker = fakeAnalytics(),
             userManager = fakeUserManager(),
         )
@@ -307,6 +293,34 @@ class AuthViewModelTest : ViewModelTestBase() {
 
         assertFalse(vm.currentState.isAuthenticated)
         assertFalse(vm.currentState.isLoading)
+    }
+
+    @Test
+    fun `logout delegates to userManager logout as the single source of truth`() = runTest {
+        userManagerLogoutCalled = false
+        loginResult = Try.success(testUser())
+        val vm = createViewModel()
+        vm.loginWithGoogle("valid-id-token")
+
+        vm.logout()
+
+        assertTrue(userManagerLogoutCalled)
+    }
+
+    @Test
+    fun `auto-logout on revoked auth state deactivates the current device push token`() = runTest {
+        deactivateCurrentTokenCalled = false
+        val authStateFlow = MutableStateFlow(true)
+        isAuthenticatedFlow = authStateFlow
+        loginResult = Try.success(testUser())
+        val vm = createViewModel()
+        vm.loginWithGoogle("valid-id-token")
+        assertTrue(vm.currentState.isAuthenticated)
+
+        authStateFlow.value = false
+
+        assertTrue(deactivateCurrentTokenCalled)
+        assertFalse(vm.currentState.isAuthenticated)
     }
 
     @Test

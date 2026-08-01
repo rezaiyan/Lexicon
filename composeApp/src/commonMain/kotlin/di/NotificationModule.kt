@@ -9,6 +9,7 @@ import data.storage.DailyInsightCache
 import data.storage.SecureStorage
 import domain.notifications.repository.INotificationRepository
 import domain.notifications.repository.IPushTokenRepository
+import domain.notifications.usecase.DeactivatePushTokenUseCase
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.OpenNotificationSettingsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
@@ -63,6 +64,7 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
         PushTokenRepositoryImpl(
             pushTokenManager = get(),
             pushNotificationDataSource = get(),
+            secureStorage = get(),
             platform = platform
         )
     }
@@ -74,6 +76,7 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
     // Use Cases
     singleOf(::ScheduleNotificationsUseCase)
     singleOf(::RegisterPushTokenUseCase)
+    singleOf(::DeactivatePushTokenUseCase)
     singleOf(::RequestNotificationPermissionUseCase)
     singleOf(::OpenNotificationSettingsUseCase)
     singleOf(::InitializePushNotificationsUseCase)

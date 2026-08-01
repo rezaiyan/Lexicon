@@ -63,11 +63,24 @@ class AndroidSecureStorage(context: Context) : SecureStorage {
         sharedPreferences.edit { putBoolean(KEY_ONBOARDING_COMPLETED, true) }
     }
 
+    override suspend fun savePushToken(token: String) {
+        sharedPreferences.edit { putString(KEY_PUSH_TOKEN, token) }
+    }
+
+    override fun getPushToken(): String? {
+        return sharedPreferences.getString(KEY_PUSH_TOKEN, null)
+    }
+
+    override suspend fun clearPushToken() {
+        sharedPreferences.edit { remove(KEY_PUSH_TOKEN) }
+    }
+
     companion object {
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_TOKEN_EXPIRES_AT = "token_expires_at"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_PUSH_TOKEN = "push_token"
     }
 }
 

@@ -52,7 +52,7 @@ fun presentationModule() = module {
             deleteAccountUseCase = get(),
             subscriptionManager = get(),
             streakManager = get(),
-            registerPushTokenUseCase = get(),
+            deactivatePushTokenUseCase = get(),
         )
     }
 

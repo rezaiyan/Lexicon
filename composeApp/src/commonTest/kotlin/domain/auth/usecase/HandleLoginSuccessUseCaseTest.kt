@@ -128,6 +128,7 @@ class HandleLoginSuccessUseCaseTest {
             override fun initializeAndRegister() { throw RuntimeException("Push notification error") }
             override suspend fun registerToken(token: String): Try<Unit> = Try.success(Unit)
             override suspend fun deactivateAllTokens(): Try<Unit> = Try.success(Unit)
+            override suspend fun deactivateCurrentToken(): Try<Unit> = Try.success(Unit)
         }
         val useCase = buildUseCase(pushTokenRepo = throwingPushRepo)
 

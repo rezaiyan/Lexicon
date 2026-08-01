@@ -15,8 +15,4 @@ class RegisterPushTokenUseCase(
     fun initializeAndRegister() {
         pushTokenRepository.initializeAndRegister()
     }
-
-    suspend fun deactivateAllTokens(): Try<Unit> {
-        return pushTokenRepository.deactivateAllTokens()
-    }
 }

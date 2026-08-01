@@ -151,4 +151,46 @@ class PushNotificationDataSourceTest {
 
         assertTrue(result is Try.Success)
     }
+
+    // --- deactivateToken ---
+
+    @Test
+    fun `deactivateToken returns success when not authenticated`() = runTest {
+        var networkCallMade = false
+        val mockEngine = MockEngine {
+            networkCallMade = true
+            respond("", HttpStatusCode.OK, jsonHeaders())
+        }
+        val dataSource = buildDataSource(mockEngine, getAuthToken = { null })
+
+        val result = dataSource.deactivateToken("fcm-device-token-abc123")
+
+        assertTrue(result is Try.Success)
+        assertTrue(!networkCallMade, "No network call should be made when unauthenticated")
+    }
+
+    @Test
+    fun `deactivateToken sends DELETE to correct path with token when authenticated`() = runTest {
+        var capturedPath: String? = null
+        var capturedMethod: HttpMethod? = null
+        val mockEngine = MockEngine { request ->
+            capturedPath = request.url.encodedPath
+            capturedMethod = request.method
+            respond("", HttpStatusCode.OK, jsonHeaders())
+        }
+        buildDataSource(mockEngine).deactivateToken("fcm-device-token-abc123")
+
+        assertEquals("/notifications/token/fcm-device-token-abc123", capturedPath)
+        assertEquals(HttpMethod.Delete, capturedMethod)
+    }
+
+    @Test
+    fun `deactivateToken returns success even on HTTP error`() = runTest {
+        val mockEngine = MockEngine {
+            respond("Internal Server Error", HttpStatusCode.InternalServerError, jsonHeaders())
+        }
+        val result = buildDataSource(mockEngine).deactivateToken("fcm-device-token-abc123")
+
+        assertTrue(result is Try.Success)
+    }
 }

@@ -112,5 +112,8 @@ class OnboardingRepositoryImplTest {
         override fun getTokenExpiresAt(): Long = 0L
         override suspend fun hasCompletedOnboarding(): Boolean = onboardingCompleted
         override suspend fun markOnboardingCompleted() { onboardingCompleted = true }
+        override suspend fun savePushToken(token: String) {}
+        override fun getPushToken(): String? = null
+        override suspend fun clearPushToken() {}
     }
 }

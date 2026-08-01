@@ -9,13 +9,12 @@ import domain.auth.repository.SessionVerificationResult
 import domain.auth.usecase.HandleLoginSuccessUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
-import domain.auth.usecase.LogoutUseCase
 import domain.auth.usecase.ObserveAuthStateUseCase
 import domain.auth.usecase.VerifySessionUseCase
 import core.common.getOrElse
 import core.common.onFailure
 import core.error.toUserMessage
-import domain.notifications.usecase.RegisterPushTokenUseCase
+import domain.notifications.usecase.DeactivatePushTokenUseCase
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -25,11 +24,10 @@ import core.base.BaseViewModel
 class AuthViewModel(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val loginWithAppleUseCase: LoginWithAppleUseCase,
-    private val logoutUseCase: LogoutUseCase,
     private val observeAuthStateUseCase: ObserveAuthStateUseCase,
     private val verifySessionUseCase: VerifySessionUseCase,
     private val handleLoginSuccessUseCase: HandleLoginSuccessUseCase,
-    private val registerPushTokenUseCase: RegisterPushTokenUseCase,
+    private val deactivatePushTokenUseCase: DeactivatePushTokenUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val userManager: IUserManager,
 ) : BaseViewModel<AuthState, Nothing>() {
@@ -51,6 +49,7 @@ class AuthViewModel(
                         "auto_logout",
                         mapOf("reason" to "auth_state_revoked", "source" to "auth_viewmodel")
                     )
+                    deactivatePushTokenUseCase.deactivateCurrentToken()
                     userManager.setUser(null)
                     updateState {
                         AuthState(
@@ -169,15 +168,8 @@ class AuthViewModel(
 
     private suspend fun processLogout() {
         analyticsTracker.logEvent("logout")
-        registerPushTokenUseCase.deactivateAllTokens()
-        userManager.setUser(null)
-        logoutUseCase(Unit)
-            .catch { _ ->
-                updateState { AuthState(isAuthenticated = false, isLoading = false) }
-            }
-            .collect { _ ->
-                updateState { AuthState(isAuthenticated = false, isLoading = false) }
-            }
+        userManager.logout()
+        updateState { AuthState(isAuthenticated = false, isLoading = false) }
     }
 
     fun verifyAndRestoreSession(onComplete: () -> Unit) {

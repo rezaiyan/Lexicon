@@ -9,11 +9,10 @@ fun authModule() = module {
         AuthViewModel(
             loginWithGoogleUseCase = get(),
             loginWithAppleUseCase = get(),
-            logoutUseCase = get(),
             observeAuthStateUseCase = get(),
             verifySessionUseCase = get(),
             handleLoginSuccessUseCase = get(),
-            registerPushTokenUseCase = get(),
+            deactivatePushTokenUseCase = get(),
             analyticsTracker = get(),
             userManager = get(),
         )

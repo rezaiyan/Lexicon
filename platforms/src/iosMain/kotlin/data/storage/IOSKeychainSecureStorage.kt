@@ -99,6 +99,18 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
         preferencesHelper.putString(KEY_ONBOARDING_COMPLETED, "true")
     }
 
+    override suspend fun savePushToken(token: String) {
+        preferencesHelper.putString(KEY_PUSH_TOKEN, token)
+    }
+
+    override fun getPushToken(): String? {
+        return preferencesHelper.getString(KEY_PUSH_TOKEN)
+    }
+
+    override suspend fun clearPushToken() {
+        preferencesHelper.remove(KEY_PUSH_TOKEN)
+    }
+
     private fun ensureMigrationCompleted() {
         migrationHelper.runIfNeeded()
     }
@@ -112,6 +124,7 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_TOKEN_EXPIRES_AT = "token_expires_at"
         private const val KEY_ONBOARDING_COMPLETED = "onboarding_completed"
+        private const val KEY_PUSH_TOKEN = "push_token"
     }
 }
 

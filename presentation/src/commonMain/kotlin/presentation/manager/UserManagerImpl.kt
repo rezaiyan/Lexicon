@@ -5,7 +5,7 @@ import domain.auth.model.AuthUser
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.LogoutUseCase
 import core.common.Try
-import domain.notifications.usecase.RegisterPushTokenUseCase
+import domain.notifications.usecase.DeactivatePushTokenUseCase
 import domain.streak.manager.IStreakManager
 import domain.subscription.ISubscriptionManager
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +18,7 @@ class UserManagerImpl(
     private val deleteAccountUseCase: DeleteAccountUseCase,
     private val subscriptionManager: ISubscriptionManager,
     private val streakManager: IStreakManager,
-    private val registerPushTokenUseCase: RegisterPushTokenUseCase,
+    private val deactivatePushTokenUseCase: DeactivatePushTokenUseCase,
 ) : IUserManager {
 
     private val _currentUser = MutableStateFlow<AuthUser?>(null)
@@ -30,7 +30,7 @@ class UserManagerImpl(
     }
 
     override suspend fun logout(): Try<Unit> {
-        registerPushTokenUseCase.deactivateAllTokens()
+        deactivatePushTokenUseCase.deactivateCurrentToken()
         return Try {
             logoutUseCase.invoke().first()
             _currentUser.value = null
@@ -40,7 +40,7 @@ class UserManagerImpl(
     }
 
     override suspend fun deleteAccount(): Try<Unit> {
-        registerPushTokenUseCase.deactivateAllTokens()
+        deactivatePushTokenUseCase.deactivateAllTokens()
         return Try {
             deleteAccountUseCase.invoke().first()
             _currentUser.value = null

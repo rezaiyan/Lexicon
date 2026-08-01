@@ -30,23 +30,6 @@ class RegisterPushTokenUseCaseTest {
     }
 
     @Test
-    fun `deactivateAllTokens delegates to repository`() = runTest {
-        val result = useCase.deactivateAllTokens()
-
-        assertTrue(result.isSuccess)
-        assertTrue(repository.deactivateAllCalled)
-    }
-
-    @Test
-    fun `deactivateAllTokens returns failure on error`() = runTest {
-        repository.deactivateResult = Try.failure(RuntimeException("Deactivation failed"))
-
-        val result = useCase.deactivateAllTokens()
-
-        assertTrue(result.isFailure)
-    }
-
-    @Test
     fun `initializeAndRegister delegates to repository`() {
         useCase.initializeAndRegister()
 
@@ -58,7 +41,9 @@ internal class FakePushTokenRepository : IPushTokenRepository {
     var lastRegisteredToken: String? = null
     var registerResult: Try<Unit> = Try.success(Unit)
     var deactivateResult: Try<Unit> = Try.success(Unit)
+    var deactivateCurrentResult: Try<Unit> = Try.success(Unit)
     var deactivateAllCalled = false
+    var deactivateCurrentCalled = false
     var initializeAndRegisterCalled = false
 
     override suspend fun registerToken(token: String): Try<Unit> {
@@ -69,6 +54,11 @@ internal class FakePushTokenRepository : IPushTokenRepository {
     override suspend fun deactivateAllTokens(): Try<Unit> {
         deactivateAllCalled = true
         return deactivateResult
+    }
+
+    override suspend fun deactivateCurrentToken(): Try<Unit> {
+        deactivateCurrentCalled = true
+        return deactivateCurrentResult
     }
 
     override fun initializeAndRegister() {

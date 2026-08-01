@@ -15,6 +15,7 @@ class WasmJsSecureStorage : SecureStorage {
         const val KEY_REFRESH_TOKEN = "lexicon_refresh_token"
         const val KEY_TOKEN_EXPIRES_AT = "lexicon_token_expires_at"
         const val KEY_ONBOARDING_COMPLETED = "lexicon_onboarding_completed"
+        const val KEY_PUSH_TOKEN = "lexicon_push_token"
     }
 
     override suspend fun saveAccessToken(token: String) {
@@ -55,18 +56,30 @@ class WasmJsSecureStorage : SecureStorage {
         setItem(KEY_ONBOARDING_COMPLETED, "true")
     }
 
-    private fun setItem(key: String, value: String) {
-        jsSetItem(key, value)
+    override suspend fun savePushToken(token: String) {
+        setItem(KEY_PUSH_TOKEN, token)
     }
 
-    private fun getItem(key: String): String? {
-        val result = jsGetItem(key)
-        return result?.toString()
+    override fun getPushToken(): String? {
+        return getItem(KEY_PUSH_TOKEN)
     }
 
-    private fun removeItem(key: String) {
-        jsRemoveItem(key)
+    override suspend fun clearPushToken() {
+        removeItem(KEY_PUSH_TOKEN)
     }
+}
+
+private fun setItem(key: String, value: String) {
+    jsSetItem(key, value)
+}
+
+private fun getItem(key: String): String? {
+    val result = jsGetItem(key)
+    return result?.toString()
+}
+
+private fun removeItem(key: String) {
+    jsRemoveItem(key)
 }
 
 private fun jsSetItem(key: String, value: String): JsAny? =
