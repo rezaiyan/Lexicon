@@ -1,6 +1,6 @@
 [versions]
-agp = "8.12.3"
-android-compileSdk = "36"
+agp = "9.1.1"
+android-compileSdk = "37"
 android-minSdk = "24"
 android-targetSdk = "36"
 androidx-activityCompose = "1.11.0"
@@ -12,7 +12,7 @@ androidx-exifinterface = "1.3.7"
 androidx-material = "1.13.0"
 androidx-test-junit = "1.3.0"
 billingKtx = "8.0.0"
-compose-plugin = "1.10.2"
+compose-plugin = "1.12.1"
 coreKtx = "1.7.0"
 coreSplashscreen = "1.0.1"
 firebaseAnalytics = "23.0.0"
@@ -22,7 +22,7 @@ firebaseCrashlytics = "20.0.3"
 firebaseMessaging = "25.0.1"
 firebasePerf = "22.0.4"
 junit = "4.13.2"
-kotlin = "2.3.10"
+kotlin = "2.4.20"
 coilCompose = "3.4.0"
 kotlinxBrowser = "0.5.0"
 kotlinxCoroutinesSwing = "1.10.2"
@@ -212,4 +212,4 @@ detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 googleServices = { id = "com.google.gms.google-services", version = "4.4.4" }
 firebaseCrashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.6" }
-firebasePerf = { id = "com.google.firebase.firebase-perf", version = "1.4.2" }
+firebasePerf = { id = "com.google.firebase.firebase-perf", version = "2.0.2" }

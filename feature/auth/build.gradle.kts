@@ -20,5 +20,9 @@ kotlin {
             implementation(libs.kmpauth.uihelper)
             implementation(libs.gitlive.firebase.auth)
         }
+
+        androidMain.dependencies {
+            implementation(project.dependencies.platform(libs.firebase.bom))
+        }
     }
 }

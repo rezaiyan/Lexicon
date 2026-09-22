@@ -205,6 +205,10 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(project(":test"))
         }
+
+        androidUnitTest.dependencies {
+            implementation(kotlin("test-junit"))
+        }
     }
     jvmToolchain(11)
 }

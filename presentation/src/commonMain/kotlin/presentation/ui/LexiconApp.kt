@@ -35,6 +35,7 @@ import expects.isSystemInDarkTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import navigation.NativeTabBarBridge
 import org.kodein.emoji.compose.EmojiService
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -85,6 +86,12 @@ fun LexiconApp() {
     LaunchedEffect(Unit) {
         val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
         sessionManager.initialize(scope)
+    }
+
+    // Native tab chrome (iOS 26+ TabView) must stay hidden until the user is actually past
+    // auth/onboarding/splash and looking at Study or Settings.
+    LaunchedEffect(appUiState) {
+        NativeTabBarBridge.reportTabBarVisible(appUiState is AppUiState.Ready)
     }
 
     // Handle logout: navigate to AuthGate when user becomes unauthenticated

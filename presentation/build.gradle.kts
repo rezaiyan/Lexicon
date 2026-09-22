@@ -60,6 +60,7 @@ kotlin {
         }
 
         androidMain.dependencies {
+            implementation(project.dependencies.platform(libs.firebase.bom))
             implementation(compose.components.uiToolingPreview)
         }
     }
