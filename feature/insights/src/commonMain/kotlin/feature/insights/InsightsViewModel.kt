@@ -170,7 +170,9 @@ class InsightsViewModel(
             getAccuracyTrendUseCase(
                 GetAccuracyTrendUseCase.Params(startDate.toString(), today.toString())
             ).reduce(
-                onSuccess = { copy(accuracyTrend = UiState.Loaded(it), accuracyByDayOfWeek = computeDayOfWeekAccuracy(it)) },
+                onSuccess = {
+                    copy(accuracyTrend = UiState.Loaded(it), accuracyByDayOfWeek = computeDayOfWeekAccuracy(it))
+                },
                 onFailure = { copy(accuracyTrend = UiState.Error(it.toUserMessage())) },
             )
         }

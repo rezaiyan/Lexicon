@@ -175,7 +175,10 @@ private fun TtsSpeedSection(
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
-                        text = stringResource(Res.string.tts_playback_speed_value, LexiconFormatters.speed(sliderValue)),
+                        text = stringResource(
+                            Res.string.tts_playback_speed_value,
+                            LexiconFormatters.speed(sliderValue),
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,

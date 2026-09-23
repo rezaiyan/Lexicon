@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -112,7 +111,10 @@ internal fun OnboardingStep3Content(
                         ),
                         shape = RoundedCornerShape(50)
                     ) {
-                        Text(stringResource(Res.string.onboarding_continue), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            stringResource(Res.string.onboarding_continue),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.height(spacing.md))
