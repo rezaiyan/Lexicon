@@ -41,6 +41,7 @@ import domain.settings.usecase.ObserveReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import fakes.FakeSettingsRepository
 import feature.insights.InsightsEffect
+import feature.insights.InsightsUseCases
 import feature.insights.InsightsViewModel
 import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
@@ -196,17 +197,19 @@ class InsightsViewModelTest : ViewModelTestBase() {
         observeReviewRemindersEnabledUseCase: ObserveReviewRemindersEnabledUseCase = ObserveReviewRemindersEnabledUseCase(FakeSettingsRepository()),
     ): InsightsViewModel {
         return InsightsViewModel(
-            getStudyInsightsUseCase = GetStudyInsightsUseCase(repo),
-            getDifficultWordsUseCase = GetDifficultWordsUseCase(repo),
-            getAccuracyTrendUseCase = GetAccuracyTrendUseCase(repo),
-            getAccuracyByLevelUseCase = GetAccuracyByLevelUseCase(repo),
-            getStudyHeatmapUseCase = GetStudyHeatmapUseCase(repo),
-            getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
-            getWordRushInsightsUseCase = GetWordRushInsightsUseCase(wordRushStatsRepo),
-            getWeeklyReportUseCase = GetWeeklyReportUseCase(repo),
-            getLevelTransitionsUseCase = GetLevelTransitionsUseCase(repo),
-            getResponseTimeTrendUseCase = GetResponseTimeTrendUseCase(repo),
-            getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepo),
+            useCases = InsightsUseCases(
+                getStudyInsights = GetStudyInsightsUseCase(repo),
+                getDifficultWords = GetDifficultWordsUseCase(repo),
+                getAccuracyTrend = GetAccuracyTrendUseCase(repo),
+                getAccuracyByLevel = GetAccuracyByLevelUseCase(repo),
+                getStudyHeatmap = GetStudyHeatmapUseCase(repo),
+                getBestStudyTime = GetBestStudyTimeUseCase(repo),
+                getWordRushInsights = GetWordRushInsightsUseCase(wordRushStatsRepo),
+                getWeeklyReport = GetWeeklyReportUseCase(repo),
+                getLevelTransitions = GetLevelTransitionsUseCase(repo),
+                getResponseTimeTrend = GetResponseTimeTrendUseCase(repo),
+                getProfileStats = GetProfileStatsUseCase(profileStatsRepo),
+            ),
             dailyInsightCache = dailyInsightCache,
             setReviewRemindersEnabledUseCase = setReviewRemindersEnabledUseCase,
             observeReviewRemindersEnabledUseCase = observeReviewRemindersEnabledUseCase,

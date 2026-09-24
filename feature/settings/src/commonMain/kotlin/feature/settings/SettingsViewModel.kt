@@ -79,17 +79,16 @@ class SettingsViewModel(
             )
 
     init {
-        initializeNotificationState()
-        observeSettingsState(settingsRepository, authRepository, appVersionProvider)
-        observeTtsSettings(settingsRepository)
-        loadDailyGoal()
-    }
+        // Notification permission state: sync local flag with the OS-level toggle.
+        viewModelScope.launch {
+            val systemEnabled = notificationRepository.areNotificationsEnabled().getOrDefault(true)
+            if (!systemEnabled) {
+                setNotificationsEnabledUseCase(false)
+            }
+            notificationPermissionMonitor.refresh()
+        }
 
-    private fun observeSettingsState(
-        settingsRepository: ISettingsRepository,
-        authRepository: IAuthRepository,
-        appVersionProvider: IAppVersionProvider,
-    ) {
+        // Screen state: language/theme/notifications/version/feature-access combined stream.
         viewModelScope.launch {
             SettingsStateBuilder.buildStateFlow(
                 currentLanguage = settingsRepository.getLanguage(),
@@ -108,30 +107,16 @@ class SettingsViewModel(
                 updateState { copy(screen = screenState) }
             }
         }
-    }
 
-    private fun observeTtsSettings(settingsRepository: ISettingsRepository) {
         settingsRepository.getTtsSettings()
             .onEach { settings -> updateState { copy(ttsSettings = settings) } }
             .launchIn(viewModelScope)
-    }
 
-    private fun loadDailyGoal() {
         viewModelScope.launch {
             getDailyGoalWordsUseCase(Unit).fold(
                 onSuccess = { count -> updateState { copy(dailyGoalWords = count) } },
                 onFailure = { /* keep default */ }
             )
-        }
-    }
-
-    private fun initializeNotificationState() {
-        viewModelScope.launch {
-            val systemEnabled = notificationRepository.areNotificationsEnabled().getOrDefault(true)
-            if (!systemEnabled) {
-                setNotificationsEnabledUseCase(false)
-            }
-            notificationPermissionMonitor.refresh()
         }
     }
 

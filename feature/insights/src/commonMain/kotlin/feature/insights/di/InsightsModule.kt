@@ -3,6 +3,7 @@ package feature.insights.di
 import data.storage.DailyInsightCache
 import domain.settings.usecase.ObserveReviewRemindersEnabledUseCase
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
+import feature.insights.InsightsUseCases
 import feature.insights.InsightsViewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModel
@@ -12,19 +13,25 @@ fun insightsModule() = module {
     factoryOf(::GetWordRushInsightsUseCase)
     factoryOf(::ObserveReviewRemindersEnabledUseCase)
 
+    factory {
+        InsightsUseCases(
+            getStudyInsights = get(),
+            getDifficultWords = get(),
+            getAccuracyTrend = get(),
+            getAccuracyByLevel = get(),
+            getStudyHeatmap = get(),
+            getBestStudyTime = get(),
+            getWordRushInsights = get(),
+            getWeeklyReport = get(),
+            getLevelTransitions = get(),
+            getResponseTimeTrend = get(),
+            getProfileStats = get(),
+        )
+    }
+
     viewModel {
         InsightsViewModel(
-            getStudyInsightsUseCase = get(),
-            getDifficultWordsUseCase = get(),
-            getAccuracyTrendUseCase = get(),
-            getAccuracyByLevelUseCase = get(),
-            getStudyHeatmapUseCase = get(),
-            getBestStudyTimeUseCase = get(),
-            getWordRushInsightsUseCase = get(),
-            getWeeklyReportUseCase = get(),
-            getLevelTransitionsUseCase = get(),
-            getResponseTimeTrendUseCase = get(),
-            getProfileStatsUseCase = get(),
+            useCases = get(),
             dailyInsightCache = get<DailyInsightCache>(),
             setReviewRemindersEnabledUseCase = get(),
             observeReviewRemindersEnabledUseCase = get(),
