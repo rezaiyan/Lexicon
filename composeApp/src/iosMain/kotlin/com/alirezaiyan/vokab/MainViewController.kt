@@ -13,7 +13,6 @@ import di.iosPlatformModule
 import di.mobileModule
 import domain.auth.repository.IAuthRepository
 import kotlinx.coroutines.runBlocking
-import navigation.NativeTabBarBridge
 import notification.NotificationCategory
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
@@ -100,18 +99,6 @@ fun clearUserData() {
 
 fun notifyPushTokenReceived(token: String) {
     IOSPushTokenManager.notifyTokenReceived(token)
-}
-
-fun onNativeTabSelected(tab: String) {
-    NativeTabBarBridge.onNativeTabSelected(tab)
-}
-
-fun setOnCurrentTabChanged(callback: (String) -> Unit) {
-    NativeTabBarBridge.onCurrentTabChanged = callback
-}
-
-fun setOnTabBarVisibilityChanged(callback: (Boolean) -> Unit) {
-    NativeTabBarBridge.onTabBarVisibilityChanged = callback
 }
 
 fun shouldShowNotification(categoryValue: String?): Boolean {
