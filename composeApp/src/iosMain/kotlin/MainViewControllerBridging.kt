@@ -12,11 +12,3 @@ fun shouldShowNotification(categoryValue: String?): Boolean =
 
 fun warmup() = com.alirezaiyan.vokab.warmup()
 
-fun onNativeTabSelected(tab: String) = com.alirezaiyan.vokab.onNativeTabSelected(tab)
-
-fun setOnCurrentTabChanged(callback: (String) -> Unit) =
-    com.alirezaiyan.vokab.setOnCurrentTabChanged(callback)
-
-fun setOnTabBarVisibilityChanged(callback: (Boolean) -> Unit) =
-    com.alirezaiyan.vokab.setOnTabBarVisibilityChanged(callback)
-

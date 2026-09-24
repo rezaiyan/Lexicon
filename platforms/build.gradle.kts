@@ -60,7 +60,6 @@ kotlin {
 
         androidMain.dependencies {
             implementation(project(":core"))
-            implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.security.crypto)
             implementation(libs.google.firebase.analytics)
             implementation(libs.google.firebase.config)
