@@ -12,6 +12,7 @@ import lexicon.resources.generated.resources.settings_daily_goal_subtitle
 
 @Composable
 fun DailyGoalSettingsCard(
+    dailyGoalWords: Int,
     onClick: () -> Unit
 ) {
     SettingsCard(

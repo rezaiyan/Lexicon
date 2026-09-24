@@ -45,6 +45,7 @@ fun SettingsScreen(
     val themeMode = state.themeMode
     val notificationsEnabled = state.notificationsEnabled
     val systemNotificationsEnabled = state.systemNotificationsEnabled
+    val dailyGoalWords = settingsState.dailyGoalWords
     val overlayHost = LocalOverlayHost.current
 
     LexiconColumn(
@@ -87,6 +88,7 @@ fun SettingsScreen(
             )
 
             DailyGoalSettingsCard(
+                dailyGoalWords = dailyGoalWords,
                 onClick = {
                     overlayHost.showSizeToFitBottomSheet(tag = "daily-goal") { nav ->
                         val currentState by viewModel.state()
