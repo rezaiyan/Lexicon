@@ -5,6 +5,7 @@ import core.common.getOrNull
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.settings.model.ThemeMode
+import domain.tts.model.TtsSettings
 import domain.word.model.LearningStage
 import domain.word.model.ReviewSource
 import domain.word.model.Word

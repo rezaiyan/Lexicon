@@ -440,6 +440,10 @@ class InsightsViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `levelTransitions loaded successfully`() = runTest {
+        val transitions = listOf(
+            LevelTransition(fromLevel = 1, toLevel = 2, count = 5),
+            LevelTransition(fromLevel = 3, toLevel = 2, count = 2),
+        )
         val repo = FakeAnalyticsRepository()
         // FakeAnalyticsRepository.getLevelTransitions returns emptyList by default
         // Override by wrapping in a subclass

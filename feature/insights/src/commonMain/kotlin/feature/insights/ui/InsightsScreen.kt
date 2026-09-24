@@ -146,7 +146,6 @@ import theme.AppColors
 import theme.Theme
 import utils.LexiconFormatters
 
-@Suppress("UnusedParameter")
 @Composable
 fun InsightsScreen(
     onNavigateBack: () -> Unit,
@@ -1148,11 +1147,7 @@ private fun DayOfWeekAccuracyChart(days: List<DayOfWeekAccuracy>) {
             ) {
                 days.forEach { day ->
                     val isToday = day.dayOfWeek == currentDayOfWeek
-                    val fraction = if (maxAccuracy > 0.0) {
-                        (day.accuracyPercent / maxAccuracy).toFloat().coerceIn(0f, 1f)
-                    } else {
-                        0f
-                    }
+                    val fraction = if (maxAccuracy > 0.0) (day.accuracyPercent / maxAccuracy).toFloat().coerceIn(0f, 1f) else 0f
                     val barColor = when {
                         day.totalReviews == 0L -> MaterialTheme.colorScheme.surfaceContainerHighest
                         day.accuracyPercent >= 80.0 -> AppColors.accentEmerald
@@ -1441,11 +1436,7 @@ private fun ResponseTimeTrendCard(trend: List<ResponseTimeTrend>) {
                         Icon(
                             imageVector = trendIcon,
                             contentDescription = null,
-                            tint = if (trendLabel == "improving") {
-                                AppColors.accentEmerald
-                            } else {
-                                MaterialTheme.colorScheme.error
-                            },
+                            tint = if (trendLabel == "improving") AppColors.accentEmerald else MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(Theme.dimensions.iconSize),
                         )
                     }
@@ -1462,10 +1453,7 @@ private fun ResponseTimeTrendCard(trend: List<ResponseTimeTrend>) {
             if (latest != null) {
                 Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
                     Text(
-                        text = stringResource(
-                            Res.string.insights_response_time_avg_ms,
-                            LexiconFormatters.secondsOneDecimal(latest.avgResponseTimeMs),
-                        ),
+                        text = stringResource(Res.string.insights_response_time_avg_ms, LexiconFormatters.secondsOneDecimal(latest.avgResponseTimeMs)),
                         style = MaterialTheme.typography.displayMedium,
                         fontWeight = FontWeight.Bold,
                         color = tint,
@@ -1492,10 +1480,7 @@ private fun ResponseTimeTrendCard(trend: List<ResponseTimeTrend>) {
                         InsightsFooterRow(
                             icon = Icons.Default.Schedule,
                             title = stringResource(Res.string.insights_response_time_week, entry.week),
-                            value = stringResource(
-                                Res.string.insights_response_time_avg_ms,
-                                LexiconFormatters.secondsOneDecimal(entry.avgResponseTimeMs),
-                            ),
+                            value = stringResource(Res.string.insights_response_time_avg_ms, LexiconFormatters.secondsOneDecimal(entry.avgResponseTimeMs)),
                         )
                         if (index < sortedTrend.lastIndex) {
                             HorizontalDivider(

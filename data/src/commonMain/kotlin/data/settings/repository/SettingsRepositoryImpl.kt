@@ -8,6 +8,7 @@ import data.settings.remote.SettingsSyncDto
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsSettings
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -59,11 +60,18 @@ class SettingsRepositoryImpl(
         return localDataSource.observeSettings().map { it?.reviewReminders ?: true }
     }
 
-    override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> = Try {
-        val current = localDataSource.getSettings() ?: SettingsEntityData()
-        val updated = current.copy(reviewReminders = enabled)
-        localDataSource.saveSettings(updated)
-        scope.launch { remoteDataSource.syncSettings(updated.toSyncDto()) }
+    override suspend fun setReviewRemindersEnabled(enabled: Boolean): Try<Unit> {
+        return try {
+            val current = localDataSource.getSettings() ?: SettingsEntityData()
+            val updated = current.copy(reviewReminders = enabled)
+            localDataSource.saveSettings(updated)
+            scope.launch { remoteDataSource.syncSettings(updated.toSyncDto()) }
+            Try.Success(Unit)
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (e: Throwable) {
+            Try.Failure(e)
+        }
     }
 
     override fun getMotivationalMessagesEnabled(): Flow<Boolean> {
