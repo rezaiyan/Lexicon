@@ -23,6 +23,10 @@ import domain.auth.storage.ISecureStorage
 import domain.auth.usecase.ClearAllUserDataUseCase
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.subscription.ISubscriptionAccessRepository
+import domain.subscription.usecase.RefreshFeatureAccessUseCase
+import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
+import data.subscription.SubscriptionAccessRepositoryImpl
 import domain.auth.usecase.HandleLoginSuccessUseCase
 import domain.auth.usecase.IsAuthenticatedUseCase
 import domain.auth.usecase.LoginWithAppleUseCase
@@ -86,8 +90,12 @@ fun authModule(backendUrl: String) = module {
     // Domain Services
     single<IAuthenticationService> { AuthenticationService(authRepository = get<IAuthRepository>()) }
 
+    single<ISubscriptionAccessRepository> { SubscriptionAccessRepositoryImpl(featureAccessRemoteDataSource = get()) }
+
     // Use Cases - Feature Access
     singleOf(::GetFeatureAccessUseCase)
+    factoryOf(::SyncSubscriptionWithServerUseCase)
+    factoryOf(::RefreshFeatureAccessUseCase)
 
     // Use Cases - Authentication
     singleOf(::LoginWithGoogleUseCase)

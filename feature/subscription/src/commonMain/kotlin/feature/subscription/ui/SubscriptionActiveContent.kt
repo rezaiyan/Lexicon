@@ -58,10 +58,11 @@ fun SubscriptionActiveContent(
     customerInfo: SubscriptionCustomerInfo?,
     formattedExpirationDate: String?,
     willRenew: Boolean = true,
-    onManageSubscription: () -> Unit,
-    onCancelSubscription: (() -> Unit)? = null
+    onManageSubscription: (() -> Unit)?,
+    onCancelSubscription: (() -> Unit)? = null,
+    expirationDateMillis: Long? = customerInfo?.primaryEntitlement?.expirationDateMillis,
+    isInTrial: Boolean = customerInfo?.primaryEntitlement?.isInTrial == true,
 ) {
-    val expirationDateMillis = customerInfo?.activeEntitlements?.values?.firstOrNull()?.expirationDateMillis
     val isCancelled = !willRenew && expirationDateMillis != null
 
     Column(
@@ -73,6 +74,8 @@ fun SubscriptionActiveContent(
         SubscriptionStatusCard(
             customerInfo = customerInfo,
             formattedExpirationDate = formattedExpirationDate,
+            expirationDateMillis = expirationDateMillis,
+            isInTrial = isInTrial,
             isCancelled = isCancelled,
             onManageSubscription = onManageSubscription
         )
@@ -94,20 +97,20 @@ fun SubscriptionActiveContent(
 private fun SubscriptionStatusCard(
     customerInfo: SubscriptionCustomerInfo?,
     formattedExpirationDate: String?,
+    expirationDateMillis: Long?,
+    isInTrial: Boolean,
     isCancelled: Boolean = false,
-    onManageSubscription: () -> Unit
+    onManageSubscription: (() -> Unit)?
 ) {
-    val activeEntitlement = customerInfo?.activeEntitlements?.values?.firstOrNull()
+    val activeEntitlement = customerInfo?.primaryEntitlement
     val productIdentifier = activeEntitlement?.productIdentifier ?: ""
     val planName = getPlanNameFromProductIdentifier(productIdentifier)
-    val isInTrial = activeEntitlement?.isInTrial ?: false
 
     val warningColor = Theme.colors.warning
 
     val daysRemaining = if (isCancelled) {
-        val expirationMillis = activeEntitlement?.expirationDateMillis
-        remember(expirationMillis) {
-            expirationMillis?.let {
+        remember(expirationDateMillis) {
+            expirationDateMillis?.let {
                 val nowMillis = Clock.System.now().toEpochMilliseconds()
                 val diffDays = (it - nowMillis) / (24 * 60 * 60 * 1000L)
                 diffDays.coerceAtLeast(0L)
@@ -290,7 +293,7 @@ private fun SubscriptionStatusCard(
                 )
             }
 
-            Button(
+            if (onManageSubscription != null) Button(
                 onClick = onManageSubscription,
                 modifier = Modifier.fillMaxWidth(),
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(

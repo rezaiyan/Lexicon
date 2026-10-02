@@ -8,6 +8,8 @@ fun subscriptionModule() = module {
     viewModel {
         SubscriptionViewModel(
             subscriptionManager = get(),
+            getFeatureAccessUseCase = get(),
+            syncSubscriptionWithServerUseCase = get(),
             analyticsTracker = get()
         )
     }

@@ -1,5 +1,6 @@
 package presentation.viewmodel
 
+import fakes.FakeSubscriptionManager
 import analytics.IAnalyticsTracker
 import core.common.Try
 import domain.auth.model.FeatureAccessResponse
@@ -132,7 +133,7 @@ class WordManagerViewModelTest : ViewModelTestBase() {
             batchAssignTagsUseCase = BatchAssignTagsUseCase(fakeTagRepo()),
             updateWordUseCase = UpdateWordUseCase(wordRepo),
             exportWordsUseCase = ExportWordsUseCase(),
-            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo()),
+            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(), FakeSubscriptionManager()),
             filterAndSortWordsUseCase = FilterAndSortWordsUseCase(),
             classifyImportErrorUseCase = ClassifyImportErrorUseCase(),
             analyticsTracker = fakeAnalytics()

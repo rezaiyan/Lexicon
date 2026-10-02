@@ -17,6 +17,7 @@ import lexicon.resources.generated.resources.no_purchases_to_restore
 import lexicon.resources.generated.resources.purchase_failed
 import lexicon.resources.generated.resources.purchases_restored_success
 import lexicon.resources.generated.resources.restore_purchases_failed
+import lexicon.resources.generated.resources.subscription
 import lexicon.resources.generated.resources.subscription_cancelled
 import lexicon.resources.generated.resources.subscription_info_unavailable
 import lexicon.resources.generated.resources.subscription_load_failed
@@ -57,7 +58,11 @@ fun SubscriptionScreen(
     }
 
     LexiconColumn(
-        title = stringResource(Res.string.subscription_screen_title),
+        title = if ((state as? UiState.Loaded)?.value?.isSubscribed == true) {
+            stringResource(Res.string.subscription)
+        } else {
+            stringResource(Res.string.subscription_screen_title)
+        },
         showNavigationIcon = true,
         onNavigationClick = onNavigateBack,
         scrollable = true
@@ -81,8 +86,12 @@ fun SubscriptionScreen(
                         customerInfo = subscriptionData.customerInfo,
                         formattedExpirationDate = subscriptionData.formattedExpirationDate,
                         willRenew = subscriptionData.willRenew,
-                        onManageSubscription = actions.onManageSubscription,
-                        onCancelSubscription = if (subscriptionData.willRenew) actions.onCancelSubscription else null
+                        expirationDateMillis = subscriptionData.expirationDateMillis,
+                        isInTrial = subscriptionData.isInTrial,
+                        onManageSubscription = actions.onManageSubscription
+                            .takeIf { subscriptionData.hasStoreSubscription },
+                        onCancelSubscription = actions.onCancelSubscription
+                            ?.takeIf { subscriptionData.hasStoreSubscription && subscriptionData.willRenew }
                     )
                 } else {
                     SubscriptionNotSubscribedContent(
@@ -101,10 +110,15 @@ fun SubscriptionScreen(
 
 data class SubscriptionData(
     val packages: List<SubscriptionPackage>,
+    /** Premium from any source: store purchase or a backend grant. */
     val isSubscribed: Boolean,
+    /** Premium comes from a store purchase on this account, so the store can manage it. */
+    val hasStoreSubscription: Boolean = isSubscribed,
     val customerInfo: SubscriptionCustomerInfo?,
     val formattedExpirationDate: String? = null,
-    val willRenew: Boolean = true
+    val willRenew: Boolean = true,
+    val expirationDateMillis: Long? = null,
+    val isInTrial: Boolean = false,
 )
 
 data class SubscriptionScreenActions(

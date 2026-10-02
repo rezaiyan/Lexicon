@@ -19,6 +19,8 @@ fun Throwable.toUserMessage(): String = when (this) {
     is DomainError.Auth.Unauthorized -> "You don't have permission to do that."
     is DomainError.Commerce.PremiumRequired -> "This feature requires a subscription."
     is DomainError.Commerce.PurchaseFailed -> "Purchase failed. Please try again."
+    is DomainError.Commerce.PurchaseCancelled -> "Purchase cancelled."
+    is DomainError.Commerce.PaymentPending -> "Payment is pending. Premium unlocks as soon as the store confirms it."
     is DomainError.Commerce.RestoreFailed -> "Failed to restore purchases. Please try again."
     is DomainError.Commerce.ManagementUnavailable -> "Subscription management is unavailable."
     is DomainError.Learning.NoDueCards -> "No cards due for review."

@@ -4,10 +4,11 @@ import components.icons.LexiconIcons
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.collectAsState
 import components.Pill
 import domain.auth.manager.IUserManager
-import domain.subscription.ISubscriptionManager
+import domain.auth.usecase.GetFeatureAccessUseCase
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import presentation.ui.components.SettingsCard
@@ -20,11 +21,12 @@ import lexicon.resources.generated.resources.upgrade_to_premium
 @Composable
 fun SubscriptionCard(
     onClick: () -> Unit,
-    subscriptionManager: ISubscriptionManager = koinInject(),
+    getFeatureAccessUseCase: GetFeatureAccessUseCase = koinInject(),
     userManager: IUserManager = koinInject()
 ) {
     val currentUser by userManager.observeUser().collectAsState(initial = null)
-    val isSubscribed by subscriptionManager.isSubscribed().collectAsState(false)
+    val featureAccess by remember(getFeatureAccessUseCase) { getFeatureAccessUseCase() }.collectAsState(initial = null)
+    val isSubscribed = featureAccess?.userAccess?.hasPremiumAccess == true
 
     if (currentUser != null) {
         SettingsCard(

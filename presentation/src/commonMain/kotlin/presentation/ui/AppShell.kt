@@ -17,6 +17,11 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import domain.subscription.usecase.RefreshFeatureAccessUseCase
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
@@ -37,6 +42,15 @@ internal fun AppContent(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val layoutType = currentNavigationSuiteType()
+
+    // Pick up grants, expirations and purchases made elsewhere when the app comes back to the
+    // foreground. Throttled in the data layer, so frequent resumes don't hit the network.
+    val refreshFeatureAccess = koinInject<RefreshFeatureAccessUseCase>()
+    val scope = rememberCoroutineScope()
+    LifecycleResumeEffect(refreshFeatureAccess) {
+        scope.launch { refreshFeatureAccess() }
+        onPauseOrDispose { }
+    }
 
     NavigationSuiteScaffold(
         layoutType = layoutType,

@@ -3,13 +3,14 @@ package data.subscription
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesDelegate
 import com.revenuecat.purchases.kmp.models.CustomerInfo
+import com.revenuecat.purchases.kmp.models.DiscountPaymentMode
 import com.revenuecat.purchases.kmp.models.Offerings
 import com.revenuecat.purchases.kmp.models.Package
-import com.revenuecat.purchases.kmp.models.DiscountPaymentMode
 import com.revenuecat.purchases.kmp.models.PackageType
 import com.revenuecat.purchases.kmp.models.PeriodType
 import com.revenuecat.purchases.kmp.models.PeriodUnit
 import com.revenuecat.purchases.kmp.models.PurchasesError
+import com.revenuecat.purchases.kmp.models.PurchasesErrorCode
 import com.revenuecat.purchases.kmp.models.StoreProduct
 import com.revenuecat.purchases.kmp.models.StoreTransaction
 import com.revenuecat.purchases.kmp.models.freePhase
@@ -24,53 +25,47 @@ import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
 import domain.subscription.model.SubscriptionProduct
 import expects.openUrl
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
+/**
+ * RevenueCat-backed store. [customerInfo] is kept current from every SDK callback plus the
+ * [PurchasesDelegate] push updates (renewals, refunds, purchases from another device).
+ */
 class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
-
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _customerInfo = MutableStateFlow<SubscriptionCustomerInfo?>(null)
     override val customerInfo: StateFlow<SubscriptionCustomerInfo?> = _customerInfo.asStateFlow()
 
-    private var lastSyncedRequestDate: Long? = null
-
-    // Keep reference to raw RC packages for purchase operations
+    // Raw RC packages from the last getOfferings(), needed to start a purchase.
     private var cachedPackages: Map<String, Package> = emptyMap()
 
     init {
         Purchases.sharedInstance.delegate = this
-        fetchCustomerInfo()
-    }
-
-    private fun fetchCustomerInfo() {
         Purchases.sharedInstance.getCustomerInfo(
             onError = { },
-            onSuccess = { info ->
-                _customerInfo.value = info.toDomain()
-            }
+            onSuccess = ::publish
         )
     }
+
+    private fun publish(info: CustomerInfo): SubscriptionCustomerInfo =
+        info.toDomain().also { _customerInfo.value = it }
 
     private suspend fun getRawCustomerInfo(): Try<CustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.getCustomerInfo(
                 onError = { error ->
-                    continuation.resume(Try.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(error.toDomainError(DomainError.Commerce.ManagementUnavailable)))
                 },
-                onSuccess = { customerInfo ->
-                    _customerInfo.value = customerInfo.toDomain()
-                    continuation.resume(Try.success(customerInfo))
+                onSuccess = { info ->
+                    publish(info)
+                    continuation.resume(Try.success(info))
                 }
             )
         }
@@ -79,39 +74,34 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.getOfferings(
                 onError = { error ->
-                    continuation.resume(Try.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(error.toDomainError(SubscriptionLoadFailedException())))
                 },
                 onSuccess = { offerings ->
-                    val current = offerings.current
-                    if (current != null) {
-                        val packages = current.availablePackages
-                        cachedPackages = packages.associateBy { it.identifier }
-                        continuation.resume(Try.success(offerings.toDomain()))
-                    } else {
-                        continuation.resume(Try.success(SubscriptionOffering(emptyList())))
-                    }
+                    cachedPackages = offerings.current?.availablePackages
+                        ?.associateBy { it.identifier }
+                        .orEmpty()
+                    continuation.resume(Try.success(offerings.toDomain()))
                 }
             )
         }
 
     override suspend fun purchase(packageToPurchase: SubscriptionPackage): Try<SubscriptionCustomerInfo> {
         val rcPackage = cachedPackages[packageToPurchase.identifier]
-            ?: return Try.failure(Exception("Package not found: ${packageToPurchase.identifier}"))
+            ?: return Try.failure(DomainError.Commerce.PurchaseFailed)
 
         return suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.purchase(
                 packageToPurchase = rcPackage,
                 onError = { error: PurchasesError, userCancelled: Boolean ->
-                    if (userCancelled) {
-                        continuation.resume(Try.failure(CancelledPurchaseException()))
+                    val domainError = if (userCancelled) {
+                        DomainError.Commerce.PurchaseCancelled
                     } else {
-                        continuation.resume(Try.failure(DomainError.Commerce.PurchaseFailed))
+                        error.toDomainError(DomainError.Commerce.PurchaseFailed)
                     }
+                    continuation.resume(Try.failure(domainError))
                 },
-                onSuccess = { _: StoreTransaction, customerInfo: CustomerInfo ->
-                    val domainInfo = customerInfo.toDomain()
-                    _customerInfo.value = domainInfo
-                    continuation.resume(Try.success(domainInfo))
+                onSuccess = { _: StoreTransaction, info: CustomerInfo ->
+                    continuation.resume(Try.success(publish(info)))
                 }
             )
         }
@@ -120,65 +110,57 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
     override suspend fun restore(): Try<SubscriptionCustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.restorePurchases(
-                onError = { _ ->
-                    continuation.resume(Try.failure(DomainError.Commerce.RestoreFailed))
+                onError = { error ->
+                    continuation.resume(Try.failure(error.toDomainError(DomainError.Commerce.RestoreFailed)))
                 },
-                onSuccess = { customerInfo ->
-                    val domainInfo = customerInfo.toDomain()
-                    _customerInfo.value = domainInfo
-                    continuation.resume(Try.success(domainInfo))
+                onSuccess = { info ->
+                    continuation.resume(Try.success(publish(info)))
                 }
             )
         }
 
-    override fun isSubscribed(): Flow<Boolean> = customerInfo.map { info ->
-        info?.activeEntitlements?.isNotEmpty() ?: false
-    }
+    override fun isSubscribed(): Flow<Boolean> =
+        customerInfo.map { it?.isSubscribed == true }.distinctUntilChanged()
 
     override suspend fun logIn(userId: String): Try<SubscriptionCustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.logIn(
                 newAppUserID = userId,
                 onError = { error ->
-                    continuation.resume(Try.failure(Exception(error.message)))
+                    continuation.resume(Try.failure(error.toDomainError(Exception(error.message))))
                 },
-                onSuccess = { customerInfo, _ ->
-                    val domainInfo = customerInfo.toDomain()
-                    _customerInfo.value = domainInfo
-                    continuation.resume(Try.success(domainInfo))
+                onSuccess = { info, _ ->
+                    continuation.resume(Try.success(publish(info)))
                 }
             )
         }
 
-    override suspend fun logOut(): Try<SubscriptionCustomerInfo> =
-        suspendCancellableCoroutine { continuation ->
+    override suspend fun logOut(): Try<SubscriptionCustomerInfo> {
+        // RC rejects logOut for anonymous users; nothing to undo then, but still drop local state.
+        if (Purchases.sharedInstance.isAnonymous) {
+            _customerInfo.value = null
+            return Try.success(SubscriptionCustomerInfo(activeEntitlements = emptyMap()))
+        }
+        return suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.logOut(
                 onError = { error ->
-                    continuation.resume(Try.failure(Exception(error.message)))
+                    _customerInfo.value = null
+                    continuation.resume(Try.failure(error.toDomainError(Exception(error.message))))
                 },
-                onSuccess = { customerInfo ->
-                    val domainInfo = customerInfo.toDomain()
-                    _customerInfo.value = domainInfo
-                    continuation.resume(Try.success(domainInfo))
+                onSuccess = { info ->
+                    continuation.resume(Try.success(publish(info)))
                 }
             )
         }
+    }
 
     override fun getCurrentCustomerInfo(): SubscriptionCustomerInfo? = _customerInfo.value
 
     override fun onCustomerInfoUpdated(customerInfo: CustomerInfo) {
-        val requestDate = customerInfo.requestDate.toEpochMilliseconds()
-
-        _customerInfo.value = customerInfo.toDomain()
-
-        val isNewUpdate = requestDate != lastSyncedRequestDate
-        if (isNewUpdate) {
-            coroutineScope.launch {
-                lastSyncedRequestDate = requestDate
-            }
-        }
+        publish(customerInfo)
     }
 
+    /** App Store promoted purchase (iOS): let it proceed and pick up the resulting entitlement. */
     override fun onPurchasePromoProduct(
         product: StoreProduct,
         startPurchase: (
@@ -186,26 +168,30 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
             onSuccess: (storeTransaction: StoreTransaction, customerInfo: CustomerInfo) -> Unit
         ) -> Unit
     ) {
+        startPurchase({ _, _ -> }, { _, info -> publish(info) })
     }
 
     override suspend fun manageSubscription(): Try<Unit> {
-        val customerInfoResult = getRawCustomerInfo()
-
-        val rawCustomerInfo = customerInfoResult.getOrNull()
-            ?: return Try.failure(DomainError.Commerce.ManagementUnavailable)
-
-        val managementURL = rawCustomerInfo.managementUrlString
-
-        if (managementURL.isNullOrBlank()) {
+        val managementUrl = getRawCustomerInfo().getOrNull()?.managementUrlString
+        if (managementUrl.isNullOrBlank()) {
             return Try.failure(DomainError.Commerce.ManagementUnavailable)
         }
-
-        return Try.success(openUrl(managementURL))
+        return Try.success(openUrl(managementUrl))
     }
 
-    override suspend fun cancelSubscription(): Try<Unit> {
-        return manageSubscription()
-    }
+    // Stores don't allow in-app cancellation; the management page is where users cancel.
+    override suspend fun cancelSubscription(): Try<Unit> = manageSubscription()
+}
+
+/** Message key the subscription screen localizes. */
+private class SubscriptionLoadFailedException : Exception("SUBSCRIPTION_LOAD_FAILED")
+
+private fun PurchasesError.toDomainError(fallback: Throwable): Throwable = when (code) {
+    PurchasesErrorCode.NetworkError,
+    PurchasesErrorCode.OfflineConnectionError -> DomainError.Network.NoConnection
+    PurchasesErrorCode.PaymentPendingError -> DomainError.Commerce.PaymentPending
+    PurchasesErrorCode.PurchaseCancelledError -> DomainError.Commerce.PurchaseCancelled
+    else -> fallback
 }
 
 // Mapper extensions: RevenueCat types -> Domain types

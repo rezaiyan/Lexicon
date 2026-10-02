@@ -1,5 +1,6 @@
 package presentation.feature.profile
 
+import fakes.FakeSubscriptionManager
 import core.common.Try
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthUser
@@ -104,7 +105,7 @@ class ProfileViewModelTest : ViewModelTestBase() {
     ): ProfileViewModel {
         return ProfileViewModel(
             userManager = userManager,
-            getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository),
+            getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository, FakeSubscriptionManager()),
             streakManager = streakManager,
             getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepository),
             enrichProfileStatsUseCase = EnrichProfileStatsUseCase(),
