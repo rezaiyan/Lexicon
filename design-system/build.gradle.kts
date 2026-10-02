@@ -17,6 +17,16 @@ kotlin {
             implementation(libs.compottie)
             implementation(libs.compottie.network)
         }
+
+        androidMain.dependencies {
+            implementation(compose.components.uiToolingPreview)
+        }
+    }
+}
+
+android {
+    dependencies {
+        debugImplementation(compose.uiTooling)
     }
 }
 

@@ -6,32 +6,26 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,15 +35,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import components.dialog.ButtonState
-import components.dialog.ButtonType
-import components.dialog.DialogIconState
-import components.dialog.DialogProgressState
-import components.dialog.LexiconDialogContent
+import androidx.compose.ui.text.style.TextOverflow
+import components.sheet.ConfirmSheetContent
+import components.sheet.ConfirmTone
+import components.sheet.IconTile
+import components.sheet.SheetBadge
+import components.sheet.SheetGroup
+import components.sheet.SheetPage
+import components.sheet.SheetSectionLabel
 import domain.tts.model.TtsModelInfo
 import domain.tts.model.TtsSettings
 import lexicon.resources.generated.resources.Res
@@ -59,21 +55,25 @@ import lexicon.resources.generated.resources.tts_model_delete
 import lexicon.resources.generated.resources.tts_model_delete_message
 import lexicon.resources.generated.resources.tts_model_delete_title
 import lexicon.resources.generated.resources.tts_model_download
+import lexicon.resources.generated.resources.tts_model_downloaded
 import lexicon.resources.generated.resources.tts_model_downloading
+import lexicon.resources.generated.resources.tts_model_not_downloaded
 import lexicon.resources.generated.resources.tts_models
 import lexicon.resources.generated.resources.tts_models_downloaded_count
 import lexicon.resources.generated.resources.tts_models_none_downloaded
 import lexicon.resources.generated.resources.tts_models_total_size
-import lexicon.resources.generated.resources.tts_playback_settings
 import lexicon.resources.generated.resources.tts_playback_speed
 import lexicon.resources.generated.resources.tts_playback_speed_value
 import lexicon.resources.generated.resources.tts_voice_selection
 import lexicon.resources.generated.resources.tts_voice_speaker
 import org.jetbrains.compose.resources.stringResource
-import theme.AppColors
 import theme.Theme
 import utils.LexiconFormatters
 
+private const val SpeedSteps = 5
+private const val PercentScale = 100
+
+/** Offline voices: playback speed, then downloaded / downloading voices, then everything else. */
 @Composable
 fun TtsVoiceManagerContent(
     models: List<TtsModelInfo>,
@@ -85,243 +85,43 @@ fun TtsVoiceManagerContent(
     onDeleteModel: (String) -> Unit,
     onSpeechRateChanged: (Float) -> Unit,
     onVoiceSelected: (String, Int) -> Unit,
+    onClose: (() -> Unit)? = null,
 ) {
-    val downloadedModels = models.filter { it.isDownloaded }
-
-    val summaryMessage = if (downloadedModels.isNotEmpty()) {
-        stringResource(Res.string.tts_models_downloaded_count, downloadedModels.size) +
-            " \u2022 " +
+    val (installed, available) = remember(models, downloadProgress) {
+        models.partition { it.isDownloaded || downloadProgress.containsKey(it.languageCode) }
+    }
+    val summary = if (models.any { it.isDownloaded }) {
+        stringResource(Res.string.tts_models_downloaded_count, models.count { it.isDownloaded }) +
+            " • " +
             stringResource(Res.string.tts_models_total_size, LexiconFormatters.fileSize(totalSizeBytes))
     } else {
         stringResource(Res.string.tts_models_none_downloaded)
     }
 
-    LexiconDialogContent(
-        modifier = Modifier.verticalScroll(rememberScrollState()),
-        iconState = DialogIconState.Icon(
-            imageVector = Icons.Default.RecordVoiceOver,
-            tint = AppColors.settingsTtsIcon,
-        ),
+    SheetPage(
         title = stringResource(Res.string.tts_models),
-        message = summaryMessage,
-        progressState = if (isLoading) DialogProgressState.Circular else DialogProgressState.None,
-        content = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                TtsSpeedSection(
-                    currentRate = ttsSettings.speechRate,
-                    onRateChanged = onSpeechRateChanged,
-                )
-
-                if (!isLoading && models.isNotEmpty()) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = Theme.spacing.sm))
-
-                    Text(
-                        text = stringResource(Res.string.tts_all_languages),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = Theme.spacing.xs),
-                    )
-
-                    models.forEach { model ->
-                        TtsLanguageRow(
-                            model = model,
-                            progress = downloadProgress[model.languageCode],
-                            onDownload = { onDownloadModel(model.languageCode) },
-                            onDelete = { onDeleteModel(model.languageCode) },
-                            onVoiceSelected = { speakerId -> onVoiceSelected(model.languageCode, speakerId) },
-                        )
-                        Spacer(modifier = Modifier.height(Theme.spacing.xs))
-                    }
-                }
-            }
-        },
-    )
-}
-
-@Composable
-private fun TtsSpeedSection(
-    currentRate: Float,
-    onRateChanged: (Float) -> Unit,
-) {
-    var sliderValue by remember(currentRate) { mutableFloatStateOf(currentRate) }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(Res.string.tts_playback_settings),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = Theme.spacing.xs),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
-        ) {
-            Icon(
-                imageVector = Icons.Default.Speed,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(Theme.dimensions.iconSize),
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(Res.string.tts_playback_speed),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Text(
-                        text = stringResource(Res.string.tts_playback_speed_value, LexiconFormatters.speed(sliderValue)),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-                Slider(
-                    value = sliderValue,
-                    onValueChange = { sliderValue = it },
-                    onValueChangeFinished = { onRateChanged(sliderValue) },
-                    valueRange = TtsSettings.MIN_SPEECH_RATE..TtsSettings.MAX_SPEECH_RATE,
-                    steps = 5,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun TtsLanguageRow(
-    model: TtsModelInfo,
-    progress: Float?,
-    onDownload: () -> Unit,
-    onDelete: () -> Unit,
-    onVoiceSelected: (Int) -> Unit,
-) {
-    val isDownloading = progress != null
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .padding(horizontal = Theme.spacing.xs, vertical = Theme.spacing.xs),
+        subtitle = summary,
+        onClose = onClose,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = model.languageDisplayName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                )
-                when {
-                    isDownloading -> Text(
-                        text = stringResource(Res.string.tts_model_downloading),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                    )
-                    model.isDownloaded -> Text(
-                        text = LexiconFormatters.fileSize(model.sizeBytes),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
-                    else -> Text(
-                        text = "Not downloaded",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                    )
-                }
-            }
+        SpeedCard(currentRate = ttsSettings.speechRate, onRateChanged = onSpeechRateChanged)
 
-            when {
-                isDownloading -> {
-                    // No action button during download
-                }
-                model.isDownloaded -> {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = AppColors.settingsTtsIcon,
-                            modifier = Modifier.size(Theme.dimensions.iconSize),
-                        )
-                        IconButton(onClick = onDelete) {
-                            Icon(
-                                imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = stringResource(Res.string.tts_model_delete),
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(Theme.dimensions.iconSize),
-                            )
-                        }
-                    }
-                }
-                else -> {
-                    OutlinedButton(
-                        onClick = onDownload,
-                        contentPadding = ButtonDefaults.TextButtonContentPadding,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CloudDownload,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                        )
-                        Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(
-                            text = stringResource(Res.string.tts_model_download),
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                }
-            }
-        }
-
-        // Download progress bar
-        AnimatedVisibility(
-            visible = isDownloading,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(top = Theme.spacing.xs)) {
-                LinearProgressIndicator(
-                    progress = { progress ?: 0f },
-                    modifier = Modifier.fillMaxWidth(),
-                    color = AppColors.settingsTtsIcon,
-                )
-                Text(
-                    text = "${((progress ?: 0f) * 100).toInt()}%",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp),
-                    textAlign = TextAlign.End,
-                )
-            }
-        }
-
-        // Voice selector — only shown when model is downloaded and has multiple speakers
-        AnimatedVisibility(
-            visible = model.isDownloaded && model.numSpeakers > 1,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
-            TtsVoiceSelectorRow(
-                numSpeakers = model.numSpeakers,
-                selectedSpeakerId = model.selectedSpeakerId,
+        if (isLoading) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        } else {
+            VoiceSection(
+                label = stringResource(Res.string.tts_model_downloaded),
+                models = installed,
+                downloadProgress = downloadProgress,
+                onDownloadModel = onDownloadModel,
+                onDeleteModel = onDeleteModel,
+                onVoiceSelected = onVoiceSelected,
+            )
+            VoiceSection(
+                label = stringResource(Res.string.tts_all_languages),
+                models = available,
+                downloadProgress = downloadProgress,
+                onDownloadModel = onDownloadModel,
+                onDeleteModel = onDeleteModel,
                 onVoiceSelected = onVoiceSelected,
             )
         }
@@ -329,42 +129,204 @@ private fun TtsLanguageRow(
 }
 
 @Composable
-private fun TtsVoiceSelectorRow(
+private fun VoiceSection(
+    label: String,
+    models: List<TtsModelInfo>,
+    downloadProgress: Map<String, Float>,
+    onDownloadModel: (String) -> Unit,
+    onDeleteModel: (String) -> Unit,
+    onVoiceSelected: (String, Int) -> Unit,
+) {
+    if (models.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
+        SheetSectionLabel(label)
+        SheetGroup {
+            models.forEachIndexed { index, model ->
+                VoiceRow(
+                    model = model,
+                    progress = downloadProgress[model.languageCode],
+                    showDivider = index < models.lastIndex,
+                    onDownload = { onDownloadModel(model.languageCode) },
+                    onDelete = { onDeleteModel(model.languageCode) },
+                    onVoiceSelected = { speakerId -> onVoiceSelected(model.languageCode, speakerId) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SpeedCard(currentRate: Float, onRateChanged: (Float) -> Unit) {
+    var sliderValue by remember(currentRate) { mutableFloatStateOf(currentRate) }
+    SheetGroup {
+        Column(
+            modifier = Modifier.padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+            ) {
+                IconTile(icon = Icons.Default.Speed, tinted = true)
+                Text(
+                    text = stringResource(Res.string.tts_playback_speed),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                SheetBadge(
+                    text = stringResource(Res.string.tts_playback_speed_value, LexiconFormatters.speed(sliderValue)),
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Slider(
+                value = sliderValue,
+                onValueChange = { sliderValue = it },
+                onValueChangeFinished = { onRateChanged(sliderValue) },
+                valueRange = TtsSettings.MIN_SPEECH_RATE..TtsSettings.MAX_SPEECH_RATE,
+                steps = SpeedSteps,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun VoiceRow(
+    model: TtsModelInfo,
+    progress: Float?,
+    showDivider: Boolean,
+    onDownload: () -> Unit,
+    onDelete: () -> Unit,
+    onVoiceSelected: (Int) -> Unit,
+) {
+    val isDownloading = progress != null
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = Theme.dimensions.touchTarget + Theme.spacing.md)
+                .padding(start = Theme.spacing.md, end = Theme.spacing.xs)
+                .padding(vertical = Theme.spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+        ) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+                Text(
+                    text = model.languageDisplayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = when {
+                        isDownloading -> stringResource(Res.string.tts_model_downloading) +
+                            " ${((progress ?: 0f) * PercentScale).toInt()}%"
+                        model.isDownloaded -> LexiconFormatters.fileSize(model.sizeBytes)
+                        else -> stringResource(Res.string.tts_model_not_downloaded)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isDownloading) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            when {
+                isDownloading -> DownloadRing(progress = progress ?: 0f)
+                model.isDownloaded -> IconButton(onClick = onDelete) {
+                    Icon(
+                        imageVector = Icons.Default.DeleteOutline,
+                        contentDescription = stringResource(Res.string.tts_model_delete),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                else -> GetButton(onClick = onDownload)
+            }
+        }
+        AnimatedVisibility(
+            visible = model.isDownloaded && model.numSpeakers > 1,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
+            VoiceSelectorRow(
+                numSpeakers = model.numSpeakers,
+                selectedSpeakerId = model.selectedSpeakerId,
+                onVoiceSelected = onVoiceSelected,
+            )
+        }
+        if (showDivider) {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = Theme.opacity.overlay),
+                modifier = Modifier.padding(start = Theme.spacing.md),
+            )
+        }
+    }
+}
+
+@Composable
+private fun DownloadRing(progress: Float) {
+    Box(modifier = Modifier.size(Theme.dimensions.touchTarget), contentAlignment = Alignment.Center) {
+        CircularProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.size(Theme.dimensions.iconSizeLarge),
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            strokeWidth = Theme.spacing.xxxs,
+        )
+    }
+}
+
+@Composable
+private fun GetButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(Theme.shapes.pill),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        contentPadding = ButtonDefaults.TextButtonContentPadding,
+        modifier = Modifier.heightIn(min = Theme.dimensions.touchTargetSmall),
+    ) {
+        Icon(
+            imageVector = Icons.Default.CloudDownload,
+            contentDescription = null,
+            modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+        )
+        Text(
+            text = stringResource(Res.string.tts_model_download),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = Theme.spacing.xxs + Theme.spacing.xxxs),
+        )
+    }
+}
+
+@Composable
+private fun VoiceSelectorRow(
     numSpeakers: Int,
     selectedSpeakerId: Int,
     onVoiceSelected: (Int) -> Unit,
 ) {
-    Column(
+    val voiceLabel = stringResource(Res.string.tts_voice_selection)
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = Theme.spacing.xs),
+            .padding(start = Theme.spacing.md, end = Theme.spacing.md, bottom = Theme.spacing.sm)
+            .semantics { contentDescription = voiceLabel },
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
     ) {
-        Text(
-            text = stringResource(Res.string.tts_voice_selection),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = Theme.spacing.xs),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-        ) {
-            for (speakerId in 0 until numSpeakers) {
-                FilterChip(
-                    selected = speakerId == selectedSpeakerId,
-                    onClick = { onVoiceSelected(speakerId) },
-                    label = {
-                        Text(
-                            text = stringResource(Res.string.tts_voice_speaker, speakerId + 1),
-                            style = MaterialTheme.typography.labelSmall,
-                        )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = AppColors.settingsTtsIcon.copy(alpha = 0.15f),
-                        selectedLabelColor = AppColors.settingsTtsIcon,
-                    ),
-                )
-            }
+        for (speakerId in 0 until numSpeakers) {
+            FilterChip(
+                selected = speakerId == selectedSpeakerId,
+                onClick = { onVoiceSelected(speakerId) },
+                label = { Text(stringResource(Res.string.tts_voice_speaker, speakerId + 1)) },
+            )
         }
     }
 }
@@ -375,29 +337,14 @@ fun TtsDeleteConfirmationContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    LexiconDialogContent(
-        iconState = DialogIconState.Icon(
-            imageVector = Icons.Default.Warning,
-            tint = MaterialTheme.colorScheme.error,
-        ),
+    ConfirmSheetContent(
+        icon = Icons.Default.DeleteOutline,
         title = stringResource(Res.string.tts_model_delete_title),
-        content = {
-            Text(
-                text = stringResource(Res.string.tts_model_delete_message, languageDisplayName),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        primaryButton = ButtonState(
-            text = stringResource(Res.string.tts_model_delete),
-            onClick = onConfirm,
-            type = ButtonType.Error,
-        ),
-        secondaryButton = ButtonState(
-            text = stringResource(Res.string.cancel),
-            onClick = onDismiss,
-        ),
+        message = stringResource(Res.string.tts_model_delete_message, languageDisplayName),
+        confirmText = stringResource(Res.string.tts_model_delete),
+        onConfirm = onConfirm,
+        dismissText = stringResource(Res.string.cancel),
+        onDismiss = onDismiss,
+        tone = ConfirmTone.Danger,
     )
 }
-

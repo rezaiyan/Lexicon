@@ -38,8 +38,7 @@ class ProfileViewModelTest : ViewModelTestBase() {
         id = 42L,
         email = "user@example.com",
         name = "Test User",
-        displayAlias = "tester",
-        profileImageUrl = "https://example.com/avatar.jpg"
+        displayAlias = "tester"
     )
 
     private val testStreakData = StreakData(currentStreak = 7)
@@ -135,7 +134,6 @@ class ProfileViewModelTest : ViewModelTestBase() {
         assertEquals("Test User", userInfo.name)
         assertEquals("user@example.com", userInfo.email)
         assertEquals("tester", userInfo.displayAlias)
-        assertEquals("https://example.com/avatar.jpg", userInfo.profileImageUrl)
     }
 
     @Test

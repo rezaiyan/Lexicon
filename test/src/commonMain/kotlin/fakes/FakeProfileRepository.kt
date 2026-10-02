@@ -6,8 +6,6 @@ import domain.profile.repository.IProfileRepository
 
 class FakeProfileRepository : IProfileRepository {
     var updateResult: Try<AuthUser> = Try.success(AuthUser(1L, "test@test.com", "Test"))
-    var uploadResult: Try<String> = Try.success("https://avatar.url")
-    var deleteAvatarResult: Try<Unit> = Try.success(Unit)
     var lastUpdateName: String? = null
     var lastUpdateAlias: String? = null
 
@@ -17,6 +15,4 @@ class FakeProfileRepository : IProfileRepository {
         return updateResult
     }
 
-    override suspend fun uploadAvatar(imageBytes: ByteArray, mimeType: String): Try<String> = uploadResult
-    override suspend fun deleteAvatar(): Try<Unit> = deleteAvatarResult
 }

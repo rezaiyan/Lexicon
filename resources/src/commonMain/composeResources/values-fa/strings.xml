@@ -479,9 +479,6 @@
     <string name="username">نام کاربری</string>
     <string name="username_hint">یک نام کاربری انتخاب کنید</string>
     <string name="username_description">۲-۳۰ کاراکتر: حروف، اعداد، فاصله، زیرخط، خط تیره</string>
-    <string name="change_photo">تغییر عکس</string>
-    <string name="remove_photo">حذف عکس</string>
-    <string name="choose_from_gallery">انتخاب از گالری</string>
     <string name="profile_updated">پروفایل به‌روزرسانی شد</string>
 
     <!-- Leaderboard -->
@@ -494,5 +491,8 @@
     <!-- Import Source Language -->
     <string name="original_language_question">زبان اصلی کلمات چیست؟</string>
     <string name="translation_language_hint">ترجمه‌ها به %1$s خواهند بود. می‌توانید این را در تنظیمات تغییر دهید.</string>
+    <string name="filter_all">همه</string>
+    <string name="filters">فیلترها</string>
+    <string name="account_section">حساب کاربری</string>
 </resources>
 

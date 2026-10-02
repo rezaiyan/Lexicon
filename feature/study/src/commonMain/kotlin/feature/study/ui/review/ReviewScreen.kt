@@ -3,26 +3,25 @@ package feature.study.ui.review
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import components.dialog.ButtonState
-import components.dialog.ButtonType
-import components.dialog.DialogIconState
-import components.dialog.LexiconDialogContent
+import components.sheet.ConfirmSheetContent
 import expects.BackHandler
 import feature.study.ReviewState
 import feature.study.ReviewViewModel
 import feature.study.model.ReviewType
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.continue_reviewing
 import lexicon.resources.generated.resources.exit_review
 import lexicon.resources.generated.resources.exit_review_message
+import lexicon.resources.generated.resources.stop_review
 import org.jetbrains.compose.resources.stringResource
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.showSizeToFitBottomSheet
@@ -46,26 +45,20 @@ fun ReviewScreen(
 
     val exitReviewTitle = stringResource(Res.string.exit_review)
     val exitReviewMessage = stringResource(Res.string.exit_review_message)
-    val cancelText = stringResource(Res.string.cancel)
+    val continueText = stringResource(Res.string.continue_reviewing)
+    val stopText = stringResource(Res.string.stop_review)
 
     val showExitConfirmation: () -> Unit = {
         overlayHost.showSizeToFitBottomSheet(tag = "exit-confirmation") { nav ->
-            LexiconDialogContent(
-                iconState = DialogIconState.Icon(
-                    imageVector = Icons.Default.Warning,
-                    tint = MaterialTheme.colorScheme.error,
-                ),
+            ConfirmSheetContent(
+                icon = Icons.Default.Pause,
                 title = exitReviewTitle,
                 message = exitReviewMessage,
-                primaryButton = ButtonState(
-                    text = exitReviewTitle,
-                    onClick = { nav.dismiss(); onDismiss() },
-                    type = ButtonType.Error,
-                ),
-                secondaryButton = ButtonState(
-                    text = cancelText,
-                    onClick = { nav.dismiss() },
-                ),
+                confirmText = continueText,
+                onConfirm = { nav.dismiss() },
+                dismissText = stopText,
+                onDismiss = { nav.dismiss(); onDismiss() },
+                onClose = { nav.dismiss() },
             )
         }
     }
@@ -80,7 +73,8 @@ fun ReviewScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
             .pointerInput(Unit) { detectTapGestures { } },
     ) {
         when (reviewState) {
@@ -92,7 +86,7 @@ fun ReviewScreen(
                 onRetry = { viewModel.startSession(reviewState.source) },
             )
 
-            is ReviewState.Empty -> EmptyState(reviewState.nextDueAt)
+            is ReviewState.Empty -> EmptyState(nextDueAt = reviewState.nextDueAt, onDismiss = onDismiss)
 
             is ReviewState.Active -> ReviewContent(
                 words = reviewState.words,

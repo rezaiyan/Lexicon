@@ -1,24 +1,17 @@
 package presentation.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Insights
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Sell
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -26,44 +19,44 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import components.ErrorScreen
 import components.LoadingScreen
-import components.SectionHeader
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
+import components.sheet.SheetBadge
+import components.sheet.SheetGroup
+import components.sheet.SheetOptionRow
+import components.sheet.SheetPage
+import components.sheet.SheetSwitchRow
 import core.common.UiState
 import domain.tag.model.Tag
 import domain.word.model.LearningStage
 import domain.word.model.ReviewSource
 import events.OnEvents
-import feature.insights.navigation.showInsightsSheet
-import feature.leaderboard.navigation.showLeaderboard
-import feature.profile.navigation.showProfileSheet
 import feature.study.ReviewEffect
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
-import feature.study.ui.components.LevelBucketCard
 import feature.study.ui.review.ReviewScreen
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
 import feature.study.ui.study.StatsSection
-import feature.study.ui.study.WordDistributionBar
+import feature.study.ui.study.TagsSection
 import feature.study.ui.wordrush.WordRushCard
 import feature.study.ui.wordrush.WordRushGameScreen
 import feature.study.wordrush.WordRushEffect
 import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.filter_tag
 import lexicon.resources.generated.resources.import_words
-import lexicon.resources.generated.resources.insights_title
-import lexicon.resources.generated.resources.profile
+import lexicon.resources.generated.resources.settings
 import lexicon.resources.generated.resources.skip_tag_selector_label
+import lexicon.resources.generated.resources.start_review
+import lexicon.resources.generated.resources.word_count_label
 import org.jetbrains.compose.resources.stringResource
-import feature.settings.SettingsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetPageConfig
@@ -74,14 +67,8 @@ import overlay.bottomsheet.showSizeToFitBottomSheet
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
 import presentation.ui.LocalSnackbarHostState
-import presentation.ui.components.NotificationPermissionContent
-import presentation.ui.components.NotificationSettingsContent
 import presentation.ui.components.imports.AiWordImportBottomSheet
 import presentation.ui.components.imports.ImportBottomSheet
-import presentation.ui.components.imports.ImportMethodSelectorContent
-import presentation.ui.permissions.rememberNotificationPermissionRequester
-import presentation.ui.permissions.wasNotificationPermissionDenied
-import theme.AppColors
 import theme.Theme
 
 /** Non-dismissable sheet configuration reused for import flows. */
@@ -94,13 +81,14 @@ private val LockedSheetProperties = BottomSheetProperties(
 )
 
 private sealed interface ImportFlowPage {
-    data object Selector : ImportFlowPage
     data object Manual : ImportFlowPage
     data object AiAssistant : ImportFlowPage
 }
 
 @Composable
-fun StudyScreen() {
+fun StudyScreen(
+    onNavigateToSettings: () -> Unit,
+) {
     val progressViewModel = koinViewModel<StudyProgressViewModel>()
     val reviewViewModel = koinViewModel<ReviewViewModel>()
     val wordRushViewModel = koinViewModel<WordRushViewModel>()
@@ -135,9 +123,11 @@ fun StudyScreen() {
         reviewViewModel.startSession(source)
         overlayHost.showFullScreen(
             tag = "review-${source::class.simpleName}",
+            // ReviewScreen paints its background edge to edge and applies the system-bar insets itself.
             properties = FullScreenProperties(
                 dismissOnBackPress = false,
-                isNavigationBarsPaddingEnabled = true,
+                isStatusBarsPaddingEnabled = false,
+                isNavigationBarsPaddingEnabled = false,
             ),
         ) { navigator ->
             OnEvents(reviewViewModel.effects) { effect ->
@@ -156,70 +146,54 @@ fun StudyScreen() {
     }
 
     val openImportSheet: () -> Unit = {
-        if (hasPremiumAccess) {
-            overlayHost.showSizeToFitBottomSheet(
-                tag = "import",
-                properties = BottomSheetProperties(dismissOnBackPress = true, dismissOnTouchOutside = true),
-            ) { sheetNav ->
-                val pages = rememberBottomSheetPageNavigator<ImportFlowPage>(ImportFlowPage.Selector)
-                val onClose: () -> Unit = { sheetNav.dismiss() }
+        overlayHost.showSizeToFitBottomSheet(
+            tag = "import",
+            properties = LockedSheetProperties,
+        ) { sheetNav ->
+            val pages = rememberBottomSheetPageNavigator<ImportFlowPage>(ImportFlowPage.Manual)
+            val onClose: () -> Unit = { sheetNav.dismiss() }
+            val onStartReview: () -> Unit = {
+                sheetNav.dismiss()
+                openReviewScreen(ReviewSource.DueCards)
+            }
 
-                BottomSheetPages(
-                    navigator = pages,
-                    onClose = onClose,
-                    pageConfig = { page ->
-                        when (page) {
-                            is ImportFlowPage.Selector -> BottomSheetPageConfig(
-                                showBackButton = false,
-                                properties = BottomSheetProperties(),
-                            )
-                            is ImportFlowPage.Manual -> BottomSheetPageConfig(
-                                properties = LockedSheetProperties,
-                            )
-                            is ImportFlowPage.AiAssistant -> BottomSheetPageConfig(
-                                showBackButton = false,
-                                showCloseButton = false,
-                                properties = LockedSheetProperties,
-                            )
-                        }
-                    },
-                ) { currentPage ->
-                    when (currentPage) {
-                        is ImportFlowPage.Selector -> ImportMethodSelectorContent(
-                            onManual = { pages.navigateTo(ImportFlowPage.Manual) },
-                            onAiAssistant = { pages.navigateTo(ImportFlowPage.AiAssistant) },
-                        )
-                        is ImportFlowPage.Manual -> ImportBottomSheet(
-                            onDismiss = onClose,
-                            onShowSnackBar = onImportSuccess,
-                        )
-                        is ImportFlowPage.AiAssistant -> AiWordImportBottomSheet(
-                            onDismiss = onClose,
-                            onShowSnackBar = onImportSuccess,
+            BottomSheetPages(
+                navigator = pages,
+                onClose = onClose,
+                pageConfig = { page ->
+                    when (page) {
+                        is ImportFlowPage.Manual -> BottomSheetPageConfig(showBackButton = false)
+                        // The AI wizard draws its own back / progress / close bar
+                        is ImportFlowPage.AiAssistant -> BottomSheetPageConfig(
+                            showBackButton = false,
+                            showCloseButton = false,
                         )
                     }
+                },
+            ) { currentPage ->
+                when (currentPage) {
+                    is ImportFlowPage.Manual -> ImportBottomSheet(
+                        onDismiss = onClose,
+                        onShowSnackBar = onImportSuccess,
+                        onAiAssistant = if (hasPremiumAccess) {
+                            { pages.navigateTo(ImportFlowPage.AiAssistant) }
+                        } else {
+                            null
+                        },
+                        onStartReview = onStartReview,
+                    )
+                    is ImportFlowPage.AiAssistant -> AiWordImportBottomSheet(
+                        onDismiss = onClose,
+                        onBackToChooser = { pages.navigateBack() },
+                        onStartReview = onStartReview,
+                    )
                 }
-            }
-        } else {
-            overlayHost.showSizeToFitBottomSheet(
-                tag = "import",
-                properties = LockedSheetProperties,
-            ) { nav ->
-                ImportBottomSheet(
-                    onClose = { nav.dismiss() },
-                    onDismiss = { nav.dismiss() },
-                    onShowSnackBar = onImportSuccess,
-                )
             }
         }
     }
 
     LexiconColumn(
         title = null,
-        showNavigationIcon = true,
-        navigationIcon = Icons.Default.Person,
-        navigationIconContentDescription = stringResource(Res.string.profile),
-        onNavigationClick = { overlayHost.showProfileSheet(snackbarHostState) },
         scrollState = scrollState,
         collapsedContent = {
             CollapsedStatsBar(
@@ -227,61 +201,21 @@ fun StudyScreen() {
                 stats = progressStats ?: return@LexiconColumn,
             )
         },
-        actionIcon1 = if (hasPremiumAccess) ActionIconConfig(
-            icon = Icons.Default.Insights,
-            contentDescription = stringResource(Res.string.insights_title),
-            onClick = {
-                overlayHost.showInsightsSheet(
-                    onShowLeaderboard = { overlayHost.showLeaderboard() },
-                    snackbarHostState = snackbarHostState,
-                    onNavigateToNotificationSettings = {
-                        overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
-                            val settingsViewModel = koinViewModel<SettingsViewModel>()
-                            val currentState by settingsViewModel.state()
-                            if (currentState.screen.systemNotificationsEnabled) {
-                                NotificationSettingsContent(
-                                    notificationsEnabled = currentState.screen.notificationsEnabled,
-                                    systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
-                                    reviewRemindersEnabled = currentState.screen.reviewRemindersEnabled,
-                                    onNotificationsToggle = { settingsViewModel.setNotificationsEnabled(it) },
-                                    onReviewRemindersToggle = { settingsViewModel.setReviewRemindersEnabled(it) },
-                                    onDismiss = { nav.dismiss() }
-                                )
-                            } else {
-                                val deniedPreviously = wasNotificationPermissionDenied()
-                                val requestPermission = rememberNotificationPermissionRequester { granted ->
-                                    if (granted) settingsViewModel.setNotificationsEnabled(true)
-                                    settingsViewModel.refreshNotificationPermissionStatus()
-                                    nav.dismiss()
-                                }
-                                NotificationPermissionContent(
-                                    onDismiss = { nav.dismiss() },
-                                    onEnableNotifications = {
-                                        if (deniedPreviously) {
-                                            nav.dismiss()
-                                            settingsViewModel.requestNotificationPermission()
-                                            settingsViewModel.refreshNotificationPermissionStatus()
-                                        } else {
-                                            requestPermission()
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                )
-            },
-            size = Theme.dimensions.iconSize,
-        ) else null,
-        actionIcon2 = ActionIconConfig(
+        actionIcon1 = ActionIconConfig(
             icon = Icons.Default.Add,
             contentDescription = stringResource(Res.string.import_words),
             onClick = openImportSheet,
             size = Theme.dimensions.iconSize,
         ),
+        actionIcon2 = ActionIconConfig(
+            icon = Icons.Default.Settings,
+            contentDescription = stringResource(Res.string.settings),
+            onClick = onNavigateToSettings,
+            size = Theme.dimensions.iconSize,
+        ),
         scrollable = true,
     ) {
-        Column(Modifier.padding(bottom = Theme.spacing.xs)) {
+        Column(Modifier.padding(bottom = Theme.spacing.sectionGap)) {
             when (uiState) {
                 is UiState.Loading -> {
                     LoadingScreen(message = "Preparing your study session...")
@@ -332,7 +266,7 @@ fun StudyScreen() {
                                 ) { nav ->
                                     val sheetProgressState by progressViewModel.state()
                                     ReviewSelectorSheetContent(
-                                        title = "Start Review",
+                                        title = stringResource(Res.string.start_review),
                                         allLabel = "All due words",
                                         allCount = loadedStats.dueCards,
                                         tags = dueTags,
@@ -346,6 +280,7 @@ fun StudyScreen() {
                                             nav.dismiss()
                                             openReviewScreen(ReviewSource.ByTag(tag.id))
                                         },
+                                        onClose = { nav.dismiss() },
                                     )
                                 }
                             } else {
@@ -353,8 +288,6 @@ fun StudyScreen() {
                             }
                         },
                     )
-
-                    WordDistributionBar(stats = loadedStats)
 
                     val wordRushStateHolder = wordRushViewModel.state()
                     val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }
@@ -396,7 +329,7 @@ fun StudyScreen() {
                                 )
                             }
                         },
-                        modifier = Modifier.padding(vertical = Theme.spacing.sm),
+                        modifier = Modifier.padding(top = Theme.spacing.md),
                     )
 
                     LearningStagesSection(
@@ -439,12 +372,18 @@ fun StudyScreen() {
                                             nav.dismiss()
                                             openReviewScreen(ReviewSource.ByStageAndTag(stage, tag.id))
                                         },
+                                        onClose = { nav.dismiss() },
                                     )
                                 }
                             } else {
                                 openReviewScreen(ReviewSource.ByStage(stage))
                             }
                         },
+                    )
+
+                    TagsSection(
+                        tags = progressState.tags,
+                        onTagClick = { tag -> openReviewScreen(ReviewSource.ByTag(tag.id)) },
                     )
                 }
             }
@@ -463,48 +402,44 @@ private fun ReviewSelectorSheetContent(
     onSkipTagSelectorChanged: (Boolean) -> Unit,
     onAllSelected: () -> Unit,
     onTagSelected: (Tag) -> Unit,
+    onClose: () -> Unit,
 ) {
-    Column(modifier = Modifier.padding(horizontal = Theme.spacing.md)) {
-        SectionHeader(
-            title = title,
-            modifier = Modifier.padding(vertical = Theme.spacing.md),
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
-            LevelBucketCard(
-                level = allLabel,
-                description = "All words",
-                count = allCount,
-                color = AppColors.secondary,
+    SheetPage(title = title, onClose = onClose) {
+        SheetGroup {
+            SheetOptionRow(
                 icon = Icons.Rounded.MenuBook,
+                title = allLabel,
                 onClick = onAllSelected,
+                showDivider = tags.isNotEmpty(),
+                trailingContent = { CountBadge(allCount) },
             )
-            tags.forEach { tag ->
-                LevelBucketCard(
-                    level = tag.name,
-                    description = "${tag.wordCount} ${if (tag.wordCount == 1L) "word" else "words"}",
-                    count = tag.wordCount.toInt(),
-                    color = AppColors.adept,
+            tags.forEachIndexed { index, tag ->
+                SheetOptionRow(
                     icon = Icons.Rounded.Sell,
+                    title = tag.name,
+                    subtitle = stringResource(Res.string.filter_tag),
                     onClick = { onTagSelected(tag) },
+                    showDivider = index < tags.lastIndex,
+                    trailingContent = { CountBadge(tag.wordCount.toInt()) },
                 )
             }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = Theme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(
+        SheetGroup {
+            SheetSwitchRow(
+                title = stringResource(Res.string.skip_tag_selector_label),
                 checked = skipTagSelector,
                 onCheckedChange = onSkipTagSelectorChanged,
-            )
-            Text(
-                text = stringResource(Res.string.skip_tag_selector_label),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                showDivider = false,
             )
         }
-        Spacer(Modifier.height(Theme.spacing.xs))
     }
+}
+
+@Composable
+private fun CountBadge(count: Int) {
+    SheetBadge(
+        text = stringResource(Res.string.word_count_label, count),
+        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus),
+        contentColor = MaterialTheme.colorScheme.primary,
+    )
 }

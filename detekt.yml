@@ -36,6 +36,13 @@ style:
       - '**/commonTest/**'
       - '**/androidTest/**'
       - '**/test/**'
+  ForbiddenImport:
+    active: true
+    imports:
+      - value: 'androidx.compose.material3.AlertDialog'
+        reason: 'Use ConfirmSheetContent / SheetPage (components.sheet) shown via showSizeToFitBottomSheet.'
+      - value: 'androidx.compose.material3.BasicAlertDialog'
+        reason: 'Use ConfirmSheetContent / SheetPage (components.sheet) shown via showSizeToFitBottomSheet.'
   UnusedPrivateMember:
     active: true
     ignoreAnnotated:

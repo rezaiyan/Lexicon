@@ -8,10 +8,8 @@ import data.profile.repository.ProfileRepositoryImpl
 import data.profile.repository.ProfileStatsRepositoryImpl
 import domain.profile.repository.IProfileRepository
 import domain.profile.repository.IProfileStatsRepository
-import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.GetProfileStatsUseCase
 import domain.profile.usecase.UpdateProfileUseCase
-import domain.profile.usecase.UploadAvatarUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -32,6 +30,4 @@ fun profileModule() = module {
     // Use Cases
     singleOf(::GetProfileStatsUseCase)
     singleOf(::UpdateProfileUseCase)
-    singleOf(::UploadAvatarUseCase)
-    singleOf(::DeleteAvatarUseCase)
 }

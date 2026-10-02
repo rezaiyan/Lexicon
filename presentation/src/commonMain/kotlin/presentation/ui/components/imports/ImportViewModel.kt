@@ -30,6 +30,8 @@ import presentation.model.ImageImportState
 import utils.Language
 import utils.compressImage
 
+private const val MaxRecentWords = 5
+
 data class ImportTagUseCases(
     val getTags: GetTagsUseCase,
     val createTag: CreateTagUseCase,
@@ -75,19 +77,11 @@ class ImportViewModel(
         updateState { copy(selectedTagId = tagId) }
     }
 
-    fun showCreateTagDialog() {
-        updateState { copy(showCreateTagDialog = true) }
-    }
-
-    fun dismissCreateTagDialog() {
-        updateState { copy(showCreateTagDialog = false) }
-    }
-
     fun createTag(name: String) {
         viewModelScope.launch {
             tagUseCases.createTag(name).fold(
                 onSuccess = { tag ->
-                    updateState { copy(showCreateTagDialog = false, selectedTagId = tag.id) }
+                    updateState { copy(selectedTagId = tag.id) }
                 },
                 onFailure = { }
             )
@@ -183,11 +177,14 @@ class ImportViewModel(
             ).fold(
                 onSuccess = { count ->
                     val newCount = currentState.textInputState.wordsAddedCount + count
+                    val added = AddedWord(word = textState.word.trim(), translation = textState.translation.trim())
+                    val recent = (listOf(added) + currentState.textInputState.recentWords).take(MaxRecentWords)
                     updateState {
                         copy(
                             textInputState = TextInputState(
                                 wordsAddedCount = newCount,
                                 showSuccessIndicator = true,
+                                recentWords = recent,
                             )
                         )
                     }

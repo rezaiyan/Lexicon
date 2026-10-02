@@ -1,16 +1,20 @@
 package feature.study.ui.review
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,23 +23,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import components.animation.rememberAnimatedCounter
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.completion_cards_reviewed
 import lexicon.resources.generated.resources.completion_forgot
 import lexicon.resources.generated.resources.completion_remembered
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
+/** Remembered / forgot split bar above two stat tiles. */
 @Composable
 internal fun StatsSection(
     knownCount: Int,
     unknownCount: Int,
-    totalCount: Int,
     modifier: Modifier = Modifier,
 ) {
     val animatedKnown = rememberAnimatedCounter(knownCount)
@@ -43,41 +48,24 @@ internal fun StatsSection(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
-        // Total cards label
-        Text(
-            text = stringResource(Res.string.completion_cards_reviewed, totalCount),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        // Proportional bar
-        ProportionalBar(
-            knownCount = knownCount,
-            unknownCount = unknownCount,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.md),
-        )
-
-        Spacer(Modifier.height(Theme.spacing.xxs))
-
-        // Stat cards row
+        SplitBar(knownCount = knownCount, unknownCount = unknownCount)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
         ) {
-            StatCard(
+            StatTile(
                 count = animatedKnown,
                 label = stringResource(Res.string.completion_remembered),
+                icon = Icons.Default.Check,
                 accentColor = Theme.colors.success,
                 modifier = Modifier.weight(1f),
             )
-            StatCard(
+            StatTile(
                 count = animatedUnknown,
                 label = stringResource(Res.string.completion_forgot),
+                icon = Icons.Default.Close,
                 accentColor = MaterialTheme.colorScheme.error,
                 modifier = Modifier.weight(1f),
             )
@@ -86,76 +74,67 @@ internal fun StatsSection(
 }
 
 @Composable
-private fun ProportionalBar(
-    knownCount: Int,
-    unknownCount: Int,
-    modifier: Modifier = Modifier,
-) {
+private fun SplitBar(knownCount: Int, unknownCount: Int) {
     val total = knownCount + unknownCount
     if (total == 0) return
-
     val knownFraction = knownCount.toFloat() / total
     val knownPercent = (knownFraction * 100).toInt()
-    val successColor = Theme.colors.success
-    val errorColor = MaterialTheme.colorScheme.error
 
     Row(
-        modifier = modifier
-            .height(8.dp)
-            .clip(RoundedCornerShape(4.dp))
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Theme.spacing.xs)
             .semantics {
                 contentDescription = "Results: $knownCount remembered ($knownPercent%), $unknownCount forgot"
             },
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        if (knownCount > 0) {
-            Box(
-                modifier = Modifier
-                    .weight(knownFraction)
-                    .height(8.dp)
-                    .background(successColor),
-            )
-        }
-        if (unknownCount > 0) {
-            Box(
-                modifier = Modifier
-                    .weight(1f - knownFraction)
-                    .height(8.dp)
-                    .background(errorColor),
-            )
-        }
+        if (knownCount > 0) BarSegment(weight = knownFraction, color = Theme.colors.success)
+        if (unknownCount > 0) BarSegment(weight = 1f - knownFraction, color = MaterialTheme.colorScheme.error)
     }
 }
 
 @Composable
-private fun StatCard(
+private fun androidx.compose.foundation.layout.RowScope.BarSegment(weight: Float, color: Color) {
+    Box(
+        modifier = Modifier
+            .weight(weight)
+            .height(Theme.spacing.xs)
+            .clip(RoundedCornerShape(Theme.shapes.pill))
+            .background(color),
+    )
+}
+
+@Composable
+private fun StatTile(
     count: Int,
     label: String,
+    icon: ImageVector,
     accentColor: Color,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(Theme.shapes.medium),
-        color = Theme.colors.surfaceContainerLow,
-        tonalElevation = Theme.elevation.low,
+        shape = RoundedCornerShape(Theme.shapes.large),
+        color = with(MaterialTheme.colorScheme) {
+            if (surface.luminance() < 0.5f) surfaceContainerHigh else surfaceContainerLowest
+        },
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = Theme.opacity.overlay)),
     ) {
         Row(
-            modifier = Modifier.padding(
-                horizontal = Theme.spacing.md,
-                vertical = Theme.spacing.sm,
-            ),
+            modifier = Modifier.padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
         ) {
-            // Color accent bar
             Box(
                 modifier = Modifier
-                    .width(4.dp)
-                    .height(32.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(accentColor),
-            )
-
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(Theme.shapes.medium))
+                    .background(accentColor.copy(alpha = Theme.opacity.focus)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(20.dp))
+            }
             Column {
                 Text(
                     text = "$count",
@@ -165,7 +144,7 @@ private fun StatCard(
                 )
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

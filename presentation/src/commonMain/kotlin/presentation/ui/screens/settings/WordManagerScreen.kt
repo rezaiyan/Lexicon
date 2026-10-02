@@ -32,8 +32,6 @@ import overlay.OverlayHost
 import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
-import overlay.fullscreen.FullScreenProperties
-import overlay.fullscreen.showFullScreen
 import presentation.util.shareContentAsFile
 import feature.words.WordManagerViewModel
 import theme.Theme
@@ -47,22 +45,11 @@ import lexicon.resources.generated.resources.share_title_format
 import lexicon.resources.generated.resources.tagging_words_please_wait
 import lexicon.resources.generated.resources.updating_words_please_wait
 import lexicon.resources.generated.resources.word_deleted
-import lexicon.resources.generated.resources.word_manager
+import lexicon.resources.generated.resources.words_tab
 import lexicon.resources.generated.resources.word_updated
 import lexicon.resources.generated.resources.words_deleted
 import lexicon.resources.generated.resources.words_language_updated
 import lexicon.resources.generated.resources.words_tagged
-
-fun OverlayHost.showWordManagerSheet() {
-    showFullScreen(
-        tag = "word-manager",
-        properties = FullScreenProperties(
-            dismissOnBackPress = false,
-        )
-    ) { nav ->
-        WordManagerContent(onDismiss = { nav.dismiss() })
-    }
-}
 
 private sealed interface WordDetailPage {
     data class Detail(val word: Word) : WordDetailPage
@@ -72,9 +59,7 @@ private sealed interface WordDetailPage {
 }
 
 @Composable
-internal fun WordManagerContent(
-    onDismiss: () -> Unit
-) {
+fun WordManagerScreen() {
     val viewModel = koinViewModel<WordManagerViewModel>()
     val state by viewModel.state()
     val snackbarHostState = LocalSnackbarHostState.current
@@ -151,16 +136,10 @@ internal fun WordManagerContent(
     }
 
     LexiconColumn(
-        title = stringResource(Res.string.word_manager),
-        showNavigationIcon = true,
+        title = stringResource(Res.string.words_tab),
+        showNavigationIcon = state.isSelectionMode,
         navigationIcon = Icons.Default.Close,
-        onNavigationClick = {
-            if (state.isSelectionMode) {
-                viewModel.exitSelectionMode()
-            } else {
-                onDismiss()
-            }
-        },
+        onNavigationClick = viewModel::exitSelectionMode,
         scrollable = false,
         topBarColor = TopBarColor.Background
     ) {
@@ -215,7 +194,8 @@ internal fun WordManagerContent(
                                         onDismiss = {
                                             nav.dismiss()
                                             viewModel.exitSelectionMode()
-                                        }
+                                        },
+                                        onClose = { nav.dismiss() },
                                     )
                                 }
                             }
@@ -264,6 +244,7 @@ internal fun WordManagerContent(
                                             viewModel.batchAssignTags(tagIds)
                                             nav.dismiss()
                                         },
+                                        onClose = { nav.dismiss() },
                                     )
                                 }
                             }
@@ -305,7 +286,7 @@ private fun OverlayHost.showWordDetailSheet(
 
         val pages = rememberBottomSheetPageNavigator<WordDetailPage>(WordDetailPage.Detail(word))
 
-        BottomSheetPages(navigator = pages, label = "wordDetailPages") { page ->
+        BottomSheetPages(navigator = pages, onClose = { sheetNav.dismiss() }, label = "wordDetailPages") { page ->
             when (page) {
                 is WordDetailPage.Detail -> {
                     val liveWord = liveState.words.find { it.id == page.word.id } ?: page.word
@@ -356,7 +337,7 @@ private fun ProgressOverlay(message: String) {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
         ) {
             CircularProgressIndicator(
                 modifier = Modifier.size(Theme.dimensions.touchTarget),

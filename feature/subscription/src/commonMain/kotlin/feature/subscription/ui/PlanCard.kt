@@ -97,8 +97,8 @@ fun PlanCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Theme.spacing.medium),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.small)
+                    .padding(Theme.spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
             ) {
                 if (isRecommended) {
                     Box(Modifier.fillMaxWidth()) {
@@ -110,8 +110,8 @@ fun PlanCard(
                                     RoundedCornerShape(20.dp)
                                 )
                                 .padding(
-                                    horizontal = Theme.spacing.extraSmall,
-                                    vertical = Theme.spacing.extraSmall2
+                                    horizontal = Theme.spacing.sm,
+                                    vertical = Theme.spacing.xs
                                 )
                         ) {
                             Icon(
@@ -119,7 +119,7 @@ fun PlanCard(
                                 contentDescription = null,
                                 tint = Color.White,
                                 modifier = Modifier
-                                    .padding(end = Theme.spacing.extraSmall3)
+                                    .padding(end = Theme.spacing.xxs)
                                     .size(12.dp)
                             )
                             Text(
@@ -165,7 +165,7 @@ fun PlanCard(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(Theme.spacing.extraSmall))
+                    Spacer(modifier = Modifier.height(Theme.spacing.sm))
 
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
@@ -176,7 +176,7 @@ fun PlanCard(
                         )
 
                         if (plan.hasFreeTrial && plan.trialPeriodDays != null) {
-                            Spacer(modifier = Modifier.height(Theme.spacing.extraSmall))
+                            Spacer(modifier = Modifier.height(Theme.spacing.sm))
                             Text(
                                 text = stringResource(Res.string.trial_then_price, plan.trialPeriodDays, plan.price),
                                 modifier = Modifier.fillMaxWidth(),
@@ -186,7 +186,7 @@ fun PlanCard(
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(Theme.spacing.extraSmall))
+                        Spacer(modifier = Modifier.height(Theme.spacing.sm))
 
                         Text(
                             text = plan.description,
@@ -197,13 +197,13 @@ fun PlanCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(Theme.spacing.small))
+                Spacer(modifier = Modifier.height(Theme.spacing.md))
 
                 Button(
                     onClick = onClick,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isPurchasing,
-                    shape = RoundedCornerShape(Theme.spacing.extraSmall2),
+                    shape = RoundedCornerShape(Theme.spacing.xs),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = plan.accentColor,
                         contentColor = Color.White
@@ -214,7 +214,7 @@ fun PlanCard(
                             modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                             color = Color.White
                         )
-                        Spacer(modifier = Modifier.width(Theme.spacing.small))
+                        Spacer(modifier = Modifier.width(Theme.spacing.md))
                     }
                     Text(
                         text = when {

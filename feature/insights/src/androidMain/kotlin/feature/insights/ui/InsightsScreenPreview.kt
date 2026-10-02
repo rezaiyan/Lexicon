@@ -78,7 +78,6 @@ private fun InsightsScreenPreview() {
     LexiconTheme {
         InsightsContent(
             state = previewState,
-            onNavigateBack = {},
         )
     }
 }
@@ -89,7 +88,6 @@ private fun InsightsScreenLoadingPreview() {
     LexiconTheme {
         InsightsContent(
             state = InsightsState(),
-            onNavigateBack = {},
         )
     }
 }
@@ -100,7 +98,6 @@ private fun InsightsScreenDarkPreview() {
     LexiconTheme(darkTheme = true) {
         InsightsContent(
             state = previewState,
-            onNavigateBack = {},
         )
     }
 }
@@ -111,7 +108,6 @@ private fun InsightsScreenDailyInsightPreview() {
     LexiconTheme {
         InsightsContent(
             state = previewState.copy(dailyInsight = "You study best at 9 AM — try to start your sessions then!"),
-            onNavigateBack = {},
         )
     }
 }
@@ -142,7 +138,6 @@ private fun InsightsScreenEmptyPreview() {
                 heatmap = UiState.Loaded(emptyList()),
                 bestStudyTime = UiState.Loaded(null),
             ),
-            onNavigateBack = {},
         )
     }
 }
@@ -159,7 +154,6 @@ private fun InsightsScreenErrorPreview() {
                 heatmap = UiState.Error("Failed to load insights"),
                 bestStudyTime = UiState.Error("Failed to load insights"),
             ),
-            onNavigateBack = {},
         )
     }
 }

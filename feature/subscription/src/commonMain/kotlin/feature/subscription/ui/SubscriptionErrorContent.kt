@@ -34,9 +34,9 @@ fun SubscriptionErrorContent(
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.padding(Theme.spacing.medium),
+            modifier = Modifier.padding(Theme.spacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
         ) {
             Icon(
                 imageVector = Icons.Default.Star,
@@ -62,7 +62,7 @@ fun SubscriptionErrorContent(
             Button(
                 onClick = onRetryClick,
                 modifier = Modifier.fillMaxSize(),
-                shape = RoundedCornerShape(Theme.spacing.extraSmall2)
+                shape = RoundedCornerShape(Theme.spacing.xs)
             ) {
                 Text(stringResource(Res.string.retry), fontWeight = FontWeight.Bold)
             }

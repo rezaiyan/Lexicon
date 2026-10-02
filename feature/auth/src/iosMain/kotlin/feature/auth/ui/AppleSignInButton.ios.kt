@@ -44,7 +44,7 @@ actual fun AppleSignInButton(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(Theme.dimensions.buttonHeight)
-                    .clip(RoundedCornerShape(Theme.shapes.medium))
+                    .clip(RoundedCornerShape(Theme.shapes.pill))
             ) {
                 appleSignInHelper.signIn(
                     onSuccess = { idToken, fullName, appleUserId ->

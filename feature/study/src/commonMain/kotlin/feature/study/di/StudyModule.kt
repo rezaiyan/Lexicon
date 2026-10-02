@@ -35,6 +35,7 @@ fun studyModule() = module {
             tagUseCases = StudyTagUseCases(
                 getDueTags = get(),
                 getTagsByLevel = get(),
+                getTags = get(),
                 getSkipTagSelector = get(),
                 setSkipTagSelector = get(),
             ),

@@ -60,8 +60,8 @@ private fun SubscriptionPlansPreview() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(Theme.spacing.medium),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+                    .padding(Theme.spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
             ) {
                 plans.forEachIndexed { index, plan ->
                     PlanCard(
@@ -89,8 +89,8 @@ private fun SubscriptionScreenPreview() {
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(Theme.spacing.medium),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+                    .padding(Theme.spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
             ) {
                 PremiumFeaturesGrid()
 
@@ -108,7 +108,7 @@ private fun SubscriptionScreenPreview() {
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = Theme.spacing.extraSmall)
+                        .padding(top = Theme.spacing.sm)
                 )
 
                 Text(
@@ -118,7 +118,7 @@ private fun SubscriptionScreenPreview() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(Theme.spacing.medium)
+                        .padding(Theme.spacing.lg)
                 )
             }
         }
@@ -133,7 +133,7 @@ private fun PremiumHeroSectionPreview() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(Theme.spacing.medium),
+                .padding(Theme.spacing.lg),
             contentAlignment = Alignment.Center
         ) {
             PremiumHeroSection()
@@ -149,7 +149,7 @@ private fun ComparisonTablePreview() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(Theme.spacing.medium),
+                .padding(Theme.spacing.lg),
             contentAlignment = Alignment.Center
         ) {
             ComparisonTable()
@@ -165,7 +165,7 @@ private fun PremiumFeaturesGridPreview() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(Theme.spacing.medium),
+                .padding(Theme.spacing.lg),
             contentAlignment = Alignment.Center
         ) {
             PremiumFeaturesGrid()

@@ -80,7 +80,7 @@ fun PremiumFeaturesGrid() {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
     ) {
         Text(
             text = stringResource(Res.string.everything_you_get),
@@ -90,7 +90,7 @@ fun PremiumFeaturesGrid() {
         )
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.small)
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
         ) {
             features.forEach { feature ->
                 FeatureCard(

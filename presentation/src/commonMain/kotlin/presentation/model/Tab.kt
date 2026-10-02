@@ -8,5 +8,9 @@ sealed interface TabDestination {
     data object Study : TabDestination
 
     @Serializable
-    data object Settings : TabDestination
+    data object Words : TabDestination
 }
+
+/** Pushed on top of the Study tab from its top-bar gear; not a tab itself. */
+@Serializable
+data object SettingsRoute

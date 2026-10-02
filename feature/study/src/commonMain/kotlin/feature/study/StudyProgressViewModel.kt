@@ -12,6 +12,7 @@ import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.model.Tag
 import domain.tag.usecase.GetDueTagsUseCase
 import domain.tag.usecase.GetTagsByLevelUseCase
+import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import feature.study.model.ProgressScreenState
@@ -26,6 +27,7 @@ import performance.IPerformanceTracer
 data class StudyTagUseCases(
     val getDueTags: GetDueTagsUseCase,
     val getTagsByLevel: GetTagsByLevelUseCase,
+    val getTags: GetTagsUseCase,
     val getSkipTagSelector: GetSkipTagSelectorUseCase,
     val setSkipTagSelector: SetSkipTagSelectorUseCase,
 )
@@ -34,6 +36,7 @@ data class StudyProgressState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,
     val hasPremiumAccess: Boolean = false,
     val dueTags: List<Tag> = emptyList(),
+    val tags: List<Tag> = emptyList(),
     val skipTagSelector: Boolean = false,
     val stageTagsMap: Map<Int, List<Tag>> = emptyMap(),
 )
@@ -56,6 +59,7 @@ class StudyProgressViewModel(
         observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
         startObservingDueTags()
+        startObservingTags()
         observeSkipTagSelector()
         startObservingTagsByLevel()
     }
@@ -65,6 +69,14 @@ class StudyProgressViewModel(
             tagUseCases.getDueTags()
                 .catch { }
                 .collect { tags -> updateState { copy(dueTags = tags) } }
+        }
+    }
+
+    private fun startObservingTags() {
+        viewModelScope.launch {
+            tagUseCases.getTags()
+                .catch { }
+                .collect { tags -> updateState { copy(tags = tags) } }
         }
     }
 

@@ -34,6 +34,12 @@ object AppColors {
     val accentPink = Color(0xFFEC4899)
     val accentIndigo = Color(0xFF818CF8)
 
+    // Login screen — light-theme backdrop gradient (top → middle → bottom) and brand ink
+    val loginGradientTop = Color(0xFFF3E4F6)
+    val loginGradientMiddle = Color(0xFFEBC6EC)
+    val loginGradientBottom = Color(0xFFD3AEF5)
+    val brandInk = Color(0xFF3F24A8)
+
     // Settings icon colors — fixed across light/dark themes
     val settingsLanguageIcon = Color(0xFF9C27B0)
     val settingsThemeIcon = Color(0xFFE91E63)

@@ -5,9 +5,7 @@ import domain.auth.manager.IUserManager
 import core.common.fold
 import core.error.toUserMessage
 import domain.profile.model.AliasValidationResult
-import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.UpdateProfileUseCase
-import domain.profile.usecase.UploadAvatarUseCase
 import domain.profile.usecase.ValidateDisplayAliasUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -15,12 +13,10 @@ import core.base.BaseViewModel
 
 data class EditProfileState(
     val displayAlias: String = "",
-    val profileImageUrl: String? = null,
     val name: String = "",
     val email: String = "",
     val isSaving: Boolean = false,
     val errorMessage: String? = null,
-    val isUploadingAvatar: Boolean = false,
 )
 
 sealed interface EditProfileEffect {
@@ -30,8 +26,6 @@ sealed interface EditProfileEffect {
 class EditProfileViewModel(
     private val userManager: IUserManager,
     private val updateProfileUseCase: UpdateProfileUseCase,
-    private val uploadAvatarUseCase: UploadAvatarUseCase,
-    private val deleteAvatarUseCase: DeleteAvatarUseCase,
     private val validateDisplayAliasUseCase: ValidateDisplayAliasUseCase,
 ) : BaseViewModel<EditProfileState, EditProfileEffect>() {
 
@@ -47,7 +41,6 @@ class EditProfileViewModel(
             updateState {
                 copy(
                     displayAlias = user.displayAlias ?: "",
-                    profileImageUrl = user.profileImageUrl,
                     name = user.name,
                     email = user.email
                 )
@@ -101,51 +94,4 @@ class EditProfileViewModel(
         }
     }
 
-    fun uploadAvatar(imageBytes: ByteArray, mimeType: String) {
-        viewModelScope.launch {
-            updateState { copy(isUploadingAvatar = true) }
-
-            uploadAvatarUseCase(imageBytes, mimeType).fold(
-                onSuccess = { url ->
-                    updateState { copy(isUploadingAvatar = false, profileImageUrl = url) }
-                    val currentUser = userManager.observeUser().first()
-                    if (currentUser != null) {
-                        userManager.setUser(currentUser.copy(profileImageUrl = url))
-                    }
-                },
-                onFailure = { error ->
-                    updateState {
-                        copy(
-                            isUploadingAvatar = false,
-                            errorMessage = error.toUserMessage(),
-                        )
-                    }
-                }
-            )
-        }
-    }
-
-    fun deleteAvatar() {
-        viewModelScope.launch {
-            updateState { copy(isUploadingAvatar = true) }
-
-            deleteAvatarUseCase().fold(
-                onSuccess = {
-                    updateState { copy(isUploadingAvatar = false, profileImageUrl = null) }
-                    val currentUser = userManager.observeUser().first()
-                    if (currentUser != null) {
-                        userManager.setUser(currentUser.copy(profileImageUrl = null))
-                    }
-                },
-                onFailure = { error ->
-                    updateState {
-                        copy(
-                            isUploadingAvatar = false,
-                            errorMessage = error.toUserMessage(),
-                        )
-                    }
-                }
-            )
-        }
-    }
 }

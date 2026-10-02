@@ -1,235 +1,228 @@
 package presentation.ui.components.imports
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.animation.AiScanOverlay
+import components.sheet.SheetPage
+import components.sheet.SheetPrimaryButton
+import components.sheet.SheetSectionLabel
+import components.sheet.SheetTonalButton
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cancel
-import lexicon.resources.generated.resources.image_too_large_warning
-import lexicon.resources.generated.resources.confirm_and_extract
+import lexicon.resources.generated.resources.extract_words
 import lexicon.resources.generated.resources.failed_to_load_image
+import lexicon.resources.generated.resources.image_too_large_warning
+import lexicon.resources.generated.resources.photo_preview_title
+import lexicon.resources.generated.resources.photo_quality
 import lexicon.resources.generated.resources.preview_selected_image
+import lexicon.resources.generated.resources.retake
 import lexicon.resources.generated.resources.try_another_image
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import utils.LexiconFormatters
 import utils.toImageBitmap
 
+private const val MaxImageBytes = 5 * 1024 * 1024
+private val ErrorPlaceholderHeight = 180.dp
+
+// Portrait shots are letterboxed at 3:4 so the quality slider stays above the fold
+private const val MinAspectRatio = 0.75f
+private const val MaxAspectRatio = 2.5f
+
+/** "Looks good?" — the picked photo, quality control and extract / retake actions. */
 @Composable
-internal fun ImagePreviewCard(
+internal fun PhotoPreviewPage(
     imageBytes: ByteArray,
     isLoading: Boolean,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
     isEnabled: Boolean,
     imageQuality: Float,
     onQualityChange: (Float) -> Unit,
+    onConfirm: () -> Unit,
+    onRetake: () -> Unit,
 ) {
     val imageBitmap = remember(imageBytes) { imageBytes.toImageBitmap() }
+    val isTooBig = imageBytes.size > MaxImageBytes
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Theme.spacing.sm),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+    SheetPage(
+        title = stringResource(Res.string.photo_preview_title),
+        footer = {
+            Row(horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+                SheetTonalButton(
+                    text = stringResource(Res.string.retake),
+                    onClick = onRetake,
+                    enabled = isEnabled,
+                    modifier = Modifier.width(IntrinsicSize.Max),
+                )
+                SheetPrimaryButton(
+                    text = stringResource(Res.string.extract_words),
+                    onClick = onConfirm,
+                    enabled = isEnabled && imageBitmap != null && !isTooBig,
+                    isLoading = isLoading,
+                    icon = Icons.Default.AutoAwesome,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        },
     ) {
         if (imageBitmap != null) {
             val aspectRatio = remember(imageBitmap) {
-                (imageBitmap.width.toFloat() / imageBitmap.height.toFloat())
-                    .coerceIn(0.5f, 2.5f)
+                (imageBitmap.width.toFloat() / imageBitmap.height.toFloat()).coerceIn(MinAspectRatio, MaxAspectRatio)
             }
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(Theme.shapes.medium)),
+                    .clip(RoundedCornerShape(Theme.shapes.extraLarge - Theme.spacing.xxs)),
             ) {
                 Image(
                     bitmap = imageBitmap,
                     contentDescription = stringResource(Res.string.preview_selected_image),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(aspectRatio),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio),
                     contentScale = ContentScale.Fit,
                 )
-
-                Column(modifier = Modifier.matchParentSize()) {
-                    AnimatedVisibility(
-                        visible = isLoading,
-                        enter = fadeIn(tween(400)),
-                        exit = fadeOut(tween(300)),
-                    ) {
-                        AiScanOverlay(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(aspectRatio),
-                        )
-                    }
+                // Explicit call: inside Box the page's ColumnScope overload would be picked otherwise
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isLoading,
+                    enter = fadeIn(tween(Theme.motion.durationLong)),
+                    exit = fadeOut(tween(Theme.motion.durationMedium)),
+                    modifier = Modifier.matchParentSize(),
+                ) {
+                    AiScanOverlay(modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio))
                 }
             }
         } else {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp),
-                shape = RoundedCornerShape(Theme.shapes.medium),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                ),
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    ImageLoadError()
-                }
-            }
+            ImageLoadError()
         }
 
-        val isTooBig = imageBytes.size > 5 * 1024 * 1024
-        var sliderValue by remember(imageQuality) { mutableStateOf(imageQuality) }
+        if (imageBitmap != null && !isLoading) {
+            QualityControl(
+                imageBytes = imageBytes,
+                isTooBig = isTooBig,
+                isEnabled = isEnabled,
+                imageQuality = imageQuality,
+                onQualityChange = onQualityChange,
+            )
+        }
 
-        AnimatedVisibility(
-            visible = imageBitmap != null && !isLoading,
-            enter = fadeIn(tween(300, 150)) + expandVertically(tween(300, 150)),
-            exit = fadeOut(tween(200)) + shrinkVertically(tween(200)),
-        ) {
-            Column(
+        if (isTooBig) {
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding(),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+                    .semantics { liveRegion = LiveRegionMode.Polite }
+                    .clip(RoundedCornerShape(Theme.shapes.medium))
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs + Theme.spacing.xxxs),
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Theme.spacing.xxs),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        "Quality",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        LexiconFormatters.fileSizeApprox(imageBytes.size),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (isTooBig) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Slider(
-                    value = sliderValue,
-                    onValueChange = { sliderValue = it },
-                    onValueChangeFinished = { onQualityChange(sliderValue) },
-                    valueRange = 0.2f..1.0f,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = isEnabled,
+                Icon(
+                    Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                 )
-                if (isTooBig) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = Theme.spacing.xxs),
-                        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            Icons.Filled.Warning,
-                            contentDescription = null,
-                            modifier = Modifier.size(Theme.dimensions.iconSize / 2),
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                        Text(
-                            stringResource(Res.string.image_too_large_warning),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
-                Button(
-                    onClick = onConfirm,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(Theme.dimensions.buttonHeight),
-                    enabled = isEnabled && imageBitmap != null && !isTooBig,
-                    shape = RoundedCornerShape(Theme.shapes.medium),
-                ) {
-                    Text(stringResource(Res.string.confirm_and_extract))
-                }
-                TextButton(
-                    onClick = onCancel,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = isEnabled,
-                ) {
-                    Text(stringResource(Res.string.cancel))
-                }
+                Text(
+                    stringResource(Res.string.image_too_large_warning),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
             }
         }
     }
 }
 
 @Composable
+private fun QualityControl(
+    imageBytes: ByteArray,
+    isTooBig: Boolean,
+    isEnabled: Boolean,
+    imageQuality: Float,
+    onQualityChange: (Float) -> Unit,
+) {
+    var sliderValue by remember(imageQuality) { mutableFloatStateOf(imageQuality) }
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SheetSectionLabel(stringResource(Res.string.photo_quality), Modifier.weight(1f))
+            Text(
+                LexiconFormatters.fileSizeApprox(imageBytes.size),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (isTooBig) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Slider(
+            value = sliderValue,
+            onValueChange = { sliderValue = it },
+            onValueChangeFinished = { onQualityChange(sliderValue) },
+            valueRange = 0.2f..1.0f,
+            enabled = isEnabled,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
 private fun ImageLoadError() {
     Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(ErrorPlaceholderHeight)
+            .clip(RoundedCornerShape(Theme.shapes.extraLarge - Theme.spacing.xxs))
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(Theme.spacing.md),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-        modifier = Modifier.padding(Theme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs, Alignment.CenterVertically),
     ) {
         Icon(
-            Icons.Filled.Info,
+            Icons.Default.Info,
             contentDescription = null,
-            modifier = Modifier.size(Theme.dimensions.iconSize),
             tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(Theme.dimensions.iconSize),
         )
         Text(
             stringResource(Res.string.failed_to_load_image),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
         Text(
             stringResource(Res.string.try_another_image),
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
