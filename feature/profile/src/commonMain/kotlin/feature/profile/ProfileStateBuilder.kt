@@ -68,8 +68,7 @@ internal object ProfileStateBuilder {
         return ProfileUserUiModel(
             name = this.name,
             email = this.email,
-            displayAlias = this.displayAlias,
-            profileImageUrl = this.profileImageUrl
+            displayAlias = this.displayAlias
         )
     }
 }

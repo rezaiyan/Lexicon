@@ -38,7 +38,6 @@ fun SubscriptionCard(
                 null
             },
             iconBackgroundColor = AppColors.settingsSubscriptionIcon,
-            solidIconBackground = true,
             onClick = onClick,
             trailingContent = if (isSubscribed.not()) {
                 {

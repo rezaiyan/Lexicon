@@ -1,5 +1,6 @@
 package presentation.ui.screens.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,13 +11,18 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import domain.word.model.LearningStage
@@ -67,30 +73,43 @@ internal fun WordListContent(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            SearchBar(
-                searchQuery = state.searchQuery,
-                onSearchQueryChange = onSearchQueryChange,
-                onClearSearch = onClearSearch
-            )
+            var filtersExpanded by rememberSaveable { mutableStateOf(false) }
+            val filtersActive = state.sortOption != WordSortOption.DATE_ADDED_DESC ||
+                state.filterLanguage != null ||
+                state.filterLearningStage != null
 
-            FilterChipsRow(
-                sortOption = state.sortOption,
-                filterLanguage = state.filterLanguage,
-                filterLearningStage = state.filterLearningStage,
-                filterTagId = state.filterTagId,
-                tags = state.tags,
-                availableLanguages = state.availableLanguages,
-                onSortOptionChange = onSortOptionChange,
-                onFilterLanguageChange = onFilterLanguageChange,
-                onFilterLearningStageChange = onFilterLearningStageChange,
-                onFilterTagChange = onFilterTagChange
-            )
+            Column(
+                modifier = Modifier.padding(top = Theme.spacing.xs, bottom = Theme.spacing.md),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
+            ) {
+                SearchRow(
+                    searchQuery = state.searchQuery,
+                    onSearchQueryChange = onSearchQueryChange,
+                    onClearSearch = onClearSearch,
+                    filtersActive = filtersActive,
+                    filtersExpanded = filtersExpanded,
+                    onToggleFilters = { filtersExpanded = !filtersExpanded }
+                )
 
-            WordCountSummary(
-                filteredCount = state.filteredWords.size,
-                totalCount = state.words.size,
-                isFiltered = state.isFiltered
-            )
+                AnimatedVisibility(visible = filtersExpanded) {
+                    FilterChipsRow(
+                        sortOption = state.sortOption,
+                        filterLanguage = state.filterLanguage,
+                        filterLearningStage = state.filterLearningStage,
+                        availableLanguages = state.availableLanguages,
+                        onSortOptionChange = onSortOptionChange,
+                        onFilterLanguageChange = onFilterLanguageChange,
+                        onFilterLearningStageChange = onFilterLearningStageChange,
+                    )
+                }
+
+                TagChipsRow(
+                    totalCount = state.words.size,
+                    tags = state.tags,
+                    selectedTagId = state.filterTagId,
+                    onTagSelected = onFilterTagChange
+                )
+            }
 
             val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             LazyColumn(
@@ -117,14 +136,16 @@ internal fun WordListContent(
                     bottom = if (state.isSelectionMode) {
                         Theme.dimensions.bottomBarHeight + navBarBottom
                     } else {
-                        Theme.spacing.small + navBarBottom
+                        Theme.spacing.md + navBarBottom
                     }
                 ),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall2)
             ) {
-                items(state.filteredWords, key = { it.id }) { word ->
+                val lastIndex = state.filteredWords.lastIndex
+                itemsIndexed(state.filteredWords, key = { _, word -> word.id }) { index, word ->
                     WordCard(
                         word = word,
+                        isFirst = index == 0,
+                        isLast = index == lastIndex,
                         isSelected = state.selectedWordIds.contains(word.id),
                         isSelectionMode = state.isSelectionMode,
                         onTap = {

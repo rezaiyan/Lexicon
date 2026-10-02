@@ -1,61 +1,69 @@
 package presentation.ui.components.imports
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import components.animation.staggeredFadeSlide
+import components.sheet.SheetPage
+import components.sheet.SheetPrimaryButton
+import components.sheet.SheetSectionLabel
+import domain.tag.model.Tag
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.add_words_file_title
+import lexicon.resources.generated.resources.choose_a_file
 import lexicon.resources.generated.resources.choose_file
+import lexicon.resources.generated.resources.file_hint
+import lexicon.resources.generated.resources.file_import_subtitle
 import lexicon.resources.generated.resources.format_example_1
 import lexicon.resources.generated.resources.format_example_2
 import lexicon.resources.generated.resources.format_example_3
-import lexicon.resources.generated.resources.import_from_file
+import lexicon.resources.generated.resources.how_to_format
 import lexicon.resources.generated.resources.processing_file
-import lexicon.resources.generated.resources.select_txt_file_description
-import lexicon.resources.generated.resources.supported_format
-import lexicon.resources.generated.resources.txt_format
 import org.jetbrains.compose.resources.stringResource
+import theme.AppColors
 import theme.Theme
+import utils.Language
 import utils.rememberTextFilePickerLauncher
+
+private val SampleLines = listOf(
+    "die Wohnung, apartment",
+    "vereinbaren, to arrange",
+    "der Vertrag; contract; legal agreement",
+)
 
 @Composable
 internal fun FileImportContent(
-    isEnabled: Boolean,
     isLoading: Boolean,
+    sourceLanguage: Language,
+    targetLanguage: Language,
+    tags: List<Tag>,
+    selectedTagId: Long?,
+    onTagSelected: (Long?) -> Unit,
+    onCreateTag: () -> Unit,
+    onChangeLanguage: () -> Unit,
     importFile: (String, String?) -> Unit,
-    onDismiss: () -> Unit,
 ) {
     val filePickerLauncher = rememberTextFilePickerLauncher { fileContent, fileName ->
         if (fileContent != null) {
@@ -65,186 +73,129 @@ internal fun FileImportContent(
         }
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
-        ) {
-            FileSourceHeader(
-                modifier = Modifier.staggeredFadeSlide(0),
-            )
-
-            FileDropZone(
+    SheetPage(
+        title = stringResource(Res.string.add_words_file_title),
+        subtitle = stringResource(Res.string.file_import_subtitle),
+        headerAccessory = {
+            LanguagePairChip(source = sourceLanguage, target = targetLanguage, onClick = onChangeLanguage)
+        },
+        footer = {
+            SheetPrimaryButton(
+                text = stringResource(Res.string.choose_file),
                 onClick = filePickerLauncher,
-                isEnabled = isEnabled && !isLoading,
                 isLoading = isLoading,
-                modifier = Modifier.staggeredFadeSlide(1),
             )
+        },
+    ) {
+        FileDropZone(onClick = filePickerLauncher, isLoading = isLoading)
 
-            SupportedFormatsSection(
-                modifier = Modifier.staggeredFadeSlide(2),
-            )
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+            SheetSectionLabel(stringResource(Res.string.how_to_format))
+            FormatSample()
+            listOf(Res.string.format_example_1, Res.string.format_example_2, Res.string.format_example_3).forEach {
+                FormatRule(stringResource(it))
+            }
         }
 
-        TextButton(
-            onClick = onDismiss,
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .imePadding(),
-            enabled = isEnabled,
-        ) {
-            Text(stringResource(Res.string.cancel))
-        }
+        TagSelectorRow(
+            tags = tags,
+            selectedTagId = selectedTagId,
+            onTagSelected = onTagSelected,
+            onCreateTag = onCreateTag,
+        )
     }
 }
 
 @Composable
-private fun FileSourceHeader(
-    modifier: Modifier = Modifier,
-) {
+private fun FileDropZone(onClick: () -> Unit, isLoading: Boolean) {
+    val accent = MaterialTheme.colorScheme.primary
+    val shape = RoundedCornerShape(Theme.shapes.extraLarge - Theme.spacing.xxs)
     Column(
-        modifier = modifier,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(accent.copy(alpha = Theme.opacity.hover / 2))
+            .border(Theme.dimensions.borderWidth * 2, accent.copy(alpha = Theme.opacity.dimming), shape)
+            .clickable(enabled = !isLoading, role = Role.Button, onClick = onClick)
+            .padding(vertical = Theme.spacing.xl, horizontal = Theme.spacing.lg),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(Theme.dimensions.iconSizeMassive - Theme.spacing.xxs)
+                .clip(CircleShape)
+                .background(accent.copy(alpha = Theme.opacity.focus)),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(Theme.dimensions.iconSize),
+                    strokeWidth = Theme.spacing.xxxs,
+                )
+            } else {
+                Icon(
+                    Icons.Default.UploadFile,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(Theme.dimensions.iconSizeLarge),
+                )
+            }
+        }
+        Text(
+            text = stringResource(if (isLoading) Res.string.processing_file else Res.string.choose_a_file),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            text = stringResource(Res.string.file_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun FormatSample() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(MaterialTheme.colorScheme.inverseSurface)
+            .padding(Theme.spacing.md),
         verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        SampleLines.forEach { line ->
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodyMedium,
+                fontFamily = FontFamily.Monospace,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun FormatRule(text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs + Theme.spacing.xxxs),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(Theme.dimensions.iconSizeMedium)
+                .clip(CircleShape)
+                .background(AppColors.secondary.copy(alpha = Theme.opacity.focus)),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
-                Icons.Filled.UploadFile,
+                Icons.Default.Check,
                 contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSize),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                stringResource(Res.string.import_from_file),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                tint = AppColors.secondary,
+                modifier = Modifier.size(Theme.dimensions.iconSizeSmall - Theme.spacing.xxs),
             )
         }
-        Text(
-            stringResource(Res.string.select_txt_file_description),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-@Composable
-private fun FileDropZone(
-    onClick: () -> Unit,
-    isEnabled: Boolean,
-    isLoading: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val borderColor = MaterialTheme.colorScheme.outlineVariant
-    val cornerRadiusDp = Theme.shapes.large
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .drawBehind {
-                drawRoundRect(
-                    color = borderColor,
-                    style = Stroke(
-                        width = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(
-                            floatArrayOf(8.dp.toPx(), 5.dp.toPx()),
-                        ),
-                    ),
-                    cornerRadius = CornerRadius(cornerRadiusDp.toPx()),
-                )
-            }
-            .padding(Theme.spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
-    ) {
-        Surface(
-            modifier = Modifier.size(Theme.dimensions.iconSizeHuge),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(Theme.dimensions.iconSize),
-                        color = MaterialTheme.colorScheme.primary,
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Icon(
-                        Icons.Filled.UploadFile,
-                        contentDescription = null,
-                        modifier = Modifier.size(Theme.dimensions.iconSize),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            }
-        }
-
-        if (isLoading) {
-            Text(
-                stringResource(Res.string.processing_file),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-            ) {
-                Button(
-                    onClick = onClick,
-                    enabled = isEnabled,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(Theme.dimensions.buttonHeightSmall),
-                    shape = RoundedCornerShape(Theme.shapes.small),
-                ) {
-                    Text(stringResource(Res.string.choose_file))
-                }
-                Text(
-                    stringResource(Res.string.txt_format),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun SupportedFormatsSection(
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        modifier = modifier.padding(horizontal = Theme.spacing.xxs),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-    ) {
-        Text(
-            stringResource(Res.string.supported_format),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
-            FormatExample(Res.string.format_example_1)
-            FormatExample(Res.string.format_example_2)
-            FormatExample(Res.string.format_example_3)
-        }
-    }
-}
-
-@Composable
-private fun FormatExample(res: org.jetbrains.compose.resources.StringResource) {
-    Text(
-        text = stringResource(res),
-        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-    )
 }

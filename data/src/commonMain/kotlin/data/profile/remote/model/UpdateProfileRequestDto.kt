@@ -7,8 +7,3 @@ data class UpdateProfileRequestDto(
     val name: String? = null,
     val displayAlias: String? = null
 )
-
-@Serializable
-data class AvatarResponseDto(
-    val profileImageUrl: String
-)

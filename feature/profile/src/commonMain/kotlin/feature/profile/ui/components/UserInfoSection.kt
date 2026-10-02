@@ -9,10 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -29,56 +26,109 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import feature.profile.model.ProfileUserUiModel
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.member_since
+import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
+/**
+ * Profile header card: compact avatar, display name, email and optional "member since" line.
+ * Display-only; profile editing lives in the Account section's "Edit profile" row.
+ */
 @Composable
 fun UserInfoSection(
     userInfo: ProfileUserUiModel,
+    memberSince: String?,
     modifier: Modifier = Modifier
 ) {
     val displayName = userInfo.displayAlias ?: userInfo.name.ifBlank { userInfo.email }
+    val memberSinceText = memberSince?.let {
+        stringResource(Res.string.member_since, remember(it) { formatMemberSince(it) })
+    }
 
-    Column(
+    Card(
         modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        shape = RoundedCornerShape(Theme.shapes.extraLarge - Theme.spacing.xxs),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.low),
     ) {
-        ProfileAvatar(
-            name = userInfo.name,
-            email = userInfo.email,
-            profileImageUrl = userInfo.profileImageUrl
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Theme.spacing.heroPadding),
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CompactAvatar(name = userInfo.name, email = userInfo.email)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.textGap),
+            ) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = userInfo.email,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (memberSinceText != null) {
+                    Text(
+                        text = memberSinceText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
+            }
+        }
+    }
+}
 
-        Spacer(modifier = Modifier.height(Theme.spacing.cardSpacingLarge))
-
-        Text(
-            text = displayName,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(Theme.spacing.extraSmall3))
-
-        Text(
-            text = userInfo.email,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
+@Composable
+private fun CompactAvatar(
+    name: String,
+    email: String,
+) {
+    val initials = remember(name, email) { extractInitials(name, email) }
+    Box(
+        modifier = Modifier
+            .size(Theme.dimensions.iconSizeMassive + Theme.spacing.xxs)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus)),
+        contentAlignment = Alignment.Center,
+    ) {
+        when {
+            initials != null -> Text(
+                text = initials,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            else -> Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
+            )
+        }
     }
 }
 
@@ -86,7 +136,6 @@ fun UserInfoSection(
 internal fun ProfileAvatar(
     name: String,
     email: String,
-    profileImageUrl: String? = null,
     modifier: Modifier = Modifier
 ) {
     val initials = remember(name, email) { extractInitials(name, email) }
@@ -156,14 +205,7 @@ internal fun ProfileAvatar(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                if (profileImageUrl != null) {
-                    AsyncImage(
-                        model = profileImageUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize().clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else if (initials != null) {
+                if (initials != null) {
                     Text(
                         text = initials,
                         style = MaterialTheme.typography.headlineLarge,

@@ -25,8 +25,6 @@ fun profileModule() = module {
         EditProfileViewModel(
             userManager = get(),
             updateProfileUseCase = get(),
-            uploadAvatarUseCase = get(),
-            deleteAvatarUseCase = get(),
             validateDisplayAliasUseCase = get(),
         )
     }

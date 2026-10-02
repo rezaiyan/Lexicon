@@ -3,6 +3,7 @@ package feature.study.ui.study
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -97,115 +99,122 @@ fun StatsSection(
                 )
             }
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Theme.spacing.md),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(Theme.spacing.heroPadding),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
             ) {
-                // Progress ring
-                ProgressRing(
-                    progress = evaluation.progressFraction,
-                    progressColor = accentColor,
-                    modifier = Modifier.size(110.dp)
-                        .semantics {
-                            stateDescription = if (evaluation.tier == ProgressTier.EMPTY) {
-                                "No progress yet"
-                            } else {
-                                "Overall progress: ${evaluation.progressPercent}%"
-                            }
-                        },
-                    trackColor = trackColor,
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier.padding(20.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (evaluation.tier == ProgressTier.EMPTY) {
-                                stringResource(Res.string.lets_go)
-                            } else {
-                                "${evaluation.progressPercent}%"
-                            },
-                            style = if (evaluation.tier == ProgressTier.EMPTY) {
-                                MaterialTheme.typography.titleMedium
-                            } else {
-                                MaterialTheme.typography.headlineSmall
-                            },
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center,
-                            maxLines = 2,
-                            lineHeight = 12.sp,
-                            autoSize = TextAutoSize.StepBased(
-                                minFontSize = 10.sp,
-                                maxFontSize = if (evaluation.tier == ProgressTier.EMPTY) {
-                                    MaterialTheme.typography.titleMedium.fontSize
+                    // Progress ring
+                    ProgressRing(
+                        progress = evaluation.progressFraction,
+                        progressColor = accentColor,
+                        modifier = Modifier.size(96.dp)
+                            .semantics {
+                                stateDescription = if (evaluation.tier == ProgressTier.EMPTY) {
+                                    "No progress yet"
                                 } else {
-                                    MaterialTheme.typography.headlineSmall.fontSize
-                                },
-                                stepSize = 1.sp
-                            )
-                        )
-                    }
-                }
-
-                Spacer(Modifier.width(Theme.spacing.md))
-
-                // Text + button column
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = tierTitle(evaluation.tier),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = accentColor,
-                        modifier = Modifier.semantics { heading() }
-                    )
-
-                    Spacer(Modifier.height(Theme.spacing.xxs))
-
-                    Text(
-                        text = tierSubtitle(evaluation.tier),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    val isEmpty = evaluation.tier == ProgressTier.EMPTY
-                    val hasDueCards = dueCards > 0
-
-                    if (isEmpty || hasDueCards) {
-                        Spacer(Modifier.height(Theme.spacing.sm))
-
-                        val buttonShape = RoundedCornerShape(Theme.shapes.pill)
+                                    "Overall progress: ${evaluation.progressPercent}%"
+                                }
+                            },
+                        trackColor = trackColor,
+                    ) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(buttonShape)
-                                .background(AppColors.primary)
-                                .combinedClickable(
-                                    onClick = if (isEmpty) onImportWords else onStartReview,
-                                    onLongClick = if (isEmpty) null else onStartReviewLongPress,
-                                )
-                                .padding(vertical = 10.dp, horizontal = 24.dp),
-                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(Theme.spacing.md),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = if (isEmpty) {
-                                    stringResource(Res.string.import_words)
+                                text = if (evaluation.tier == ProgressTier.EMPTY) {
+                                    stringResource(Res.string.lets_go)
                                 } else {
-                                    stringResource(Res.string.start_review)
+                                    "${evaluation.progressPercent}%"
                                 },
-                                maxLines = 1,
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelMedium,
+                                style = if (evaluation.tier == ProgressTier.EMPTY) {
+                                    MaterialTheme.typography.titleMedium
+                                } else {
+                                    MaterialTheme.typography.headlineSmall
+                                },
                                 fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                lineHeight = 12.sp,
                                 autoSize = TextAutoSize.StepBased(
                                     minFontSize = 10.sp,
-                                    maxFontSize = MaterialTheme.typography.labelMedium.fontSize,
+                                    maxFontSize = if (evaluation.tier == ProgressTier.EMPTY) {
+                                        MaterialTheme.typography.titleMedium.fontSize
+                                    } else {
+                                        MaterialTheme.typography.headlineSmall.fontSize
+                                    },
                                     stepSize = 1.sp
                                 )
                             )
                         }
+                    }
+
+                    Spacer(Modifier.width(Theme.spacing.md))
+
+                    // Title + subtitle
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = tierTitle(evaluation.tier),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = accentColor,
+                            modifier = Modifier.semantics { heading() }
+                        )
+
+                        Spacer(Modifier.height(Theme.spacing.textGap))
+
+                        Text(
+                            text = tierSubtitle(evaluation.tier),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                val isEmpty = evaluation.tier == ProgressTier.EMPTY
+                val hasDueCards = dueCards > 0
+
+                if (isEmpty || hasDueCards) {
+                    val buttonShape = RoundedCornerShape(Theme.shapes.pill)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = Theme.dimensions.touchTarget)
+                            .clip(buttonShape)
+                            .background(AppColors.primary)
+                            .combinedClickable(
+                                onClick = if (isEmpty) onImportWords else onStartReview,
+                                onLongClick = if (isEmpty) null else onStartReviewLongPress,
+                            )
+                            .padding(
+                                vertical = Theme.spacing.buttonPaddingVertical,
+                                horizontal = Theme.spacing.buttonPaddingHorizontal,
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = if (isEmpty) {
+                                stringResource(Res.string.import_words)
+                            } else {
+                                stringResource(Res.string.start_review)
+                            },
+                            maxLines = 1,
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            autoSize = TextAutoSize.StepBased(
+                                minFontSize = 10.sp,
+                                maxFontSize = MaterialTheme.typography.labelLarge.fontSize,
+                                stepSize = 1.sp
+                            )
+                        )
                     }
                 }
             }

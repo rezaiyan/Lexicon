@@ -31,10 +31,10 @@ fun TagsSection(
             title = stringResource(Res.string.tags),
             modifier = Modifier
                 .staggeredFadeSlide(index = 0, baseDelayMs = 0)
-                .padding(vertical = Theme.spacing.md)
+                .padding(top = Theme.spacing.sectionGap, bottom = Theme.spacing.sectionHeaderGap)
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.listGap)) {
             tags.forEachIndexed { index, tag ->
                 LevelBucketCard(
                     modifier = Modifier.staggeredFadeSlide(index + 1),

@@ -1,0 +1,3 @@
+-- Migration from version 12 to version 13
+-- Word deletes used to leave their WordTagEntity rows behind; remove those orphaned links.
+DELETE FROM WordTagEntity WHERE wordId NOT IN (SELECT id FROM WordEntity);

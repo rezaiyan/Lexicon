@@ -480,9 +480,6 @@
     <string name="username">Nom d'utilisateur</string>
     <string name="username_hint">Choisis un nom d'utilisateur</string>
     <string name="username_description">2-30 caractères : lettres, chiffres, espaces, tirets bas, tirets</string>
-    <string name="change_photo">Changer la photo</string>
-    <string name="remove_photo">Supprimer la photo</string>
-    <string name="choose_from_gallery">Choisir dans la galerie</string>
     <string name="profile_updated">Profil mis à jour</string>
 
     <!-- Leaderboard -->
@@ -495,5 +492,8 @@
     <!-- Import Source Language -->
     <string name="original_language_question">Dans quelle langue sont les mots originaux ?</string>
     <string name="translation_language_hint">Les traductions seront en %1$s. Tu peux changer cela dans les Paramètres.</string>
+    <string name="filter_all">Tous</string>
+    <string name="filters">Filtres</string>
+    <string name="account_section">Compte</string>
 </resources>
 

@@ -480,9 +480,6 @@
     <string name="username">用户名</string>
     <string name="username_hint">选择一个用户名</string>
     <string name="username_description">2-30个字符：字母、数字、空格、下划线、连字符</string>
-    <string name="change_photo">更换照片</string>
-    <string name="remove_photo">移除照片</string>
-    <string name="choose_from_gallery">从相册选择</string>
     <string name="profile_updated">资料已更新</string>
 
     <!-- Leaderboard -->
@@ -495,5 +492,8 @@
     <!-- Import Source Language -->
     <string name="original_language_question">原始词汇是什么语言？</string>
     <string name="translation_language_hint">翻译将使用%1$s。你可以在设置中更改。</string>
+    <string name="filter_all">全部</string>
+    <string name="filters">筛选</string>
+    <string name="account_section">账户</string>
 </resources>
 

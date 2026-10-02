@@ -18,7 +18,6 @@ data class ImportUiState(
     val pendingImportAction: PendingImportAction? = null,
     val tags: List<Tag> = emptyList(),
     val selectedTagId: Long? = null,
-    val showCreateTagDialog: Boolean = false,
     val originalImageBytes: ByteArray? = null,
     val imageQuality: Float = 1.0f,
 )
@@ -40,6 +39,11 @@ sealed class ImageReviewState {
     ) : ImageReviewState()
 }
 
+data class AddedWord(
+    val word: String,
+    val translation: String,
+)
+
 sealed class PendingImportAction {
     data class File(val content: String, val fileName: String?) : PendingImportAction()
 }
@@ -53,6 +57,8 @@ data class TextInputState(
     val wordsAddedCount: Int = 0,
     val showSuccessIndicator: Boolean = false,
     val errorMessage: String? = null,
+    /** Words added in this sheet session, newest first. */
+    val recentWords: List<AddedWord> = emptyList(),
 ) {
     val isAddEnabled: Boolean
         get() = word.isNotBlank() && translation.isNotBlank() && isEnabled

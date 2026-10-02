@@ -26,6 +26,7 @@
     <string name="profile">Profile</string>
     <string name="dashboard">Dashboard</string>
     <string name="study">Study</string>
+    <string name="words_tab">Words</string>
     <string name="settings">Settings</string>
 
     <!-- Settings Screen -->
@@ -160,6 +161,8 @@
 
     <!-- Progress Screen -->
     <string name="total_words">Total Words</string>
+    <string name="words_label">words</string>
+    <string name="due_count">%1$s due</string>
     <string name="cards_due_for_review">%1$d cards due for review</string>
     <string name="start_review">Start Review</string>
     <string name="skip_tag_selector_label">Don't ask again, always review all words</string>
@@ -215,6 +218,9 @@
     <string name="completion_cards_reviewed">%1$d cards reviewed</string>
     <string name="completion_streak_days">%1$d-day streak</string>
     <string name="completion_missed_title">Missed this session</string>
+    <string name="completion_recalled">recalled</string>
+    <string name="back_to_study">Back to study</string>
+    <string name="nothing_due_message">No words are due right now. Spaced repetition works best with breaks.</string>
 
     <!-- Learning Stages (7 Levels) -->
     <string name="level_0_fresh">First Encounter</string>
@@ -265,6 +271,7 @@
     <string name="exit_review_message">Are you sure you want to stop reviewing? Your progress will be saved.</string>
     <string name="yes_exit">Yes, Exit</string>
     <string name="continue_reviewing">Continue Reviewing</string>
+    <string name="stop_review">Stop review</string>
     <string name="review_complete">Review Complete!</string>
     <string name="review_complete_message">Great job! Keep practicing to master your vocabulary.</string>
 
@@ -716,9 +723,7 @@
     <string name="username">Username</string>
     <string name="username_hint">Choose a username</string>
     <string name="username_description">2-30 characters: letters, numbers, spaces, underscores, hyphens</string>
-    <string name="change_photo">Change Photo</string>
-    <string name="remove_photo">Remove Photo</string>
-    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="email_label">Email</string>
     <string name="profile_updated">Profile updated</string>
 
     <!-- TTS Model Cache -->
@@ -796,5 +801,71 @@
     <string name="word_rush_insights_avg_score">Avg Score</string>
     <string name="word_rush_insights_total_time">Time Played</string>
     <string name="word_rush_insights_completion_rate">Completion Rate</string>
+    <string name="filter_all">All</string>
+    <string name="filters">Filters</string>
+    <string name="account_section">Account</string>
+
+    <!-- Add words flow -->
+    <string name="add_words_title">Add words</string>
+    <string name="add_words_subtitle">Build your library the way that suits you.</string>
+    <string name="add_words_ai_title">Generate with AI</string>
+    <string name="add_words_ai_subtitle">Personalized words for your level and interests</string>
+    <string name="add_words_recommended">Recommended</string>
+    <string name="add_words_own_section">Add your own</string>
+    <string name="add_words_type_title">Type a word</string>
+    <string name="add_words_type_subtitle">One at a time, with translation and a note</string>
+    <string name="add_words_file_title">Import a file</string>
+    <string name="add_words_file_subtitle">A .txt list, one word per line</string>
+    <string name="add_words_photo_title">Scan a photo</string>
+    <string name="add_words_photo_subtitle">Pull words from a page or screenshot</string>
+    <string name="word_language_title">What language are your words in?</string>
+    <string name="search_languages">Search languages</string>
+    <string name="change_languages">Change languages</string>
+    <string name="field_word">Word</string>
+    <string name="field_note">Note</string>
+    <string name="field_optional">optional</string>
+    <string name="note_placeholder">Example sentence, gender, anything that helps</string>
+    <string name="field_tag">Tag</string>
+    <string name="no_tag">None</string>
+    <string name="added_this_session">Added this session</string>
+    <string name="added_count">%1$d added</string>
+    <string name="file_import_subtitle">Bring in a whole list at once from a .txt file.</string>
+    <string name="choose_a_file">Choose a file</string>
+    <string name="file_hint">.txt · one word per line</string>
+    <string name="how_to_format">How to format it</string>
+    <string name="confirm_import_title">Check your languages</string>
+    <string name="confirm_import_subtitle">Make sure translations line up before importing.</string>
+    <string name="words_are_in">Words are in</string>
+    <string name="translated_to">Translated to</string>
+    <string name="swap_languages">Swap languages</string>
+    <string name="import_words_cta">Import words</string>
+    <string name="photo_subtitle">Snap a textbook page, menu or screenshot. We'll find the words and translate them.</string>
+    <string name="photo_best_results">For best results</string>
+    <string name="photo_tip_light">Good light, page flat</string>
+    <string name="photo_tip_sharp">Text sharp and fully in frame</string>
+    <string name="photo_tip_format">JPEG or PNG, under 5 MB</string>
+    <string name="take_photo">Take a photo</string>
+    <string name="choose_from_gallery_cta">Choose from gallery</string>
+    <string name="photo_preview_title">Looks good?</string>
+    <string name="photo_quality">Quality</string>
+    <string name="retake">Retake</string>
+    <string name="extract_words">Extract words</string>
+    <string name="review_found_title">We found %1$d words</string>
+    <string name="review_found_subtitle">Edit anything that looks off, or remove what you don't need.</string>
+    <string name="edit_word_cd">Edit %1$s</string>
+    <string name="remove_word_cd">Remove %1$s</string>
+    <string name="step_of">Step %1$d of %2$d</string>
+    <string name="topics_selected">%1$d selected</string>
+    <string name="generating_title">Building your word list</string>
+    <string name="generating_step_1">Picking words for your topics</string>
+    <string name="generating_step_2">Matching words to your level</string>
+    <string name="generating_step_3">Writing translations</string>
+    <string name="generating_step_4">Final check</string>
+    <string name="add_n_words">Add %1$d words</string>
+    <string name="keep_editing">Keep editing</string>
+    <string name="words_added_title">%1$d words added</string>
+    <string name="word_added_title">1 word added</string>
+    <string name="words_added_subtitle">They're in First Encounter, ready for your first review.</string>
+    <string name="add_more_words">Add more words</string>
 </resources>
 

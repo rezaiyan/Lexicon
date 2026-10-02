@@ -18,7 +18,7 @@ import lexicon.resources.generated.resources.about
 import lexicon.resources.generated.resources.version_format
 
 @Composable
-fun AboutSettingsCard(appVersion: String) {
+fun AboutSettingsCard(appVersion: String, showDivider: Boolean = true) {
     var clickCount by remember { mutableStateOf(0) }
     LaunchedEffect(clickCount) {
         if (clickCount > 0) {
@@ -33,6 +33,7 @@ fun AboutSettingsCard(appVersion: String) {
         subtitle = stringResource(Res.string.version_format, appVersion),
         iconBackgroundColor = AppColors.settingsAboutIcon,
         showTrailingArrow = false,
+        showDivider = showDivider,
         onClick = {
             clickCount++
             if (clickCount >= 3) {

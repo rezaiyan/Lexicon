@@ -43,9 +43,9 @@ fun PremiumHeroSection() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(Theme.spacing.large),
+            .padding(Theme.spacing.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
     ) {
         val infiniteTransition = rememberInfiniteTransition(label = "hero")
         val rotation by infiniteTransition.animateFloat(
@@ -71,7 +71,7 @@ fun PremiumHeroSection() {
                 .size(Theme.dimensions.iconSizeHuge)
                 .scale(scale)
                 .rotate(rotation)
-                .clip(RoundedCornerShape(Theme.spacing.medium))
+                .clip(RoundedCornerShape(Theme.spacing.lg))
                 .background(
                     Brush.linearGradient(
                         listOf(

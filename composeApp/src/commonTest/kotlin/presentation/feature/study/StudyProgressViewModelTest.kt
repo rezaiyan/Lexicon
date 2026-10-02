@@ -28,6 +28,7 @@ import domain.tag.model.Tag
 import domain.tag.repository.ITagRepository
 import domain.tag.usecase.GetDueTagsUseCase
 import domain.tag.usecase.GetTagsByLevelUseCase
+import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import kotlinx.coroutines.flow.Flow
@@ -145,8 +146,8 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
-    private fun fakeTagRepo() = object : ITagRepository {
-        override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+    private fun fakeTagRepo(tags: List<Tag> = emptyList()) = object : ITagRepository {
+        override fun getTags(): Flow<List<Tag>> = flowOf(tags)
         override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
         override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
         override suspend fun createTag(name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
@@ -157,7 +158,10 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 
-    private fun createViewModel(hasPremiumAccess: Boolean = false): StudyProgressViewModel {
+    private fun createViewModel(
+        hasPremiumAccess: Boolean = false,
+        tags: List<Tag> = emptyList(),
+    ): StudyProgressViewModel {
         val wordRepo = fakeWordRepo()
         val settingsRepo = fakeSettingsRepo()
         val notifRepo = fakeNotifRepo()
@@ -171,6 +175,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             tagUseCases = StudyTagUseCases(
                 getDueTags = GetDueTagsUseCase(fakeTagRepo()),
                 getTagsByLevel = GetTagsByLevelUseCase(fakeTagRepo()),
+                getTags = GetTagsUseCase(fakeTagRepo(tags)),
                 getSkipTagSelector = GetSkipTagSelectorUseCase(settingsRepo),
                 setSkipTagSelector = SetSkipTagSelectorUseCase(settingsRepo),
             ),
@@ -193,5 +198,15 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
     fun `hasPremiumAccess is true when server returns premium`() = runTest {
         val vm = createViewModel(hasPremiumAccess = true)
         assertEquals(true, vm.currentState.hasPremiumAccess)
+    }
+
+    @Test
+    fun `tags when repository emits tags exposes them in state`() = runTest {
+        val tags = listOf(
+            Tag(id = 1L, name = "Travel", wordCount = 24L, createdAt = 0L, updatedAt = 0L),
+            Tag(id = 2L, name = "Work", wordCount = 17L, createdAt = 0L, updatedAt = 0L),
+        )
+        val vm = createViewModel(tags = tags)
+        assertEquals(tags, vm.currentState.tags)
     }
 }

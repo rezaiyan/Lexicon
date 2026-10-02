@@ -13,10 +13,4 @@ class ProfileRepositoryImpl(
 
     override suspend fun updateProfile(name: String?, displayAlias: String?): Try<AuthUser> =
         remoteDataSource.updateProfile(name, displayAlias).map { it.toDomain() }
-
-    override suspend fun uploadAvatar(imageBytes: ByteArray, mimeType: String): Try<String> =
-        remoteDataSource.uploadAvatar(imageBytes, mimeType)
-
-    override suspend fun deleteAvatar(): Try<Unit> =
-        remoteDataSource.deleteAvatar()
 }

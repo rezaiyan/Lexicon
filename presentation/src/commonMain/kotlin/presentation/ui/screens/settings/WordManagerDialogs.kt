@@ -1,79 +1,40 @@
 package presentation.ui.screens.settings
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
+import components.sheet.ConfirmSheetContent
+import components.sheet.ConfirmTone
+import components.sheet.SheetFooterRow
+import components.sheet.SheetPage
+import components.sheet.SheetPrimaryButton
+import components.sheet.SheetTonalButton
+import components.sheet.WordFormSheetPage
 import domain.tag.model.Tag
 import domain.word.model.Word
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.assign_tags
 import lexicon.resources.generated.resources.assign_tags_to_words_count
 import lexicon.resources.generated.resources.batch_edit_languages
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete
 import lexicon.resources.generated.resources.delete_words_message
 import lexicon.resources.generated.resources.delete_words_title
-import lexicon.resources.generated.resources.description_optional
 import lexicon.resources.generated.resources.edit_word
-import lexicon.resources.generated.resources.no_tags
-import lexicon.resources.generated.resources.original_word
-import lexicon.resources.generated.resources.save
 import lexicon.resources.generated.resources.set_tag
 import lexicon.resources.generated.resources.translation_language_label
 import lexicon.resources.generated.resources.update_languages
 import lexicon.resources.generated.resources.update_words_count
 import lexicon.resources.generated.resources.word_language
 import org.jetbrains.compose.resources.stringResource
-import components.dialog.ButtonState
-import components.dialog.ButtonType
-import components.dialog.LexiconDialogContent
-import overlay.LocalOverlayHost
-import overlay.bottomsheet.showSizeToFitBottomSheet
+import overlay.bottomsheet.BottomSheetPages
+import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import presentation.ui.components.LanguageSelectionContent
-import theme.AppColors
-import theme.Theme
+import presentation.ui.components.imports.LanguagePairCard
 import utils.Language
-import lexicon.resources.generated.resources.translation_label
 
 @Composable
 internal fun EditWordContent(
@@ -84,113 +45,55 @@ internal fun EditWordContent(
     var originalWord by remember { mutableStateOf(word.originalWord) }
     var translation by remember { mutableStateOf(word.translation) }
     var description by remember { mutableStateOf(word.description) }
-    val focusManager = LocalFocusManager.current
 
-    LexiconDialogContent(
-        modifier = Modifier
-            .imePadding()
-            .verticalScroll(rememberScrollState()),
-        iconState = components.dialog.DialogIconState.Icon(Icons.Default.Edit),
+    WordFormSheetPage(
         title = stringResource(Res.string.edit_word),
-            content = {
-                Column(
-                    modifier = Modifier.padding(top = Theme.spacing.sm),
-                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
-                ) {
-                    OutlinedTextField(
-                        value = originalWord,
-                        onValueChange = { originalWord = it },
-                        label = { Text(stringResource(Res.string.original_word)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(Theme.shapes.medium),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                        )
-                    )
-
-                    OutlinedTextField(
-                        value = translation,
-                        onValueChange = { translation = it },
-                        label = { Text(stringResource(Res.string.translation_label)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(Theme.shapes.medium),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                        keyboardActions = KeyboardActions(
-                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                        )
-                    )
-
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text(stringResource(Res.string.description_optional)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 2,
-                        maxLines = 3,
-                        shape = RoundedCornerShape(Theme.shapes.medium),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = { focusManager.clearFocus() }
-                        )
-                    )
-                }
-            },
-            primaryButton = ButtonState(
-                text = stringResource(Res.string.save),
-                onClick = {
-                    if (originalWord.isNotBlank() && translation.isNotBlank()) {
-                        onSave(
-                            word.copy(
-                                originalWord = originalWord.trim(),
-                                translation = translation.trim(),
-                                description = description.trim()
-                            )
-                        )
-                    }
-                }
-            ),
-            secondaryButton = ButtonState(
-                text = stringResource(Res.string.cancel),
-                onClick = onDismiss
+        word = originalWord,
+        onWordChange = { originalWord = it },
+        translation = translation,
+        onTranslationChange = { translation = it },
+        description = description,
+        onDescriptionChange = { description = it },
+        onSave = {
+            onSave(
+                word.copy(
+                    originalWord = originalWord.trim(),
+                    translation = translation.trim(),
+                    description = description.trim()
+                )
             )
-        )
+        },
+        onCancel = onDismiss,
+    )
 }
 
 @Composable
 internal fun DeleteConfirmationContent(
     count: Int,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onClose: (() -> Unit)? = null,
 ) {
-    LexiconDialogContent(
-        iconState = components.dialog.DialogIconState.Icon(
-            imageVector = Icons.Default.Warning,
-            tint = MaterialTheme.colorScheme.error
-        ),
+    ConfirmSheetContent(
+        icon = Icons.Default.DeleteOutline,
         title = stringResource(Res.string.delete_words_title),
-        content = {
-            Text(
-                stringResource(Res.string.delete_words_message, count),
-                style = MaterialTheme.typography.bodyLarge,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        primaryButton = ButtonState(
-            text = stringResource(Res.string.delete),
-            onClick = onConfirm,
-            type = ButtonType.Error
-        ),
-        secondaryButton = ButtonState(
-            text = stringResource(Res.string.cancel),
-            onClick = onDismiss
-        )
+        message = stringResource(Res.string.delete_words_message, count),
+        confirmText = stringResource(Res.string.delete),
+        onConfirm = onConfirm,
+        dismissText = stringResource(Res.string.cancel),
+        onDismiss = onDismiss,
+        tone = ConfirmTone.Danger,
+        onClose = onClose,
     )
 }
 
+private sealed interface BatchLanguagesPage {
+    data object Form : BatchLanguagesPage
+    data object PickTarget : BatchLanguagesPage
+    data object PickSource : BatchLanguagesPage
+}
+
+/** Batch language edit. Pickers open as pages inside the same sheet. */
 @Composable
 internal fun BatchEditLanguagesContent(
     count: Int,
@@ -199,107 +102,67 @@ internal fun BatchEditLanguagesContent(
     onConfirm: (sourceLanguage: Language, targetLanguage: Language) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var selectedSourceLanguage by remember { mutableStateOf(initialSourceLanguage) }
-    var selectedTargetLanguage by remember { mutableStateOf(initialTargetLanguage) }
-    val overlayHost = LocalOverlayHost.current
+    var source by remember { mutableStateOf(initialSourceLanguage) }
+    var target by remember { mutableStateOf(initialTargetLanguage) }
+    val pages = rememberBottomSheetPageNavigator<BatchLanguagesPage>(BatchLanguagesPage.Form)
+    val targetLabel = stringResource(Res.string.word_language)
+    val sourceLabel = stringResource(Res.string.translation_language_label)
 
-    LexiconDialogContent(
-        iconState = components.dialog.DialogIconState.Icon(Icons.Default.Language),
-        title = stringResource(Res.string.batch_edit_languages),
-            content = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardPadding)
-                ) {
-                    Text(
-                        stringResource(Res.string.update_words_count, count),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
+    BottomSheetPages(navigator = pages, onClose = onDismiss, label = "batchLanguagesPages") { page ->
+        when (page) {
+            BatchLanguagesPage.Form -> SheetPage(
+                title = stringResource(Res.string.batch_edit_languages),
+                subtitle = stringResource(Res.string.update_words_count, count),
+                footer = {
+                    SheetFooterRow(
+                        secondary = {
+                            SheetTonalButton(
+                                text = stringResource(Res.string.cancel),
+                                onClick = onDismiss,
+                                modifier = it,
+                            )
+                        },
+                        primary = {
+                            SheetPrimaryButton(
+                                text = stringResource(Res.string.update_languages),
+                                onClick = { onConfirm(source, target) },
+                                modifier = it,
+                            )
+                        },
                     )
-
-                    LanguageSelectorCard(
-                        label = stringResource(Res.string.word_language),
-                        language = selectedTargetLanguage,
-                        onClick = {
-                            overlayHost.showSizeToFitBottomSheet(tag = "target-language") { nav ->
-                                LanguageSelectionContent(
-                                    currentLanguage = selectedTargetLanguage,
-                                    onLanguageSelected = { language ->
-                                        selectedTargetLanguage = language
-                                        nav.dismiss()
-                                    }
-                                )
-                            }
-                        }
-                    )
-
-                    LanguageSelectorCard(
-                        label = stringResource(Res.string.translation_language_label),
-                        language = selectedSourceLanguage,
-                        onClick = {
-                            overlayHost.showSizeToFitBottomSheet(tag = "source-language") { nav ->
-                                LanguageSelectionContent(
-                                    currentLanguage = selectedSourceLanguage,
-                                    onLanguageSelected = { language ->
-                                        selectedSourceLanguage = language
-                                        nav.dismiss()
-                                    }
-                                )
-                            }
-                        }
-                    )
-                }
-            },
-            primaryButton = ButtonState(
-                text = stringResource(Res.string.update_languages),
-                onClick = { onConfirm(selectedSourceLanguage, selectedTargetLanguage) }
-            ),
-            secondaryButton = ButtonState(
-                text = stringResource(Res.string.cancel),
-                onClick = onDismiss
-            )
-        )
-}
-
-@Composable
-private fun LanguageSelectorCard(
-    label: String,
-    language: Language,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Theme.shapes.medium),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        onClick = onClick
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Theme.spacing.cardPadding),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)
+                },
             ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "${language.nativeName} (${language.displayName})",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
+                LanguagePairCard(
+                    topLabel = targetLabel,
+                    top = target,
+                    onTopClick = { pages.navigateTo(BatchLanguagesPage.PickTarget) },
+                    bottomLabel = sourceLabel,
+                    bottom = source,
+                    onBottomClick = { pages.navigateTo(BatchLanguagesPage.PickSource) },
+                    onSwap = {
+                        val previousTarget = target
+                        target = source
+                        source = previousTarget
+                    },
                 )
             }
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+
+            BatchLanguagesPage.PickTarget -> LanguageSelectionContent(
+                currentLanguage = target,
+                onLanguageSelected = {
+                    target = it
+                    pages.navigateBack()
+                },
+                title = targetLabel,
+            )
+
+            BatchLanguagesPage.PickSource -> LanguageSelectionContent(
+                currentLanguage = source,
+                onLanguageSelected = {
+                    source = it
+                    pages.navigateBack()
+                },
+                title = sourceLabel,
             )
         }
     }
@@ -310,97 +173,17 @@ internal fun BatchTagAssignmentContent(
     count: Int,
     tags: List<Tag>,
     onConfirm: (tagIds: List<Long>) -> Unit,
+    onClose: (() -> Unit)? = null,
 ) {
     var selectedTagIds by remember { mutableStateOf(emptySet<Long>()) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .padding(horizontal = Theme.spacing.lg, vertical = Theme.spacing.medium)
-    ) {
-        Text(
-            text = stringResource(Res.string.set_tag),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = stringResource(Res.string.assign_tags_to_words_count, count),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(Theme.spacing.medium))
-        HorizontalDivider()
-        Spacer(modifier = Modifier.height(Theme.spacing.sm))
-
-        if (tags.isEmpty()) {
-            Text(
-                text = stringResource(Res.string.no_tags),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-            Spacer(modifier = Modifier.height(Theme.spacing.medium))
-        } else {
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .weight(1f, fill = false),
-                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
-            ) {
-                tags.forEach { tag ->
-                    val selected = selectedTagIds.contains(tag.id)
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            selectedTagIds = if (selected) {
-                                selectedTagIds - tag.id
-                            } else {
-                                selectedTagIds + tag.id
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = if (tag.wordCount > 0) "${tag.name} · ${tag.wordCount}" else tag.name,
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        },
-                        leadingIcon = if (selected) {
-                            {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
-                                )
-                            }
-                        } else null,
-                        shape = RoundedCornerShape(Theme.shapes.pill),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AppColors.settingsTagManagerIcon.copy(alpha = 0.15f),
-                            selectedLabelColor = AppColors.settingsTagManagerIcon,
-                            selectedLeadingIconColor = AppColors.settingsTagManagerIcon
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = selected,
-                            borderColor = MaterialTheme.colorScheme.outlineVariant,
-                            selectedBorderColor = AppColors.settingsTagManagerIcon.copy(alpha = 0.4f)
-                        )
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(Theme.spacing.medium))
-
-        Button(
-            onClick = { onConfirm(selectedTagIds.toList()) },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(stringResource(Res.string.assign_tags))
-        }
-    }
+    TagChecklistContent(
+        title = stringResource(Res.string.set_tag),
+        subtitle = stringResource(Res.string.assign_tags_to_words_count, count),
+        tags = tags,
+        selectedTagIds = selectedTagIds,
+        onToggle = { id -> selectedTagIds = if (id in selectedTagIds) selectedTagIds - id else selectedTagIds + id },
+        onApply = { onConfirm(selectedTagIds.toList()) },
+        onClose = onClose,
+    )
 }

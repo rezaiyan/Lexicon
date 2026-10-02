@@ -623,9 +623,6 @@
     <string name="username">사용자 이름</string>
     <string name="username_hint">사용자 이름을 선택하세요</string>
     <string name="username_description">2-30자: 문자, 숫자, 공백, 밑줄, 하이픈</string>
-    <string name="change_photo">사진 변경</string>
-    <string name="remove_photo">사진 제거</string>
-    <string name="choose_from_gallery">갤러리에서 선택</string>
     <string name="profile_updated">프로필이 업데이트되었습니다</string>
 
     <!-- Leaderboard -->
@@ -654,4 +651,7 @@
     <string name="tts_voice_selection">음성</string>
     <string name="tts_voice_speaker">화자 %1$d</string>
     <string name="tts_playback_settings">재생 설정</string>
+    <string name="filter_all">전체</string>
+    <string name="filters">필터</string>
+    <string name="account_section">계정</string>
 </resources>

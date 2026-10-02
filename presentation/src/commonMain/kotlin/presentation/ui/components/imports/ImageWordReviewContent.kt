@@ -1,33 +1,25 @@
 package presentation.ui.components.imports
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,23 +28,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import components.sheet.SheetPage
+import components.sheet.SheetPrimaryButton
+import components.sheet.WordFormSheetPage
+import expects.BackHandler
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.ai_wizard_discard
-import lexicon.resources.generated.resources.ai_wizard_discard_message
-import lexicon.resources.generated.resources.ai_wizard_discard_title
-import lexicon.resources.generated.resources.ai_wizard_keep
-import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.edit_word_cd
 import lexicon.resources.generated.resources.image_review_add_words
-import lexicon.resources.generated.resources.image_review_description_label
 import lexicon.resources.generated.resources.image_review_edit_word
-import lexicon.resources.generated.resources.image_review_subtitle
-import lexicon.resources.generated.resources.image_review_title
-import lexicon.resources.generated.resources.image_review_translation_label
-import lexicon.resources.generated.resources.image_review_word_label
-import lexicon.resources.generated.resources.save
+import lexicon.resources.generated.resources.remove_word_cd
+import lexicon.resources.generated.resources.review_found_subtitle
+import lexicon.resources.generated.resources.review_found_title
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
+/** "We found N words" — edit or remove extracted words before adding them. */
 @Composable
 fun ImageWordReviewContent(
     reviewState: ImageReviewState.Review,
@@ -61,107 +51,50 @@ fun ImageWordReviewContent(
     onCancelEdit: () -> Unit,
     onSaveEdit: (Int, String, String, String) -> Unit,
     onConfirmImport: () -> Unit,
-    onRequestCancel: () -> Unit,
     onDismissCancelConfirmation: () -> Unit,
     onCancelImport: () -> Unit,
 ) {
     val words = reviewState.words
-    val spacing = Theme.spacing
 
-    // Edit dialog
     val editingWord = words.firstOrNull { it.id == reviewState.editingWordId }
     if (editingWord != null) {
-        WordEditDialog(
+        EditExtractedWordPage(
             word = editingWord,
             onSave = { w, t, d -> onSaveEdit(editingWord.id, w, t, d) },
-            onDismiss = onCancelEdit,
+            onCancel = onCancelEdit,
         )
+        return
     }
 
-    // Cancel confirmation dialog
     if (reviewState.showCancelConfirmation) {
-        AlertDialog(
-            onDismissRequest = onDismissCancelConfirmation,
-            title = { Text(stringResource(Res.string.ai_wizard_discard_title)) },
-            text = { Text(stringResource(Res.string.ai_wizard_discard_message)) },
-            confirmButton = {
-                TextButton(onClick = onCancelImport) {
-                    Text(stringResource(Res.string.ai_wizard_discard))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissCancelConfirmation) {
-                    Text(stringResource(Res.string.ai_wizard_keep))
-                }
-            },
-        )
+        DiscardConfirmationDialog(onDiscard = onCancelImport, onKeep = onDismissCancelConfirmation)
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Header
-        Column(
-            modifier = Modifier.padding(
-                horizontal = spacing.md,
-                vertical = spacing.sm,
+    SheetPage(
+        title = stringResource(Res.string.review_found_title, words.size),
+        subtitle = stringResource(Res.string.review_found_subtitle),
+        scrollable = false,
+        footer = {
+            SheetPrimaryButton(
+                text = stringResource(Res.string.image_review_add_words, words.size),
+                onClick = onConfirmImport,
+                enabled = words.isNotEmpty(),
+                isLoading = reviewState.isImporting,
             )
-        ) {
-            Text(
-                text = stringResource(Res.string.image_review_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Spacer(Modifier.height(spacing.xxs))
-            Text(
-                text = stringResource(Res.string.image_review_subtitle, words.size),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        // Word list
+        },
+    ) {
         LazyColumn(
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.xs),
-            verticalArrangement = Arrangement.spacedBy(spacing.sm),
+            modifier = Modifier.weight(1f, fill = false),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+            contentPadding = PaddingValues(bottom = Theme.spacing.xs),
         ) {
             items(words, key = { it.id }) { item ->
                 ExtractedWordCard(
                     item = item,
                     onEdit = { onStartEditWord(item.id) },
                     onRemove = { onRemoveWord(item.id) },
+                    modifier = Modifier.animateItem(),
                 )
-            }
-        }
-
-        // Bottom bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(spacing.md),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-        ) {
-            OutlinedButton(
-                onClick = onRequestCancel,
-                modifier = Modifier.weight(1f),
-            ) {
-                Text(stringResource(Res.string.cancel))
-            }
-
-            Button(
-                onClick = onConfirmImport,
-                modifier = Modifier.weight(2f),
-                enabled = words.isNotEmpty() && !reviewState.isImporting,
-            ) {
-                if (reviewState.isImporting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = Theme.spacing.xxxs,
-                    )
-                } else {
-                    Text(stringResource(Res.string.image_review_add_words, words.size))
-                }
             }
         }
     }
@@ -172,114 +105,84 @@ private fun ExtractedWordCard(
     item: ExtractedWordItem,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val spacing = Theme.spacing
-
-    Card(
-        shape = RoundedCornerShape(Theme.shapes.medium),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    Surface(
+        onClick = onEdit,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.shapes.large),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(
+            Theme.dimensions.borderWidth,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = Theme.opacity.overlay),
         ),
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = spacing.md, end = spacing.xs, top = spacing.xs, bottom = spacing.xs),
+                .heightIn(min = Theme.dimensions.touchTarget + Theme.spacing.md)
+                .padding(start = Theme.spacing.md, end = Theme.spacing.xxs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f).padding(vertical = Theme.spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs),
+            ) {
+                Text(item.word, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
-                    text = item.word,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = item.translation,
+                    item.translation,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (item.description.isNotBlank()) {
                     Text(
-                        text = item.description,
+                        item.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-
             IconButton(onClick = onEdit) {
                 Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = null,
+                    Icons.Default.Edit,
+                    contentDescription = stringResource(Res.string.edit_word_cd, item.word),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                 )
             }
-
             IconButton(onClick = onRemove) {
                 Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+                    Icons.Default.DeleteOutline,
+                    contentDescription = stringResource(Res.string.remove_word_cd, item.word),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                 )
             }
         }
     }
 }
 
+/** Edits one extracted word in place of the list; system back cancels the edit. */
 @Composable
-private fun WordEditDialog(
+private fun EditExtractedWordPage(
     word: ExtractedWordItem,
     onSave: (word: String, translation: String, description: String) -> Unit,
-    onDismiss: () -> Unit,
+    onCancel: () -> Unit,
 ) {
     var editWord by remember(word.id) { mutableStateOf(word.word) }
     var editTranslation by remember(word.id) { mutableStateOf(word.translation) }
     var editDescription by remember(word.id) { mutableStateOf(word.description) }
-    val spacing = Theme.spacing
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(Res.string.image_review_edit_word)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-                OutlinedTextField(
-                    value = editWord,
-                    onValueChange = { editWord = it },
-                    label = { Text(stringResource(Res.string.image_review_word_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = editTranslation,
-                    onValueChange = { editTranslation = it },
-                    label = { Text(stringResource(Res.string.image_review_translation_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = editDescription,
-                    onValueChange = { editDescription = it },
-                    label = { Text(stringResource(Res.string.image_review_description_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onSave(editWord.trim(), editTranslation.trim(), editDescription.trim()) },
-                enabled = editWord.isNotBlank() && editTranslation.isNotBlank(),
-            ) {
-                Text(stringResource(Res.string.save))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.cancel))
-            }
-        },
+    BackHandler(onBack = onCancel)
+
+    WordFormSheetPage(
+        title = stringResource(Res.string.image_review_edit_word),
+        word = editWord,
+        onWordChange = { editWord = it },
+        translation = editTranslation,
+        onTranslationChange = { editTranslation = it },
+        description = editDescription,
+        onDescriptionChange = { editDescription = it },
+        onSave = { onSave(editWord.trim(), editTranslation.trim(), editDescription.trim()) },
+        onCancel = onCancel,
     )
 }

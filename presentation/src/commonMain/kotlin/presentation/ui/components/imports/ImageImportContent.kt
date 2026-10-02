@@ -1,119 +1,67 @@
 package presentation.ui.components.imports
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import components.animation.staggeredFadeSlide
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cancel
-import org.jetbrains.compose.resources.stringResource
+import domain.tag.model.Tag
 import theme.Theme
+import utils.Language
 
+/** Photo import: source picker until an image is chosen, then its preview. */
 @Composable
 internal fun ImageImportContent(
     imageTab: ImportTabV2.Image,
     isEnabled: Boolean,
     isLoading: Boolean,
     imageQuality: Float,
+    sourceLanguage: Language,
+    targetLanguage: Language,
+    tags: List<Tag>,
+    selectedTagId: Long?,
+    onTagSelected: (Long?) -> Unit,
+    onCreateTag: () -> Unit,
+    onChangeLanguage: () -> Unit,
     onCameraClick: () -> Unit,
     onGalleryClick: () -> Unit,
     onImportImage: () -> Unit,
     onClearSelectedImage: () -> Unit,
     onQualityChange: (Float) -> Unit,
-    onDismiss: () -> Unit,
 ) {
-    val hasImage = imageTab.selectedImage != null
-
+    val motion = Theme.motion
     AnimatedContent(
-        targetState = hasImage,
+        targetState = imageTab.selectedImage,
+        contentKey = { it != null },
         transitionSpec = {
-            val enterOffset = if (targetState) { i: Int -> i / 3 } else { i: Int -> -i / 3 }
-            val exitOffset = if (targetState) { i: Int -> -i / 3 } else { i: Int -> i / 3 }
-            (slideInVertically(
-                initialOffsetY = enterOffset,
-                animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium)
-            ) + fadeIn(tween(400))).togetherWith(
-                slideOutVertically(targetOffsetY = exitOffset, animationSpec = tween(300))
-                        + fadeOut(tween(300))
-            )
+            fadeIn(tween(motion.durationMedium)) togetherWith fadeOut(tween(motion.durationShort))
         },
-        label = "ImagePreviewTransition"
-    ) { showPreview ->
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                if (showPreview && imageTab.selectedImage != null) {
-                    ImagePreviewCard(
-                        imageBytes = imageTab.selectedImage,
-                        isLoading = isLoading,
-                        onConfirm = onImportImage,
-                        onCancel = onClearSelectedImage,
-                        isEnabled = isEnabled,
-                        imageQuality = imageQuality,
-                        onQualityChange = onQualityChange,
-                    )
-                } else {
-                    ImageSelectionContent(
-                        onCameraClick = onCameraClick,
-                        onGalleryClick = onGalleryClick,
-                        isEnabled = isEnabled,
-                    )
-                }
-            }
-
-            if (!showPreview) {
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .imePadding(),
-                    enabled = isEnabled,
-                ) {
-                    Text(stringResource(Res.string.cancel))
-                }
-            }
+        label = "PhotoSourceToPreview",
+    ) { selectedImage ->
+        if (selectedImage != null) {
+            PhotoPreviewPage(
+                imageBytes = selectedImage,
+                isLoading = isLoading,
+                isEnabled = isEnabled,
+                imageQuality = imageQuality,
+                onQualityChange = onQualityChange,
+                onConfirm = onImportImage,
+                onRetake = onClearSelectedImage,
+            )
+        } else {
+            PhotoSourcePage(
+                isEnabled = isEnabled,
+                sourceLanguage = sourceLanguage,
+                targetLanguage = targetLanguage,
+                tags = tags,
+                selectedTagId = selectedTagId,
+                onTagSelected = onTagSelected,
+                onCreateTag = onCreateTag,
+                onChangeLanguage = onChangeLanguage,
+                onCameraClick = onCameraClick,
+                onGalleryClick = onGalleryClick,
+            )
         }
-    }
-}
-
-@Composable
-private fun ImageSelectionContent(
-    onCameraClick: () -> Unit,
-    onGalleryClick: () -> Unit,
-    isEnabled: Boolean,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
-        ImageSourceHeader(
-            modifier = Modifier.staggeredFadeSlide(0),
-        )
-
-        ImageSourcePicker(
-            onCameraClick = onCameraClick,
-            onGalleryClick = onGalleryClick,
-            isEnabled = isEnabled,
-            modifier = Modifier.staggeredFadeSlide(1),
-        )
     }
 }

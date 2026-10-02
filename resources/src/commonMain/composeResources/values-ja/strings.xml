@@ -623,9 +623,6 @@
     <string name="username">ユーザー名</string>
     <string name="username_hint">ユーザー名を選んでください</string>
     <string name="username_description">2〜30文字：英数字、スペース、アンダースコア、ハイフン</string>
-    <string name="change_photo">写真を変更</string>
-    <string name="remove_photo">写真を削除</string>
-    <string name="choose_from_gallery">ギャラリーから選択</string>
     <string name="profile_updated">プロフィールが更新されました</string>
 
     <!-- Leaderboard -->
@@ -654,4 +651,7 @@
     <string name="tts_voice_selection">音声</string>
     <string name="tts_voice_speaker">スピーカー %1$d</string>
     <string name="tts_playback_settings">再生設定</string>
+    <string name="filter_all">すべて</string>
+    <string name="filters">フィルター</string>
+    <string name="account_section">アカウント</string>
 </resources>

@@ -72,7 +72,7 @@ fun LexiconColumn(
             }
             Column(
                 modifier = Modifier
-                    .fillMaxWidth().padding(horizontal = Theme.spacing.medium)
+                    .fillMaxWidth().padding(horizontal = Theme.spacing.screenGutter)
                     .verticalScroll(resolvedScrollState)
             ) {
                 content()
@@ -98,7 +98,7 @@ fun LexiconColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(horizontal = Theme.spacing.medium)
+                    .padding(horizontal = Theme.spacing.screenGutter)
             ) {
                 content()
             }
@@ -121,7 +121,7 @@ private fun FlexibleTopBar(
     collapsedContent: (@Composable () -> Unit)? = null,
 ) {
     TopAppBar(
-        modifier = Modifier.padding(horizontal = Theme.spacing.extraSmall),
+        modifier = Modifier.padding(horizontal = Theme.spacing.sm),
         title = {
             if (title != null) {
                 Text(

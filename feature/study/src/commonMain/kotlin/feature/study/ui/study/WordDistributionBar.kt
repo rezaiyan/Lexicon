@@ -61,7 +61,6 @@ fun WordDistributionBar(
         modifier = modifier
             .fillMaxWidth()
             .height(Theme.spacing.xs)
-            .padding(bottom = Theme.spacing.small)
             .clip(RoundedCornerShape(Theme.shapes.extraSmall))
             .semantics { contentDescription = distributionDescription }
     ) {

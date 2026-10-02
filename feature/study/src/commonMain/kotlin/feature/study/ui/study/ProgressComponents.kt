@@ -37,6 +37,8 @@ import lexicon.resources.generated.resources.level_5_strong
 import lexicon.resources.generated.resources.level_6_description
 import lexicon.resources.generated.resources.level_6_mastered
 
+private const val STAGE_DESCRIPTION_SEPARATOR = "•"
+
 data class LevelBucketData(
     val stage: LearningStage,
     val nameResId: org.jetbrains.compose.resources.StringResource,
@@ -125,12 +127,24 @@ fun LearningStagesList(
     val clickTexts =
         listOf(level0Text, level1Text, level2Text, level3Text, level4Text, level5Text, level6Text)
 
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacing)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.listGap)) {
         levels.forEachIndexed { index, level ->
+            // Descriptions read "Level 1 • Just discovered" in every locale: split into overline + subtitle
+            val fullDescription = levelDescriptions?.getOrNull(index) ?: stringResource(level.descriptionResId)
+            val hasOverline = fullDescription.contains(STAGE_DESCRIPTION_SEPARATOR)
             LevelBucketCard(
                 modifier = Modifier.staggeredFadeSlide(index + 1),
                 level = levelNames?.getOrNull(index) ?: stringResource(level.nameResId),
-                description = levelDescriptions?.getOrNull(index) ?: stringResource(level.descriptionResId),
+                overline = if (hasOverline) {
+                    fullDescription.substringBefore(STAGE_DESCRIPTION_SEPARATOR).trim().uppercase()
+                } else {
+                    null
+                },
+                description = if (hasOverline) {
+                    fullDescription.substringAfter(STAGE_DESCRIPTION_SEPARATOR).trim()
+                } else {
+                    fullDescription
+                },
                 count = level.count,
                 color = level.color,
                 icon = level.icon,

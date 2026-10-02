@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
+import presentation.ui.components.imports.AddedWord
 import presentation.ui.components.imports.ImportTabV2
 import presentation.ui.components.imports.ImportTagUseCases
 import presentation.ui.components.imports.ImportViewModel
@@ -163,6 +164,33 @@ class ImportViewModelTest : ViewModelTestBase() {
         vm.addWord()
 
         assertEquals(0, vm.currentState.textInputState.wordsAddedCount)
+    }
+
+    @Test
+    fun `addWord when successful records word in recentWords`() = runTest {
+        val vm = createViewModel()
+        vm.updateWord("hello")
+        vm.updateTranslation("hola")
+
+        vm.addWord()
+
+        assertEquals(listOf(AddedWord("hello", "hola")), vm.currentState.textInputState.recentWords)
+    }
+
+    @Test
+    fun `addWord when called repeatedly keeps newest first and caps recentWords`() = runTest {
+        val vm = createViewModel()
+
+        repeat(7) { i ->
+            vm.updateWord("word$i")
+            vm.updateTranslation("translation$i")
+            vm.addWord()
+        }
+
+        val recent = vm.currentState.textInputState.recentWords
+        assertEquals(5, recent.size)
+        assertEquals("word6", recent.first().word)
+        assertEquals("word2", recent.last().word)
     }
 
     @Test

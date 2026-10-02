@@ -1,141 +1,127 @@
 package presentation.ui.components.imports
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.CropFree
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import components.sheet.SheetPage
+import components.sheet.SheetPrimaryButton
+import components.sheet.SheetSectionLabel
+import components.sheet.SheetTonalButton
+import domain.tag.model.Tag
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.camera
-import lexicon.resources.generated.resources.capture_vocab_from_image
-import lexicon.resources.generated.resources.gallery
+import lexicon.resources.generated.resources.add_words_photo_title
 import lexicon.resources.generated.resources.ai_powered_extraction
+import lexicon.resources.generated.resources.choose_from_gallery_cta
+import lexicon.resources.generated.resources.photo_best_results
+import lexicon.resources.generated.resources.photo_subtitle
+import lexicon.resources.generated.resources.photo_tip_format
+import lexicon.resources.generated.resources.photo_tip_light
+import lexicon.resources.generated.resources.photo_tip_sharp
+import lexicon.resources.generated.resources.take_photo
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
+import utils.Language
 
+/** "Scan a photo" — tips for a good capture plus camera / gallery actions. */
 @Composable
-internal fun ImageSourceHeader(
-    modifier: Modifier = Modifier,
+internal fun PhotoSourcePage(
+    isEnabled: Boolean,
+    sourceLanguage: Language,
+    targetLanguage: Language,
+    tags: List<Tag>,
+    selectedTagId: Long?,
+    onTagSelected: (Long?) -> Unit,
+    onCreateTag: () -> Unit,
+    onChangeLanguage: () -> Unit,
+    onCameraClick: () -> Unit,
+    onGalleryClick: () -> Unit,
 ) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+    SheetPage(
+        title = stringResource(Res.string.add_words_photo_title),
+        subtitle = stringResource(Res.string.photo_subtitle),
+        eyebrow = stringResource(Res.string.ai_powered_extraction),
+        headerAccessory = {
+            LanguagePairChip(source = sourceLanguage, target = targetLanguage, onClick = onChangeLanguage)
+        },
+        footer = {
+            SheetPrimaryButton(
+                text = stringResource(Res.string.take_photo),
+                onClick = onCameraClick,
+                enabled = isEnabled,
+                icon = Icons.Default.CameraAlt,
+            )
+            SheetTonalButton(
+                text = stringResource(Res.string.choose_from_gallery_cta),
+                onClick = onGalleryClick,
+                enabled = isEnabled,
+                icon = Icons.Default.PhotoLibrary,
+            )
+        },
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Theme.shapes.large))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(Theme.spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
         ) {
-            Icon(
-                Icons.Filled.AutoAwesome,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSize),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                stringResource(Res.string.ai_powered_extraction),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+            SheetSectionLabel(stringResource(Res.string.photo_best_results))
+            PhotoTip(Icons.Default.WbSunny, stringResource(Res.string.photo_tip_light))
+            PhotoTip(Icons.Default.CropFree, stringResource(Res.string.photo_tip_sharp))
+            PhotoTip(Icons.Default.Image, stringResource(Res.string.photo_tip_format))
         }
-        Text(
-            stringResource(Res.string.capture_vocab_from_image),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+
+        TagSelectorRow(
+            tags = tags,
+            selectedTagId = selectedTagId,
+            onTagSelected = onTagSelected,
+            onCreateTag = onCreateTag,
         )
     }
 }
 
 @Composable
-internal fun ImageSourcePicker(
-    onCameraClick: () -> Unit,
-    onGalleryClick: () -> Unit,
-    isEnabled: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val borderColor = MaterialTheme.colorScheme.outlineVariant
-    val cornerRadiusDp = Theme.shapes.large
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .drawBehind {
-                drawRoundRect(
-                    color = borderColor,
-                    style = Stroke(
-                        width = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(
-                            floatArrayOf(8.dp.toPx(), 5.dp.toPx()),
-                        ),
-                    ),
-                    cornerRadius = CornerRadius(cornerRadiusDp.toPx()),
-                )
-            }
-            .padding(Theme.spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+private fun PhotoTip(icon: ImageVector, text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
-        Surface(
-            modifier = Modifier.size(Theme.dimensions.iconSizeHuge),
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+        Box(
+            modifier = Modifier
+                .size(Theme.spacing.xl)
+                .clip(RoundedCornerShape(Theme.shapes.small + Theme.spacing.xxxs))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center,
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Filled.CameraAlt,
-                    contentDescription = null,
-                    modifier = Modifier.size(Theme.dimensions.iconSize),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            }
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(Theme.dimensions.iconSizeSmall + Theme.spacing.xxxs),
+            )
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-        ) {
-            Button(
-                onClick = onCameraClick,
-                enabled = isEnabled,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(Theme.dimensions.buttonHeightSmall),
-                shape = RoundedCornerShape(Theme.shapes.small),
-            ) {
-                Text(stringResource(Res.string.camera))
-            }
-            OutlinedButton(
-                onClick = onGalleryClick,
-                enabled = isEnabled,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(Theme.dimensions.buttonHeightSmall),
-                shape = RoundedCornerShape(Theme.shapes.small),
-            ) {
-                Text(stringResource(Res.string.gallery))
-            }
-        }
+        Text(text, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
     }
 }

@@ -2,21 +2,21 @@ package feature.profile.navigation
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import feature.profile.EditProfileViewModel
 import feature.profile.ProfileViewModel
-import feature.profile.ui.AvatarOptionsPage
-import feature.profile.ui.ProfileMoreOptionsSheet
 import feature.profile.ui.ProfileScreen
 import feature.profile.ui.ProfileSheetPage
 import feature.profile.ui.components.DeleteAccountCoolingContent
 import feature.profile.ui.components.DeleteAccountHiddenContent
 import feature.profile.ui.components.EditProfileSheetContent
 import feature.profile.ui.components.LogoutDialogContent
+import components.scaffold.LexiconColumn
 import kotlinx.serialization.Serializable
+import lexicon.resources.generated.resources.profile
+import overlay.LocalOverlayHost
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.OverlayHost
 import overlay.OverlayNavigator
@@ -29,26 +29,41 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.profile_updated
 import org.jetbrains.compose.resources.stringResource
 import overlay.bottomsheet.showSizeToFitBottomSheet
-import utils.rememberImagePickerLauncher
 
 @Serializable
 data object ProfileRoute
 
 fun NavGraphBuilder.profileGraph(
     snackbarHostState: SnackbarHostState,
+    settingsContent: @Composable () -> Unit,
 ) {
     composable<ProfileRoute> {
-        ProfileScreen(
-            snackbarHostState = snackbarHostState,
-            onMoreOptions = {},
-            onLogout = {},
-        )
+        val overlayHost = LocalOverlayHost.current
+        LexiconColumn(
+            title = stringResource(Res.string.profile),
+            scrollable = false,
+        ) {
+            ProfileScreen(
+                snackbarHostState = snackbarHostState,
+                onEditProfile = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.EditProfile) },
+                onDeleteAccount = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.DeleteConfirm) },
+                onLogout = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.Logout) },
+                settingsContent = settingsContent,
+            )
+        }
     }
 }
 
-fun OverlayHost.showProfileSheet(snackbarHostState: SnackbarHostState) {
+private fun OverlayHost.showProfileSheet(
+    snackbarHostState: SnackbarHostState,
+    startPage: ProfileSheetPage,
+) {
     showSizeToFitBottomSheet(tag = "profile") { sheetNav ->
-        ProfileSheetContent(sheetNav = sheetNav, snackbarHostState = snackbarHostState)
+        ProfileSheetContent(
+            sheetNav = sheetNav,
+            snackbarHostState = snackbarHostState,
+            startPage = startPage,
+        )
     }
 }
 
@@ -56,52 +71,28 @@ fun OverlayHost.showProfileSheet(snackbarHostState: SnackbarHostState) {
 private fun ProfileSheetContent(
     sheetNav: OverlayNavigator,
     snackbarHostState: SnackbarHostState,
+    startPage: ProfileSheetPage,
 ) {
     val scope = rememberCoroutineScope()
     val profileUpdatedMessage = stringResource(Res.string.profile_updated)
-    val pages = rememberBottomSheetPageNavigator<ProfileSheetPage>(ProfileSheetPage.Profile)
+    val pages = rememberBottomSheetPageNavigator(startPage)
     val profileViewModel = koinViewModel<ProfileViewModel>()
     val editProfileViewModel = koinViewModel<EditProfileViewModel>()
-    val editProfileState by editProfileViewModel.state()
-    val imagePicker = rememberImagePickerLauncher { bytes ->
-        if (bytes != null) editProfileViewModel.uploadAvatar(bytes, "image/jpeg")
-    }
 
     BottomSheetPages(
         navigator = pages,
         onClose = { sheetNav.dismiss() },
-        pageConfig = ::profileSheetPageConfig,
+        pageConfig = { page ->
+            val config = profileSheetPageConfig(page)
+            if (page == startPage) config.copy(showBackButton = false) else config
+        },
     ) { currentPage ->
         when (currentPage) {
-            is ProfileSheetPage.Profile -> ProfileScreen(
-                snackbarHostState = snackbarHostState,
-                onMoreOptions = { pages.navigateTo(ProfileSheetPage.Options) },
-                onLogout = { pages.navigateTo(ProfileSheetPage.Logout) },
-            )
-
-            is ProfileSheetPage.Options -> ProfileMoreOptionsSheet(
-                onEditProfile = { pages.navigateTo(ProfileSheetPage.EditProfile) },
-                onDeleteAccount = { pages.navigateTo(ProfileSheetPage.DeleteConfirm) },
-            )
-
             is ProfileSheetPage.EditProfile -> EditProfileSheetContent(
                 viewModel = editProfileViewModel,
-                onChangeAvatar = { pages.navigateTo(ProfileSheetPage.AvatarOptions) },
                 onSaved = {
                     pages.navigateBack()
                     scope.launch { snackbarHostState.showSnackbar(profileUpdatedMessage) }
-                },
-            )
-
-            is ProfileSheetPage.AvatarOptions -> AvatarOptionsPage(
-                hasExistingAvatar = editProfileState.profileImageUrl != null,
-                onChooseFromGallery = {
-                    pages.navigateBack()
-                    imagePicker()
-                },
-                onRemovePhoto = {
-                    pages.navigateBack()
-                    editProfileViewModel.deleteAvatar()
                 },
             )
 
@@ -123,31 +114,16 @@ private fun ProfileSheetContent(
                     sheetNav.dismiss()
                     profileViewModel.logout()
                 },
-                onDismiss = { pages.navigateBack() },
+                onDismiss = { if (!pages.navigateBack()) sheetNav.dismiss() },
             )
         }
     }
 }
 
 private fun profileSheetPageConfig(page: ProfileSheetPage): BottomSheetPageConfig = when (page) {
-    is ProfileSheetPage.Profile -> BottomSheetPageConfig(
-        showBackButton = false,
-        showCloseButton = false,
-        properties = BottomSheetProperties(),
-    )
-    is ProfileSheetPage.Options -> BottomSheetPageConfig(
-        showBackButton = true,
-        showCloseButton = false,
-        properties = BottomSheetProperties(),
-    )
     is ProfileSheetPage.EditProfile -> BottomSheetPageConfig(
         showBackButton = true,
-        showCloseButton = false,
-        properties = BottomSheetProperties(),
-    )
-    is ProfileSheetPage.AvatarOptions -> BottomSheetPageConfig(
-        showBackButton = true,
-        showCloseButton = false,
+        showCloseButton = true,
         properties = BottomSheetProperties(),
     )
     is ProfileSheetPage.DeleteConfirm -> BottomSheetPageConfig(

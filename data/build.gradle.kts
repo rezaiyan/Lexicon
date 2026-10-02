@@ -38,6 +38,17 @@ kotlin {
             implementation(libs.sqldelight.android.driver)
         }
 
+        // JVM unit tests run real SQL against an in-memory SQLite database.
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(project(":test"))
+                implementation(libs.kotlin.test)
+                implementation(libs.kotlin.test.junit)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.sqldelight.sqlite.driver)
+            }
+        }
+
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.sqldelight.native.driver)

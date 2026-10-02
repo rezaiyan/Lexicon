@@ -1,20 +1,13 @@
 package feature.profile.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -25,17 +18,15 @@ import androidx.compose.ui.Modifier
 import core.common.UiState
 import feature.profile.ProfileViewModel
 import feature.profile.model.ProfileUiData
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.more_options
-import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import theme.Theme
 
 @Composable
 fun ProfileScreen(
     snackbarHostState: SnackbarHostState,
-    onMoreOptions: () -> Unit,
+    onEditProfile: () -> Unit,
+    onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
+    settingsContent: @Composable () -> Unit,
 ) {
     val profileViewModel = koinViewModel<ProfileViewModel>()
 
@@ -62,21 +53,6 @@ fun ProfileScreen(
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        if (isLoggedIn) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                IconButton(onClick = onMoreOptions) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(Res.string.more_options),
-                        modifier = Modifier.size(Theme.dimensions.iconSize),
-                    )
-                }
-            }
-        }
-
         Box(modifier = Modifier.fillMaxWidth()) {
             when {
                 isLoading -> {
@@ -91,7 +67,10 @@ fun ProfileScreen(
                 isLoggedIn -> {
                     ProfileContent(
                         profileData = profileData,
+                        onEditProfile = onEditProfile,
+                        onDeleteAccount = onDeleteAccount,
                         onLogout = onLogout,
+                        settingsContent = settingsContent,
                     )
                 }
             }

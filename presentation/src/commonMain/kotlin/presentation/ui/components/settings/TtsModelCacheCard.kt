@@ -13,6 +13,7 @@ import lexicon.resources.generated.resources.tts_models_subtitle
 @Composable
 fun TtsModelCacheCard(
     onClick: () -> Unit,
+    showDivider: Boolean = true,
 ) {
     SettingsCard(
         icon = Icons.Default.RecordVoiceOver,
@@ -20,5 +21,6 @@ fun TtsModelCacheCard(
         subtitle = stringResource(Res.string.tts_models_subtitle),
         iconBackgroundColor = AppColors.settingsTtsIcon,
         onClick = onClick,
+        showDivider = showDivider,
     )
 }

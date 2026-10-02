@@ -1,16 +1,15 @@
 package presentation.ui.components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import components.ListTile
+import components.GroupedRow
 
 /**
- * Settings-style card: leading icon, title/subtitle, optional trailing content.
- * Delegates to the design-system [ListTile].
+ * Settings row: tinted leading icon, title/subtitle, optional trailing content.
+ * Meant to sit inside a design-system [components.GroupedSection];
+ * pass `showDivider = false` on the last row of a section.
  */
 @Composable
 fun SettingsCard(
@@ -20,23 +19,20 @@ fun SettingsCard(
     onClick: () -> Unit,
     iconTint: Color? = null,
     iconBackgroundColor: Color? = null,
-    solidIconBackground: Boolean = false,
     subtitleColor: Color? = null,
     showTrailingArrow: Boolean = true,
+    showDivider: Boolean = true,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
-    ListTile(
-        icon = icon,
+    GroupedRow(
         title = title,
         subtitle = subtitle,
         onClick = onClick,
-        iconTint = iconTint,
-        iconBackgroundColor = iconBackgroundColor,
-        solidIconBackground = solidIconBackground,
-        subtitleColor = subtitleColor,
-        containerColor = MaterialTheme.colorScheme.surface,
+        icon = icon,
+        iconColor = iconTint ?: iconBackgroundColor,
+        subtitleColor = subtitleColor ?: MaterialTheme.colorScheme.onSurfaceVariant,
         trailingContent = trailingContent,
-        showTrailingArrow = showTrailingArrow,
-        trailingArrowIcon = Icons.Default.KeyboardArrowRight
+        showChevron = showTrailingArrow,
+        showDivider = showDivider,
     )
 }
