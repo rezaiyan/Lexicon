@@ -55,6 +55,12 @@ import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import domain.word.usecase.UpdateWordUseCase
 import domain.widget.usecase.GetDailyWidgetDataUseCase
+import domain.focus.usecase.AcknowledgeFocusIntroUseCase
+import domain.focus.usecase.DismissFocusNudgeUseCase
+import domain.focus.usecase.ObserveLearningFocusUseCase
+import domain.focus.usecase.ObserveStudyFocusUseCase
+import domain.focus.usecase.SetLearningFocusUseCase
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -136,5 +142,20 @@ fun wordModule() = module {
     singleOf(::GetSourceLanguageUseCase)
 
     // Use Cases - Widget
-    singleOf(::GetDailyWidgetDataUseCase)
+    single {
+        GetDailyWidgetDataUseCase(
+            wordRepository = get(),
+            streakRepository = get(),
+            widgetRefresher = get(),
+            observeLearningFocus = get(),
+        )
+    }
+
+    // Use Cases - Learning Focus
+    // Explicit lambdas: these take a `nowMillis` default param that Koin's constructor DSL can't resolve.
+    factory { ObserveLearningFocusUseCase(wordRepository = get(), focusRepository = get()) }
+    factory { ObserveStudyFocusUseCase(wordRepository = get(), tagRepository = get(), focusRepository = get()) }
+    factoryOf(::SetLearningFocusUseCase)
+    factory { DismissFocusNudgeUseCase(focusRepository = get()) }
+    factoryOf(::AcknowledgeFocusIntroUseCase)
 }
