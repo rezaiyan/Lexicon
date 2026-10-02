@@ -294,3 +294,31 @@ SELECT * FROM WordRushPendingGames;
 
 deleteAllWordRushPendingGames:
 DELETE FROM WordRushPendingGames;
+
+-- LearningFocusEntity: single-row, client-only learning focus preference.
+-- Separate table on purpose: insertSettings is INSERT OR REPLACE with an explicit
+-- column list, so extra SettingsEntity columns would be reset on every settings save.
+CREATE TABLE LearningFocusEntity (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    focusCode TEXT,
+    nudgeDismissedDay INTEGER,
+    introAcknowledged INTEGER NOT NULL DEFAULT 0
+);
+
+getLearningFocus:
+SELECT * FROM LearningFocusEntity WHERE id = 1;
+
+ensureLearningFocusRow:
+INSERT OR IGNORE INTO LearningFocusEntity(id) VALUES (1);
+
+setLearningFocusCode:
+UPDATE LearningFocusEntity SET focusCode = ? WHERE id = 1;
+
+setLearningFocusNudgeDismissedDay:
+UPDATE LearningFocusEntity SET nudgeDismissedDay = ? WHERE id = 1;
+
+setLearningFocusIntroAcknowledged:
+UPDATE LearningFocusEntity SET introAcknowledged = 1 WHERE id = 1;
+
+clearLearningFocus:
+DELETE FROM LearningFocusEntity;

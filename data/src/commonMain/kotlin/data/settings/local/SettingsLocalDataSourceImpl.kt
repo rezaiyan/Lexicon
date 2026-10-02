@@ -72,6 +72,8 @@ class SettingsLocalDataSourceImpl(
 
     override suspend fun clearSettings() {
         queries.clearSettings()
+        // Learning focus is a per-user preference: wipe it with the rest of the settings.
+        queries.clearLearningFocus()
     }
 
     override suspend fun getWordSyncTimestamp(): Long =
