@@ -1,7 +1,6 @@
 package feature.insights.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -64,9 +63,7 @@ import androidx.compose.ui.unit.sp
 import components.ErrorScreen
 import components.GradientProgressBar
 import components.LoadingScreen
-import components.LottieMotionIcon
 import components.Pill
-import components.animation.rememberAnimatedCounter
 import components.scaffold.LexiconColumn
 import components.scaffold.TopBarColor
 import core.common.UiState
@@ -79,7 +76,6 @@ import domain.analytics.model.HourlyAccuracy
 import domain.analytics.model.LevelTransition
 import domain.analytics.model.ResponseTimeTrend
 import domain.wordrush.model.WordRushInsights
-import domain.analytics.model.StudyHeatmapDay
 import domain.analytics.model.StudyInsights
 import domain.analytics.model.WordDifficulty
 import events.OnEvents
@@ -88,14 +84,9 @@ import feature.insights.InsightsState
 import feature.insights.InsightsViewModel
 import kotlin.math.roundToInt
 import kotlin.time.Clock
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.best_streak
-import lexicon.resources.generated.resources.day_streak
 import lexicon.resources.generated.resources.insights_accuracy
 import lexicon.resources.generated.resources.insights_accuracy_by_level
 import lexicon.resources.generated.resources.insights_empty_subtitle
@@ -125,12 +116,7 @@ import lexicon.resources.generated.resources.insights_study_these_words
 import lexicon.resources.generated.resources.insights_most_difficult_words
 import lexicon.resources.generated.resources.insights_reviews_format
 import lexicon.resources.generated.resources.insights_sessions_words
-import lexicon.resources.generated.resources.insights_this_week
 import lexicon.resources.generated.resources.insights_title
-import lexicon.resources.generated.resources.weekly_report_accuracy
-import lexicon.resources.generated.resources.weekly_report_best_day
-import lexicon.resources.generated.resources.weekly_report_cards_reviewed
-import lexicon.resources.generated.resources.weekly_report_sessions
 import lexicon.resources.generated.resources.insights_total_study_time
 import lexicon.resources.generated.resources.retry
 import lexicon.resources.generated.resources.insights_words_mastered
@@ -170,7 +156,6 @@ fun InsightsScreen(
 
     InsightsContent(
         state = state,
-        onNavigateBack = onNavigateBack,
         onShowLeaderboard = onShowLeaderboard,
         onDismissInsight = { viewModel.dismissDailyInsight() },
         onRetry = { viewModel.refresh() },
@@ -182,7 +167,6 @@ fun InsightsScreen(
 @Composable
 internal fun InsightsContent(
     state: InsightsState,
-    onNavigateBack: () -> Unit,
     onShowLeaderboard: () -> Unit = {},
     onDismissInsight: () -> Unit = {},
     onRetry: () -> Unit = {},
@@ -191,9 +175,6 @@ internal fun InsightsContent(
 ) {
     LexiconColumn(
         title = stringResource(Res.string.insights_title),
-        showNavigationIcon = true,
-        navigationIcon = Icons.Default.Close,
-        onNavigationClick = onNavigateBack,
         scrollable = false,
         topBarColor = TopBarColor.Background,
         actionIcon1 = ActionIconConfig(
@@ -218,19 +199,36 @@ internal fun InsightsContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = Theme.spacing.md),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
+                    .padding(top = Theme.spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
             ) {
+                val heatmapDays = (state.heatmap as? UiState.Loaded)?.value ?: emptyList()
+                val week = rememberLastSevenDays(heatmapDays)
+                val weeklyReport = (state.weeklyReport as? UiState.Loaded)?.value
+                    as? feature.insights.WeeklyReportUiModel.Content
+
                 val currentStreak = state.currentStreak
                 if (currentStreak != null) {
-                    StreakCard(
+                    StreakWeekCard(
                         currentStreak = currentStreak,
                         longestStreak = state.longestStreak,
+                        week = week,
                     )
                 }
-                val weeklyReport = (state.weeklyReport as? UiState.Loaded)?.value
-                if (weeklyReport is feature.insights.WeeklyReportUiModel.Content) {
-                    WeeklyReportCard(report = weeklyReport)
+                if (weeklyReport != null) {
+                    WeeklyStatTiles(
+                        cardsReviewed = weeklyReport.cardsReviewed,
+                        accuracy = weeklyReport.accuracyValue,
+                        changeLabel = weeklyReport.changeLabel,
+                        isChangePositive = weeklyReport.isChangePositive,
+                    )
+                }
+                if (heatmapDays.isNotEmpty()) {
+                    ReviewsPerDayCard(
+                        week = week,
+                        sessions = weeklyReport?.sessionsValue,
+                        bestDay = weeklyReport?.bestDayLabel,
+                    )
                 }
                 OverviewTab(state, onDismissInsight, onSetReminder)
                 if (state.availability.hasWordRush) {
@@ -290,201 +288,6 @@ private fun EmptyInsightsContent() {
 
 // endregion
 
-// region Streak
-
-private const val FIRE_LOTTIE_URL =
-    "https://assets-v2.lottiefiles.com/a/9d140e5e-1121-11ef-a147-0f8f2c5fd446/12M9FMZfjS.json"
-
-@Composable
-private fun StreakCard(
-    currentStreak: Int,
-    longestStreak: Int?,
-) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val animatedCurrent = rememberAnimatedCounter(target = currentStreak)
-    val animatedLongest = rememberAnimatedCounter(target = longestStreak ?: 0)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(surfaceColor.copy(alpha = 0.9f))
-            .padding(start = Theme.spacing.xxs, end = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(bottom = Theme.spacing.sm)
-                .size(64.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            LottieMotionIcon(url = FIRE_LOTTIE_URL, modifier = Modifier.size(64.dp))
-        }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "$animatedCurrent",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = primaryColor,
-                lineHeight = 30.sp,
-            )
-            Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
-            Text(
-                text = stringResource(Res.string.day_streak),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 0.3.sp,
-            )
-        }
-        if (longestStreak != null) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "$animatedLongest",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = tertiaryColor,
-                    lineHeight = 30.sp,
-                )
-                Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
-                Text(
-                    text = stringResource(Res.string.best_streak),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    letterSpacing = 0.3.sp,
-                )
-            }
-        }
-    }
-}
-
-// endregion
-
-// region Weekly Report
-
-@Composable
-private fun WeeklyReportCard(
-    report: feature.insights.WeeklyReportUiModel.Content,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.large))
-            .background(Theme.gradients.primaryWash)
-            .padding(Theme.spacing.md),
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
-            // Header: title + date range label + optional change badge
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(Res.string.insights_this_week).uppercase(),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        letterSpacing = 1.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = report.weekRangeLabel,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                if (report.changeLabel != null) {
-                    val badgeColor = if (report.isChangePositive) AppColors.accentEmerald else AppColors.error
-                    Pill(
-                        text = report.changeLabel,
-                        color = badgeColor,
-                        backgroundColor = badgeColor.copy(alpha = 0.12f),
-                    )
-                }
-            }
-
-            // Stats row: cards reviewed (hero) + accuracy + sessions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                WeeklyStatCell(
-                    value = report.cardsReviewed,
-                    label = stringResource(Res.string.weekly_report_cards_reviewed),
-                    color = MaterialTheme.colorScheme.primary,
-                    isHero = true,
-                )
-                WeeklyStatCell(
-                    value = report.accuracyValue,
-                    label = stringResource(Res.string.weekly_report_accuracy),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                WeeklyStatCell(
-                    value = report.sessionsValue,
-                    label = stringResource(Res.string.weekly_report_sessions),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-
-            // Optional best day label
-            if (report.bestDayLabel != null) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(14.dp),
-                    )
-                    Text(
-                        text = "${stringResource(Res.string.weekly_report_best_day)}: ${report.bestDayLabel}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WeeklyStatCell(
-    value: String,
-    label: String,
-    color: Color,
-    isHero: Boolean = false,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs),
-    ) {
-        Text(
-            text = value,
-            style = if (isHero) MaterialTheme.typography.displaySmall else MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = color,
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-// endregion
-
 // region Overview
 
 @Composable
@@ -495,11 +298,9 @@ private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit, onSe
         .onLoaded { insights ->
             if (state.availability.hasOverview) {
                 val bestTime = (state.bestStudyTime as? UiState.Loaded)?.value
-                val heatmapDays = (state.heatmap as? UiState.Loaded)?.value ?: emptyList()
                 StudyInsightsCard(
                     insights = insights,
                     bestStudyTime = bestTime,
-                    heatmapDays = heatmapDays,
                     dailyInsight = state.dailyInsight,
                     reviewRemindersEnabled = state.reviewRemindersEnabled,
                     onDismissInsight = onDismissInsight,
@@ -513,7 +314,6 @@ private fun OverviewTab(state: InsightsState, onDismissInsight: () -> Unit, onSe
 private fun StudyInsightsCard(
     insights: StudyInsights,
     bestStudyTime: HourlyAccuracy?,
-    heatmapDays: List<StudyHeatmapDay>,
     dailyInsight: String?,
     reviewRemindersEnabled: Boolean = false,
     onDismissInsight: () -> Unit,
@@ -703,10 +503,6 @@ private fun StudyInsightsCard(
                                 onCheckedChange = onSetReminder,
                             )
                         }
-                    }
-                    if (heatmapDays.isNotEmpty()) {
-                        HorizontalDivider(color = tint.copy(alpha = 0.15f))
-                        ThisWeekSection(heatmapDays = heatmapDays)
                     }
                 }
             }
@@ -1492,106 +1288,6 @@ private fun ResponseTimeTrendCard(trend: List<ResponseTimeTrend>) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ThisWeekSection(heatmapDays: List<StudyHeatmapDay>) {
-    val today = remember {
-        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-    }
-    val todayStr = remember(today) { today.toString() }
-    val last7Days = remember(today, heatmapDays) {
-        val countByDate = heatmapDays.associate { it.date to it.count }
-        (6 downTo 0).map { daysAgo ->
-            val date = today.minus(daysAgo, DateTimeUnit.DAY)
-            StudyHeatmapDay(date = date.toString(), count = countByDate[date.toString()] ?: 0)
-        }
-    }
-    val maxCount = last7Days.maxOfOrNull { it.count }.takeIf { it != null && it > 0 } ?: 1
-
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
-        SectionLabel(stringResource(Res.string.insights_this_week))
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Theme.spacing.md),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Bottom,
-            ) {
-                last7Days.forEachIndexed { index, day ->
-                    WeekDayBar(day = day, maxCount = maxCount, todayStr = todayStr, index = index)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun WeekDayBar(day: StudyHeatmapDay, maxCount: Int, todayStr: String, index: Int) {
-    val isToday = day.date == todayStr
-    val fraction = day.count.toFloat() / maxCount
-    val targetFraction = fraction.coerceAtLeast(0.15f)
-    val animatedFraction = remember { Animatable(0f) }
-
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay((index * 60).toLong())
-        animatedFraction.animateTo(
-            targetValue = targetFraction,
-            animationSpec = tween(500, easing = FastOutSlowInEasing),
-        )
-    }
-
-    val barHeight = 120.dp * animatedFraction.value
-    val shadowHeight = 120.dp * (animatedFraction.value * 1.5f).coerceAtMost(1f)
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val shadowColor = MaterialTheme.colorScheme.surfaceContainerHigh
-    val barAlpha = if (isToday) 1f else (0.4f + fraction * 0.6f)
-
-    val dayLabel = remember(day.date) {
-        try {
-            LocalDate.parse(day.date).dayOfWeek.name.take(3)
-        } catch (_: Exception) {
-            "???"
-        }
-    }
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (day.count > 0) {
-            Text(
-                day.count.toString(),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium,
-                color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(Theme.spacing.xxxs))
-        }
-        Box(contentAlignment = Alignment.BottomCenter) {
-            Box(
-                Modifier
-                    .width(32.dp)
-                    .height(shadowHeight)
-                    .clip(RoundedCornerShape(50))
-                    .background(shadowColor),
-            )
-            Box(
-                Modifier
-                    .width(32.dp)
-                    .height(barHeight)
-                    .clip(RoundedCornerShape(50))
-                    .background(primaryColor.copy(alpha = barAlpha)),
-            )
-        }
-        Spacer(Modifier.height(Theme.spacing.xs))
-        Text(
-            dayLabel,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
-            color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

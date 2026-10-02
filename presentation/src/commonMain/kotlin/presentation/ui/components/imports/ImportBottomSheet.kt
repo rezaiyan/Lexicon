@@ -1,18 +1,6 @@
 package presentation.ui.components.imports
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,12 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import events.OnEvents
-import feature.onboarding.ui.components.LanguageGrid
+import expects.BackHandler
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.create_tag
 import lexicon.resources.generated.resources.import_error_file_format
 import lexicon.resources.generated.resources.import_error_image_hint
@@ -33,16 +18,16 @@ import lexicon.resources.generated.resources.import_error_network
 import lexicon.resources.generated.resources.import_failed_generic
 import lexicon.resources.generated.resources.new_tag
 import lexicon.resources.generated.resources.original_language
-import lexicon.resources.generated.resources.original_language_question
-import lexicon.resources.generated.resources.success_imported_words
-import lexicon.resources.generated.resources.tag_name_hint
+import lexicon.resources.generated.resources.translation_language
 import lexicon.resources.generated.resources.translation_language_hint
+import lexicon.resources.generated.resources.word_language_title
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
+import overlay.bottomsheet.BottomSheetPageConfig
 import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import presentation.model.ImageImportState
-import theme.Theme
+import presentation.ui.components.TagFormContent
 import utils.Language
 import utils.rememberCameraLauncher
 import utils.rememberImagePickerLauncher
@@ -57,13 +42,23 @@ private sealed interface ImportPage {
     data object LanguageConfirmation : ImportPage
     data object SourceLanguagePicker : ImportPage
     data object TargetLanguagePicker : ImportPage
+    data object CreateTag : ImportPage
+    data class Success(val count: Int, val previewWords: List<String>) : ImportPage
 }
 
+/**
+ * Manual add-words flow: chooser → (word language, first time only) → type / file / photo → success.
+ *
+ * @param onAiAssistant shows the "Generate with AI" card on the chooser when non-null.
+ * @param onStartReview offered on the success page when non-null.
+ */
 @Composable
 fun ImportBottomSheet(
     onDismiss: () -> Unit,
     onShowSnackBar: (String) -> Unit,
     onClose: (() -> Unit)? = null,
+    onAiAssistant: (() -> Unit)? = null,
+    onStartReview: (() -> Unit)? = null,
 ) {
     val viewModel = koinInject<ImportViewModel>()
     val state by viewModel.state()
@@ -72,23 +67,21 @@ fun ImportBottomSheet(
     val errorMessageNetwork = stringResource(Res.string.import_error_network)
     val errorMessageImage = stringResource(Res.string.import_error_image_hint)
     val errorMessageFileFormat = stringResource(Res.string.import_error_file_format)
-    val successFormat = stringResource(Res.string.success_imported_words)
     val latestErrorGeneric = rememberUpdatedState(errorMessageGeneric)
     val latestErrorNetwork = rememberUpdatedState(errorMessageNetwork)
     val latestErrorImage = rememberUpdatedState(errorMessageImage)
     val latestErrorFileFormat = rememberUpdatedState(errorMessageFileFormat)
-    val latestSuccessFormat = rememberUpdatedState(successFormat)
+    // Words shown as chips on the success page; captured before the import clears review state
+    var pendingPreviewWords by remember { mutableStateOf(emptyList<String>()) }
 
     OnEvents(viewModel.effects) { effect ->
         when (effect) {
-            is ImportEffect.FileImportSuccessful -> {
-                onShowSnackBar(formatCount(latestSuccessFormat.value, effect.count))
-                onDismiss()
-            }
-            is ImportEffect.ImageImportSuccessful -> {
-                onShowSnackBar(formatCount(latestSuccessFormat.value, effect.count))
-                onDismiss()
-            }
+            is ImportEffect.FileImportSuccessful ->
+                pages.navigateTo(ImportPage.Success(effect.count, emptyList()))
+
+            is ImportEffect.ImageImportSuccessful ->
+                pages.navigateTo(ImportPage.Success(effect.count, pendingPreviewWords))
+
             is ImportEffect.Error -> {
                 val raw = effect.message
                 val isNetwork = raw.contains("timeout", ignoreCase = true) ||
@@ -122,7 +115,9 @@ fun ImportBottomSheet(
 
     LaunchedEffect(state.imageReviewState) {
         when (state.imageReviewState) {
-            is ImageReviewState.Review -> pages.navigateTo(ImportPage.ImageReview)
+            is ImageReviewState.Review -> if (pages.currentPage !is ImportPage.ImageReview) {
+                pages.navigateTo(ImportPage.ImageReview)
+            }
             is ImageReviewState.None -> {
                 if (pages.currentPage is ImportPage.ImageReview) pages.navigateBack()
             }
@@ -131,164 +126,188 @@ fun ImportBottomSheet(
 
     // Clean up language confirmation state when navigating away
     LaunchedEffect(pages.currentPage) {
-        if (pages.currentPage !is ImportPage.LanguageConfirmation && state.showLanguageConfirmation) {
+        val onConfirmFlow = pages.currentPage is ImportPage.LanguageConfirmation ||
+            pages.currentPage is ImportPage.SourceLanguagePicker ||
+            pages.currentPage is ImportPage.TargetLanguagePicker
+        if (!onConfirmFlow && state.showLanguageConfirmation) {
             viewModel.dismissLanguageConfirmation()
         }
     }
 
-    if (state.showCreateTagDialog) {
-        CreateTagDialog(
-            onConfirm = viewModel::createTag,
-            onDismiss = viewModel::dismissCreateTagDialog,
-        )
+    val openCreateTag: () -> Unit = { pages.navigateTo(ImportPage.CreateTag) }
+
+    val openMethod: (ImportTabV2, ImportPage) -> Unit = { tab, page ->
+        viewModel.selectTab(tab)
+        // Ask for the word language only while it is unknown (still equal to the translation language)
+        if (state.sourceLanguage == state.targetLanguage) {
+            pages.navigateTo(ImportPage.SourceLanguageChooser)
+        } else {
+            pages.navigateTo(page)
+        }
     }
+    val contentPageFor: (ImportTabV2) -> ImportPage = { tab ->
+        when (tab) {
+            is ImportTabV2.File -> ImportPage.FileContent
+            is ImportTabV2.Image -> ImportPage.ImageContent
+            else -> ImportPage.TextContent
+        }
+    }
+    val isReviewing = pages.currentPage is ImportPage.ImageReview
 
     BottomSheetPages(
         navigator = pages,
-        onClose = onClose,
+        onClose = if (isReviewing) viewModel::requestCancelImageReview else onClose,
         label = "ImportPages",
+        pageConfig = { page ->
+            BottomSheetPageConfig(
+                showBackButton = page !is ImportPage.ImageReview && page !is ImportPage.Success,
+            )
+        },
     ) { page ->
         when (page) {
-            is ImportPage.MethodChooser -> ImportMethodChooserContent(
+            is ImportPage.CreateTag -> TagFormContent(
+                title = stringResource(Res.string.new_tag),
+                confirmText = stringResource(Res.string.create_tag),
+                onConfirm = { name ->
+                    viewModel.createTag(name)
+                    pages.navigateBack()
+                },
+                onDismiss = { pages.navigateBack() },
+            )
+
+            is ImportPage.MethodChooser -> AddWordsChooserContent(
                 hasImageAccess = state.tabs.any { it is ImportTabV2.Image },
-                onTextSelected = {
-                    viewModel.selectTab(ImportTabV2.Text())
-                    pages.navigateTo(ImportPage.SourceLanguageChooser)
-                },
-                onFileSelected = {
-                    viewModel.selectTab(ImportTabV2.File())
-                    pages.navigateTo(ImportPage.SourceLanguageChooser)
-                },
-                onImageSelected = {
-                    viewModel.selectTab(ImportTabV2.Image())
-                    pages.navigateTo(ImportPage.SourceLanguageChooser)
+                onAiAssistant = onAiAssistant,
+                onTypeWord = { openMethod(ImportTabV2.Text(), ImportPage.TextContent) },
+                onImportFile = { openMethod(ImportTabV2.File(), ImportPage.FileContent) },
+                onScanPhoto = { openMethod(ImportTabV2.Image(), ImportPage.ImageContent) },
+            )
+
+            is ImportPage.SourceLanguageChooser -> ImportLanguageListPage(
+                title = stringResource(Res.string.word_language_title),
+                subtitle = stringResource(Res.string.translation_language_hint, state.targetLanguage.displayName),
+                languages = Language.entries.filter { it != state.targetLanguage },
+                selected = state.sourceLanguage.takeIf { it != state.targetLanguage },
+                onLanguageSelected = { language ->
+                    viewModel.selectSourceLanguage(language)
+                    pages.navigateTo(contentPageFor(state.selectedTab))
                 },
             )
 
-            is ImportPage.SourceLanguageChooser -> SourceLanguageChooserPage(
+            is ImportPage.TextContent -> TextImportContent(
+                textInputState = state.textInputState,
+                sourceLanguage = state.sourceLanguage,
                 targetLanguage = state.targetLanguage,
-                onLanguageSelected = { language ->
-                    viewModel.selectSourceLanguage(language)
-                    when (state.selectedTab) {
-                        is ImportTabV2.File -> pages.navigateTo(ImportPage.FileContent)
-                        is ImportTabV2.Image -> pages.navigateTo(ImportPage.ImageContent)
-                        else -> pages.navigateTo(ImportPage.TextContent)
+                tags = state.tags,
+                selectedTagId = state.selectedTagId,
+                onTagSelected = viewModel::selectTag,
+                onCreateTag = openCreateTag,
+                onChangeLanguage = { pages.navigateTo(ImportPage.SourceLanguagePicker) },
+                onWordChange = viewModel::updateWord,
+                onTranslationChange = viewModel::updateTranslation,
+                onDescriptionChange = viewModel::updateDescription,
+                onAddWord = viewModel::addWord,
+                onDone = {
+                    val added = state.textInputState
+                    if (added.wordsAddedCount > 0) {
+                        pages.navigateTo(
+                            ImportPage.Success(added.wordsAddedCount, added.recentWords.map { it.word })
+                        )
+                    } else {
+                        onDismiss()
                     }
                 },
             )
 
-            is ImportPage.TextContent -> TextContentPage(
-                state = state,
-                viewModel = viewModel,
-            )
-
-            is ImportPage.FileContent -> FileContentPage(
-                state = state,
-                viewModel = viewModel,
-                onDismiss = onDismiss,
+            is ImportPage.FileContent -> FileImportContent(
+                isLoading = state.fileImportState is ImportFileState.Loading,
+                sourceLanguage = state.sourceLanguage,
+                targetLanguage = state.targetLanguage,
+                tags = state.tags,
+                selectedTagId = state.selectedTagId,
+                onTagSelected = viewModel::selectTag,
+                onCreateTag = openCreateTag,
+                onChangeLanguage = { pages.navigateTo(ImportPage.SourceLanguagePicker) },
+                importFile = viewModel::importFile,
             )
 
             is ImportPage.ImageContent -> ImageContentPage(
                 state = state,
                 viewModel = viewModel,
-                onDismiss = onDismiss,
+                onChangeLanguage = { pages.navigateTo(ImportPage.SourceLanguagePicker) },
+                onCreateTag = openCreateTag,
             )
 
             is ImportPage.ImageReview -> {
                 val reviewState = state.imageReviewState as? ImageReviewState.Review ?: return@BottomSheetPages
+                // Composed inside the page so it outranks the pager's own back handler:
+                // leaving the review must go through the discard confirmation
+                BackHandler { viewModel.requestCancelImageReview() }
                 ImageWordReviewContent(
                     reviewState = reviewState,
                     onRemoveWord = viewModel::removeExtractedWord,
                     onStartEditWord = viewModel::startEditingWord,
                     onCancelEdit = viewModel::cancelEditingWord,
                     onSaveEdit = viewModel::saveEditedWord,
-                    onConfirmImport = viewModel::confirmImageImport,
-                    onRequestCancel = viewModel::requestCancelImageReview,
+                    onConfirmImport = {
+                        pendingPreviewWords = reviewState.words.map { it.word }
+                        viewModel.confirmImageImport()
+                    },
                     onDismissCancelConfirmation = viewModel::dismissCancelConfirmation,
                     onCancelImport = viewModel::cancelImageReview,
                 )
             }
 
-            is ImportPage.LanguageConfirmation -> ImportLanguageConfirmationContent(
-                sourceLanguage = state.sourceLanguage,
-                targetLanguage = state.targetLanguage,
-                onConfirm = {
-                    viewModel.confirmImport()
-                    pages.navigateBack()
-                },
-                onDismiss = {
-                    viewModel.dismissLanguageConfirmation()
-                    pages.navigateBack()
-                },
-                onShowSourceLanguage = { pages.navigateTo(ImportPage.SourceLanguagePicker) },
-                onShowTargetLanguage = { pages.navigateTo(ImportPage.TargetLanguagePicker) },
-            )
+            is ImportPage.LanguageConfirmation -> {
+                val content = (state.pendingImportAction as? PendingImportAction.File)?.content.orEmpty()
+                val lines = remember(content) { previewPairs(content) }
+                ImportLanguageConfirmationContent(
+                    sourceLanguage = state.sourceLanguage,
+                    targetLanguage = state.targetLanguage,
+                    previewLines = lines,
+                    totalLines = lines.size,
+                    onConfirm = {
+                        viewModel.confirmImport()
+                        pages.navigateBack()
+                    },
+                    onDismiss = {
+                        viewModel.dismissLanguageConfirmation()
+                        pages.navigateBack()
+                    },
+                    onShowSourceLanguage = { pages.navigateTo(ImportPage.SourceLanguagePicker) },
+                    onShowTargetLanguage = { pages.navigateTo(ImportPage.TargetLanguagePicker) },
+                    onSwapLanguages = {
+                        val source = state.sourceLanguage
+                        viewModel.selectSourceLanguage(state.targetLanguage)
+                        viewModel.selectTargetLanguage(source)
+                    },
+                )
+            }
 
-            is ImportPage.SourceLanguagePicker -> LanguagePickerPage(
-                currentLanguage = state.sourceLanguage,
-                onLanguageSelected = { viewModel.selectSourceLanguage(it); pages.navigateBack() },
+            is ImportPage.SourceLanguagePicker -> ImportLanguageListPage(
                 title = stringResource(Res.string.original_language),
+                languages = Language.entries,
+                selected = state.sourceLanguage,
+                onLanguageSelected = { viewModel.selectSourceLanguage(it); pages.navigateBack() },
             )
 
-            is ImportPage.TargetLanguagePicker -> LanguagePickerPage(
-                currentLanguage = state.targetLanguage,
+            is ImportPage.TargetLanguagePicker -> ImportLanguageListPage(
+                title = stringResource(Res.string.translation_language),
+                languages = Language.entries,
+                selected = state.targetLanguage,
                 onLanguageSelected = { viewModel.selectTargetLanguage(it); pages.navigateBack() },
             )
+
+            is ImportPage.Success -> ImportSuccessContent(
+                count = page.count,
+                previewWords = page.previewWords,
+                onStartReview = onStartReview,
+                onAddMore = {
+                    while (pages.canNavigateBack) pages.navigateBack()
+                },
+                onDone = onDismiss,
+            )
         }
-    }
-}
-
-@Composable
-private fun TextContentPage(
-    state: ImportUiState,
-    viewModel: ImportViewModel,
-) {
-    Column(
-        modifier = Modifier
-            .padding(Theme.spacing.lg)
-            .imePadding()
-    ) {
-        TagSelectorRow(
-            tags = state.tags,
-            selectedTagId = state.selectedTagId,
-            onTagSelected = viewModel::selectTag,
-            onCreateTag = viewModel::showCreateTagDialog,
-            modifier = Modifier.padding(bottom = Theme.spacing.sm),
-        )
-        TextImportContent(
-            textInputState = state.textInputState,
-            onWordChange = viewModel::updateWord,
-            onTranslationChange = viewModel::updateTranslation,
-            onDescriptionChange = viewModel::updateDescription,
-            onAddWord = viewModel::addWord,
-        )
-    }
-}
-
-@Composable
-private fun FileContentPage(
-    state: ImportUiState,
-    viewModel: ImportViewModel,
-    onDismiss: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .padding(Theme.spacing.lg)
-            .imePadding()
-    ) {
-        TagSelectorRow(
-            tags = state.tags,
-            selectedTagId = state.selectedTagId,
-            onTagSelected = viewModel::selectTag,
-            onCreateTag = viewModel::showCreateTagDialog,
-            modifier = Modifier.padding(bottom = Theme.spacing.sm),
-        )
-        FileImportContent(
-            isEnabled = state.fileImportState !is ImportFileState.Loading,
-            isLoading = state.fileImportState is ImportFileState.Loading,
-            importFile = viewModel::importFile,
-            onDismiss = onDismiss,
-        )
     }
 }
 
@@ -296,11 +315,11 @@ private fun FileContentPage(
 private fun ImageContentPage(
     state: ImportUiState,
     viewModel: ImportViewModel,
-    onDismiss: () -> Unit,
+    onChangeLanguage: () -> Unit,
+    onCreateTag: () -> Unit,
 ) {
     val isImageLoading = state.imageImportState is ImageImportState.Loading
-    val imageTab = state.tabs.filterIsInstance<ImportTabV2.Image>().firstOrNull()
-        ?: return
+    val imageTab = state.tabs.filterIsInstance<ImportTabV2.Image>().firstOrNull() ?: return
 
     val imagePickerLauncher = rememberImagePickerLauncher { bytes ->
         if (bytes != null) viewModel.selectImage(bytes)
@@ -309,112 +328,35 @@ private fun ImageContentPage(
         if (bytes != null) viewModel.selectImage(bytes)
     }
 
-    Column(
-        modifier = Modifier
-            .padding(Theme.spacing.lg)
-            .imePadding()
-    ) {
-        TagSelectorRow(
-            tags = state.tags,
-            selectedTagId = state.selectedTagId,
-            onTagSelected = viewModel::selectTag,
-            onCreateTag = viewModel::showCreateTagDialog,
-            modifier = Modifier.padding(bottom = Theme.spacing.sm),
-        )
-        ImageImportContent(
-            imageTab = imageTab,
-            isEnabled = !isImageLoading && state.fileImportState !is ImportFileState.Loading,
-            isLoading = isImageLoading,
-            imageQuality = state.imageQuality,
-            onCameraClick = cameraLauncher,
-            onGalleryClick = imagePickerLauncher,
-            onImportImage = viewModel::importImage,
-            onClearSelectedImage = viewModel::clearSelectedImage,
-            onQualityChange = viewModel::adjustImageQuality,
-            onDismiss = onDismiss,
-        )
-    }
-}
-
-@Composable
-private fun SourceLanguageChooserPage(
-    targetLanguage: Language,
-    onLanguageSelected: (Language) -> Unit,
-) {
-    val allLanguages = Language.entries.map { it.displayName }
-
-    Column(modifier = Modifier.padding(horizontal = Theme.spacing.xl)) {
-        Text(
-            text = stringResource(Res.string.original_language_question),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        Spacer(Modifier.height(Theme.spacing.xs))
-
-        Text(
-            text = stringResource(Res.string.translation_language_hint, targetLanguage.nativeName),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(Modifier.height(Theme.spacing.lg))
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            LanguageGrid(
-                languages = allLanguages,
-                selectedLanguage = null,
-                onLanguageSelected = { displayName ->
-                    Language.entries.find { it.displayName == displayName }
-                        ?.let(onLanguageSelected)
-                },
-            )
-
-            Spacer(Modifier.height(Theme.spacing.lg))
-        }
-    }
-}
-
-private fun formatCount(pattern: String, count: Int): String {
-    val placeholder = "%1" + '$' + "d"
-    return pattern.replace(placeholder, count.toString())
-}
-
-@Composable
-private fun CreateTagDialog(
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    var name by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(Res.string.new_tag)) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(stringResource(Res.string.tag_name_hint)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(name) },
-                enabled = name.isNotBlank(),
-            ) {
-                Text(stringResource(Res.string.create_tag))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.cancel))
-            }
-        },
+    ImageImportContent(
+        imageTab = imageTab,
+        isEnabled = !isImageLoading && state.fileImportState !is ImportFileState.Loading,
+        isLoading = isImageLoading,
+        imageQuality = state.imageQuality,
+        sourceLanguage = state.sourceLanguage,
+        targetLanguage = state.targetLanguage,
+        tags = state.tags,
+        selectedTagId = state.selectedTagId,
+        onTagSelected = viewModel::selectTag,
+        onCreateTag = onCreateTag,
+        onChangeLanguage = onChangeLanguage,
+        onCameraClick = cameraLauncher,
+        onGalleryClick = imagePickerLauncher,
+        onImportImage = viewModel::importImage,
+        onClearSelectedImage = viewModel::clearSelectedImage,
+        onQualityChange = viewModel::adjustImageQuality,
     )
 }
+
+private val PreviewSeparators = charArrayOf(',', ';')
+
+/** First two columns of each non-blank line, for the confirm-languages preview. */
+private fun previewPairs(content: String): List<Pair<String, String>> =
+    content.lineSequence()
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .map { line ->
+            val parts = line.split(*PreviewSeparators).map { it.trim() }
+            parts.first() to parts.getOrElse(1) { "" }
+        }
+        .toList()

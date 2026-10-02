@@ -28,40 +28,17 @@ data class AppSpacing(
     val xxl: Dp = 40.dp,
     val xxxl: Dp = 48.dp,
 
-    // Legacy names — kept for backward compatibility
-    @Deprecated("Use xxxs", ReplaceWith("xxxs"))
-    val extraSmall4: Dp = 2.dp,
-    @Deprecated("Use xxs", ReplaceWith("xxs"))
-    val extraSmall3: Dp = 4.dp,
-    @Deprecated("Use xs", ReplaceWith("xs"))
-    val extraSmall2: Dp = 8.dp,
-    @Deprecated("Use sm", ReplaceWith("sm"))
-    val extraSmall: Dp = 12.dp,
-    @Deprecated("Use md", ReplaceWith("md"))
-    val small: Dp = 16.dp,
-    @Deprecated("Use lg", ReplaceWith("lg"))
-    val medium: Dp = 24.dp,
-    @Deprecated("Use xl", ReplaceWith("xl"))
-    val large: Dp = 32.dp,
-    @Deprecated("Use xxl", ReplaceWith("xxl"))
-    val extraLarge: Dp = 40.dp,
-    @Deprecated("Use xxxl", ReplaceWith("xxxl"))
-    val extraLarge2: Dp = 48.dp,
-    @Deprecated("Use spacing values directly")
-    val extraLarge3: Dp = 56.dp,
-    @Deprecated("Use spacing values directly")
-    val extraLarge4: Dp = 64.dp,
-    @Deprecated("Use spacing values directly")
-    val extraLarge5: Dp = 72.dp,
-
-    @Deprecated("Use md", ReplaceWith("md"))
-    val cardPadding: Dp = 16.dp,
-    @Deprecated("Use sm", ReplaceWith("sm"))
-    val cardSpacing: Dp = 12.dp,
-    @Deprecated("Use md", ReplaceWith("md"))
-    val cardSpacingLarge: Dp = 16.dp,
-    @Deprecated("Use lg", ReplaceWith("lg"))
-    val sectionSpacing: Dp = 24.dp,
+    // Semantic roles — prefer these over raw scale steps in screens
+    val screenGutter: Dp = md,
+    val sectionGap: Dp = xl,
+    val sectionHeaderGap: Dp = sm,
+    val cardPadding: Dp = md,
+    val heroPadding: Dp = lg,
+    val listGap: Dp = xs,
+    val inlineGap: Dp = sm,
+    val textGap: Dp = xxs,
+    val buttonPaddingVertical: Dp = sm,
+    val buttonPaddingHorizontal: Dp = lg,
 )
 
 // endregion

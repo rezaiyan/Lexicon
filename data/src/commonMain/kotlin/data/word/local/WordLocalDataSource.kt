@@ -203,14 +203,22 @@ class WordLocalDataSource(
         )
     }
 
+    // Tag links have no FK cascade, so every word delete removes the word's WordTagEntity rows too;
+    // otherwise tag word counts keep counting deleted words.
     override suspend fun deleteWord(id: Int) {
-        queries.deleteWord(id.toLong())
+        queries.transaction {
+            queries.deleteWordTagsForWord(id.toLong())
+            queries.deleteWord(id.toLong())
+        }
     }
 
     override suspend fun deleteWords(ids: List<Int>): Int {
         if (ids.isEmpty()) return 0
         val longIds = ids.map { it.toLong() }
-        queries.deleteWords(longIds)
+        queries.transaction {
+            queries.deleteWordTagsForWords(longIds)
+            queries.deleteWords(longIds)
+        }
         return ids.size
     }
 
@@ -267,7 +275,10 @@ class WordLocalDataSource(
     }
 
     override suspend fun deleteAllWords() {
-        queries.deleteAllWords()
+        queries.transaction {
+            queries.deleteAllWordTags()
+            queries.deleteAllWords()
+        }
     }
 
     override suspend fun getMostCommonSourceLanguage(): String? {

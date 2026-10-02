@@ -35,11 +35,24 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import components.animation.LottieGradientBackground
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import feature.auth.AuthPhase
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
+import expects.openUrl
+import lexicon.resources.generated.resources.privacy_policy
+import lexicon.resources.generated.resources.terms_of_use
 import theme.AppColors
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -77,26 +90,7 @@ fun AuthExperienceScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colorStops = arrayOf(
-                            0f to MaterialTheme.colorScheme.background,
-                            0.60f to MaterialTheme.colorScheme.background,
-                            1f to AppColors.primary.copy(alpha = 0.10f)
-                        )
-                    )
-                )
-        )
-
-        // Single Lottie instance — persists across Verifying → LoginRequired without restarting
-        LottieGradientBackground(
-            modifier = Modifier.fillMaxSize(),
-            alpha = 0.55f,
-            tint = AppColors.primary.copy(alpha = 0.18f),
-        )
+        LoginBackdrop()
 
         Scaffold(containerColor = Color.Transparent) { padding ->
             Column(
@@ -105,7 +99,7 @@ fun AuthExperienceScreen(
                     .padding(padding),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Spacer(modifier = Modifier.weight(1.5f))
+                Spacer(modifier = Modifier.weight(1f))
 
                 LogoSection(visible = logoVisible)
 
@@ -141,7 +135,7 @@ fun AuthExperienceScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(Theme.spacing.xxxl))
+                Spacer(modifier = Modifier.height(Theme.spacing.xl))
             }
         }
     }
@@ -160,30 +154,95 @@ private fun LogoSection(visible: Boolean) {
         targetValue = if (visible) 1f else 0f,
         animationSpec = tween(500)
     )
-    val nameGradient = remember {
-        Brush.linearGradient(listOf(AppColors.primary, AppColors.accentLavender))
-    }
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
         modifier = Modifier.graphicsLayer {
             scaleX = scale
             scaleY = scale
             this.alpha = alpha
         }
     ) {
-        Text(
-            text = stringResource(Res.string.app_name),
-            style = TextStyle(
-                brush = nameGradient,
-                fontSize = 72.sp,
+        val appName = stringResource(Res.string.app_name)
+        Box(
+            modifier = Modifier
+                .size(LogoTileSize)
+                .shadow(
+                    elevation = Theme.elevation.modal,
+                    shape = RoundedCornerShape(LogoTileCorner),
+                    spotColor = AppColors.primary,
+                )
+                .background(AppColors.primary, RoundedCornerShape(LogoTileCorner)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = appName.take(1).uppercase(),
+                fontSize = 56.sp,
                 fontWeight = FontWeight.Black,
-                letterSpacing = (-2).sp,
+                color = Color.White,
+            )
+        }
+        Text(
+            text = appName.uppercase(),
+            style = TextStyle(
+                fontSize = 44.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 2.5.sp,
+                color = if (isDarkBackground()) AppColors.accentLavender else AppColors.brandInk,
             ),
         )
     }
 }
+
+@Composable
+private fun isDarkBackground(): Boolean = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+/** Soft brand gradient with two blurred light blobs; deep-purple variant in dark theme. */
+@Composable
+private fun LoginBackdrop() {
+    val dark = isDarkBackground()
+    val stops = if (dark) {
+        listOf(
+            MaterialTheme.colorScheme.background,
+            AppColors.primary.copy(alpha = 0.18f).compositeOver(MaterialTheme.colorScheme.background),
+            AppColors.primary.copy(alpha = 0.35f).compositeOver(MaterialTheme.colorScheme.background),
+        )
+    } else {
+        listOf(AppColors.loginGradientTop, AppColors.loginGradientMiddle, AppColors.loginGradientBottom)
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colorStops = arrayOf(0f to stops[0], 0.55f to stops[1], 1f to stops[2])
+                )
+            )
+            .drawBehind {
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(AppColors.primary.copy(alpha = 0.35f), Color.Transparent),
+                        center = Offset(size.width * 0.05f, size.height * 0.1f),
+                        radius = size.width * 0.5f,
+                    ),
+                    radius = size.width * 0.5f,
+                    center = Offset(size.width * 0.05f, size.height * 0.1f),
+                )
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(Color.White.copy(alpha = if (dark) 0.08f else 0.7f), Color.Transparent),
+                        center = Offset(size.width * 0.95f, size.height * 0.65f),
+                        radius = size.width * 0.55f,
+                    ),
+                    radius = size.width * 0.55f,
+                    center = Offset(size.width * 0.95f, size.height * 0.65f),
+                )
+            }
+    )
+}
+
+private val LogoTileSize = 96.dp
+private val LogoTileCorner = 28.dp
 
 @Composable
 private fun SignInCard(
@@ -198,9 +257,9 @@ private fun SignInCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.xl),
+            .padding(horizontal = Theme.spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md),
     ) {
         AnimatedVisibility(
             visible = errorMessage != null,
@@ -229,5 +288,40 @@ private fun SignInCard(
             isLoading = isLoading && activeProvider == SignInProvider.APPLE,
             modifier = Modifier.fillMaxWidth(),
         )
+
+        LegalLinks()
     }
 }
+
+@Composable
+private fun LegalLinks() {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        LegalLink(text = stringResource(Res.string.terms_of_use), url = TERMS_URL)
+        Text(
+            text = "·",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        LegalLink(text = stringResource(Res.string.privacy_policy), url = PRIVACY_URL)
+    }
+}
+
+@Composable
+private fun LegalLink(text: String, url: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        fontWeight = FontWeight.Medium,
+        color = if (isDarkBackground()) AppColors.accentLavender else AppColors.brandInk,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier
+            .clickable { openUrl(url) }
+            .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs),
+    )
+}
+
+private const val TERMS_URL = "https://alirezaiyan.com/vokab/terms"
+private const val PRIVACY_URL = "https://alirezaiyan.com/vokab/privacy"

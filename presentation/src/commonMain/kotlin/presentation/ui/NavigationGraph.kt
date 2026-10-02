@@ -24,13 +24,16 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.showSizeToFitBottomSheet
+import presentation.model.SettingsRoute
 import presentation.model.TabDestination
 import presentation.ui.components.NotificationPermissionContent
 import presentation.ui.components.NotificationSettingsContent
 import presentation.ui.permissions.rememberNotificationPermissionRequester
 import presentation.ui.permissions.wasNotificationPermissionDenied
 import presentation.ui.screens.SettingsScreen
+import presentation.ui.screens.SettingsSections
 import presentation.ui.screens.StudyScreen
+import presentation.ui.screens.settings.WordManagerScreen
 
 @Composable
 internal fun NavigationGraph(
@@ -65,6 +68,11 @@ internal fun NavigationGraph(
         // Feature-owned subgraphs
         profileGraph(
             snackbarHostState = snackbarHostState,
+            settingsContent = {
+                SettingsSections(
+                    onNavigateToSubscription = { navController.navigate(SubscriptionRoute) },
+                )
+            },
         )
 
         subscriptionGraph(
@@ -73,7 +81,7 @@ internal fun NavigationGraph(
         )
 
         insightsGraph(
-            onNavigateBack = { navController.navigateUp() },
+            onNavigateBack = { navController.navigateToTab(TabDestination.Study) },
             onShowLeaderboard = { overlayHost.showLeaderboard() },
             snackbarHostState = snackbarHostState,
             onNavigateToNotificationSettings = {
@@ -116,16 +124,31 @@ internal fun NavigationGraph(
         // Presentation-owned routes (screens still in :presentation)
         composable<TabDestination.Study> {
             StudyScreen(
+                onNavigateToSettings = { navController.navigate(SettingsRoute) },
             )
         }
 
-        composable<TabDestination.Settings> {
+        composable<TabDestination.Words> {
+            WordManagerScreen()
+        }
+
+        composable<SettingsRoute> {
             SettingsScreen(
+                onNavigateBack = { navController.navigateUp() },
                 onNavigateToSubscription = {
                     navController.navigate(SubscriptionRoute)
                 }
             )
         }
+    }
+}
+
+/** Reselecting the active tab pops back to its root; otherwise switches tabs preserving their stacks. */
+internal fun NavHostController.selectTab(destination: Any, isSelected: Boolean) {
+    if (isSelected) {
+        popBackStack(destination, inclusive = false)
+    } else {
+        navigateToTab(destination)
     }
 }
 

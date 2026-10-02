@@ -6,8 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -19,80 +20,62 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import theme.Theme
 
+/**
+ * Rating button: icon, then a bold label over a smaller sub-label, on a 64dp, 20dp-radius surface.
+ * [containerColor] / [contentColor] choose between tonal (forgot) and filled (remembered) styles.
+ */
 @Composable
 fun ReviewButton(
     text: String,
     subText: String,
-    color: Color,
+    icon: ImageVector,
+    containerColor: Color,
+    contentColor: Color,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
     enabled: Boolean = true,
-    onClick: () -> Unit
 ) {
     BoxWithConstraints(modifier = modifier) {
-        val isVerySmall = maxWidth < 70.dp
-        val isSmall = maxWidth < 90.dp
-        val buttonHeight = when {
-            isVerySmall -> 60.dp
-            icon != null -> 80.dp
-            else -> 72.dp
-        }
-
+        // Narrow buttons (small screens / large fonts) drop the icon so the labels keep their room.
+        val showIcon = maxWidth / LocalDensity.current.fontScale >= IconMinButtonWidth
         Button(
             onClick = onClick,
             enabled = enabled,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(buttonHeight),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = color.copy(alpha = 0.15f),
-                contentColor = color,
-                disabledContainerColor = color.copy(alpha = 0.06f),
-                disabledContentColor = color.copy(alpha = 0.3f),
-            ),
-            shape = RoundedCornerShape(16.dp),
-            contentPadding = PaddingValues(
-                horizontal = if (isVerySmall) 2.dp else if (isSmall) 4.dp else 8.dp,
-                vertical = 8.dp
-            )
+                .heightIn(min = 64.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = containerColor, contentColor = contentColor),
+            contentPadding = PaddingValues(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs),
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (icon != null && !isVerySmall) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                        tint = color,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                }
+            if (showIcon) {
+                Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(Theme.spacing.xs))
+            }
+            Column(horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Center) {
                 Text(
                     text = text,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    style = when {
-                        isVerySmall -> MaterialTheme.typography.labelSmall
-                        isSmall -> MaterialTheme.typography.labelMedium
-                        else -> MaterialTheme.typography.labelLarge
-                    },
                     maxLines = 1,
-                    textAlign = TextAlign.Center
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = color.copy(alpha = 0.65f),
-                    maxLines = 1,
-                    textAlign = TextAlign.Center
+                    style = MaterialTheme.typography.labelMedium,
+                    color = contentColor.copy(alpha = 0.8f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
     }
 }
+
+private val IconMinButtonWidth = 130.dp

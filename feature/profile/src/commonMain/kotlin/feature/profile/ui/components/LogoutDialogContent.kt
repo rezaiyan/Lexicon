@@ -2,10 +2,8 @@ package feature.profile.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import components.dialog.ButtonType
-import components.dialog.LexiconDialogContent
+import components.sheet.ConfirmSheetContent
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.logout
@@ -18,15 +16,13 @@ fun LogoutDialogContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    LexiconDialogContent(
+    ConfirmSheetContent(
         icon = Icons.AutoMirrored.Filled.Logout,
-        iconTint = MaterialTheme.colorScheme.error,
         title = stringResource(Res.string.logout_title),
         message = stringResource(Res.string.logout_message),
-        primaryButtonText = stringResource(Res.string.logout),
-        primaryButtonOnClick = onConfirm,
-        primaryButtonType = ButtonType.Error,
-        secondaryButtonText = stringResource(Res.string.cancel),
-        secondaryButtonOnClick = onDismiss
+        confirmText = stringResource(Res.string.logout),
+        onConfirm = onConfirm,
+        dismissText = stringResource(Res.string.cancel),
+        onDismiss = onDismiss,
     )
 }

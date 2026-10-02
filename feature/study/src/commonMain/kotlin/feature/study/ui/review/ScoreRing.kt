@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import components.animation.rememberAnimatedCounter
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.completion_score_percent
+import lexicon.resources.generated.resources.completion_recalled
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -52,7 +52,7 @@ internal fun ScoreRing(
 
     Box(
         modifier = modifier
-            .size(180.dp)
+            .size(168.dp)
             .semantics {
                 contentDescription = "Score: $scorePercent percent"
             },
@@ -94,11 +94,16 @@ internal fun ScoreRing(
         // Score percentage text
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = stringResource(Res.string.completion_score_percent, animatedCount),
+                text = "$animatedCount%", // compose resources keep "%%" literally, so no string resource here
                 style = MaterialTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.ExtraBold,
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = stringResource(Res.string.completion_recalled),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

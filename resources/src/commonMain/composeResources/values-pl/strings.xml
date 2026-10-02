@@ -623,9 +623,6 @@
     <string name="username">Nazwa użytkownika</string>
     <string name="username_hint">Wybierz nazwę użytkownika</string>
     <string name="username_description">2-30 znaków: litery, cyfry, spacje, podkreślenia, myślniki</string>
-    <string name="change_photo">Zmień zdjęcie</string>
-    <string name="remove_photo">Usuń zdjęcie</string>
-    <string name="choose_from_gallery">Wybierz z galerii</string>
     <string name="profile_updated">Profil zaktualizowany</string>
 
     <!-- Leaderboard -->
@@ -654,4 +651,7 @@
     <string name="tts_voice_selection">Głos</string>
     <string name="tts_voice_speaker">Głośnik %1$d</string>
     <string name="tts_playback_settings">Ustawienia odtwarzania</string>
+    <string name="filter_all">Wszystkie</string>
+    <string name="filters">Filtry</string>
+    <string name="account_section">Konto</string>
 </resources>

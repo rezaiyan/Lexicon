@@ -4,6 +4,5 @@ package feature.profile.model
 data class ProfileUserUiModel(
     val name: String,
     val email: String,
-    val displayAlias: String? = null,
-    val profileImageUrl: String? = null
+    val displayAlias: String? = null
 )

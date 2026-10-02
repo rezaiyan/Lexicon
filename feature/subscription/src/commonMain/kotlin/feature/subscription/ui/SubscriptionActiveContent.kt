@@ -68,8 +68,8 @@ fun SubscriptionActiveContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = Theme.spacing.extraLarge4),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+            .padding(bottom = 64.dp),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
     ) {
         SubscriptionStatusCard(
             customerInfo = customerInfo,
@@ -134,8 +134,8 @@ private fun SubscriptionStatusCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Theme.spacing.medium),
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+                .padding(Theme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -145,10 +145,10 @@ private fun SubscriptionStatusCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.small)
+                        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md)
                     ) {
                         Surface(
-                            shape = RoundedCornerShape(Theme.spacing.extraSmall),
+                            shape = RoundedCornerShape(Theme.spacing.sm),
                             color = AppColors.subscriptionRecommended.copy(alpha = 0.2f)
                         ) {
                             Text(
@@ -157,22 +157,22 @@ private fun SubscriptionStatusCard(
                                 color = AppColors.subscriptionRecommended,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(
-                                    horizontal = Theme.spacing.small,
-                                    vertical = Theme.spacing.extraSmall
+                                    horizontal = Theme.spacing.md,
+                                    vertical = Theme.spacing.sm
                                 )
                             )
                         }
                         if (isCancelled) {
                             Surface(
-                                shape = RoundedCornerShape(Theme.spacing.extraSmall),
+                                shape = RoundedCornerShape(Theme.spacing.sm),
                                 color = warningColor.copy(alpha = 0.2f)
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3),
+                                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
                                     modifier = Modifier.padding(
-                                        horizontal = Theme.spacing.small,
-                                        vertical = Theme.spacing.extraSmall
+                                        horizontal = Theme.spacing.md,
+                                        vertical = Theme.spacing.sm
                                     )
                                 ) {
                                     Icon(
@@ -197,15 +197,15 @@ private fun SubscriptionStatusCard(
                                 if (isInTrial) stringResource(Res.string.trial_active)
                                 else stringResource(Res.string.subscription_active)
                             Surface(
-                                shape = RoundedCornerShape(Theme.spacing.extraSmall),
+                                shape = RoundedCornerShape(Theme.spacing.sm),
                                 color = badgeColor.copy(alpha = 0.2f)
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.extraSmall3),
+                                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
                                     modifier = Modifier.padding(
-                                        horizontal = Theme.spacing.small,
-                                        vertical = Theme.spacing.extraSmall
+                                        horizontal = Theme.spacing.md,
+                                        vertical = Theme.spacing.sm
                                     )
                                 ) {
                                     Icon(
@@ -225,7 +225,7 @@ private fun SubscriptionStatusCard(
                         }
                     }
 
-                    Spacer(modifier = Modifier.size(Theme.spacing.small))
+                    Spacer(modifier = Modifier.size(Theme.spacing.md))
 
                     Text(
                         text = planName,
@@ -272,7 +272,7 @@ private fun SubscriptionStatusCard(
                         .size(Theme.dimensions.iconSizeXLarge)
                         .background(
                             AppColors.subscriptionRecommended.copy(alpha = 0.2f),
-                            RoundedCornerShape(Theme.spacing.medium)
+                            RoundedCornerShape(Theme.spacing.lg)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -300,7 +300,7 @@ private fun SubscriptionStatusCard(
                     containerColor = AppColors.subscriptionRecommended,
                     contentColor = Color.White
                 ),
-                shape = RoundedCornerShape(Theme.spacing.extraSmall2)
+                shape = RoundedCornerShape(Theme.spacing.xs)
             ) {
                 Text(
                     text = if (isCancelled) {

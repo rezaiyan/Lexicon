@@ -1,5 +1,6 @@
 package feature.study.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -19,21 +24,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import theme.Theme
 
+/**
+ * Card for a learning stage or tag bucket: tinted icon circle, optional [overline]
+ * (e.g. "LEVEL 1"), title, description, word count and a chevron.
+ *
+ * Non-empty buckets get a thin ring in [color]; empty ones are dimmed and not clickable.
+ */
 @Composable
 fun LevelBucketCard(
     level: String,
@@ -43,6 +49,7 @@ fun LevelBucketCard(
     icon: ImageVector,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    overline: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val isEmpty = count == 0
@@ -53,36 +60,12 @@ fun LevelBucketCard(
             .semantics {
                 contentDescription = "$level: $count $wordLabel. $description"
             }
-            .drawBehind {
-                // Left accent bracket drawn directly on the card
-                val strokeWidth = 3.5.dp.toPx()
-                val bracketWidth = 14.dp.toPx()
-                val verticalPadding = size.height * 0.15f
-                val curveDepth = bracketWidth * 0.3f
-
-                val path = Path().apply {
-                    moveTo(bracketWidth, verticalPadding)
-                    cubicTo(
-                        curveDepth, size.height * 0.3f,
-                        curveDepth, size.height * 0.7f,
-                        bracketWidth, size.height - verticalPadding
-                    )
-                }
-
-                drawPath(
-                    path = path,
-                    color = color,
-                    style = Stroke(
-                        width = strokeWidth,
-                        cap = StrokeCap.Round
-                    )
-                )
-            }
-            .fillMaxWidth()
-            .combinedClickable(enabled = !isEmpty, onClick = onClick, onLongClick = onLongClick),
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.shapes.large),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
+        border = if (isEmpty) null else BorderStroke(Theme.dimensions.borderWidth, color.copy(alpha = 0.4f)),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isEmpty) 0.dp else Theme.elevation.low
         )
@@ -90,17 +73,18 @@ fun LevelBucketCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .alpha(if (isEmpty) 0.4f else 1f)
-                .padding(start = 18.dp, end = Theme.spacing.md)
-                .padding(vertical = Theme.spacing.sm),
+                .combinedClickable(enabled = !isEmpty, onClick = onClick, onLongClick = onLongClick)
+                .alpha(if (isEmpty) 0.6f else 1f)
+                .padding(Theme.spacing.cardPadding),
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.inlineGap),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon in colored circle
             Box(
                 modifier = Modifier
-                    .size(46.dp)
+                    .size(Theme.dimensions.iconSizeHuge)
                     .background(
-                        color = color.copy(alpha = 0.1f),
+                        color = color.copy(alpha = 0.12f),
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -109,21 +93,28 @@ fun LevelBucketCard(
                     imageVector = icon,
                     contentDescription = null,
                     tint = color,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(Theme.dimensions.iconSize)
                 )
             }
 
             // Text content
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = Theme.spacing.sm),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)
             ) {
+                if (overline != null) {
+                    Text(
+                        text = overline,
+                        style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.6.sp),
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                        maxLines = 1,
+                    )
+                }
                 Text(
                     text = level,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -139,26 +130,34 @@ fun LevelBucketCard(
 
             // Count + label
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.widthIn(min = Theme.dimensions.touchTarget),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)
             ) {
+                val countColor = if (isEmpty) MaterialTheme.colorScheme.onSurfaceVariant else color
                 Text(
                     text = count.toString(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = color,
-                    textAlign = TextAlign.Center
+                    color = countColor,
                 )
                 Text(
                     text = if (count == 1) "WORD" else "WORDS",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 9.sp,
-                        letterSpacing = 0.8.sp
+                        fontSize = 10.sp,
+                        letterSpacing = 0.6.sp
                     ),
                     fontWeight = FontWeight.Medium,
-                    color = color.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
+                    color = countColor,
                 )
             }
+
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(Theme.dimensions.iconSizeMedium)
+            )
         }
     }
 }

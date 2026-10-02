@@ -4,77 +4,87 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.withStyle
+import components.sheet.SheetBadge
+import components.sheet.SheetField
+import components.sheet.SheetPage
+import components.sheet.SheetPrimaryButton
+import components.sheet.SheetSectionLabel
+import components.sheet.SheetTonalButton
+import domain.tag.model.Tag
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.add_a_word
 import lexicon.resources.generated.resources.add_word
-import lexicon.resources.generated.resources.add_word_description
-import lexicon.resources.generated.resources.description_optional
-import lexicon.resources.generated.resources.original_word
+import lexicon.resources.generated.resources.add_words_type_title
+import lexicon.resources.generated.resources.added_count
+import lexicon.resources.generated.resources.added_this_session
+import lexicon.resources.generated.resources.done
+import lexicon.resources.generated.resources.field_note
+import lexicon.resources.generated.resources.field_optional
+import lexicon.resources.generated.resources.field_word
+import lexicon.resources.generated.resources.note_placeholder
 import lexicon.resources.generated.resources.translation_label
-import lexicon.resources.generated.resources.word_added_count_singular
-import lexicon.resources.generated.resources.words_added_count
 import org.jetbrains.compose.resources.stringResource
+import theme.AppColors
 import theme.Theme
+import utils.Language
 
 @Composable
 internal fun TextImportContent(
     textInputState: TextInputState,
+    sourceLanguage: Language,
+    targetLanguage: Language,
+    tags: List<Tag>,
+    selectedTagId: Long?,
+    onTagSelected: (Long?) -> Unit,
+    onCreateTag: () -> Unit,
+    onChangeLanguage: () -> Unit,
     onWordChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onAddWord: () -> Unit,
+    onDone: () -> Unit,
 ) {
-    val isAddEnabled by derivedStateOf { textInputState.isAddEnabled }
     val wordFocusRequester = remember { FocusRequester() }
     val translationFocusRequester = remember { FocusRequester() }
     val descriptionFocusRequester = remember { FocusRequester() }
-    var previousWordsAdded by remember { mutableStateOf(textInputState.wordsAddedCount) }
+    var previousWordsAdded by remember { mutableIntStateOf(textInputState.wordsAddedCount) }
 
+    // Return focus to the word field after each successful add for rapid entry
     LaunchedEffect(textInputState.wordsAddedCount) {
         if (textInputState.wordsAddedCount > previousWordsAdded) {
             wordFocusRequester.requestFocus()
@@ -82,212 +92,137 @@ internal fun TextImportContent(
         previousWordsAdded = textInputState.wordsAddedCount
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)
-        ) {
-            ImportInfoCard(
-                title = stringResource(Res.string.add_a_word),
-                description = stringResource(Res.string.add_word_description),
-                icon = Icons.Filled.Edit,
+    SheetPage(
+        title = stringResource(Res.string.add_words_type_title),
+        headerAccessory = {
+            LanguagePairChip(source = sourceLanguage, target = targetLanguage, onClick = onChangeLanguage)
+        },
+        footer = {
+            Row(horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+                SheetTonalButton(
+                    text = stringResource(Res.string.done),
+                    onClick = onDone,
+                    modifier = Modifier.width(IntrinsicSize.Max),
+                )
+                SheetPrimaryButton(
+                    text = stringResource(Res.string.add_word),
+                    onClick = onAddWord,
+                    enabled = textInputState.isAddEnabled,
+                    isLoading = !textInputState.isEnabled,
+                    icon = Icons.Default.Add,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        },
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+            SheetField(
+                label = stringResource(Res.string.field_word),
+                value = textInputState.word,
+                onValueChange = onWordChange,
+                enabled = textInputState.isEnabled,
+                textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                imeAction = ImeAction.Next,
+                onImeAction = { translationFocusRequester.requestFocus() },
+                modifier = Modifier.focusRequester(wordFocusRequester),
             )
-
-            WordInputFields(
-                textInputState = textInputState,
-                wordFocusRequester = wordFocusRequester,
-                translationFocusRequester = translationFocusRequester,
-                descriptionFocusRequester = descriptionFocusRequester,
-                isAddEnabled = isAddEnabled,
-                onWordChange = onWordChange,
-                onTranslationChange = onTranslationChange,
-                onDescriptionChange = onDescriptionChange,
-                onAddWord = onAddWord,
+            SheetField(
+                label = stringResource(Res.string.translation_label),
+                value = textInputState.translation,
+                onValueChange = onTranslationChange,
+                enabled = textInputState.isEnabled,
+                imeAction = ImeAction.Next,
+                onImeAction = { descriptionFocusRequester.requestFocus() },
+                modifier = Modifier.focusRequester(translationFocusRequester),
             )
-
-            WordsAddedCounter(textInputState)
-
-            ErrorMessage(textInputState.errorMessage)
+            SheetField(
+                label = stringResource(Res.string.field_note),
+                optionalSuffix = stringResource(Res.string.field_optional),
+                value = textInputState.description,
+                onValueChange = onDescriptionChange,
+                enabled = textInputState.isEnabled,
+                placeholder = stringResource(Res.string.note_placeholder),
+                imeAction = ImeAction.Done,
+                onImeAction = { if (textInputState.isAddEnabled) onAddWord() },
+                modifier = Modifier.focusRequester(descriptionFocusRequester),
+            )
         }
 
-        Spacer(modifier = Modifier.height(Theme.spacing.sm))
+        ErrorMessage(textInputState.errorMessage)
 
-        Button(
-            onClick = onAddWord,
-            enabled = isAddEnabled,
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .height(Theme.dimensions.buttonHeight),
-            shape = RoundedCornerShape(Theme.shapes.medium),
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(Theme.dimensions.iconSizeMedium))
-            Spacer(modifier = Modifier.width(Theme.spacing.xs))
-            Text(
-                stringResource(Res.string.add_word),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        TagSelectorRow(
+            tags = tags,
+            selectedTagId = selectedTagId,
+            onTagSelected = onTagSelected,
+            onCreateTag = onCreateTag,
+        )
+
+        RecentWords(textInputState)
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun WordInputFields(
-    textInputState: TextInputState,
-    wordFocusRequester: FocusRequester,
-    translationFocusRequester: FocusRequester,
-    descriptionFocusRequester: FocusRequester,
-    isAddEnabled: Boolean,
-    onWordChange: (String) -> Unit,
-    onTranslationChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-    onAddWord: () -> Unit,
-) {
-    val fieldShape = RoundedCornerShape(Theme.shapes.medium)
-    val fieldColors = OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-        focusedBorderColor = MaterialTheme.colorScheme.primary,
-        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-    )
-
-    OutlinedTextField(
-        value = textInputState.word,
-        onValueChange = onWordChange,
-        label = { Text(stringResource(Res.string.original_word)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(wordFocusRequester),
-        singleLine = true,
-        enabled = textInputState.isEnabled,
-        shape = fieldShape,
-        colors = fieldColors,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        keyboardActions = KeyboardActions(
-            onNext = { translationFocusRequester.requestFocus() }
-        )
-    )
-
-    OutlinedTextField(
-        value = textInputState.translation,
-        onValueChange = onTranslationChange,
-        label = { Text(stringResource(Res.string.translation_label)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(translationFocusRequester),
-        singleLine = true,
-        enabled = textInputState.isEnabled,
-        shape = fieldShape,
-        colors = fieldColors,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-        keyboardActions = KeyboardActions(
-            onNext = { descriptionFocusRequester.requestFocus() }
-        )
-    )
-
-    OutlinedTextField(
-        value = textInputState.description,
-        onValueChange = onDescriptionChange,
-        label = { Text(stringResource(Res.string.description_optional)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(descriptionFocusRequester),
-        singleLine = true,
-        enabled = textInputState.isEnabled,
-        shape = fieldShape,
-        colors = fieldColors,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(
-            onDone = { if (isAddEnabled) onAddWord() }
-        )
-    )
-}
-
-@Composable
-private fun WordsAddedCounter(textInputState: TextInputState) {
+private fun RecentWords(textInputState: TextInputState) {
     AnimatedVisibility(
-        visible = textInputState.wordsAddedCount > 0,
+        visible = textInputState.recentWords.isNotEmpty(),
         enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically()
+        exit = fadeOut() + shrinkVertically(),
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { liveRegion = LiveRegionMode.Polite },
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-            ),
-            shape = RoundedCornerShape(Theme.shapes.medium)
+        Column(
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SheetSectionLabel(stringResource(Res.string.added_this_session), Modifier.weight(1f))
+                SheetBadge(
+                    text = stringResource(Res.string.added_count, textInputState.wordsAddedCount),
+                    containerColor = AppColors.secondary.copy(alpha = Theme.opacity.focus),
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
             ) {
-                AnimatedVisibility(
-                    visible = textInputState.showSuccessIndicator,
-                    enter = fadeIn() + scaleIn(initialScale = 0.5f),
-                    exit = fadeOut()
-                ) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                textInputState.recentWords.forEach { added ->
+                    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+                    Text(
+                        text = buildAnnotatedString {
+                            append(added.word)
+                            withStyle(SpanStyle(color = muted)) { append(" · ${added.translation}") }
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
                         modifier = Modifier
-                            .size(Theme.dimensions.iconSizeMedium)
-                            .padding(end = Theme.spacing.xxs)
+                            .clip(RoundedCornerShape(Theme.shapes.small + Theme.spacing.xxxs))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .heightIn(min = Theme.spacing.xl)
+                            .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xxs + Theme.spacing.xxxs),
                     )
                 }
-                val count = textInputState.wordsAddedCount
-                val displayText = if (count == 1) {
-                    stringResource(Res.string.word_added_count_singular)
-                } else {
-                    val countText = stringResource(Res.string.words_added_count)
-                    val placeholder = "%1" + '$' + "d"
-                    countText.replace(placeholder, count.toString())
-                }
-                Text(
-                    text = displayText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
             }
         }
     }
 }
 
 @Composable
-private fun ErrorMessage(errorMessage: String?) {
+internal fun ErrorMessage(errorMessage: String?) {
     AnimatedVisibility(
         visible = errorMessage != null,
         enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically()
+        exit = fadeOut() + shrinkVertically(),
     ) {
-        Card(
+        Text(
+            text = errorMessage.orEmpty(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onErrorContainer,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { liveRegion = LiveRegionMode.Assertive },
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-            ),
-            shape = RoundedCornerShape(Theme.shapes.medium)
-        ) {
-            Text(
-                text = errorMessage.orEmpty(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(
-                    horizontal = Theme.spacing.md,
-                    vertical = Theme.spacing.sm
-                )
-            )
-        }
+                .semantics { liveRegion = LiveRegionMode.Assertive }
+                .clip(RoundedCornerShape(Theme.shapes.medium))
+                .background(MaterialTheme.colorScheme.errorContainer)
+                .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
+        )
     }
 }

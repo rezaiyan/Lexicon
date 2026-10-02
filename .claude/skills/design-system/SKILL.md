@@ -150,10 +150,24 @@ Rule: Maximum 3 distinct font sizes per visible screen section. Create hierarchy
 - `LoadingScreen(modifier, message?)` — centered spinner
 - `ErrorScreen(message, title?, icon?, onRetry?)` — full error with retry
 - `EmptyScreen(title, subtitle?, icon?)` — empty state
-- `ListTile(icon, title, onClick, subtitle?, trailingContent?)` — settings/nav rows
 - `Pill(text, color)` / `CounterPill(text, color?)` — badges
 - `AnimatedProgressBar(progress, color)` / `GradientProgressBar(progress, gradientColors)` — progress
 - `SectionHeader(title)` — section dividers
+
+### Sheet kit — `components/sheet/` (all sheets & prompts)
+
+| Need | Component |
+|---|---|
+| Page scaffold (toolbar, eyebrow/title/subtitle, scroll, sticky footer) | `SheetPage` |
+| Confirm / destructive prompt | `ConfirmSheetContent` (+ `ConfirmTone.Brand/Danger`); `ConfirmDialog` only over an open sheet |
+| Footer buttons | `SheetPrimaryButton`, `SheetTonalButton`, `SheetTextButton`, `SheetDestructiveIconButton`, `SheetFooterRow` |
+| Grouped rows container | `SheetGroup` |
+| Rows | `SheetOptionRow` (nav/action), `SheetRadioRow`, `SheetCheckboxRow`, `SheetSwitchRow`, `SheetInfoRow` (read-only) |
+| Leading icon / selectable card | `IconTile`, `SelectableCard` |
+| Inputs | `SheetField` (label above, `readOnly`, `supportingText`, `isError`), `SheetSearchField` |
+| Misc | `SheetSectionLabel`, `SheetBadge`, `StepProgressBar`, `WordFormSheetPage` (word/translation/description form) |
+
+Previews: `design-system/src/androidMain/kotlin/components/sheet/SheetGalleryPreview.kt`.
 
 ## When to Add to design-system
 

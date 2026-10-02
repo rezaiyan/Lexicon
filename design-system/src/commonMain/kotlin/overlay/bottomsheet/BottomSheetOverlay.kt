@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -157,7 +161,7 @@ class BottomSheetOverlay(
             dragHandle = if (isFullScreen || !scopeImpl.properties.showDragHandle) {
                 null
             } else {
-                { BottomSheetDefaults.DragHandle() }
+                { CompactDragHandle() }
             },
             sheetState = sheetState,
             sheetGesturesEnabled = scopeImpl.properties.sheetGesturesEnabled,
@@ -176,6 +180,13 @@ class BottomSheetOverlay(
                             if (scopeImpl.properties.isNavigationBarsPaddingEnabled)
                                 Modifier.navigationBarsPadding()
                             else Modifier
+                        } else if (scopeImpl.properties.showDragHandle) {
+                            // The handle already provides the top inset.
+                            Modifier.padding(
+                                start = Theme.spacing.md,
+                                end = Theme.spacing.md,
+                                bottom = Theme.spacing.md,
+                            )
                         } else {
                             Modifier.padding(Theme.spacing.md)
                         }
@@ -236,4 +247,16 @@ private fun rememberBottomSheetScopeImpl(
 ): BottomSheetScope = object : BottomSheetScope {
     override val isDragHandleShown: Boolean = showDragHandle
     override fun dismiss() = onDismiss()
+}
+
+/** M3 handle dimensions with tighter vertical padding (M3 default is 22dp each side). */
+@Composable
+private fun CompactDragHandle() {
+    Box(
+        modifier = Modifier
+            .padding(vertical = Theme.spacing.sm)
+            .size(width = 32.dp, height = 4.dp)
+            .clip(RoundedCornerShape(Theme.shapes.pill))
+            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
+    )
 }

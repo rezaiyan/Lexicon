@@ -14,8 +14,7 @@ internal fun UserDto.toDomain(): AuthUser {
             ?: SubscriptionStatus.FREE,
         subscriptionExpiresAt = this.subscriptionExpiresAt,
         currentStreak = this.currentStreak,
-        displayAlias = this.displayAlias,
-        profileImageUrl = this.profileImageUrl
+        displayAlias = this.displayAlias
     )
 }
 

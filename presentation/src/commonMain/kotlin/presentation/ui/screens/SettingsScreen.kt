@@ -2,13 +2,18 @@ package presentation.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import components.GroupedSection
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import feature.settings.SettingsViewModel
 import components.scaffold.LexiconColumn
 import overlay.LocalOverlayHost
+import overlay.bottomsheet.BottomSheetPages
+import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.components.LanguageSelectionContent
 import presentation.ui.components.NotificationPermissionContent
@@ -25,18 +30,39 @@ import presentation.ui.components.settings.TtsModelCacheCard
 import presentation.ui.components.settings.TtsDeleteConfirmationContent
 import presentation.ui.components.settings.TtsVoiceManagerContent
 import presentation.ui.components.settings.TagManagerCard
-import presentation.ui.components.settings.WordManagerCard
 import presentation.ui.permissions.rememberNotificationPermissionRequester
 import presentation.ui.permissions.wasNotificationPermissionDenied
 import presentation.ui.screens.settings.showTagManagerScreen
-import presentation.ui.screens.settings.showWordManagerSheet
 import theme.Theme
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.learning
+import lexicon.resources.generated.resources.navigate_back
 import lexicon.resources.generated.resources.settings
 
 @Composable
 fun SettingsScreen(
+    onNavigateBack: () -> Unit,
     onNavigateToSubscription: () -> Unit = {},
+) {
+    LexiconColumn(
+        title = stringResource(Res.string.settings),
+        showNavigationIcon = true,
+        navigationIconContentDescription = stringResource(Res.string.navigate_back),
+        onNavigationClick = onNavigateBack,
+        scrollable = true,
+    ) {
+        Column(modifier = Modifier.padding(top = Theme.spacing.xs, bottom = Theme.spacing.xl)) {
+            SettingsSections(onNavigateToSubscription = onNavigateToSubscription)
+        }
+    }
+}
+
+/**
+ * Learning + app settings as grouped sections. Shared by [SettingsScreen] and the Profile tab.
+ */
+@Composable
+fun SettingsSections(
+    onNavigateToSubscription: () -> Unit,
 ) {
     val viewModel = koinViewModel<SettingsViewModel>()
     val settingsState by viewModel.state()
@@ -48,13 +74,8 @@ fun SettingsScreen(
     val dailyGoalWords = settingsState.dailyGoalWords
     val overlayHost = LocalOverlayHost.current
 
-    LexiconColumn(
-        title = stringResource(Res.string.settings),
-        scrollable = true,
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.cardSpacingLarge)
-        ) {
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
+        GroupedSection(title = stringResource(Res.string.learning)) {
             if (state.isPremiumFeatureEnabled) {
                 LanguageSettingsCard(
                     currentLanguage = currentLanguage,
@@ -65,27 +86,13 @@ fun SettingsScreen(
                                 onLanguageSelected = { language ->
                                     viewModel.setLanguage(language)
                                     nav.dismiss()
-                                }
+                                },
+                                onClose = { nav.dismiss() },
                             )
                         }
                     }
                 )
             }
-
-            ThemeSettingsCard(
-                themeMode = themeMode,
-                onShowThemeDialog = {
-                    overlayHost.showSizeToFitBottomSheet(tag = "theme-selection") { nav ->
-                        ThemeModeContent(
-                            currentThemeMode = themeMode,
-                            onThemeModeSelected = { mode ->
-                                viewModel.setThemeMode(mode)
-                                nav.dismiss()
-                            }
-                        )
-                    }
-                }
-            )
 
             DailyGoalSettingsCard(
                 dailyGoalWords = dailyGoalWords,
@@ -97,7 +104,8 @@ fun SettingsScreen(
                             onGoalSelected = { count ->
                                 viewModel.setDailyGoalWords(count)
                                 nav.dismiss()
-                            }
+                            },
+                            onClose = { nav.dismiss() },
                         )
                     }
                 }
@@ -146,40 +154,66 @@ fun SettingsScreen(
                 }
             )
 
-            WordManagerCard(onClick = { overlayHost.showWordManagerSheet() })
-
             TagManagerCard(onClick = { overlayHost.showTagManagerScreen() })
 
             TtsModelCacheCard(
+                showDivider = false,
                 onClick = {
                     viewModel.loadTtsModels()
-                    overlayHost.showSizeToFitBottomSheet(tag = "tts-model-cache") { _ ->
+                    overlayHost.showSizeToFitBottomSheet(tag = "tts-model-cache") { nav ->
                         val currentState by viewModel.state()
-                        TtsVoiceManagerContent(
-                            models = currentState.ttsModels,
-                            isLoading = currentState.ttsModelsLoading,
-                            totalSizeBytes = currentState.ttsTotalSizeBytes,
-                            downloadProgress = currentState.ttsDownloadProgress,
-                            ttsSettings = currentState.ttsSettings,
-                            onSpeechRateChanged = { rate -> viewModel.setTtsSpeechRate(rate) },
-                            onDownloadModel = { languageCode -> viewModel.downloadTtsModel(languageCode) },
-                            onDeleteModel = { languageCode ->
-                                val model = currentState.ttsModels.find { it.languageCode == languageCode }
-                                val displayName = model?.languageDisplayName ?: languageCode
-                                overlayHost.showSizeToFitBottomSheet(tag = "tts-delete-confirm") { confirmNav ->
-                                    TtsDeleteConfirmationContent(
-                                        languageDisplayName = displayName,
-                                        onConfirm = {
-                                            viewModel.deleteTtsModel(languageCode)
-                                            confirmNav.dismiss()
-                                        },
-                                        onDismiss = { confirmNav.dismiss() },
-                                    )
-                                }
+                        val pages = rememberBottomSheetPageNavigator<TtsSheetPage>(TtsSheetPage.Voices)
+                        BottomSheetPages(navigator = pages, onClose = { nav.dismiss() }, label = "ttsPages") { page ->
+                            when (page) {
+                                TtsSheetPage.Voices -> TtsVoiceManagerContent(
+                                    models = currentState.ttsModels,
+                                    isLoading = currentState.ttsModelsLoading,
+                                    totalSizeBytes = currentState.ttsTotalSizeBytes,
+                                    downloadProgress = currentState.ttsDownloadProgress,
+                                    ttsSettings = currentState.ttsSettings,
+                                    onSpeechRateChanged = { rate -> viewModel.setTtsSpeechRate(rate) },
+                                    onDownloadModel = { languageCode -> viewModel.downloadTtsModel(languageCode) },
+                                    onDeleteModel = { languageCode ->
+                                        val model = currentState.ttsModels.find { it.languageCode == languageCode }
+                                        pages.navigateTo(
+                                            TtsSheetPage.ConfirmDelete(
+                                                languageCode = languageCode,
+                                                displayName = model?.languageDisplayName ?: languageCode,
+                                            )
+                                        )
+                                    },
+                                    onVoiceSelected = { languageCode, speakerId ->
+                                        viewModel.setTtsVoice(languageCode, speakerId)
+                                    },
+                                )
+
+                                is TtsSheetPage.ConfirmDelete -> TtsDeleteConfirmationContent(
+                                    languageDisplayName = page.displayName,
+                                    onConfirm = {
+                                        viewModel.deleteTtsModel(page.languageCode)
+                                        pages.navigateBack()
+                                    },
+                                    onDismiss = { pages.navigateBack() },
+                                )
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        GroupedSection(title = stringResource(Res.string.settings)) {
+            ThemeSettingsCard(
+                themeMode = themeMode,
+                onShowThemeDialog = {
+                    overlayHost.showSizeToFitBottomSheet(tag = "theme-selection") { nav ->
+                        ThemeModeContent(
+                            currentThemeMode = themeMode,
+                            onThemeModeSelected = { mode ->
+                                viewModel.setThemeMode(mode)
+                                nav.dismiss()
                             },
-                            onVoiceSelected = { languageCode, speakerId ->
-                                viewModel.setTtsVoice(languageCode, speakerId)
-                            },
+                            onClose = { nav.dismiss() },
                         )
                     }
                 }
@@ -187,8 +221,12 @@ fun SettingsScreen(
 
             SubscriptionCard(onClick = onNavigateToSubscription)
 
-            AboutSettingsCard(appVersion = state.appVersion)
+            AboutSettingsCard(appVersion = state.appVersion, showDivider = false)
         }
-
     }
+}
+
+private sealed interface TtsSheetPage {
+    data object Voices : TtsSheetPage
+    data class ConfirmDelete(val languageCode: String, val displayName: String) : TtsSheetPage
 }

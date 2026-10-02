@@ -4,9 +4,7 @@ import core.common.Try
 import domain.auth.manager.IUserManager
 import domain.auth.model.AuthUser
 import domain.profile.repository.IProfileRepository
-import domain.profile.usecase.DeleteAvatarUseCase
 import domain.profile.usecase.UpdateProfileUseCase
-import domain.profile.usecase.UploadAvatarUseCase
 import domain.profile.usecase.ValidateDisplayAliasUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,13 +25,10 @@ class EditProfileViewModelTest : ViewModelTestBase() {
         id = 1L,
         email = "test@example.com",
         name = "Test User",
-        displayAlias = "tester",
-        profileImageUrl = "https://example.com/avatar.jpg"
+        displayAlias = "tester"
     )
 
     private var updateProfileResult: Try<AuthUser> = Try.success(testUser)
-    private var uploadAvatarResult: Try<String> = Try.success("https://example.com/new-avatar.jpg")
-    private var deleteAvatarResult: Try<Unit> = Try.success(Unit)
 
     private val userFlow = MutableStateFlow<AuthUser?>(testUser)
     private var lastSetUser: AuthUser? = null
@@ -47,8 +42,6 @@ class EditProfileViewModelTest : ViewModelTestBase() {
 
     private fun fakeProfileRepo() = object : IProfileRepository {
         override suspend fun updateProfile(name: String?, displayAlias: String?): Try<AuthUser> = updateProfileResult
-        override suspend fun uploadAvatar(imageBytes: ByteArray, mimeType: String): Try<String> = uploadAvatarResult
-        override suspend fun deleteAvatar(): Try<Unit> = deleteAvatarResult
     }
 
     private fun createViewModel(): EditProfileViewModel {
@@ -56,8 +49,6 @@ class EditProfileViewModelTest : ViewModelTestBase() {
         return EditProfileViewModel(
             userManager = fakeUserManager(),
             updateProfileUseCase = UpdateProfileUseCase(repo),
-            uploadAvatarUseCase = UploadAvatarUseCase(repo),
-            deleteAvatarUseCase = DeleteAvatarUseCase(repo),
             validateDisplayAliasUseCase = ValidateDisplayAliasUseCase(),
         )
     }
@@ -68,7 +59,6 @@ class EditProfileViewModelTest : ViewModelTestBase() {
         assertEquals("tester", vm.currentState.displayAlias)
         assertEquals("test@example.com", vm.currentState.email)
         assertEquals("Test User", vm.currentState.name)
-        assertEquals("https://example.com/avatar.jpg", vm.currentState.profileImageUrl)
     }
 
     @Test
@@ -120,47 +110,6 @@ class EditProfileViewModelTest : ViewModelTestBase() {
 
         assertEquals("Network error", vm.currentState.errorMessage)
         assertEquals(false, vm.currentState.isSaving)
-    }
-
-    @Test
-    fun `uploadAvatar success updates profileImageUrl`() = runTest {
-        val vm = createViewModel()
-
-        vm.uploadAvatar(byteArrayOf(1, 2, 3), "image/jpeg")
-
-        assertEquals("https://example.com/new-avatar.jpg", vm.currentState.profileImageUrl)
-        assertEquals(false, vm.currentState.isUploadingAvatar)
-    }
-
-    @Test
-    fun `uploadAvatar failure sets error`() = runTest {
-        uploadAvatarResult = Try.failure(RuntimeException("Upload failed"))
-        val vm = createViewModel()
-
-        vm.uploadAvatar(byteArrayOf(1, 2, 3), "image/jpeg")
-
-        assertEquals("Upload failed", vm.currentState.errorMessage)
-        assertEquals(false, vm.currentState.isUploadingAvatar)
-    }
-
-    @Test
-    fun `deleteAvatar success clears profileImageUrl`() = runTest {
-        val vm = createViewModel()
-
-        vm.deleteAvatar()
-
-        assertNull(vm.currentState.profileImageUrl)
-        assertEquals(false, vm.currentState.isUploadingAvatar)
-    }
-
-    @Test
-    fun `deleteAvatar failure sets error`() = runTest {
-        deleteAvatarResult = Try.failure(RuntimeException("Delete failed"))
-        val vm = createViewModel()
-
-        vm.deleteAvatar()
-
-        assertEquals("Delete failed", vm.currentState.errorMessage)
     }
 
     @Test

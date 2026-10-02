@@ -37,7 +37,6 @@ data class UserDto(
     val subscriptionStatus: String,
     val subscriptionExpiresAt: String?,
     val currentStreak: Int = 0,
-    val displayAlias: String? = null,
-    val profileImageUrl: String? = null
+    val displayAlias: String? = null
 )
 

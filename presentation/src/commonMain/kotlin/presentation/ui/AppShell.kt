@@ -5,33 +5,49 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.School
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.lifecycle.compose.LifecycleResumeEffect
-import domain.subscription.usecase.RefreshFeatureAccessUseCase
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import domain.auth.usecase.GetFeatureAccessUseCase
+import feature.insights.navigation.InsightsRoute
+import feature.profile.navigation.ProfileRoute
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import domain.subscription.usecase.RefreshFeatureAccessUseCase
+import kotlinx.coroutines.launch
+import presentation.model.SettingsRoute
 import presentation.model.TabDestination
-import presentation.ui.components.AnimatedNavIcon
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.settings
+import lexicon.resources.generated.resources.insights_title
+import lexicon.resources.generated.resources.profile
 import lexicon.resources.generated.resources.study
+import lexicon.resources.generated.resources.words_tab
 import theme.Theme
 
 @Composable
@@ -43,6 +59,10 @@ internal fun AppContent(
     val currentDestination = navBackStackEntry?.destination
     val layoutType = currentNavigationSuiteType()
 
+    val getFeatureAccessUseCase = koinInject<GetFeatureAccessUseCase>()
+    val featureAccess by remember(getFeatureAccessUseCase) { getFeatureAccessUseCase() }.collectAsState(initial = null)
+    val hasPremiumAccess = featureAccess?.userAccess?.hasPremiumAccess == true
+
     // Pick up grants, expirations and purchases made elsewhere when the app comes back to the
     // foreground. Throttled in the data layer, so frequent resumes don't hit the network.
     val refreshFeatureAccess = koinInject<RefreshFeatureAccessUseCase>()
@@ -52,35 +72,69 @@ internal fun AppContent(
         onPauseOrDispose { }
     }
 
+    val selectedColor = MaterialTheme.colorScheme.primary
+    val unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val indicatorColor = selectedColor.copy(alpha = Theme.opacity.focus)
+    val itemColors = NavigationSuiteDefaults.itemColors(
+        navigationBarItemColors = NavigationBarItemDefaults.colors(
+            selectedIconColor = selectedColor,
+            selectedTextColor = selectedColor,
+            indicatorColor = indicatorColor,
+            unselectedIconColor = unselectedColor,
+            unselectedTextColor = unselectedColor,
+        ),
+        navigationRailItemColors = NavigationRailItemDefaults.colors(
+            selectedIconColor = selectedColor,
+            selectedTextColor = selectedColor,
+            indicatorColor = indicatorColor,
+            unselectedIconColor = unselectedColor,
+            unselectedTextColor = unselectedColor,
+        ),
+    )
+
     NavigationSuiteScaffold(
         layoutType = layoutType,
+        navigationSuiteColors = NavigationSuiteDefaults.colors(
+            navigationBarContainerColor = MaterialTheme.colorScheme.surface,
+            navigationRailContainerColor = MaterialTheme.colorScheme.surface,
+        ),
         navigationSuiteItems = {
-            val studySelected = currentDestination?.hasRoute<TabDestination.Study>() == true
-            val settingsSelected = currentDestination?.hasRoute<TabDestination.Settings>() == true
+            // Settings is pushed on top of Study, so it still belongs to the Study tab
+            val studySelected = currentDestination?.hasRoute<TabDestination.Study>() == true ||
+                currentDestination?.hasRoute<SettingsRoute>() == true
+            val insightsSelected = currentDestination?.hasRoute<InsightsRoute>() == true
+            val wordsSelected = currentDestination?.hasRoute<TabDestination.Words>() == true
+            val profileSelected = currentDestination?.hasRoute<ProfileRoute>() == true
 
             item(
                 selected = studySelected,
-                onClick = { navController.navigateToTab(TabDestination.Study) },
-                icon = {
-                    AnimatedNavIcon(
-                        icon = Icons.Filled.Book,
-                        contentDescription = stringResource(Res.string.study),
-                        selected = studySelected
-                    )
-                },
-                label = { Text(stringResource(Res.string.study)) }
+                onClick = { navController.selectTab(TabDestination.Study, studySelected) },
+                icon = { TabIcon(Icons.Outlined.School) },
+                label = { TabLabel(stringResource(Res.string.study), studySelected) },
+                colors = itemColors,
             )
             item(
-                selected = settingsSelected,
-                onClick = { navController.navigateToTab(TabDestination.Settings) },
-                icon = {
-                    AnimatedNavIcon(
-                        icon = Icons.Filled.Settings,
-                        contentDescription = stringResource(Res.string.settings),
-                        selected = settingsSelected
-                    )
-                },
-                label = { Text(stringResource(Res.string.settings)) }
+                selected = wordsSelected,
+                onClick = { navController.selectTab(TabDestination.Words, wordsSelected) },
+                icon = { TabIcon(Icons.AutoMirrored.Outlined.List) },
+                label = { TabLabel(stringResource(Res.string.words_tab), wordsSelected) },
+                colors = itemColors,
+            )
+            if (hasPremiumAccess) {
+                item(
+                    selected = insightsSelected,
+                    onClick = { navController.selectTab(InsightsRoute, insightsSelected) },
+                    icon = { TabIcon(Icons.Outlined.BarChart) },
+                    label = { TabLabel(stringResource(Res.string.insights_title), insightsSelected) },
+                    colors = itemColors,
+                )
+            }
+            item(
+                selected = profileSelected,
+                onClick = { navController.selectTab(ProfileRoute, profileSelected) },
+                icon = { TabIcon(Icons.Outlined.Person) },
+                label = { TabLabel(stringResource(Res.string.profile), profileSelected) },
+                colors = itemColors,
             )
         }
     ) {
@@ -123,4 +177,23 @@ internal fun AppContent(
             )
         }
     }
+}
+
+@Composable
+private fun TabIcon(icon: ImageVector) {
+    // Label already names the tab
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        modifier = Modifier.size(Theme.dimensions.iconSize),
+    )
+}
+
+@Composable
+private fun TabLabel(text: String, selected: Boolean) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+    )
 }

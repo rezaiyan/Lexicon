@@ -72,36 +72,4 @@ class ProfileRemoteDataSourceTest {
 
         assertTrue(result is Try.Failure)
     }
-
-    @Test
-    fun `deleteAvatar returns success`() = runTest {
-        val mockEngine = MockEngine {
-            respond("", HttpStatusCode.OK, jsonHeaders())
-        }
-        val result = buildDataSource(mockEngine).deleteAvatar()
-
-        assertTrue(result is Try.Success)
-    }
-
-    @Test
-    fun `deleteAvatar sends DELETE to correct path`() = runTest {
-        var capturedPath: String? = null
-        val mockEngine = MockEngine { request ->
-            capturedPath = request.url.encodedPath
-            respond("", HttpStatusCode.OK, jsonHeaders())
-        }
-        buildDataSource(mockEngine).deleteAvatar()
-
-        assertEquals("/users/me/avatar", capturedPath)
-    }
-
-    @Test
-    fun `deleteAvatar returns failure on HTTP error`() = runTest {
-        val mockEngine = MockEngine {
-            respond("Error", HttpStatusCode.InternalServerError, jsonHeaders())
-        }
-        val result = buildDataSource(mockEngine).deleteAvatar()
-
-        assertTrue(result is Try.Failure)
-    }
 }

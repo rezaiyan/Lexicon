@@ -152,10 +152,12 @@ insertOrReplaceTag:
 INSERT OR REPLACE INTO TagEntity(id, name, createdAt, updatedAt)
 VALUES (?, ?, ?, ?);
 
+-- Counts only links whose word still exists, and (by reading WordEntity) re-emits when words change.
 getAllTagsWithWordCount:
-SELECT t.id, t.name, t.createdAt, t.updatedAt, COUNT(wt.wordId) AS wordCount
+SELECT t.id, t.name, t.createdAt, t.updatedAt, COUNT(w.id) AS wordCount
 FROM TagEntity t
 LEFT JOIN WordTagEntity wt ON t.id = wt.tagId
+LEFT JOIN WordEntity w ON w.id = wt.wordId
 GROUP BY t.id
 ORDER BY t.name ASC;
 
@@ -192,6 +194,12 @@ DELETE FROM WordTagEntity WHERE wordId = ?;
 
 deleteWordTagsForTag:
 DELETE FROM WordTagEntity WHERE tagId = ?;
+
+deleteWordTagsForWords:
+DELETE FROM WordTagEntity WHERE wordId IN ?;
+
+deleteAllWordTags:
+DELETE FROM WordTagEntity;
 
 countWordTags:
 SELECT count(*) FROM WordTagEntity;

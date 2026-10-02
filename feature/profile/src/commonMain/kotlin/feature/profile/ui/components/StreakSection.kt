@@ -100,7 +100,7 @@ private fun StreakCard(
         // Lottie fire animation on the left
         Box(
             modifier = Modifier
-                .padding(bottom = Theme.spacing.extraSmall)
+                .padding(bottom = Theme.spacing.sm)
                 .size(64.dp),
             contentAlignment = Alignment.Center
         ) {

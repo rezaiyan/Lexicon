@@ -75,7 +75,7 @@ fun ComparisonTable() {
     )
 
     val iconSize = Theme.dimensions.iconSizeMedium
-    val columnSpacing = Theme.spacing.large
+    val columnSpacing = Theme.spacing.xl
 
     var freeColumnWidth by remember { mutableStateOf<Dp?>(null) }
     var premiumColumnWidth by remember { mutableStateOf<Dp?>(null) }
@@ -93,8 +93,8 @@ fun ComparisonTable() {
                 color = MaterialTheme.colorScheme.outlineVariant,
                 shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius)
             )
-            .padding(Theme.spacing.medium),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.small)
+            .padding(Theme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -158,7 +158,7 @@ fun ComparisonTable() {
                     contentAlignment = Alignment.Center
                 ) {
                     Surface(
-                        shape = RoundedCornerShape(Theme.spacing.extraSmall),
+                        shape = RoundedCornerShape(Theme.spacing.sm),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                     ) {
                         Text(
@@ -168,8 +168,8 @@ fun ComparisonTable() {
                             textAlign = TextAlign.Center,
                             maxLines = 1,
                             modifier = Modifier.padding(
-                                horizontal = Theme.spacing.small,
-                                vertical = Theme.spacing.extraSmall
+                                horizontal = Theme.spacing.md,
+                                vertical = Theme.spacing.sm
                             )
                         )
                     }

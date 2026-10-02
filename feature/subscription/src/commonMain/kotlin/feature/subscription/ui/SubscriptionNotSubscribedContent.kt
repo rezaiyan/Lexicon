@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.dp
 import domain.subscription.model.PackagePeriod
 import domain.subscription.model.SubscriptionPackage
 import expects.openUrl
@@ -39,8 +40,8 @@ fun SubscriptionNotSubscribedContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = Theme.spacing.extraLarge4),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+            .padding(bottom = 64.dp),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
     ) {
         PremiumHeroSection()
 
@@ -56,7 +57,7 @@ fun SubscriptionNotSubscribedContent(
                 }
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.medium)
+                verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
             ) {
                 packages.forEachIndexed { index, pkg ->
                     val billingPeriod = when (pkg.packagePeriod) {
@@ -110,7 +111,7 @@ private fun SubscriptionLegalLinks() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.medium, vertical = Theme.spacing.small),
+            .padding(horizontal = Theme.spacing.lg, vertical = Theme.spacing.md),
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
@@ -122,7 +123,7 @@ private fun SubscriptionLegalLinks() {
                 .clickable {
                     openUrl("https://alirezaiyan.com/vokab/terms")
                 }
-                .padding(horizontal = Theme.spacing.small)
+                .padding(horizontal = Theme.spacing.md)
         )
         Text(
             text = " • ",
@@ -138,7 +139,7 @@ private fun SubscriptionLegalLinks() {
                 .clickable {
                     openUrl("https://alirezaiyan.com/vokab/privacy")
                 }
-                .padding(horizontal = Theme.spacing.small)
+                .padding(horizontal = Theme.spacing.md)
         )
     }
 }

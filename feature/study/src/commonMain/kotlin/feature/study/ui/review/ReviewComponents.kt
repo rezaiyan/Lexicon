@@ -11,21 +11,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -33,29 +26,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import domain.tts.model.TtsState
 import domain.word.model.Word
 import feature.study.model.ReviewType
 import feature.study.ui.components.FlashCard
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.edit
-import lexicon.resources.generated.resources.tap_card_to_reveal
-import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
 /**
  * Main review content area.
  *
- * Animations:
- * - Cards slide in/out horizontally when navigating between words (direction-aware)
- * - A "tap to reveal" hint fades in/out in review mode before the card is flipped
- * - Rating buttons slide up after the card is flipped in review mode
+ * Layout: top bar, then the card filling the free space, then the footer (Show answer ↔ rating, or
+ * browse navigation) in the thumb zone. Cards slide horizontally between words (direction-aware);
+ * a vertical swipe anywhere in the card slot flips the card.
  */
 @Composable
 fun ReviewContent(
@@ -76,14 +61,6 @@ fun ReviewContent(
     speechRate: Float = 1.0f,
     onSpeechRateChanged: (Float) -> Unit = {},
 ) {
-    // Animate the "tap to reveal" hint alpha outside the nested Box lambda to
-    // avoid Kotlin's implicit-receiver overload resolution picking ColumnScope.AnimatedVisibility.
-    val hintAlpha by animateFloatAsState(
-        targetValue = if (!isFlipped && reviewType == ReviewType.REVIEW) 1f else 0f,
-        animationSpec = tween(400, easing = FastOutSlowInEasing),
-        label = "hintAlpha"
-    )
-
     // Swipe-up (front→back) or swipe-down (back→front) anywhere in the card slot
     // so one-handed users can trigger the flip from the bottom thumb zone.
     // rawDragY resets to 0 on release, spring-animating the card back to rest.
@@ -119,7 +96,7 @@ fun ReviewContent(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(top = Theme.spacing.lg, bottom = Theme.spacing.xs)
+                .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.md)
                 .pointerInput(isFlipped) {
                     detectVerticalDragGestures(
                         onDragEnd = {
@@ -159,45 +136,8 @@ fun ReviewContent(
                         onFlip = onFlip,
                         dragFeedbackY = dragFeedbackY,
                         ttsState = ttsState,
-                        onSpeakClick = onSpeakClick
-                    )
-                }
-            }
-
-            // "Tap to reveal" hint — pill chip
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = Theme.spacing.sm)
-                    .graphicsLayer { alpha = hintAlpha }
-                    .clip(RoundedCornerShape(100.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .padding(horizontal = Theme.spacing.sm, vertical = 4.dp)
-            ) {
-                Text(
-                    text = stringResource(Res.string.tap_card_to_reveal),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
-                )
-            }
-
-            // ── Edit word — overlaid icon at bottom-end of card slot ───────
-            if (onEdit != null) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = Theme.spacing.sm, bottom = Theme.spacing.sm)
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.85f))
-                        .clickable(role = Role.Button, onClick = onEdit)
-                        .padding(8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = stringResource(Res.string.edit),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.size(16.dp)
+                        onSpeakClick = onSpeakClick,
+                        onEdit = onEdit,
                     )
                 }
             }
@@ -207,11 +147,12 @@ fun ReviewContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Theme.spacing.lg)
-                .padding(bottom = Theme.spacing.lg)
+                .navigationBarsPadding()
+                .padding(horizontal = Theme.spacing.md)
+                .padding(bottom = Theme.spacing.md)
         ) {
             when (reviewType) {
-                ReviewType.REVIEW -> ReviewRatingArea(isFlipped = isFlipped, onReview = onReview)
+                ReviewType.REVIEW -> ReviewRatingArea(isFlipped = isFlipped, onFlip = onFlip, onReview = onReview)
                 ReviewType.BROWSE -> NavigationButtons(
                     currentIndex = currentIndex,
                     totalCount = words.size,

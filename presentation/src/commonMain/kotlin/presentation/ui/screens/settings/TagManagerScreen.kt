@@ -8,25 +8,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Switch
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Label
 import androidx.compose.material3.Card
@@ -35,29 +28,23 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import components.EmptyScreen
 import components.animation.staggeredFadeSlide
-import components.dialog.ButtonState
-import components.dialog.ButtonType
-import components.dialog.DialogIconState
-import components.dialog.LexiconDialogContent
 import components.scaffold.LexiconColumn
 import components.scaffold.TopBarColor
+import components.sheet.ConfirmSheetContent
+import components.sheet.ConfirmTone
 import domain.tag.model.Tag
 import events.OnEvents
 import feature.words.TagManagerViewModel
@@ -73,7 +60,6 @@ import lexicon.resources.generated.resources.no_tags
 import lexicon.resources.generated.resources.no_tags_subtitle
 import lexicon.resources.generated.resources.rename_tag
 import lexicon.resources.generated.resources.tag_manager
-import lexicon.resources.generated.resources.tag_name_hint
 import lexicon.resources.generated.resources.word_count_label
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -83,6 +69,7 @@ import overlay.bottomsheet.showSizeToFitBottomSheet
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
 import presentation.ui.LocalSnackbarHostState
+import presentation.ui.components.TagFormContent
 import theme.AppColors
 import theme.Theme
 
@@ -321,37 +308,12 @@ private fun CreateTagContent(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var name by remember { mutableStateOf("") }
-    val focusManager = LocalFocusManager.current
-
-    LexiconDialogContent(
-        modifier = Modifier
-            .imePadding()
-            .verticalScroll(rememberScrollState()),
+    TagFormContent(
         title = stringResource(Res.string.new_tag),
-        content = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(stringResource(Res.string.tag_name_hint)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Theme.spacing.sm),
-                singleLine = true,
-                shape = RoundedCornerShape(Theme.shapes.medium),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-            )
-        },
-        primaryButton = ButtonState(
-            text = stringResource(Res.string.create_tag),
-            onClick = { if (name.isNotBlank()) onConfirm(name.trim()) },
-            enabled = name.isNotBlank()
-        ),
-        secondaryButton = ButtonState(
-            text = stringResource(Res.string.cancel),
-            onClick = onDismiss
-        )
+        confirmText = stringResource(Res.string.create_tag),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        onClose = onDismiss,
     )
 }
 
@@ -361,37 +323,13 @@ private fun RenameTagContent(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var name by remember { mutableStateOf(currentName) }
-    val focusManager = LocalFocusManager.current
-
-    LexiconDialogContent(
-        modifier = Modifier
-            .imePadding()
-            .verticalScroll(rememberScrollState()),
+    TagFormContent(
         title = stringResource(Res.string.rename_tag),
-        content = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text(stringResource(Res.string.tag_name_hint)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Theme.spacing.sm),
-                singleLine = true,
-                shape = RoundedCornerShape(Theme.shapes.medium),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
-            )
-        },
-        primaryButton = ButtonState(
-            text = stringResource(Res.string.rename_tag),
-            onClick = { if (name.isNotBlank()) onConfirm(name.trim()) },
-            enabled = name.isNotBlank() && name != currentName
-        ),
-        secondaryButton = ButtonState(
-            text = stringResource(Res.string.cancel),
-            onClick = onDismiss
-        )
+        confirmText = stringResource(Res.string.rename_tag),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        initialName = currentName,
+        onClose = onDismiss,
     )
 }
 
@@ -400,21 +338,15 @@ private fun DeleteTagConfirmContent(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    LexiconDialogContent(
-        iconState = DialogIconState.Icon(
-            imageVector = Icons.Default.Warning,
-            tint = MaterialTheme.colorScheme.error
-        ),
+    ConfirmSheetContent(
+        icon = Icons.Default.DeleteOutline,
         title = stringResource(Res.string.delete_tag),
         message = stringResource(Res.string.delete_tag_confirm),
-        primaryButton = ButtonState(
-            text = stringResource(Res.string.delete_tag),
-            onClick = onConfirm,
-            type = ButtonType.Error
-        ),
-        secondaryButton = ButtonState(
-            text = stringResource(Res.string.cancel),
-            onClick = onDismiss
-        )
+        confirmText = stringResource(Res.string.delete_tag),
+        onConfirm = onConfirm,
+        dismissText = stringResource(Res.string.cancel),
+        onDismiss = onDismiss,
+        tone = ConfirmTone.Danger,
+        onClose = onDismiss,
     )
 }
