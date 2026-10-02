@@ -2,6 +2,9 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.getOrNull
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.ObserveLearningFocusUseCase
+import fakes.FakeLearningFocusRepository
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.settings.model.ThemeMode
@@ -32,12 +35,13 @@ class LoadReviewQueueUseCaseTest {
         original: String = "word$id",
         stage: LearningStage = LearningStage.LEVEL_0_FRESH,
         tagIds: List<Long> = emptyList(),
+        language: Language = Language.ENGLISH,
     ) = Word(
         id = id,
         originalWord = original,
         translation = "translation$id",
         description = "",
-        sourceLanguage = Language.ENGLISH,
+        sourceLanguage = language,
         targetLanguage = Language.ENGLISH,
         level = stage.level,
         nextReviewDate = 0L,
@@ -51,6 +55,7 @@ class LoadReviewQueueUseCaseTest {
         private val dueCards: List<Word> = emptyList(),
         private val dueCardsByTag: Map<Long, List<Word>> = emptyMap(),
         private val wordsByStage: Map<LearningStage, List<Word>> = emptyMap(),
+        private val allWords: List<Word> = emptyList(),
     ) : IWordRepository {
         override fun getDueCards(): Flow<List<Word>> = flowOf(dueCards)
         override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> =
@@ -58,8 +63,8 @@ class LoadReviewQueueUseCaseTest {
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> =
             flowOf(wordsByStage[stage] ?: emptyList())
 
-        override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
-        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
+        override fun getAllWords(): Flow<List<Word>> = flowOf(allWords)
+        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(allWords)
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
@@ -110,17 +115,65 @@ class LoadReviewQueueUseCaseTest {
     private fun buildUseCase(
         repo: IWordRepository,
         dailyGoal: Int = Int.MAX_VALUE,
+        focus: LearningFocus? = null,
     ): LoadReviewQueueUseCase {
         val getDueWords = GetDueWordsUseCase(repo)
         val getWordsByStage = GetWordsByStageUseCase(repo)
         val getDueWordsByTag = GetDueWordsByTagUseCase(repo)
         val getDailyGoalWords = GetDailyGoalWordsUseCase(FakeSettingsRepository(dailyGoal))
-        return LoadReviewQueueUseCase(getDueWords, getWordsByStage, getDueWordsByTag, getDailyGoalWords)
+        val observeLearningFocus = ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository(focus))
+        return LoadReviewQueueUseCase(
+            getDueWords,
+            getWordsByStage,
+            getDueWordsByTag,
+            getDailyGoalWords,
+            observeLearningFocus,
+        )
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Tests
     // ─────────────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `DueCards with Single focus returns only focused language before applying daily goal`() = runTest {
+        val german = (1..3).map { testWord(it, language = Language.GERMAN) }
+        val spanish = (10..12).map { testWord(it, language = Language.SPANISH) }
+        val mixedDue = listOf(spanish[0], german[0], spanish[1], german[1], german[2], spanish[2])
+        val repo = ConfigurableWordRepository(dueCards = mixedDue, allWords = german + spanish)
+
+        val result = buildUseCase(repo, dailyGoal = 2, focus = LearningFocus.Single(Language.GERMAN))(
+            ReviewSource.DueCards
+        )
+
+        assertEquals(listOf(1, 2), result.getOrNull()?.map { it.id })
+    }
+
+    @Test
+    fun `DueCards with All focus keeps every language`() = runTest {
+        val words = listOf(testWord(1, language = Language.GERMAN), testWord(2, language = Language.SPANISH))
+        val repo = ConfigurableWordRepository(dueCards = words, allWords = words)
+
+        val result = buildUseCase(repo, focus = LearningFocus.All)(ReviewSource.DueCards)
+
+        assertEquals(listOf(1, 2), result.getOrNull()?.map { it.id })
+    }
+
+    @Test
+    fun `ByStageAndTag with Single focus drops other languages`() = runTest {
+        val stage = LearningStage.LEVEL_2_FAMILIAR
+        val words = listOf(
+            testWord(1, stage = stage, tagIds = listOf(5L), language = Language.GERMAN),
+            testWord(2, stage = stage, tagIds = listOf(5L), language = Language.SPANISH),
+        )
+        val repo = ConfigurableWordRepository(wordsByStage = mapOf(stage to words), allWords = words)
+
+        val result = buildUseCase(repo, focus = LearningFocus.Single(Language.SPANISH))(
+            ReviewSource.ByStageAndTag(stage, 5L)
+        )
+
+        assertEquals(listOf(2), result.getOrNull()?.map { it.id })
+    }
 
     @Test
     fun `DueCards source returns due words`() = runTest {

@@ -41,7 +41,9 @@ import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.UpdateWordUseCase
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import fakes.FakeAnalyticsTracker
+import fakes.FakeLearningFocusRepository
 import fakes.FakeWidgetRefresher
 import fakes.fakeGetDailyWidgetDataUseCase
 import feature.study.ReviewEffect
@@ -211,6 +213,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
                 getWordsByStage = GetWordsByStageUseCase(wordRepo),
                 getDueWordsByTag = GetDueWordsByTagUseCase(wordRepo),
                 getDailyGoalWords = GetDailyGoalWordsUseCase(settingsRepo),
+                observeLearningFocus = ObserveLearningFocusUseCase(wordRepo, FakeLearningFocusRepository()),
             ),
             reviewWordUseCase = ReviewWordUseCase(wordRepo, syncRepo),
             flushReviewSyncQueueUseCase = FlushReviewSyncQueueUseCase(syncRepo, wordRepo),
