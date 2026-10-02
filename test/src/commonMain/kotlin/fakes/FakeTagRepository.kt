@@ -10,7 +10,9 @@ class FakeTagRepository : ITagRepository {
     var syncTagsFromRemoteCalled = false
     var syncTagsFromRemoteResult: Try<Unit> = Try.success(Unit)
 
-    override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+    var tags: List<Tag> = emptyList()
+
+    override fun getTags(): Flow<List<Tag>> = flowOf(tags)
     override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
     override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
     override suspend fun createTag(name: String): Try<Tag> = throw NotImplementedError()
