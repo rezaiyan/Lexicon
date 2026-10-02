@@ -1,6 +1,10 @@
 package feature.study.wordrush
 
 import core.common.fold
+import core.common.getOrThrow
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.ObserveLearningFocusUseCase
+import fakes.FakeLearningFocusRepository
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeWordRepository
@@ -30,9 +34,33 @@ class GetWordRushWordsUseCaseTest {
         }
     }
 
+    private fun useCase(repo: FakeWordRepository, focus: LearningFocus? = null) =
+        GetWordRushWordsUseCase(repo, ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository(focus)))
+
+    @Test
+    fun `invoke with Single focus only returns focused language`() = runTest {
+        val words = createWords(6).map { it.copy(sourceLanguage = Language.GERMAN) } +
+            createWords(6).map { it.copy(id = it.id + 100, sourceLanguage = Language.SPANISH) }
+
+        val result = useCase(fakeRepo(words), LearningFocus.Single(Language.SPANISH))(4).getOrThrow()
+
+        assertEquals(4, result.size)
+        assertTrue(result.all { it.sourceLanguage == Language.SPANISH })
+    }
+
+    @Test
+    fun `invoke fails when focused language has fewer than minimum words`() = runTest {
+        val words = createWords(2).map { it.copy(sourceLanguage = Language.GERMAN) } +
+            createWords(10).map { it.copy(id = it.id + 100, sourceLanguage = Language.SPANISH) }
+
+        val result = useCase(fakeRepo(words), LearningFocus.Single(Language.GERMAN))(4)
+
+        assertTrue(result.isFailure)
+    }
+
     @Test
     fun `returns requested number of words when enough exist`() = runTest {
-        val useCase = GetWordRushWordsUseCase(fakeRepo(createWords(10)))
+        val useCase = useCase(fakeRepo(createWords(10)))
         val result = useCase(5)
         assertTrue(result.isSuccess)
         result.fold(
@@ -43,14 +71,14 @@ class GetWordRushWordsUseCaseTest {
 
     @Test
     fun `fails when fewer than 4 words exist`() = runTest {
-        val useCase = GetWordRushWordsUseCase(fakeRepo(createWords(3)))
+        val useCase = useCase(fakeRepo(createWords(3)))
         val result = useCase(3)
         assertTrue(result.isFailure)
     }
 
     @Test
     fun `returns all words when requested count exceeds available`() = runTest {
-        val useCase = GetWordRushWordsUseCase(fakeRepo(createWords(6)))
+        val useCase = useCase(fakeRepo(createWords(6)))
         val result = useCase(10)
         assertTrue(result.isSuccess)
         result.fold(
@@ -61,7 +89,7 @@ class GetWordRushWordsUseCaseTest {
 
     @Test
     fun `exactly 4 words succeeds`() = runTest {
-        val useCase = GetWordRushWordsUseCase(fakeRepo(createWords(4)))
+        val useCase = useCase(fakeRepo(createWords(4)))
         val result = useCase(4)
         assertTrue(result.isSuccess)
     }
@@ -79,7 +107,7 @@ class GetWordRushWordsUseCaseTest {
                 sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN,
                 level = 5, nextReviewDate = 0L)
         }
-        val useCase = GetWordRushWordsUseCase(fakeRepo(level0 + level5))
+        val useCase = useCase(fakeRepo(level0 + level5))
         val result = useCase(6)
         assertTrue(result.isSuccess)
         result.fold(
@@ -99,7 +127,7 @@ class GetWordRushWordsUseCaseTest {
                 sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN,
                 level = i % 5, nextReviewDate = 0L)
         }
-        val useCase = GetWordRushWordsUseCase(fakeRepo(words))
+        val useCase = useCase(fakeRepo(words))
         val result = useCase(10)
         assertTrue(result.isSuccess)
         result.fold(
@@ -121,7 +149,7 @@ class GetWordRushWordsUseCaseTest {
             Word(id = 3, originalWord = "word_3", translation = "translation_3", description = "desc_3", sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN, level = 4, nextReviewDate = 0L),
             Word(id = 4, originalWord = "word_4", translation = "translation_4", description = "desc_4", sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN, level = 6, nextReviewDate = 0L),
         )
-        val useCase = GetWordRushWordsUseCase(fakeRepo(words))
+        val useCase = useCase(fakeRepo(words))
         val result = useCase(GetWordRushWordsUseCase.MINIMUM_WORDS)
         assertTrue(result.isSuccess)
         result.fold(

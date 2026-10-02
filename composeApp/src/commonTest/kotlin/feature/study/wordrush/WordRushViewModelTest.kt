@@ -81,7 +81,10 @@ class WordRushViewModelTest : ViewModelTestBase() {
     ): WordRushViewModel {
         val repo = fakeRepo(words)
         return WordRushViewModel(
-            getWordRushWordsUseCase = GetWordRushWordsUseCase(repo),
+            getWordRushWordsUseCase = GetWordRushWordsUseCase(
+                repo,
+                domain.focus.usecase.ObserveLearningFocusUseCase(repo, fakes.FakeLearningFocusRepository()),
+            ),
             recordWordRushGameUseCase = RecordWordRushGameUseCase(recorder),
             analyticsTracker = FakeAnalyticsTracker(),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(FakeWordRushStatsRepository(bestStreakEver)),

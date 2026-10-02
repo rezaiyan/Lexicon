@@ -1,6 +1,7 @@
 package fakes
 
 import core.common.Try
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.streak.model.StreakData
 import domain.streak.repository.IStreakRepository
 import domain.widget.IWidgetRefresher
@@ -29,5 +30,10 @@ fun fakeGetDailyWidgetDataUseCase(
         override suspend fun getStreak(): Try<StreakData> = Try.success(StreakData(0))
         override suspend fun recordActivity(count: Int): Try<StreakData> = Try.success(StreakData(0))
     }
-    return GetDailyWidgetDataUseCase(wordRepository, noOpStreakRepo, FakeWidgetRefresher())
+    return GetDailyWidgetDataUseCase(
+        wordRepository,
+        noOpStreakRepo,
+        FakeWidgetRefresher(),
+        ObserveLearningFocusUseCase(wordRepository, FakeLearningFocusRepository()),
+    )
 }

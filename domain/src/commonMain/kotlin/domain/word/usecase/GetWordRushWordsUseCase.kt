@@ -2,21 +2,26 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.getOrThrow
+import domain.focus.filterBy
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
+import kotlinx.coroutines.flow.first
 
 /**
- * Fetches words for the Word Rush game.
+ * Fetches words for the Word Rush game, scoped to the user's learning focus.
  * Returns a mixed list of [count] words drawn proportionally from each SRS level,
  * so a single round never shows only one type of word.
  * Minimum 4 words required to generate distractor options.
  */
 class GetWordRushWordsUseCase(
     private val wordRepository: IWordRepository,
+    private val observeLearningFocus: ObserveLearningFocusUseCase,
 ) {
 
     suspend operator fun invoke(count: Int): Try<List<Word>> = Try {
-        val allWords = wordRepository.getAllWordsAsync().getOrThrow()
+        val focus = observeLearningFocus().first()
+        val allWords = wordRepository.getAllWordsAsync().getOrThrow().filterBy(focus)
         require(allWords.size >= MINIMUM_WORDS) {
             "Need at least $MINIMUM_WORDS words to play Word Rush"
         }
