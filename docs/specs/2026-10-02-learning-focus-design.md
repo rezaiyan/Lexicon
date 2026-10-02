@@ -46,13 +46,14 @@ interface ILearningFocusRepository {
 Use cases (`domain/.../focus/usecase/`):
 
 - `ObserveLearningFocusUseCase : NoParamFlowUseCase<LearningFocus>` resolves:
-  1. Distinct `sourceLanguage` count 0 → `Single(settings language)`; 1 → `Single(that)`.
+  1. Distinct `sourceLanguage` count ≤ 1 → `All` (identical behavior; guarantees `Single` implies 2+ languages).
   2. Stored `All` → `All`.
   3. Stored `Single(x)` and `x` still present in words → `Single(x)`.
   4. Otherwise smart default: language of most recently reviewed word (`lastReviewDate` max); tie / no reviews → language with most due cards; tie → most words.
 - `GetLanguageOverviewUseCase : NoParamFlowUseCase<List<LanguageSummary>>`, sorted active first, then `dueCount` desc.
 - `SetLearningFocusUseCase : UseCase<LearningFocus, Unit>`
-- `ObserveFocusNudgeUseCase : NoParamFlowUseCase<LanguageSummary?>` returns the non-active language with the most due cards when `dueCount >= 10`, not dismissed today, and focus is not `All`.
+- Nudge: the non-active language with the most due cards when `dueCount >= 10`, focus is not `All`, and the nudge was not dismissed today (one global dismissal per day, stored as UTC epoch day).
+- `ObserveStudyFocusUseCase` combines words, tags and preferences into one `StudyFocusOverview` (focus, languages, nudge, showIntro, scoped progress stats, scoped tag stats) for the Study screen.
 - `DismissFocusNudgeUseCase`, `AcknowledgeFocusIntroUseCase`.
 - Shared helper: `List<Word>.filterBy(focus)` extension in domain.
 
@@ -100,7 +101,7 @@ Resolver + overview + nudge built from one `combine` over the existing words `Fl
 
 | Case | Behavior |
 |---|---|
-| 0 words | `Single(settings language)`, chip hidden |
+| 0 words | `All`, chip hidden |
 | 1 language | Chip hidden; behavior identical to today |
 | 2nd language appears (add/import/sync) | Smart default applied; intro shown once |
 | Active language's last word deleted / batch-moved | Resolver falls back to smart default; stored pref kept and reactivates if the language returns |
@@ -116,7 +117,7 @@ Resolver + overview + nudge built from one `combine` over the existing words `Fl
 
 - `ObserveLearningFocusUseCaseTest`: 0/1/2+ languages, valid pref, stale pref fallback, smart-default ordering + ties, `All`, re-emit on word changes
 - `GetLanguageOverviewUseCaseTest`: counts, sort, overdue
-- `ObserveFocusNudgeUseCaseTest`: threshold, daily dismissal, never in `All`
+- `LearningFocusPolicyTest` (nudge): threshold, daily dismissal, never in `All`
 - `SetLearningFocusUseCaseTest`
 - `LoadReviewQueueUseCaseTest`: every `ReviewSource` × `Single`/`All`; cap after filter
 - `GetDailyWidgetDataUseCaseTest`, `ScheduleNotificationsUseCaseTest`: scoped counts
@@ -130,3 +131,7 @@ Resolver + overview + nudge built from one `combine` over the existing words `Fl
 ## Out of scope
 
 Backend sync of focus, per-language daily goals or streaks, SRS pausing, flag icons, mid-session switching.
+
+**Deferred to a follow-up (v1 ships without):** "Added to Español" import snackbar, focus badge in the Review / Word Rush session header, translations of the new strings (they fall back to English).
+
+**Storage note:** focus lives in its own `LearningFocusEntity` table, not in `SettingsEntity` columns. `insertSettings` is `INSERT OR REPLACE` with an explicit column list, so any unlisted column resets on every settings save (this already affects `word_sync_timestamp`, tracked separately).
