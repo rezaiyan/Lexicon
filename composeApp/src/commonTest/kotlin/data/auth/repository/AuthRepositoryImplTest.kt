@@ -260,6 +260,8 @@ class AuthRepositoryImplTest {
         var featureAccess = FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = false))
         var clearCacheCalled = false
         override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(featureAccess)
+        override suspend fun syncWithStore(): Try<FeatureAccessResponse> = Try.success(featureAccess)
+        override suspend fun refresh(): Try<Unit> = Try.success(Unit)
         override fun clearCache() { clearCacheCalled = true }
     }
 

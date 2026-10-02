@@ -9,7 +9,9 @@ internal fun UserDto.toDomain(): AuthUser {
         id = this.id,
         email = this.email,
         name = this.name,
-        subscriptionStatus = SubscriptionStatus.valueOf(this.subscriptionStatus),
+        // Unknown values from a newer server must not crash login
+        subscriptionStatus = SubscriptionStatus.entries.firstOrNull { it.name == this.subscriptionStatus }
+            ?: SubscriptionStatus.FREE,
         subscriptionExpiresAt = this.subscriptionExpiresAt,
         currentStreak = this.currentStreak,
         displayAlias = this.displayAlias,

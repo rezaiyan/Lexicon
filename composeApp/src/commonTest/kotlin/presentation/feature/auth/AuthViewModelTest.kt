@@ -1,5 +1,7 @@
 package presentation.feature.auth
 
+import fakes.FakeSubscriptionAccessRepository
+import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
 import feature.auth.AuthViewModel
 import analytics.IAnalyticsTracker
 import core.common.Try
@@ -177,6 +179,7 @@ class AuthViewModelTest : ViewModelTestBase() {
             verifySessionUseCase = VerifySessionUseCase(fakeSessionRepo(sessionVerificationResult)),
             handleLoginSuccessUseCase = HandleLoginSuccessUseCase(
                 subscriptionManager = fakeSubscriptionManager(),
+                syncSubscriptionWithServerUseCase = SyncSubscriptionWithServerUseCase(FakeSubscriptionAccessRepository()),
                 syncTagsFromRemoteUseCase = SyncTagsFromRemoteUseCase(FakeTagRepository()),
                 syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(wordRepo),
                 initializePushNotificationsUseCase = InitializePushNotificationsUseCase(isAuthUseCase, registerPushTokenUseCase),

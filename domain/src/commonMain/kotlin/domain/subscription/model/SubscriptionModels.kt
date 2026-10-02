@@ -32,4 +32,13 @@ data class SubscriptionEntitlement(
 data class SubscriptionCustomerInfo(
     val activeEntitlements: Map<String, SubscriptionEntitlement>,
     val managementUrlString: String? = null
-)
+) {
+    /** Single rule for "this store customer is subscribed" — any active entitlement. */
+    val isSubscribed: Boolean get() = activeEntitlements.values.any { it.isActive }
+
+    /** The entitlement the subscription screen describes: the one lasting longest (no expiry = lifetime wins). */
+    val primaryEntitlement: SubscriptionEntitlement?
+        get() = activeEntitlements.values
+            .filter { it.isActive }
+            .maxByOrNull { it.expirationDateMillis ?: Long.MAX_VALUE }
+}

@@ -1,5 +1,8 @@
 package domain.auth.usecase
 
+import fakes.FakeSubscriptionAccessRepository
+import fakes.FakeSubscriptionManager
+import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
 import core.common.Try
 import domain.auth.model.AuthUser
 import domain.notifications.repository.IPushTokenRepository
@@ -69,10 +72,13 @@ class HandleLoginSuccessUseCaseTest {
             override suspend fun cancelSubscription(): Try<Unit> = throw NotImplementedError()
         }
 
+    private val subscriptionAccessRepository = FakeSubscriptionAccessRepository()
+
     private fun buildUseCase(
         pushTokenRepo: IPushTokenRepository = fakePushTokenRepository,
     ) = HandleLoginSuccessUseCase(
         subscriptionManager = buildFakeSubscriptionManager(),
+        syncSubscriptionWithServerUseCase = SyncSubscriptionWithServerUseCase(subscriptionAccessRepository),
         syncTagsFromRemoteUseCase = SyncTagsFromRemoteUseCase(fakeTagRepository),
         syncRemoteToLocalUseCase = SyncRemoteToLocalUseCase(fakeWordRepository),
         initializePushNotificationsUseCase = InitializePushNotificationsUseCase(
@@ -103,13 +109,15 @@ class HandleLoginSuccessUseCaseTest {
     }
 
     @Test
-    fun `failure when subscriptionManager logIn fails propagates`() = runTest {
+    fun `subscriptionManager logIn failure does not block sync or push setup`() = runTest {
         subscriptionLogInResult = Try.failure(RuntimeException("Subscription login error"))
         val useCase = buildUseCase()
 
-        val result = useCase(HandleLoginSuccessUseCase.Params(user = testUser))
+        val result = useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = true))
 
-        assertTrue(result.isFailure)
+        assertTrue(result.isSuccess)
+        assertTrue(fakeWordRepository.syncRemoteToLocalCalled, "sync must still run")
+        assertTrue(fakePushTokenRepository.initializeAndRegisterCalled, "push must still be initialized")
     }
 
     @Test
@@ -135,6 +143,33 @@ class HandleLoginSuccessUseCaseTest {
         val result = useCase(HandleLoginSuccessUseCase.Params(user = testUser))
 
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `store subscriber is synced to the server after login`() = runTest {
+        subscriptionLogInResult = Try.success(FakeSubscriptionManager.subscribedCustomerInfo())
+
+        val result = buildUseCase()(HandleLoginSuccessUseCase.Params(user = testUser, syncData = false))
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, subscriptionAccessRepository.syncCount)
+    }
+
+    @Test
+    fun `non subscriber is not synced`() = runTest {
+        buildUseCase()(HandleLoginSuccessUseCase.Params(user = testUser, syncData = false))
+
+        assertEquals(0, subscriptionAccessRepository.syncCount)
+    }
+
+    @Test
+    fun `server sync failure does not fail login`() = runTest {
+        subscriptionLogInResult = Try.success(FakeSubscriptionManager.subscribedCustomerInfo())
+        subscriptionAccessRepository.result = Try.failure(RuntimeException("429"))
+
+        val result = buildUseCase()(HandleLoginSuccessUseCase.Params(user = testUser, syncData = false))
+
+        assertTrue(result.isSuccess)
     }
 
     @Test

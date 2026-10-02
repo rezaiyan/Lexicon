@@ -1,5 +1,6 @@
 package presentation.feature.study
 
+import fakes.FakeSubscriptionManager
 import analytics.IAnalyticsTracker
 import core.common.Try
 import fakes.FakePerformanceTracer
@@ -166,7 +167,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
-            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(hasPremiumAccess)),
+            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(hasPremiumAccess), FakeSubscriptionManager()),
             tagUseCases = StudyTagUseCases(
                 getDueTags = GetDueTagsUseCase(fakeTagRepo()),
                 getTagsByLevel = GetTagsByLevelUseCase(fakeTagRepo()),

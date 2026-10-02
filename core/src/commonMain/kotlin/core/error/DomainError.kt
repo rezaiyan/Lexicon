@@ -32,6 +32,10 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
     sealed class Commerce : DomainError() {
         data object PremiumRequired : Commerce()
         data object PurchaseFailed : Commerce()
+        /** User dismissed the store sheet — not an error to surface. */
+        data object PurchaseCancelled : Commerce()
+        /** Store accepted the purchase but payment is still processing (e.g. slow card / cash). */
+        data object PaymentPending : Commerce()
         data object RestoreFailed : Commerce()
         data object ManagementUnavailable : Commerce()
     }

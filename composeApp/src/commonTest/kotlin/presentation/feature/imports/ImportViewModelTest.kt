@@ -1,5 +1,6 @@
 package presentation.feature.imports
 
+import fakes.FakeSubscriptionManager
 import core.common.Try
 import fakes.FakePerformanceTracer
 import domain.ai.repository.IAiRepository
@@ -68,7 +69,7 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val createTagUseCase = CreateTagUseCase(tagRepository)
     private val userManager = FakeUserManager()
     private val authRepository = FakeAuthRepo()
-    private val getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository)
+    private val getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository, FakeSubscriptionManager())
     private val getSourceLanguageUseCase = GetSourceLanguageUseCase(wordRepository)
     private val performanceTracer = FakePerformanceTracer()
 

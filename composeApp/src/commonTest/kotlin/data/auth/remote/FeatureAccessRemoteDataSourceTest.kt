@@ -9,7 +9,9 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import app.cash.turbine.test
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.first
@@ -19,6 +21,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TestTimeSource
 
 class FeatureAccessRemoteDataSourceTest {
 
@@ -155,6 +159,57 @@ class FeatureAccessRemoteDataSourceTest {
     }
 
     @Test
+    fun `syncWithStore posts to sync path and pushes result to open collectors`() = runTest {
+        var syncMethod: HttpMethod? = null
+        var syncPath: String? = null
+        val mockEngine = MockEngine { request ->
+            val premium = request.url.encodedPath.endsWith("/subscriptions/sync")
+            if (premium) {
+                syncMethod = request.method
+                syncPath = request.url.encodedPath
+            }
+            respond(
+                successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":true},"userAccess":{"hasPremiumAccess":$premium}}"""),
+                HttpStatusCode.OK,
+                jsonHeaders()
+            )
+        }
+        val dataSource = buildDataSource(mockEngine)
+
+        dataSource.getFeatureAccessAsFlow().test {
+            assertFalse(awaitItem().userAccess.hasPremiumAccess)
+
+            val result = dataSource.syncWithStore()
+
+            assertTrue(result.isSuccess)
+            assertTrue(awaitItem().userAccess.hasPremiumAccess)
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertEquals(HttpMethod.Post, syncMethod)
+        assertEquals("/subscriptions/sync", syncPath)
+    }
+
+    @Test
+    fun `syncWithStore failure keeps cached access`() = runTest {
+        val mockEngine = MockEngine { request ->
+            if (request.url.encodedPath.endsWith("/subscriptions/sync")) {
+                respond("""{"success":false,"message":"Too many"}""", HttpStatusCode.TooManyRequests, jsonHeaders())
+            } else {
+                respond(
+                    successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":true},"userAccess":{"hasPremiumAccess":true}}"""),
+                    HttpStatusCode.OK,
+                    jsonHeaders()
+                )
+            }
+        }
+        val dataSource = buildDataSource(mockEngine)
+        dataSource.getFeatureAccessAsFlow().first()
+
+        assertFalse(dataSource.syncWithStore().isSuccess)
+        assertTrue(dataSource.getFeatureAccessAsFlow().first().userAccess.hasPremiumAccess)
+    }
+
+    @Test
     fun `cached response has same values as original fetch`() = runTest {
         val mockEngine = MockEngine {
             respond(
@@ -170,5 +225,87 @@ class FeatureAccessRemoteDataSourceTest {
 
         assertEquals(firstResult.featureFlags.pushNotificationsEnabled, cachedResult.featureFlags.pushNotificationsEnabled)
         assertEquals(firstResult.userAccess.hasPremiumAccess, cachedResult.userAccess.hasPremiumAccess)
+    }
+
+    private fun accessBody(premium: Boolean) =
+        successEnvelope("""{"featureFlags":{"pushNotificationsEnabled":true},"userAccess":{"hasPremiumAccess":$premium}}""")
+
+    @Test
+    fun `refresh within max age skips the network`() = runTest {
+        var requestCount = 0
+        val mockEngine = MockEngine {
+            requestCount++
+            respond(accessBody(premium = false), HttpStatusCode.OK, jsonHeaders())
+        }
+        val timeSource = TestTimeSource()
+        val dataSource = FeatureAccessRemoteDataSource(
+            buildApiClient(mockEngine), featureFlagProvider, timeSource, maxAge = 5.minutes
+        )
+        dataSource.getFeatureAccessAsFlow().first()
+
+        timeSource += 4.minutes
+        assertTrue(dataSource.refresh().isSuccess)
+
+        assertEquals(1, requestCount)
+    }
+
+    @Test
+    fun `refresh after max age refetches and pushes change to open collectors`() = runTest {
+        var premium = false
+        val mockEngine = MockEngine { respond(accessBody(premium), HttpStatusCode.OK, jsonHeaders()) }
+        val timeSource = TestTimeSource()
+        val dataSource = FeatureAccessRemoteDataSource(
+            buildApiClient(mockEngine), featureFlagProvider, timeSource, maxAge = 5.minutes
+        )
+
+        dataSource.getFeatureAccessAsFlow().test {
+            assertFalse(awaitItem().userAccess.hasPremiumAccess)
+
+            premium = true
+            timeSource += 6.minutes
+            assertTrue(dataSource.refresh().isSuccess)
+
+            assertTrue(awaitItem().userAccess.hasPremiumAccess)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `refresh failure keeps cached access`() = runTest {
+        var fail = false
+        val mockEngine = MockEngine {
+            if (fail) {
+                respond("""{"success":false,"message":"down"}""", HttpStatusCode.ServiceUnavailable, jsonHeaders())
+            } else {
+                respond(accessBody(premium = true), HttpStatusCode.OK, jsonHeaders())
+            }
+        }
+        val timeSource = TestTimeSource()
+        val dataSource = FeatureAccessRemoteDataSource(
+            buildApiClient(mockEngine), featureFlagProvider, timeSource, maxAge = 5.minutes
+        )
+        dataSource.getFeatureAccessAsFlow().first()
+
+        fail = true
+        timeSource += 6.minutes
+
+        assertFalse(dataSource.refresh().isSuccess)
+        assertTrue(dataSource.getFeatureAccessAsFlow().first().userAccess.hasPremiumAccess)
+    }
+
+    @Test
+    fun `refresh with nothing cached fetches`() = runTest {
+        var requestCount = 0
+        val mockEngine = MockEngine {
+            requestCount++
+            respond(accessBody(premium = true), HttpStatusCode.OK, jsonHeaders())
+        }
+        val dataSource = buildDataSource(mockEngine)
+
+        assertTrue(dataSource.refresh().isSuccess)
+
+        assertEquals(1, requestCount)
+        assertTrue(dataSource.getFeatureAccessAsFlow().first().userAccess.hasPremiumAccess)
+        assertEquals(1, requestCount)
     }
 }
