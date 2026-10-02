@@ -33,6 +33,7 @@ fun wordsModule() = module {
             filterAndSortWordsUseCase = get(),
             classifyImportErrorUseCase = get(),
             analyticsTracker = get(),
+            observeLearningFocus = get(),
         )
     }
     viewModel {

@@ -18,7 +18,10 @@ import domain.word.usecase.DeleteWordsUseCase
 import domain.word.usecase.ExportWordsUseCase
 import domain.word.usecase.GetAllWordsUseCase
 import domain.word.usecase.UpdateWordUseCase
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
 import feature.words.model.WordManagerEffect
@@ -38,6 +41,7 @@ class WordManagerViewModel(
     private val filterAndSortWordsUseCase: FilterAndSortWordsUseCase,
     private val classifyImportErrorUseCase: ClassifyImportErrorUseCase,
     analyticsTracker: IAnalyticsTracker,
+    private val observeLearningFocus: ObserveLearningFocusUseCase,
 ) : BaseViewModel<WordManagerScreenState, WordManagerEffect>() {
 
     override fun initialState() = WordManagerScreenState()
@@ -75,6 +79,7 @@ class WordManagerViewModel(
     init {
         startObservingWords()
         startObservingTags()
+        applyFocusAsDefaultFilter()
         viewModelScope.launch {
             getFeatureAccessUseCase()
                 .catch {
@@ -83,6 +88,19 @@ class WordManagerViewModel(
                 .collect { featureAccess ->
                     updateState { copy(isUserSubscribed = featureAccess.userAccess.hasPremiumAccess) }
                 }
+        }
+    }
+
+    /**
+     * Opens on the user's focus language. Only a default: `Single` implies 2+ languages,
+     * and later filter changes here never touch the study focus.
+     */
+    private fun applyFocusAsDefaultFilter() {
+        viewModelScope.launch {
+            val focus = observeLearningFocus().first()
+            if (focus is LearningFocus.Single && currentState.filterLanguage == null) {
+                setFilterLanguage(focus.language)
+            }
         }
     }
 
