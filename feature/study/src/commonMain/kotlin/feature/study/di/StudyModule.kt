@@ -8,6 +8,7 @@ import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
+import feature.study.StudyFocusUseCases
 import feature.study.StudyTagUseCases
 import feature.study.wordrush.WordRushViewModel
 import org.koin.core.module.dsl.factoryOf
@@ -26,18 +27,20 @@ fun studyModule() = module {
 
     viewModel {
         StudyProgressViewModel(
-            getProgressStatsUseCase = get(),
             evaluateProgressUseCase = get(),
             scheduleNotificationsUseCase = get(),
             getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
             performanceTracer = get(),
             tagUseCases = StudyTagUseCases(
-                getDueTags = get(),
-                getTagsByLevel = get(),
-                getTags = get(),
                 getSkipTagSelector = get(),
                 setSkipTagSelector = get(),
+            ),
+            focusUseCases = StudyFocusUseCases(
+                observeStudyFocus = get(),
+                setLearningFocus = get(),
+                dismissFocusNudge = get(),
+                acknowledgeFocusIntro = get(),
             ),
         )
     }

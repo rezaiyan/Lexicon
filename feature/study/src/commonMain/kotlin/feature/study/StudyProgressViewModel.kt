@@ -6,30 +6,36 @@ import core.base.BaseViewModel
 import core.common.UiState
 import core.common.getOrThrow
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.focus.model.LanguageSummary
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.AcknowledgeFocusIntroUseCase
+import domain.focus.usecase.DismissFocusNudgeUseCase
+import domain.focus.usecase.ObserveStudyFocusUseCase
+import domain.focus.usecase.SetLearningFocusUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import domain.settings.usecase.GetSkipTagSelectorUseCase
 import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.model.Tag
-import domain.tag.usecase.GetDueTagsUseCase
-import domain.tag.usecase.GetTagsByLevelUseCase
-import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.EvaluateProgressUseCase
-import domain.word.usecase.GetProgressStatsUseCase
 import feature.study.model.ProgressScreenState
-import feature.study.util.NotificationStringHelper
+import feature.study.util.ComposeNotificationTextResolver
+import feature.study.util.NotificationTextResolver
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.getString
 import performance.IPerformanceTracer
 
 data class StudyTagUseCases(
-    val getDueTags: GetDueTagsUseCase,
-    val getTagsByLevel: GetTagsByLevelUseCase,
-    val getTags: GetTagsUseCase,
     val getSkipTagSelector: GetSkipTagSelectorUseCase,
     val setSkipTagSelector: SetSkipTagSelectorUseCase,
+)
+
+data class StudyFocusUseCases(
+    val observeStudyFocus: ObserveStudyFocusUseCase,
+    val setLearningFocus: SetLearningFocusUseCase,
+    val dismissFocusNudge: DismissFocusNudgeUseCase,
+    val acknowledgeFocusIntro: AcknowledgeFocusIntroUseCase,
 )
 
 data class StudyProgressState(
@@ -39,16 +45,23 @@ data class StudyProgressState(
     val tags: List<Tag> = emptyList(),
     val skipTagSelector: Boolean = false,
     val stageTagsMap: Map<Int, List<Tag>> = emptyMap(),
-)
+    val focus: LearningFocus = LearningFocus.All,
+    val languages: List<LanguageSummary> = emptyList(),
+    val nudge: LanguageSummary? = null,
+    val showIntro: Boolean = false,
+) {
+    val showFocusSwitcher: Boolean get() = languages.size >= 2
+}
 
 class StudyProgressViewModel(
-    private val getProgressStatsUseCase: GetProgressStatsUseCase,
     private val evaluateProgressUseCase: EvaluateProgressUseCase,
     private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val performanceTracer: IPerformanceTracer,
     getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val tagUseCases: StudyTagUseCases,
+    private val focusUseCases: StudyFocusUseCases,
+    private val notificationTextResolver: NotificationTextResolver = ComposeNotificationTextResolver,
 ) : BaseViewModel<StudyProgressState, Nothing>() {
 
     override fun initialState() = StudyProgressState()
@@ -58,34 +71,27 @@ class StudyProgressViewModel(
     init {
         observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
-        startObservingDueTags()
-        startObservingTags()
         observeSkipTagSelector()
-        startObservingTagsByLevel()
     }
 
-    private fun startObservingDueTags() {
+    fun selectFocus(focus: LearningFocus) {
         viewModelScope.launch {
-            tagUseCases.getDueTags()
-                .catch { }
-                .collect { tags -> updateState { copy(dueTags = tags) } }
+            focusUseCases.setLearningFocus(focus)
+            // Picking a focus means the user found the switcher; the intro has done its job.
+            focusUseCases.acknowledgeFocusIntro()
+            analyticsTracker.logEvent(
+                "learning_focus_changed",
+                mapOf("focus" to ((focus as? LearningFocus.Single)?.language?.code ?: "all")),
+            )
         }
     }
 
-    private fun startObservingTags() {
-        viewModelScope.launch {
-            tagUseCases.getTags()
-                .catch { }
-                .collect { tags -> updateState { copy(tags = tags) } }
-        }
+    fun dismissNudge() {
+        viewModelScope.launch { focusUseCases.dismissFocusNudge() }
     }
 
-    private fun startObservingTagsByLevel() {
-        viewModelScope.launch {
-            tagUseCases.getTagsByLevel()
-                .catch { }
-                .collect { map -> updateState { copy(stageTagsMap = map) } }
-        }
+    fun acknowledgeIntro() {
+        viewModelScope.launch { focusUseCases.acknowledgeFocusIntro() }
     }
 
     private fun observeSkipTagSelector() {
@@ -119,13 +125,25 @@ class StudyProgressViewModel(
     private fun startObservingProgress() {
         progressObservationJob = viewModelScope.launch {
             val trace = performanceTracer.startTrace("study_session_load")
-            getProgressStatsUseCase.invoke()
-                .collect { stats ->
+            focusUseCases.observeStudyFocus()
+                .collect { overview ->
+                    val stats = overview.progressStats
                     val screenState = ProgressScreenState(
                         progressStats = stats,
                         progressEvaluation = evaluateProgressUseCase(stats).getOrThrow(),
                     )
-                    updateState { copy(progress = UiState.Loaded(screenState)) }
+                    updateState {
+                        copy(
+                            progress = UiState.Loaded(screenState),
+                            focus = overview.focus,
+                            languages = overview.languages,
+                            nudge = overview.nudge,
+                            showIntro = overview.showIntro,
+                            tags = overview.tagStats.tags,
+                            dueTags = overview.tagStats.dueTags,
+                            stageTagsMap = overview.tagStats.tagsByLevel,
+                        )
+                    }
                     performanceTracer.putMetric(trace, "total_words", stats.totalWords.toLong())
                     performanceTracer.putMetric(trace, "due_cards", stats.dueCards.toLong())
                     performanceTracer.stopTrace(trace)
@@ -136,20 +154,11 @@ class StudyProgressViewModel(
                         currentStreak = 0
                     )
 
-                    val notifStrings =
-                        NotificationStringHelper.getNotificationResources(stats.dueCards)
-                    val title = getString(
-                        notifStrings.titleRes,
-                        *notifStrings.titleParams.toTypedArray()
-                    )
-                    val message = getString(
-                        notifStrings.messageRes,
-                        *notifStrings.messageParams.toTypedArray()
-                    )
+                    val text = notificationTextResolver.resolve(stats.dueCards)
                     scheduleNotificationsUseCase(
                         stats = stats,
-                        titleProvider = { title },
-                        messageProvider = { message }
+                        titleProvider = { text.title },
+                        messageProvider = { text.message }
                     )
                 }
         }
