@@ -116,7 +116,7 @@ class ErrorInterceptorTest {
     }
 
     @Test
-    fun `402 Payment Required throws PremiumRequiredException, not an auth error`() = runTest {
+    fun `402 Payment Required throws PremiumRequiredException not an auth error`() = runTest {
         val engine = MockEngine {
             respond(
                 """{"success":false,"message":"Premium subscription required","code":"PREMIUM_REQUIRED"}""",
