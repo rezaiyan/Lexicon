@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +41,6 @@ import lexicon.resources.generated.resources.focus_language_counts
 import lexicon.resources.generated.resources.focus_nudge_message
 import lexicon.resources.generated.resources.focus_nudge_switch
 import lexicon.resources.generated.resources.focus_on
-import lexicon.resources.generated.resources.focus_switcher_open
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import utils.Language
@@ -62,62 +61,8 @@ private fun LanguageCodeBadge(language: Language, size: Dp = Theme.dimensions.ic
     LanguageBadge(label = language.code.uppercase(), tint = language.badgeTint(), size = size)
 }
 
-/** Focus chip plus the one-time intro. Renders nothing for single-language users. */
-@Composable
-fun LearningFocusHeader(
-    focus: LearningFocus,
-    showSwitcher: Boolean,
-    showIntro: Boolean,
-    languageCount: Int,
-    onOpenSwitcher: () -> Unit,
-    onAcknowledgeIntro: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    if (!showSwitcher) return
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
-        LearningFocusChip(focus = focus, onClick = onOpenSwitcher)
-        if (showIntro) {
-            FocusIntroCard(languageCount = languageCount, onGotIt = onAcknowledgeIntro)
-        }
-    }
-}
-
-@Composable
-fun LearningFocusChip(
-    focus: LearningFocus,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(Theme.shapes.pill))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .clickable(onClickLabel = stringResource(Res.string.focus_switcher_open), onClick = onClick)
-            .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xxs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-    ) {
-        when (focus) {
-            is LearningFocus.Single -> {
-                LanguageCodeBadge(focus.language, size = Theme.dimensions.iconSize)
-                Text(focus.language.nativeName, style = MaterialTheme.typography.labelLarge)
-            }
-            LearningFocus.All -> {
-                Icon(
-                    Icons.Rounded.Language,
-                    contentDescription = null,
-                    modifier = Modifier.size(Theme.dimensions.iconSize),
-                )
-                Text(stringResource(Res.string.focus_all_languages), style = MaterialTheme.typography.labelLarge)
-            }
-        }
-        Icon(
-            Icons.Rounded.ArrowDropDown,
-            contentDescription = null,
-            modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
-        )
-    }
-}
+/** App bar icon for the focus switcher; the sheet and content description name the current focus. */
+val FocusLanguageIcon: ImageVector = Icons.Rounded.Language
 
 @Composable
 fun LanguageSwitcherSheetContent(

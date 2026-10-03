@@ -874,9 +874,10 @@
     <string name="focus_language_counts">%1$d words · %2$d due</string>
     <string name="focus_nudge_message">%1$d %2$s words are waiting</string>
     <string name="focus_nudge_switch">Switch</string>
-    <string name="focus_intro_message">You're learning %1$d languages. Focus on one at a time — switch anytime here.</string>
+    <string name="focus_intro_message">You're learning %1$d languages. Focus on one at a time — switch anytime with the language icon at the top.</string>
     <string name="focus_intro_got_it">Got it</string>
     <string name="focus_switcher_open">Change focus language</string>
+    <string name="focus_current">Focus language: %1$s</string>
     <string name="focus_dismiss">Dismiss</string>
 </resources>
 

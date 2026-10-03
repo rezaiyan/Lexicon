@@ -42,7 +42,8 @@ import feature.study.StudyProgressViewModel
 import domain.focus.model.LearningFocus
 import feature.study.ui.focus.FocusNudgeCard
 import feature.study.ui.focus.LanguageSwitcherSheetContent
-import feature.study.ui.focus.LearningFocusHeader
+import feature.study.ui.focus.FocusIntroCard
+import feature.study.ui.focus.FocusLanguageIcon
 import feature.study.ui.review.ReviewScreen
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -54,6 +55,8 @@ import feature.study.wordrush.WordRushEffect
 import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.focus_all_languages
+import lexicon.resources.generated.resources.focus_current
 import lexicon.resources.generated.resources.filter_tag
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.settings
@@ -237,6 +240,23 @@ fun StudyScreen(
             onClick = onNavigateToSettings,
             size = Theme.dimensions.iconSize,
         ),
+        actionIcon3 = if (progressState.showFocusSwitcher) {
+            ActionIconConfig(
+                icon = FocusLanguageIcon,
+                contentDescription = stringResource(
+                    Res.string.focus_current,
+                    when (val focus = progressState.focus) {
+                        is LearningFocus.Single -> focus.language.nativeName
+                        LearningFocus.All -> stringResource(Res.string.focus_all_languages)
+                    },
+                ),
+                onClick = openFocusSwitcher,
+                tint = if (progressState.focus is LearningFocus.Single) MaterialTheme.colorScheme.primary else null,
+                size = Theme.dimensions.iconSize,
+            )
+        } else {
+            null
+        },
         scrollable = true,
     ) {
         Column(Modifier.padding(bottom = Theme.spacing.sectionGap)) {
@@ -270,15 +290,13 @@ fun StudyScreen(
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
 
-                    LearningFocusHeader(
-                        focus = progressState.focus,
-                        showSwitcher = progressState.showFocusSwitcher,
-                        showIntro = progressState.showIntro,
-                        languageCount = progressState.languages.size,
-                        onOpenSwitcher = openFocusSwitcher,
-                        onAcknowledgeIntro = progressViewModel::acknowledgeIntro,
-                        modifier = Modifier.padding(bottom = Theme.spacing.sm),
-                    )
+                    if (progressState.showFocusSwitcher && progressState.showIntro) {
+                        FocusIntroCard(
+                            languageCount = progressState.languages.size,
+                            onGotIt = progressViewModel::acknowledgeIntro,
+                            modifier = Modifier.padding(bottom = Theme.spacing.sm),
+                        )
+                    }
 
                     StatsSection(
                         modifier = Modifier.onGloballyPositioned { coordinates ->
