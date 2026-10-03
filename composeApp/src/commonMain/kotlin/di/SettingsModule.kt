@@ -26,10 +26,6 @@ import domain.streak.repository.IStreakRepository
 import domain.streak.usecase.GetStreakUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
 import kotlinx.coroutines.CoroutineScope
-import data.focus.local.ILearningFocusLocalDataSource
-import data.focus.local.LearningFocusLocalDataSourceImpl
-import data.focus.repository.LearningFocusRepositoryImpl
-import domain.focus.repository.ILearningFocusRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.singleOf
@@ -40,8 +36,6 @@ fun settingsModule() = module {
 
     // Local Data Sources
     single<ISettingsLocalDataSource> { SettingsLocalDataSourceImpl(queries = get()) }
-    single<ILearningFocusLocalDataSource> { LearningFocusLocalDataSourceImpl(queries = get()) }
-    single<ILearningFocusRepository> { LearningFocusRepositoryImpl(localDataSource = get()) }
 
     // Remote Data Sources
     single<ISettingsRemoteDataSource> { SettingsRemoteDataSourceImpl(apiClient = get()) }

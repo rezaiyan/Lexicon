@@ -110,14 +110,15 @@ object LearningFocusPolicy {
         )
     }
 
+    /** Most recently studied language; ties broken by most due words, then most words. */
     private fun smartDefault(words: List<Word>, nowMillis: Long): Language =
         words.groupBy { it.sourceLanguage }
             .entries
             .sortedWith(
-                compareByDescending<Map.Entry<Language, List<Word>>> { entry -> entry.value.maxOf { it.lastReviewDate } }
-                    .thenByDescending { entry -> entry.value.count { it.isDue(nowMillis) } }
-                    .thenByDescending { entry -> entry.value.size }
-                    .thenBy { entry -> entry.key.ordinal }
+                compareByDescending<Map.Entry<Language, List<Word>>> { (_, list) -> list.maxOf { it.lastReviewDate } }
+                    .thenByDescending { (_, list) -> list.count { it.isDue(nowMillis) } }
+                    .thenByDescending { (_, list) -> list.size }
+                    .thenBy { (language, _) -> language.ordinal }
             )
             .first()
             .key
