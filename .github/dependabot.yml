@@ -7,6 +7,12 @@ updates:
       interval: cron
       cronjob: "0 9 1 */2 *"
     open-pull-requests-limit: 5
+    # Compose 1.12+ requires AGP 9.1+ and compileSdk 37 — remove after that migration
+    ignore:
+      - dependency-name: "org.jetbrains.compose*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
+      - dependency-name: "org.jetbrains.androidx*"
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
     groups:
       kotlin:
         patterns: ["org.jetbrains.kotlin*", "org.jetbrains.kotlinx*"]
