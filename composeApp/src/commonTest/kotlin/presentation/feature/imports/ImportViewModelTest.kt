@@ -65,7 +65,11 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val aiRepository = FakeAiRepo()
     private val tagRepository = FakeTagRepo()
     private val extractVocabularyFromImageUseCase =
-        ExtractVocabularyFromImageUseCase(aiRepository, getCurrentLanguageUseCase)
+        ExtractVocabularyFromImageUseCase(
+            aiRepository,
+            getCurrentLanguageUseCase,
+            domain.subscription.usecase.RefreshFeatureAccessUseCase(fakes.FakeSubscriptionAccessRepository()),
+        )
     private val getTagsUseCase = GetTagsUseCase(tagRepository)
     private val createTagUseCase = CreateTagUseCase(tagRepository)
     private val userManager = FakeUserManager()

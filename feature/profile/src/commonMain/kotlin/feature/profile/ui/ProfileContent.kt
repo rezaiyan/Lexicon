@@ -19,7 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import components.GroupedRow
 import components.GroupedSection
+import components.Pill
+import components.icons.LexiconIcons
 import components.animation.staggeredFadeSlide
+import feature.profile.model.ProfileSubscriptionStatus
 import feature.profile.model.ProfileUiData
 import feature.profile.ui.components.UserInfoSection
 import lexicon.resources.generated.resources.Res
@@ -27,7 +30,11 @@ import lexicon.resources.generated.resources.account_section
 import lexicon.resources.generated.resources.delete_account
 import lexicon.resources.generated.resources.edit_profile
 import lexicon.resources.generated.resources.logout
+import lexicon.resources.generated.resources.subscription
+import lexicon.resources.generated.resources.upgrade
+import lexicon.resources.generated.resources.upgrade_to_premium
 import org.jetbrains.compose.resources.stringResource
+import theme.AppColors
 import theme.Theme
 
 @Composable
@@ -36,7 +43,7 @@ internal fun ProfileContent(
     onEditProfile: () -> Unit,
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
-    settingsContent: @Composable () -> Unit,
+    onOpenSubscription: () -> Unit,
 ) {
     val userInfo = profileData.userInfo ?: return
 
@@ -49,12 +56,24 @@ internal fun ProfileContent(
         UserInfoSection(
             userInfo = userInfo,
             memberSince = profileData.profileStats?.memberSince,
+            subscriptionStatus = profileData.subscriptionStatus,
             modifier = Modifier.staggeredFadeSlide(0),
         )
 
-        settingsContent()
-
         GroupedSection(title = stringResource(Res.string.account_section)) {
+            val isFree = profileData.subscriptionStatus == ProfileSubscriptionStatus.Free
+            GroupedRow(
+                title = stringResource(Res.string.subscription),
+                subtitle = if (isFree) stringResource(Res.string.upgrade_to_premium) else null,
+                icon = LexiconIcons.Diamond,
+                iconColor = AppColors.settingsSubscriptionIcon,
+                onClick = onOpenSubscription,
+                trailingContent = if (isFree) {
+                    { Pill(text = stringResource(Res.string.upgrade), color = MaterialTheme.colorScheme.error) }
+                } else {
+                    null
+                },
+            )
             GroupedRow(
                 title = stringResource(Res.string.edit_profile),
                 icon = Icons.Default.Edit,

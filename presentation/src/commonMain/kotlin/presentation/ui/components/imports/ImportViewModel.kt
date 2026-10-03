@@ -309,6 +309,16 @@ class ImportViewModel(
                             performanceTracer.stopTrace(trace)
                         }
 
+                        is ExtractVocabularyResult.PremiumRequired -> {
+                            // Access was refreshed by the use case; the image tab locks itself.
+                            clearSelectedImage()
+                            val message = "Image import is a Premium feature. Upgrade to keep using it."
+                            updateState { copy(imageImportState = ImageImportState.Error(message)) }
+                            performanceTracer.putAttribute(trace, "error", "premium_required")
+                            performanceTracer.stopTrace(trace)
+                            emitEffect(ImportEffect.Error(message))
+                        }
+
                         is ExtractVocabularyResult.Error -> {
                             clearSelectedImage()
                             val raw = result.message

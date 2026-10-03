@@ -12,6 +12,7 @@ object HttpErrorMapper {
                 when (statusCode) {
                     HttpStatusCode.Unauthorized -> "Authentication failed. Please sign in again."
                     HttpStatusCode.Forbidden -> "Authentication failed. Account may be deleted or deactivated. Please sign in again."
+                    HttpStatusCode.PaymentRequired -> "This feature requires a subscription."
                     HttpStatusCode.NotFound -> "Resource not found."
                     HttpStatusCode.BadRequest -> "Invalid request. Please check your input."
                     else -> "Client error: ${statusCode.value}"
@@ -31,6 +32,8 @@ object HttpErrorMapper {
             HttpStatusCode.Unauthorized,
             HttpStatusCode.Forbidden -> AuthenticationException(message, statusCode.value)
 
+            HttpStatusCode.PaymentRequired -> PremiumRequiredException(message)
+
             HttpStatusCode.InternalServerError,
             HttpStatusCode.BadGateway,
             HttpStatusCode.ServiceUnavailable -> ServerException(message, statusCode.value)
@@ -42,6 +45,7 @@ object HttpErrorMapper {
     fun mapException(exception: Throwable): Exception {
         return when (exception) {
             is AuthenticationException,
+            is PremiumRequiredException,
             is ServerException,
             is NetworkException -> exception
 

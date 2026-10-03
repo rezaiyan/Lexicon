@@ -2,6 +2,7 @@ package data.network.interceptor
 
 import data.core.network.error.AuthenticationException
 import data.core.network.error.NetworkException
+import data.core.network.error.PremiumRequiredException
 import data.core.network.error.ServerException
 import data.core.network.interceptor.ErrorInterceptor
 import io.ktor.client.HttpClient
@@ -111,6 +112,22 @@ class ErrorInterceptorTest {
 
         assertFailsWith<NetworkException> {
             client.get("https://api.test/resource")
+        }
+    }
+
+    @Test
+    fun `402 Payment Required throws PremiumRequiredException, not an auth error`() = runTest {
+        val engine = MockEngine {
+            respond(
+                """{"success":false,"message":"Premium subscription required","code":"PREMIUM_REQUIRED"}""",
+                HttpStatusCode.PaymentRequired,
+                jsonHeaders(),
+            )
+        }
+        val client = buildClient(engine)
+
+        assertFailsWith<PremiumRequiredException> {
+            client.get("https://api.test/ai/extract-vocabulary")
         }
     }
 

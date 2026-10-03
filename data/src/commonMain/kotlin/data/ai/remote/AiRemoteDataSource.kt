@@ -5,6 +5,7 @@ import data.ai.remote.model.VocabularyExtractionResponse
 import data.core.network.client.ApiClient
 import core.common.Try
 import core.common.fold
+import core.error.DomainError
 import expects.logNetwork
 import utils.Language
 import kotlin.io.encoding.Base64
@@ -60,16 +61,22 @@ class AiRemoteDataSource(
             },
             onFailure = { error ->
                 logNetwork("AiRemoteDataSource", "Error extracting vocabulary: ${error.message}")
-                val userMessage = when {
-                    error.message?.contains("Unable to resolve host", ignoreCase = true) == true ->
-                        "No internet connection. Please check your network."
+                // Typed so the use case can react (refresh access, lock the feature) instead of
+                // showing a generic message.
+                if (error is DomainError.Commerce.PremiumRequired) {
+                    Try.failure(error)
+                } else {
+                    val userMessage = when {
+                        error.message?.contains("Unable to resolve host", ignoreCase = true) == true ->
+                            "No internet connection. Please check your network."
 
-                    error.message?.contains("timeout", ignoreCase = true) == true ->
-                        "Request timed out. Please check your connection and try again."
+                        error.message?.contains("timeout", ignoreCase = true) == true ->
+                            "Request timed out. Please check your connection and try again."
 
-                    else -> error.message ?: "Service temporarily unavailable. Please try again later."
+                        else -> error.message ?: "Service temporarily unavailable. Please try again later."
+                    }
+                    Try.failure(Exception(userMessage))
                 }
-                Try.failure(Exception(userMessage))
             }
         )
     }

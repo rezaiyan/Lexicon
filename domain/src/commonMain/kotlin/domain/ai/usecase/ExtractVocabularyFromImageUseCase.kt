@@ -3,14 +3,17 @@ package domain.ai.usecase
 import core.common.FlowUseCase
 import core.common.fold
 import core.common.getOrThrow
+import core.error.DomainError
 import domain.ai.repository.IAiRepository
 import domain.settings.usecase.GetCurrentLanguageUseCase
+import domain.subscription.usecase.RefreshFeatureAccessUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class ExtractVocabularyFromImageUseCase(
     private val aiRepository: IAiRepository,
     private val getCurrentLanguageUseCase: GetCurrentLanguageUseCase,
+    private val refreshFeatureAccessUseCase: RefreshFeatureAccessUseCase,
 ) : FlowUseCase<ExtractVocabularyFromImageUseCase.Params, ExtractVocabularyResult> {
 
     data class Params(
@@ -58,7 +61,14 @@ class ExtractVocabularyFromImageUseCase(
         extractionResult.fold(
             onSuccess = { csvText -> emit(ExtractVocabularyResult.Success(csvText)) },
             onFailure = { error ->
-                emit(ExtractVocabularyResult.Error(error.message ?: "Failed to extract vocabulary from image"))
+                if (error is DomainError.Commerce.PremiumRequired) {
+                    // The server says premium lapsed: refresh the cached access so the UI locks
+                    // image import instead of offering a feature that will keep failing.
+                    refreshFeatureAccessUseCase()
+                    emit(ExtractVocabularyResult.PremiumRequired)
+                } else {
+                    emit(ExtractVocabularyResult.Error(error.message ?: "Failed to extract vocabulary from image"))
+                }
             }
         )
     }
@@ -68,4 +78,5 @@ sealed class ExtractVocabularyResult {
     data object Loading : ExtractVocabularyResult()
     data class Success(val csvText: String) : ExtractVocabularyResult()
     data class Error(val message: String) : ExtractVocabularyResult()
+    data object PremiumRequired : ExtractVocabularyResult()
 }

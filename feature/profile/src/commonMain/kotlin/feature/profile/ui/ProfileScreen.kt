@@ -26,7 +26,7 @@ fun ProfileScreen(
     onEditProfile: () -> Unit,
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
-    settingsContent: @Composable () -> Unit,
+    onOpenSubscription: () -> Unit,
 ) {
     val profileViewModel = koinViewModel<ProfileViewModel>()
 
@@ -70,7 +70,7 @@ fun ProfileScreen(
                         onEditProfile = onEditProfile,
                         onDeleteAccount = onDeleteAccount,
                         onLogout = onLogout,
-                        settingsContent = settingsContent,
+                        onOpenSubscription = onOpenSubscription,
                     )
                 }
             }
