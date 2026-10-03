@@ -12,7 +12,7 @@
 **Spec:** `docs/specs/2026-10-02-learning-focus-design.md`
 **Branch:** `feat/learning-focus`
 
-**Status:** Done 0 / Left 12
+**Status:** Done 11 / Left 1 (Task 12 device walkthrough pending: needs a signed-in device)
 
 ---
 
@@ -66,7 +66,7 @@ Single-test command pattern: `./gradlew composeApp:testDebugUnitTest --tests "<f
 - Create: `domain/src/commonMain/kotlin/domain/focus/LearningFocusPolicy.kt`
 - Test: `composeApp/src/commonTest/kotlin/domain/focus/LearningFocusPolicyTest.kt`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 package domain.focus
@@ -263,12 +263,12 @@ class LearningFocusPolicyTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "domain.focus.LearningFocusPolicyTest"`
 Expected: FAIL with "Unresolved reference: LearningFocusPolicy"
 
-- [ ] **Step 3: Write the models**
+- [x] **Step 3: Write the models**
 
 `domain/src/commonMain/kotlin/domain/focus/model/LearningFocus.kt`:
 
@@ -308,7 +308,7 @@ data class StudyFocusOverview(
 )
 ```
 
-- [ ] **Step 4: Write the policy**
+- [x] **Step 4: Write the policy**
 
 `domain/src/commonMain/kotlin/domain/focus/LearningFocusPolicy.kt`:
 
@@ -438,12 +438,12 @@ object LearningFocusPolicy {
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "domain.focus.LearningFocusPolicyTest"`
 Expected: PASS (18 tests)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add domain/src/commonMain/kotlin/domain/focus composeApp/src/commonTest/kotlin/domain/focus
@@ -462,7 +462,7 @@ git commit -m "feat(focus): add learning focus models and pure policy"
 
 No test of its own (contract and fakes only). It's exercised from Task 3 onwards.
 
-- [ ] **Step 1: Write the interface**
+- [x] **Step 1: Write the interface**
 
 ```kotlin
 package domain.focus.repository
@@ -486,7 +486,7 @@ interface ILearningFocusRepository {
 }
 ```
 
-- [ ] **Step 2: Write the fake**
+- [x] **Step 2: Write the fake**
 
 ```kotlin
 package fakes
@@ -524,7 +524,7 @@ class FakeLearningFocusRepository(
 }
 ```
 
-- [ ] **Step 3: Make the shared fakes configurable (defaults unchanged)**
+- [x] **Step 3: Make the shared fakes configurable (defaults unchanged)**
 
 In `FakeWordRepository.kt` add a property and change `getDueCards`:
 
@@ -544,12 +544,12 @@ In `FakeTagRepository.kt` add a property and change `getTags`:
 
 (`flowOf(...)` is evaluated per call, so tests can set the property before building the use case.)
 
-- [ ] **Step 4: Compile**
+- [x] **Step 4: Compile**
 
 Run: `./gradlew composeApp:compileTestKotlinAndroid` (or `composeApp:testDebugUnitTest --tests "domain.focus.*"`)
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add domain/src/commonMain/kotlin/domain/focus/repository test/src/commonMain/kotlin/fakes
@@ -566,7 +566,7 @@ git commit -m "feat(focus): add learning focus repository contract and fakes"
 - Create: `domain/src/commonMain/kotlin/domain/focus/usecase/FocusCommandUseCases.kt`
 - Test: `composeApp/src/commonTest/kotlin/domain/focus/FocusUseCasesTest.kt`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 package domain.focus
@@ -668,12 +668,12 @@ class FocusUseCasesTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "domain.focus.FocusUseCasesTest"`
 Expected: FAIL with "Unresolved reference: ObserveLearningFocusUseCase"
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `ObserveLearningFocusUseCase.kt`:
 
@@ -797,12 +797,12 @@ class AcknowledgeFocusIntroUseCase(
 
 If `kotlin.time.Clock` doesn't resolve in `:domain`, use the fully qualified `kotlin.time.Clock.System` as `Word.kt` does.
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "domain.focus.*"`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add domain/src/commonMain/kotlin/domain/focus/usecase composeApp/src/commonTest/kotlin/domain/focus
@@ -818,11 +818,11 @@ git commit -m "feat(focus): add focus observe and command use cases"
 - Modify: `composeApp/src/commonTest/kotlin/domain/word/usecase/LoadReviewQueueUseCaseTest.kt`
 - Modify: `composeApp/src/commonTest/kotlin/presentation/feature/study/ReviewViewModelTest.kt`
 
-- [ ] **Step 1: Verify `getAllWords()` carries `tagIds`**
+- [x] **Step 1: Verify `getAllWords()` carries `tagIds`**
 
 Read `data/src/commonMain/kotlin/data/word/local/WordLocalDataSource.kt:65-95` and confirm that the mapping attaches tag ids (the Study focus tag stats depend on it). If it doesn't, stop and flag it. Don't work around it.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 In `LoadReviewQueueUseCaseTest`:
 - Give `testWord` a `language: Language = Language.ENGLISH` param, used as `sourceLanguage`.
@@ -862,12 +862,12 @@ In `ReviewViewModelTest.createViewModel()` add to the `LoadReviewQueueUseCase(..
                 observeLearningFocus = ObserveLearningFocusUseCase(wordRepo, FakeLearningFocusRepository()),
 ```
 
-- [ ] **Step 3: Run to verify failure**
+- [x] **Step 3: Run to verify failure**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "domain.word.usecase.LoadReviewQueueUseCaseTest"`
 Expected: FAIL: compile error, too many arguments for `LoadReviewQueueUseCase`
 
-- [ ] **Step 4: Implement**
+- [x] **Step 4: Implement**
 
 ```kotlin
 class LoadReviewQueueUseCase(
@@ -902,12 +902,12 @@ class LoadReviewQueueUseCase(
 
 Add imports `domain.focus.filterBy` and `domain.focus.usecase.ObserveLearningFocusUseCase`, and add one line to the KDoc: "Every source is scoped to the user's learning focus; the daily-goal cap applies after scoping."
 
-- [ ] **Step 5: Run to verify pass**
+- [x] **Step 5: Run to verify pass**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "domain.word.usecase.LoadReviewQueueUseCaseTest" --tests "presentation.feature.study.ReviewViewModelTest"`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add domain/src/commonMain/kotlin/domain/word/usecase/LoadReviewQueueUseCase.kt composeApp/src/commonTest
@@ -925,7 +925,7 @@ git commit -m "feat(focus): scope review queue to learning focus"
 - Modify: `test/src/commonMain/kotlin/fakes/FakeWidgetRefresher.kt` (`fakeGetDailyWidgetDataUseCase`)
 - Modify tests: `composeApp/src/commonTest/kotlin/feature/study/wordrush/GetWordRushWordsUseCaseTest.kt`, `WordRushViewModelTest.kt`, `domain/widget/usecase/GetDailyWidgetDataUseCaseTest.kt`, `domain/word/usecase/GetSourceLanguageUseCaseTest.kt`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `GetWordRushWordsUseCaseTest`: add a helper and switch every `GetWordRushWordsUseCase(x)` to `useCase(x)`:
 
@@ -997,12 +997,12 @@ git commit -m "feat(focus): scope review queue to learning focus"
     }
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "*GetWordRushWordsUseCaseTest" --tests "*GetDailyWidgetDataUseCaseTest" --tests "*GetSourceLanguageUseCaseTest"`
 Expected: FAIL: compile errors on the new constructor arguments
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 `GetWordRushWordsUseCase`:
 
@@ -1096,12 +1096,12 @@ class GetSourceLanguageUseCase(
 
 Update its KDoc to: "Default learning language for new words: the focused language, else the most common one, else ENGLISH."
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "*WordRush*" --tests "*GetDailyWidgetDataUseCaseTest" --tests "*GetSourceLanguageUseCaseTest" --tests "*DeleteWord*" --tests "*VocabularyViewModelTest" --tests "*WordManagerViewModelTest"`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add domain/src/commonMain test/src/commonMain composeApp/src/commonTest
@@ -1120,7 +1120,7 @@ git commit -m "feat(focus): scope word rush, widget and import default to focus"
 - Modify: `data/src/commonMain/kotlin/data/settings/local/SettingsLocalDataSourceImpl.kt`
 - Test: `composeApp/src/commonTest/kotlin/data/focus/LearningFocusRepositoryImplTest.kt`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```kotlin
 package data.focus
@@ -1182,12 +1182,12 @@ class LearningFocusRepositoryImplTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "data.focus.LearningFocusRepositoryImplTest"`
 Expected: FAIL: unresolved `data.focus`
 
-- [ ] **Step 3: Schema + migration**
+- [x] **Step 3: Schema + migration**
 
 Append to `Lexicon.sq`:
 
@@ -1234,7 +1234,7 @@ CREATE TABLE IF NOT EXISTS LearningFocusEntity (
 );
 ```
 
-- [ ] **Step 4: Local data source**
+- [x] **Step 4: Local data source**
 
 ```kotlin
 package data.focus.local
@@ -1292,7 +1292,7 @@ class LearningFocusLocalDataSourceImpl(
 }
 ```
 
-- [ ] **Step 5: Repository**
+- [x] **Step 5: Repository**
 
 ```kotlin
 package data.focus.repository
@@ -1345,7 +1345,7 @@ class LearningFocusRepositoryImpl(
 }
 ```
 
-- [ ] **Step 6: Wipe with settings**
+- [x] **Step 6: Wipe with settings**
 
 In `SettingsLocalDataSourceImpl.clearSettings()`:
 
@@ -1358,12 +1358,12 @@ In `SettingsLocalDataSourceImpl.clearSettings()`:
 
 This covers logout, delete account and clear data, which all go through `ISettingsRepository.clearSettings()`.
 
-- [ ] **Step 7: Run to verify pass + schema generation**
+- [x] **Step 7: Run to verify pass + schema generation**
 
 Run: `./gradlew data:generateCommonMainLexiconDatabaseInterface composeApp:testDebugUnitTest --tests "data.focus.*" --tests "*SettingsRepositoryImplTest"`
 Expected: BUILD SUCCESSFUL, tests PASS
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add data/src/commonMain composeApp/src/commonTest/kotlin/data/focus
@@ -1379,7 +1379,7 @@ git commit -m "feat(focus): persist learning focus in local table, clear with se
 - Modify: `composeApp/src/commonMain/kotlin/di/WordModule.kt`
 - Modify: `feature/words/src/commonMain/kotlin/feature/words/di/WordsModule.kt` (Task 9 adds the arg)
 
-- [ ] **Step 1: Register data**
+- [x] **Step 1: Register data**
 
 In `SettingsModule.kt`, next to the settings data sources:
 
@@ -1388,7 +1388,7 @@ In `SettingsModule.kt`, next to the settings data sources:
     single<ILearningFocusRepository> { LearningFocusRepositoryImpl(localDataSource = get()) }
 ```
 
-- [ ] **Step 2: Register use cases**
+- [x] **Step 2: Register use cases**
 
 In `WordModule.kt`:
 
@@ -1417,12 +1417,12 @@ Replace `singleOf(::GetDailyWidgetDataUseCase)` with:
 
 `LoadReviewQueueUseCase`, `GetSourceLanguageUseCase` (`singleOf`) and `GetWordRushWordsUseCase` (`factoryOf` in StudyModule) resolve the new parameter automatically.
 
-- [ ] **Step 3: Verify graph compiles and app assembles**
+- [x] **Step 3: Verify graph compiles and app assembles**
 
 Run: `./gradlew composeApp:assembleDebug`
 Expected: BUILD SUCCESSFUL. If a Koin `verify()`/`checkModules` test exists, run `./gradlew composeApp:testDebugUnitTest` and expect PASS.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add composeApp/src/commonMain/kotlin/di
@@ -1438,7 +1438,7 @@ git commit -m "feat(focus): register learning focus in DI"
 - Modify: `feature/study/src/commonMain/kotlin/feature/study/di/StudyModule.kt`
 - Modify: `composeApp/src/commonTest/kotlin/presentation/feature/study/StudyProgressViewModelTest.kt`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `StudyProgressViewModelTest`:
 - Change `fakeWordRepo()` to `fakeWordRepo(allWords: Flow<List<Word>> = emptyFlow())` with `override fun getAllWords() = allWords`. The default `emptyFlow()` keeps `initial progress state is Loading` valid.
@@ -1551,12 +1551,12 @@ In `StudyProgressViewModelTest`:
 
 (Add imports for the focus use cases, `LearningFocus`, `FakeLearningFocusRepository`, `StudyFocusUseCases`, `assertTrue`, `assertFalse`, `assertNull`. Remove the now-unused `GetDueTagsUseCase`, `GetTagsByLevelUseCase`, `GetTagsUseCase` and `GetProgressStatsUseCase` imports.)
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "presentation.feature.study.StudyProgressViewModelTest"`
 Expected: FAIL: compile errors (`StudyFocusUseCases`, `focus`, `selectFocus` unresolved)
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Replace the top of `StudyProgressViewModel.kt` (bundles + state) and the observation code:
 
@@ -1709,12 +1709,12 @@ Local reminders now use the focused due count, and they reschedule when focus ch
     }
 ```
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "presentation.feature.study.*"`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add feature/study/src/commonMain composeApp/src/commonTest
@@ -1730,7 +1730,7 @@ git commit -m "feat(focus): drive study progress from focused overview"
 - Modify: `feature/words/src/commonMain/kotlin/feature/words/di/WordsModule.kt`
 - Modify: `composeApp/src/commonTest/kotlin/presentation/viewmodel/WordManagerViewModelTest.kt`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 In `WordManagerViewModelTest`, add `observeLearningFocus = ObserveLearningFocusUseCase(wordRepo, focusRepo)` to the VM construction, where `focusRepo` is a `FakeLearningFocusRepository` field (default `null` preference). Add:
 
@@ -1752,12 +1752,12 @@ In `WordManagerViewModelTest`, add `observeLearningFocus = ObserveLearningFocusU
 
 Seed through whatever the test's existing word-repo setup is. `ObserveLearningFocusUseCase` reads `getAllWords()`, so that repo must return both words from it.
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "presentation.viewmodel.WordManagerViewModelTest"`
 Expected: FAIL: unknown parameter `observeLearningFocus`
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Add the constructor param `private val observeLearningFocus: ObserveLearningFocusUseCase,` (last position) and, in `init`:
 
@@ -1773,12 +1773,12 @@ Add the constructor param `private val observeLearningFocus: ObserveLearningFocu
 
 In `WordsModule.kt` add `observeLearningFocus = get(),` to the `WordManagerViewModel(...)` block.
 
-- [ ] **Step 4: Run to verify pass**
+- [x] **Step 4: Run to verify pass**
 
 Run: `./gradlew composeApp:testDebugUnitTest --tests "presentation.viewmodel.WordManagerViewModelTest"`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add feature/words/src/commonMain composeApp/src/commonTest
@@ -1796,7 +1796,7 @@ git commit -m "feat(focus): default word manager filter to focus language"
 
 UI-only. It's covered by the ViewModel tests plus browser/device verification in Task 12.
 
-- [ ] **Step 1: Strings** (append inside `<resources>`)
+- [x] **Step 1: Strings** (append inside `<resources>`)
 
 ```xml
     <string name="focus_on">Focus on</string>
@@ -1811,7 +1811,7 @@ UI-only. It's covered by the ViewModel tests plus browser/device verification in
     <string name="focus_dismiss">Dismiss</string>
 ```
 
-- [ ] **Step 2: `LanguageBadge`** (generic: label + tint passed in)
+- [x] **Step 2: `LanguageBadge`** (generic: label + tint passed in)
 
 ```kotlin
 package components
@@ -1856,7 +1856,7 @@ fun LanguageBadge(
 }
 ```
 
-- [ ] **Step 3: Focus components**
+- [x] **Step 3: Focus components**
 
 ```kotlin
 package feature.study.ui.focus
@@ -2094,12 +2094,12 @@ fun FocusIntroCard(
 
 If `feature/study` does not depend on `:domain` directly, check its `build.gradle.kts`. ViewModels there already import `domain.*`, so it should.
 
-- [ ] **Step 4: Compile**
+- [x] **Step 4: Compile**
 
 Run: `./gradlew composeApp:compileKotlinMetadata composeApp:assembleDebug`
 Expected: BUILD SUCCESSFUL
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add design-system/src/commonMain/kotlin/components/LanguageBadge.kt feature/study/src/commonMain/kotlin/feature/study/ui/focus resources/src/commonMain/composeResources/values/strings.xml
@@ -2113,7 +2113,7 @@ git commit -m "feat(focus): add focus chip, switcher sheet, nudge and intro comp
 **Files:**
 - Modify: `presentation/src/commonMain/kotlin/presentation/ui/screens/StudyScreen.kt`
 
-- [ ] **Step 1: Add the switcher opener** (after `openImportSheet`)
+- [x] **Step 1: Add the switcher opener** (after `openImportSheet`)
 
 ```kotlin
     val openFocusSwitcher: () -> Unit = {
@@ -2133,7 +2133,7 @@ git commit -m "feat(focus): add focus chip, switcher sheet, nudge and intro comp
 
 If `showSizeToFitBottomSheet` requires `properties`, pass the same default the other non-import call sites in this file use.
 
-- [ ] **Step 2: Header + nudge in the `UiState.Loaded` branch**
+- [x] **Step 2: Header + nudge in the `UiState.Loaded` branch**
 
 Directly before `StatsSection(`:
 
@@ -2164,12 +2164,12 @@ Directly after the `StatsSection(...)` call:
 
 Imports: `feature.study.ui.focus.LearningFocusHeader`, `LanguageSwitcherSheetContent`, `FocusNudgeCard`, and `domain.focus.model.LearningFocus`.
 
-- [ ] **Step 3: Compile + run all tests**
+- [x] **Step 3: Compile + run all tests**
 
 Run: `./gradlew composeApp:assembleDebug composeApp:cleanAllTests composeApp:allTests`
 Expected: BUILD SUCCESSFUL, 0 failures
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add presentation/src/commonMain/kotlin/presentation/ui/screens/StudyScreen.kt
@@ -2180,12 +2180,12 @@ git commit -m "feat(focus): show focus chip, switcher and nudge on study screen"
 
 ### Task 12: Verification
 
-- [ ] **Step 1: Full suite + lint**
+- [x] **Step 1: Full suite + lint**
 
 Run: `./gradlew composeApp:cleanAllTests composeApp:allTests detekt`
 Expected: 0 test failures, no new detekt issues in the touched files
 
-- [ ] **Step 2: iOS framework compiles**
+- [x] **Step 2: iOS framework compiles**
 
 Run: `./gradlew composeApp:linkDebugFrameworkIosSimulatorArm64`
 Expected: BUILD SUCCESSFUL
