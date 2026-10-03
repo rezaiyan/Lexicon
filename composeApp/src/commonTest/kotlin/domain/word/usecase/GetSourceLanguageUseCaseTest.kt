@@ -2,9 +2,6 @@ package domain.word.usecase
 
 import core.common.Try
 import core.common.getOrThrow
-import domain.focus.model.LearningFocus
-import domain.focus.usecase.ObserveLearningFocusUseCase
-import fakes.FakeLearningFocusRepository
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -23,37 +20,9 @@ class GetSourceLanguageUseCaseTest {
 
     private var mostCommonSourceLanguage: Try<String?> = Try.success(null)
 
-    private fun createUseCase() = FakeWordRepository().let { repo ->
-        GetSourceLanguageUseCase(
-            wordRepository = repo,
-            observeLearningFocus = ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository()),
-        )
-    }
-
-    @Test
-    fun `returns focused language when focus is Single`() = runTest {
-        val word = Word(
-            id = 1,
-            originalWord = "a",
-            translation = "b",
-            description = "",
-            sourceLanguage = Language.GERMAN,
-            targetLanguage = Language.ENGLISH,
-            nextReviewDate = 0L,
-        )
-        val repo = fakes.FakeWordRepository().apply {
-            storedWords = mutableListOf(word, word.copy(id = 2, sourceLanguage = Language.SPANISH))
-        }
-        val useCase = GetSourceLanguageUseCase(
-            wordRepository = repo,
-            observeLearningFocus = ObserveLearningFocusUseCase(
-                repo,
-                FakeLearningFocusRepository(LearningFocus.Single(Language.SPANISH)),
-            ),
-        )
-
-        assertEquals(Language.SPANISH, useCase().getOrThrow())
-    }
+    private fun createUseCase() = GetSourceLanguageUseCase(
+        wordRepository = FakeWordRepository()
+    )
 
     @Test
     fun `returns ENGLISH when no words exist`() = runTest {

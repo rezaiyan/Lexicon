@@ -44,13 +44,18 @@ import kotlin.test.assertTrue
 
 class WordManagerViewModelTest : ViewModelTestBase() {
 
-    private fun testWord(id: Int, original: String = "word$id", language: Language = Language.ENGLISH) = Word(
+    private fun testWord(
+        id: Int,
+        original: String = "word$id",
+        language: Language = Language.ENGLISH,
+        learning: Language = Language.GERMAN,
+    ) = Word(
         id = id,
         originalWord = original,
         translation = "trans$id",
         description = "desc$id",
         sourceLanguage = language,
-        targetLanguage = Language.GERMAN,
+        targetLanguage = learning,
         nextReviewDate = 0L
     )
 
@@ -148,7 +153,7 @@ class WordManagerViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `filter starts at focused language when user has several languages`() = runTest {
-        wordsFlow.value = listOf(testWord(1, language = Language.GERMAN), testWord(2, language = Language.SPANISH))
+        wordsFlow.value = listOf(testWord(1, learning = Language.GERMAN), testWord(2, learning = Language.SPANISH))
         focusRepo.preference.value = LearningFocus.Single(Language.SPANISH)
 
         val vm = createViewModel()
@@ -165,7 +170,7 @@ class WordManagerViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `changing filter does not change study focus`() = runTest {
-        wordsFlow.value = listOf(testWord(1, language = Language.GERMAN), testWord(2, language = Language.SPANISH))
+        wordsFlow.value = listOf(testWord(1, learning = Language.GERMAN), testWord(2, learning = Language.SPANISH))
         focusRepo.preference.value = LearningFocus.Single(Language.SPANISH)
         val vm = createViewModel()
 

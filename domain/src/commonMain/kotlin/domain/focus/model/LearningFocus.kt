@@ -4,7 +4,7 @@ import domain.tag.model.Tag
 import domain.word.model.ProgressStats
 import utils.Language
 
-/** Which learning language (Word.sourceLanguage) the user is currently studying. */
+/** Which learning language (Word.learningLanguage) the user is currently studying. */
 sealed interface LearningFocus {
     data class Single(val language: Language) : LearningFocus
     data object All : LearningFocus

@@ -10,9 +10,15 @@ import utils.Language
 
 fun Word.isDue(nowMillis: Long): Boolean = nextReviewDate <= nowMillis
 
+/**
+ * The language the user is learning with this word. Onboarding and import store it in
+ * [Word.targetLanguage]; [Word.sourceLanguage] holds the user's native language.
+ */
+val Word.learningLanguage: Language get() = targetLanguage
+
 fun List<Word>.filterBy(focus: LearningFocus): List<Word> = when (focus) {
     LearningFocus.All -> this
-    is LearningFocus.Single -> filter { it.sourceLanguage == focus.language }
+    is LearningFocus.Single -> filter { it.learningLanguage == focus.language }
 }
 
 /** Pure rules for the learning focus feature. No I/O, no clock — time is passed in. */
@@ -25,7 +31,7 @@ object LearningFocusPolicy {
 
     /** A `Single` focus always implies 2+ languages; ≤1 language behaves exactly like `All`. */
     fun resolve(words: List<Word>, preference: LearningFocus?, nowMillis: Long): LearningFocus {
-        val languages = words.mapTo(mutableSetOf()) { it.sourceLanguage }
+        val languages = words.mapTo(mutableSetOf()) { it.learningLanguage }
         return when {
             languages.size <= 1 -> LearningFocus.All
             preference == LearningFocus.All -> LearningFocus.All
@@ -36,7 +42,7 @@ object LearningFocusPolicy {
 
     fun summaries(words: List<Word>, focus: LearningFocus, nowMillis: Long): List<LanguageSummary> {
         val active = (focus as? LearningFocus.Single)?.language
-        return words.groupBy { it.sourceLanguage }
+        return words.groupBy { it.learningLanguage }
             .map { (language, list) ->
                 LanguageSummary(language, wordCount = list.size, dueCount = list.count { it.isDue(nowMillis) })
             }
@@ -112,7 +118,7 @@ object LearningFocusPolicy {
 
     /** Most recently studied language; ties broken by most due words, then most words. */
     private fun smartDefault(words: List<Word>, nowMillis: Long): Language =
-        words.groupBy { it.sourceLanguage }
+        words.groupBy { it.learningLanguage }
             .entries
             .sortedWith(
                 compareByDescending<Map.Entry<Language, List<Word>>> { (_, list) -> list.maxOf { it.lastReviewDate } }

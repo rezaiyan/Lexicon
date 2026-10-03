@@ -26,8 +26,8 @@ class LearningFocusPolicyTest {
         originalWord = "w$id",
         translation = "t$id",
         description = "",
-        sourceLanguage = language,
-        targetLanguage = Language.ENGLISH,
+        sourceLanguage = Language.ENGLISH,
+        targetLanguage = language,
         level = level,
         lastReviewDate = lastReview,
         nextReviewDate = if (due) now - 1 else now + 1,
@@ -36,6 +36,31 @@ class LearningFocusPolicyTest {
 
     private fun tag(id: Long, name: String) =
         Tag(id = id, name = name, wordCount = 0L, createdAt = 0L, updatedAt = 0L)
+
+    @Test
+    fun `resolve keys on targetLanguage - same native language with three learning languages is not All`() {
+        // Real data shape: originalWord is in targetLanguage, translation in the shared native sourceLanguage.
+        fun learned(id: Int, original: String, target: Language) = Word(
+            id = id,
+            originalWord = original,
+            translation = "t$id",
+            description = "",
+            sourceLanguage = Language.ENGLISH,
+            targetLanguage = target,
+            nextReviewDate = now - 1,
+        )
+        val words = listOf(
+            learned(1, "zuverlässig", Language.GERMAN),
+            learned(2, "Bonjour", Language.FRENCH),
+            learned(3, "Hola", Language.SPANISH),
+            learned(4, "Buenos días", Language.SPANISH),
+        )
+
+        val focus = LearningFocusPolicy.resolve(words, LearningFocus.Single(Language.GERMAN), now)
+
+        assertEquals(LearningFocus.Single(Language.GERMAN), focus)
+        assertEquals(listOf("zuverlässig"), words.filterBy(focus).map { it.originalWord })
+    }
 
     @Test
     fun `resolve when no words returns All`() {
@@ -96,7 +121,7 @@ class LearningFocusPolicyTest {
     }
 
     @Test
-    fun `filterBy Single keeps only that source language`() {
+    fun `filterBy Single keeps only that learning language`() {
         val words = listOf(word(1, Language.GERMAN), word(2, Language.SPANISH))
         assertEquals(listOf(1), words.filterBy(LearningFocus.Single(Language.GERMAN)).map { it.id })
         assertEquals(listOf(1, 2), words.filterBy(LearningFocus.All).map { it.id })

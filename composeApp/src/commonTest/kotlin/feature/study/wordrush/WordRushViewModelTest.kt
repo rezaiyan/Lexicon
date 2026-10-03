@@ -97,8 +97,8 @@ class WordRushViewModelTest : ViewModelTestBase() {
 
     @Test
     fun `hasEnoughWords re-evaluates when learning focus changes`() {
-        val words = createWords(6).map { it.copy(sourceLanguage = Language.GERMAN) } +
-            createWords(2).map { it.copy(id = it.id + 100, sourceLanguage = Language.SPANISH) }
+        val words = createWords(6).map { it.copy(targetLanguage = Language.GERMAN) } +
+            createWords(2).map { it.copy(id = it.id + 100, targetLanguage = Language.SPANISH) }
         val focusRepo = FakeLearningFocusRepository(LearningFocus.Single(Language.GERMAN))
         val vm = createViewModel(words = words, focusRepo = focusRepo)
         assertTrue(vm.currentState.hasEnoughWords)

@@ -90,11 +90,11 @@ class GetDailyWidgetDataUseCaseTest {
             originalWord = "Hund",
             translation = "dog",
             description = "",
-            sourceLanguage = Language.GERMAN,
-            targetLanguage = Language.ENGLISH,
+            sourceLanguage = Language.ENGLISH,
+            targetLanguage = Language.GERMAN,
             nextReviewDate = now - 1,
         )
-        val spanish = (2..4).map { german.copy(id = it, originalWord = "perro$it", sourceLanguage = Language.SPANISH) }
+        val spanish = (2..4).map { german.copy(id = it, originalWord = "perro$it", targetLanguage = Language.SPANISH) }
         val repo = FakeWordRepository().apply { storedWords = (listOf(german) + spanish).toMutableList() }
         val useCase = GetDailyWidgetDataUseCase(
             repo,

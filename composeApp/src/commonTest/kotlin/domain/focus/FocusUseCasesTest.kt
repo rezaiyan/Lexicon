@@ -30,8 +30,8 @@ class FocusUseCasesTest {
         originalWord = "w$id",
         translation = "t$id",
         description = "",
-        sourceLanguage = language,
-        targetLanguage = Language.ENGLISH,
+        sourceLanguage = Language.ENGLISH,
+        targetLanguage = language,
         nextReviewDate = now - 1,
         tagIds = tags,
     )

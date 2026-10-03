@@ -39,19 +39,19 @@ class GetWordRushWordsUseCaseTest {
 
     @Test
     fun `invoke with Single focus only returns focused language`() = runTest {
-        val words = createWords(6).map { it.copy(sourceLanguage = Language.GERMAN) } +
-            createWords(6).map { it.copy(id = it.id + 100, sourceLanguage = Language.SPANISH) }
+        val words = createWords(6).map { it.copy(targetLanguage = Language.GERMAN) } +
+            createWords(6).map { it.copy(id = it.id + 100, targetLanguage = Language.SPANISH) }
 
         val result = useCase(fakeRepo(words), LearningFocus.Single(Language.SPANISH))(4).getOrThrow()
 
         assertEquals(4, result.size)
-        assertTrue(result.all { it.sourceLanguage == Language.SPANISH })
+        assertTrue(result.all { it.targetLanguage == Language.SPANISH })
     }
 
     @Test
     fun `invoke fails when focused language has fewer than minimum words`() = runTest {
-        val words = createWords(2).map { it.copy(sourceLanguage = Language.GERMAN) } +
-            createWords(10).map { it.copy(id = it.id + 100, sourceLanguage = Language.SPANISH) }
+        val words = createWords(2).map { it.copy(targetLanguage = Language.GERMAN) } +
+            createWords(10).map { it.copy(id = it.id + 100, targetLanguage = Language.SPANISH) }
 
         val result = useCase(fakeRepo(words), LearningFocus.Single(Language.GERMAN))(4)
 

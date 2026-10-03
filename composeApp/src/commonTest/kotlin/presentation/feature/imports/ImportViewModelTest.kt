@@ -71,10 +71,7 @@ class ImportViewModelTest : ViewModelTestBase() {
     private val userManager = FakeUserManager()
     private val authRepository = FakeAuthRepo()
     private val getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository, FakeSubscriptionManager())
-    private val getSourceLanguageUseCase = GetSourceLanguageUseCase(
-        wordRepository,
-        domain.focus.usecase.ObserveLearningFocusUseCase(wordRepository, fakes.FakeLearningFocusRepository()),
-    )
+    private val getSourceLanguageUseCase = GetSourceLanguageUseCase(wordRepository)
     private val performanceTracer = FakePerformanceTracer()
 
     private fun createViewModel() = ImportViewModel(
