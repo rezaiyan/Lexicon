@@ -63,7 +63,7 @@ class BottomSheetPageNavigator<T>(initial: T) {
     fun navigateBack(): Boolean {
         if (backStack.size > 1) {
             isNavigatingForward = false
-            backStack.removeLast()
+            backStack.removeAt(backStack.lastIndex)
             return true
         }
         return false
