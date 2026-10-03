@@ -52,6 +52,7 @@ fun studyModule() = module {
             recordWordRushGameUseCase = get(),
             analyticsTracker = get(),
             getWordRushInsightsUseCase = get(),
+            observeLearningFocus = get(),
         )
     }
 }
