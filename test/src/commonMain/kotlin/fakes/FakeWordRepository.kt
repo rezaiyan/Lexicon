@@ -16,6 +16,7 @@ class FakeWordRepository : IWordRepository {
     val updatedWords = mutableListOf<Word>()
     val deletedIds = mutableListOf<Int>()
     var storedWords = mutableListOf<Word>()
+    var dueWords: List<Word> = emptyList()
 
     var insertResult: Try<Int> = Try.success(0)
     var updateResult: Try<Unit> = Try.success(Unit)
@@ -38,7 +39,7 @@ class FakeWordRepository : IWordRepository {
 
     override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(storedWords.toList())
     override fun getAllWords(): Flow<List<Word>> = flowOf(storedWords.toList())
-    override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
+    override fun getDueCards(): Flow<List<Word>> = flowOf(dueWords)
     override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
     override suspend fun getWordById(id: Int): Word? = storedWords.find { it.id == id }

@@ -5,10 +5,15 @@ import core.common.Try
 import core.common.flatMap
 import core.common.getOrDefault
 import core.common.map
+import domain.focus.filterBy
+import domain.focus.isDue
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.streak.repository.IStreakRepository
 import domain.widget.IWidgetRefresher
 import domain.widget.model.DailyWidgetData
 import domain.word.repository.IWordRepository
+import kotlinx.coroutines.flow.first
 import kotlin.random.Random
 
 /**
@@ -16,7 +21,8 @@ import kotlin.random.Random
  *
  * Selects a word deterministically per day (using the day-of-epoch as seed)
  * so the widget shows the same word throughout the day, and pairs it with
- * the user's current streak count and due-card count.
+ * the user's current streak count and due-card count. Word and due count
+ * are scoped to the user's learning focus.
  *
  * After selecting, pushes the data to the platform widget and records
  * the displayed word ID so the widget can be refreshed when that word
@@ -26,10 +32,14 @@ class GetDailyWidgetDataUseCase(
     private val wordRepository: IWordRepository,
     private val streakRepository: IStreakRepository,
     private val widgetRefresher: IWidgetRefresher,
+    private val observeLearningFocus: ObserveLearningFocusUseCase,
+    private val nowMillis: () -> Long = { kotlin.time.Clock.System.now().toEpochMilliseconds() },
 ) : NoParamUseCase<DailyWidgetData> {
 
     override suspend operator fun invoke(params: Unit): Try<DailyWidgetData> {
-        return wordRepository.getAllWordsAsync().flatMap { words ->
+        val focus = observeLearningFocus().first()
+        return wordRepository.getAllWordsAsync().flatMap { allWords ->
+            val words = allWords.filterBy(focus)
             if (words.isEmpty()) {
                 return@flatMap Try.failure(NoWordsAvailableException())
             }
@@ -43,7 +53,10 @@ class GetDailyWidgetDataUseCase(
                 .map { it.currentStreak }
                 .getOrDefault(0)
 
-            val dueCount = wordRepository.getDueCount().getOrDefault(0)
+            val dueCount = when (focus) {
+                LearningFocus.All -> wordRepository.getDueCount().getOrDefault(0)
+                is LearningFocus.Single -> words.count { it.isDue(nowMillis()) }
+            }
 
             val data = DailyWidgetData(
                 wordId = selectedWord.id,
@@ -64,8 +77,7 @@ class GetDailyWidgetDataUseCase(
      * Uses pure Kotlin time APIs to avoid platform dependencies.
      */
     private fun currentDaysSinceEpoch(): Int {
-        val nowMillis = kotlin.time.Clock.System.now().toEpochMilliseconds()
-        return (nowMillis / MILLIS_PER_DAY).toInt()
+        return (nowMillis() / MILLIS_PER_DAY).toInt()
     }
 
     companion object {

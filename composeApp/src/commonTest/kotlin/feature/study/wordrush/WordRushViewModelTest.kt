@@ -1,7 +1,11 @@
 package feature.study.wordrush
 
 import core.common.Try
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.word.model.Word
+import fakes.FakeLearningFocusRepository
+import utils.Language
 import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeAnalyticsTracker
 import domain.wordrush.model.WordRushGameRecord
@@ -78,14 +82,30 @@ class WordRushViewModelTest : ViewModelTestBase() {
         words: List<Word> = createWords(10),
         recorder: FakeWordRushRecorder = defaultRecorder,
         bestStreakEver: Int = 0,
+        focusRepo: FakeLearningFocusRepository = FakeLearningFocusRepository(),
     ): WordRushViewModel {
         val repo = fakeRepo(words)
+        val observeLearningFocus = ObserveLearningFocusUseCase(repo, focusRepo)
         return WordRushViewModel(
-            getWordRushWordsUseCase = GetWordRushWordsUseCase(repo),
+            getWordRushWordsUseCase = GetWordRushWordsUseCase(repo, observeLearningFocus),
             recordWordRushGameUseCase = RecordWordRushGameUseCase(recorder),
             analyticsTracker = FakeAnalyticsTracker(),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(FakeWordRushStatsRepository(bestStreakEver)),
+            observeLearningFocus = observeLearningFocus,
         )
+    }
+
+    @Test
+    fun `hasEnoughWords re-evaluates when learning focus changes`() {
+        val words = createWords(6).map { it.copy(targetLanguage = Language.GERMAN) } +
+            createWords(2).map { it.copy(id = it.id + 100, targetLanguage = Language.SPANISH) }
+        val focusRepo = FakeLearningFocusRepository(LearningFocus.Single(Language.GERMAN))
+        val vm = createViewModel(words = words, focusRepo = focusRepo)
+        assertTrue(vm.currentState.hasEnoughWords)
+
+        focusRepo.preference.value = LearningFocus.Single(Language.SPANISH)
+
+        assertFalse(vm.currentState.hasEnoughWords)
     }
 
     @Test

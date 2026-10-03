@@ -35,7 +35,7 @@ data object ProfileRoute
 
 fun NavGraphBuilder.profileGraph(
     snackbarHostState: SnackbarHostState,
-    settingsContent: @Composable () -> Unit,
+    onOpenSubscription: () -> Unit,
 ) {
     composable<ProfileRoute> {
         val overlayHost = LocalOverlayHost.current
@@ -48,7 +48,7 @@ fun NavGraphBuilder.profileGraph(
                 onEditProfile = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.EditProfile) },
                 onDeleteAccount = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.DeleteConfirm) },
                 onLogout = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.Logout) },
-                settingsContent = settingsContent,
+                onOpenSubscription = onOpenSubscription,
             )
         }
     }

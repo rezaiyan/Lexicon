@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import feature.profile.ProfileViewModel
+import feature.profile.model.ProfileSubscriptionStatus
 import feature.profile.model.ProfileUiData
 import presentation.ViewModelTestBase
 import core.common.UiState
@@ -190,6 +191,49 @@ class ProfileViewModelTest : ViewModelTestBase() {
         val state = assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState)
         assertEquals(true, state.value.isSubscriptionsEnabled)
         assertEquals(true, state.value.shouldShowSubscriptionUI)
+    }
+
+    @Test
+    fun `subscriptionStatus when user has no premium is Free`() = runTest {
+        assertEquals(ProfileSubscriptionStatus.Free, loadedStatus(UserFeatureAccess(hasPremiumAccess = false)))
+    }
+
+    @Test
+    fun `subscriptionStatus when premium trial is Trial`() = runTest {
+        val access = UserFeatureAccess(hasPremiumAccess = true, source = "STORE", willRenew = true, isTrial = true)
+        assertEquals(ProfileSubscriptionStatus.Trial, loadedStatus(access))
+    }
+
+    @Test
+    fun `subscriptionStatus when store premium renews is Premium`() = runTest {
+        val access = UserFeatureAccess(hasPremiumAccess = true, source = "STORE", willRenew = true)
+        assertEquals(ProfileSubscriptionStatus.Premium, loadedStatus(access))
+    }
+
+    @Test
+    fun `subscriptionStatus when store premium will not renew is Cancelling`() = runTest {
+        val access = UserFeatureAccess(
+            hasPremiumAccess = true,
+            source = "STORE",
+            expiresAt = "2030-01-01T00:00:00Z",
+            willRenew = false,
+        )
+        assertEquals(ProfileSubscriptionStatus.Cancelling, loadedStatus(access))
+    }
+
+    @Test
+    fun `subscriptionStatus when premium is granted is Premium`() = runTest {
+        val access = UserFeatureAccess(hasPremiumAccess = true, source = "GRANT", willRenew = false)
+        assertEquals(ProfileSubscriptionStatus.Premium, loadedStatus(access))
+    }
+
+    private fun loadedStatus(access: UserFeatureAccess): ProfileSubscriptionStatus {
+        val response = FeatureAccessResponse(
+            featureFlags = FeatureFlags(pushNotificationsEnabled = true),
+            userAccess = access,
+        )
+        val vm = createViewModel(authRepository = fakeAuthRepository(featureAccessFlow = flowOf(response)))
+        return assertIs<UiState.Loaded<ProfileUiData>>(vm.currentState).value.subscriptionStatus
     }
 
     @Test

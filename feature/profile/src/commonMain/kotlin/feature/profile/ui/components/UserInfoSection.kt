@@ -29,7 +29,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import feature.profile.model.ProfileSubscriptionStatus
 import feature.profile.model.ProfileUserUiModel
+import components.Pill
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -37,18 +39,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.free_plan
 import lexicon.resources.generated.resources.member_since
+import lexicon.resources.generated.resources.premium_member
+import lexicon.resources.generated.resources.subscription_cancelling
+import lexicon.resources.generated.resources.trial_active
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
 /**
- * Profile header card: compact avatar, display name, email and optional "member since" line.
- * Display-only; profile editing lives in the Account section's "Edit profile" row.
+ * Profile header card: compact avatar, display name, email, subscription status pill and
+ * optional "member since" line. Display-only; editing and subscription live in the Account section.
  */
 @Composable
 fun UserInfoSection(
     userInfo: ProfileUserUiModel,
     memberSince: String?,
+    subscriptionStatus: ProfileSubscriptionStatus,
     modifier: Modifier = Modifier
 ) {
     val displayName = userInfo.displayAlias ?: userInfo.name.ifBlank { userInfo.email }
@@ -89,6 +96,7 @@ fun UserInfoSection(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                SubscriptionStatusPill(status = subscriptionStatus)
                 if (memberSinceText != null) {
                     Text(
                         text = memberSinceText,
@@ -100,6 +108,18 @@ fun UserInfoSection(
             }
         }
     }
+}
+
+@Composable
+private fun SubscriptionStatusPill(status: ProfileSubscriptionStatus) {
+    val colors = MaterialTheme.colorScheme
+    val (text, color) = when (status) {
+        ProfileSubscriptionStatus.Free -> stringResource(Res.string.free_plan) to colors.onSurfaceVariant
+        ProfileSubscriptionStatus.Trial -> stringResource(Res.string.trial_active) to colors.tertiary
+        ProfileSubscriptionStatus.Premium -> stringResource(Res.string.premium_member) to colors.primary
+        ProfileSubscriptionStatus.Cancelling -> stringResource(Res.string.subscription_cancelling) to colors.error
+    }
+    Pill(text = text, color = color, modifier = Modifier.padding(top = Theme.spacing.xxs))
 }
 
 @Composable

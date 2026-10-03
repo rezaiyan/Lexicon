@@ -12,6 +12,7 @@ fun appModule(
         networkModule(backendUrl),
         authModule(backendUrl),
         wordModule(),
+        focusModule(),
         notificationModule(backendUrl, platform),
         ttsModule(),
         settingsModule(),

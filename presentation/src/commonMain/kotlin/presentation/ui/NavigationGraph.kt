@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -17,21 +16,14 @@ import androidx.navigation.compose.composable
 import feature.insights.navigation.insightsGraph
 import feature.leaderboard.navigation.showLeaderboard
 import feature.profile.navigation.profileGraph
-import feature.settings.SettingsViewModel
 import feature.subscription.navigation.SubscriptionRoute
 import feature.subscription.navigation.subscriptionGraph
 import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
-import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.model.SettingsRoute
 import presentation.model.TabDestination
-import presentation.ui.components.NotificationPermissionContent
-import presentation.ui.components.NotificationSettingsContent
-import presentation.ui.permissions.rememberNotificationPermissionRequester
-import presentation.ui.permissions.wasNotificationPermissionDenied
+import presentation.ui.components.settings.showNotificationSettingsSheet
 import presentation.ui.screens.SettingsScreen
-import presentation.ui.screens.SettingsSections
 import presentation.ui.screens.StudyScreen
 import presentation.ui.screens.settings.WordManagerScreen
 
@@ -68,11 +60,7 @@ internal fun NavigationGraph(
         // Feature-owned subgraphs
         profileGraph(
             snackbarHostState = snackbarHostState,
-            settingsContent = {
-                SettingsSections(
-                    onNavigateToSubscription = { navController.navigate(SubscriptionRoute) },
-                )
-            },
+            onOpenSubscription = { navController.navigate(SubscriptionRoute) },
         )
 
         subscriptionGraph(
@@ -84,41 +72,7 @@ internal fun NavigationGraph(
             onNavigateBack = { navController.navigateToTab(TabDestination.Study) },
             onShowLeaderboard = { overlayHost.showLeaderboard() },
             snackbarHostState = snackbarHostState,
-            onNavigateToNotificationSettings = {
-                overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
-                    val settingsViewModel = koinViewModel<SettingsViewModel>()
-                    val currentState by settingsViewModel.state()
-                    if (currentState.screen.systemNotificationsEnabled) {
-                        NotificationSettingsContent(
-                            notificationsEnabled = currentState.screen.notificationsEnabled,
-                            systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
-                            reviewRemindersEnabled = currentState.screen.reviewRemindersEnabled,
-                            onNotificationsToggle = { settingsViewModel.setNotificationsEnabled(it) },
-                            onReviewRemindersToggle = { settingsViewModel.setReviewRemindersEnabled(it) },
-                            onDismiss = { nav.dismiss() }
-                        )
-                    } else {
-                        val deniedPreviously = wasNotificationPermissionDenied()
-                        val requestPermission = rememberNotificationPermissionRequester { granted ->
-                            if (granted) settingsViewModel.setNotificationsEnabled(true)
-                            settingsViewModel.refreshNotificationPermissionStatus()
-                            nav.dismiss()
-                        }
-                        NotificationPermissionContent(
-                            onDismiss = { nav.dismiss() },
-                            onEnableNotifications = {
-                                if (deniedPreviously) {
-                                    nav.dismiss()
-                                    settingsViewModel.requestNotificationPermission()
-                                    settingsViewModel.refreshNotificationPermissionStatus()
-                                } else {
-                                    requestPermission()
-                                }
-                            }
-                        )
-                    }
-                }
-            }
+            onNavigateToNotificationSettings = { overlayHost.showNotificationSettingsSheet() },
         )
 
         // Presentation-owned routes (screens still in :presentation)
@@ -133,12 +87,7 @@ internal fun NavigationGraph(
         }
 
         composable<SettingsRoute> {
-            SettingsScreen(
-                onNavigateBack = { navController.navigateUp() },
-                onNavigateToSubscription = {
-                    navController.navigate(SubscriptionRoute)
-                }
-            )
+            SettingsScreen(onNavigateBack = { navController.navigateUp() })
         }
     }
 }

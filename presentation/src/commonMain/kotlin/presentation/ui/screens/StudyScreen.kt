@@ -39,6 +39,11 @@ import events.OnEvents
 import feature.study.ReviewEffect
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
+import domain.focus.model.LearningFocus
+import feature.study.ui.focus.FocusNudgeCard
+import feature.study.ui.focus.LanguageSwitcherSheetContent
+import feature.study.ui.focus.FocusIntroCard
+import feature.study.ui.focus.FocusLanguageIcon
 import feature.study.ui.review.ReviewScreen
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -50,6 +55,8 @@ import feature.study.wordrush.WordRushEffect
 import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.focus_all_languages
+import lexicon.resources.generated.resources.focus_current
 import lexicon.resources.generated.resources.filter_tag
 import lexicon.resources.generated.resources.import_words
 import lexicon.resources.generated.resources.settings
@@ -192,6 +199,26 @@ fun StudyScreen(
         }
     }
 
+    val openFocusSwitcher: () -> Unit = {
+        overlayHost.showSizeToFitBottomSheet(
+            tag = "focus-switcher",
+            properties = BottomSheetProperties(
+                dismissOnBackPress = true,
+                dismissOnTouchOutside = true,
+            ),
+        ) { nav ->
+            val sheetProgressState by progressViewModel.state()
+            LanguageSwitcherSheetContent(
+                focus = sheetProgressState.focus,
+                languages = sheetProgressState.languages,
+                onSelect = { focus ->
+                    progressViewModel.selectFocus(focus)
+                    nav.dismiss()
+                },
+            )
+        }
+    }
+
     LexiconColumn(
         title = null,
         scrollState = scrollState,
@@ -213,6 +240,23 @@ fun StudyScreen(
             onClick = onNavigateToSettings,
             size = Theme.dimensions.iconSize,
         ),
+        actionIcon3 = if (progressState.showFocusSwitcher) {
+            ActionIconConfig(
+                icon = FocusLanguageIcon,
+                contentDescription = stringResource(
+                    Res.string.focus_current,
+                    when (val focus = progressState.focus) {
+                        is LearningFocus.Single -> focus.language.nativeName
+                        LearningFocus.All -> stringResource(Res.string.focus_all_languages)
+                    },
+                ),
+                onClick = openFocusSwitcher,
+                tint = if (progressState.focus is LearningFocus.Single) MaterialTheme.colorScheme.primary else null,
+                size = Theme.dimensions.iconSize,
+            )
+        } else {
+            null
+        },
         scrollable = true,
     ) {
         Column(Modifier.padding(bottom = Theme.spacing.sectionGap)) {
@@ -245,6 +289,14 @@ fun StudyScreen(
                     val loadedState = uiState.value
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
+
+                    if (progressState.showFocusSwitcher && progressState.showIntro) {
+                        FocusIntroCard(
+                            languageCount = progressState.languages.size,
+                            onGotIt = progressViewModel::acknowledgeIntro,
+                            modifier = Modifier.padding(bottom = Theme.spacing.sm),
+                        )
+                    }
 
                     StatsSection(
                         modifier = Modifier.onGloballyPositioned { coordinates ->
@@ -288,6 +340,15 @@ fun StudyScreen(
                             }
                         },
                     )
+
+                    progressState.nudge?.let { nudge ->
+                        FocusNudgeCard(
+                            summary = nudge,
+                            onSwitch = { progressViewModel.selectFocus(LearningFocus.Single(nudge.language)) },
+                            onDismiss = progressViewModel::dismissNudge,
+                            modifier = Modifier.padding(top = Theme.spacing.sm),
+                        )
+                    }
 
                     val wordRushStateHolder = wordRushViewModel.state()
                     val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }

@@ -1,6 +1,9 @@
 package domain.ai.usecase
 
 import core.common.Try
+import core.error.DomainError
+import domain.subscription.usecase.RefreshFeatureAccessUseCase
+import fakes.FakeSubscriptionAccessRepository
 import domain.ai.repository.IAiRepository
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
@@ -20,7 +23,12 @@ class ExtractVocabularyFromImageUseCaseTest {
     private val fakeAiRepository = FakeExtractAiRepository()
     private val fakeSettingsRepository = FakeExtractSettingsRepository()
     private val getCurrentLanguageUseCase = GetCurrentLanguageUseCase(fakeSettingsRepository)
-    private val useCase = ExtractVocabularyFromImageUseCase(fakeAiRepository, getCurrentLanguageUseCase)
+    private val fakeSubscriptionAccessRepository = FakeSubscriptionAccessRepository()
+    private val useCase = ExtractVocabularyFromImageUseCase(
+        fakeAiRepository,
+        getCurrentLanguageUseCase,
+        RefreshFeatureAccessUseCase(fakeSubscriptionAccessRepository),
+    )
 
     @Test
     fun `first emission is Loading`() = runTest {
@@ -51,6 +59,25 @@ class ExtractVocabularyFromImageUseCaseTest {
         val error = results.last()
         assertIs<ExtractVocabularyResult.Error>(error)
         assertTrue(error.message.contains("AI service unavailable"))
+    }
+
+    @Test
+    fun `premium rejection emits PremiumRequired and refreshes feature access`() = runTest {
+        fakeAiRepository.extractResult = Try.failure(DomainError.Commerce.PremiumRequired)
+
+        val results = useCase(byteArrayOf(1, 2, 3)).toList()
+
+        assertIs<ExtractVocabularyResult.PremiumRequired>(results.last())
+        assertEquals(1, fakeSubscriptionAccessRepository.refreshCount)
+    }
+
+    @Test
+    fun `other failures do not refresh feature access`() = runTest {
+        fakeAiRepository.extractResult = Try.failure(RuntimeException("AI service unavailable"))
+
+        useCase(byteArrayOf(1, 2, 3)).toList()
+
+        assertEquals(0, fakeSubscriptionAccessRepository.refreshCount)
     }
 
     @Test

@@ -2,7 +2,10 @@ package domain.widget.usecase
 
 import core.common.exceptionOrNull
 import core.common.getOrNull
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.word.model.Word
+import fakes.FakeLearningFocusRepository
 import fakes.FakeWidgetRefresher
 import fakes.FakeWordRepository
 import fakes.fakeGetDailyWidgetDataUseCase
@@ -66,12 +69,44 @@ class GetDailyWidgetDataUseCaseTest {
         val word = testWord(2, "apple", "manzana")
         val repo = FakeWordRepository().apply { storedWords.add(word) }
         val refresher = FakeWidgetRefresher()
-        val useCase = GetDailyWidgetDataUseCase(repo, noOpStreakRepo(), refresher)
+        val useCase = GetDailyWidgetDataUseCase(
+            repo,
+            noOpStreakRepo(),
+            refresher,
+            ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository()),
+        )
 
         useCase(Unit)
 
         assertNotNull(refresher.pushedData)
         assertEquals(word.id, refresher.pushedData!!.wordId)
+    }
+
+    @Test
+    fun `widget with Single focus picks focused word and counts focused due cards`() = runTest {
+        val now = 1_000_000_000L
+        val german = Word(
+            id = 1,
+            originalWord = "Hund",
+            translation = "dog",
+            description = "",
+            sourceLanguage = Language.ENGLISH,
+            targetLanguage = Language.GERMAN,
+            nextReviewDate = now - 1,
+        )
+        val spanish = (2..4).map { german.copy(id = it, originalWord = "perro$it", targetLanguage = Language.SPANISH) }
+        val repo = FakeWordRepository().apply { storedWords = (listOf(german) + spanish).toMutableList() }
+        val useCase = GetDailyWidgetDataUseCase(
+            repo,
+            noOpStreakRepo(),
+            FakeWidgetRefresher(),
+            ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository(LearningFocus.Single(Language.GERMAN))),
+        ) { now }
+
+        val data = useCase(Unit).getOrNull()
+
+        assertEquals("Hund", data?.word)
+        assertEquals(1, data?.dueCardCount)
     }
 
     @Test

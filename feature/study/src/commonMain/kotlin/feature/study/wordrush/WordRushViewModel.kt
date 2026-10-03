@@ -4,6 +4,7 @@ import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
+import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
 import domain.wordrush.model.WordRushGameRecord
@@ -12,6 +13,7 @@ import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
@@ -79,6 +81,7 @@ class WordRushViewModel(
     private val recordWordRushGameUseCase: RecordWordRushGameUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
+    private val observeLearningFocus: ObserveLearningFocusUseCase,
 ) : BaseViewModel<WordRushState, WordRushEffect>() {
 
     override fun initialState() = WordRushState()
@@ -97,11 +100,14 @@ class WordRushViewModel(
 
     init {
         analyticsTracker.logScreenView("WordRush")
+        // Word availability depends on the learning focus: re-check whenever it changes.
         viewModelScope.launch {
-            getWordRushWordsUseCase(GetWordRushWordsUseCase.MINIMUM_WORDS).fold(
-                onSuccess = { updateState { copy(hasEnoughWords = true) } },
-                onFailure = { updateState { copy(hasEnoughWords = false) } },
-            )
+            observeLearningFocus().collectLatest {
+                getWordRushWordsUseCase(GetWordRushWordsUseCase.MINIMUM_WORDS).fold(
+                    onSuccess = { updateState { copy(hasEnoughWords = true) } },
+                    onFailure = { updateState { copy(hasEnoughWords = false) } },
+                )
+            }
         }
         viewModelScope.launch {
             getWordRushInsightsUseCase(Unit).fold(

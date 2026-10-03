@@ -16,22 +16,18 @@ import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.components.LanguageSelectionContent
-import presentation.ui.components.NotificationPermissionContent
-import presentation.ui.components.NotificationSettingsContent
 import presentation.ui.components.ThemeModeContent
 import presentation.ui.components.DailyGoalContent
 import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.DailyGoalSettingsCard
 import presentation.ui.components.settings.LanguageSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
-import presentation.ui.components.settings.SubscriptionCard
 import presentation.ui.components.settings.ThemeSettingsCard
 import presentation.ui.components.settings.TtsModelCacheCard
 import presentation.ui.components.settings.TtsDeleteConfirmationContent
 import presentation.ui.components.settings.TtsVoiceManagerContent
 import presentation.ui.components.settings.TagManagerCard
-import presentation.ui.permissions.rememberNotificationPermissionRequester
-import presentation.ui.permissions.wasNotificationPermissionDenied
+import presentation.ui.components.settings.showNotificationSettingsSheet
 import presentation.ui.screens.settings.showTagManagerScreen
 import theme.Theme
 import lexicon.resources.generated.resources.Res
@@ -42,7 +38,6 @@ import lexicon.resources.generated.resources.settings
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToSubscription: () -> Unit = {},
 ) {
     LexiconColumn(
         title = stringResource(Res.string.settings),
@@ -52,18 +47,14 @@ fun SettingsScreen(
         scrollable = true,
     ) {
         Column(modifier = Modifier.padding(top = Theme.spacing.xs, bottom = Theme.spacing.xl)) {
-            SettingsSections(onNavigateToSubscription = onNavigateToSubscription)
+            SettingsSections()
         }
     }
 }
 
-/**
- * Learning + app settings as grouped sections. Shared by [SettingsScreen] and the Profile tab.
- */
+/** Learning + app settings as grouped sections. Profile links here instead of repeating them. */
 @Composable
-fun SettingsSections(
-    onNavigateToSubscription: () -> Unit,
-) {
+private fun SettingsSections() {
     val viewModel = koinViewModel<SettingsViewModel>()
     val settingsState by viewModel.state()
     val state = settingsState.screen
@@ -114,44 +105,7 @@ fun SettingsSections(
             NotificationSettingsCard(
                 systemNotificationsEnabled = systemNotificationsEnabled,
                 notificationsEnabled = notificationsEnabled,
-                onEnable = {
-                    if (systemNotificationsEnabled) {
-                        overlayHost.showSizeToFitBottomSheet(tag = "notification-settings") { nav ->
-                            val currentState by viewModel.state()
-                            NotificationSettingsContent(
-                                notificationsEnabled = currentState.screen.notificationsEnabled,
-                                systemNotificationsEnabled = currentState.screen.systemNotificationsEnabled,
-                                reviewRemindersEnabled = currentState.screen.reviewRemindersEnabled,
-                                onNotificationsToggle = { viewModel.setNotificationsEnabled(it) },
-                                onReviewRemindersToggle = { viewModel.setReviewRemindersEnabled(it) },
-                                onDismiss = { nav.dismiss() }
-                            )
-                        }
-                    } else {
-                        overlayHost.showSizeToFitBottomSheet(tag = "notification-permission") { nav ->
-                            val deniedPreviously = wasNotificationPermissionDenied()
-                            val requestPermission = rememberNotificationPermissionRequester { granted ->
-                                if (granted) {
-                                    viewModel.setNotificationsEnabled(true)
-                                }
-                                viewModel.refreshNotificationPermissionStatus()
-                                nav.dismiss()
-                            }
-                            NotificationPermissionContent(
-                                onDismiss = { nav.dismiss() },
-                                onEnableNotifications = {
-                                    if (deniedPreviously) {
-                                        nav.dismiss()
-                                        viewModel.requestNotificationPermission()
-                                        viewModel.refreshNotificationPermissionStatus()
-                                    } else {
-                                        requestPermission()
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
+                onEnable = { overlayHost.showNotificationSettingsSheet(viewModel) },
             )
 
             TagManagerCard(onClick = { overlayHost.showTagManagerScreen() })
@@ -218,8 +172,6 @@ fun SettingsSections(
                     }
                 }
             )
-
-            SubscriptionCard(onClick = onNavigateToSubscription)
 
             AboutSettingsCard(appVersion = state.appVersion, showDivider = false)
         }

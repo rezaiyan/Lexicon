@@ -99,12 +99,16 @@ internal fun AppContent(
             navigationRailContainerColor = MaterialTheme.colorScheme.surface,
         ),
         navigationSuiteItems = {
-            // Settings is pushed on top of Study, so it still belongs to the Study tab
-            val studySelected = currentDestination?.hasRoute<TabDestination.Study>() == true ||
-                currentDestination?.hasRoute<SettingsRoute>() == true
-            val insightsSelected = currentDestination?.hasRoute<InsightsRoute>() == true
-            val wordsSelected = currentDestination?.hasRoute<TabDestination.Words>() == true
-            val profileSelected = currentDestination?.hasRoute<ProfileRoute>() == true
+            // Settings is pushed on top of a tab; highlight the tab it was opened from
+            val tabDestination = if (currentDestination?.hasRoute<SettingsRoute>() == true) {
+                navController.previousBackStackEntry?.destination
+            } else {
+                currentDestination
+            }
+            val studySelected = tabDestination?.hasRoute<TabDestination.Study>() == true
+            val insightsSelected = tabDestination?.hasRoute<InsightsRoute>() == true
+            val wordsSelected = tabDestination?.hasRoute<TabDestination.Words>() == true
+            val profileSelected = tabDestination?.hasRoute<ProfileRoute>() == true
 
             item(
                 selected = studySelected,

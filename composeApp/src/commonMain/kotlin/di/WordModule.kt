@@ -136,5 +136,6 @@ fun wordModule() = module {
     singleOf(::GetSourceLanguageUseCase)
 
     // Use Cases - Widget
-    singleOf(::GetDailyWidgetDataUseCase)
+    // Explicit lambda: the `nowMillis` default param can't be resolved by singleOf.
+    single { GetDailyWidgetDataUseCase(get(), get(), get(), observeLearningFocus = get()) }
 }

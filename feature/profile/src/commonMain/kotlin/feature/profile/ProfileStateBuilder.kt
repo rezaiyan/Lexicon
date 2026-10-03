@@ -2,8 +2,11 @@ package feature.profile
 
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
+import domain.auth.model.PremiumSource
+import domain.auth.model.UserFeatureAccess
 import domain.streak.model.StreakData
 import feature.profile.model.ProfileStatsUiModel
+import feature.profile.model.ProfileSubscriptionStatus
 import feature.profile.model.ProfileUiData
 import feature.profile.model.ProfileUserUiModel
 import core.common.UiState
@@ -59,9 +62,17 @@ internal object ProfileStateBuilder {
                 featureAccess = featureAccess,
                 isSubscriptionsEnabled = !hasPremiumAccess,
                 shouldShowSubscriptionUI = !hasPremiumAccess,
-                profileStats = profileStats
+                profileStats = profileStats,
+                subscriptionStatus = featureAccess?.userAccess.toSubscriptionStatus(),
             )
         )
+    }
+
+    private fun UserFeatureAccess?.toSubscriptionStatus(): ProfileSubscriptionStatus = when {
+        this == null || !hasPremiumAccess -> ProfileSubscriptionStatus.Free
+        isTrial -> ProfileSubscriptionStatus.Trial
+        premiumSource == PremiumSource.STORE && !willRenew && expiresAt != null -> ProfileSubscriptionStatus.Cancelling
+        else -> ProfileSubscriptionStatus.Premium
     }
 
     private fun AuthUser.toProfileUserUiModel(): ProfileUserUiModel {

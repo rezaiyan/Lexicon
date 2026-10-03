@@ -9,5 +9,16 @@ data class ProfileUiData(
     val featureAccess: FeatureAccessResponse?,
     val isSubscriptionsEnabled: Boolean,
     val shouldShowSubscriptionUI: Boolean,
-    val profileStats: ProfileStatsUiModel? = null
+    val profileStats: ProfileStatsUiModel? = null,
+    val subscriptionStatus: ProfileSubscriptionStatus = ProfileSubscriptionStatus.Free,
 )
+
+/** Subscription state shown on the profile header. */
+enum class ProfileSubscriptionStatus {
+    Free,
+    Trial,
+    Premium,
+
+    /** Store subscription still active but set not to renew. */
+    Cancelling,
+}

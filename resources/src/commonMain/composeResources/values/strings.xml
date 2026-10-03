@@ -867,5 +867,17 @@
     <string name="word_added_title">1 word added</string>
     <string name="words_added_subtitle">They're in First Encounter, ready for your first review.</string>
     <string name="add_more_words">Add more words</string>
+    <!-- Learning focus -->
+    <string name="focus_on">Focus on</string>
+    <string name="focus_all_languages">All languages</string>
+    <string name="focus_all_languages_subtitle">Mixed review</string>
+    <string name="focus_language_counts">%1$d words · %2$d due</string>
+    <string name="focus_nudge_message">%1$d %2$s words are waiting</string>
+    <string name="focus_nudge_switch">Switch</string>
+    <string name="focus_intro_message">You're learning %1$d languages. Focus on one at a time — switch anytime with the language icon at the top.</string>
+    <string name="focus_intro_got_it">Got it</string>
+    <string name="focus_switcher_open">Change focus language</string>
+    <string name="focus_current">Focus language: %1$s</string>
+    <string name="focus_dismiss">Dismiss</string>
 </resources>
 

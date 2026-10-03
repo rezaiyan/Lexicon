@@ -9,6 +9,9 @@ import domain.auth.model.UserFeatureAccess
 import domain.auth.repository.IAuthRepository
 import domain.auth.model.AuthUser
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.ObserveLearningFocusUseCase
+import fakes.FakeLearningFocusRepository
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -41,13 +44,18 @@ import kotlin.test.assertTrue
 
 class WordManagerViewModelTest : ViewModelTestBase() {
 
-    private fun testWord(id: Int, original: String = "word$id", language: Language = Language.ENGLISH) = Word(
+    private fun testWord(
+        id: Int,
+        original: String = "word$id",
+        language: Language = Language.ENGLISH,
+        learning: Language = Language.GERMAN,
+    ) = Word(
         id = id,
         originalWord = original,
         translation = "trans$id",
         description = "desc$id",
         sourceLanguage = language,
-        targetLanguage = Language.GERMAN,
+        targetLanguage = learning,
         nextReviewDate = 0L
     )
 
@@ -121,6 +129,8 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 
+    private val focusRepo = FakeLearningFocusRepository()
+
     private fun createViewModel(): WordManagerViewModel {
         val wordRepo = fakeWordRepo()
         return WordManagerViewModel(
@@ -136,8 +146,38 @@ class WordManagerViewModelTest : ViewModelTestBase() {
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(), FakeSubscriptionManager()),
             filterAndSortWordsUseCase = FilterAndSortWordsUseCase(),
             classifyImportErrorUseCase = ClassifyImportErrorUseCase(),
-            analyticsTracker = fakeAnalytics()
+            analyticsTracker = fakeAnalytics(),
+            observeLearningFocus = ObserveLearningFocusUseCase(wordRepo, focusRepo),
         )
+    }
+
+    @Test
+    fun `filter starts at focused language when user has several languages`() = runTest {
+        wordsFlow.value = listOf(testWord(1, learning = Language.GERMAN), testWord(2, learning = Language.SPANISH))
+        focusRepo.preference.value = LearningFocus.Single(Language.SPANISH)
+
+        val vm = createViewModel()
+
+        assertEquals(Language.SPANISH, vm.currentState.filterLanguage)
+    }
+
+    @Test
+    fun `filter stays empty when user has one language`() = runTest {
+        val vm = createViewModel()
+
+        assertEquals(null, vm.currentState.filterLanguage)
+    }
+
+    @Test
+    fun `changing filter does not change study focus`() = runTest {
+        wordsFlow.value = listOf(testWord(1, learning = Language.GERMAN), testWord(2, learning = Language.SPANISH))
+        focusRepo.preference.value = LearningFocus.Single(Language.SPANISH)
+        val vm = createViewModel()
+
+        vm.setFilterLanguage(null)
+
+        assertEquals(null, vm.currentState.filterLanguage)
+        assertEquals(LearningFocus.Single(Language.SPANISH), focusRepo.preference.value)
     }
 
     @Test

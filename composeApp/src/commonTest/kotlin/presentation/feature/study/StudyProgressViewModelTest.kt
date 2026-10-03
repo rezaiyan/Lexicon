@@ -6,6 +6,15 @@ import core.common.Try
 import fakes.FakePerformanceTracer
 import feature.study.StudyProgressViewModel
 import feature.study.StudyTagUseCases
+import feature.study.StudyFocusUseCases
+import feature.study.model.ProgressScreenState
+import feature.study.util.NotificationText
+import domain.focus.model.LearningFocus
+import domain.focus.usecase.AcknowledgeFocusIntroUseCase
+import domain.focus.usecase.DismissFocusNudgeUseCase
+import domain.focus.usecase.ObserveStudyFocusUseCase
+import domain.focus.usecase.SetLearningFocusUseCase
+import fakes.FakeLearningFocusRepository
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
@@ -26,11 +35,7 @@ import domain.settings.usecase.GetSkipTagSelectorUseCase
 import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.tag.model.Tag
 import domain.tag.repository.ITagRepository
-import domain.tag.usecase.GetDueTagsUseCase
-import domain.tag.usecase.GetTagsByLevelUseCase
-import domain.tag.usecase.GetTagsUseCase
 import domain.word.usecase.EvaluateProgressUseCase
-import domain.word.usecase.GetProgressStatsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -40,18 +45,21 @@ import core.common.UiState
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class StudyProgressViewModelTest : ViewModelTestBase() {
 
-    private fun fakeWordRepo() = object : IWordRepository {
+    private fun fakeWordRepo(allWords: Flow<List<Word>> = emptyFlow()) = object : IWordRepository {
         override fun getDueCards(): Flow<List<Word>> = flowOf(emptyList())
         override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
-        override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getAllWords(): Flow<List<Word>> = allWords
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
@@ -158,27 +166,52 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override suspend fun syncTagsFromRemote(): Try<Unit> = Try.success(Unit)
     }
 
+    private val now = 1_000_000_000L
+    private lateinit var focusRepo: FakeLearningFocusRepository
+
+    private fun word(id: Int, language: Language, tags: List<Long> = emptyList()) = Word(
+        id = id,
+        originalWord = "w$id",
+        translation = "t$id",
+        description = "",
+        sourceLanguage = Language.ENGLISH,
+        targetLanguage = language,
+        nextReviewDate = now - 1,
+        tagIds = tags,
+    )
+
+    private val mixedWords = buildList {
+        add(word(1, Language.GERMAN))
+        repeat(10) { add(word(100 + it, Language.SPANISH)) }
+    }
+
     private fun createViewModel(
         hasPremiumAccess: Boolean = false,
         tags: List<Tag> = emptyList(),
+        words: Flow<List<Word>> = emptyFlow(),
+        preference: LearningFocus? = null,
     ): StudyProgressViewModel {
-        val wordRepo = fakeWordRepo()
+        val wordRepo = fakeWordRepo(words)
         val settingsRepo = fakeSettingsRepo()
         val notifRepo = fakeNotifRepo()
+        focusRepo = FakeLearningFocusRepository(preference)
         return StudyProgressViewModel(
-            getProgressStatsUseCase = GetProgressStatsUseCase(wordRepo),
             evaluateProgressUseCase = EvaluateProgressUseCase(),
             scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
             getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(hasPremiumAccess), FakeSubscriptionManager()),
             tagUseCases = StudyTagUseCases(
-                getDueTags = GetDueTagsUseCase(fakeTagRepo()),
-                getTagsByLevel = GetTagsByLevelUseCase(fakeTagRepo()),
-                getTags = GetTagsUseCase(fakeTagRepo(tags)),
                 getSkipTagSelector = GetSkipTagSelectorUseCase(settingsRepo),
                 setSkipTagSelector = SetSkipTagSelectorUseCase(settingsRepo),
             ),
+            focusUseCases = StudyFocusUseCases(
+                observeStudyFocus = ObserveStudyFocusUseCase(wordRepo, fakeTagRepo(tags), focusRepo) { now },
+                setLearningFocus = SetLearningFocusUseCase(focusRepo),
+                dismissFocusNudge = DismissFocusNudgeUseCase(focusRepo) { now },
+                acknowledgeFocusIntro = AcknowledgeFocusIntroUseCase(focusRepo),
+            ),
+            notificationTextResolver = { NotificationText(title = "title", message = "message") },
         )
     }
 
@@ -201,12 +234,58 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `tags when repository emits tags exposes them in state`() = runTest {
+    fun `tags are counted from focused words`() = runTest {
         val tags = listOf(
-            Tag(id = 1L, name = "Travel", wordCount = 24L, createdAt = 0L, updatedAt = 0L),
-            Tag(id = 2L, name = "Work", wordCount = 17L, createdAt = 0L, updatedAt = 0L),
+            Tag(id = 1L, name = "Travel", wordCount = 99L, createdAt = 0L, updatedAt = 0L),
+            Tag(id = 2L, name = "Work", wordCount = 99L, createdAt = 0L, updatedAt = 0L),
         )
-        val vm = createViewModel(tags = tags)
-        assertEquals(tags, vm.currentState.tags)
+        val words = flowOf(
+            listOf(word(1, Language.GERMAN, tags = listOf(1L)), word(2, Language.GERMAN, tags = listOf(1L)))
+        )
+        val vm = createViewModel(tags = tags, words = words)
+        // single language resolves to All focus: empty tags kept, counts recomputed from words
+        assertEquals(listOf(1L to 2L, 2L to 0L), vm.currentState.tags.map { it.id to it.wordCount })
+    }
+
+    @Test
+    fun `two languages expose switcher focus intro and nudge`() = runTest {
+        val vm = createViewModel(words = flowOf(mixedWords), preference = LearningFocus.Single(Language.GERMAN))
+        val state = vm.currentState
+        assertEquals(LearningFocus.Single(Language.GERMAN), state.focus)
+        assertTrue(state.showFocusSwitcher)
+        assertTrue(state.showIntro)
+        assertEquals(Language.SPANISH, state.nudge?.language)
+        assertEquals(1, assertIs<UiState.Loaded<ProgressScreenState>>(state.progress).value.progressStats.totalWords)
+    }
+
+    @Test
+    fun `selectFocus rescopes stats and acknowledges intro`() = runTest {
+        val vm = createViewModel(words = flowOf(mixedWords), preference = LearningFocus.Single(Language.GERMAN))
+        vm.selectFocus(LearningFocus.Single(Language.SPANISH))
+        val progress = assertIs<UiState.Loaded<ProgressScreenState>>(vm.currentState.progress)
+        assertEquals(10, progress.value.progressStats.totalWords)
+        assertEquals(LearningFocus.Single(Language.SPANISH), focusRepo.preference.value)
+        assertFalse(vm.currentState.showIntro)
+    }
+
+    @Test
+    fun `dismissNudge hides nudge`() = runTest {
+        val vm = createViewModel(words = flowOf(mixedWords), preference = LearningFocus.Single(Language.GERMAN))
+        vm.dismissNudge()
+        assertNull(vm.currentState.nudge)
+    }
+
+    @Test
+    fun `acknowledgeIntro hides intro`() = runTest {
+        val vm = createViewModel(words = flowOf(mixedWords))
+        vm.acknowledgeIntro()
+        assertFalse(vm.currentState.showIntro)
+    }
+
+    @Test
+    fun `single language hides switcher`() = runTest {
+        val vm = createViewModel(words = flowOf(listOf(word(1, Language.GERMAN))))
+        assertFalse(vm.currentState.showFocusSwitcher)
+        assertEquals(LearningFocus.All, vm.currentState.focus)
     }
 }
