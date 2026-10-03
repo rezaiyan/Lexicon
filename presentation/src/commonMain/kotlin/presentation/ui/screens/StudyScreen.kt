@@ -39,6 +39,10 @@ import events.OnEvents
 import feature.study.ReviewEffect
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
+import domain.focus.model.LearningFocus
+import feature.study.ui.focus.FocusNudgeCard
+import feature.study.ui.focus.LanguageSwitcherSheetContent
+import feature.study.ui.focus.LearningFocusHeader
 import feature.study.ui.review.ReviewScreen
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -192,6 +196,26 @@ fun StudyScreen(
         }
     }
 
+    val openFocusSwitcher: () -> Unit = {
+        overlayHost.showSizeToFitBottomSheet(
+            tag = "focus-switcher",
+            properties = BottomSheetProperties(
+                dismissOnBackPress = true,
+                dismissOnTouchOutside = true,
+            ),
+        ) { nav ->
+            val sheetProgressState by progressViewModel.state()
+            LanguageSwitcherSheetContent(
+                focus = sheetProgressState.focus,
+                languages = sheetProgressState.languages,
+                onSelect = { focus ->
+                    progressViewModel.selectFocus(focus)
+                    nav.dismiss()
+                },
+            )
+        }
+    }
+
     LexiconColumn(
         title = null,
         scrollState = scrollState,
@@ -246,6 +270,16 @@ fun StudyScreen(
                     val loadedStats = loadedState.progressStats
                     val evaluation = loadedState.progressEvaluation
 
+                    LearningFocusHeader(
+                        focus = progressState.focus,
+                        showSwitcher = progressState.showFocusSwitcher,
+                        showIntro = progressState.showIntro,
+                        languageCount = progressState.languages.size,
+                        onOpenSwitcher = openFocusSwitcher,
+                        onAcknowledgeIntro = progressViewModel::acknowledgeIntro,
+                        modifier = Modifier.padding(bottom = Theme.spacing.sm),
+                    )
+
                     StatsSection(
                         modifier = Modifier.onGloballyPositioned { coordinates ->
                             statsSectionBottom =
@@ -288,6 +322,15 @@ fun StudyScreen(
                             }
                         },
                     )
+
+                    progressState.nudge?.let { nudge ->
+                        FocusNudgeCard(
+                            summary = nudge,
+                            onSwitch = { progressViewModel.selectFocus(LearningFocus.Single(nudge.language)) },
+                            onDismiss = progressViewModel::dismissNudge,
+                            modifier = Modifier.padding(top = Theme.spacing.sm),
+                        )
+                    }
 
                     val wordRushStateHolder = wordRushViewModel.state()
                     val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }

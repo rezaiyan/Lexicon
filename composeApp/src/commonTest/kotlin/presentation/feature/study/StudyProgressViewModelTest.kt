@@ -248,7 +248,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `two languages expose switcher, focus, intro and nudge`() = runTest {
+    fun `two languages expose switcher focus intro and nudge`() = runTest {
         val vm = createViewModel(words = flowOf(mixedWords), preference = LearningFocus.Single(Language.GERMAN))
         val state = vm.currentState
         assertEquals(LearningFocus.Single(Language.GERMAN), state.focus)
