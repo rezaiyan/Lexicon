@@ -3,8 +3,9 @@ updates:
   - package-ecosystem: gradle
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      # Every 2 months: 1st of Jan, Mar, May, Jul, Sep, Nov at 09:00 UTC
+      interval: cron
+      cronjob: "0 9 1 */2 *"
     open-pull-requests-limit: 5
     groups:
       kotlin:
@@ -21,6 +22,6 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
-      day: monday
+      interval: cron
+      cronjob: "0 9 1 */2 *"
     open-pull-requests-limit: 3
