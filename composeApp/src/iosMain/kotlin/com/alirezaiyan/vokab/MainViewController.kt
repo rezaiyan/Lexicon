@@ -12,8 +12,10 @@ import di.appModule
 import di.iosPlatformModule
 import di.mobileModule
 import domain.auth.repository.IAuthRepository
+import domain.notifications.usecase.ReportNotificationOpenedUseCase
 import kotlinx.coroutines.runBlocking
 import notification.NotificationCategory
+import notification.NotificationTapReporter
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import platform.Foundation.NSLog
@@ -95,6 +97,14 @@ fun clearUserData() {
         handler.clearUserData()
         accountDeletionHandler = handler
     }
+}
+
+/** Called from Swift's didReceive with the push's notification_log_id (absent for local notifications). */
+fun notifyNotificationTapped(notificationLogId: String?) {
+    if (notificationLogId == null) return
+    startKoinIfNeeded()
+    koinInstance?.get<NotificationTapReporter>()
+        ?.onNotificationTapped(mapOf(ReportNotificationOpenedUseCase.NOTIFICATION_LOG_ID_KEY to notificationLogId))
 }
 
 fun notifyPushTokenReceived(token: String) {

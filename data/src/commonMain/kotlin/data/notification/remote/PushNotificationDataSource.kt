@@ -73,6 +73,27 @@ class PushNotificationDataSource(
     }
 
     /**
+     * Report that the user tapped a server-sent notification (idempotent on the backend)
+     */
+    override suspend fun reportNotificationOpened(notificationLogId: Long): Try<Unit> {
+        if (getAuthToken() == null) {
+            return Try.failure(Exception("User not authenticated"))
+        }
+
+        return Try {
+            httpClient.post("$baseUrl/notifications") {
+                url { appendPathSegments(notificationLogId.toString(), "opened") }
+            }.body<ApiResponse<Unit>>()
+        }.map { response ->
+            if (!response.success) {
+                throw Exception(response.message ?: "Failed to report notification open")
+            }
+        }.doOnFailure { error ->
+            logNetwork("PushNotification", "Error reporting notification open: ${error.message}")
+        }
+    }
+
+    /**
      * Best-effort token deactivation: any outcome (success, HTTP error, or being
      * unauthenticated) resolves to Try.success(Unit) — callers cannot act on a
      * server-side dereg failure anyway, so we just log it.

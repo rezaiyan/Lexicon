@@ -3,21 +3,29 @@ package di
 import data.notification.remote.IPushNotificationDataSource
 import data.notification.remote.PushNotificationDataSource
 import data.notification.remote.model.Platform
+import data.notification.repository.NotificationEngagementRepositoryImpl
 import data.notification.repository.NotificationRepositoryImpl
 import data.notification.repository.PushTokenRepositoryImpl
 import data.storage.DailyInsightCache
 import data.storage.SecureStorage
+import domain.notifications.repository.INotificationEngagementRepository
 import domain.notifications.repository.INotificationRepository
 import domain.notifications.repository.IPushTokenRepository
 import domain.notifications.usecase.DeactivatePushTokenUseCase
 import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.OpenNotificationSettingsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
+import domain.notifications.usecase.ReportNotificationOpenedUseCase
 import domain.notifications.usecase.RequestNotificationPermissionUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import notification.INotificationManager
+import notification.NotificationTapReporter
 import notification.createNotificationManager
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import pushnotification.IPushTokenManager
@@ -73,6 +81,10 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
         NotificationRepositoryImpl(notificationManager = get())
     }
 
+    single<INotificationEngagementRepository> {
+        NotificationEngagementRepositoryImpl(pushNotificationDataSource = get())
+    }
+
     // Use Cases
     singleOf(::ScheduleNotificationsUseCase)
     singleOf(::RegisterPushTokenUseCase)
@@ -80,4 +92,12 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
     singleOf(::RequestNotificationPermissionUseCase)
     singleOf(::OpenNotificationSettingsUseCase)
     singleOf(::InitializePushNotificationsUseCase)
+    factoryOf(::ReportNotificationOpenedUseCase)
+
+    single {
+        NotificationTapReporter(
+            reportNotificationOpened = get(),
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+        )
+    }
 }

@@ -7,4 +7,5 @@ interface IPushNotificationDataSource {
     suspend fun registerPushToken(request: RegisterPushTokenRequest): Try<Unit>
     suspend fun deactivateAllTokens(): Try<Unit>
     suspend fun deactivateToken(token: String): Try<Unit>
+    suspend fun reportNotificationOpened(notificationLogId: Long): Try<Unit>
 }

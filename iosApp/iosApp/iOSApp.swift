@@ -370,6 +370,11 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         print(" Notification tapped - Category: \(category.identifier), Action: \(actionIdentifier)")
         
+        // Any interaction except dismissal counts as an open for the backend's engagement tracking
+        if actionIdentifier != UNNotificationDismissActionIdentifier {
+            MainViewControllerKt.notifyNotificationTapped(notificationLogId: userInfo["notification_log_id"] as? String)
+        }
+        
         // Handle action buttons
         if actionIdentifier != UNNotificationDefaultActionIdentifier && actionIdentifier != UNNotificationDismissActionIdentifier {
             handleNotificationAction(category: category, actionIdentifier: actionIdentifier, userInfo: userInfo)

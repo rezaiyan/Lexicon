@@ -269,6 +269,8 @@ class PushTokenRepositoryImplTest {
             deactivateTokenCalls.add(token)
             return deactivateTokenResult
         }
+
+        override suspend fun reportNotificationOpened(notificationLogId: Long): Try<Unit> = Try.success(Unit)
     }
 
     private class FakeSecureStorage(
