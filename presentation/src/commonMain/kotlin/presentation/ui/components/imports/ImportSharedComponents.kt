@@ -42,6 +42,8 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import components.sheet.LanguageCodeTile
+import components.sheet.LanguageListRow
 import components.sheet.SheetGroup
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
@@ -278,59 +280,14 @@ internal fun ImportLanguageListPage(
         Column {
             filtered.forEachIndexed { index, language ->
                 LanguageListRow(
-                    language = language,
+                    code = language.code,
+                    name = language.displayName,
+                    nativeName = language.nativeName,
                     selected = language == selected,
                     showDivider = index < filtered.lastIndex,
                     onClick = { onLanguageSelected(language) },
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun LanguageListRow(
-    language: Language,
-    selected: Boolean,
-    showDivider: Boolean,
-    onClick: () -> Unit,
-) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(Theme.shapes.medium))
-                .clickable(role = Role.RadioButton, onClick = onClick)
-                .semantics { this.selected = selected }
-                .heightIn(min = Theme.dimensions.inputFieldHeight)
-                .padding(vertical = Theme.spacing.xs),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
-        ) {
-            LanguageCodeTile(code = language.code, selected = selected)
-            Text(
-                language.displayName,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                modifier = Modifier.weight(1f),
-            )
-            if (selected) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
-                )
-            } else if (language.nativeName != language.displayName) {
-                Text(
-                    language.nativeName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        if (showDivider) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = Theme.opacity.overlay))
         }
     }
 }

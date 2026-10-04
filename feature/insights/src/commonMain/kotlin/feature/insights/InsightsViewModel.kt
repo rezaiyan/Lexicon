@@ -2,7 +2,10 @@ package feature.insights
 
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
+import core.common.Try
 import core.common.UiState
+import core.common.getOrDefault
+import core.common.map
 import data.storage.DailyInsightCache
 import domain.analytics.model.AccuracyByLevel
 import domain.analytics.model.DayOfWeekAccuracy
@@ -86,21 +89,26 @@ sealed class InsightsEffect {
     data object NavigateToNotificationSettings : InsightsEffect()
 }
 
+/** The study-analytics reads the insights screen loads on every refresh. */
+class InsightsUseCases(
+    val studyInsights: GetStudyInsightsUseCase,
+    val difficultWords: GetDifficultWordsUseCase,
+    val accuracyTrend: GetAccuracyTrendUseCase,
+    val accuracyByLevel: GetAccuracyByLevelUseCase,
+    val studyHeatmap: GetStudyHeatmapUseCase,
+    val bestStudyTime: GetBestStudyTimeUseCase,
+    val weeklyReport: GetWeeklyReportUseCase,
+    val levelTransitions: GetLevelTransitionsUseCase,
+    val responseTimeTrend: GetResponseTimeTrendUseCase,
+)
+
 class InsightsViewModel(
-    private val getStudyInsightsUseCase: GetStudyInsightsUseCase,
-    private val getDifficultWordsUseCase: GetDifficultWordsUseCase,
-    private val getAccuracyTrendUseCase: GetAccuracyTrendUseCase,
-    private val getAccuracyByLevelUseCase: GetAccuracyByLevelUseCase,
-    private val getStudyHeatmapUseCase: GetStudyHeatmapUseCase,
-    private val getBestStudyTimeUseCase: GetBestStudyTimeUseCase,
+    private val useCases: InsightsUseCases,
     private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
-    private val getWeeklyReportUseCase: GetWeeklyReportUseCase,
-    private val getLevelTransitionsUseCase: GetLevelTransitionsUseCase,
-    private val getResponseTimeTrendUseCase: GetResponseTimeTrendUseCase,
     private val getProfileStatsUseCase: GetProfileStatsUseCase,
     private val dailyInsightCache: DailyInsightCache,
     private val setReviewRemindersEnabledUseCase: SetReviewRemindersEnabledUseCase,
-    private val observeReviewRemindersEnabledUseCase: ObserveReviewRemindersEnabledUseCase,
+    observeReviewRemindersEnabledUseCase: ObserveReviewRemindersEnabledUseCase,
 ) : BaseViewModel<InsightsState, InsightsEffect>() {
 
     override fun initialState() = InsightsState()
@@ -112,7 +120,28 @@ class InsightsViewModel(
     }
 
     fun refresh() {
-        loadAllData()
+        loadSection({ useCases.studyInsights(Unit) }) { copy(overview = it) }
+        loadSection({ useCases.accuracyTrend(GetAccuracyTrendUseCase.Params(daysAgo(30), today())) }) { trend ->
+            val byDayOfWeek = (trend as? UiState.Loaded)?.value?.let(::computeDayOfWeekAccuracy)
+            copy(accuracyTrend = trend, accuracyByDayOfWeek = byDayOfWeek ?: accuracyByDayOfWeek)
+        }
+        loadSection({ useCases.difficultWords(GetDifficultWordsUseCase.Params(minReviews = 3, limit = 20)) }) {
+            copy(difficultWords = it)
+        }
+        loadSection({ useCases.accuracyByLevel(Unit) }) { copy(accuracyByLevel = it) }
+        loadSection({ useCases.studyHeatmap(GetStudyHeatmapUseCase.Params(daysAgo(90), today())) }) {
+            copy(heatmap = it)
+        }
+        loadSection({ useCases.bestStudyTime(Unit) }) { copy(bestStudyTime = it) }
+        loadSection({ getWordRushInsightsUseCase(Unit) }) { copy(wordRushInsights = it) }
+        // A missing weekly report renders as an empty week rather than an error.
+        loadSection({
+            Try.success(useCases.weeklyReport(Unit).map { it.toUiModel() }.getOrDefault(WeeklyReportUiModel.Empty))
+        }) { copy(weeklyReport = it) }
+        loadSection({ useCases.levelTransitions(Unit) }) { copy(levelTransitions = it) }
+        loadSection({ useCases.responseTimeTrend(Unit) }) { copy(responseTimeTrend = it) }
+        loadStreak()
+        updateState { copy(dailyInsight = dailyInsightCache.getDailyInsight()) }
     }
 
     fun dismissDailyInsight() {
@@ -136,129 +165,16 @@ class InsightsViewModel(
         }
     }
 
-    private fun loadAllData() {
-        loadOverview()
-        loadAccuracyTrend()
-        loadDifficultWords()
-        loadAccuracyByLevel()
-        loadHeatmap()
-        loadBestStudyTime()
-        loadWordRushInsights()
-        loadWeeklyReport()
-        loadLevelTransitions()
-        loadResponseTimeTrend()
-        loadStreak()
-        updateState { copy(dailyInsight = dailyInsightCache.getDailyInsight()) }
-    }
-
-    private fun loadOverview() {
+    /** Loads one independent section: marks it [UiState.Loading], then stores the result or its error. */
+    private fun <T> loadSection(
+        request: suspend () -> Try<T>,
+        apply: InsightsState.(UiState<T>) -> InsightsState,
+    ) {
         viewModelScope.launch {
-            updateState { copy(overview = UiState.Loading) }
-            getStudyInsightsUseCase(Unit).reduce(
-                onSuccess = { copy(overview = UiState.Loaded(it)) },
-                onFailure = { copy(overview = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadAccuracyTrend() {
-        viewModelScope.launch {
-            updateState { copy(accuracyTrend = UiState.Loading) }
-            val tz = TimeZone.currentSystemDefault()
-            val today = Clock.System.now().toLocalDateTime(tz).date
-            val startDate = today.minus(30, DateTimeUnit.DAY)
-            getAccuracyTrendUseCase(
-                GetAccuracyTrendUseCase.Params(startDate.toString(), today.toString())
-            ).reduce(
-                onSuccess = { copy(accuracyTrend = UiState.Loaded(it), accuracyByDayOfWeek = computeDayOfWeekAccuracy(it)) },
-                onFailure = { copy(accuracyTrend = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadDifficultWords() {
-        viewModelScope.launch {
-            updateState { copy(difficultWords = UiState.Loading) }
-            getDifficultWordsUseCase(
-                GetDifficultWordsUseCase.Params(minReviews = 3, limit = 20)
-            ).reduce(
-                onSuccess = { copy(difficultWords = UiState.Loaded(it)) },
-                onFailure = { copy(difficultWords = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadAccuracyByLevel() {
-        viewModelScope.launch {
-            updateState { copy(accuracyByLevel = UiState.Loading) }
-            getAccuracyByLevelUseCase(Unit).reduce(
-                onSuccess = { copy(accuracyByLevel = UiState.Loaded(it)) },
-                onFailure = { copy(accuracyByLevel = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadHeatmap() {
-        viewModelScope.launch {
-            updateState { copy(heatmap = UiState.Loading) }
-            val tz = TimeZone.currentSystemDefault()
-            val today = Clock.System.now().toLocalDateTime(tz).date
-            val startDate = today.minus(90, DateTimeUnit.DAY)
-            getStudyHeatmapUseCase(
-                GetStudyHeatmapUseCase.Params(startDate.toString(), today.toString())
-            ).reduce(
-                onSuccess = { copy(heatmap = UiState.Loaded(it)) },
-                onFailure = { copy(heatmap = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadBestStudyTime() {
-        viewModelScope.launch {
-            updateState { copy(bestStudyTime = UiState.Loading) }
-            getBestStudyTimeUseCase(Unit).reduce(
-                onSuccess = { copy(bestStudyTime = UiState.Loaded(it)) },
-                onFailure = { copy(bestStudyTime = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadWordRushInsights() {
-        viewModelScope.launch {
-            updateState { copy(wordRushInsights = UiState.Loading) }
-            getWordRushInsightsUseCase(Unit).reduce(
-                onSuccess = { copy(wordRushInsights = UiState.Loaded(it)) },
-                onFailure = { copy(wordRushInsights = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadWeeklyReport() {
-        viewModelScope.launch {
-            updateState { copy(weeklyReport = UiState.Loading) }
-            getWeeklyReportUseCase(Unit).reduce(
-                onSuccess = { report -> copy(weeklyReport = UiState.Loaded(report.toUiModel())) },
-                onFailure = { copy(weeklyReport = UiState.Loaded(WeeklyReportUiModel.Empty)) },
-            )
-        }
-    }
-
-    private fun loadLevelTransitions() {
-        viewModelScope.launch {
-            updateState { copy(levelTransitions = UiState.Loading) }
-            getLevelTransitionsUseCase(Unit).reduce(
-                onSuccess = { copy(levelTransitions = UiState.Loaded(it)) },
-                onFailure = { copy(levelTransitions = UiState.Error(it.toUserMessage())) },
-            )
-        }
-    }
-
-    private fun loadResponseTimeTrend() {
-        viewModelScope.launch {
-            updateState { copy(responseTimeTrend = UiState.Loading) }
-            getResponseTimeTrendUseCase(Unit).reduce(
-                onSuccess = { copy(responseTimeTrend = UiState.Loaded(it)) },
-                onFailure = { copy(responseTimeTrend = UiState.Error(it.toUserMessage())) },
+            updateState { apply(UiState.Loading) }
+            request().reduce(
+                onSuccess = { apply(UiState.Loaded(it)) },
+                onFailure = { apply(UiState.Error(it.toUserMessage())) },
             )
         }
     }
@@ -272,6 +188,12 @@ class InsightsViewModel(
         }
     }
 }
+
+private fun localToday(): LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+private fun today(): String = localToday().toString()
+
+private fun daysAgo(days: Int): String = localToday().minus(days, DateTimeUnit.DAY).toString()
 
 // ─── Day-of-week aggregation ─────────────────────────────────────────────────
 

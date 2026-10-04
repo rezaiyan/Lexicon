@@ -261,8 +261,8 @@ class AuthRepositoryImplTest {
         var clearCacheCalled = false
         override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(featureAccess)
         override suspend fun syncWithStore(): Try<FeatureAccessResponse> = Try.success(featureAccess)
-        override suspend fun refresh(): Try<Unit> = Try.success(Unit)
-        override fun clearCache() { clearCacheCalled = true }
+        override suspend fun refresh(force: Boolean): Try<Unit> = Try.success(Unit)
+        override suspend fun clearCache() { clearCacheCalled = true }
     }
 
     private class FakeAuthDataSource : IAuthDataSource {

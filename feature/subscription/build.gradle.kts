@@ -8,6 +8,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":platforms"))
             implementation(libs.kotlinx.datetime)
+            implementation(libs.lifecycle.runtime.compose)
         }
 
         androidMain.dependencies {

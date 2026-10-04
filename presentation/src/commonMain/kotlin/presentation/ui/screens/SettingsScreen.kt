@@ -62,7 +62,6 @@ private fun SettingsSections() {
     val themeMode = state.themeMode
     val notificationsEnabled = state.notificationsEnabled
     val systemNotificationsEnabled = state.systemNotificationsEnabled
-    val dailyGoalWords = settingsState.dailyGoalWords
     val overlayHost = LocalOverlayHost.current
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
@@ -86,7 +85,6 @@ private fun SettingsSections() {
             }
 
             DailyGoalSettingsCard(
-                dailyGoalWords = dailyGoalWords,
                 onClick = {
                     overlayHost.showSizeToFitBottomSheet(tag = "daily-goal") { nav ->
                         val currentState by viewModel.state()

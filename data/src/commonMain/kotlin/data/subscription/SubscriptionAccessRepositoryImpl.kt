@@ -12,5 +12,5 @@ class SubscriptionAccessRepositoryImpl(
     override suspend fun syncWithServer(): Try<Unit> =
         featureAccessRemoteDataSource.syncWithStore().map { }
 
-    override suspend fun refresh(): Try<Unit> = featureAccessRemoteDataSource.refresh()
+    override suspend fun refresh(force: Boolean): Try<Unit> = featureAccessRemoteDataSource.refresh(force)
 }

@@ -52,13 +52,6 @@ import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
 
-/** One day of the rolling last-7-days window, oldest first; the last entry is today. */
-internal data class WeekDay(
-    val label: String,
-    val count: Int,
-    val isToday: Boolean,
-)
-
 @Composable
 internal fun rememberLastSevenDays(heatmapDays: List<StudyHeatmapDay>): List<WeekDay> {
     val today = remember {

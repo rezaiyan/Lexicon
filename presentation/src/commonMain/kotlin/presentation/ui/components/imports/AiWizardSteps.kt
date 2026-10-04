@@ -1,21 +1,13 @@
 package presentation.ui.components.imports
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
@@ -29,36 +21,28 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import components.GeneratingProgress
 import components.sheet.IconTile
+import components.sheet.LevelBars
+import components.sheet.RadioDot
 import components.sheet.SelectableCard
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
+import domain.onboarding.model.ProficiencyLevel
 import feature.aiimport.model.AiWordImportStep
 import feature.aiimport.model.AiWordImportUiState
-import kotlinx.coroutines.delay
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advanced
 import lexicon.resources.generated.resources.ai_wizard_continue
@@ -92,10 +76,6 @@ import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import utils.Language
 
-private const val GeneratingStepMillis = 2500L
-private val LevelBarWidth = 6.dp
-private val GeneratingRingSize = 120.dp
-
 // Font-scaled width below which topic cards stack in one column
 private val TwoColumnMinWidth = 300.dp
 
@@ -103,64 +83,59 @@ private val TwoColumnMinWidth = 300.dp
 private fun stepEyebrow(step: AiWordImportStep): String =
     stringResource(Res.string.step_of, step.ordinal + 1, AiWizardTotalSteps)
 
-/** The wizard keeps languages as display names; map them onto [Language] for code tiles and search. */
-private fun languagesFor(names: List<String>): List<Language> =
-    names.mapNotNull { name -> Language.entries.firstOrNull { it.displayName == name } }
-
 @Composable
 internal fun AiTargetLanguageStep(
-    languages: List<String>,
-    selected: String?,
-    onSelected: (String) -> Unit,
+    languages: List<Language>,
+    selected: Language?,
+    onSelected: (Language) -> Unit,
 ) {
-    val options = remember(languages) { languagesFor(languages) }
     ImportLanguageListPage(
         eyebrow = stepEyebrow(AiWordImportStep.TARGET_LANG),
         title = stringResource(Res.string.ai_wizard_target_title),
         highlight = stringResource(Res.string.ai_wizard_target_highlight),
         subtitle = stringResource(Res.string.ai_wizard_target_subtitle),
-        languages = options,
-        selected = options.firstOrNull { it.displayName == selected },
-        onLanguageSelected = { onSelected(it.displayName) },
+        languages = languages,
+        selected = selected,
+        onLanguageSelected = onSelected,
     )
 }
 
 @Composable
 internal fun AiNativeLanguageStep(
-    languages: List<String>,
-    selected: String?,
-    onSelected: (String) -> Unit,
+    languages: List<Language>,
+    selected: Language?,
+    onSelected: (Language) -> Unit,
 ) {
-    val options = remember(languages) { languagesFor(languages) }
     ImportLanguageListPage(
         eyebrow = stepEyebrow(AiWordImportStep.NATIVE_LANG),
         title = stringResource(Res.string.ai_wizard_native_title),
         highlight = stringResource(Res.string.ai_wizard_native_highlight),
         subtitle = stringResource(Res.string.ai_wizard_native_subtitle),
-        languages = options,
-        selected = options.firstOrNull { it.displayName == selected },
-        onLanguageSelected = { onSelected(it.displayName) },
+        languages = languages,
+        selected = selected,
+        onLanguageSelected = onSelected,
     )
 }
 
-private data class LevelOption(
-    val key: String,
-    val name: StringResource,
-    val description: StringResource,
-    val bars: Int,
-)
+internal val ProficiencyLevel.title: StringResource
+    get() = when (this) {
+        ProficiencyLevel.BEGINNER -> Res.string.beginner
+        ProficiencyLevel.INTERMEDIATE -> Res.string.intermediate
+        ProficiencyLevel.ADVANCED -> Res.string.advanced
+    }
 
-private val LevelOptions = listOf(
-    LevelOption("beginner", Res.string.beginner, Res.string.onboarding_beginner_desc, 1),
-    LevelOption("intermediate", Res.string.intermediate, Res.string.onboarding_intermediate_desc, 2),
-    LevelOption("advanced", Res.string.advanced, Res.string.onboarding_advanced_desc, 3),
-)
+private val ProficiencyLevel.description: StringResource
+    get() = when (this) {
+        ProficiencyLevel.BEGINNER -> Res.string.onboarding_beginner_desc
+        ProficiencyLevel.INTERMEDIATE -> Res.string.onboarding_intermediate_desc
+        ProficiencyLevel.ADVANCED -> Res.string.onboarding_advanced_desc
+    }
 
 @Composable
 internal fun AiLevelStep(
-    selectedLevel: String?,
+    selectedLevel: ProficiencyLevel?,
     error: String?,
-    onLevelSelected: (String) -> Unit,
+    onLevelSelected: (ProficiencyLevel) -> Unit,
     onContinue: () -> Unit,
 ) {
     SheetPage(
@@ -177,26 +152,26 @@ internal fun AiLevelStep(
         },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
-            LevelOptions.forEach { option ->
-                val selected = option.key == selectedLevel
+            ProficiencyLevel.entries.forEach { level ->
+                val selected = level == selectedLevel
                 SelectableCard(
                     selected = selected,
-                    onClick = { onLevelSelected(option.key) },
+                    onClick = { onLevelSelected(level) },
                     role = Role.RadioButton,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    LevelBars(filled = option.bars, selected = selected)
+                    LevelBars(filled = level.ordinal + 1, selected = selected)
                     Column(
                         modifier = Modifier.weight(1f).padding(vertical = Theme.spacing.xs),
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
                     ) {
                         Text(
-                            stringResource(option.name),
+                            stringResource(level.title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            stringResource(option.description),
+                            stringResource(level.description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -206,47 +181,6 @@ internal fun AiLevelStep(
             }
         }
         error?.let { ErrorMessage(it) }
-    }
-}
-
-@Composable
-private fun LevelBars(filled: Int, selected: Boolean) {
-    val accent = MaterialTheme.colorScheme.primary
-    val tile = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainerHigh
-    Row(
-        modifier = Modifier
-            .size(Theme.dimensions.touchTargetSmall + Theme.spacing.xxs)
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .background(tile)
-            .padding(bottom = Theme.spacing.sm - Theme.spacing.xxxs),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        listOf(10, 16, 22).forEachIndexed { index, height ->
-            Box(
-                modifier = Modifier
-                    .width(LevelBarWidth)
-                    .height(height.dp)
-                    .clip(CircleShape)
-                    .background(if (index < filled) accent else MaterialTheme.colorScheme.outlineVariant),
-            )
-        }
-    }
-}
-
-@Composable
-private fun RadioDot(selected: Boolean) {
-    val accent = MaterialTheme.colorScheme.primary
-    val ring by animateColorAsState(if (selected) accent else MaterialTheme.colorScheme.outline, label = "radio")
-    Box(
-        modifier = Modifier
-            .size(Theme.dimensions.iconSizeMedium + Theme.spacing.xxxs)
-            .border(Theme.spacing.xxxs, ring, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (selected) {
-            Box(Modifier.size(Theme.spacing.sm - Theme.spacing.xxxs).clip(CircleShape).background(accent))
-        }
     }
 }
 
@@ -352,131 +286,19 @@ private val GeneratingSteps = listOf(
     Res.string.generating_step_4,
 )
 
-/**
- * Shown while suggestions are generated. The checklist advances on a timer (the request has no
- * progress signal) and holds on the last step until the result arrives.
- */
+/** Shown while suggestions are generated. */
 @Composable
 internal fun AiGeneratingContent(state: AiWordImportUiState) {
-    var activeIndex by remember { mutableIntStateOf(0) }
-    LaunchedEffect(Unit) {
-        while (activeIndex < GeneratingSteps.lastIndex) {
-            delay(GeneratingStepMillis)
-            activeIndex++
-        }
-    }
     val summary = listOfNotNull(
-        state.selectedTargetLanguage,
-        state.selectedLevel?.replaceFirstChar { it.uppercase() },
+        state.selectedTargetLanguage?.displayName,
+        state.selectedLevel?.let { stringResource(it.title) },
         state.selectedTopics.takeIf { it.isNotEmpty() }?.joinToString(", "),
     ).joinToString(" · ")
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.xl, vertical = Theme.spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
-    ) {
-        Box(modifier = Modifier.size(GeneratingRingSize), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(GeneratingRingSize),
-                strokeWidth = Theme.spacing.xs,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            )
-            Box(
-                modifier = Modifier
-                    .size(Theme.dimensions.iconSizeMassive + Theme.spacing.xxs)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Default.AutoAwesome,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
-                )
-            }
-        }
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-        ) {
-            Text(
-                stringResource(Res.string.generating_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            if (summary.isNotEmpty()) {
-                Text(
-                    summary,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
-        ) {
-            GeneratingSteps.forEachIndexed { index, label ->
-                GeneratingStepRow(
-                    text = stringResource(label),
-                    done = index < activeIndex,
-                    active = index == activeIndex,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun GeneratingStepRow(text: String, done: Boolean, active: Boolean) {
-    val accent = MaterialTheme.colorScheme.primary
-    val idle = MaterialTheme.colorScheme.outlineVariant
-    val labelColor = if (done || active) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Theme.spacing.xs + Theme.spacing.xxxs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(Theme.dimensions.iconSize)
-                .clip(CircleShape)
-                .then(
-                    when {
-                        done -> Modifier.background(accent)
-                        active -> Modifier.border(Theme.spacing.xxxs, accent, CircleShape)
-                        else -> Modifier.border(Theme.spacing.xxxs, idle, CircleShape)
-                    }
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            when {
-                done -> Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeSmall - Theme.spacing.xxxs),
-                )
-                active -> Box(Modifier.size(Theme.spacing.xs).clip(CircleShape).background(accent))
-            }
-        }
-        Text(
-            text,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-            color = labelColor,
-        )
-    }
+    GeneratingProgress(
+        title = stringResource(Res.string.generating_title),
+        steps = GeneratingSteps.map { stringResource(it) },
+        summary = summary,
+        modifier = Modifier.padding(horizontal = Theme.spacing.xl, vertical = Theme.spacing.lg),
+    )
 }

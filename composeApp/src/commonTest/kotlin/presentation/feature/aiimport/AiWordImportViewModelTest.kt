@@ -3,7 +3,7 @@ package presentation.feature.aiimport
 import core.common.Try
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
-import domain.onboarding.model.SuggestedVocabularyResponse
+import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.repository.IOnboardingRepository
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
@@ -26,27 +26,27 @@ import fakes.FakeAnalyticsTracker
 import feature.aiimport.AiWordImportViewModel
 import feature.aiimport.model.AiWordImportEffect
 import feature.aiimport.model.AiWordImportStep
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 class AiWordImportViewModelTest : ViewModelTestBase() {
 
-    private var submitResult: Try<SuggestedVocabularyResponse> = Try.success(
-        SuggestedVocabularyResponse(
-            suggestedVocabulary = listOf(
-                SuggestedVocabulary("hola", "hello", "greeting", "es", "en"),
-                SuggestedVocabulary("gato", "cat", "animal", "es", "en")
-            ),
-            targetLanguage = "Spanish",
-            nativeLanguage = "English",
-            currentLevel = "beginner"
+    private var submitResult: Try<List<SuggestedVocabulary>> = Try.success(
+        listOf(
+            SuggestedVocabulary("hola", "hello", "greeting", Language.ENGLISH, Language.SPANISH),
+            SuggestedVocabulary("gato", "cat", "animal", Language.ENGLISH, Language.SPANISH),
         )
     )
     private var importResult: Try<Int> = Try.success(2)
+    private var submittedPreferences: OnboardingPreferences? = null
 
     private fun fakeOnboardingRepo() = object : IOnboardingRepository {
-        override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<SuggestedVocabularyResponse> = submitResult
+        override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<List<SuggestedVocabulary>> {
+            submittedPreferences = preferences
+            return submitResult
+        }
         override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(true)
         override suspend fun markOnboardingCompleted(): Try<Unit> = Try.success(Unit)
     }
@@ -137,9 +137,9 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
     @Test
     fun `submit with valid preferences moves to PREVIEW`() = runTest {
         val vm = createViewModel()
-        vm.selectTargetLanguage("Spanish")
-        vm.selectNativeLanguage("English")
-        vm.selectLevel("beginner")
+        vm.selectTargetLanguage(Language.SPANISH)
+        vm.selectNativeLanguage(Language.ENGLISH)
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
 
         vm.submit()
 
@@ -150,9 +150,36 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `submit sends the typed answers and selected topics`() = runTest {
+        val vm = createViewModel()
+        vm.selectTargetLanguage(Language.SPANISH)
+        vm.selectNativeLanguage(Language.ENGLISH)
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
+        vm.toggleTopic("Food")
+
+        vm.submit()
+
+        assertEquals(
+            OnboardingPreferences(Language.SPANISH, Language.ENGLISH, ProficiencyLevel.BEGINNER, listOf("Food")),
+            submittedPreferences,
+        )
+    }
+
+    @Test
+    fun `selectTargetLanguage when it equals the native language clears native`() {
+        val vm = createViewModel()
+        vm.selectTargetLanguage(Language.SPANISH)
+        vm.selectNativeLanguage(Language.ENGLISH)
+
+        vm.selectTargetLanguage(Language.ENGLISH)
+
+        assertEquals(null, vm.currentState.selectedNativeLanguage)
+    }
+
+    @Test
     fun `submit with missing selections does not advance`() = runTest {
         val vm = createViewModel()
-        vm.selectTargetLanguage("Spanish")
+        vm.selectTargetLanguage(Language.SPANISH)
         // Missing native language and level
 
         vm.submit()
@@ -165,9 +192,9 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
     fun `submit failure sets error`() = runTest {
         submitResult = Try.failure(RuntimeException("API error"))
         val vm = createViewModel()
-        vm.selectTargetLanguage("Spanish")
-        vm.selectNativeLanguage("English")
-        vm.selectLevel("beginner")
+        vm.selectTargetLanguage(Language.SPANISH)
+        vm.selectNativeLanguage(Language.ENGLISH)
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
 
         vm.submit()
 
@@ -178,9 +205,9 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
     @Test
     fun `toggleWordSelection adds and removes indices`() = runTest {
         val vm = createViewModel()
-        vm.selectTargetLanguage("Spanish")
-        vm.selectNativeLanguage("English")
-        vm.selectLevel("beginner")
+        vm.selectTargetLanguage(Language.SPANISH)
+        vm.selectNativeLanguage(Language.ENGLISH)
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
         vm.submit()
 
         // Initially all selected
@@ -194,9 +221,9 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
     @Test
     fun `importSelected emits ImportSuccess`() = runTest(UnconfinedTestDispatcher()) {
         val vm = createViewModel()
-        vm.selectTargetLanguage("Spanish")
-        vm.selectNativeLanguage("English")
-        vm.selectLevel("beginner")
+        vm.selectTargetLanguage(Language.SPANISH)
+        vm.selectNativeLanguage(Language.ENGLISH)
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
         vm.submit()
 
         vm.importSelected()
@@ -219,7 +246,7 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
     @Test
     fun `reset returns to initial state`() = runTest {
         val vm = createViewModel()
-        vm.selectTargetLanguage("Spanish")
+        vm.selectTargetLanguage(Language.SPANISH)
         vm.nextStep()
 
         vm.reset()

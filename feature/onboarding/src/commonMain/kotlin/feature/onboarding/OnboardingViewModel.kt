@@ -2,98 +2,121 @@ package feature.onboarding
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
-import domain.onboarding.model.OnboardingPreferences
+import core.base.BaseViewModel
 import core.common.onFailure
 import core.common.onSuccess
+import core.error.toUserMessage
+import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetLanguageUseCase
-import utils.Language
-import core.error.toUserMessage
-import kotlinx.coroutines.launch
-import core.base.BaseViewModel
+import feature.onboarding.model.DailyGoalOption
 import feature.onboarding.model.OnboardingEffect
+import feature.onboarding.model.OnboardingStep
+import feature.onboarding.model.OnboardingSubmission
 import feature.onboarding.model.OnboardingUiState
+import kotlinx.coroutines.launch
+import utils.Language
 
 class OnboardingViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
     private val setLanguageUseCase: SetLanguageUseCase,
     private val setDailyGoalWordsUseCase: SetDailyGoalWordsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    deviceLanguageProvider: DeviceLanguageProvider,
 ) : BaseViewModel<OnboardingUiState, OnboardingEffect>() {
 
     override fun initialState() = OnboardingUiState()
 
     init {
+        val code = deviceLanguageProvider.languageCode()?.lowercase()
+        val device = currentState.languages.firstOrNull { it.code == code }
+        updateState { copy(deviceLanguage = device, nativeLanguage = device) }
         analyticsTracker.logEvent("onboarding_started")
     }
 
-    fun selectTargetLanguage(language: String) {
-        updateState { copy(selectedTargetLanguage = language) }
-        analyticsTracker.logEvent("onboarding_language_selected", mapOf("type" to "target", "language" to language))
-    }
-
-    fun selectNativeLanguage(language: String) {
-        updateState { copy(selectedNativeLanguage = language) }
-        analyticsTracker.logEvent("onboarding_language_selected", mapOf("type" to "native", "language" to language))
-    }
-
-    fun selectLevel(level: String) {
-        updateState { copy(selectedLevel = level) }
-        analyticsTracker.logEvent("onboarding_level_selected", mapOf("level" to level))
-    }
-
-    fun selectDailyGoal(goal: Int) {
-        updateState { copy(selectedDailyGoal = goal) }
-    }
-
-    fun nextStep() {
+    fun selectTargetLanguage(language: Language) {
         updateState {
-            if (currentStep < totalSteps) {
-                copy(currentStep = currentStep + 1, error = null)
-            } else this
+            // The native language can't be the one being learned; fall back to the phone's language.
+            val native = nativeLanguage.takeIf { it != language } ?: deviceLanguage?.takeIf { it != language }
+            copy(targetLanguage = language, nativeLanguage = native)
         }
-        analyticsTracker.logEvent("onboarding_step_viewed", mapOf("step" to currentState.currentStep.toString()))
+        analyticsTracker.logEvent(
+            "onboarding_language_selected",
+            mapOf("type" to "target", "language" to language.displayName),
+        )
     }
 
-    fun previousStep() {
-        updateState {
-            if (currentStep > 1) {
-                copy(currentStep = currentStep - 1, error = null)
-            } else this
-        }
+    fun selectNativeLanguage(language: Language) {
+        updateState { copy(nativeLanguage = language) }
+        analyticsTracker.logEvent(
+            "onboarding_language_selected",
+            mapOf("type" to "native", "language" to language.displayName),
+        )
     }
 
-    fun submit() {
+    fun selectLevel(level: ProficiencyLevel) {
+        updateState { copy(level = level) }
+        analyticsTracker.logEvent("onboarding_level_selected", mapOf("level" to level.name.lowercase()))
+    }
+
+    fun selectDailyGoal(goal: DailyGoalOption) {
+        updateState { copy(dailyGoal = goal) }
+    }
+
+    /** Primary action of the current screen: advance, or submit after the last question. */
+    fun next() {
         val state = currentState
-        val targetLang = state.selectedTargetLanguage ?: return
-        val nativeLang = state.selectedNativeLanguage ?: return
-        val level = state.selectedLevel ?: return
+        if (!state.canContinue) return
+        if (state.step == OnboardingStep.DailyGoal) {
+            submit()
+            return
+        }
+        val nextStep = OnboardingStep.entries[state.step.ordinal + 1]
+        updateState { copy(step = nextStep) }
+        analyticsTracker.logEvent("onboarding_step_viewed", mapOf("step" to nextStep.questionNumber.toString()))
+    }
 
-        viewModelScope.launch {
-            updateState { copy(isLoading = true, error = null) }
-            val preferences = OnboardingPreferences(
-                targetLanguage = targetLang,
-                nativeLanguage = nativeLang,
-                level = level,
-                interests = state.interests
-            )
-            submitPreferencesUseCase(preferences)
-                .onSuccess { response ->
-                    setLanguageUseCase(Language.fromCodeOrName(targetLang))
-                    setDailyGoalWordsUseCase(state.selectedDailyGoal)
-                    updateState { copy(isLoading = false) }
-                    analyticsTracker.logEvent("onboarding_completed")
-                    emitEffect(OnboardingEffect.NavigateToPreview(response))
-                }
-                .onFailure { error ->
-                    updateState { copy(isLoading = false, error = error.toUserMessage()) }
-                }
+    /** Back arrow and system back. A failed submission is dismissed first; nothing happens while submitting. */
+    fun back() {
+        val state = currentState
+        when {
+            state.submission is OnboardingSubmission.Failed ->
+                updateState { copy(submission = OnboardingSubmission.Idle) }
+            state.submission == OnboardingSubmission.InProgress -> Unit
+            state.step != OnboardingStep.Welcome ->
+                updateState { copy(step = OnboardingStep.entries[step.ordinal - 1]) }
         }
     }
+
+    fun retry() = submit()
 
     fun skip() {
         analyticsTracker.logEvent("onboarding_skipped")
         emitEffect(OnboardingEffect.NavigateToMain)
+    }
+
+    private fun submit() {
+        val state = currentState
+        if (state.submission == OnboardingSubmission.InProgress) return
+        val target = state.targetLanguage ?: return
+        val native = state.nativeLanguage ?: return
+        val level = state.level ?: return
+
+        updateState { copy(submission = OnboardingSubmission.InProgress) }
+        viewModelScope.launch {
+            submitPreferencesUseCase(OnboardingPreferences(target, native, level))
+                .onSuccess { words ->
+                    setLanguageUseCase(target)
+                    setDailyGoalWordsUseCase(state.dailyGoal.words)
+                    analyticsTracker.logEvent("onboarding_completed")
+                    // Submission stays InProgress so the progress screen holds until navigation swaps it out.
+                    emitEffect(OnboardingEffect.NavigateToPreview(words))
+                }
+                .onFailure { error ->
+                    updateState { copy(submission = OnboardingSubmission.Failed(error.toUserMessage())) }
+                }
+        }
     }
 }

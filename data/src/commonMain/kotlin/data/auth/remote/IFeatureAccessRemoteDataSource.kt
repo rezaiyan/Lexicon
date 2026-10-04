@@ -11,10 +11,12 @@ interface IFeatureAccessRemoteDataSource {
     suspend fun syncWithStore(): Try<FeatureAccessResponse>
 
     /**
-     * Refetches feature access unless the cached value is still fresh. On failure the cached
-     * value is kept, so a flaky network never downgrades an open session.
+     * Refetches feature access unless the cached value is still fresh, or always with [force]
+     * (the server told us it changed). On failure the cached value is kept, so a flaky network
+     * never downgrades an open session.
      */
-    suspend fun refresh(): Try<Unit>
+    suspend fun refresh(force: Boolean = false): Try<Unit>
 
-    fun clearCache()
+    /** Forgets the cached access in memory and on the device (logout, account deletion). */
+    suspend fun clearCache()
 }

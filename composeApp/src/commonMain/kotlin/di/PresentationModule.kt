@@ -72,6 +72,7 @@ fun presentationModule() = module {
             retryAnalyticsSyncUseCase = get<RetryAnalyticsSyncUseCase>(),
             determineAppStartupStateUseCase = get(),
             determinePostAuthDestinationUseCase = get(),
+            importSuggestedVocabularyUseCase = get(),
         )
     }
 

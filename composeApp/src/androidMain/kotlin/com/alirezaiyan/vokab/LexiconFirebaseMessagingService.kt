@@ -48,6 +48,21 @@ class LexiconFirebaseMessagingService : FirebaseMessagingService() {
             data = message.data
         )
 
+        // Data-only messages are silent signals (e.g. "subscription changed, refetch"):
+        // handle them, never display an empty notification for them.
+        if (message.notification == null) {
+            notificationHandler.processNotificationAsync(
+                category = notificationData.category,
+                onShouldShow = {
+                    payloadHandlerRegistry.handle(notificationData.type, notificationData.body, notificationData.data)
+                },
+                onShouldSkip = {
+                    Log.d(TAG, "Skipping silent message - not authenticated. Type: ${notificationData.type}")
+                },
+            )
+            return
+        }
+
         notificationHandler.processNotificationAsync(
             category = notificationData.category,
             onShouldShow = {

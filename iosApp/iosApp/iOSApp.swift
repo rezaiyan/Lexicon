@@ -231,6 +231,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
 
+        // Silent signal ("subscription changed, refetch"): do the work, display nothing
+        if userInfo["type"] as? String == "subscription_updated" {
+            MainViewControllerKt.handleSilentPush(type: "subscription_updated") {
+                completionHandler(.newData)
+            }
+            return
+        }
+
         // Extract notification title and body from userInfo or aps payload
         var title = "Lexicon"
         var body = ""
@@ -372,7 +380,10 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         // Any interaction except dismissal counts as an open for the backend's engagement tracking
         if actionIdentifier != UNNotificationDismissActionIdentifier {
-            MainViewControllerKt.notifyNotificationTapped(notificationLogId: userInfo["notification_log_id"] as? String)
+            MainViewControllerKt.notifyNotificationTapped(
+                notificationLogId: userInfo["notification_log_id"] as? String,
+                type: userInfo["type"] as? String
+            )
         }
         
         // Handle action buttons

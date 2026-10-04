@@ -10,6 +10,9 @@ interface ISubscriptionAccessRepository {
      */
     suspend fun syncWithServer(): Try<Unit>
 
-    /** Re-reads premium from the backend if the cached value is stale. Keeps the old value on failure. */
-    suspend fun refresh(): Try<Unit>
+    /**
+     * Re-reads premium from the backend if the cached value is stale, or always with [force].
+     * Keeps the old value on failure.
+     */
+    suspend fun refresh(force: Boolean = false): Try<Unit>
 }

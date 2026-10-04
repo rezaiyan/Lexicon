@@ -24,7 +24,13 @@ interface ISubscriptionManager {
 
     fun getCurrentCustomerInfo(): SubscriptionCustomerInfo?
 
-    suspend fun manageSubscription(): Try<Unit>
+    /**
+     * Fetches the customer from the store, bypassing any cache, and publishes it to [customerInfo].
+     * Store-side changes (e.g. a cancel in Google Play) aren't pushed to the device, so call this
+     * when the user returns from the store.
+     */
+    suspend fun refreshCustomerInfo(): Try<SubscriptionCustomerInfo>
 
-    suspend fun cancelSubscription(): Try<Unit>
+    /** Opens the store's subscription page — the only place users can cancel or resubscribe. */
+    suspend fun manageSubscription(): Try<Unit>
 }

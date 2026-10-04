@@ -140,8 +140,9 @@ class AuthViewModelTest : ViewModelTestBase() {
         override suspend fun logIn(userId: String): Try<SubscriptionCustomerInfo> = Try.success(SubscriptionCustomerInfo(emptyMap()))
         override suspend fun logOut(): Try<SubscriptionCustomerInfo> = Try.success(SubscriptionCustomerInfo(emptyMap()))
         override fun getCurrentCustomerInfo(): SubscriptionCustomerInfo? = null
+        override suspend fun refreshCustomerInfo(): Try<SubscriptionCustomerInfo> =
+            Try.success(SubscriptionCustomerInfo(emptyMap()))
         override suspend fun manageSubscription(): Try<Unit> = Try.success(Unit)
-        override suspend fun cancelSubscription(): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeAnalytics() = object : IAnalyticsTracker {

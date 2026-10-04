@@ -1,170 +1,137 @@
 package feature.subscription.ui
 
-import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import core.getPlatformName
-import domain.subscription.model.SubscriptionCustomerInfo
-import domain.subscription.model.SubscriptionPackage
-import org.jetbrains.compose.resources.stringResource
-import core.common.UiState
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import components.scaffold.LexiconColumn
+import core.common.UiState
+import events.OnEvents
+import feature.subscription.SubscriptionViewModel
+import feature.subscription.model.SubscriptionContent
+import feature.subscription.model.SubscriptionEffect
+import feature.subscription.model.SubscriptionScreenState
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.manage_subscription_app_store
-import lexicon.resources.generated.resources.manage_subscription_device_settings
-import lexicon.resources.generated.resources.manage_subscription_google_play
 import lexicon.resources.generated.resources.no_purchases_to_restore
 import lexicon.resources.generated.resources.purchase_failed
 import lexicon.resources.generated.resources.purchases_restored_success
 import lexicon.resources.generated.resources.restore_purchases_failed
 import lexicon.resources.generated.resources.subscription
-import lexicon.resources.generated.resources.subscription_cancelled
 import lexicon.resources.generated.resources.subscription_info_unavailable
 import lexicon.resources.generated.resources.subscription_load_failed
 import lexicon.resources.generated.resources.subscription_screen_title
 import lexicon.resources.generated.resources.web_subscriptions_not_available
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+
+/** Stateful entry: wires the ViewModel, one-shot messages and store-return refresh. */
+@Composable
+fun SubscriptionScreen(
+    snackbarHostState: SnackbarHostState,
+    onNavigateBack: () -> Unit,
+    viewModel: SubscriptionViewModel = koinViewModel(),
+) {
+    val state by viewModel.state()
+
+    OnEvents(viewModel.effects) { effect ->
+        snackbarHostState.showSnackbar(effect.message())
+    }
+
+    // Coming back from the store page is a resume; that's when a cancel or resubscribe shows up.
+    LifecycleResumeEffect(viewModel) {
+        viewModel.onResume()
+        onPauseOrDispose { }
+    }
+
+    SubscriptionScreen(
+        state = state,
+        actions = SubscriptionActions(
+            onSelectPlan = viewModel::selectPlan,
+            onPurchase = viewModel::purchaseSelectedPlan,
+            onRestore = viewModel::restorePurchases,
+            onRetry = viewModel::retry,
+            onManage = viewModel::manageSubscription,
+        ),
+        onNavigateBack = onNavigateBack,
+    )
+}
+
+@Immutable
+data class SubscriptionActions(
+    val onSelectPlan: (String) -> Unit,
+    val onPurchase: () -> Unit,
+    val onRestore: () -> Unit,
+    val onRetry: () -> Unit,
+    /** Opens the store page, where users cancel, resubscribe or change plan. */
+    val onManage: () -> Unit,
+)
 
 @Composable
 fun SubscriptionScreen(
-    state: UiState<SubscriptionData>,
-    isPurchasing: Boolean,
-    errorMessage: String?,
-    successMessage: String?,
-    actions: SubscriptionScreenActions,
-    snackbarHostState: androidx.compose.material3.SnackbarHostState,
-    onNavigateBack: () -> Unit
+    state: SubscriptionScreenState,
+    actions: SubscriptionActions,
+    onNavigateBack: () -> Unit,
 ) {
-    val localizedErrorMessage = errorMessage?.let { getLocalizedErrorMessage(it) }
-    val localizedSuccessMessage = successMessage?.let { getLocalizedSuccessMessage(it) }
-
-    LaunchedEffect(localizedErrorMessage) {
-        localizedErrorMessage?.let { message ->
-            snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Short
-            )
-            actions.onDismissError()
-        }
-    }
-
-    LaunchedEffect(localizedSuccessMessage) {
-        localizedSuccessMessage?.let { message ->
-            snackbarHostState.showSnackbar(
-                message = message,
-                duration = SnackbarDuration.Short
-            )
-            actions.onDismissSuccess()
-        }
+    val content = state.content
+    val isMember = (content as? UiState.Loaded)?.value.let {
+        it is SubscriptionContent.Member || it is SubscriptionContent.Paused
     }
 
     LexiconColumn(
-        title = if ((state as? UiState.Loaded)?.value?.isSubscribed == true) {
-            stringResource(Res.string.subscription)
-        } else {
-            stringResource(Res.string.subscription_screen_title)
-        },
+        title = stringResource(if (isMember) Res.string.subscription else Res.string.subscription_screen_title),
         showNavigationIcon = true,
         onNavigationClick = onNavigateBack,
-        scrollable = true
+        scrollable = true,
     ) {
-        when (state) {
-            is UiState.Loading -> {
-                SubscriptionLoadingContent()
-            }
-
-            is UiState.Error -> {
-                SubscriptionErrorContent(
-                    errorMessage = getLocalizedErrorMessage(state.message),
-                    onRetryClick = actions.onRetryClick
+        when (content) {
+            UiState.Loading -> SubscriptionLoadingContent()
+            is UiState.Error -> SubscriptionErrorContent(
+                errorMessage = localizedMessage(content.message),
+                onRetryClick = actions.onRetry,
+            )
+            is UiState.Loaded -> when (val value = content.value) {
+                is SubscriptionContent.Member -> SubscriptionActiveContent(
+                    membership = value.membership,
+                    onManage = actions.onManage,
+                )
+                is SubscriptionContent.Paused -> SubscriptionPausedContent(
+                    resumesOn = value.resumesOn,
+                    daysLeft = value.daysLeft,
+                    onResume = actions.onManage,
+                )
+                is SubscriptionContent.Paywall -> SubscriptionNotSubscribedContent(
+                    plans = value.plans,
+                    selectedPlanId = state.selectedPlanId,
+                    isPurchasing = state.isPurchasing,
+                    onSelectPlan = actions.onSelectPlan,
+                    onPurchase = actions.onPurchase,
+                    onRestoreClick = actions.onRestore,
                 )
             }
-
-            is UiState.Loaded -> {
-                val subscriptionData = state.value
-                if (subscriptionData.isSubscribed) {
-                    SubscriptionActiveContent(
-                        customerInfo = subscriptionData.customerInfo,
-                        formattedExpirationDate = subscriptionData.formattedExpirationDate,
-                        willRenew = subscriptionData.willRenew,
-                        expirationDateMillis = subscriptionData.expirationDateMillis,
-                        isInTrial = subscriptionData.isInTrial,
-                        onManageSubscription = actions.onManageSubscription
-                            .takeIf { subscriptionData.hasStoreSubscription },
-                        onCancelSubscription = actions.onCancelSubscription
-                            ?.takeIf { subscriptionData.hasStoreSubscription && subscriptionData.willRenew }
-                    )
-                } else {
-                    SubscriptionNotSubscribedContent(
-                        packages = subscriptionData.packages,
-                        isPurchasing = isPurchasing,
-                        onPurchaseClick = actions.onPurchaseClick,
-                        onRestoreClick = actions.onRestoreClick
-                    )
-                }
-            }
         }
     }
 }
 
-
-
-data class SubscriptionData(
-    val packages: List<SubscriptionPackage>,
-    /** Premium from any source: store purchase or a backend grant. */
-    val isSubscribed: Boolean,
-    /** Premium comes from a store purchase on this account, so the store can manage it. */
-    val hasStoreSubscription: Boolean = isSubscribed,
-    val customerInfo: SubscriptionCustomerInfo?,
-    val formattedExpirationDate: String? = null,
-    val willRenew: Boolean = true,
-    val expirationDateMillis: Long? = null,
-    val isInTrial: Boolean = false,
-)
-
-data class SubscriptionScreenActions(
-    val onPurchaseClick: (SubscriptionPackage) -> Unit,
-    val onRestoreClick: () -> Unit,
-    val onRetryClick: () -> Unit,
-    val onDismissError: () -> Unit,
-    val onDismissSuccess: () -> Unit,
-    val onManageSubscription: () -> Unit,
-    val onCancelSubscription: (() -> Unit)? = null
-)
-
-@Composable
-internal fun getLocalizedErrorMessage(error: String): String {
-    return when (error) {
-        "SUBSCRIPTION_LOAD_FAILED" -> stringResource(Res.string.subscription_load_failed)
-        "PURCHASE_FAILED" -> stringResource(Res.string.purchase_failed)
-        "NO_PURCHASES_TO_RESTORE" -> stringResource(Res.string.no_purchases_to_restore)
-        "RESTORE_PURCHASES_FAILED" -> stringResource(Res.string.restore_purchases_failed)
-        "SUBSCRIPTION_INFO_UNAVAILABLE" -> stringResource(Res.string.subscription_info_unavailable)
-        "WEB_SUBSCRIPTIONS_NOT_AVAILABLE" -> stringResource(Res.string.web_subscriptions_not_available)
-        "CANCEL_SUBSCRIPTION_FAILED" -> stringResource(Res.string.subscription_cancelled)
-        else -> error
-    }
+private suspend fun SubscriptionEffect.message(): String = when (this) {
+    SubscriptionEffect.PurchasesRestored -> getString(Res.string.purchases_restored_success)
+    SubscriptionEffect.NothingToRestore -> getString(Res.string.no_purchases_to_restore)
+    is SubscriptionEffect.Failure -> messageKeyResource(message)?.let { getString(it) } ?: message
 }
 
 @Composable
-internal fun getLocalizedSuccessMessage(message: String): String {
-    return when (message) {
-        "PURCHASES_RESTORED_SUCCESS" -> stringResource(Res.string.purchases_restored_success)
-        "MANAGE_SUBSCRIPTION_DEVICE_SETTINGS" -> {
-            val platform = getPlatformName()
-            when (platform) {
-                "Android" -> stringResource(Res.string.manage_subscription_google_play)
-                "iOS" -> stringResource(Res.string.manage_subscription_app_store)
-                else -> stringResource(Res.string.manage_subscription_device_settings)
-            }
-        }
-        "SUBSCRIPTION_MANAGEMENT_OPENED" -> {
-            val platform = getPlatformName()
-            when (platform) {
-                "Android" -> stringResource(Res.string.manage_subscription_google_play)
-                "iOS" -> stringResource(Res.string.manage_subscription_app_store)
-                else -> stringResource(Res.string.manage_subscription_device_settings)
-            }
-        }
-        else -> message
-    }
+internal fun localizedMessage(message: String): String =
+    messageKeyResource(message)?.let { stringResource(it) } ?: message
+
+/** Maps the message keys the data layer reports to localized strings; other text passes through. */
+private fun messageKeyResource(key: String): StringResource? = when (key) {
+    "SUBSCRIPTION_LOAD_FAILED" -> Res.string.subscription_load_failed
+    "PURCHASE_FAILED" -> Res.string.purchase_failed
+    "NO_PURCHASES_TO_RESTORE" -> Res.string.no_purchases_to_restore
+    "RESTORE_PURCHASES_FAILED" -> Res.string.restore_purchases_failed
+    "SUBSCRIPTION_INFO_UNAVAILABLE" -> Res.string.subscription_info_unavailable
+    "WEB_SUBSCRIPTIONS_NOT_AVAILABLE" -> Res.string.web_subscriptions_not_available
+    else -> null
 }

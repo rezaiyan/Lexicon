@@ -1,29 +1,33 @@
 package feature.onboarding
 
 import core.base.BaseViewModel
+import domain.onboarding.model.SuggestedVocabulary
 import feature.onboarding.model.VocabularyPreviewEffect
 import feature.onboarding.model.VocabularyPreviewUiState
 
-class VocabularyPreviewViewModel : BaseViewModel<VocabularyPreviewUiState, VocabularyPreviewEffect>() {
+/** Starter words built from the onboarding answers: add them all, or start with an empty list. */
+class VocabularyPreviewViewModel(
+    words: List<SuggestedVocabulary>,
+) : BaseViewModel<VocabularyPreviewUiState, VocabularyPreviewEffect>() {
 
     override fun initialState() = VocabularyPreviewUiState()
 
-    fun setWords(words: List<domain.onboarding.model.SuggestedVocabulary>) {
+    init {
+        val first = words.firstOrNull()
         updateState {
             copy(
                 words = words,
-                selectedIndices = words.indices.toSet()
+                learningLanguage = first?.targetLanguage,
+                nativeLanguage = first?.sourceLanguage,
             )
         }
     }
 
-    fun proceedWithSelected() {
-        val state = currentState
-        val selectedWords = state.selectedIndices.map { state.words[it] }
-        emitEffect(VocabularyPreviewEffect.ProceedWithSelection(selectedWords))
+    fun addWords() {
+        emitEffect(VocabularyPreviewEffect.AddWords(currentState.words))
     }
 
-    fun skip() {
-        emitEffect(VocabularyPreviewEffect.SkipVocabulary)
+    fun startEmpty() {
+        emitEffect(VocabularyPreviewEffect.StartEmpty)
     }
 }

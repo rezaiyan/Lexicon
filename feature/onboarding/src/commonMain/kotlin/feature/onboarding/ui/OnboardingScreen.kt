@@ -2,179 +2,173 @@ package feature.onboarding.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.back
-import org.jetbrains.compose.resources.stringResource
+import androidx.compose.ui.unit.IntOffset
+import domain.onboarding.model.ProficiencyLevel
+import expects.BackHandler
+import feature.onboarding.model.DailyGoalOption
+import feature.onboarding.model.OnboardingStep
+import feature.onboarding.model.OnboardingSubmission
 import feature.onboarding.model.OnboardingUiState
-import feature.onboarding.ui.components.OnboardingIntroContent
-import feature.onboarding.ui.components.OnboardingStep1Content
-import feature.onboarding.ui.components.OnboardingStep2Content
-import feature.onboarding.ui.components.OnboardingStep3Content
-import feature.onboarding.ui.components.OnboardingStep4Content
-import theme.Theme
+import feature.onboarding.ui.components.DailyGoalQuestion
+import feature.onboarding.ui.components.LevelQuestion
+import feature.onboarding.ui.components.NativeLanguageQuestion
+import feature.onboarding.ui.components.OnboardingBuildFailed
+import feature.onboarding.ui.components.OnboardingBuilding
+import feature.onboarding.ui.components.OnboardingPrimaryFooter
+import feature.onboarding.ui.components.OnboardingTopBar
+import feature.onboarding.ui.components.OnboardingWelcome
+import feature.onboarding.ui.components.TargetLanguageQuestion
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.advanced
+import lexicon.resources.generated.resources.beginner
+import lexicon.resources.generated.resources.intermediate
+import lexicon.resources.generated.resources.onboarding_build_word_list
+import lexicon.resources.generated.resources.onboarding_continue
+import lexicon.resources.generated.resources.onboarding_words_a_day_short
+import org.jetbrains.compose.resources.stringResource
+import utils.Language
 
-private const val OnboardingTransitionDuration = 300
+private const val StepTransitionMillis = 300
+
+/** Which of the three onboarding layouts is on screen. */
+private enum class OnboardingLayout { Welcome, Questions, Building }
+
+private val OnboardingUiState.layout: OnboardingLayout
+    get() = when {
+        submission != OnboardingSubmission.Idle -> OnboardingLayout.Building
+        step == OnboardingStep.Welcome -> OnboardingLayout.Welcome
+        else -> OnboardingLayout.Questions
+    }
 
 @Composable
 fun OnboardingScreen(
     state: OnboardingUiState,
-    onTargetLanguageSelected: (String) -> Unit,
-    onNativeLanguageSelected: (String) -> Unit,
-    onLevelSelected: (String) -> Unit,
-    onDailyGoalSelected: (Int) -> Unit,
-    onNextStep: () -> Unit,
-    onPreviousStep: () -> Unit,
-    onSubmit: () -> Unit,
-    onSkip: () -> Unit
+    onTargetLanguageSelected: (Language) -> Unit,
+    onNativeLanguageSelected: (Language) -> Unit,
+    onLevelSelected: (ProficiencyLevel) -> Unit,
+    onDailyGoalSelected: (DailyGoalOption) -> Unit,
+    onNext: () -> Unit,
+    onBack: () -> Unit,
+    onRetry: () -> Unit,
+    onSkip: () -> Unit,
 ) {
-    val spacing = Theme.spacing
-    val dimensions = Theme.dimensions
+    BackHandler(enabled = state.layout != OnboardingLayout.Welcome, onBack = onBack)
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-            .navigationBarsPadding()
-    ) {
-        // Segmented step progress — only shown for actual steps (not intro)
-        if (state.currentStep > 0) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = spacing.lg, vertical = spacing.xs),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(spacing.xs)
-            ) {
-                if (state.currentStep > 1) {
-                    IconButton(
-                        onClick = onPreviousStep,
-                        enabled = !state.isLoading,
-                        modifier = Modifier.size(dimensions.touchTargetSmall)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.back),
-                            tint = if (state.isLoading)
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            else
-                                MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                } else {
-                    Spacer(modifier = Modifier.size(dimensions.touchTargetSmall))
-                }
-
-                // Animated pill segments
-                Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(spacing.xxs)
-                ) {
-                    repeat(state.totalSteps) { index ->
-                        val filled = index < state.currentStep
-                        val segmentColor by animateColorAsState(
-                            targetValue = if (filled) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant,
-                            animationSpec = tween(300),
-                            label = "segment_$index"
-                        )
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(spacing.xxs)
-                                .clip(RoundedCornerShape(spacing.xxxs))
-                                .background(segmentColor)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.size(dimensions.touchTargetSmall))
-            }
-        }
-
-        AnimatedContent(
-            targetState = state.currentStep,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            transitionSpec = {
-                val forward = targetState > initialState
-                ContentTransform(
-                    targetContentEnter = slideInHorizontally(
-                        animationSpec = tween(OnboardingTransitionDuration),
-                        initialOffsetX = { if (forward) it else -it }
-                    ) + fadeIn(animationSpec = tween(OnboardingTransitionDuration)),
-                    initialContentExit = slideOutHorizontally(
-                        animationSpec = tween(OnboardingTransitionDuration),
-                        targetOffsetX = { if (forward) -it else it }
-                    ) + fadeOut(animationSpec = tween(OnboardingTransitionDuration))
+    AnimatedContent(
+        targetState = state.layout,
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        transitionSpec = { fadeIn(tween(StepTransitionMillis)) togetherWith fadeOut(tween(StepTransitionMillis)) },
+        label = "onboarding_layout",
+    ) { layout ->
+        when (layout) {
+            OnboardingLayout.Welcome -> OnboardingWelcome(onGetStarted = onNext, onSkip = onSkip)
+            OnboardingLayout.Questions -> OnboardingQuestions(
+                state = state,
+                onTargetLanguageSelected = onTargetLanguageSelected,
+                onNativeLanguageSelected = onNativeLanguageSelected,
+                onLevelSelected = onLevelSelected,
+                onDailyGoalSelected = onDailyGoalSelected,
+                onNext = onNext,
+                onBack = onBack,
+                onSkip = onSkip,
+            )
+            OnboardingLayout.Building -> when (val submission = state.submission) {
+                is OnboardingSubmission.Failed -> OnboardingBuildFailed(
+                    message = submission.message,
+                    onRetry = onRetry,
+                    onStartEmpty = onSkip,
                 )
-            },
-            label = "onboarding_step"
-        ) { step ->
-            when (step) {
-                0 -> OnboardingIntroContent(
-                    onContinue = onNextStep,
-                    onSkip = onSkip
-                )
-
-                1 -> OnboardingStep1Content(
-                    state = state,
-                    onTargetLanguageSelected = onTargetLanguageSelected,
-                    onNextStep = onNextStep,
-                    onSkip = onSkip
-                )
-
-                2 -> OnboardingStep2Content(
-                    state = state,
-                    onNativeLanguageSelected = onNativeLanguageSelected,
-                    onNextStep = onNextStep,
-                    onSkip = onSkip
-                )
-
-                3 -> OnboardingStep3Content(
-                    state = state,
-                    onLevelSelected = onLevelSelected,
-                    onNextStep = onNextStep,
-                    onBack = onPreviousStep
-                )
-
-                else -> OnboardingStep4Content(
-                    state = state,
-                    onDailyGoalSelected = onDailyGoalSelected,
-                    onSubmit = onSubmit,
-                    onBack = onPreviousStep
-                )
+                else -> OnboardingBuilding(summary = answersSummary(state))
             }
         }
     }
+}
+
+@Composable
+private fun OnboardingQuestions(
+    state: OnboardingUiState,
+    onTargetLanguageSelected: (Language) -> Unit,
+    onNativeLanguageSelected: (Language) -> Unit,
+    onLevelSelected: (ProficiencyLevel) -> Unit,
+    onDailyGoalSelected: (DailyGoalOption) -> Unit,
+    onNext: () -> Unit,
+    onBack: () -> Unit,
+    onSkip: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        OnboardingTopBar(step = state.step, onBack = onBack, onSkip = onSkip)
+        AnimatedContent(
+            targetState = state.step,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            transitionSpec = {
+                val direction = if (targetState > initialState) 1 else -1
+                val slide = tween<IntOffset>(StepTransitionMillis)
+                val fade = tween<Float>(StepTransitionMillis)
+                ContentTransform(
+                    targetContentEnter = slideInHorizontally(slide) { it * direction } + fadeIn(fade),
+                    initialContentExit = slideOutHorizontally(slide) { -it * direction } + fadeOut(fade),
+                )
+            },
+            label = "onboarding_step",
+        ) { step ->
+            when (step) {
+                OnboardingStep.TargetLanguage -> TargetLanguageQuestion(
+                    languages = state.languages,
+                    selected = state.targetLanguage,
+                    onSelected = onTargetLanguageSelected,
+                )
+                OnboardingStep.NativeLanguage -> NativeLanguageQuestion(
+                    suggestion = state.nativeSuggestion,
+                    others = state.otherNativeLanguages,
+                    selected = state.nativeLanguage,
+                    onSelected = onNativeLanguageSelected,
+                )
+                OnboardingStep.Level -> LevelQuestion(selected = state.level, onSelected = onLevelSelected)
+                OnboardingStep.DailyGoal -> DailyGoalQuestion(
+                    selected = state.dailyGoal,
+                    monthlyWords = state.monthlyWords,
+                    onSelected = onDailyGoalSelected,
+                )
+                // Welcome has its own layout and never reaches this content
+                OnboardingStep.Welcome -> Unit
+            }
+        }
+        OnboardingPrimaryFooter(
+            text = stringResource(
+                if (state.step == OnboardingStep.DailyGoal) Res.string.onboarding_build_word_list
+                else Res.string.onboarding_continue
+            ),
+            enabled = state.canContinue,
+            onClick = onNext,
+        )
+    }
+}
+
+/** "German · Intermediate · 10 a day" */
+@Composable
+private fun answersSummary(state: OnboardingUiState): String {
+    val level = when (state.level) {
+        ProficiencyLevel.BEGINNER -> stringResource(Res.string.beginner)
+        ProficiencyLevel.INTERMEDIATE -> stringResource(Res.string.intermediate)
+        ProficiencyLevel.ADVANCED -> stringResource(Res.string.advanced)
+        null -> null
+    }
+    return listOfNotNull(
+        state.targetLanguage?.displayName,
+        level,
+        stringResource(Res.string.onboarding_words_a_day_short, state.dailyGoal.words),
+    ).joinToString(" · ")
 }

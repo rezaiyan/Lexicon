@@ -20,7 +20,8 @@ object WeeklyReportFormatter {
         bestDay = report.bestDay?.let { day ->
             BestDayUiModel(
                 dayName = day.dayName,
-                subtitle = "${day.cardsReviewed} cards \u2014 ${LexiconFormatters.percent(day.accuracyPercent)} accuracy",
+                subtitle = "${day.cardsReviewed} cards \u2014 " +
+                    "${LexiconFormatters.percent(day.accuracyPercent)} accuracy",
             )
         },
         showInsightsCta = report.cardsReviewed > 0,

@@ -1,5 +1,7 @@
 package di
 
+import data.auth.local.FeatureAccessLocalDataSourceImpl
+import data.auth.local.IFeatureAccessLocalDataSource
 import data.auth.refresh.ITokenRefreshManager
 import data.auth.refresh.TokenRefreshManager
 import data.auth.remote.AuthDataSource
@@ -25,6 +27,7 @@ import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.subscription.ISubscriptionAccessRepository
 import domain.subscription.usecase.RefreshFeatureAccessUseCase
+import domain.subscription.usecase.RefreshSubscriptionStateUseCase
 import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
 import data.subscription.SubscriptionAccessRepositoryImpl
 import domain.auth.usecase.HandleLoginSuccessUseCase
@@ -63,8 +66,9 @@ fun authModule(backendUrl: String) = module {
     single<IAuthDataSource> {
         AuthDataSource(backendUrl, get<HttpClient>())
     }
+    single<IFeatureAccessLocalDataSource> { FeatureAccessLocalDataSourceImpl(queries = get()) }
     single<IFeatureAccessRemoteDataSource> {
-        FeatureAccessRemoteDataSource(apiClient = get(), featureFlagProvider = get())
+        FeatureAccessRemoteDataSource(apiClient = get(), featureFlagProvider = get(), localCache = get())
     }
 
     // Repositories
@@ -96,6 +100,7 @@ fun authModule(backendUrl: String) = module {
     singleOf(::GetFeatureAccessUseCase)
     factoryOf(::SyncSubscriptionWithServerUseCase)
     factoryOf(::RefreshFeatureAccessUseCase)
+    factoryOf(::RefreshSubscriptionStateUseCase)
 
     // Use Cases - Authentication
     singleOf(::LoginWithGoogleUseCase)

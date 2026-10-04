@@ -30,6 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ProfileViewModelTest : ViewModelTestBase() {
 
@@ -211,14 +212,46 @@ class ProfileViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `subscriptionStatus when store premium will not renew is Cancelling`() = runTest {
+    fun `subscriptionStatus when store premium will not renew is Canceled with end date`() = runTest {
         val access = UserFeatureAccess(
             hasPremiumAccess = true,
             source = "STORE",
-            expiresAt = "2030-01-01T00:00:00Z",
+            expiresAt = "2030-01-01T12:00:00Z",
             willRenew = false,
         )
-        assertEquals(ProfileSubscriptionStatus.Cancelling, loadedStatus(access))
+        val status = assertIs<ProfileSubscriptionStatus.Canceled>(loadedStatus(access))
+        assertTrue(status.accessUntil.contains("2030"))
+    }
+
+    @Test
+    fun `subscriptionStatus when renewal payment failed is PaymentIssue not Canceled`() = runTest {
+        val access = UserFeatureAccess(
+            hasPremiumAccess = true,
+            source = "STORE",
+            expiresAt = "2030-01-01T12:00:00Z",
+            willRenew = false,
+            hasBillingIssue = true,
+        )
+        assertEquals(ProfileSubscriptionStatus.PaymentIssue, loadedStatus(access))
+    }
+
+    @Test
+    fun `subscriptionStatus when paused is Paused with resume date`() = runTest {
+        val access = UserFeatureAccess(hasPremiumAccess = false, pauseResumesAt = "2030-02-01T12:00:00Z")
+        val status = assertIs<ProfileSubscriptionStatus.Paused>(loadedStatus(access))
+        assertTrue(status.resumesOn.contains("2030"))
+    }
+
+    @Test
+    fun `subscriptionStatus when trial is canceled is Canceled not Trial`() = runTest {
+        val access = UserFeatureAccess(
+            hasPremiumAccess = true,
+            source = "STORE",
+            expiresAt = "2030-01-01T12:00:00Z",
+            willRenew = false,
+            isTrial = true,
+        )
+        assertIs<ProfileSubscriptionStatus.Canceled>(loadedStatus(access))
     }
 
     @Test

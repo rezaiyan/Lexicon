@@ -47,7 +47,7 @@ data class SettingsState(
 
 @Suppress("LongParameterList")
 class SettingsViewModel(
-    private val notificationRepository: INotificationRepository,
+    notificationRepository: INotificationRepository,
     private val setLanguageUseCase: SetLanguageUseCase,
     private val setThemeModeUseCase: SetThemeModeUseCase,
     private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase,
@@ -61,7 +61,7 @@ class SettingsViewModel(
     private val downloadTtsModelUseCase: DownloadTtsModelUseCase,
     private val setTtsSpeechRateUseCase: SetTtsSpeechRateUseCase,
     private val setTtsVoiceUseCase: SetTtsVoiceUseCase,
-    private val getDailyGoalWordsUseCase: GetDailyGoalWordsUseCase,
+    getDailyGoalWordsUseCase: GetDailyGoalWordsUseCase,
     private val setDailyGoalWordsUseCase: SetDailyGoalWordsUseCase,
     settingsRepository: ISettingsRepository,
     authRepository: IAuthRepository,
@@ -79,10 +79,24 @@ class SettingsViewModel(
             )
 
     init {
-        initializeNotificationState()
+        viewModelScope.launch {
+            // Mirror a revoked system permission into the in-app toggle before the first refresh.
+            val systemEnabled = notificationRepository.areNotificationsEnabled().getOrDefault(true)
+            if (!systemEnabled) {
+                setNotificationsEnabledUseCase(false)
+            }
+            notificationPermissionMonitor.refresh()
+        }
         observeSettingsState(settingsRepository, authRepository, appVersionProvider)
-        observeTtsSettings(settingsRepository)
-        loadDailyGoal()
+        settingsRepository.getTtsSettings()
+            .onEach { settings -> updateState { copy(ttsSettings = settings) } }
+            .launchIn(viewModelScope)
+        viewModelScope.launch {
+            getDailyGoalWordsUseCase(Unit).fold(
+                onSuccess = { count -> updateState { copy(dailyGoalWords = count) } },
+                onFailure = { /* keep default */ }
+            )
+        }
     }
 
     private fun observeSettingsState(
@@ -107,31 +121,6 @@ class SettingsViewModel(
             }.collect { screenState ->
                 updateState { copy(screen = screenState) }
             }
-        }
-    }
-
-    private fun observeTtsSettings(settingsRepository: ISettingsRepository) {
-        settingsRepository.getTtsSettings()
-            .onEach { settings -> updateState { copy(ttsSettings = settings) } }
-            .launchIn(viewModelScope)
-    }
-
-    private fun loadDailyGoal() {
-        viewModelScope.launch {
-            getDailyGoalWordsUseCase(Unit).fold(
-                onSuccess = { count -> updateState { copy(dailyGoalWords = count) } },
-                onFailure = { /* keep default */ }
-            )
-        }
-    }
-
-    private fun initializeNotificationState() {
-        viewModelScope.launch {
-            val systemEnabled = notificationRepository.areNotificationsEnabled().getOrDefault(true)
-            if (!systemEnabled) {
-                setNotificationsEnabledUseCase(false)
-            }
-            notificationPermissionMonitor.refresh()
         }
     }
 

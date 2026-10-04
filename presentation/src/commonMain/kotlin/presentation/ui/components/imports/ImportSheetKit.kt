@@ -3,7 +3,6 @@ package presentation.ui.components.imports
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -23,7 +22,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.change_languages
 import org.jetbrains.compose.resources.stringResource
@@ -34,29 +32,6 @@ import utils.Language
  * Language-aware pieces of the add-words flow. Generic sheet building blocks live in
  * design-system `components.sheet`.
  */
-
-private val CodeTileSize = 36.dp
-
-/** Rounded square holding a language's ISO code; filled with the accent when [selected]. */
-@Composable
-internal fun LanguageCodeTile(code: String, selected: Boolean, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(CodeTileSize)
-            .clip(RoundedCornerShape(Theme.shapes.small + Theme.spacing.xxxs))
-            .background(
-                if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = code.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
 
 /** "German → English ⌄" — shows the import language pair and opens the language picker. */
 @Composable

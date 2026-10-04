@@ -1,0 +1,7 @@
+-- Migration from version 14 to version 15
+-- Last premium/feature-access answer from the backend, so a paying user isn't shown as free
+-- while the app starts offline. Single row; cleared on logout.
+CREATE TABLE IF NOT EXISTS FeatureAccessCache (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    json TEXT NOT NULL
+);

@@ -2,6 +2,7 @@ package data.subscription
 
 import com.revenuecat.purchases.kmp.Purchases
 import com.revenuecat.purchases.kmp.PurchasesDelegate
+import com.revenuecat.purchases.kmp.models.CacheFetchPolicy
 import com.revenuecat.purchases.kmp.models.CustomerInfo
 import com.revenuecat.purchases.kmp.models.DiscountPaymentMode
 import com.revenuecat.purchases.kmp.models.Offerings
@@ -16,6 +17,7 @@ import com.revenuecat.purchases.kmp.models.StoreTransaction
 import com.revenuecat.purchases.kmp.models.freePhase
 import core.common.Try
 import core.common.getOrNull
+import core.common.map
 import core.error.DomainError
 import domain.subscription.ISubscriptionManager
 import domain.subscription.model.PackagePeriod
@@ -57,9 +59,12 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
     private fun publish(info: CustomerInfo): SubscriptionCustomerInfo =
         info.toDomain().also { _customerInfo.value = it }
 
-    private suspend fun getRawCustomerInfo(): Try<CustomerInfo> =
+    private suspend fun getRawCustomerInfo(
+        fetchPolicy: CacheFetchPolicy = CacheFetchPolicy.default(),
+    ): Try<CustomerInfo> =
         suspendCancellableCoroutine { continuation ->
             Purchases.sharedInstance.getCustomerInfo(
+                fetchPolicy = fetchPolicy,
                 onError = { error ->
                     continuation.resume(Try.failure(error.toDomainError(DomainError.Commerce.ManagementUnavailable)))
                 },
@@ -156,6 +161,9 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
 
     override fun getCurrentCustomerInfo(): SubscriptionCustomerInfo? = _customerInfo.value
 
+    override suspend fun refreshCustomerInfo(): Try<SubscriptionCustomerInfo> =
+        getRawCustomerInfo(CacheFetchPolicy.FETCH_CURRENT).map { it.toDomain() }
+
     override fun onCustomerInfoUpdated(customerInfo: CustomerInfo) {
         publish(customerInfo)
     }
@@ -178,9 +186,6 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
         }
         return Try.success(openUrl(managementUrl))
     }
-
-    // Stores don't allow in-app cancellation; the management page is where users cancel.
-    override suspend fun cancelSubscription(): Try<Unit> = manageSubscription()
 }
 
 /** Message key the subscription screen localizes. */
@@ -204,7 +209,9 @@ private fun CustomerInfo.toDomain(): SubscriptionCustomerInfo {
             expirationDateMillis = entitlement.expirationDate?.toEpochMilliseconds(),
             productIdentifier = entitlement.productIdentifier,
             willRenew = entitlement.willRenew,
-            isInTrial = entitlement.periodType == PeriodType.TRIAL
+            isInTrial = entitlement.periodType == PeriodType.TRIAL,
+            billingIssueDetectedAtMillis = entitlement.billingIssueDetectedAtMillis,
+            unsubscribeDetectedAtMillis = entitlement.unsubscribeDetectedAtMillis,
         )
     }
     return SubscriptionCustomerInfo(
@@ -246,7 +253,9 @@ private fun Package.toDomain(): SubscriptionPackage {
         product = SubscriptionProduct(
             title = storeProduct.title,
             description = storeProduct.localizedDescription ?: "",
-            priceFormatted = storeProduct.price.formatted
+            priceFormatted = storeProduct.price.formatted,
+            priceAmountMicros = storeProduct.price.amountMicros,
+            productIdentifier = storeProduct.id,
         ),
         trialPeriodDays = trialDays,
         hasFreeTrial = trialDays != null

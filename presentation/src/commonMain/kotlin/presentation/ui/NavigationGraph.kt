@@ -13,6 +13,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import events.OnEvents
 import feature.insights.navigation.insightsGraph
 import feature.leaderboard.navigation.showLeaderboard
 import feature.profile.navigation.profileGraph
@@ -22,6 +23,8 @@ import org.koin.compose.koinInject
 import overlay.LocalOverlayHost
 import presentation.model.SettingsRoute
 import presentation.model.TabDestination
+import presentation.navigation.NotificationDestination
+import presentation.navigation.NotificationNavigator
 import presentation.ui.components.settings.showNotificationSettingsSheet
 import presentation.ui.screens.SettingsScreen
 import presentation.ui.screens.StudyScreen
@@ -48,6 +51,15 @@ internal fun NavigationGraph(
         onDispose { navController.removeOnDestinationChangedListener(listener) }
     }
 
+    // Taps on actionable notifications (e.g. a failed renewal) open the screen they're about
+    OnEvents(koinInject<NotificationNavigator>().destinations) { destination ->
+        when (destination) {
+            NotificationDestination.Subscription -> navController.navigate(SubscriptionRoute) {
+                launchSingleTop = true
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = TabDestination.Study,
@@ -69,9 +81,7 @@ internal fun NavigationGraph(
         )
 
         insightsGraph(
-            onNavigateBack = { navController.navigateToTab(TabDestination.Study) },
             onShowLeaderboard = { overlayHost.showLeaderboard() },
-            snackbarHostState = snackbarHostState,
             onNavigateToNotificationSettings = { overlayHost.showNotificationSettingsSheet() },
         )
 

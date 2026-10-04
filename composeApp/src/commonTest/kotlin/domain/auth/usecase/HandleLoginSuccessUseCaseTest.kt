@@ -66,10 +66,11 @@ class HandleLoginSuccessUseCaseTest {
                 throw NotImplementedError()
 
             override fun getCurrentCustomerInfo(): SubscriptionCustomerInfo? = null
+            override suspend fun refreshCustomerInfo(): Try<SubscriptionCustomerInfo> =
+                Try.success(SubscriptionCustomerInfo(emptyMap()))
 
             override suspend fun manageSubscription(): Try<Unit> = throw NotImplementedError()
 
-            override suspend fun cancelSubscription(): Try<Unit> = throw NotImplementedError()
         }
 
     private val subscriptionAccessRepository = FakeSubscriptionAccessRepository()

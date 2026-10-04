@@ -1,174 +1,116 @@
 package feature.subscription.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import org.jetbrains.compose.resources.stringResource
-import theme.AppColors
-import theme.Theme
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import domain.subscription.model.PackagePeriod
+import domain.subscription.model.SubscriptionPackage
+import domain.subscription.model.SubscriptionProduct
+import feature.subscription.PlanPricing
+import feature.subscription.model.Membership
+import feature.subscription.model.MembershipStatus
+import feature.subscription.model.TrialSchedule
 import theme.LexiconTheme
-import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.cancel_anytime_prices_in_usd
-import lexicon.resources.generated.resources.restore_purchases
-import lexicon.resources.generated.resources.subscription_terms
+import theme.Theme
 
+private val previewPlans = PlanPricing.options(
+    listOf(
+        SubscriptionPackage(
+            identifier = "monthly",
+            packagePeriod = PackagePeriod.MONTHLY,
+            product = SubscriptionProduct("Monthly", "", "$4.99", 4_990_000, "vokab_monthly"),
+        ),
+        SubscriptionPackage(
+            identifier = "annual",
+            packagePeriod = PackagePeriod.ANNUAL,
+            product = SubscriptionProduct("Annual", "", "$29.99", 29_990_000, "vokab_annual"),
+            trialPeriodDays = 7,
+            hasFreeTrial = true,
+        ),
+    )
+).map { it.copy(trialSchedule = it.trialDays?.let { TrialSchedule("Oct 9, 2026", "Oct 10, 2026") }) }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 1800)
 @Composable
-private fun SubscriptionPlansPreview() {
+private fun PaywallPreview() {
     LexiconTheme {
-        val plans = listOf(
-            SubscriptionPlan(
-                title = "Vokab Pro",
-                billingPeriod = "Monthly",
-                price = "$2.49",
-                description = "Learn faster with AI imports and access ready-made vocab collections.",
-                accentColor = AppColors.subscriptionStandard
-            ),
-            SubscriptionPlan(
-                title = "Vokab Pro",
-                billingPeriod = "Yearly",
-                price = "$16.99",
-                description = "Learn faster with AI imports and access ready-made vocab collections.",
-                accentColor = AppColors.subscriptionRecommended
-            )
-        )
-
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            color = Color(0xFFF5F3FF)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(Theme.spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
-            ) {
-                plans.forEachIndexed { index, plan ->
-                    PlanCard(
-                        plan = plan,
-                        isRecommended = index == 1,
-                        onClick = {}
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true, name = "Subscription Screen - Full")
-@Composable
-private fun SubscriptionScreenPreview() {
-    LexiconTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            val scrollState = rememberScrollState()
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(Theme.spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)
-            ) {
-                PremiumFeaturesGrid()
-
-                OutlinedButton(
-                    onClick = {},
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(Res.string.restore_purchases))
-                }
-
-                Text(
-                    text = stringResource(Res.string.cancel_anytime_prices_in_usd),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = Theme.spacing.sm)
-                )
-
-                Text(
-                    text = stringResource(Res.string.subscription_terms),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Theme.spacing.lg)
+        Surface {
+            var selected by remember { mutableStateOf<String?>("annual") }
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(Theme.spacing.md)) {
+                SubscriptionNotSubscribedContent(
+                    plans = previewPlans,
+                    selectedPlanId = selected,
+                    isPurchasing = false,
+                    onSelectPlan = { selected = it },
+                    onPurchase = {},
+                    onRestoreClick = {},
                 )
             }
         }
     }
 }
 
-@Preview(showBackground = true, name = "Premium Hero Section")
+private class MembershipStatusProvider : PreviewParameterProvider<MembershipStatus> {
+    override val values = sequenceOf(
+        MembershipStatus.Renewing(renewsOn = "Oct 3, 2027"),
+        MembershipStatus.Trial(endsOn = "Oct 10, 2026", daysLeft = 5),
+        MembershipStatus.Canceled(
+            accessEndsOn = "Dec 14",
+            daysLeft = 72,
+            wasTrial = false,
+            remainingFraction = 0.2f,
+        ),
+        MembershipStatus.Canceled(
+            accessEndsOn = "Oct 5",
+            daysLeft = 2,
+            wasTrial = true,
+            remainingFraction = null,
+        ),
+        MembershipStatus.BillingIssue(accessEndsOn = "Oct 20", daysLeft = 16),
+        MembershipStatus.PauseScheduled(pausesOn = "Nov 3", resumesOn = "Jan 3, 2027"),
+        MembershipStatus.Granted(until = null),
+    )
+}
+
+@Preview(showBackground = true, heightDp = 1400)
 @Composable
-private fun PremiumHeroSectionPreview() {
+private fun MembershipPreview(@PreviewParameter(MembershipStatusProvider::class) status: MembershipStatus) {
     LexiconTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(Theme.spacing.lg),
-            contentAlignment = Alignment.Center
-        ) {
-            PremiumHeroSection()
+        Surface {
+            Column(Modifier.padding(Theme.spacing.md)) {
+                SubscriptionActiveContent(
+                    membership = Membership(
+                        period = PackagePeriod.ANNUAL,
+                        price = "$29.99",
+                        status = status,
+                        isManageable = status !is MembershipStatus.Granted,
+                    ),
+                    onManage = {},
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true, name = "Comparison Table")
+@Preview(showBackground = true, heightDp = 1400)
 @Composable
-private fun ComparisonTablePreview() {
+private fun PausedPreview() {
     LexiconTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(Theme.spacing.lg),
-            contentAlignment = Alignment.Center
-        ) {
-            ComparisonTable()
-        }
-    }
-}
-
-@Preview(showBackground = true, name = "Premium Features Grid")
-@Composable
-private fun PremiumFeaturesGridPreview() {
-    LexiconTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(Theme.spacing.lg),
-            contentAlignment = Alignment.Center
-        ) {
-            PremiumFeaturesGrid()
+        Surface {
+            Column(Modifier.padding(Theme.spacing.md)) {
+                SubscriptionPausedContent(resumesOn = "Jan 3, 2027", daysLeft = 91, onResume = {})
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import core.common.onFailure
 import core.common.onSuccess
 import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.tag.usecase.GetTagsUseCase
@@ -15,6 +16,7 @@ import core.base.BaseViewModel
 import feature.aiimport.model.AiWordImportEffect
 import feature.aiimport.model.AiWordImportStep
 import feature.aiimport.model.AiWordImportUiState
+import utils.Language
 
 class AiWordImportViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
@@ -42,17 +44,23 @@ class AiWordImportViewModel(
         updateState { copy(selectedTagId = tagId) }
     }
 
-    fun selectTargetLanguage(language: String) {
-        updateState { copy(selectedTargetLanguage = language) }
+    fun selectTargetLanguage(language: Language) {
+        // The native language can't be the one being learned
+        updateState {
+            copy(
+                selectedTargetLanguage = language,
+                selectedNativeLanguage = selectedNativeLanguage.takeIf { it != language },
+            )
+        }
         nextStep()
     }
 
-    fun selectNativeLanguage(language: String) {
+    fun selectNativeLanguage(language: Language) {
         updateState { copy(selectedNativeLanguage = language) }
         nextStep()
     }
 
-    fun selectLevel(level: String) {
+    fun selectLevel(level: ProficiencyLevel) {
         updateState { copy(selectedLevel = level) }
     }
 
@@ -123,20 +131,20 @@ class AiWordImportViewModel(
                 interests = state.selectedTopics.toList()
             )
             submitPreferencesUseCase(preferences)
-                .onSuccess { response ->
-                    val allIndices = response.suggestedVocabulary.indices.toSet()
+                .onSuccess { words ->
+                    val allIndices = words.indices.toSet()
                     updateState {
                         copy(
                             isLoading = false,
                             step = AiWordImportStep.PREVIEW,
-                            suggestedWords = response.suggestedVocabulary,
+                            suggestedWords = words,
                             selectedWordIndices = allIndices,
                             error = null
                         )
                     }
                     analyticsTracker.logEvent(
                         "import_preview_shown",
-                        mapOf("word_count" to response.suggestedVocabulary.size.toString())
+                        mapOf("word_count" to words.size.toString())
                     )
                 }
                 .onFailure { error ->

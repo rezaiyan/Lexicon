@@ -59,8 +59,8 @@ class ImportSuggestedVocabularyUseCaseTest {
                 originalWord = "Cat",
                 translation = "Gato",
                 description = "A domestic animal",
-                sourceLanguage = "en",
-                targetLanguage = "es"
+                sourceLanguage = Language.ENGLISH,
+                targetLanguage = Language.SPANISH
             )
         )
 
@@ -98,8 +98,8 @@ class ImportSuggestedVocabularyUseCaseTest {
         originalWord = original,
         translation = translation,
         description = description,
-        sourceLanguage = "en",
-        targetLanguage = "es"
+        sourceLanguage = Language.ENGLISH,
+        targetLanguage = Language.SPANISH
     )
 
     private class FakeWordRepository : IWordRepository {
