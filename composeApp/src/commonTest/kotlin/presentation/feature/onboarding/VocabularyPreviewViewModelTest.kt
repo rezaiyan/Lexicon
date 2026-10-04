@@ -15,14 +15,14 @@ import kotlin.test.assertNull
 
 class VocabularyPreviewViewModelTest : ViewModelTestBase() {
 
-    private fun testWords(source: String = "English", target: String = "Spanish") = listOf(
-        SuggestedVocabulary("hola", "hello", "greeting", source, target),
-        SuggestedVocabulary("gato", "cat", "animal", source, target),
-        SuggestedVocabulary("casa", "house", "building", source, target),
+    private fun testWords() = listOf(
+        SuggestedVocabulary("hola", "hello", "greeting", Language.ENGLISH, Language.SPANISH),
+        SuggestedVocabulary("gato", "cat", "animal", Language.ENGLISH, Language.SPANISH),
+        SuggestedVocabulary("casa", "house", "building", Language.ENGLISH, Language.SPANISH),
     )
 
     @Test
-    fun `init holds the words and resolves display-name languages`() {
+    fun `init holds the words and their language pair`() {
         val words = testWords()
 
         val vm = VocabularyPreviewViewModel(words)
@@ -33,26 +33,12 @@ class VocabularyPreviewViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `init resolves language codes`() {
-        val vm = VocabularyPreviewViewModel(testWords(source = "en", target = "de"))
-
-        assertEquals(Language.GERMAN, vm.currentState.learningLanguage)
-        assertEquals(Language.ENGLISH, vm.currentState.nativeLanguage)
-    }
-
-    @Test
-    fun `init when a language is unknown leaves it empty`() {
-        val vm = VocabularyPreviewViewModel(testWords(target = "Klingon"))
-
-        assertNull(vm.currentState.learningLanguage)
-    }
-
-    @Test
-    fun `init with no words has no languages`() {
+    fun `init with no words has no language pair`() {
         val vm = VocabularyPreviewViewModel(emptyList())
 
         assertEquals(emptyList(), vm.currentState.words)
         assertNull(vm.currentState.learningLanguage)
+        assertNull(vm.currentState.nativeLanguage)
     }
 
     @Test

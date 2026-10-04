@@ -2,8 +2,8 @@ package presentation.feature.onboarding
 
 import core.common.Try
 import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.model.SuggestedVocabulary
-import domain.onboarding.model.SuggestedVocabularyResponse
 import domain.onboarding.repository.IOnboardingRepository
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.model.ThemeMode
@@ -17,7 +17,6 @@ import feature.onboarding.model.DailyGoalOption
 import feature.onboarding.model.OnboardingEffect
 import feature.onboarding.model.OnboardingStep
 import feature.onboarding.model.OnboardingSubmission
-import feature.onboarding.model.ProficiencyLevel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -35,24 +34,21 @@ import kotlin.test.assertTrue
 
 class OnboardingViewModelTest : ViewModelTestBase() {
 
-    private var submitResult: Try<SuggestedVocabularyResponse> = Try.success(testResponse())
+    private var submitResult: Try<List<SuggestedVocabulary>> = Try.success(testResponse())
     private var submitGate: CompletableDeferred<Unit>? = null
     private var submittedPreferences: OnboardingPreferences? = null
     private var submitCount = 0
     private var languageSet: Language? = null
     private var dailyGoalSet: Int? = null
 
-    private fun testResponse() = SuggestedVocabularyResponse(
-        suggestedVocabulary = listOf(SuggestedVocabulary("Hallo", "hello", "greeting", "English", "German")),
-        targetLanguage = "German",
-        nativeLanguage = "English",
-        currentLevel = "intermediate",
+    private fun testResponse() = listOf(
+        SuggestedVocabulary("Hallo", "hello", "greeting", Language.ENGLISH, Language.GERMAN),
     )
 
     private val onboardingRepository = object : IOnboardingRepository {
         override suspend fun submitPreferences(
             preferences: OnboardingPreferences,
-        ): Try<SuggestedVocabularyResponse> {
+        ): Try<List<SuggestedVocabulary>> {
             submitCount++
             submittedPreferences = preferences
             submitGate?.await()
@@ -102,7 +98,7 @@ class OnboardingViewModelTest : ViewModelTestBase() {
         next()
         selectNativeLanguage(Language.ENGLISH)
         next()
-        selectLevel(ProficiencyLevel.Intermediate)
+        selectLevel(ProficiencyLevel.INTERMEDIATE)
         next()
     }
 
@@ -196,7 +192,7 @@ class OnboardingViewModelTest : ViewModelTestBase() {
 
         assertEquals(OnboardingStep.NativeLanguage, vm.currentState.step)
         assertEquals(Language.GERMAN, vm.currentState.targetLanguage)
-        assertEquals(ProficiencyLevel.Intermediate, vm.currentState.level)
+        assertEquals(ProficiencyLevel.INTERMEDIATE, vm.currentState.level)
     }
 
     // Language rules
@@ -258,15 +254,19 @@ class OnboardingViewModelTest : ViewModelTestBase() {
     // Submission
 
     @Test
-    fun `next on the last question submits display names and api level`() = runTest(UnconfinedTestDispatcher()) {
+    fun `next on the last question submits the typed answers`() = runTest(UnconfinedTestDispatcher()) {
         val vm = createViewModel()
         vm.answerAll()
         vm.selectDailyGoal(DailyGoalOption.Serious)
 
         vm.next()
 
-        assertIs<OnboardingEffect.NavigateToPreview>(vm.effects.first())
-        assertEquals(OnboardingPreferences("German", "English", "intermediate"), submittedPreferences)
+        val effect = assertIs<OnboardingEffect.NavigateToPreview>(vm.effects.first())
+        assertEquals(testResponse(), effect.words)
+        assertEquals(
+            OnboardingPreferences(Language.GERMAN, Language.ENGLISH, ProficiencyLevel.INTERMEDIATE),
+            submittedPreferences,
+        )
         assertEquals(Language.GERMAN, languageSet)
         assertEquals(20, dailyGoalSet)
     }

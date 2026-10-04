@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
@@ -41,6 +40,7 @@ import components.sheet.RadioDot
 import components.sheet.SelectableCard
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
+import domain.onboarding.model.ProficiencyLevel
 import feature.aiimport.model.AiWordImportStep
 import feature.aiimport.model.AiWordImportUiState
 import lexicon.resources.generated.resources.Res
@@ -83,64 +83,59 @@ private val TwoColumnMinWidth = 300.dp
 private fun stepEyebrow(step: AiWordImportStep): String =
     stringResource(Res.string.step_of, step.ordinal + 1, AiWizardTotalSteps)
 
-/** The wizard keeps languages as display names; map them onto [Language] for code tiles and search. */
-private fun languagesFor(names: List<String>): List<Language> =
-    names.mapNotNull { name -> Language.entries.firstOrNull { it.displayName == name } }
-
 @Composable
 internal fun AiTargetLanguageStep(
-    languages: List<String>,
-    selected: String?,
-    onSelected: (String) -> Unit,
+    languages: List<Language>,
+    selected: Language?,
+    onSelected: (Language) -> Unit,
 ) {
-    val options = remember(languages) { languagesFor(languages) }
     ImportLanguageListPage(
         eyebrow = stepEyebrow(AiWordImportStep.TARGET_LANG),
         title = stringResource(Res.string.ai_wizard_target_title),
         highlight = stringResource(Res.string.ai_wizard_target_highlight),
         subtitle = stringResource(Res.string.ai_wizard_target_subtitle),
-        languages = options,
-        selected = options.firstOrNull { it.displayName == selected },
-        onLanguageSelected = { onSelected(it.displayName) },
+        languages = languages,
+        selected = selected,
+        onLanguageSelected = onSelected,
     )
 }
 
 @Composable
 internal fun AiNativeLanguageStep(
-    languages: List<String>,
-    selected: String?,
-    onSelected: (String) -> Unit,
+    languages: List<Language>,
+    selected: Language?,
+    onSelected: (Language) -> Unit,
 ) {
-    val options = remember(languages) { languagesFor(languages) }
     ImportLanguageListPage(
         eyebrow = stepEyebrow(AiWordImportStep.NATIVE_LANG),
         title = stringResource(Res.string.ai_wizard_native_title),
         highlight = stringResource(Res.string.ai_wizard_native_highlight),
         subtitle = stringResource(Res.string.ai_wizard_native_subtitle),
-        languages = options,
-        selected = options.firstOrNull { it.displayName == selected },
-        onLanguageSelected = { onSelected(it.displayName) },
+        languages = languages,
+        selected = selected,
+        onLanguageSelected = onSelected,
     )
 }
 
-private data class LevelOption(
-    val key: String,
-    val name: StringResource,
-    val description: StringResource,
-    val bars: Int,
-)
+internal val ProficiencyLevel.title: StringResource
+    get() = when (this) {
+        ProficiencyLevel.BEGINNER -> Res.string.beginner
+        ProficiencyLevel.INTERMEDIATE -> Res.string.intermediate
+        ProficiencyLevel.ADVANCED -> Res.string.advanced
+    }
 
-private val LevelOptions = listOf(
-    LevelOption("beginner", Res.string.beginner, Res.string.onboarding_beginner_desc, 1),
-    LevelOption("intermediate", Res.string.intermediate, Res.string.onboarding_intermediate_desc, 2),
-    LevelOption("advanced", Res.string.advanced, Res.string.onboarding_advanced_desc, 3),
-)
+private val ProficiencyLevel.description: StringResource
+    get() = when (this) {
+        ProficiencyLevel.BEGINNER -> Res.string.onboarding_beginner_desc
+        ProficiencyLevel.INTERMEDIATE -> Res.string.onboarding_intermediate_desc
+        ProficiencyLevel.ADVANCED -> Res.string.onboarding_advanced_desc
+    }
 
 @Composable
 internal fun AiLevelStep(
-    selectedLevel: String?,
+    selectedLevel: ProficiencyLevel?,
     error: String?,
-    onLevelSelected: (String) -> Unit,
+    onLevelSelected: (ProficiencyLevel) -> Unit,
     onContinue: () -> Unit,
 ) {
     SheetPage(
@@ -157,26 +152,26 @@ internal fun AiLevelStep(
         },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
-            LevelOptions.forEach { option ->
-                val selected = option.key == selectedLevel
+            ProficiencyLevel.entries.forEach { level ->
+                val selected = level == selectedLevel
                 SelectableCard(
                     selected = selected,
-                    onClick = { onLevelSelected(option.key) },
+                    onClick = { onLevelSelected(level) },
                     role = Role.RadioButton,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    LevelBars(filled = option.bars, selected = selected)
+                    LevelBars(filled = level.ordinal + 1, selected = selected)
                     Column(
                         modifier = Modifier.weight(1f).padding(vertical = Theme.spacing.xs),
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
                     ) {
                         Text(
-                            stringResource(option.name),
+                            stringResource(level.title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            stringResource(option.description),
+                            stringResource(level.description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -295,8 +290,8 @@ private val GeneratingSteps = listOf(
 @Composable
 internal fun AiGeneratingContent(state: AiWordImportUiState) {
     val summary = listOfNotNull(
-        state.selectedTargetLanguage,
-        state.selectedLevel?.replaceFirstChar { it.uppercase() },
+        state.selectedTargetLanguage?.displayName,
+        state.selectedLevel?.let { stringResource(it.title) },
         state.selectedTopics.takeIf { it.isNotEmpty() }?.joinToString(", "),
     ).joinToString(" · ")
 

@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.rememberNavController
 import domain.auth.session.ISessionManager
-import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import expects.LocalSystemBarsController
@@ -149,10 +148,10 @@ fun LexiconApp() {
                         val initial = initialState
                         val target = targetState
                         val toPreview = target is AppUiState.VocabularyPreview && initial is AppUiState.Onboarding
-                        val fromPreview = initial is AppUiState.VocabularyPreview && target is AppUiState.Auth
                         val isLogout = initial is AppUiState.Ready && target is AppUiState.Auth
-                        val isAuthToReady = initial is AppUiState.Auth && target is AppUiState.Ready
-                        val slideForward = toPreview || fromPreview
+                        // Entering the app from sign-in or from the end of onboarding
+                        val isAuthToReady = target is AppUiState.Ready && initial !is AppUiState.Ready
+                        val slideForward = toPreview
                         when {
                             isLogout -> ContentTransform(
                                 targetContentEnter = fadeIn(animationSpec = tween(400)),
@@ -179,9 +178,7 @@ fun LexiconApp() {
                 ) { state ->
                 when (state) {
                     is AppUiState.Auth -> {
-                        val pendingVocabulary = state.pendingVocabulary
                         val needsOnboardingCheck = state.needsOnboardingCheck
-                        val importUseCase: ImportSuggestedVocabularyUseCase = koinInject()
 
                         AuthExperienceScreen(
                             phase = state.phase,
@@ -207,9 +204,6 @@ fun LexiconApp() {
                                     if (needsOnboardingCheck) {
                                         appNavigationViewModel.onAuthCompleteCheckingData()
                                     } else {
-                                        if (pendingVocabulary.isNotEmpty()) {
-                                            importUseCase(ImportSuggestedVocabularyUseCase.Params(pendingVocabulary))
-                                        }
                                         appNavigationViewModel.onAuthComplete()
                                     }
                                 }
@@ -224,10 +218,9 @@ fun LexiconApp() {
                         OnEvents(onboardingViewModel.effects) { effect ->
                             when (effect) {
                                 is OnboardingEffect.NavigateToPreview ->
-                                    appNavigationViewModel.onNavigateToVocabularyPreview(
-                                        effect.response.suggestedVocabulary
-                                    )
-                                is OnboardingEffect.NavigateToMain -> appNavigationViewModel.onNavigateToAuthGate()
+                                    appNavigationViewModel.onNavigateToVocabularyPreview(effect.words)
+                                is OnboardingEffect.NavigateToMain ->
+                                    appNavigationViewModel.onOnboardingFinished(words = emptyList())
                             }
                         }
 
@@ -253,8 +246,9 @@ fun LexiconApp() {
                         OnEvents(vocabularyPreviewViewModel.effects) { effect ->
                             when (effect) {
                                 is VocabularyPreviewEffect.AddWords ->
-                                    appNavigationViewModel.onNavigateToAuthGate(effect.words)
-                                is VocabularyPreviewEffect.StartEmpty -> appNavigationViewModel.onNavigateToAuthGate()
+                                    appNavigationViewModel.onOnboardingFinished(effect.words)
+                                is VocabularyPreviewEffect.StartEmpty ->
+                                    appNavigationViewModel.onOnboardingFinished(words = emptyList())
                             }
                         }
 

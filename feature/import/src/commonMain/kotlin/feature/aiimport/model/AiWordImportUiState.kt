@@ -1,20 +1,19 @@
 package feature.aiimport.model
 
+import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.model.SuggestedVocabulary
 import domain.tag.model.Tag
+import utils.Language
 
 enum class AiWordImportStep { TARGET_LANG, NATIVE_LANG, LEVEL, TOPICS, PREVIEW }
 
 data class AiWordImportUiState(
     val step: AiWordImportStep = AiWordImportStep.TARGET_LANG,
-    val availableLanguages: List<String> = listOf(
-        "English", "German", "French", "Spanish", "Italian",
-        "Portuguese", "Dutch", "Russian", "Chinese", "Japanese",
-        "Korean", "Arabic", "Turkish", "Persian"
-    ),
-    val selectedTargetLanguage: String? = null,
-    val selectedNativeLanguage: String? = null,
-    val selectedLevel: String? = null,
+    val availableLanguages: List<Language> = OnboardingPreferences.SupportedLanguages,
+    val selectedTargetLanguage: Language? = null,
+    val selectedNativeLanguage: Language? = null,
+    val selectedLevel: ProficiencyLevel? = null,
     val selectedTopics: Set<String> = emptySet(),
     val availableTopics: List<String> = listOf(
         "Daily Life", "Travel", "Business", "Food", "Technology",

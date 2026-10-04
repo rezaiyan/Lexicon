@@ -5,7 +5,6 @@ import core.common.UseCase
 import domain.onboarding.model.SuggestedVocabulary
 import domain.word.model.Word
 import domain.word.repository.IWordRepository
-import utils.Language
 import kotlin.time.Clock
 
 class ImportSuggestedVocabularyUseCase(
@@ -26,8 +25,8 @@ class ImportSuggestedVocabularyUseCase(
                 originalWord = suggestion.originalWord,
                 translation = suggestion.translation,
                 description = suggestion.description,
-                sourceLanguage = Language.fromCode(Language.toCode(suggestion.sourceLanguage)),
-                targetLanguage = Language.fromCode(Language.toCode(suggestion.targetLanguage)),
+                sourceLanguage = suggestion.sourceLanguage,
+                targetLanguage = suggestion.targetLanguage,
                 level = 0,
                 easeFactor = 2.5f,
                 interval = 0,

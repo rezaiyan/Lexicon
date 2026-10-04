@@ -1,5 +1,7 @@
 package feature.onboarding.model
 
+import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.ProficiencyLevel
 import utils.Language
 
 /** The screens of the onboarding flow, in order. Every step after [Welcome] is a question. */
@@ -18,13 +20,6 @@ enum class OnboardingStep {
     }
 }
 
-/** Proficiency the starter words are matched to. [apiValue] is what the backend expects. */
-enum class ProficiencyLevel(val apiValue: String) {
-    Beginner("beginner"),
-    Intermediate("intermediate"),
-    Advanced("advanced"),
-}
-
 enum class DailyGoalOption(val words: Int) {
     Casual(5),
     Regular(10),
@@ -40,7 +35,7 @@ sealed interface OnboardingSubmission {
 
 data class OnboardingUiState(
     val step: OnboardingStep = OnboardingStep.Welcome,
-    val languages: List<Language> = SupportedLanguages,
+    val languages: List<Language> = OnboardingPreferences.SupportedLanguages,
     val targetLanguage: Language? = null,
     val nativeLanguage: Language? = null,
     /** The phone's language when it is one we support; offered as the native-language default. */
@@ -66,13 +61,7 @@ data class OnboardingUiState(
 
     val monthlyWords: Int get() = dailyGoal.words * DaysPerMonth
 
-    companion object {
-        private const val DaysPerMonth = 30
-
-        val SupportedLanguages: List<Language> = listOf(
-            Language.ENGLISH, Language.GERMAN, Language.FRENCH, Language.SPANISH, Language.ITALIAN,
-            Language.PORTUGUESE, Language.DUTCH, Language.RUSSIAN, Language.CHINESE, Language.JAPANESE,
-            Language.KOREAN, Language.ARABIC, Language.TURKISH, Language.PERSIAN,
-        )
+    private companion object {
+        const val DaysPerMonth = 30
     }
 }

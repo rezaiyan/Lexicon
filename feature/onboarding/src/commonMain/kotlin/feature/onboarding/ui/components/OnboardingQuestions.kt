@@ -32,9 +32,9 @@ import components.sheet.LevelBars
 import components.sheet.RadioDot
 import components.sheet.SelectableCard
 import components.sheet.SheetSectionLabel
+import domain.onboarding.model.ProficiencyLevel
 import feature.onboarding.model.DailyGoalOption
 import feature.onboarding.model.OnboardingStep
-import feature.onboarding.model.ProficiencyLevel
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advanced
 import lexicon.resources.generated.resources.beginner
@@ -176,16 +176,16 @@ internal fun NativeLanguageQuestion(
 
 private val ProficiencyLevel.title: StringResource
     get() = when (this) {
-        ProficiencyLevel.Beginner -> Res.string.beginner
-        ProficiencyLevel.Intermediate -> Res.string.intermediate
-        ProficiencyLevel.Advanced -> Res.string.advanced
+        ProficiencyLevel.BEGINNER -> Res.string.beginner
+        ProficiencyLevel.INTERMEDIATE -> Res.string.intermediate
+        ProficiencyLevel.ADVANCED -> Res.string.advanced
     }
 
 private val ProficiencyLevel.description: StringResource
     get() = when (this) {
-        ProficiencyLevel.Beginner -> Res.string.onboarding_beginner_desc
-        ProficiencyLevel.Intermediate -> Res.string.onboarding_intermediate_desc
-        ProficiencyLevel.Advanced -> Res.string.onboarding_advanced_desc
+        ProficiencyLevel.BEGINNER -> Res.string.onboarding_beginner_desc
+        ProficiencyLevel.INTERMEDIATE -> Res.string.onboarding_intermediate_desc
+        ProficiencyLevel.ADVANCED -> Res.string.onboarding_advanced_desc
     }
 
 @Composable

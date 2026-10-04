@@ -7,6 +7,7 @@ import core.common.onFailure
 import core.common.onSuccess
 import core.error.toUserMessage
 import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetLanguageUseCase
@@ -15,7 +16,6 @@ import feature.onboarding.model.OnboardingEffect
 import feature.onboarding.model.OnboardingStep
 import feature.onboarding.model.OnboardingSubmission
 import feature.onboarding.model.OnboardingUiState
-import feature.onboarding.model.ProficiencyLevel
 import kotlinx.coroutines.launch
 import utils.Language
 
@@ -58,7 +58,7 @@ class OnboardingViewModel(
 
     fun selectLevel(level: ProficiencyLevel) {
         updateState { copy(level = level) }
-        analyticsTracker.logEvent("onboarding_level_selected", mapOf("level" to level.apiValue))
+        analyticsTracker.logEvent("onboarding_level_selected", mapOf("level" to level.name.lowercase()))
     }
 
     fun selectDailyGoal(goal: DailyGoalOption) {
@@ -106,18 +106,13 @@ class OnboardingViewModel(
 
         updateState { copy(submission = OnboardingSubmission.InProgress) }
         viewModelScope.launch {
-            val preferences = OnboardingPreferences(
-                targetLanguage = target.displayName,
-                nativeLanguage = native.displayName,
-                level = level.apiValue,
-            )
-            submitPreferencesUseCase(preferences)
-                .onSuccess { response ->
+            submitPreferencesUseCase(OnboardingPreferences(target, native, level))
+                .onSuccess { words ->
                     setLanguageUseCase(target)
                     setDailyGoalWordsUseCase(state.dailyGoal.words)
                     analyticsTracker.logEvent("onboarding_completed")
                     // Submission stays InProgress so the progress screen holds until navigation swaps it out.
-                    emitEffect(OnboardingEffect.NavigateToPreview(response))
+                    emitEffect(OnboardingEffect.NavigateToPreview(words))
                 }
                 .onFailure { error ->
                     updateState { copy(submission = OnboardingSubmission.Failed(error.toUserMessage())) }

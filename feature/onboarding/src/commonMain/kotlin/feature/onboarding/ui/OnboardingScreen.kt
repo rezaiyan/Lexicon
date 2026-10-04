@@ -16,12 +16,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
+import domain.onboarding.model.ProficiencyLevel
 import expects.BackHandler
 import feature.onboarding.model.DailyGoalOption
 import feature.onboarding.model.OnboardingStep
 import feature.onboarding.model.OnboardingSubmission
 import feature.onboarding.model.OnboardingUiState
-import feature.onboarding.model.ProficiencyLevel
 import feature.onboarding.ui.components.DailyGoalQuestion
 import feature.onboarding.ui.components.LevelQuestion
 import feature.onboarding.ui.components.NativeLanguageQuestion
@@ -161,9 +161,9 @@ private fun OnboardingQuestions(
 @Composable
 private fun answersSummary(state: OnboardingUiState): String {
     val level = when (state.level) {
-        ProficiencyLevel.Beginner -> stringResource(Res.string.beginner)
-        ProficiencyLevel.Intermediate -> stringResource(Res.string.intermediate)
-        ProficiencyLevel.Advanced -> stringResource(Res.string.advanced)
+        ProficiencyLevel.BEGINNER -> stringResource(Res.string.beginner)
+        ProficiencyLevel.INTERMEDIATE -> stringResource(Res.string.intermediate)
+        ProficiencyLevel.ADVANCED -> stringResource(Res.string.advanced)
         null -> null
     }
     return listOfNotNull(

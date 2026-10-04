@@ -5,6 +5,7 @@ import core.common.NoParamUseCase
 import core.common.fold
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
+import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
 import domain.startup.model.AppStartupDestination
 import domain.startup.usecase.DetermineAppStartupStateUseCase
 import domain.startup.usecase.DeterminePostAuthDestinationUseCase
@@ -18,6 +19,7 @@ class AppNavigationViewModel(
     private val retryAnalyticsSyncUseCase: NoParamUseCase<Unit>,
     private val determineAppStartupStateUseCase: DetermineAppStartupStateUseCase,
     private val determinePostAuthDestinationUseCase: DeterminePostAuthDestinationUseCase,
+    private val importSuggestedVocabularyUseCase: ImportSuggestedVocabularyUseCase,
 ) : BaseViewModel<AppUiState, Nothing>() {
 
     override fun initialState(): AppUiState = AppUiState.Auth()
@@ -42,8 +44,18 @@ class AppNavigationViewModel(
         updateState { AppUiState.VocabularyPreview(words) }
     }
 
-    fun onNavigateToAuthGate(pendingVocabulary: List<SuggestedVocabulary> = emptyList()) {
-        updateState { AppUiState.Auth(phase = AuthPhase.LoginRequired, pendingVocabulary = pendingVocabulary) }
+    /**
+     * Ends onboarding (the user is already signed in): adds the accepted starter [words], if any,
+     * marks onboarding done and opens the app. A failed import doesn't block entry; the list starts empty.
+     */
+    fun onOnboardingFinished(words: List<SuggestedVocabulary>) {
+        viewModelScope.launch {
+            if (words.isNotEmpty()) {
+                importSuggestedVocabularyUseCase(ImportSuggestedVocabularyUseCase.Params(words))
+            }
+            onboardingRepository.markOnboardingCompleted()
+            updateState { AppUiState.Ready }
+        }
     }
 
     fun onAuthComplete() {

@@ -77,8 +77,8 @@ internal fun AiWordPreviewStep(
         },
     ) {
         val summary = listOfNotNull(
-            state.selectedTargetLanguage,
-            state.selectedLevel?.replaceFirstChar { it.uppercase() },
+            state.selectedTargetLanguage?.displayName,
+            state.selectedLevel?.let { stringResource(it.title) },
             state.selectedTopics.takeIf { it.isNotEmpty() }?.joinToString(" · "),
         )
         if (summary.isNotEmpty()) {

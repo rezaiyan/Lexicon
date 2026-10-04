@@ -8,11 +8,14 @@ import data.onboarding.remote.model.SuggestedVocabularyDto
 import data.onboarding.remote.model.SuggestedVocabularyResponseDto
 import data.storage.SecureStorage
 import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.ProficiencyLevel
+import domain.onboarding.model.SuggestedVocabulary
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import utils.Language
 
 class OnboardingRepositoryImplTest {
 
@@ -21,36 +24,42 @@ class OnboardingRepositoryImplTest {
 
     private fun createRepo() = OnboardingRepositoryImpl(remoteDataSource, secureStorage)
 
+    private val preferences = OnboardingPreferences(
+        targetLanguage = Language.GERMAN,
+        nativeLanguage = Language.ENGLISH,
+        level = ProficiencyLevel.BEGINNER,
+        interests = listOf("travel"),
+    )
+
     @Test
-    fun `submitPreferences maps response to domain model`() = runTest {
-        remoteDataSource.result = Try.success(
-            SuggestedVocabularyResponseDto(
-                targetLanguage = "de",
-                nativeLanguage = "en",
-                currentLevel = "beginner",
-                items = listOf(
-                    SuggestedVocabularyDto("Hallo", "hello", "a greeting")
-                )
-            )
-        )
+    fun `submitPreferences sends display names and a lowercase level`() = runTest {
+        remoteDataSource.result = Try.success(responseDto())
         val repo = createRepo()
 
-        val result = repo.submitPreferences(
-            OnboardingPreferences(
-                targetLanguage = "de",
-                nativeLanguage = "en",
-                level = "beginner",
-                interests = listOf("travel")
-            )
-        )
+        repo.submitPreferences(preferences)
 
-        assertTrue(result.isSuccess)
-        val response = result.getOrThrow()
-        assertEquals("de", response.targetLanguage)
-        assertEquals("en", response.nativeLanguage)
-        assertEquals(1, response.suggestedVocabulary.size)
-        assertEquals("Hallo", response.suggestedVocabulary.first().originalWord)
-        assertEquals("hello", response.suggestedVocabulary.first().translation)
+        assertEquals(
+            OnboardingPreferencesRequest(
+                targetLanguage = "German",
+                nativeLanguage = "English",
+                currentLevel = "beginner",
+                interests = listOf("travel"),
+            ),
+            remoteDataSource.lastRequest,
+        )
+    }
+
+    @Test
+    fun `submitPreferences maps items and labels them with the requested languages`() = runTest {
+        remoteDataSource.result = Try.success(responseDto())
+        val repo = createRepo()
+
+        val words = repo.submitPreferences(preferences).getOrThrow()
+
+        assertEquals(
+            listOf(SuggestedVocabulary("Hallo", "hello", "a greeting", Language.ENGLISH, Language.GERMAN)),
+            words,
+        )
     }
 
     @Test
@@ -58,12 +67,17 @@ class OnboardingRepositoryImplTest {
         remoteDataSource.result = Try.failure(RuntimeException("Server error"))
         val repo = createRepo()
 
-        val result = repo.submitPreferences(
-            OnboardingPreferences("de", "en", "beginner", emptyList())
-        )
+        val result = repo.submitPreferences(preferences)
 
         assertTrue(result.isFailure)
     }
+
+    private fun responseDto() = SuggestedVocabularyResponseDto(
+        targetLanguage = "German",
+        nativeLanguage = "English",
+        currentLevel = "beginner",
+        items = listOf(SuggestedVocabularyDto("Hallo", "hello", "a greeting")),
+    )
 
     @Test
     fun `hasCompletedOnboarding delegates to secure storage`() = runTest {
@@ -94,10 +108,14 @@ class OnboardingRepositoryImplTest {
 
     private class FakeOnboardingRemoteDataSource : IOnboardingRemoteDataSource {
         var result: Try<SuggestedVocabularyResponseDto> = Try.failure(RuntimeException("not set"))
+        var lastRequest: OnboardingPreferencesRequest? = null
 
         override suspend fun submitPreferences(
             request: OnboardingPreferencesRequest,
-        ): Try<SuggestedVocabularyResponseDto> = result
+        ): Try<SuggestedVocabularyResponseDto> {
+            lastRequest = request
+            return result
+        }
     }
 
     private class FakeSecureStorage : SecureStorage {

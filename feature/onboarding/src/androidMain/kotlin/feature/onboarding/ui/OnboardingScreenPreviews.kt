@@ -2,12 +2,12 @@ package feature.onboarding.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.model.SuggestedVocabulary
 import feature.onboarding.model.DailyGoalOption
 import feature.onboarding.model.OnboardingStep
 import feature.onboarding.model.OnboardingSubmission
 import feature.onboarding.model.OnboardingUiState
-import feature.onboarding.model.ProficiencyLevel
 import feature.onboarding.model.VocabularyPreviewUiState
 import theme.LexiconTheme
 import utils.Language
@@ -16,7 +16,7 @@ private val Answered = OnboardingUiState(
     targetLanguage = Language.GERMAN,
     nativeLanguage = Language.ENGLISH,
     deviceLanguage = Language.ENGLISH,
-    level = ProficiencyLevel.Intermediate,
+    level = ProficiencyLevel.INTERMEDIATE,
     dailyGoal = DailyGoalOption.Regular,
 )
 
@@ -79,9 +79,9 @@ private fun StarterWordsPreview() {
         VocabularyPreviewScreen(
             state = VocabularyPreviewUiState(
                 words = listOf(
-                    SuggestedVocabulary("die Erfahrung", "experience", "", "English", "German"),
-                    SuggestedVocabulary("sich bewerben", "to apply", "", "English", "German"),
-                    SuggestedVocabulary("zuverlässig", "reliable", "", "English", "German"),
+                    SuggestedVocabulary("die Erfahrung", "experience", "", Language.ENGLISH, Language.GERMAN),
+                    SuggestedVocabulary("sich bewerben", "to apply", "", Language.ENGLISH, Language.GERMAN),
+                    SuggestedVocabulary("zuverlässig", "reliable", "", Language.ENGLISH, Language.GERMAN),
                 ),
                 learningLanguage = Language.GERMAN,
                 nativeLanguage = Language.ENGLISH,
