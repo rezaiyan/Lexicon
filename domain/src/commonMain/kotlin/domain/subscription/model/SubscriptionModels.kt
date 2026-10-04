@@ -33,6 +33,8 @@ data class SubscriptionEntitlement(
     val isInTrial: Boolean = false,
     /** Set while a renewal payment is failing (store grace period); the store reports willRenew = false then. */
     val billingIssueDetectedAtMillis: Long? = null,
+    /** Set once the user turned auto-renew off. Unlike willRenew = false, a scheduled pause doesn't set it. */
+    val unsubscribeDetectedAtMillis: Long? = null,
 )
 
 data class SubscriptionCustomerInfo(

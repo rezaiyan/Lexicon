@@ -63,7 +63,8 @@ class SubscriptionContentFactory(
                     willRenew = entitlement.willRenew,
                     isTrial = entitlement.isInTrial,
                     hasBillingIssue = entitlement.billingIssueDetectedAtMillis != null,
-                    pauseResumesAt = pauseResumesAt,
+                    // Canceling a subscription with a scheduled pause voids the pause
+                    pauseResumesAt = pauseResumesAt.takeIf { entitlement.unsubscribeDetectedAtMillis == null },
                 ),
                 period,
             )

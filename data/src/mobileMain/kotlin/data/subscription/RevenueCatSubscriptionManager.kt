@@ -211,6 +211,7 @@ private fun CustomerInfo.toDomain(): SubscriptionCustomerInfo {
             willRenew = entitlement.willRenew,
             isInTrial = entitlement.periodType == PeriodType.TRIAL,
             billingIssueDetectedAtMillis = entitlement.billingIssueDetectedAtMillis,
+            unsubscribeDetectedAtMillis = entitlement.unsubscribeDetectedAtMillis,
         )
     }
     return SubscriptionCustomerInfo(

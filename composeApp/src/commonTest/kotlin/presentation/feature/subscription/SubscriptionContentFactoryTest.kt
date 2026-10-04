@@ -42,6 +42,7 @@ class SubscriptionContentFactoryTest {
         willRenew: Boolean = true,
         isInTrial: Boolean = false,
         productId: String = "vokab_annual",
+        unsubscribedAtMillis: Long? = null,
     ) = SubscriptionCustomerInfo(
         activeEntitlements = mapOf(
             "premium" to SubscriptionEntitlement(
@@ -51,6 +52,7 @@ class SubscriptionContentFactoryTest {
                 productIdentifier = productId,
                 willRenew = willRenew,
                 isInTrial = isInTrial,
+                unsubscribeDetectedAtMillis = unsubscribedAtMillis,
             )
         )
     )
@@ -204,6 +206,20 @@ class SubscriptionContentFactoryTest {
             ),
         )
         assertEquals(MembershipStatus.PauseScheduled(pausesOn = "D+10", resumesOn = "D+40"), membership.status)
+    }
+
+    @Test
+    fun `canceling after scheduling a pause shows Canceled not the pause`() {
+        val membership = member(
+            customerInfo = store(expiresInDays = 10, willRenew = false, unsubscribedAtMillis = now - day),
+            access = UserFeatureAccess(
+                hasPremiumAccess = true,
+                source = "STORE",
+                expiresAt = iso(now + 10 * day),
+                pauseResumesAt = iso(now + 40 * day),
+            ),
+        )
+        assertIs<MembershipStatus.Canceled>(membership.status)
     }
 
     @Test
