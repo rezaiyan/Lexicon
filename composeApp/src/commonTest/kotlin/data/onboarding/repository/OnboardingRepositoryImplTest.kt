@@ -104,6 +104,16 @@ class OnboardingRepositoryImplTest {
         assertTrue(secureStorage.onboardingCompleted)
     }
 
+    @Test
+    fun `resetOnboarding clears the completion flag in secure storage`() = runTest {
+        secureStorage.onboardingCompleted = true
+        val repo = createRepo()
+
+        repo.resetOnboarding()
+
+        assertFalse(secureStorage.onboardingCompleted)
+    }
+
     // --- Fakes ---
 
     private class FakeOnboardingRemoteDataSource : IOnboardingRemoteDataSource {
@@ -130,6 +140,7 @@ class OnboardingRepositoryImplTest {
         override fun getTokenExpiresAt(): Long = 0L
         override suspend fun hasCompletedOnboarding(): Boolean = onboardingCompleted
         override suspend fun markOnboardingCompleted() { onboardingCompleted = true }
+        override suspend fun clearOnboardingCompleted() { onboardingCompleted = false }
         override suspend fun savePushToken(token: String) {}
         override fun getPushToken(): String? = null
         override suspend fun clearPushToken() {}

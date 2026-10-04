@@ -99,6 +99,10 @@ class IOSKeychainSecureStorage : IOSPlatformSecureStorage {
         preferencesHelper.putString(KEY_ONBOARDING_COMPLETED, "true")
     }
 
+    override suspend fun clearOnboardingCompleted() {
+        preferencesHelper.remove(KEY_ONBOARDING_COMPLETED)
+    }
+
     override suspend fun savePushToken(token: String) {
         preferencesHelper.putString(KEY_PUSH_TOKEN, token)
     }

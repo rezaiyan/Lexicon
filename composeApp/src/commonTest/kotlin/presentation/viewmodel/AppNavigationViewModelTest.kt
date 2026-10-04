@@ -50,6 +50,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             onboardingMarkedComplete = true
             return Try.success(Unit)
         }
+        override suspend fun resetOnboarding(): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeWordRepo(
@@ -100,6 +101,26 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
             importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(wordRepo),
         )
+    }
+
+    @Test
+    fun `onAuthComplete when onboarding was reset and no words goes to Onboarding`() = runTest {
+        val vm = createViewModel(hasCompleted = false, totalWordCount = 0)
+
+        vm.onAuthComplete()
+
+        assertIs<AppUiState.Onboarding>(vm.currentState)
+        assertEquals(false, onboardingMarkedComplete)
+    }
+
+    @Test
+    fun `onAuthComplete when onboarding was reset but words exist goes to Ready`() = runTest {
+        val vm = createViewModel(hasCompleted = false, totalWordCount = 5)
+
+        vm.onAuthComplete()
+
+        assertIs<AppUiState.Ready>(vm.currentState)
+        assertEquals(true, onboardingMarkedComplete)
     }
 
     @Test
@@ -191,19 +212,12 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `onAuthComplete marks onboarding completed and goes to Ready`() = runTest {
-        val onboardingRepo = fakeOnboardingRepo()
-        val wordRepo = fakeWordRepo()
-        val vm = AppNavigationViewModel(
-            onboardingRepository = onboardingRepo,
-            retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
-            determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
-            determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(wordRepo),
-        )
+    fun `onAuthComplete when onboarding already completed goes to Ready`() = runTest {
+        val vm = createViewModel(hasCompleted = true)
+
         vm.onAuthComplete()
+
         assertIs<AppUiState.Ready>(vm.currentState)
-        assertEquals(true, onboardingRepo.markCompletedCalled)
     }
 
     @Test

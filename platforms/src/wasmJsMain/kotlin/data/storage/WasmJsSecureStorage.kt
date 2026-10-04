@@ -56,6 +56,10 @@ class WasmJsSecureStorage : SecureStorage {
         setItem(KEY_ONBOARDING_COMPLETED, "true")
     }
 
+    override suspend fun clearOnboardingCompleted() {
+        removeItem(KEY_ONBOARDING_COMPLETED)
+    }
+
     override suspend fun savePushToken(token: String) {
         setItem(KEY_PUSH_TOKEN, token)
     }

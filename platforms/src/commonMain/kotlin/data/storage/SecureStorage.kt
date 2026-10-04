@@ -19,6 +19,9 @@ interface AuthTokenStorage {
 interface OnboardingStorage {
     suspend fun hasCompletedOnboarding(): Boolean
     suspend fun markOnboardingCompleted()
+
+    /** Forgets the completion flag so the next sign-in on this device starts onboarding again. */
+    suspend fun clearOnboardingCompleted()
 }
 
 /**

@@ -49,6 +49,7 @@ class AiWordImportViewModelTest : ViewModelTestBase() {
         }
         override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(true)
         override suspend fun markOnboardingCompleted(): Try<Unit> = Try.success(Unit)
+        override suspend fun resetOnboarding(): Try<Unit> = Try.success(Unit)
     }
 
     private fun fakeWordRepo() = object : IWordRepository {

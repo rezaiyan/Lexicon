@@ -63,6 +63,10 @@ class AndroidSecureStorage(context: Context) : SecureStorage {
         sharedPreferences.edit { putBoolean(KEY_ONBOARDING_COMPLETED, true) }
     }
 
+    override suspend fun clearOnboardingCompleted() {
+        sharedPreferences.edit { remove(KEY_ONBOARDING_COMPLETED) }
+    }
+
     override suspend fun savePushToken(token: String) {
         sharedPreferences.edit { putString(KEY_PUSH_TOKEN, token) }
     }

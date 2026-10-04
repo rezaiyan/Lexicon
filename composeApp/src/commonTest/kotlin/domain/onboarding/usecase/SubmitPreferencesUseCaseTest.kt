@@ -59,5 +59,6 @@ class SubmitPreferencesUseCaseTest {
 
         override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(false)
         override suspend fun markOnboardingCompleted(): Try<Unit> = Try.success(Unit)
+        override suspend fun resetOnboarding(): Try<Unit> = Try.success(Unit)
     }
 }

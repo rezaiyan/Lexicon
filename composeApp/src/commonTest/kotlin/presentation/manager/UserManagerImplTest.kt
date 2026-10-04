@@ -10,6 +10,9 @@ import domain.auth.service.AuthenticationService
 import domain.auth.usecase.DeleteAccountUseCase
 import domain.auth.usecase.LogoutUseCase
 import domain.notifications.repository.IPushTokenRepository
+import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.SuggestedVocabulary
+import domain.onboarding.repository.IOnboardingRepository
 import domain.notifications.usecase.DeactivatePushTokenUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
@@ -132,6 +135,14 @@ class UserManagerImplTest {
         override fun initializeAndRegister() {}
     }
 
+    private fun fakeOnboardingRepo() = object : IOnboardingRepository {
+        override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<List<SuggestedVocabulary>> =
+            Try.success(emptyList())
+        override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(true)
+        override suspend fun markOnboardingCompleted(): Try<Unit> = Try.success(Unit)
+        override suspend fun resetOnboarding(): Try<Unit> = Try.success(Unit)
+    }
+
     private fun buildManager(): UserManagerImpl {
         val authRepo = fakeAuthRepo()
         val service = AuthenticationService(authRepo)
@@ -140,7 +151,7 @@ class UserManagerImplTest {
         val deactivatePushTokenUseCase = DeactivatePushTokenUseCase(fakePushTokenRepo())
         return UserManagerImpl(
             logoutUseCase = LogoutUseCase(service, wordRepo, settingsRepo),
-            deleteAccountUseCase = DeleteAccountUseCase(service, wordRepo, settingsRepo),
+            deleteAccountUseCase = DeleteAccountUseCase(service, wordRepo, settingsRepo, fakeOnboardingRepo()),
             subscriptionManager = fakeSubscriptionManager(),
             streakManager = fakeStreakManager(),
             deactivatePushTokenUseCase = deactivatePushTokenUseCase,

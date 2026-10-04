@@ -36,6 +36,7 @@ class IOSAccountDeletionHandler(
 
             // Clear auth tokens
             secureStorage.clearTokens()
+            secureStorage.clearOnboardingCompleted()
             println("[IOSAccountDeletionHandler] Cleared auth tokens")
             NSLog("[IOSAccountDeletionHandler] Cleared auth tokens")
 

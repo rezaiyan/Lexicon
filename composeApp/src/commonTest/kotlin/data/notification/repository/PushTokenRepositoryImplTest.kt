@@ -285,6 +285,7 @@ class PushTokenRepositoryImplTest {
         override fun getTokenExpiresAt(): Long = 0L
         override suspend fun hasCompletedOnboarding(): Boolean = false
         override suspend fun markOnboardingCompleted() {}
+        override suspend fun clearOnboardingCompleted() {}
         override suspend fun savePushToken(token: String) { storedPushToken = token }
         override fun getPushToken(): String? = storedPushToken
         override suspend fun clearPushToken() { storedPushToken = null }

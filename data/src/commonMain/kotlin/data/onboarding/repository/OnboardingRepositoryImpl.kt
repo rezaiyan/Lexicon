@@ -26,4 +26,8 @@ class OnboardingRepositoryImpl(
     override suspend fun markOnboardingCompleted(): Try<Unit> = Try {
         secureStorage.markOnboardingCompleted()
     }
+
+    override suspend fun resetOnboarding(): Try<Unit> = Try {
+        secureStorage.clearOnboardingCompleted()
+    }
 }

@@ -3,6 +3,9 @@ package domain.auth.usecase
 import core.common.Try
 import domain.auth.model.AuthUser
 import domain.auth.service.IAuthenticationService
+import domain.onboarding.model.OnboardingPreferences
+import domain.onboarding.model.SuggestedVocabulary
+import domain.onboarding.repository.IOnboardingRepository
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.word.model.LearningStage
@@ -25,7 +28,8 @@ class DeleteAccountUseCaseTest {
     private val authService = FakeAuthService()
     private val wordRepository = FakeWordRepo()
     private val settingsRepository = FakeSettingsRepo()
-    private val useCase = DeleteAccountUseCase(authService, wordRepository, settingsRepository)
+    private val onboardingRepository = FakeOnboardingRepo()
+    private val useCase = DeleteAccountUseCase(authService, wordRepository, settingsRepository, onboardingRepository)
 
     @Test
     fun `delete account clears local data after successful deletion`() = runTest {
@@ -34,6 +38,26 @@ class DeleteAccountUseCaseTest {
         assertTrue(results.isNotEmpty())
         assertTrue(wordRepository.deleteAllWordsCalled)
         assertTrue(settingsRepository.clearSettingsCalled)
+    }
+
+    @Test
+    fun `delete account resets onboarding so the next sign-in starts it again`() = runTest {
+        useCase.invoke().toList()
+
+        assertTrue(onboardingRepository.resetCalled)
+    }
+
+    private class FakeOnboardingRepo : IOnboardingRepository {
+        var resetCalled = false
+
+        override suspend fun submitPreferences(preferences: OnboardingPreferences): Try<List<SuggestedVocabulary>> =
+            Try.success(emptyList())
+        override suspend fun hasCompletedOnboarding(): Try<Boolean> = Try.success(!resetCalled)
+        override suspend fun markOnboardingCompleted(): Try<Unit> = Try.success(Unit)
+        override suspend fun resetOnboarding(): Try<Unit> {
+            resetCalled = true
+            return Try.success(Unit)
+        }
     }
 
     @Test

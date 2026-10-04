@@ -44,7 +44,8 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
     single<notification.payload.NotificationPayloadHandlerRegistry> {
         val handlers = listOf(
             notification.payload.AccountDeletionHandler(
-                clearAllUserDataUseCase = get()
+                clearAllUserDataUseCase = get(),
+                onboardingRepository = get(),
             ),
             notification.payload.SignOutHandler(
                 clearAllUserDataUseCase = get()

@@ -3,6 +3,7 @@ package presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import core.common.NoParamUseCase
 import core.common.fold
+import core.common.getOrDefault
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
 import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
@@ -58,10 +59,18 @@ class AppNavigationViewModel(
         }
     }
 
+    /**
+     * Called after login when onboarding was already done on this device. If the flag has since been
+     * cleared (the account was deleted), falls back to the returning-user check so onboarding can run again.
+     */
     fun onAuthComplete() {
         viewModelScope.launch {
-            onboardingRepository.markOnboardingCompleted()
-            updateState { AppUiState.Ready }
+            val completed = onboardingRepository.hasCompletedOnboarding().getOrDefault(false)
+            if (completed) {
+                updateState { AppUiState.Ready }
+            } else {
+                routeAfterAuthByExistingData()
+            }
         }
     }
 
@@ -70,12 +79,14 @@ class AppNavigationViewModel(
      * If they have words (returning user), skip onboarding. Otherwise show it.
      */
     fun onAuthCompleteCheckingData() {
-        viewModelScope.launch {
-            determinePostAuthDestinationUseCase(Unit).fold(
-                onSuccess = { destination -> updateState { destination.toAppUiState() } },
-                onFailure = { updateState { AppUiState.Onboarding } }
-            )
-        }
+        viewModelScope.launch { routeAfterAuthByExistingData() }
+    }
+
+    private suspend fun routeAfterAuthByExistingData() {
+        determinePostAuthDestinationUseCase(Unit).fold(
+            onSuccess = { destination -> updateState { destination.toAppUiState() } },
+            onFailure = { updateState { AppUiState.Onboarding } }
+        )
     }
 
     fun onLogout() {
