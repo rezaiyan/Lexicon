@@ -41,6 +41,7 @@ import domain.settings.usecase.ObserveReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import fakes.FakeSettingsRepository
 import feature.insights.InsightsEffect
+import feature.insights.InsightsUseCases
 import feature.insights.InsightsViewModel
 import app.cash.turbine.test
 import kotlinx.coroutines.test.runTest
@@ -63,6 +64,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
         var heatmapResult: Try<List<StudyHeatmapDay>> = Try.success(defaultHeatmap()),
         var accuracyByHourResult: Try<List<HourlyAccuracy>> = Try.success(defaultHourlyAccuracy()),
         var weeklyReportResult: Try<WeeklyReport> = Try.success(defaultWeeklyReport()),
+        var levelTransitionsResult: Try<List<LevelTransition>> = Try.success(emptyList()),
     ) : IAnalyticsStatsRepository, IAnalyticsWordRepository {
         var insightsCallCount = 0
 
@@ -88,7 +90,7 @@ class InsightsViewModelTest : ViewModelTestBase() {
         override suspend fun getWordsMastered(limit: Int): Try<List<MasteredWord>> = Try.success(emptyList())
         override suspend fun getLanguagePairStats(): Try<List<LanguagePairStats>> = Try.success(emptyList())
         override suspend fun getComebackWords(): Try<List<ComebackWord>> = Try.success(emptyList())
-        override suspend fun getLevelTransitions(): Try<List<domain.analytics.model.LevelTransition>> = Try.success(emptyList())
+        override suspend fun getLevelTransitions(): Try<List<LevelTransition>> = levelTransitionsResult
     }
 
     // endregion
@@ -196,16 +198,18 @@ class InsightsViewModelTest : ViewModelTestBase() {
         observeReviewRemindersEnabledUseCase: ObserveReviewRemindersEnabledUseCase = ObserveReviewRemindersEnabledUseCase(FakeSettingsRepository()),
     ): InsightsViewModel {
         return InsightsViewModel(
-            getStudyInsightsUseCase = GetStudyInsightsUseCase(repo),
-            getDifficultWordsUseCase = GetDifficultWordsUseCase(repo),
-            getAccuracyTrendUseCase = GetAccuracyTrendUseCase(repo),
-            getAccuracyByLevelUseCase = GetAccuracyByLevelUseCase(repo),
-            getStudyHeatmapUseCase = GetStudyHeatmapUseCase(repo),
-            getBestStudyTimeUseCase = GetBestStudyTimeUseCase(repo),
+            useCases = InsightsUseCases(
+                studyInsights = GetStudyInsightsUseCase(repo),
+                difficultWords = GetDifficultWordsUseCase(repo),
+                accuracyTrend = GetAccuracyTrendUseCase(repo),
+                accuracyByLevel = GetAccuracyByLevelUseCase(repo),
+                studyHeatmap = GetStudyHeatmapUseCase(repo),
+                bestStudyTime = GetBestStudyTimeUseCase(repo),
+                weeklyReport = GetWeeklyReportUseCase(repo),
+                levelTransitions = GetLevelTransitionsUseCase(repo),
+                responseTimeTrend = GetResponseTimeTrendUseCase(repo),
+            ),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(wordRushStatsRepo),
-            getWeeklyReportUseCase = GetWeeklyReportUseCase(repo),
-            getLevelTransitionsUseCase = GetLevelTransitionsUseCase(repo),
-            getResponseTimeTrendUseCase = GetResponseTimeTrendUseCase(repo),
             getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepo),
             dailyInsightCache = dailyInsightCache,
             setReviewRemindersEnabledUseCase = setReviewRemindersEnabledUseCase,
@@ -444,13 +448,12 @@ class InsightsViewModelTest : ViewModelTestBase() {
             LevelTransition(fromLevel = 1, toLevel = 2, count = 5),
             LevelTransition(fromLevel = 3, toLevel = 2, count = 2),
         )
-        val repo = FakeAnalyticsRepository()
-        // FakeAnalyticsRepository.getLevelTransitions returns emptyList by default
-        // Override by wrapping in a subclass
+        val repo = FakeAnalyticsRepository(levelTransitionsResult = Try.success(transitions))
         val vm = createViewModel(repo)
         vm.refresh()
 
-        assertIs<UiState.Loaded<List<LevelTransition>>>(vm.currentState.levelTransitions)
+        val loaded = assertIs<UiState.Loaded<List<LevelTransition>>>(vm.currentState.levelTransitions)
+        assertEquals(transitions, loaded.value)
     }
 
     @Test

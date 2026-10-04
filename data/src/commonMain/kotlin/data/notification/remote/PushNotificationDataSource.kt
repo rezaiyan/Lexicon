@@ -44,7 +44,7 @@ class PushNotificationDataSource(
             }.body<ApiResponse<Unit>>()
         }.map { response ->
             if (!response.success) {
-                throw Exception(response.message ?: "Failed to register push token")
+                error(response.message ?: "Failed to register push token")
             }
             logNetwork("PushNotification", "Push token registered successfully")
         }.doOnFailure { error ->
@@ -86,7 +86,7 @@ class PushNotificationDataSource(
             }.body<ApiResponse<Unit>>()
         }.map { response ->
             if (!response.success) {
-                throw Exception(response.message ?: "Failed to report notification open")
+                error(response.message ?: "Failed to report notification open")
             }
         }.doOnFailure { error ->
             logNetwork("PushNotification", "Error reporting notification open: ${error.message}")

@@ -81,9 +81,7 @@ internal fun NavigationGraph(
         )
 
         insightsGraph(
-            onNavigateBack = { navController.navigateToTab(TabDestination.Study) },
             onShowLeaderboard = { overlayHost.showLeaderboard() },
-            snackbarHostState = snackbarHostState,
             onNavigateToNotificationSettings = { overlayHost.showNotificationSettingsSheet() },
         )
 

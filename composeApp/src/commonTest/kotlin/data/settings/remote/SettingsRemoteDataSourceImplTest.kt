@@ -19,6 +19,8 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+private const val SuccessEnvelope = """{"success":true,"data":null}"""
+
 class SettingsRemoteDataSourceImplTest {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
@@ -32,7 +34,6 @@ class SettingsRemoteDataSourceImplTest {
     private fun buildDataSource(mockEngine: MockEngine) =
         SettingsRemoteDataSourceImpl(buildApiClient(mockEngine))
 
-    private fun successEnvelope() = """{"success":true,"data":null}"""
     private fun jsonHeaders() = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
 
     @Test
@@ -42,7 +43,7 @@ class SettingsRemoteDataSourceImplTest {
         val mockEngine = MockEngine { request ->
             capturedPath = request.url.encodedPath
             capturedMethod = request.method
-            respond(successEnvelope(), HttpStatusCode.OK, jsonHeaders())
+            respond(SuccessEnvelope, HttpStatusCode.OK, jsonHeaders())
         }
         val dto = SettingsSyncDto(
             languageCode = "en",
@@ -60,7 +61,7 @@ class SettingsRemoteDataSourceImplTest {
     @Test
     fun `syncSettings returns success on 200`() = runTest {
         val mockEngine = MockEngine {
-            respond(successEnvelope(), HttpStatusCode.OK, jsonHeaders())
+            respond(SuccessEnvelope, HttpStatusCode.OK, jsonHeaders())
         }
         val dto = SettingsSyncDto("en", "AUTO", true, "18:00", false)
         val result = buildDataSource(mockEngine).syncSettings(dto)
