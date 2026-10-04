@@ -1,21 +1,13 @@
 package presentation.ui.components.imports
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
@@ -29,36 +21,28 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material.icons.filled.Work
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import components.GeneratingProgress
 import components.sheet.IconTile
+import components.sheet.LevelBars
+import components.sheet.RadioDot
 import components.sheet.SelectableCard
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
 import feature.aiimport.model.AiWordImportStep
 import feature.aiimport.model.AiWordImportUiState
-import kotlinx.coroutines.delay
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advanced
 import lexicon.resources.generated.resources.ai_wizard_continue
@@ -91,10 +75,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import utils.Language
-
-private const val GeneratingStepMillis = 2500L
-private val LevelBarWidth = 6.dp
-private val GeneratingRingSize = 120.dp
 
 // Font-scaled width below which topic cards stack in one column
 private val TwoColumnMinWidth = 300.dp
@@ -209,47 +189,6 @@ internal fun AiLevelStep(
     }
 }
 
-@Composable
-private fun LevelBars(filled: Int, selected: Boolean) {
-    val accent = MaterialTheme.colorScheme.primary
-    val tile = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surfaceContainerHigh
-    Row(
-        modifier = Modifier
-            .size(Theme.dimensions.touchTargetSmall + Theme.spacing.xxs)
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .background(tile)
-            .padding(bottom = Theme.spacing.sm - Theme.spacing.xxxs),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        listOf(10, 16, 22).forEachIndexed { index, height ->
-            Box(
-                modifier = Modifier
-                    .width(LevelBarWidth)
-                    .height(height.dp)
-                    .clip(CircleShape)
-                    .background(if (index < filled) accent else MaterialTheme.colorScheme.outlineVariant),
-            )
-        }
-    }
-}
-
-@Composable
-private fun RadioDot(selected: Boolean) {
-    val accent = MaterialTheme.colorScheme.primary
-    val ring by animateColorAsState(if (selected) accent else MaterialTheme.colorScheme.outline, label = "radio")
-    Box(
-        modifier = Modifier
-            .size(Theme.dimensions.iconSizeMedium + Theme.spacing.xxxs)
-            .border(Theme.spacing.xxxs, ring, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (selected) {
-            Box(Modifier.size(Theme.spacing.sm - Theme.spacing.xxxs).clip(CircleShape).background(accent))
-        }
-    }
-}
-
 private val TopicIcons: Map<String, ImageVector> = mapOf(
     "Daily Life" to Icons.Default.Home,
     "Travel" to Icons.Default.Flight,
@@ -352,131 +291,19 @@ private val GeneratingSteps = listOf(
     Res.string.generating_step_4,
 )
 
-/**
- * Shown while suggestions are generated. The checklist advances on a timer (the request has no
- * progress signal) and holds on the last step until the result arrives.
- */
+/** Shown while suggestions are generated. */
 @Composable
 internal fun AiGeneratingContent(state: AiWordImportUiState) {
-    var activeIndex by remember { mutableIntStateOf(0) }
-    LaunchedEffect(Unit) {
-        while (activeIndex < GeneratingSteps.lastIndex) {
-            delay(GeneratingStepMillis)
-            activeIndex++
-        }
-    }
     val summary = listOfNotNull(
         state.selectedTargetLanguage,
         state.selectedLevel?.replaceFirstChar { it.uppercase() },
         state.selectedTopics.takeIf { it.isNotEmpty() }?.joinToString(", "),
     ).joinToString(" · ")
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.xl, vertical = Theme.spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg),
-    ) {
-        Box(modifier = Modifier.size(GeneratingRingSize), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(GeneratingRingSize),
-                strokeWidth = Theme.spacing.xs,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            )
-            Box(
-                modifier = Modifier
-                    .size(Theme.dimensions.iconSizeMassive + Theme.spacing.xxs)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    Icons.Default.AutoAwesome,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeXLarge),
-                )
-            }
-        }
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-        ) {
-            Text(
-                stringResource(Res.string.generating_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-            )
-            if (summary.isNotEmpty()) {
-                Text(
-                    summary,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-
-        Column(
-            modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
-        ) {
-            GeneratingSteps.forEachIndexed { index, label ->
-                GeneratingStepRow(
-                    text = stringResource(label),
-                    done = index < activeIndex,
-                    active = index == activeIndex,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun GeneratingStepRow(text: String, done: Boolean, active: Boolean) {
-    val accent = MaterialTheme.colorScheme.primary
-    val idle = MaterialTheme.colorScheme.outlineVariant
-    val labelColor = if (done || active) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Theme.spacing.xs + Theme.spacing.xxxs),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(Theme.dimensions.iconSize)
-                .clip(CircleShape)
-                .then(
-                    when {
-                        done -> Modifier.background(accent)
-                        active -> Modifier.border(Theme.spacing.xxxs, accent, CircleShape)
-                        else -> Modifier.border(Theme.spacing.xxxs, idle, CircleShape)
-                    }
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            when {
-                done -> Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeSmall - Theme.spacing.xxxs),
-                )
-                active -> Box(Modifier.size(Theme.spacing.xs).clip(CircleShape).background(accent))
-            }
-        }
-        Text(
-            text,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-            color = labelColor,
-        )
-    }
+    GeneratingProgress(
+        title = stringResource(Res.string.generating_title),
+        steps = GeneratingSteps.map { stringResource(it) },
+        summary = summary,
+        modifier = Modifier.padding(horizontal = Theme.spacing.xl, vertical = Theme.spacing.lg),
+    )
 }
