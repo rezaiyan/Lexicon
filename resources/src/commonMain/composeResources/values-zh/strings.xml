@@ -420,8 +420,6 @@
     <string name="topic_academic">学术</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title">设置偏好</string>
-    <string name="onboarding_subtitle">帮助我们个性化你的学习体验</string>
     <string name="select_target_language">我想学习：</string>
     <string name="select_native_language">我说：</string>
     <string name="select_level">我的水平：</string>
@@ -433,16 +431,7 @@
     <string name="vocabulary_preview_title">推荐词汇</string>
     <string name="import_selected">导入所选</string>
     <string name="skip_import">跳过</string>
-    <string name="onboarding_welcome_to">欢迎来到</string>
-    <string name="onboarding_personalize_subtitle">让我们个性化你的词汇学习体验</string>
-    <string name="onboarding_personalized_setup">个性化设置</string>
-    <string name="onboarding_personalized_setup_desc">选择你的目标语言和学习水平</string>
-    <string name="onboarding_starter_vocabulary_feature">入门词汇</string>
-    <string name="onboarding_starter_vocabulary_desc">获取精选的必备单词包</string>
-    <string name="onboarding_smart_learning">智能学习</string>
-    <string name="onboarding_smart_learning_desc">通过间隔重复跟踪你的进度</string>
     <string name="onboarding_get_started">开始</string>
-    <string name="onboarding_start_blank">从空白开始</string>
     <string name="onboarding_which_language">你正在学习</string>
     <string name="onboarding_are_you_learning">哪种语言？</string>
     <string name="onboarding_target_language_subtitle">我们会根据你的选择调整词汇集。你可以随时更改。</string>
@@ -455,12 +444,6 @@
     <string name="onboarding_beginner_desc">刚刚起步。学习基本短语和日常用词。</string>
     <string name="onboarding_intermediate_desc">能进行基本对话。扩展词汇和语法模式。</string>
     <string name="onboarding_advanced_desc">流利使用者。掌握细微差别、习语和专业话题。</string>
-    <string name="onboarding_generating_vocabulary">正在生成你的词汇</string>
-    <string name="onboarding_loading_tip_1">正在筛选个性化词汇…</string>
-    <string name="onboarding_loading_tip_2">正在匹配适合你水平的单词…</string>
-    <string name="onboarding_loading_tip_3">正在创建你的入门包…</string>
-    <string name="onboarding_loading_tip_4">即将完成…</string>
-    <string name="onboarding_language_flag">%1$s 国旗</string>
     <string name="onboarding_daily_goal_title1">每天学多少</string>
     <string name="onboarding_daily_goal_title2">单词？</string>
     <string name="onboarding_daily_goal_subtitle">设置一个适合您日程的每日目标。您可以随时在设置中更改。</string>
@@ -471,9 +454,6 @@
     <string name="sign_in_apple">使用 Apple 登录</string>
     <string name="sign_in_failed">登录失败。请重试。</string>
     <string name="tap_card_to_reveal">点击卡片查看</string>
-    <string name="starter_vocabulary">入门词汇</string>
-    <string name="accept">接受</string>
-    <string name="deny">拒绝</string>
 
     <!-- Edit Profile -->
     <string name="edit_profile">编辑资料</string>
@@ -579,5 +559,36 @@
     <string name="sub_paused_resume_now">立即在 %1$s 中恢复</string>
     <string name="profile_premium_paused">暂停至 %1$s</string>
     <string name="profile_payment_issue">付款问题</string>
+    <string name="onboarding_welcome_title">来设置你的</string>
+    <string name="onboarding_welcome_highlight">单词列表</string>
+    <string name="onboarding_welcome_subtitle">回答四个简单问题，我们会为你挑选合适的入门单词。</string>
+    <string name="onboarding_welcome_languages">选择语言</string>
+    <string name="onboarding_welcome_languages_desc">你在学的语言和已经会说的语言</string>
+    <string name="onboarding_welcome_level">设定水平和节奏</string>
+    <string name="onboarding_welcome_level_desc">符合你水平和每日目标的单词</string>
+    <string name="onboarding_welcome_starter">获取入门单词包</string>
+    <string name="onboarding_welcome_starter_desc">保留它，或从空列表开始</string>
+    <string name="onboarding_skip_to_empty">跳过并从空列表开始</string>
+    <string name="onboarding_phone_language">手机语言</string>
+    <string name="onboarding_other_languages">其他语言</string>
+    <string name="onboarding_goal_casual">轻松</string>
+    <string name="onboarding_goal_regular">常规</string>
+    <string name="onboarding_goal_serious">认真</string>
+    <string name="onboarding_goal_intense">强化</string>
+    <string name="onboarding_monthly_words">每月约 %1$d 个单词。</string>
+    <string name="onboarding_build_word_list">创建我的单词列表</string>
+    <string name="onboarding_building_title">正在生成你的入门单词</string>
+    <string name="onboarding_step_choosing">挑选适合你水平的单词</string>
+    <string name="onboarding_step_translating">编写翻译</string>
+    <string name="onboarding_step_packing">整理入门列表</string>
+    <string name="onboarding_words_a_day_short">每天 %1$d 个</string>
+    <string name="onboarding_failed_title">无法创建你的列表</string>
+    <string name="onboarding_starter_eyebrow">准备就绪</string>
+    <string name="onboarding_starter_title">你的</string>
+    <string name="onboarding_starter_highlight">入门单词</string>
+    <string name="onboarding_starter_subtitle">按你的水平挑选。之后可以编辑或删除。</string>
+    <string name="onboarding_word_count">%1$d 个单词</string>
+    <string name="onboarding_add_words">添加 %1$d 个单词并开始</string>
+    <string name="onboarding_start_empty">从空列表开始</string>
 </resources>
 

@@ -563,8 +563,6 @@
     <string name="topic_academic">학문</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title">설정 사용자 지정</string>
-    <string name="onboarding_subtitle">학습 경험을 맞춤 설정하세요</string>
     <string name="select_target_language">배우고 싶은 언어:</string>
     <string name="select_native_language">사용하는 언어:</string>
     <string name="select_level">나의 레벨:</string>
@@ -576,16 +574,7 @@
     <string name="vocabulary_preview_title">추천 어휘</string>
     <string name="import_selected">선택 가져오기</string>
     <string name="skip_import">건너뛰기</string>
-    <string name="onboarding_welcome_to">환영합니다</string>
-    <string name="onboarding_personalize_subtitle">어휘 학습 경험을 맞춤 설정하세요</string>
-    <string name="onboarding_personalized_setup">맞춤 설정</string>
-    <string name="onboarding_personalized_setup_desc">목표 언어와 학습 레벨을 선택하세요</string>
-    <string name="onboarding_starter_vocabulary_feature">스타터 어휘</string>
-    <string name="onboarding_starter_vocabulary_desc">필수 단어의 큐레이션 팩으로 시작하세요</string>
-    <string name="onboarding_smart_learning">스마트 학습</string>
-    <string name="onboarding_smart_learning_desc">간격 반복으로 진행 상황 추적</string>
     <string name="onboarding_get_started">시작하기</string>
-    <string name="onboarding_start_blank">빈 앱으로 시작</string>
     <string name="onboarding_which_language">어떤 언어를</string>
     <string name="onboarding_are_you_learning">배우고 있나요?</string>
     <string name="onboarding_target_language_subtitle">선택에 따라 어휘 세트를 맞춤 설정합니다. 나중에 변경할 수 있어요.</string>
@@ -598,12 +587,6 @@
     <string name="onboarding_beginner_desc">막 시작했어요. 기본 구문과 일상 단어를 배웁니다.</string>
     <string name="onboarding_intermediate_desc">기본 대화가 가능해요. 어휘와 문법 패턴을 확장합니다.</string>
     <string name="onboarding_advanced_desc">유창하게 말해요. 뉘앙스, 관용구, 전문 주제를 마스터합니다.</string>
-    <string name="onboarding_generating_vocabulary">어휘 생성 중</string>
-    <string name="onboarding_loading_tip_1">맞춤 어휘 큐레이팅 중…</string>
-    <string name="onboarding_loading_tip_2">레벨에 맞는 단어 선정 중…</string>
-    <string name="onboarding_loading_tip_3">스타터 팩 구성 중…</string>
-    <string name="onboarding_loading_tip_4">거의 다 됐어요…</string>
-    <string name="onboarding_language_flag">%1$s 국기</string>
     <string name="onboarding_daily_goal_title1">하루에 몇 단어를</string>
     <string name="onboarding_daily_goal_title2">학습할까요?</string>
     <string name="onboarding_daily_goal_subtitle">일정에 맞는 일일 목표를 설정하세요. 설정에서 언제든지 변경할 수 있습니다.</string>
@@ -614,9 +597,6 @@
     <string name="sign_in_apple">Apple로 로그인</string>
     <string name="sign_in_failed">로그인에 실패했습니다. 다시 시도해 주세요.</string>
     <string name="tap_card_to_reveal">카드를 탭하여 확인</string>
-    <string name="starter_vocabulary">스타터 어휘</string>
-    <string name="accept">수락</string>
-    <string name="deny">거부</string>
 
     <!-- Edit Profile -->
     <string name="edit_profile">프로필 편집</string>
@@ -738,4 +718,35 @@
     <string name="sub_paused_resume_now">지금 %1$s에서 재개</string>
     <string name="profile_premium_paused">%1$s까지 일시중지</string>
     <string name="profile_payment_issue">결제 문제</string>
+    <string name="onboarding_welcome_title">이제</string>
+    <string name="onboarding_welcome_highlight">단어 목록을 만들어 볼까요</string>
+    <string name="onboarding_welcome_subtitle">간단한 질문 네 개에 답하면 맞춤 시작 단어를 골라 드려요.</string>
+    <string name="onboarding_welcome_languages">언어 선택</string>
+    <string name="onboarding_welcome_languages_desc">배우는 언어와 이미 하는 언어</string>
+    <string name="onboarding_welcome_level">수준과 속도 설정</string>
+    <string name="onboarding_welcome_level_desc">실력과 하루 목표에 맞춘 단어</string>
+    <string name="onboarding_welcome_starter">시작 단어 묶음 받기</string>
+    <string name="onboarding_welcome_starter_desc">그대로 쓰거나 빈 목록으로 시작</string>
+    <string name="onboarding_skip_to_empty">건너뛰고 빈 목록으로 시작</string>
+    <string name="onboarding_phone_language">휴대폰 언어</string>
+    <string name="onboarding_other_languages">다른 언어</string>
+    <string name="onboarding_goal_casual">가볍게</string>
+    <string name="onboarding_goal_regular">꾸준히</string>
+    <string name="onboarding_goal_serious">진지하게</string>
+    <string name="onboarding_goal_intense">집중</string>
+    <string name="onboarding_monthly_words">한 달에 약 %1$d개 단어예요.</string>
+    <string name="onboarding_build_word_list">단어 목록 만들기</string>
+    <string name="onboarding_building_title">시작 단어를 만드는 중</string>
+    <string name="onboarding_step_choosing">수준에 맞는 단어 고르는 중</string>
+    <string name="onboarding_step_translating">번역 작성 중</string>
+    <string name="onboarding_step_packing">시작 목록 정리 중</string>
+    <string name="onboarding_words_a_day_short">하루 %1$d개</string>
+    <string name="onboarding_failed_title">목록을 만들지 못했어요</string>
+    <string name="onboarding_starter_eyebrow">준비 완료</string>
+    <string name="onboarding_starter_title">나의</string>
+    <string name="onboarding_starter_highlight">시작 단어</string>
+    <string name="onboarding_starter_subtitle">수준에 맞춰 골랐어요. 나중에 수정하거나 삭제할 수 있어요.</string>
+    <string name="onboarding_word_count">%1$d개 단어</string>
+    <string name="onboarding_add_words">%1$d개 단어 추가하고 시작</string>
+    <string name="onboarding_start_empty">빈 목록으로 시작</string>
 </resources>

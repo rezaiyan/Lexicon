@@ -419,8 +419,6 @@
     <string name="topic_academic">آکادمیک</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title">تنظیم ترجیحات</string>
-    <string name="onboarding_subtitle">به ما کمک کن تجربه یادگیری‌ات را شخصی‌سازی کنیم</string>
     <string name="select_target_language">می‌خواهم یاد بگیرم:</string>
     <string name="select_native_language">زبان من:</string>
     <string name="select_level">سطح من:</string>
@@ -432,16 +430,7 @@
     <string name="vocabulary_preview_title">واژگان پیشنهادی</string>
     <string name="import_selected">وارد کردن انتخاب‌شده‌ها</string>
     <string name="skip_import">رد شدن</string>
-    <string name="onboarding_welcome_to">خوش آمدید به</string>
-    <string name="onboarding_personalize_subtitle">بیایید تجربه یادگیری واژگان شما را شخصی‌سازی کنیم</string>
-    <string name="onboarding_personalized_setup">تنظیم شخصی‌سازی شده</string>
-    <string name="onboarding_personalized_setup_desc">زبان هدف و سطح یادگیری خود را انتخاب کنید</string>
-    <string name="onboarding_starter_vocabulary_feature">واژگان اولیه</string>
-    <string name="onboarding_starter_vocabulary_desc">یک بسته منتخب از کلمات ضروری برای شروع دریافت کنید</string>
-    <string name="onboarding_smart_learning">یادگیری هوشمند</string>
-    <string name="onboarding_smart_learning_desc">پیشرفت خود را با تکرار فاصله‌دار پیگیری کنید</string>
     <string name="onboarding_get_started">شروع کنید</string>
-    <string name="onboarding_start_blank">شروع با برنامه خالی</string>
     <string name="onboarding_which_language">کدام زبان را</string>
     <string name="onboarding_are_you_learning">یاد می‌گیری؟</string>
     <string name="onboarding_target_language_subtitle">ما مجموعه واژگان شما را بر اساس انتخابتان تنظیم می‌کنیم. بعداً قابل تغییر است.</string>
@@ -454,12 +443,6 @@
     <string name="onboarding_beginner_desc">تازه شروع کرده‌اید. عبارات پایه و کلمات روزمره را یاد بگیرید.</string>
     <string name="onboarding_intermediate_desc">مکالمات پایه انجام دهید. واژگان و الگوهای دستوری را گسترش دهید.</string>
     <string name="onboarding_advanced_desc">گوینده روان. ظرافت‌ها، اصطلاحات و موضوعات تخصصی را تسلط یابید.</string>
-    <string name="onboarding_generating_vocabulary">در حال تولید واژگان شما</string>
-    <string name="onboarding_loading_tip_1">واژگان شخصی‌سازی شده در حال آماده‌سازی…</string>
-    <string name="onboarding_loading_tip_2">تطبیق کلمات با سطح شما…</string>
-    <string name="onboarding_loading_tip_3">بسته شروع شما در حال ساخت…</string>
-    <string name="onboarding_loading_tip_4">تقریباً آماده…</string>
-    <string name="onboarding_language_flag">پرچم %1$s</string>
     <string name="onboarding_daily_goal_title1">چند کلمه</string>
     <string name="onboarding_daily_goal_title2">در روز؟</string>
     <string name="onboarding_daily_goal_subtitle">یک هدف روزانه تعیین کنید که با برنامه شما مناسب باشد. می‌توانید این را هر زمان در تنظیمات تغییر دهید.</string>
@@ -470,9 +453,6 @@
     <string name="sign_in_apple">ورود با اپل</string>
     <string name="sign_in_failed">ورود ناموفق بود. لطفاً دوباره تلاش کنید.</string>
     <string name="tap_card_to_reveal">برای نمایش روی کارت بزنید</string>
-    <string name="starter_vocabulary">واژگان اولیه</string>
-    <string name="accept">پذیرش</string>
-    <string name="deny">رد</string>
 
     <!-- Edit Profile -->
     <string name="edit_profile">ویرایش پروفایل</string>
@@ -578,5 +558,36 @@
     <string name="sub_paused_resume_now">همین حالا در %1$s ادامه دهید</string>
     <string name="profile_premium_paused">متوقف تا %1$s</string>
     <string name="profile_payment_issue">مشکل پرداخت</string>
+    <string name="onboarding_welcome_title">بیایید</string>
+    <string name="onboarding_welcome_highlight">فهرست واژه‌هایتان را بسازیم</string>
+    <string name="onboarding_welcome_subtitle">چهار سؤال کوتاه. بعد واژه‌های شروع مناسب شما را انتخاب می‌کنیم.</string>
+    <string name="onboarding_welcome_languages">زبان‌هایتان را انتخاب کنید</string>
+    <string name="onboarding_welcome_languages_desc">زبانی که یاد می‌گیرید و زبانی که بلدید</string>
+    <string name="onboarding_welcome_level">سطح و سرعتتان را تعیین کنید</string>
+    <string name="onboarding_welcome_level_desc">واژه‌هایی متناسب با سطح و هدف روزانه‌تان</string>
+    <string name="onboarding_welcome_starter">یک بستهٔ شروع بگیرید</string>
+    <string name="onboarding_welcome_starter_desc">نگهش دارید یا با فهرست خالی شروع کنید</string>
+    <string name="onboarding_skip_to_empty">رد شدن و شروع با فهرست خالی</string>
+    <string name="onboarding_phone_language">زبان گوشی شما</string>
+    <string name="onboarding_other_languages">زبان‌های دیگر</string>
+    <string name="onboarding_goal_casual">آرام</string>
+    <string name="onboarding_goal_regular">منظم</string>
+    <string name="onboarding_goal_serious">جدی</string>
+    <string name="onboarding_goal_intense">فشرده</string>
+    <string name="onboarding_monthly_words">یعنی حدود %1$d واژه در ماه.</string>
+    <string name="onboarding_build_word_list">فهرست واژه‌هایم را بساز</string>
+    <string name="onboarding_building_title">در حال ساخت واژه‌های شروع شما</string>
+    <string name="onboarding_step_choosing">انتخاب واژه‌ها برای سطح شما</string>
+    <string name="onboarding_step_translating">نوشتن ترجمه‌ها</string>
+    <string name="onboarding_step_packing">آماده‌سازی فهرست شروع</string>
+    <string name="onboarding_words_a_day_short">%1$d در روز</string>
+    <string name="onboarding_failed_title">فهرست شما ساخته نشد</string>
+    <string name="onboarding_starter_eyebrow">همه‌چیز آماده است</string>
+    <string name="onboarding_starter_title">واژه‌های</string>
+    <string name="onboarding_starter_highlight">شروع شما</string>
+    <string name="onboarding_starter_subtitle">برای سطح شما انتخاب شده‌اند. بعداً می‌توانید ویرایش یا حذفشان کنید.</string>
+    <string name="onboarding_word_count">%1$d واژه</string>
+    <string name="onboarding_add_words">افزودن %1$d واژه و شروع</string>
+    <string name="onboarding_start_empty">شروع با فهرست خالی</string>
 </resources>
 

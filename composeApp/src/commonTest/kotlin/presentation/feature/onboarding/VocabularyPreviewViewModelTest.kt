@@ -7,60 +7,72 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
+import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 
 class VocabularyPreviewViewModelTest : ViewModelTestBase() {
 
-    private fun createViewModel() = VocabularyPreviewViewModel()
-
-    private fun testWords() = listOf(
-        SuggestedVocabulary("hola", "hello", "greeting", "es", "en"),
-        SuggestedVocabulary("gato", "cat", "animal", "es", "en"),
-        SuggestedVocabulary("casa", "house", "building", "es", "en")
+    private fun testWords(source: String = "English", target: String = "Spanish") = listOf(
+        SuggestedVocabulary("hola", "hello", "greeting", source, target),
+        SuggestedVocabulary("gato", "cat", "animal", source, target),
+        SuggestedVocabulary("casa", "house", "building", source, target),
     )
 
     @Test
-    fun `initial state has empty words and no selection`() {
-        val vm = createViewModel()
-        assertEquals(emptyList(), vm.currentState.words)
-        assertEquals(emptySet(), vm.currentState.selectedIndices)
-    }
-
-    @Test
-    fun `setWords initializes state with all indices selected`() {
-        val vm = createViewModel()
+    fun `init holds the words and resolves display-name languages`() {
         val words = testWords()
 
-        vm.setWords(words)
+        val vm = VocabularyPreviewViewModel(words)
 
         assertEquals(words, vm.currentState.words)
-        assertEquals(setOf(0, 1, 2), vm.currentState.selectedIndices)
-        assertEquals(3, vm.currentState.selectedCount)
+        assertEquals(Language.SPANISH, vm.currentState.learningLanguage)
+        assertEquals(Language.ENGLISH, vm.currentState.nativeLanguage)
     }
 
     @Test
-    fun `proceedWithSelected emits ProceedWithSelection with all words`() =
-        runTest(UnconfinedTestDispatcher()) {
-            val vm = createViewModel()
-            val words = testWords()
-            vm.setWords(words)
+    fun `init resolves language codes`() {
+        val vm = VocabularyPreviewViewModel(testWords(source = "en", target = "de"))
 
-            vm.proceedWithSelected()
-
-            val event = vm.effects.first()
-            assertIs<VocabularyPreviewEffect.ProceedWithSelection>(event)
-            assertEquals(words, event.words)
-        }
+        assertEquals(Language.GERMAN, vm.currentState.learningLanguage)
+        assertEquals(Language.ENGLISH, vm.currentState.nativeLanguage)
+    }
 
     @Test
-    fun `skip emits SkipVocabulary`() = runTest(UnconfinedTestDispatcher()) {
-        val vm = createViewModel()
+    fun `init when a language is unknown leaves it empty`() {
+        val vm = VocabularyPreviewViewModel(testWords(target = "Klingon"))
 
-        vm.skip()
+        assertNull(vm.currentState.learningLanguage)
+    }
 
-        val event = vm.effects.first()
-        assertEquals(VocabularyPreviewEffect.SkipVocabulary, event)
+    @Test
+    fun `init with no words has no languages`() {
+        val vm = VocabularyPreviewViewModel(emptyList())
+
+        assertEquals(emptyList(), vm.currentState.words)
+        assertNull(vm.currentState.learningLanguage)
+    }
+
+    @Test
+    fun `addWords emits AddWords with every word`() = runTest(UnconfinedTestDispatcher()) {
+        val words = testWords()
+        val vm = VocabularyPreviewViewModel(words)
+
+        vm.addWords()
+
+        val effect = vm.effects.first()
+        assertIs<VocabularyPreviewEffect.AddWords>(effect)
+        assertEquals(words, effect.words)
+    }
+
+    @Test
+    fun `startEmpty emits StartEmpty`() = runTest(UnconfinedTestDispatcher()) {
+        val vm = VocabularyPreviewViewModel(testWords())
+
+        vm.startEmpty()
+
+        assertEquals(VocabularyPreviewEffect.StartEmpty, vm.effects.first())
     }
 }

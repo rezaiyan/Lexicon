@@ -420,8 +420,6 @@
     <string name="topic_academic">Académico</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title">Configura tus preferencias</string>
-    <string name="onboarding_subtitle">Ayúdanos a personalizar tu experiencia de aprendizaje</string>
     <string name="select_target_language">Quiero aprender:</string>
     <string name="select_native_language">Hablo:</string>
     <string name="select_level">Mi nivel:</string>
@@ -433,16 +431,7 @@
     <string name="vocabulary_preview_title">Vocabulario sugerido</string>
     <string name="import_selected">Importar seleccionados</string>
     <string name="skip_import">Omitir</string>
-    <string name="onboarding_welcome_to">Bienvenido a</string>
-    <string name="onboarding_personalize_subtitle">Personalicemos tu experiencia de aprendizaje de vocabulario</string>
-    <string name="onboarding_personalized_setup">Configuración personalizada</string>
-    <string name="onboarding_personalized_setup_desc">Elige tu idioma objetivo y nivel de aprendizaje</string>
-    <string name="onboarding_starter_vocabulary_feature">Vocabulario inicial</string>
-    <string name="onboarding_starter_vocabulary_desc">Recibe un pack de palabras esenciales para empezar</string>
-    <string name="onboarding_smart_learning">Aprendizaje inteligente</string>
-    <string name="onboarding_smart_learning_desc">Sigue tu progreso con repetición espaciada</string>
     <string name="onboarding_get_started">Empezar</string>
-    <string name="onboarding_start_blank">Empezar con app vacía</string>
     <string name="onboarding_which_language">¿Qué idioma</string>
     <string name="onboarding_are_you_learning">estás aprendiendo?</string>
     <string name="onboarding_target_language_subtitle">Adaptaremos tus conjuntos de vocabulario según tu elección. Puedes cambiarlo más tarde.</string>
@@ -455,12 +444,6 @@
     <string name="onboarding_beginner_desc">Recién empezando. Aprende frases básicas y palabras cotidianas.</string>
     <string name="onboarding_intermediate_desc">Mantienes conversaciones básicas. Amplía vocabulario y patrones gramaticales.</string>
     <string name="onboarding_advanced_desc">Hablante fluido. Domina matices, modismos y temas especializados.</string>
-    <string name="onboarding_generating_vocabulary">Generando tu vocabulario</string>
-    <string name="onboarding_loading_tip_1">Seleccionando vocabulario personalizado…</string>
-    <string name="onboarding_loading_tip_2">Adaptando palabras a tu nivel…</string>
-    <string name="onboarding_loading_tip_3">Creando tu pack de inicio…</string>
-    <string name="onboarding_loading_tip_4">Casi listo…</string>
-    <string name="onboarding_language_flag">Bandera de %1$s</string>
     <string name="onboarding_daily_goal_title1">¿Cuántas palabras</string>
     <string name="onboarding_daily_goal_title2">al día?</string>
     <string name="onboarding_daily_goal_subtitle">Establece un objetivo diario que se adapte a tu horario. Puedes cambiarlo en cualquier momento en los ajustes.</string>
@@ -471,9 +454,6 @@
     <string name="sign_in_apple">Iniciar sesión con Apple</string>
     <string name="sign_in_failed">Error de inicio de sesión. Por favor, inténtalo de nuevo.</string>
     <string name="tap_card_to_reveal">Toca la tarjeta para revelar</string>
-    <string name="starter_vocabulary">Vocabulario inicial</string>
-    <string name="accept">Aceptar</string>
-    <string name="deny">Rechazar</string>
 
     <!-- Edit Profile -->
     <string name="edit_profile">Editar perfil</string>
@@ -579,5 +559,36 @@
     <string name="sub_paused_resume_now">Reanudar ahora en %1$s</string>
     <string name="profile_premium_paused">En pausa hasta el %1$s</string>
     <string name="profile_payment_issue">Problema de pago</string>
+    <string name="onboarding_welcome_title">Configuremos tu</string>
+    <string name="onboarding_welcome_highlight">lista de palabras</string>
+    <string name="onboarding_welcome_subtitle">Cuatro preguntas rápidas. Luego elegiremos palabras iniciales para ti.</string>
+    <string name="onboarding_welcome_languages">Elige tus idiomas</string>
+    <string name="onboarding_welcome_languages_desc">Lo que aprendes y lo que ya hablas</string>
+    <string name="onboarding_welcome_level">Define tu nivel y ritmo</string>
+    <string name="onboarding_welcome_level_desc">Palabras según tu nivel y meta diaria</string>
+    <string name="onboarding_welcome_starter">Obtén un paquete inicial</string>
+    <string name="onboarding_welcome_starter_desc">Quédatelo o empieza con una lista vacía</string>
+    <string name="onboarding_skip_to_empty">Omitir y empezar con una lista vacía</string>
+    <string name="onboarding_phone_language">Idioma de tu teléfono</string>
+    <string name="onboarding_other_languages">Otros idiomas</string>
+    <string name="onboarding_goal_casual">Relajado</string>
+    <string name="onboarding_goal_regular">Regular</string>
+    <string name="onboarding_goal_serious">En serio</string>
+    <string name="onboarding_goal_intense">Intenso</string>
+    <string name="onboarding_monthly_words">Son unas %1$d palabras al mes.</string>
+    <string name="onboarding_build_word_list">Crear mi lista de palabras</string>
+    <string name="onboarding_building_title">Creando tus palabras iniciales</string>
+    <string name="onboarding_step_choosing">Eligiendo palabras para tu nivel</string>
+    <string name="onboarding_step_translating">Escribiendo traducciones</string>
+    <string name="onboarding_step_packing">Preparando tu lista inicial</string>
+    <string name="onboarding_words_a_day_short">%1$d al día</string>
+    <string name="onboarding_failed_title">No pudimos crear tu lista</string>
+    <string name="onboarding_starter_eyebrow">Todo listo</string>
+    <string name="onboarding_starter_title">Tus</string>
+    <string name="onboarding_starter_highlight">palabras iniciales</string>
+    <string name="onboarding_starter_subtitle">Elegidas para tu nivel. Puedes editarlas o eliminarlas más tarde.</string>
+    <string name="onboarding_word_count">%1$d palabras</string>
+    <string name="onboarding_add_words">Añadir %1$d palabras y empezar</string>
+    <string name="onboarding_start_empty">Empezar con una lista vacía</string>
 </resources>
 

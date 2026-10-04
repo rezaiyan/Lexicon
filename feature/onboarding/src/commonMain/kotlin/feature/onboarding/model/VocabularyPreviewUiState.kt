@@ -1,10 +1,12 @@
 package feature.onboarding.model
 
 import domain.onboarding.model.SuggestedVocabulary
+import utils.Language
 
 data class VocabularyPreviewUiState(
     val words: List<SuggestedVocabulary> = emptyList(),
-    val selectedIndices: Set<Int> = emptySet()
-) {
-    val selectedCount: Int get() = selectedIndices.size
-}
+    /** Language the words are in. */
+    val learningLanguage: Language? = null,
+    /** Language the translations are in. */
+    val nativeLanguage: Language? = null,
+)

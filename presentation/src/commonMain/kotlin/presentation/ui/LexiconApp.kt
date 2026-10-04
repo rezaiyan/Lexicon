@@ -38,6 +38,8 @@ import kotlinx.coroutines.SupervisorJob
 import org.kodein.emoji.compose.EmojiService
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+import events.OnEvents
 import feature.auth.AuthViewModel
 import feature.onboarding.OnboardingViewModel
 import feature.onboarding.VocabularyPreviewViewModel
@@ -219,18 +221,13 @@ fun LexiconApp() {
                         val onboardingViewModel: OnboardingViewModel = koinViewModel()
                         val onboardingState by onboardingViewModel.state()
 
-                        LaunchedEffect(Unit) {
-                            onboardingViewModel.effects.collect { event ->
-                                when (event) {
-                                    is OnboardingEffect.NavigateToPreview -> {
-                                        appNavigationViewModel.onNavigateToVocabularyPreview(
-                                            event.response.suggestedVocabulary
-                                        )
-                                    }
-                                    is OnboardingEffect.NavigateToMain -> {
-                                        appNavigationViewModel.onNavigateToAuthGate()
-                                    }
-                                }
+                        OnEvents(onboardingViewModel.effects) { effect ->
+                            when (effect) {
+                                is OnboardingEffect.NavigateToPreview ->
+                                    appNavigationViewModel.onNavigateToVocabularyPreview(
+                                        effect.response.suggestedVocabulary
+                                    )
+                                is OnboardingEffect.NavigateToMain -> appNavigationViewModel.onNavigateToAuthGate()
                             }
                         }
 
@@ -240,36 +237,31 @@ fun LexiconApp() {
                             onNativeLanguageSelected = onboardingViewModel::selectNativeLanguage,
                             onLevelSelected = onboardingViewModel::selectLevel,
                             onDailyGoalSelected = onboardingViewModel::selectDailyGoal,
-                            onNextStep = onboardingViewModel::nextStep,
-                            onPreviousStep = onboardingViewModel::previousStep,
-                            onSubmit = onboardingViewModel::submit,
-                            onSkip = onboardingViewModel::skip
+                            onNext = onboardingViewModel::next,
+                            onBack = onboardingViewModel::back,
+                            onRetry = onboardingViewModel::retry,
+                            onSkip = onboardingViewModel::skip,
                         )
                     }
 
                     is AppUiState.VocabularyPreview -> {
-                        val vocabularyPreviewViewModel: VocabularyPreviewViewModel = koinViewModel()
                         val previewWords = state.words
-                        LaunchedEffect(previewWords) {
-                            vocabularyPreviewViewModel.setWords(previewWords)
-                        }
-                        LaunchedEffect(Unit) {
-                            vocabularyPreviewViewModel.effects.collect { event ->
-                                when (event) {
-                                    is VocabularyPreviewEffect.ProceedWithSelection -> {
-                                        appNavigationViewModel.onNavigateToAuthGate(event.words)
-                                    }
-                                    is VocabularyPreviewEffect.SkipVocabulary -> {
-                                        appNavigationViewModel.onNavigateToAuthGate()
-                                    }
-                                }
+                        val vocabularyPreviewViewModel: VocabularyPreviewViewModel =
+                            koinViewModel { parametersOf(previewWords) }
+                        val previewState by vocabularyPreviewViewModel.state()
+
+                        OnEvents(vocabularyPreviewViewModel.effects) { effect ->
+                            when (effect) {
+                                is VocabularyPreviewEffect.AddWords ->
+                                    appNavigationViewModel.onNavigateToAuthGate(effect.words)
+                                is VocabularyPreviewEffect.StartEmpty -> appNavigationViewModel.onNavigateToAuthGate()
                             }
                         }
-                        val previewState by vocabularyPreviewViewModel.state()
+
                         VocabularyPreviewScreen(
                             state = previewState,
-                            onAccept = vocabularyPreviewViewModel::proceedWithSelected,
-                            onDeny = vocabularyPreviewViewModel::skip
+                            onAddWords = vocabularyPreviewViewModel::addWords,
+                            onStartEmpty = vocabularyPreviewViewModel::startEmpty,
                         )
                     }
 
