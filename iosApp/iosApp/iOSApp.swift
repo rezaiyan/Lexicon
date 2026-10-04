@@ -233,7 +233,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 
         // Silent signal ("subscription changed, refetch"): do the work, display nothing
         if userInfo["type"] as? String == "subscription_updated" {
+            print(" Silent push: subscription_updated - refreshing subscription")
             MainViewControllerKt.handleSilentPush(type: "subscription_updated") {
+                print(" Silent push: subscription refresh finished")
                 completionHandler(.newData)
             }
             return

@@ -101,4 +101,4 @@ cd ~/projects/lexicon.server
 
 ## Test Profile
 
-Tests use H2 + `schema.sql` (Flyway disabled). Config in `src/test/resources/application-test.yml`. Test security: `ControllerTestSecurityConfig` for controller tests (inject auth via `SecurityMockMvcRequestPostProcessors.authentication()`).
+Tests use Testcontainers PostgreSQL 17 + the real Flyway migrations (`ddl-auto: validate`); Docker must be running. New schema = new migration only, no test schema file. Config in `src/test/resources/application-test.yml`. Test security: `ControllerTestSecurityConfig` for controller tests (inject auth via `SecurityMockMvcRequestPostProcessors.authentication()`).
