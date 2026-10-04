@@ -11,6 +11,11 @@ class NotificationPayloadHandlerRegistry(
         return type?.let { handlers[it] }
     }
     
+    /** Runs the handler to completion; for platforms that must report when background work is done. */
+    suspend fun handleAndAwait(type: String?, data: Map<String, String>) {
+        getHandler(type)?.handle(data)
+    }
+
     fun handle(type: String?, body: String, data: Map<String, String>) {
         getHandler(type)?.let { handler ->
             CoroutineScope(Dispatchers.Default).launch {

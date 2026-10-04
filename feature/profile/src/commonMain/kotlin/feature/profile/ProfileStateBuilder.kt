@@ -4,6 +4,7 @@ import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.PremiumSource
 import domain.auth.model.UserFeatureAccess
+import domain.common.util.EpochDateFormatter
 import domain.streak.model.StreakData
 import feature.profile.model.ProfileStatsUiModel
 import feature.profile.model.ProfileSubscriptionStatus
@@ -68,11 +69,27 @@ internal object ProfileStateBuilder {
         )
     }
 
-    private fun UserFeatureAccess?.toSubscriptionStatus(): ProfileSubscriptionStatus = when {
-        this == null || !hasPremiumAccess -> ProfileSubscriptionStatus.Free
-        isTrial -> ProfileSubscriptionStatus.Trial
-        premiumSource == PremiumSource.STORE && !willRenew && expiresAt != null -> ProfileSubscriptionStatus.Cancelling
-        else -> ProfileSubscriptionStatus.Premium
+    /**
+     * A payment problem needs action, so it outranks everything. Canceled is checked before trial:
+     * a canceled trial won't charge, which is what matters. The backend clears the pause date when
+     * the subscription resumes.
+     */
+    private fun UserFeatureAccess?.toSubscriptionStatus(): ProfileSubscriptionStatus {
+        if (this == null) return ProfileSubscriptionStatus.Free
+        val pausedUntil = pauseResumesAtMillis
+        if (!hasPremiumAccess) {
+            return pausedUntil
+                ?.let { ProfileSubscriptionStatus.Paused(resumesOn = EpochDateFormatter.toMediumDate(it)) }
+                ?: ProfileSubscriptionStatus.Free
+        }
+        val endsAt = expiresAtMillis
+        return when {
+            premiumSource == PremiumSource.STORE && hasBillingIssue -> ProfileSubscriptionStatus.PaymentIssue
+            premiumSource == PremiumSource.STORE && !willRenew && endsAt != null ->
+                ProfileSubscriptionStatus.Canceled(accessUntil = EpochDateFormatter.toMediumDate(endsAt))
+            isTrial -> ProfileSubscriptionStatus.Trial
+            else -> ProfileSubscriptionStatus.Premium
+        }
     }
 
     private fun AuthUser.toProfileUserUiModel(): ProfileUserUiModel {

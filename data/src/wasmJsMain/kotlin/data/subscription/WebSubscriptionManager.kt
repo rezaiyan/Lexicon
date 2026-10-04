@@ -51,11 +51,10 @@ class WebSubscriptionManager : ISubscriptionManager {
 
     override fun getCurrentCustomerInfo(): SubscriptionCustomerInfo? = _customerInfo.value
 
-    override suspend fun manageSubscription(): Try<Unit> {
-        return Try.failure(UnsupportedOperationException("Subscriptions are not yet supported on web"))
-    }
+    override suspend fun refreshCustomerInfo(): Try<SubscriptionCustomerInfo> =
+        Try.success(_customerInfo.value ?: SubscriptionCustomerInfo(activeEntitlements = emptyMap()))
 
-    override suspend fun cancelSubscription(): Try<Unit> {
+    override suspend fun manageSubscription(): Try<Unit> {
         return Try.failure(UnsupportedOperationException("Subscriptions are not yet supported on web"))
     }
 }

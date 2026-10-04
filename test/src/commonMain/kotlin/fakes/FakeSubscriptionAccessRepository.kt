@@ -15,9 +15,12 @@ class FakeSubscriptionAccessRepository : ISubscriptionAccessRepository {
 
     var refreshCount = 0
         private set
+    var forcedRefreshCount = 0
+        private set
 
-    override suspend fun refresh(): Try<Unit> {
+    override suspend fun refresh(force: Boolean): Try<Unit> {
         refreshCount++
+        if (force) forcedRefreshCount++
         return result
     }
 }

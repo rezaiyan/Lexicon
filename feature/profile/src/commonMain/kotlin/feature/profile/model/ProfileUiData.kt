@@ -14,11 +14,17 @@ data class ProfileUiData(
 )
 
 /** Subscription state shown on the profile header. */
-enum class ProfileSubscriptionStatus {
-    Free,
-    Trial,
-    Premium,
+sealed interface ProfileSubscriptionStatus {
+    data object Free : ProfileSubscriptionStatus
+    data object Trial : ProfileSubscriptionStatus
+    data object Premium : ProfileSubscriptionStatus
 
-    /** Store subscription still active but set not to renew. */
-    Cancelling,
+    /** Store subscription set not to renew; premium stays on until [accessUntil]. */
+    data class Canceled(val accessUntil: String) : ProfileSubscriptionStatus
+
+    /** The store couldn't charge the renewal; premium may still be on during the grace period. */
+    data object PaymentIssue : ProfileSubscriptionStatus
+
+    /** Store subscription paused by the user; premium is off until [resumesOn]. */
+    data class Paused(val resumesOn: String) : ProfileSubscriptionStatus
 }

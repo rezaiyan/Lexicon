@@ -13,9 +13,12 @@ import di.iosPlatformModule
 import di.mobileModule
 import domain.auth.repository.IAuthRepository
 import domain.notifications.usecase.ReportNotificationOpenedUseCase
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import notification.NotificationCategory
-import notification.NotificationTapReporter
+import notification.NotificationTapHandler
+import notification.payload.NotificationPayloadHandlerRegistry
 import org.koin.core.Koin
 import org.koin.core.context.startKoin
 import platform.Foundation.NSLog
@@ -99,12 +102,35 @@ fun clearUserData() {
     }
 }
 
-/** Called from Swift's didReceive with the push's notification_log_id (absent for local notifications). */
-fun notifyNotificationTapped(notificationLogId: String?) {
-    if (notificationLogId == null) return
+/**
+ * Called from Swift's didReceive with the push's notification_log_id (absent for local
+ * notifications) and type (decides which screen the tap opens).
+ */
+fun notifyNotificationTapped(notificationLogId: String?, type: String?) {
+    val data = buildMap {
+        notificationLogId?.let { put(ReportNotificationOpenedUseCase.NOTIFICATION_LOG_ID_KEY, it) }
+        type?.let { put(NotificationTapHandler.TYPE_KEY, it) }
+    }
+    if (data.isEmpty()) return
     startKoinIfNeeded()
-    koinInstance?.get<NotificationTapReporter>()
-        ?.onNotificationTapped(mapOf(ReportNotificationOpenedUseCase.NOTIFICATION_LOG_ID_KEY to notificationLogId))
+    koinInstance?.get<NotificationTapHandler>()?.onNotificationTapped(data)
+}
+
+/**
+ * Called from Swift for a silent (content-available) push. [onComplete] runs once the work is
+ * done, so Swift can call the background fetch completion handler only then.
+ */
+fun handleSilentPush(type: String?, onComplete: () -> Unit) {
+    startKoinIfNeeded()
+    val registry = koinInstance?.get<NotificationPayloadHandlerRegistry>()
+    if (registry == null) {
+        onComplete()
+        return
+    }
+    MainScope().launch {
+        registry.handleAndAwait(type, emptyMap())
+        onComplete()
+    }
 }
 
 fun notifyPushTokenReceived(token: String) {

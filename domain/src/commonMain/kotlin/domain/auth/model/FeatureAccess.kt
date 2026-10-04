@@ -39,6 +39,13 @@ data class UserFeatureAccess(
     val expiresAt: String? = null,
     val willRenew: Boolean = false,
     val isTrial: Boolean = false,
+    /**
+     * ISO-8601 time a Google Play pause ends. Set while a pause is scheduled (premium still on until
+     * [expiresAt]) and while paused (no premium); null otherwise.
+     */
+    val pauseResumesAt: String? = null,
+    /** Renewal payment failed; premium continues through the store's grace period until [expiresAt]. */
+    val hasBillingIssue: Boolean = false,
 ) {
     /** Premium with no/unknown source (older server) is treated as GRANT: active, nothing to manage. */
     val premiumSource: PremiumSource
@@ -50,6 +57,10 @@ data class UserFeatureAccess(
     @OptIn(ExperimentalTime::class)
     val expiresAtMillis: Long?
         get() = expiresAt?.let { Instant.parseOrNull(it)?.toEpochMilliseconds() }
+
+    @OptIn(ExperimentalTime::class)
+    val pauseResumesAtMillis: Long?
+        get() = pauseResumesAt?.let { Instant.parseOrNull(it)?.toEpochMilliseconds() }
 }
 
 /**

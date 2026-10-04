@@ -42,7 +42,9 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.free_plan
 import lexicon.resources.generated.resources.member_since
 import lexicon.resources.generated.resources.premium_member
-import lexicon.resources.generated.resources.subscription_cancelling
+import lexicon.resources.generated.resources.profile_payment_issue
+import lexicon.resources.generated.resources.profile_premium_paused
+import lexicon.resources.generated.resources.profile_premium_until
 import lexicon.resources.generated.resources.trial_active
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
@@ -117,7 +119,11 @@ private fun SubscriptionStatusPill(status: ProfileSubscriptionStatus) {
         ProfileSubscriptionStatus.Free -> stringResource(Res.string.free_plan) to colors.onSurfaceVariant
         ProfileSubscriptionStatus.Trial -> stringResource(Res.string.trial_active) to colors.tertiary
         ProfileSubscriptionStatus.Premium -> stringResource(Res.string.premium_member) to colors.primary
-        ProfileSubscriptionStatus.Cancelling -> stringResource(Res.string.subscription_cancelling) to colors.error
+        is ProfileSubscriptionStatus.Canceled ->
+            stringResource(Res.string.profile_premium_until, status.accessUntil) to Theme.colors.warning
+        ProfileSubscriptionStatus.PaymentIssue -> stringResource(Res.string.profile_payment_issue) to colors.error
+        is ProfileSubscriptionStatus.Paused ->
+            stringResource(Res.string.profile_premium_paused, status.resumesOn) to colors.onSurfaceVariant
     }
     Pill(text = text, color = color, modifier = Modifier.padding(top = Theme.spacing.xxs))
 }

@@ -1,5 +1,6 @@
 package data.auth.remote
 
+import data.auth.local.IFeatureAccessLocalDataSource
 import data.core.network.client.ApiClient
 import data.core.network.mapper.ApiResponseMapper
 import fakes.FakeFeatureFlagProvider
@@ -14,12 +15,16 @@ import io.ktor.http.HttpStatusCode
 import app.cash.turbine.test
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import domain.auth.model.FeatureAccessResponse
+import domain.auth.model.FeatureFlags
+import domain.auth.model.UserFeatureAccess
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TestTimeSource
@@ -37,8 +42,12 @@ class FeatureAccessRemoteDataSourceTest {
 
     private val featureFlagProvider = FakeFeatureFlagProvider()
 
-    private fun buildDataSource(mockEngine: MockEngine) =
-        FeatureAccessRemoteDataSource(buildApiClient(mockEngine), featureFlagProvider)
+    private val localCache = FakeFeatureAccessLocalDataSource()
+
+    private fun buildDataSource(mockEngine: MockEngine, timeSource: TestTimeSource = TestTimeSource()) =
+        FeatureAccessRemoteDataSource(
+            buildApiClient(mockEngine), featureFlagProvider, localCache, timeSource, maxAge = 5.minutes
+        )
 
     private fun successEnvelope(data: String) = """{"success":true,"data":$data}"""
     private fun jsonHeaders() = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
@@ -238,9 +247,7 @@ class FeatureAccessRemoteDataSourceTest {
             respond(accessBody(premium = false), HttpStatusCode.OK, jsonHeaders())
         }
         val timeSource = TestTimeSource()
-        val dataSource = FeatureAccessRemoteDataSource(
-            buildApiClient(mockEngine), featureFlagProvider, timeSource, maxAge = 5.minutes
-        )
+        val dataSource = buildDataSource(mockEngine, timeSource)
         dataSource.getFeatureAccessAsFlow().first()
 
         timeSource += 4.minutes
@@ -254,9 +261,7 @@ class FeatureAccessRemoteDataSourceTest {
         var premium = false
         val mockEngine = MockEngine { respond(accessBody(premium), HttpStatusCode.OK, jsonHeaders()) }
         val timeSource = TestTimeSource()
-        val dataSource = FeatureAccessRemoteDataSource(
-            buildApiClient(mockEngine), featureFlagProvider, timeSource, maxAge = 5.minutes
-        )
+        val dataSource = buildDataSource(mockEngine, timeSource)
 
         dataSource.getFeatureAccessAsFlow().test {
             assertFalse(awaitItem().userAccess.hasPremiumAccess)
@@ -281,9 +286,7 @@ class FeatureAccessRemoteDataSourceTest {
             }
         }
         val timeSource = TestTimeSource()
-        val dataSource = FeatureAccessRemoteDataSource(
-            buildApiClient(mockEngine), featureFlagProvider, timeSource, maxAge = 5.minutes
-        )
+        val dataSource = buildDataSource(mockEngine, timeSource)
         dataSource.getFeatureAccessAsFlow().first()
 
         fail = true
@@ -307,5 +310,102 @@ class FeatureAccessRemoteDataSourceTest {
         assertEquals(1, requestCount)
         assertTrue(dataSource.getFeatureAccessAsFlow().first().userAccess.hasPremiumAccess)
         assertEquals(1, requestCount)
+    }
+
+    // --- Device copy ---
+
+    private fun savedAccess(premium: Boolean) = FeatureAccessResponse(
+        featureFlags = FeatureFlags(pushNotificationsEnabled = true),
+        userAccess = UserFeatureAccess(hasPremiumAccess = premium),
+    )
+
+    @Test
+    fun `getFeatureAccessAsFlow emits device copy first then network result`() = runTest {
+        localCache.saved = savedAccess(premium = true)
+        val mockEngine = MockEngine { respond(accessBody(premium = false), HttpStatusCode.OK, jsonHeaders()) }
+
+        buildDataSource(mockEngine).getFeatureAccessAsFlow().test {
+            assertTrue(awaitItem().userAccess.hasPremiumAccess)
+            assertFalse(awaitItem().userAccess.hasPremiumAccess)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `getFeatureAccessAsFlow offline with device copy keeps premium instead of downgrading`() = runTest {
+        localCache.saved = savedAccess(premium = true)
+        val mockEngine = MockEngine { respond("down", HttpStatusCode.ServiceUnavailable, jsonHeaders()) }
+
+        buildDataSource(mockEngine).getFeatureAccessAsFlow().test {
+            assertTrue(awaitItem().userAccess.hasPremiumAccess)
+            expectNoEvents()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `successful fetch is written to the device copy`() = runTest {
+        val mockEngine = MockEngine { respond(accessBody(premium = true), HttpStatusCode.OK, jsonHeaders()) }
+
+        buildDataSource(mockEngine).getFeatureAccessAsFlow().first()
+
+        assertEquals(true, localCache.saved?.userAccess?.hasPremiumAccess)
+    }
+
+    @Test
+    fun `device copy is not treated as fresh so refresh hits the network`() = runTest {
+        localCache.saved = savedAccess(premium = true)
+        var requestCount = 0
+        val mockEngine = MockEngine {
+            requestCount++
+            respond("down", HttpStatusCode.ServiceUnavailable, jsonHeaders())
+        }
+        val dataSource = buildDataSource(mockEngine)
+        // first() takes the device copy and cancels before the flow's own fetch
+        dataSource.getFeatureAccessAsFlow().first()
+
+        dataSource.refresh()
+
+        assertEquals(1, requestCount)
+        assertTrue(dataSource.getFeatureAccessAsFlow().first().userAccess.hasPremiumAccess)
+    }
+
+    @Test
+    fun `forced refresh within max age still hits the network`() = runTest {
+        var requestCount = 0
+        val mockEngine = MockEngine {
+            requestCount++
+            respond(accessBody(premium = false), HttpStatusCode.OK, jsonHeaders())
+        }
+        val dataSource = buildDataSource(mockEngine)
+        dataSource.getFeatureAccessAsFlow().first()
+
+        assertTrue(dataSource.refresh(force = true).isSuccess)
+
+        assertEquals(2, requestCount)
+    }
+
+    @Test
+    fun `clearCache wipes the device copy`() = runTest {
+        localCache.saved = savedAccess(premium = true)
+        val dataSource = buildDataSource(MockEngine { respond(accessBody(true), HttpStatusCode.OK, jsonHeaders()) })
+
+        dataSource.clearCache()
+
+        assertNull(localCache.saved)
+    }
+}
+
+private class FakeFeatureAccessLocalDataSource : IFeatureAccessLocalDataSource {
+    var saved: FeatureAccessResponse? = null
+
+    override suspend fun read(): FeatureAccessResponse? = saved
+
+    override suspend fun write(featureAccess: FeatureAccessResponse) {
+        saved = featureAccess
+    }
+
+    override suspend fun clear() {
+        saved = null
     }
 }

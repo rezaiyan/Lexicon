@@ -62,9 +62,18 @@ class FakeSubscriptionManager(
 
     override fun getCurrentCustomerInfo(): SubscriptionCustomerInfo? = customerInfoFlow.value
 
+    /** When null, refreshing returns the current customer info. */
+    var refreshResult: Try<SubscriptionCustomerInfo>? = null
+    var refreshCount = 0
+        private set
+
+    override suspend fun refreshCustomerInfo(): Try<SubscriptionCustomerInfo> {
+        refreshCount++
+        return refreshResult ?: Try.success(customerInfoFlow.value ?: SubscriptionCustomerInfo(emptyMap()))
+    }
+
     override suspend fun manageSubscription(): Try<Unit> = manageResult
 
-    override suspend fun cancelSubscription(): Try<Unit> = manageResult
 
     companion object {
         fun subscribedCustomerInfo(

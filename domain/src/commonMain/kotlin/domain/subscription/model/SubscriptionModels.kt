@@ -5,7 +5,11 @@ enum class PackagePeriod { MONTHLY, ANNUAL, LIFETIME, UNKNOWN }
 data class SubscriptionProduct(
     val title: String,
     val description: String,
-    val priceFormatted: String
+    val priceFormatted: String,
+    /** Store price in millionths of the currency unit; null when the store didn't report it. */
+    val priceAmountMicros: Long? = null,
+    /** Store product id, matched against [SubscriptionEntitlement.productIdentifier]. */
+    val productIdentifier: String = "",
 )
 
 data class SubscriptionPackage(
@@ -26,7 +30,9 @@ data class SubscriptionEntitlement(
     val expirationDateMillis: Long?,
     val productIdentifier: String,
     val willRenew: Boolean = true,
-    val isInTrial: Boolean = false
+    val isInTrial: Boolean = false,
+    /** Set while a renewal payment is failing (store grace period); the store reports willRenew = false then. */
+    val billingIssueDetectedAtMillis: Long? = null,
 )
 
 data class SubscriptionCustomerInfo(

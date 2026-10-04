@@ -11,6 +11,7 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -104,8 +105,13 @@ class AndroidModelFileManager(
     }.flowOn(Dispatchers.IO)
 
     private fun extractTarBz2(archiveFile: File, targetDir: File, extractedDirName: String) {
+        if (!archiveFile.exists() || archiveFile.length() == 0L) {
+            throw IOException("Archive file is empty or does not exist: ${archiveFile.absolutePath}")
+        }
+
         BufferedInputStream(archiveFile.inputStream()).use { bis ->
-            BZip2CompressorInputStream(bis).use { bzis ->
+            // Pass 'true' to enable support for multi-stream/concatenated BZip2 files
+            BZip2CompressorInputStream(bis, true).use { bzis ->
                 TarArchiveInputStream(bzis).use { tais ->
                     var entry = tais.nextEntry
                     while (entry != null) {
@@ -131,7 +137,6 @@ class AndroidModelFileManager(
             }
         }
     }
-
     override fun getModelFilePath(languageCode: String): String {
         val dir = languageDir(languageCode)
         val modelFile = dir.walkTopDown().find { it.extension == "onnx" }

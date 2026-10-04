@@ -23,7 +23,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import notification.INotificationManager
-import notification.NotificationTapReporter
+import notification.NotificationTapHandler
+import presentation.navigation.NotificationNavigator
 import notification.createNotificationManager
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -54,6 +55,7 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
             notification.payload.NoOpHandler("streak_reminder"),
             notification.payload.NoOpHandler("review_reminder"),
             notification.payload.NoOpHandler("achievement_unlocked"),
+            notification.payload.SubscriptionUpdatedHandler(refreshSubscriptionState = get()),
         ).associateBy { it.type }
         notification.payload.NotificationPayloadHandlerRegistry(handlers)
     }
@@ -94,9 +96,11 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
     singleOf(::InitializePushNotificationsUseCase)
     factoryOf(::ReportNotificationOpenedUseCase)
 
+    single { NotificationNavigator() }
     single {
-        NotificationTapReporter(
+        NotificationTapHandler(
             reportNotificationOpened = get(),
+            navigator = get(),
             scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
         )
     }
