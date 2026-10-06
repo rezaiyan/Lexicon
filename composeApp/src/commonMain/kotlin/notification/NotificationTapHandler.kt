@@ -17,13 +17,11 @@ class NotificationTapHandler(
     private val scope: CoroutineScope,
 ) {
     fun onNotificationTapped(data: Map<String, String>) {
-        destinationFor(data[TYPE_KEY])?.let(navigator::open)
+        when (data[TYPE_KEY]) {
+            PushTypes.BILLING_ISSUE -> navigator.open(NotificationDestination.Subscription)
+            PushTypes.REVIEW_REMINDER -> navigator.openDueReview()
+        }
         scope.launch { reportNotificationOpened(data) }
-    }
-
-    private fun destinationFor(type: String?): NotificationDestination? = when (type) {
-        PushTypes.BILLING_ISSUE -> NotificationDestination.Subscription
-        else -> null
     }
 
     companion object {
@@ -35,6 +33,9 @@ class NotificationTapHandler(
 object PushTypes {
     /** Visible: a renewal payment failed. Tapping opens the subscription screen. */
     const val BILLING_ISSUE = "billing_issue"
+
+    /** Visible: cards are due. Tapping starts a review of the due cards. */
+    const val REVIEW_REMINDER = "review_reminder"
 
     /** Silent (data-only): the user's subscription changed on the server; refetch it. */
     const val SUBSCRIPTION_UPDATED = "subscription_updated"

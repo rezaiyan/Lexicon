@@ -38,6 +38,22 @@ class NotificationTapHandlerTest {
     }
 
     @Test
+    fun `review reminder tap opens study tab, requests a due review and reports the open`() = runTest {
+        navigator.reviewRequests.test {
+            handler().onNotificationTapped(
+                mapOf(NotificationTapHandler.TYPE_KEY to PushTypes.REVIEW_REMINDER, "notification_log_id" to "5")
+            )
+
+            awaitItem()
+            testScheduler.advanceUntilIdle()
+            assertEquals(listOf(5L), engagementRepository.reported)
+        }
+        navigator.destinations.test {
+            assertEquals(NotificationDestination.Study, awaitItem())
+        }
+    }
+
+    @Test
     fun `tap of other types only reports the open`() = runTest {
         navigator.destinations.test {
             handler().onNotificationTapped(

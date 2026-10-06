@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 
 /** Screens a tapped notification can open. */
-enum class NotificationDestination { Subscription }
+enum class NotificationDestination { Subscription, Study }
 
 /**
  * Hands a notification tap from the platform layer to the app's navigation.
@@ -16,11 +16,21 @@ enum class NotificationDestination { Subscription }
 class NotificationNavigator {
 
     private val requests = Channel<NotificationDestination>(Channel.CONFLATED)
+    private val reviews = Channel<Unit>(Channel.CONFLATED)
 
     /** One-shot destinations; collect with OnEvents. */
     val destinations: Flow<NotificationDestination> = requests.receiveAsFlow()
 
+    /** One-shot requests to start a due-cards review; collected by the Study screen once it's shown. */
+    val reviewRequests: Flow<Unit> = reviews.receiveAsFlow()
+
     fun open(destination: NotificationDestination) {
         requests.trySend(destination)
+    }
+
+    /** Switches to the Study tab and starts a review of the due cards there. */
+    fun openDueReview() {
+        open(NotificationDestination.Study)
+        reviews.trySend(Unit)
     }
 }

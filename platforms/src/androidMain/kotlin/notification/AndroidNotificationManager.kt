@@ -147,14 +147,15 @@ class AndroidNotificationManager(
 
         try {
             if (delayMinutes <= 0) {
-                showImmediateNotification(title, message)
+                postNotification(title, message, TYPE_REVIEW_REMINDER)
             } else {
                 scheduleWithWorkManager(
                     title = title,
                     message = message,
                     delayMinutes = delayMinutes,
                     tag = NotificationWorker.TAG_REVIEW_REMINDER,
-                    notificationId = REVIEW_NOTIFICATION_ID
+                    notificationId = REVIEW_NOTIFICATION_ID,
+                    type = TYPE_REVIEW_REMINDER
                 )
             }
         } catch (_: SecurityException) {
@@ -191,12 +192,14 @@ class AndroidNotificationManager(
         message: String,
         delayMinutes: Int,
         tag: String,
-        notificationId: Int
+        notificationId: Int,
+        type: String? = null
     ) {
         val data = workDataOf(
             NotificationWorker.KEY_TITLE to title,
             NotificationWorker.KEY_MESSAGE to message,
-            NotificationWorker.KEY_NOTIFICATION_ID to notificationId
+            NotificationWorker.KEY_NOTIFICATION_ID to notificationId,
+            NotificationWorker.KEY_TYPE to type
         )
 
         val request = OneTimeWorkRequestBuilder<NotificationWorker>()
@@ -213,10 +216,17 @@ class AndroidNotificationManager(
     override suspend fun showImmediateNotification(
         title: String,
         message: String
+    ) = postNotification(title, message, type = null)
+
+    @SuppressLint("MissingPermission")
+    private suspend fun postNotification(
+        title: String,
+        message: String,
+        type: String?
     ) = withContext(Dispatchers.Main) {
         // Explicitly check permissions before posting notification
         if (!areNotificationsEnabled()) return@withContext
-        
+
         try {
             val notification = NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(AndroidR.drawable.ic_dialog_info)
@@ -224,6 +234,7 @@ class AndroidNotificationManager(
                 .setContentText(message)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(message))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(context.openAppPendingIntent(REVIEW_NOTIFICATION_ID, type))
                 .setAutoCancel(true)
                 .build()
             

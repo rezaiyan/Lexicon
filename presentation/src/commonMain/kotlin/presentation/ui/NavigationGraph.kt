@@ -51,12 +51,13 @@ internal fun NavigationGraph(
         onDispose { navController.removeOnDestinationChangedListener(listener) }
     }
 
-    // Taps on actionable notifications (e.g. a failed renewal) open the screen they're about
+    // Taps on actionable notifications (e.g. a failed renewal, a review reminder) open the screen they're about
     OnEvents(koinInject<NotificationNavigator>().destinations) { destination ->
         when (destination) {
             NotificationDestination.Subscription -> navController.navigate(SubscriptionRoute) {
                 launchSingleTop = true
             }
+            NotificationDestination.Study -> navController.navigateToTab(TabDestination.Study)
         }
     }
 

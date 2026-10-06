@@ -37,6 +37,7 @@ import domain.word.model.LearningStage
 import domain.word.model.ReviewSource
 import events.OnEvents
 import feature.study.ReviewEffect
+import feature.study.ReviewState
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
 import domain.focus.model.LearningFocus
@@ -64,6 +65,7 @@ import lexicon.resources.generated.resources.skip_tag_selector_label
 import lexicon.resources.generated.resources.start_review
 import lexicon.resources.generated.resources.word_count_label
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetPageConfig
@@ -73,6 +75,7 @@ import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
+import presentation.navigation.NotificationNavigator
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.imports.AiWordImportBottomSheet
 import presentation.ui.components.imports.ImportBottomSheet
@@ -149,6 +152,14 @@ fun StudyScreen(
                 viewModel = reviewViewModel,
                 onDismiss = { reviewViewModel.abandonSession(); navigator.dismiss() },
             )
+        }
+    }
+
+    // Review-reminder tap: start a due-cards review, unless one is already running (restarting it
+    // would drop the user's place and orphan the session's analytics)
+    OnEvents(koinInject<NotificationNavigator>().reviewRequests) {
+        if (reviewViewModel.currentState.review !is ReviewState.Active) {
+            openReviewScreen(ReviewSource.DueCards)
         }
     }
 
