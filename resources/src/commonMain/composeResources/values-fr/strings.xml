@@ -527,6 +527,8 @@
     <string name="sub_trial_note">Annulez avant la fin de l'essai et vous ne serez pas facturé.</string>
     <string name="sub_your_features">Inclus dans votre formule</string>
     <string name="sub_manage_in_store">Gérer dans %1$s</string>
+    <string name="sub_managed_on_app_store">Vous vous êtes abonné via l'App Store. Pour modifier ou résilier, ouvrez Réglages › Abonnements sur votre iPhone ou iPad.</string>
+    <string name="sub_managed_on_google_play">Vous vous êtes abonné via Google Play. Pour modifier ou résilier, ouvrez Play Store › Paiements et abonnements sur votre appareil Android.</string>
     <string name="sub_status_canceled">Annulé</string>
     <string name="sub_canceled_title">Premium reste actif jusqu'au %1$s</string>
     <string name="sub_canceled_trial_title">Essai annulé — vous ne serez pas facturé</string>

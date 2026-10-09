@@ -527,6 +527,8 @@
     <string name="sub_trial_note">在试用结束前取消即不会扣费。</string>
     <string name="sub_your_features">你的套餐包含</string>
     <string name="sub_manage_in_store">在%1$s管理</string>
+    <string name="sub_managed_on_app_store">你是通过 App Store 订阅的。如需更改或取消，请在 iPhone 或 iPad 上打开“设置 › 订阅”。</string>
+    <string name="sub_managed_on_google_play">你是通过 Google Play 订阅的。如需更改或取消，请在 Android 设备上打开“Play 商店 › 付款和订阅”。</string>
     <string name="sub_status_canceled">已取消</string>
     <string name="sub_canceled_title">Premium 在 %1$s 前仍然有效</string>
     <string name="sub_canceled_trial_title">试用已取消——不会扣费</string>

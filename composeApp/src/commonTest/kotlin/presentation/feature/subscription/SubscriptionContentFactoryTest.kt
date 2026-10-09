@@ -6,11 +6,13 @@ import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionEntitlement
 import domain.subscription.model.SubscriptionPackage
 import domain.subscription.model.SubscriptionProduct
+import domain.subscription.model.SubscriptionStore
 import feature.subscription.SubscriptionContentFactory
 import feature.subscription.model.MembershipStatus
 import feature.subscription.model.SubscriptionContent
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -43,6 +45,8 @@ class SubscriptionContentFactoryTest {
         isInTrial: Boolean = false,
         productId: String = "vokab_annual",
         unsubscribedAtMillis: Long? = null,
+        boughtOn: SubscriptionStore = SubscriptionStore.PLAY_STORE,
+        deviceStore: SubscriptionStore? = SubscriptionStore.PLAY_STORE,
     ) = SubscriptionCustomerInfo(
         activeEntitlements = mapOf(
             "premium" to SubscriptionEntitlement(
@@ -53,8 +57,10 @@ class SubscriptionContentFactoryTest {
                 willRenew = willRenew,
                 isInTrial = isInTrial,
                 unsubscribeDetectedAtMillis = unsubscribedAtMillis,
+                store = boughtOn,
             )
-        )
+        ),
+        deviceStore = deviceStore,
     )
 
     private fun member(customerInfo: SubscriptionCustomerInfo?, access: UserFeatureAccess = UserFeatureAccess()) =
@@ -81,6 +87,40 @@ class SubscriptionContentFactoryTest {
         assertEquals("$29.99", membership.price)
         assertEquals(PackagePeriod.ANNUAL, membership.period)
         assertTrue(membership.isManageable)
+        assertNull(membership.managedOn)
+    }
+
+    @Test
+    fun `App Store subscription seen on Android is not manageable here and says where it is`() {
+        val membership = member(store(boughtOn = SubscriptionStore.APP_STORE))
+
+        assertEquals(MembershipStatus.Renewing(renewsOn = "D+30"), membership.status)
+        assertFalse(membership.isManageable)
+        assertEquals(SubscriptionStore.APP_STORE, membership.managedOn)
+    }
+
+    @Test
+    fun `Google Play subscription seen on iPhone is not manageable here and says where it is`() {
+        val membership = member(store(deviceStore = SubscriptionStore.APP_STORE))
+
+        assertFalse(membership.isManageable)
+        assertEquals(SubscriptionStore.PLAY_STORE, membership.managedOn)
+    }
+
+    @Test
+    fun `promotional entitlement has no store to manage it in`() {
+        val membership = member(store(boughtOn = SubscriptionStore.OTHER))
+
+        assertFalse(membership.isManageable)
+        assertNull(membership.managedOn)
+    }
+
+    @Test
+    fun `store subscription on web is not manageable without a device store`() {
+        val membership = member(store(deviceStore = null))
+
+        assertFalse(membership.isManageable)
+        assertEquals(SubscriptionStore.PLAY_STORE, membership.managedOn)
     }
 
     @Test

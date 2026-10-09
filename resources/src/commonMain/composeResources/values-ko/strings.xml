@@ -686,6 +686,8 @@
     <string name="sub_trial_note">체험이 끝나기 전에 취소하면 결제되지 않습니다.</string>
     <string name="sub_your_features">내 플랜에 포함된 기능</string>
     <string name="sub_manage_in_store">%1$s에서 관리</string>
+    <string name="sub_managed_on_app_store">App Store에서 구독하셨습니다. 변경하거나 취소하려면 iPhone 또는 iPad에서 설정 › 구독을 여세요.</string>
+    <string name="sub_managed_on_google_play">Google Play에서 구독하셨습니다. 변경하거나 취소하려면 Android 기기에서 Play 스토어 › 결제 및 정기 결제를 여세요.</string>
     <string name="sub_status_canceled">해지됨</string>
     <string name="sub_canceled_title">Premium은 %1$s까지 유지됩니다</string>
     <string name="sub_canceled_trial_title">체험 해지됨 — 결제되지 않습니다</string>

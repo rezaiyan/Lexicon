@@ -921,6 +921,8 @@
     <string name="sub_trial_note">Cancel before the trial ends and you won't be charged.</string>
     <string name="sub_your_features">Included in your plan</string>
     <string name="sub_manage_in_store">Manage in %1$s</string>
+    <string name="sub_managed_on_app_store">You subscribed through the App Store. To change or cancel, open Settings › Subscriptions on your iPhone or iPad.</string>
+    <string name="sub_managed_on_google_play">You subscribed through Google Play. To change or cancel, open Play Store › Payments &amp; subscriptions on your Android device.</string>
     <string name="sub_status_canceled">Canceled</string>
     <string name="sub_canceled_title">Premium stays on until %1$s</string>
     <string name="sub_canceled_trial_title">Trial canceled — you won't be charged</string>
