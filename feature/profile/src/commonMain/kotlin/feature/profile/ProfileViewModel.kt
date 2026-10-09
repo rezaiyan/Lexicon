@@ -1,5 +1,8 @@
 package feature.profile
 
+import domain.credits.model.CreditBalance
+import domain.credits.usecase.ObserveCreditsUseCase
+import domain.credits.usecase.RefreshCreditsUseCase
 import androidx.lifecycle.viewModelScope
 import domain.auth.manager.IUserManager
 import domain.auth.usecase.GetFeatureAccessUseCase
@@ -36,6 +39,8 @@ class ProfileViewModel(
     private val streakManager: IStreakManager,
     private val getProfileStatsUseCase: GetProfileStatsUseCase,
     private val enrichProfileStatsUseCase: EnrichProfileStatsUseCase,
+    private val observeCredits: ObserveCreditsUseCase,
+    private val refreshCredits: RefreshCreditsUseCase,
 ) : BaseViewModel<UiState<ProfileUiData>, Nothing>() {
 
     override fun initialState(): UiState<ProfileUiData> = UiState.Loading
@@ -44,6 +49,7 @@ class ProfileViewModel(
     private var currentStreak: UiState<StreakData> = UiState.Loading
     private var currentFeatureAccess: UiState<FeatureAccessResponse?> = UiState.Loaded(null)
     private var currentProfileStats: ProfileStatsUiModel? = null
+    private var currentCredits: CreditBalance? = null
 
     private var streakJob: Job? = null
 
@@ -57,6 +63,7 @@ class ProfileViewModel(
         observeUser()
         observeStreak()
         observeFeatureAccess()
+        observeCreditBalance()
     }
 
     private fun observeUser() {
@@ -103,6 +110,17 @@ class ProfileViewModel(
         }
     }
 
+    /** Follows the shared balance, so spends anywhere show here; re-read once since it may be stale. */
+    private fun observeCreditBalance() {
+        viewModelScope.launch {
+            observeCredits().catch { emit(null) }.collect {
+                currentCredits = it
+                rebuildState()
+            }
+        }
+        viewModelScope.launch { refreshCredits() }
+    }
+
     private suspend fun loadProfileStats() {
         val stats = getProfileStatsUseCase().getOrNull()
         currentProfileStats = stats?.let {
@@ -138,7 +156,7 @@ class ProfileViewModel(
     private fun rebuildState() {
         updateState {
             ProfileStateBuilder.createUiState(
-                currentUser, currentStreak, currentFeatureAccess, currentProfileStats
+                currentUser, currentStreak, currentFeatureAccess, currentProfileStats, currentCredits
             )
         }
     }

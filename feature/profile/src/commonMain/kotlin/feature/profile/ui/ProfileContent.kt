@@ -24,6 +24,7 @@ import components.icons.LexiconIcons
 import components.animation.staggeredFadeSlide
 import feature.profile.model.ProfileSubscriptionStatus
 import feature.profile.model.ProfileUiData
+import feature.profile.ui.components.CreditsBalanceCard
 import feature.profile.ui.components.UserInfoSection
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.account_section
@@ -59,6 +60,15 @@ internal fun ProfileContent(
             subscriptionStatus = profileData.subscriptionStatus,
             modifier = Modifier.staggeredFadeSlide(0),
         )
+
+        profileData.credits?.let { credits ->
+            CreditsBalanceCard(
+                balance = credits.balance,
+                refillsAtMillis = credits.periodEndsAtMillis,
+                onClick = onOpenSubscription,
+                modifier = Modifier.staggeredFadeSlide(1),
+            )
+        }
 
         GroupedSection(title = stringResource(Res.string.account_section)) {
             val isFree = profileData.subscriptionStatus == ProfileSubscriptionStatus.Free

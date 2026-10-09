@@ -165,8 +165,6 @@ private fun AddWordsSheetContent(
                 AddWordsChooserContent(
                     aiCost = credits?.costOf(CreditAction.AI_SUGGESTION),
                     photoCost = credits?.costOf(CreditAction.PHOTO_EXTRACTION),
-                    balance = credits?.balance,
-                    refillsAtMillis = credits?.periodEndsAtMillis,
                     onAiAssistant = { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiLevel) },
                     onTypeWord = { openSource(WordOrigin.Manual, AddWordsPage.Manual) },
                     onImportFile = { openSource(WordOrigin.File, AddWordsPage.File) },

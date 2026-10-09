@@ -19,6 +19,8 @@ fun profileModule() = module {
             streakManager = get(),
             getProfileStatsUseCase = get(),
             enrichProfileStatsUseCase = get(),
+            observeCredits = get(),
+            refreshCredits = get(),
         )
     }
     viewModel {
