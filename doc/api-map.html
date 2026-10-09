@@ -545,13 +545,14 @@
     <div class="flow-label">
       <div style="margin-bottom:4px">
         <span class="vm-tag">StudyViewModel</span>
-        <span class="vm-tag">ImportViewModel</span>
+        <span class="vm-tag">AddWordsViewModel</span>
         <span class="vm-tag">WordManagerViewModel</span>
-        <span class="vm-tag">OnboardingViewModel</span>
+        <span class="vm-tag">AppNavigationViewModel</span>
       </div>
-      <strong>Sync:</strong> Remote-first — sync to backend, then persist locally (Room DB)<br>
+      <strong>Sync:</strong> New words local-first (upload outbox); edits and deletes go to the backend, then SQLDelight<br>
       <strong>Full sync:</strong> GET /words → ConflictResolver (content-key dedup, last-write-wins) → upsert local<br>
-      <strong>Insert:</strong> ImportVM → ImportWordsUseCase → WordRepo → SyncHandler → POST /words<br>
+      <strong>Add:</strong> AddWordsVM / ManualEntryVM → AddWordsUseCase → WordRepo.addWords → local insert + upload queue<br>
+      <strong>Upload:</strong> uploadPendingWords → SyncHandler → POST /words → saved words → re-key local rows to server ids<br>
       <strong>Review:</strong> StudyVM → ReviewWordUseCase (SM-2) → WordRepo → SyncHandler → PATCH /words/{id}<br>
       <strong>Batch delete:</strong> Flow progress: DeletingFromBackend → DeletingFromLocal → Completed
     </div>
@@ -646,23 +647,33 @@
     </div>
   </div>
 
-  <!-- ── AI (1 endpoint) ── -->
+  <!-- ── AI (3 endpoints) ── -->
   <div class="section ai">
     <div class="section-title">
       <div class="icon">🤖</div> AI Extraction
-      <span class="badge">1</span>
+      <span class="badge">3</span>
     </div>
     <div class="section-subtitle">AiRemoteDataSource</div>
     <div class="endpoint">
       <span class="method post">POST</span>
+      <span class="path">/ai/extract-words</span>
+    </div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
       <span class="path">/ai/extract-vocabulary</span>
     </div>
+    <div class="endpoint">
+      <span class="method post">POST</span>
+      <span class="path">/ai/suggest-vocabulary</span>
+    </div>
     <div class="flow-label">
-      <span class="vm-tag">ImportViewModel</span><br>
-      <strong>Flow:</strong> ImportFromImageUseCase<br>
-      → validate (128B–3MB) → base64 encode<br>
-      → AiRepo → DataSource → parse result<br>
-      → ImportWordsUseCase → POST /words
+      <span class="vm-tag">PhotoImportViewModel</span>
+      <span class="vm-tag">AiSuggestViewModel</span><br>
+      <strong>Photo:</strong> ExtractWordsFromImageUseCase → re-encode ≤ 3 MB<br>
+      → POST /ai/extract-words (v2, structured items)<br>
+      → 404 from older server: /ai/extract-vocabulary (v1) + VocabularyTextParser<br>
+      <strong>AI:</strong> SuggestWordsUseCase → POST /ai/suggest-vocabulary<br>
+      → candidates → shared review → AddWordsUseCase
     </div>
   </div>
 
@@ -678,8 +689,7 @@
       <span class="path">/onboarding/preferences</span>
     </div>
     <div class="flow-label">
-      <span class="vm-tag">OnboardingViewModel</span>
-      <span class="vm-tag">AiWordImportViewModel</span><br>
+      <span class="vm-tag">OnboardingViewModel</span><br>
       <strong>Flow:</strong> SubmitPreferencesUseCase<br>
       → OnboardingRepo → DataSource<br>
       <strong>Returns:</strong> suggested vocabulary list
@@ -701,7 +711,7 @@
       <span class="vm-tag">ProfileViewModel</span>
       <span class="vm-tag">StudyViewModel</span>
       <span class="vm-tag">WordManagerViewModel</span>
-      <span class="vm-tag">ImportViewModel</span>
+      <span class="vm-tag">AddWordsViewModel</span>
       <span class="vm-tag">SettingsViewModel</span><br>
       <strong>Exposed as:</strong> Flow (getFlowNotNull)<br>
       <strong>Fallback:</strong> pushNotifications=true,<br>

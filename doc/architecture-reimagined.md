@@ -284,7 +284,7 @@ domain/
   settings/
     model/          ReviewSettings, ThemeMode, Language
     repository/     ISettingsRepository
-    usecase/        GetCurrentLanguageUseCase, SetLanguageUseCase, ...
+    usecase/        SetThemeModeUseCase, SetNotificationsEnabledUseCase, ...
   sync/
     model/          SyncStatus, ConflictResolution
     repository/     ISyncRepository

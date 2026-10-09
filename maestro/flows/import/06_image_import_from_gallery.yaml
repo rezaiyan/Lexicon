@@ -9,7 +9,7 @@ tags:
 #
 # Seeds a German vocabulary worksheet image ("C Tipps für ein langes Leben")
 # to the emulator, drives the full image-import flow, then verifies that the
-# AI-extracted words appear in Word Manager with German as the original language.
+# AI-extracted words appear in the Words tab with German as the original language.
 #
 # ── Image facts (ground truth from maestro/assets/german-vocab-worksheet.jpg) ──
 #   Title  : C Tipps für ein langes Leben (Tips for a Long Life)
@@ -91,22 +91,15 @@ tags:
 - assertVisible: "Import Words"
 
 # ─────────────────────────────────────────────
-# 12. NAVIGATE TO WORD MANAGER
+# 12. NAVIGATE TO THE WORDS TAB
 # ─────────────────────────────────────────────
-# Navigate directly from Study → Settings → Word Manager without restarting
-# the app, avoiding the cold-start timing issue in the shared utility.
+# Word Manager is the "Words" bottom tab. Match case-sensitively: the Study
+# screen's stage cards also show an uppercase "WORDS" label.
 - tapOn:
-    text: "Settings"
+    text: "(?-i)Words"
 
 - extendedWaitUntil:
-    visible: "Word Manager"
-    timeout: 15000
-
-- tapOn:
-    text: "Word Manager"
-
-- extendedWaitUntil:
-    visible: "Word Manager"
+    visible: "Search words..."
     timeout: 10000
 
 # Word Manager must show the populated list (not the empty state), proving

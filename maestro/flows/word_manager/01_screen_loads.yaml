@@ -4,45 +4,31 @@ tags:
   - smoke
   - navigation
 ---
-# Test: Word Manager screen loads with core UI elements visible and back
-# navigation returns to Settings.
+# Test: the Words tab (Word Manager) loads, and switching tabs returns to it.
 #
-# Verifies that navigating to the Word Manager screen from the Settings tab
-# successfully renders the top bar — regardless of whether the word library
-# is empty or populated. Also verifies that the Navigate Back icon returns
-# the user to the Settings screen. The search bar and selection bar are only
-# present when words exist (see 02_empty_state.yaml and 03_search_functionality.yaml
-# for state-specific coverage).
+# Passes whether the word library is empty or populated. The search bar and
+# selection bar only exist when words exist (see 02_empty_state.yaml and
+# 03_search_functionality.yaml for state-specific coverage).
 
 - runFlow: ../utils/navigate_to_word_manager.yaml
 
-# The top bar title must be visible.
-- assertVisible: "Word Manager"
-
-# The Navigate Back icon must be present (content description "Navigate back").
-- assertVisible: "Navigate back"
-
-# Either the empty state or the word list must be shown — assert a landmark
-# from each via optional checks. At least one must be true.
-# Empty state:
+# Either the empty state or the word list must be shown.
 - assertVisible:
     text: "Your word library is empty"
     optional: true
-# Populated state:
 - assertVisible:
     text: "Search words..."
     optional: true
 
-# --- Back navigation ---
-# Tap the Navigate Back icon (content description from LexiconColumn).
-- tapOn: "Navigate back"
-
-- waitForAnimationToEnd
-
-# Settings screen must be visible after navigating back.
+# --- Tab round-trip ---
+- tapOn: "Study"
 - extendedWaitUntil:
-    visible: "Manage your vocabulary"
+    visible: "Import Words"
     timeout: 5000
-
-# The Word Manager search bar must no longer be present on the Settings screen.
 - assertNotVisible: "Search words..."
+
+- tapOn:
+    text: "(?-i)Words"
+- extendedWaitUntil:
+    visible: "Search words\\.\\.\\.|Your word library is empty"
+    timeout: 5000
