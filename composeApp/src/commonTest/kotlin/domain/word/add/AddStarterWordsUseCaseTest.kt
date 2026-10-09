@@ -45,4 +45,12 @@ class AddStarterWordsUseCaseTest {
         assertEquals(AddWordsOutcome(0, 0), useCase(emptyList()).getOrThrow())
         assertNull(languages.lastUsed)
     }
+
+    @Test
+    fun `invoke skips blank starter words and repeats inside the batch`() = runTest {
+        val outcome = useCase(listOf(starter("Hund", "dog"), starter(" ", "x"), starter("hund", "Dog "))).getOrThrow()
+
+        assertEquals(AddWordsOutcome(1, 1, listOf("Hund")), outcome)
+        assertEquals(listOf("Hund"), words.addedWords.map { it.originalWord })
+    }
 }

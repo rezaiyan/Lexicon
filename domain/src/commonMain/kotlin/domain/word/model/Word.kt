@@ -22,17 +22,6 @@ data class Word(
     val dateAdded: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
     val tagIds: List<Long> = emptyList(),
 ) {
-    /**
-     * Compare words by content (ignoring ID and learning progress)
-     * Two words are considered duplicates if they have the same:
-     * - originalWord (case-insensitive)
-     * - translation (case-insensitive)
-     */
-    fun isSameContent(other: Word): Boolean {
-        return originalWord.trim().equals(other.originalWord.trim(), ignoreCase = true) &&
-                translation.trim().equals(other.translation.trim(), ignoreCase = true)
-    }
-
     /** Identity used to skip duplicates when adding: same term and translation in the same learning language. */
     val identity: WordIdentity
         get() = WordIdentity(originalWord.trim().lowercase(), translation.trim().lowercase(), targetLanguage)

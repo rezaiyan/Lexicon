@@ -64,7 +64,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
         override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
-        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
         override fun updateWordsLanguages(
             ids: List<Int>,

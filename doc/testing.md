@@ -23,14 +23,13 @@
 | `WordTest.kt` | isSameContent (case-insensitive, trim, accents) | 5 |
 | `LearningStageTest.kt` | Learning stage enum tests | ~5 |
 | `ProgressStatsTest.kt` | Progress stats model tests | ~5 |
-| `WordSyncServiceTest.kt` | Sync deduplication | ~5 |
 | `GetReviewSettingsUseCaseTest.kt` | Settings retrieval | ~2 |
 | `SubmitPreferencesUseCaseTest.kt` | Onboarding submission | ~3 |
 | `domain/word/add/VocabularyTextParserTest.kt` | Delimiters, quoting, header, comments, legacy format, rejected lines | 18 |
 | `domain/word/add/WordDraftTest.kt` | Draft validation and normalisation | 11 |
 | `domain/word/add/AddWordsUseCaseTest.kt` + other add use cases | Write path, file parsing, photo, suggestions, language resolution | 32 |
 | `feature/addwords/*Test.kt` | AddWords host + Manual/File/Photo/AI source VMs, CandidateReview | 50 |
-| `data/ai/repository/AiRepositoryHttpTest.kt` | Real ApiClient: v2→v1 fallback on 404, 429 is not "offline" | 2 |
+| `data/ai/repository/AiRepositoryHttpTest.kt` | Real ApiClient: only v2 is called (404 is a server error), 429 is not "offline" | 2 |
 | `data/.../AddNewWordsTest.kt`, `AddWordsLanguageRepositoryImplTest.kt` (androidUnitTest) | Real SQLite: dedupe, tags, upload queue, language pair | 9 |
 
 ## Android Instrumented Tests

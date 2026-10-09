@@ -39,7 +39,6 @@ word/model/Word.kt                  # Word data class
 word/model/ProgressStats.kt         # Level counts, due cards
 word/model/LearningStage.kt         # 7-level enum
 word/repository/IWordRepository.kt
-word/service/WordSyncService.kt
 word/usecase/ReviewWordUseCase.kt   # SRS algorithm
 word/usecase/ExportWordsUseCase.kt
 word/usecase/GetAllWordsUseCase.kt

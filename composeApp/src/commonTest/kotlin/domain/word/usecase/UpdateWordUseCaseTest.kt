@@ -308,7 +308,6 @@ internal class FakeWordRepositoryForUpdate : IWordRepository {
     override suspend fun getWordById(id: Int) = null
     override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
     override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
-    override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
     override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
     override fun deleteWords(ids: List<Int>) = kotlinx.coroutines.flow.flowOf(domain.word.repository.DeleteWordsProgress.Completed(0))
     override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)

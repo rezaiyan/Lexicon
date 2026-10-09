@@ -18,7 +18,6 @@ interface IWordRepository {
     fun getDueCardsByTag(tagId: Long): Flow<List<Word>>
     fun getWordsByStage(stage: LearningStage): Flow<List<Word>>
     suspend fun getWordById(id: Int): Word?
-    suspend fun insertWords(words: List<Word>): Try<Int>
     /**
      * Adds new cards locally in one transaction, skipping any whose [Word.identity] already exists,
      * and queues them for upload. Never changes existing words and never blocks on the network.

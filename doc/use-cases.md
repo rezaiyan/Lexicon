@@ -39,7 +39,7 @@ See `doc/import-export.md` for the pipeline.
 | `AddWordsUseCase` | IWordRepository | `(AddWordsCommand): Try<AddWordsOutcome>` | Single write path: validate drafts, dedupe (term, translation, learning lang), link tags, enqueue upload |
 | `AddStarterWordsUseCase` | AddWordsUseCase, IAddWordsLanguageRepository | `(List<SuggestedVocabulary>): Try<AddWordsOutcome>` | Onboarding starter words |
 | `ParseWordFileUseCase` | (none) | `(WordFile): Try<ParseReport>` | Decode text (≤ 1 MB) and parse into drafts + rejected lines |
-| `ExtractWordsFromImageUseCase` | IImagePreparer, IAiRepository, RefreshFeatureAccessUseCase | `(Params(image, languages)): Try<List<WordDraft>>` | Shrink photo to ≤ 3 MB, v2 extract (v1 fallback) |
+| `ExtractWordsFromImageUseCase` | IImagePreparer, IAiRepository, RefreshFeatureAccessUseCase | `(Params(image, languages, quarterTurns)): Try<List<WordDraft>>` | Turn as rotated, shrink to ≤ 3 MB, extract via `/ai/extract-words` |
 | `SuggestWordsUseCase` | IAiRepository | `(Params(languages, level, topics)): Try<List<WordDraft>>` | AI suggestions |
 | `ResolveAddWordsLanguagesUseCase` | IAddWordsLanguageRepository | `(): Try<LanguagePair?>` | Last used pair, else most common, else null |
 | `UploadPendingWordsUseCase` | IWordRepository | `(): Try<Int>` | Flush the upload queue (called on app start) |
@@ -93,4 +93,3 @@ See `doc/import-export.md` for the pipeline.
 | Service | Interface | Implementation | Behavior |
 |---------|----------|----------------|----------|
 | `AuthenticationService` | IAuthenticationService | AuthenticationService | Wraps repository auth calls in Flow<Try<>> |
-| `WordSyncService` | IWordSyncService | WordSyncService | Syncs remote words, deduplicates by (originalWord, translation) |

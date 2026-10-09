@@ -67,35 +67,6 @@ class WordRepositoryImpl(
         return localDataSource.getWordsByStage(stage)
     }
 
-    override suspend fun insertWords(words: List<Word>): Try<Int> {
-        if (words.isEmpty()) return Try.success(0)
-
-        return Try {
-            val existingWords = localDataSource.getAllWordsAsync()
-
-            // Same word/translation but different sourceLanguage → correct the language on the existing record
-            val wordsToUpdate = words.mapNotNull { newWord ->
-                existingWords.find { it.isSameContent(newWord) && it.sourceLanguage != newWord.sourceLanguage }
-                    ?.copy(sourceLanguage = newWord.sourceLanguage)
-            }
-            wordsToUpdate.forEach { updated ->
-                localDataSource.updateWord(updated)
-                remoteSyncHandler.syncWordUpdateToRemote(updated.id.toLong(), updated)
-            }
-
-            val newWords = words.filter { newWord ->
-                existingWords.none { it.isSameContent(newWord) }
-            }
-
-            if (newWords.isEmpty()) return Try.success(wordsToUpdate.size)
-
-            localDataSource.insertWords(newWords)
-            remoteSyncHandler.syncWordsToRemote(newWords)
-            settingsLocalDataSource.setWordSyncTimestamp(Clock.System.now().toEpochMilliseconds())
-            newWords.size + wordsToUpdate.size
-        }
-    }
-
     override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> {
         if (words.isEmpty()) return Try.success(AddWordsOutcome(added = 0, duplicates = 0))
         return Try { localDataSource.addNewWords(words) }

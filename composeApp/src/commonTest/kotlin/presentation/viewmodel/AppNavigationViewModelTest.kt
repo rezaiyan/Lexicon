@@ -75,10 +75,6 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             return Try.success(AddWordsOutcome(words.size, 0))
         }
         override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
-        override suspend fun insertWords(words: List<Word>): Try<Int> {
-            insertedWords = words
-            return Try.success(words.size)
-        }
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(0))

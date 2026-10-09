@@ -45,13 +45,6 @@ class FakeWordRepository : IWordRepository {
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
     override suspend fun getWordById(id: Int): Word? = storedWords.find { it.id == id }
 
-    override suspend fun insertWords(words: List<Word>): Try<Int> {
-        insertCallCount++
-        insertedWords.addAll(words)
-        storedWords.addAll(words)
-        return if (insertResult.isSuccess) Try.success(words.size) else insertResult
-    }
-
     val addedWords = mutableListOf<Word>()
     var addResult: Try<AddWordsOutcome>? = null
 
