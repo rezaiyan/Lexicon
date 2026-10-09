@@ -859,7 +859,7 @@
     <string name="focus_dismiss">Dismiss</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">Learn faster with Premium</string>
-    <string name="paywall_subtitle">AI tools that turn what you read into words you remember, plus a clear view of how you learn.</string>
+    <string name="paywall_subtitle">More AI credits every month to scan pages and get word lists on any topic. Everything else is free.</string>
     <string name="paywall_choose_plan">Choose your plan</string>
     <string name="paywall_best_value">Best value</string>
     <string name="paywall_save_percent">Save %1$d%</string>
@@ -877,22 +877,16 @@
     <string name="paywall_store_generic">your store settings</string>
     <string name="paywall_timeline_title">How your trial works</string>
     <string name="paywall_timeline_today">Today</string>
-    <string name="paywall_timeline_today_desc">Every Premium feature unlocks. You pay nothing.</string>
+    <string name="paywall_timeline_today_desc">Your Premium AI credits are added. You pay nothing.</string>
     <string name="paywall_timeline_cancel">Until %1$s</string>
     <string name="paywall_timeline_cancel_desc">Cancel in %1$s and you won't be charged.</string>
     <string name="paywall_timeline_charge">%1$s</string>
     <string name="paywall_timeline_charge_desc">You're charged %1$s. Your plan renews each period until you cancel.</string>
     <string name="paywall_premium_unlocks">What Premium unlocks</string>
     <string name="paywall_free_forever">Always free</string>
-    <string name="paywall_free_forever_desc">Unlimited words · Spaced-repetition reviews · Streaks and reminders · Manual word import · A few AI credits every month</string>
+    <string name="paywall_free_forever_desc">Unlimited words · Spaced-repetition reviews · Insights and a daily AI tip · Word Rush · Export &amp; share · A few AI credits every month</string>
     <string name="paywall_feature_ai_assistant">AI Word Assistant</string>
     <string name="paywall_feature_ai_assistant_desc">Name a topic and get a ready-to-study word list with translations.</string>
-    <string name="paywall_feature_insights">Insights dashboard</string>
-    <string name="paywall_feature_insights_desc">Study heatmap, accuracy trends, your hardest words and a daily AI tip.</string>
-    <string name="paywall_feature_word_rush">Word Rush</string>
-    <string name="paywall_feature_word_rush_desc">A fast-paced game that turns review into a race against the clock.</string>
-    <string name="paywall_feature_export">Export &amp; share</string>
-    <string name="paywall_feature_export_desc">Share any selection of your words as a text file.</string>
     <!-- %1$d: AI credits premium includes per month -->
     <string name="paywall_feature_ai_credits">%1$d AI credits every month</string>
     <string name="paywall_feature_ai_credits_generic">Monthly AI credits</string>

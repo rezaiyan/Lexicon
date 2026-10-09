@@ -99,7 +99,6 @@ fun StudyScreen(
 
     val progressState by progressViewModel.state()
     val uiState = progressState.progress
-    val hasPremiumAccess = progressState.hasPremiumAccess
     val dueTags = progressState.dueTags
     val skipTagSelector = progressState.skipTagSelector
     val stageTagsMap = progressState.stageTagsMap
@@ -345,7 +344,7 @@ fun StudyScreen(
                     val wordRushHasEnoughWords by remember {
                         derivedStateOf { wordRushStateHolder.value.hasEnoughWords }
                     }
-                    if (hasPremiumAccess) WordRushCard(
+                    WordRushCard(
                         bestStreak = wordRushBestStreak,
                         hasEnoughWords = wordRushHasEnoughWords,
                         onPlay = {

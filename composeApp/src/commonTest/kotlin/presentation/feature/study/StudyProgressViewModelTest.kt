@@ -1,7 +1,6 @@
 package presentation.feature.study
 
 import domain.word.add.model.AddWordsOutcome
-import fakes.FakeSubscriptionManager
 import analytics.IAnalyticsTracker
 import core.common.Try
 import fakes.FakePerformanceTracer
@@ -16,12 +15,6 @@ import domain.focus.usecase.DismissFocusNudgeUseCase
 import domain.focus.usecase.ObserveStudyFocusUseCase
 import domain.focus.usecase.SetLearningFocusUseCase
 import fakes.FakeLearningFocusRepository
-import domain.auth.model.FeatureAccessResponse
-import domain.auth.model.FeatureFlags
-import domain.auth.model.UserFeatureAccess
-import domain.auth.repository.IAuthRepository
-import domain.auth.model.AuthUser
-import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.notifications.repository.INotificationRepository
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import domain.settings.model.ThemeMode
@@ -80,27 +73,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override suspend fun getMostCommonSourceLanguage(): Try<String?> = Try.success(null)
         override suspend fun updateWordLocal(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
-    }
-
-    private fun fakeAuthRepo(hasPremiumAccess: Boolean = false) = object : IAuthRepository {
-        override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> =
-            Try.failure(RuntimeException(""))
-        override suspend fun loginWithApple(
-            idToken: String,
-            fullName: String?,
-            appleUserId: String,
-        ): Try<AuthUser> = Try.failure(RuntimeException(""))
-        override suspend fun logout(): Try<Unit> = Try.success(Unit)
-        override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
-        override suspend fun getAccessToken(): String? = null
-        override suspend fun isAuthenticated(): Boolean = false
-        override fun isAuthenticatedAsFlow(): Flow<Boolean> = flowOf(false)
-        override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(
-            FeatureAccessResponse(
-                FeatureFlags(),
-                UserFeatureAccess(hasPremiumAccess = hasPremiumAccess),
-            )
-        )
     }
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
@@ -185,7 +157,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
     }
 
     private fun createViewModel(
-        hasPremiumAccess: Boolean = false,
         tags: List<Tag> = emptyList(),
         words: Flow<List<Word>> = emptyFlow(),
         preference: LearningFocus? = null,
@@ -199,7 +170,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
             scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
-            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(hasPremiumAccess), FakeSubscriptionManager()),
             tagUseCases = StudyTagUseCases(
                 getSkipTagSelector = GetSkipTagSelectorUseCase(settingsRepo),
                 setSkipTagSelector = SetSkipTagSelectorUseCase(settingsRepo),
@@ -218,18 +188,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
     fun `initial progress state is Loading`() {
         val vm = createViewModel()
         assertIs<UiState.Loading>(vm.currentState.progress)
-    }
-
-    @Test
-    fun `initial hasPremiumAccess is false`() = runTest {
-        val vm = createViewModel()
-        assertEquals(false, vm.currentState.hasPremiumAccess)
-    }
-
-    @Test
-    fun `hasPremiumAccess is true when server returns premium`() = runTest {
-        val vm = createViewModel(hasPremiumAccess = true)
-        assertEquals(true, vm.currentState.hasPremiumAccess)
     }
 
     @Test

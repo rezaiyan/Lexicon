@@ -23,16 +23,13 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaul
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import domain.auth.usecase.GetFeatureAccessUseCase
 import feature.insights.navigation.InsightsRoute
 import feature.profile.navigation.ProfileRoute
 import org.jetbrains.compose.resources.stringResource
@@ -59,10 +56,6 @@ internal fun AppContent(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val layoutType = currentNavigationSuiteType()
-
-    val getFeatureAccessUseCase = koinInject<GetFeatureAccessUseCase>()
-    val featureAccess by remember(getFeatureAccessUseCase) { getFeatureAccessUseCase() }.collectAsState(initial = null)
-    val hasPremiumAccess = featureAccess?.userAccess?.hasPremiumAccess == true
 
     // Pick up grants, expirations and purchases made elsewhere when the app comes back to the
     // foreground. Throttled in the data layer, so frequent resumes don't hit the network.
@@ -128,15 +121,13 @@ internal fun AppContent(
                 label = { TabLabel(stringResource(Res.string.words_tab), wordsSelected) },
                 colors = itemColors,
             )
-            if (hasPremiumAccess) {
-                item(
-                    selected = insightsSelected,
-                    onClick = { navController.selectTab(InsightsRoute, insightsSelected) },
-                    icon = { TabIcon(Icons.Outlined.BarChart) },
-                    label = { TabLabel(stringResource(Res.string.insights_title), insightsSelected) },
-                    colors = itemColors,
-                )
-            }
+            item(
+                selected = insightsSelected,
+                onClick = { navController.selectTab(InsightsRoute, insightsSelected) },
+                icon = { TabIcon(Icons.Outlined.BarChart) },
+                label = { TabLabel(stringResource(Res.string.insights_title), insightsSelected) },
+                colors = itemColors,
+            )
             item(
                 selected = profileSelected,
                 onClick = { navController.selectTab(ProfileRoute, profileSelected) },

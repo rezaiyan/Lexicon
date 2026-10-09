@@ -474,7 +474,7 @@
     <string name="account_section">Konto</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">Schneller lernen mit Premium</string>
-    <string name="paywall_subtitle">KI-Tools, die Gelesenes in Wörter verwandeln, die du behältst – plus ein klarer Blick darauf, wie du lernst.</string>
+    <string name="paywall_subtitle">Mehr KI-Guthaben jeden Monat, um Seiten zu scannen und Wortlisten zu jedem Thema zu erhalten. Alles andere ist kostenlos.</string>
     <string name="paywall_choose_plan">Wähle deinen Tarif</string>
     <string name="paywall_best_value">Bestes Angebot</string>
     <string name="paywall_save_percent">%1$d% sparen</string>
@@ -491,20 +491,15 @@
     <string name="paywall_store_generic">deinen Store-Einstellungen</string>
     <string name="paywall_timeline_title">So funktioniert dein Probezeitraum</string>
     <string name="paywall_timeline_today">Heute</string>
-    <string name="paywall_timeline_today_desc">Alle Premium-Funktionen werden freigeschaltet. Du zahlst nichts.</string>
+    <string name="paywall_timeline_today_desc">Dein Premium-KI-Guthaben wird gutgeschrieben. Du zahlst nichts.</string>
     <string name="paywall_timeline_cancel">Bis %1$s</string>
     <string name="paywall_timeline_cancel_desc">Kündige in %1$s und es wird nichts berechnet.</string>
     <string name="paywall_timeline_charge_desc">Dir werden %1$s berechnet. Dein Tarif verlängert sich jede Periode, bis du kündigst.</string>
     <string name="paywall_premium_unlocks">Das bietet Premium</string>
     <string name="paywall_free_forever">Immer kostenlos</string>
-    <string name="paywall_free_forever_desc">Unbegrenzt Wörter · Wiederholung in Intervallen · Serien und Erinnerungen · Wörter manuell importieren</string>
+    <string name="paywall_free_forever_desc">Unbegrenzt Wörter · Wiederholung in Intervallen · Statistiken und täglicher KI-Tipp · Word Rush · Export &amp; Teilen · Jeden Monat etwas KI-Guthaben</string>
     <string name="paywall_feature_ai_assistant">KI-Wortassistent</string>
     <string name="paywall_feature_ai_assistant_desc">Nenne ein Thema und erhalte eine fertige Wortliste mit Übersetzungen.</string>
-    <string name="paywall_feature_insights">Insights-Dashboard</string>
-    <string name="paywall_feature_insights_desc">Lern-Heatmap, Genauigkeitstrends, deine schwierigsten Wörter und ein täglicher KI-Tipp.</string>
-    <string name="paywall_feature_word_rush_desc">Ein rasantes Spiel, das Wiederholen zum Wettlauf gegen die Uhr macht.</string>
-    <string name="paywall_feature_export">Exportieren &amp; teilen</string>
-    <string name="paywall_feature_export_desc">Teile beliebige Wörter als Textdatei.</string>
     <string name="paywall_billing_title">Abrechnung, klar erklärt</string>
     <string name="paywall_restore_hint">Schon auf einem anderen Gerät abonniert?</string>
     <string name="paywall_unavailable">In deinem Store sind gerade keine Tarife verfügbar. Bitte versuche es später erneut.</string>

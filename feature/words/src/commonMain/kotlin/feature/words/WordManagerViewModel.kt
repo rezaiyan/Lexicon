@@ -2,7 +2,6 @@ package feature.words
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
-import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.word.model.LearningStage
 import domain.word.model.Word
@@ -37,7 +36,6 @@ class WordManagerViewModel(
     private val batchAssignTagsUseCase: BatchAssignTagsUseCase,
     updateWordUseCase: UpdateWordUseCase,
     private val exportWordsUseCase: ExportWordsUseCase,
-    private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val filterAndSortWordsUseCase: FilterAndSortWordsUseCase,
     private val classifyImportErrorUseCase: ClassifyImportErrorUseCase,
     analyticsTracker: IAnalyticsTracker,
@@ -80,15 +78,6 @@ class WordManagerViewModel(
         startObservingWords()
         startObservingTags()
         applyFocusAsDefaultFilter()
-        viewModelScope.launch {
-            getFeatureAccessUseCase()
-                .catch {
-                    it.printStackTrace()
-                }
-                .collect { featureAccess ->
-                    updateState { copy(isUserSubscribed = featureAccess.userAccess.hasPremiumAccess) }
-                }
-        }
     }
 
     /**

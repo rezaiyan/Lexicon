@@ -474,7 +474,7 @@
     <string name="account_section">Cuenta</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">Aprende más rápido con Premium</string>
-    <string name="paywall_subtitle">Herramientas de IA que convierten lo que lees en palabras que recuerdas, y una visión clara de cómo aprendes.</string>
+    <string name="paywall_subtitle">Más créditos de IA cada mes para escanear páginas y obtener listas de palabras sobre cualquier tema. Todo lo demás es gratis.</string>
     <string name="paywall_choose_plan">Elige tu plan</string>
     <string name="paywall_best_value">Mejor precio</string>
     <string name="paywall_save_percent">Ahorra %1$d%</string>
@@ -491,20 +491,15 @@
     <string name="paywall_store_generic">la configuración de tu tienda</string>
     <string name="paywall_timeline_title">Cómo funciona tu prueba</string>
     <string name="paywall_timeline_today">Hoy</string>
-    <string name="paywall_timeline_today_desc">Se desbloquean todas las funciones Premium. No pagas nada.</string>
+    <string name="paywall_timeline_today_desc">Se añaden tus créditos de IA Premium. No pagas nada.</string>
     <string name="paywall_timeline_cancel">Hasta el %1$s</string>
     <string name="paywall_timeline_cancel_desc">Cancela en %1$s y no se te cobrará.</string>
     <string name="paywall_timeline_charge_desc">Se te cobra %1$s. Tu plan se renueva cada periodo hasta que lo canceles.</string>
     <string name="paywall_premium_unlocks">Qué desbloquea Premium</string>
     <string name="paywall_free_forever">Siempre gratis</string>
-    <string name="paywall_free_forever_desc">Palabras ilimitadas · Repaso espaciado · Rachas y recordatorios · Importación manual de palabras</string>
+    <string name="paywall_free_forever_desc">Palabras ilimitadas · Repaso espaciado · Estadísticas y consejo diario de IA · Word Rush · Exportar y compartir · Algunos créditos de IA cada mes</string>
     <string name="paywall_feature_ai_assistant">Asistente de palabras con IA</string>
     <string name="paywall_feature_ai_assistant_desc">Indica un tema y obtén una lista de palabras lista para estudiar, con traducciones.</string>
-    <string name="paywall_feature_insights">Panel de estadísticas</string>
-    <string name="paywall_feature_insights_desc">Mapa de estudio, tendencias de precisión, tus palabras más difíciles y un consejo diario de IA.</string>
-    <string name="paywall_feature_word_rush_desc">Un juego rápido que convierte el repaso en una carrera contra el reloj.</string>
-    <string name="paywall_feature_export">Exportar y compartir</string>
-    <string name="paywall_feature_export_desc">Comparte cualquier selección de tus palabras como archivo de texto.</string>
     <string name="paywall_billing_title">Facturación, en palabras claras</string>
     <string name="paywall_restore_hint">¿Ya te suscribiste en otro dispositivo?</string>
     <string name="paywall_unavailable">No hay planes disponibles en tu tienda ahora mismo. Inténtalo más tarde.</string>

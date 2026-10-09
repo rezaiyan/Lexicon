@@ -174,7 +174,6 @@ internal fun WordListContent(
         SelectionActionBar(
             isVisible = state.isSelectionMode && state.selectedCount > 0,
             selectedCount = state.selectedCount,
-            isUserSubscribed = state.isUserSubscribed,
             onClose = onExitSelectionMode,
             onSelectAll = onSelectAll,
             onDelete = onDeleteSelected,

@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.UiState
 import core.common.getOrThrow
-import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.focus.model.LanguageSummary
 import domain.focus.model.LearningFocus
 import domain.focus.usecase.AcknowledgeFocusIntroUseCase
@@ -22,7 +21,6 @@ import feature.study.util.ComposeNotificationTextResolver
 import feature.study.util.NotificationTextResolver
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import performance.IPerformanceTracer
 
@@ -40,7 +38,6 @@ data class StudyFocusUseCases(
 
 data class StudyProgressState(
     val progress: UiState<ProgressScreenState> = UiState.Loading,
-    val hasPremiumAccess: Boolean = false,
     val dueTags: List<Tag> = emptyList(),
     val tags: List<Tag> = emptyList(),
     val skipTagSelector: Boolean = false,
@@ -58,7 +55,6 @@ class StudyProgressViewModel(
     private val scheduleNotificationsUseCase: ScheduleNotificationsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val performanceTracer: IPerformanceTracer,
-    getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val tagUseCases: StudyTagUseCases,
     private val focusUseCases: StudyFocusUseCases,
     private val notificationTextResolver: NotificationTextResolver = ComposeNotificationTextResolver,
@@ -69,7 +65,6 @@ class StudyProgressViewModel(
     private var progressObservationJob: Job? = null
 
     init {
-        observeFeatureAccess(getFeatureAccessUseCase)
         startObservingProgress()
         observeSkipTagSelector()
     }
@@ -104,17 +99,6 @@ class StudyProgressViewModel(
 
     fun setSkipTagSelector(skip: Boolean) {
         viewModelScope.launch { tagUseCases.setSkipTagSelector(skip) }
-    }
-
-    private fun observeFeatureAccess(getFeatureAccessUseCase: GetFeatureAccessUseCase) {
-        viewModelScope.launch {
-            getFeatureAccessUseCase()
-                .map { it.userAccess.hasPremiumAccess }
-                .catch { emit(false) }
-                .collect { hasPremium ->
-                    updateState { copy(hasPremiumAccess = hasPremium) }
-                }
-        }
     }
 
     fun refreshStats() {

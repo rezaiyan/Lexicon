@@ -633,7 +633,7 @@
     <string name="account_section">계정</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">Premium으로 더 빠르게 배우세요</string>
-    <string name="paywall_subtitle">읽은 글을 기억에 남는 단어로 바꿔 주는 AI 도구와 학습 현황을 한눈에 보여 주는 분석.</string>
+    <string name="paywall_subtitle">매달 더 많은 AI 크레딧으로 페이지를 스캔하고 어떤 주제든 단어 목록을 받아 보세요. 나머지 기능은 모두 무료입니다.</string>
     <string name="paywall_choose_plan">플랜 선택</string>
     <string name="paywall_best_value">최고 혜택</string>
     <string name="paywall_save_percent">%1$d% 절약</string>
@@ -650,20 +650,15 @@
     <string name="paywall_store_generic">스토어 설정</string>
     <string name="paywall_timeline_title">무료 체험 진행 방식</string>
     <string name="paywall_timeline_today">오늘</string>
-    <string name="paywall_timeline_today_desc">모든 Premium 기능이 열립니다. 결제는 없습니다.</string>
+    <string name="paywall_timeline_today_desc">Premium AI 크레딧이 지급됩니다. 결제는 없습니다.</string>
     <string name="paywall_timeline_cancel">%1$s까지</string>
     <string name="paywall_timeline_cancel_desc">%1$s에서 취소하면 결제되지 않습니다.</string>
     <string name="paywall_timeline_charge_desc">%1$s이(가) 결제됩니다. 취소할 때까지 기간마다 자동 갱신됩니다.</string>
     <string name="paywall_premium_unlocks">Premium으로 열리는 기능</string>
     <string name="paywall_free_forever">항상 무료</string>
-    <string name="paywall_free_forever_desc">단어 무제한 · 간격 반복 복습 · 연속 기록과 알림 · 단어 직접 추가</string>
+    <string name="paywall_free_forever_desc">단어 무제한 · 간격 반복 복습 · 학습 분석과 매일 AI 팁 · Word Rush · 내보내기와 공유 · 매달 약간의 AI 크레딧</string>
     <string name="paywall_feature_ai_assistant">AI 단어 도우미</string>
     <string name="paywall_feature_ai_assistant_desc">주제만 알려 주면 번역이 포함된 학습용 단어 목록을 바로 받아요.</string>
-    <string name="paywall_feature_insights">인사이트 대시보드</string>
-    <string name="paywall_feature_insights_desc">학습 히트맵, 정확도 추이, 가장 어려운 단어, 매일의 AI 팁.</string>
-    <string name="paywall_feature_word_rush_desc">복습을 시간과의 경주로 바꾸는 빠른 게임.</string>
-    <string name="paywall_feature_export">내보내기 및 공유</string>
-    <string name="paywall_feature_export_desc">원하는 단어를 텍스트 파일로 공유하세요.</string>
     <string name="paywall_billing_title">결제 안내, 쉽게</string>
     <string name="paywall_restore_hint">다른 기기에서 이미 구독 중이신가요?</string>
     <string name="paywall_unavailable">지금은 스토어에서 이용 가능한 플랜이 없습니다. 나중에 다시 시도해 주세요.</string>
