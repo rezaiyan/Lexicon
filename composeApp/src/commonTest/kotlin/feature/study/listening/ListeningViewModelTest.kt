@@ -6,6 +6,7 @@ import domain.listening.model.ListeningOrder
 import domain.listening.model.ListeningSettings
 import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
+import domain.listening.usecase.ObserveHasListeningWordsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import domain.settings.usecase.GetDailyGoalWordsUseCase
@@ -97,6 +98,7 @@ class ListeningViewModelTest {
             speakWord = SpeakWordUseCase(ttsRepository),
             stopSpeaking = StopSpeakingUseCase(ttsRepository),
             observeSettings = ObserveListeningSettingsUseCase(listeningSettings),
+            observeHasWords = ObserveHasListeningWordsUseCase(wordRepository, observeFocus),
             saveSettings = SaveListeningSettingsUseCase(listeningSettings),
             observeSpeechRate = ObserveSpeechRateUseCase(settings),
             setTtsSpeechRate = SetTtsSpeechRateUseCase(settings),
@@ -327,6 +329,18 @@ class ListeningViewModelTest {
         val viewModel = startedViewModel()
 
         assertIs<ListeningScreenState.NoVoices>(viewModel.currentState.screen)
+    }
+
+    @Test
+    fun `hasWords reflects whether there is anything to listen to`() = runTest(dispatcher) {
+        val empty = createViewModel()
+        runCurrent()
+        assertFalse(empty.currentState.hasWords)
+
+        givenDueWords(1)
+        val withWords = createViewModel()
+        runCurrent()
+        assertTrue(withWords.currentState.hasWords)
     }
 
     @Test

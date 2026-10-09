@@ -982,6 +982,7 @@
     <string name="listening_title">Listening mode</string>
     <string name="listening_card_subtitle">Hands-free: hear each word, then its meaning</string>
     <string name="listening_card_action">Listen</string>
+    <string name="listening_card_add_words">Add a few words to start listening</string>
     <string name="listening_loading">Preparing your words…</string>
     <string name="listening_empty_title">Nothing to listen to yet</string>
     <string name="listening_empty_subtitle">Add a few words and come back.</string>

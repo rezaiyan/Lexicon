@@ -9,6 +9,7 @@ import domain.listening.model.ListeningSettings
 import domain.listening.model.VoiceStatus
 import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
+import domain.listening.usecase.ObserveHasListeningWordsUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.word.model.ReviewSource
@@ -22,6 +23,7 @@ import fakes.FakeListeningSettingsRepository
 import fakes.FakeSettingsRepository
 import fakes.FakeTtsRepository
 import fakes.FakeWordRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import utils.Language
 import kotlin.test.Test
@@ -58,6 +60,25 @@ class ListeningUseCasesTest {
             observeFocus,
         )
         return BuildListeningQueueUseCase(loadQueue, repo, observeFocus)
+    }
+
+    // --- ObserveHasListeningWordsUseCase ---
+
+    private fun observeHasWords(repo: FakeWordRepository) = ObserveHasListeningWordsUseCase(
+        repo,
+        ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository(LearningFocus.All)),
+    )
+
+    @Test
+    fun `has listening words is false when there are no words`() = runTest {
+        assertFalse(observeHasWords(FakeWordRepository()).invoke(Unit).first())
+    }
+
+    @Test
+    fun `has listening words is true when the focus has words even if none are due`() = runTest {
+        val repo = FakeWordRepository().apply { storedWords = mutableListOf(word(1)) }
+
+        assertTrue(observeHasWords(repo).invoke(Unit).first())
     }
 
     // --- BuildListeningQueueUseCase ---

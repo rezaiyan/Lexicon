@@ -19,6 +19,7 @@ import domain.listening.model.Utterance
 import domain.listening.model.VoiceStatus
 import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
+import domain.listening.usecase.ObserveHasListeningWordsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
@@ -81,6 +82,8 @@ data class ListeningState(
     val screen: ListeningScreenState = ListeningScreenState.Idle,
     val settings: ListeningSettings = ListeningSettings(),
     val speechRate: Float = 1.0f,
+    /** Whether a session would have any words; drives the Study-tab card's CTA. */
+    val hasWords: Boolean = false,
 )
 
 /**
@@ -98,6 +101,7 @@ class ListeningViewModel(
     private val speakWord: SpeakWordUseCase,
     private val stopSpeaking: StopSpeakingUseCase,
     observeSettings: ObserveListeningSettingsUseCase,
+    observeHasWords: ObserveHasListeningWordsUseCase,
     private val saveSettings: SaveListeningSettingsUseCase,
     observeSpeechRate: ObserveSpeechRateUseCase,
     private val setTtsSpeechRate: SetTtsSpeechRateUseCase,
@@ -119,6 +123,11 @@ class ListeningViewModel(
 
         observeSpeechRate(Unit)
             .onEach { rate -> updateState { copy(speechRate = rate) } }
+            .catch { }
+            .launchIn(viewModelScope)
+
+        observeHasWords(Unit)
+            .onEach { hasWords -> updateState { copy(hasWords = hasWords) } }
             .catch { }
             .launchIn(viewModelScope)
     }
