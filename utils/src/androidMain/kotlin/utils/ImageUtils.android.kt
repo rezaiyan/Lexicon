@@ -41,9 +41,10 @@ private fun Bitmap.applyExifOrientation(source: ByteArray): Bitmap {
 }
 
 @Suppress("SwallowedException")
-actual fun ByteArray.normalizeForUpload(maxEdgePx: Int, quality: Float): ByteArray? = try {
+actual fun ByteArray.normalizeForUpload(maxEdgePx: Int, quality: Float, quarterTurns: Int): ByteArray? = try {
     decodeSampled(maxEdgePx)
         ?.applyExifOrientation(this)
+        ?.let { upright -> if (quarterTurns.mod(4) == 0) upright else rotateBitmap(upright, 90f * quarterTurns.mod(4)) }
         ?.scaledToFit(maxEdgePx)
         ?.toJpeg(quality)
 } catch (_: IllegalArgumentException) {

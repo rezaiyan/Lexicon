@@ -12,17 +12,17 @@ import utils.normalizeForUpload
 /** Re-encodes with progressively smaller size/quality until the photo fits the upload limit. */
 class ImagePreparer(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val encode: (ByteArray, Int, Float) -> ByteArray? = { bytes, edge, quality ->
-        bytes.normalizeForUpload(edge, quality)
+    private val encode: (ByteArray, Int, Float, Int) -> ByteArray? = { bytes, edge, quality, quarterTurns ->
+        bytes.normalizeForUpload(edge, quality, quarterTurns)
     },
 ) : IImagePreparer {
 
-    override suspend fun prepare(image: ByteArray): Try<ByteArray> = withContext(dispatcher) {
+    override suspend fun prepare(image: ByteArray, quarterTurns: Int): Try<ByteArray> = withContext(dispatcher) {
         if (image.size < ImageLimits.MIN_UPLOAD_BYTES) {
             return@withContext Try.failure(DomainError.AddWords.ImageUnreadable)
         }
         for ((edge, quality) in Attempts) {
-            val encoded = encode(image, edge, quality)
+            val encoded = encode(image, edge, quality, quarterTurns)
                 ?: return@withContext Try.failure(DomainError.AddWords.ImageUnreadable)
             if (encoded.size <= ImageLimits.MAX_UPLOAD_BYTES) return@withContext Try.success(encoded)
         }

@@ -827,6 +827,7 @@
     <string name="photo_preview_title">Looks good?</string>
     <string name="photo_quality">Quality</string>
     <string name="retake">Retake</string>
+    <string name="rotate_photo">Rotate photo</string>
     <string name="extract_words">Extract words</string>
     <string name="review_found_title">We found %1$d words</string>
     <string name="review_found_subtitle">Untick what you don't need, or tap the pencil to fix a word.</string>

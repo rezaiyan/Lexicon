@@ -40,6 +40,15 @@ class ExtractWordsFromImageUseCaseTest {
     }
 
     @Test
+    fun `invoke turns the photo as the user rotated it before upload`() = runTest {
+        ai.drafts = Try.success(listOf(WordDraft.of("Hund", "dog").getOrThrow()))
+
+        useCase(ExtractWordsFromImageUseCase.Params(photo, languages, quarterTurns = 1)).getOrThrow()
+
+        assertEquals(1, preparer.lastQuarterTurns)
+    }
+
+    @Test
     fun `invoke stops before upload when the image cannot be prepared`() = runTest {
         preparer.result = Try.failure(DomainError.AddWords.ImageUnreadable)
 

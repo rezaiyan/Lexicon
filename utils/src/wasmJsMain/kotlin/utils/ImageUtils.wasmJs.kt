@@ -10,4 +10,4 @@ actual fun ByteArray.toImageBitmap(): ImageBitmap? = null
 
 actual fun ByteArray.compressImage(quality: Float): ByteArray = this
 
-actual fun ByteArray.normalizeForUpload(maxEdgePx: Int, quality: Float): ByteArray? = this
+actual fun ByteArray.normalizeForUpload(maxEdgePx: Int, quality: Float, quarterTurns: Int): ByteArray? = this

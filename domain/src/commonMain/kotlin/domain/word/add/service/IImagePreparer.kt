@@ -3,12 +3,13 @@ package domain.word.add.service
 import core.common.Try
 
 /**
- * Turns a camera/gallery photo into an upload-ready image: upright (EXIF applied), downscaled and
+ * Turns a camera/gallery photo into an upload-ready image: upright (EXIF applied, then turned
+ * [quarterTurns] × 90° clockwise as the user rotated it), downscaled and
  * re-encoded until it fits [ImageLimits.MAX_UPLOAD_BYTES].
  * Fails with `ImageUnreadable` or `ImageTooLarge`.
  */
 interface IImagePreparer {
-    suspend fun prepare(image: ByteArray): Try<ByteArray>
+    suspend fun prepare(image: ByteArray, quarterTurns: Int = 0): Try<ByteArray>
 }
 
 object ImageLimits {

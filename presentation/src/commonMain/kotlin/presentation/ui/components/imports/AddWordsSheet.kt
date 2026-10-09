@@ -141,17 +141,22 @@ private fun AddWordsSheetContent(
         val learning = state.learning ?: Language.ENGLISH
         val native = state.native ?: Language.ENGLISH
         when (page) {
-            AddWordsPage.Chooser -> AddWordsChooserContent(
-                hasImageAccess = state.hasPremiumTools,
-                onAiAssistant = if (state.hasPremiumTools) {
-                    { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiLevel) }
-                } else {
-                    null
-                },
-                onTypeWord = { openSource(WordOrigin.Manual, AddWordsPage.Manual) },
-                onImportFile = { openSource(WordOrigin.File, AddWordsPage.File) },
-                onScanPhoto = { openSource(WordOrigin.Photo, AddWordsPage.Photo) },
-            )
+            AddWordsPage.Chooser -> {
+                // The sheet ignores Back (LockedSheetProperties) so deeper pages can't lose work;
+                // the chooser has nothing to lose, so Back closes the sheet here.
+                BackHandler(onBack = onClose)
+                AddWordsChooserContent(
+                    hasImageAccess = state.hasPremiumTools,
+                    onAiAssistant = if (state.hasPremiumTools) {
+                        { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiLevel) }
+                    } else {
+                        null
+                    },
+                    onTypeWord = { openSource(WordOrigin.Manual, AddWordsPage.Manual) },
+                    onImportFile = { openSource(WordOrigin.File, AddWordsPage.File) },
+                    onScanPhoto = { openSource(WordOrigin.Photo, AddWordsPage.Photo) },
+                )
+            }
 
             is AddWordsPage.Learning -> ImportLanguageListPage(
                 title = stringResource(Res.string.word_language_title),
@@ -325,6 +330,8 @@ private fun PhotoPage(
             isLoading = photoState.isExtracting,
             isEnabled = !photoState.isExtracting,
             problem = photoState.problem.text(),
+            quarterTurns = photoState.quarterTurns,
+            onRotate = photo::rotatePhoto,
             onConfirm = { photo.extract(state.languages) },
             onRetake = photo::clearPhoto,
         )

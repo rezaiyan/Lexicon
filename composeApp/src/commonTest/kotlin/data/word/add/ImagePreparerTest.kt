@@ -15,7 +15,7 @@ class ImagePreparerTest {
     private val photo = ByteArray(ImageLimits.MIN_UPLOAD_BYTES * 2)
 
     private fun preparer(encode: (ByteArray, Int, Float) -> ByteArray?) =
-        ImagePreparer(UnconfinedTestDispatcher(), encode)
+        ImagePreparer(UnconfinedTestDispatcher()) { bytes, edge, quality, _ -> encode(bytes, edge, quality) }
 
     private suspend fun ImagePreparer.failure() = (prepare(photo) as Try.Failure).exceptionOrNull()
 
@@ -26,6 +26,19 @@ class ImagePreparerTest {
 
         assertEquals(DomainError.AddWords.ImageUnreadable, (result as Try.Failure).exceptionOrNull())
         assertEquals(false, encoded)
+    }
+
+    @Test
+    fun `prepare rotates every encoding by the requested quarter turns`() = runTest {
+        val turns = mutableListOf<Int>()
+        val preparer = ImagePreparer(UnconfinedTestDispatcher()) { _, _, _, quarterTurns ->
+            turns += quarterTurns
+            ByteArray(if (turns.size < 2) ImageLimits.MAX_UPLOAD_BYTES + 1 else 1)
+        }
+
+        preparer.prepare(photo, quarterTurns = 3).getOrThrow()
+
+        assertEquals(listOf(3, 3), turns)
     }
 
     @Test

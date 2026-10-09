@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Rotate90DegreesCw
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +48,7 @@ import lexicon.resources.generated.resources.failed_to_load_image
 import lexicon.resources.generated.resources.photo_preview_title
 import lexicon.resources.generated.resources.preview_selected_image
 import lexicon.resources.generated.resources.retake
+import lexicon.resources.generated.resources.rotate_photo
 import lexicon.resources.generated.resources.try_another_image
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
@@ -52,6 +59,8 @@ private val ErrorPlaceholderHeight = 180.dp
 // Portrait shots are letterboxed at 3:4 so the actions stay above the fold
 private const val MinAspectRatio = 0.75f
 private const val MaxAspectRatio = 2.5f
+private const val QUARTER_TURNS = 4
+private const val RIGHT_ANGLE_DEGREES = 90f
 
 /** "Looks good?" — the picked photo with extract / retake actions. */
 @Composable
@@ -60,10 +69,14 @@ internal fun PhotoPreviewPage(
     isLoading: Boolean,
     isEnabled: Boolean,
     problem: String?,
+    quarterTurns: Int,
+    onRotate: () -> Unit,
     onConfirm: () -> Unit,
     onRetake: () -> Unit,
 ) {
-    val imageBitmap = remember(imageBytes) { imageBytes.toImageBitmap() }
+    val decoded = remember(imageBytes) { imageBytes.toImageBitmap() }
+    // Shown exactly as it will be uploaded: sideways text is misread, so the user turns it upright here.
+    val imageBitmap = remember(decoded, quarterTurns) { decoded?.rotatedClockwise(quarterTurns) }
 
     SheetPage(
         title = stringResource(Res.string.photo_preview_title),
@@ -110,6 +123,18 @@ internal fun PhotoPreviewPage(
                 ) {
                     AiScanOverlay(modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio))
                 }
+                if (!isLoading) {
+                    FilledTonalIconButton(
+                        onClick = onRotate,
+                        enabled = isEnabled,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(Theme.spacing.sm),
+                    ) {
+                        Icon(
+                            Icons.Default.Rotate90DegreesCw,
+                            contentDescription = stringResource(Res.string.rotate_photo),
+                        )
+                    }
+                }
             }
         } else {
             ImageLoadError()
@@ -117,6 +142,21 @@ internal fun PhotoPreviewPage(
 
         ErrorMessage(problem)
     }
+}
+
+/** The bitmap turned [quarterTurns] × 90° clockwise (drawn into a new bitmap so layout gets the new aspect). */
+private fun ImageBitmap.rotatedClockwise(quarterTurns: Int): ImageBitmap {
+    val turns = quarterTurns.mod(QUARTER_TURNS)
+    if (turns == 0) return this
+    val sideways = turns % 2 == 1
+    val result = ImageBitmap(if (sideways) height else width, if (sideways) width else height)
+    Canvas(result).apply {
+        translate(result.width / 2f, result.height / 2f)
+        rotate(RIGHT_ANGLE_DEGREES * turns)
+        translate(-width / 2f, -height / 2f)
+        drawImage(this@rotatedClockwise, Offset.Zero, Paint())
+    }
+    return result
 }
 
 @Composable

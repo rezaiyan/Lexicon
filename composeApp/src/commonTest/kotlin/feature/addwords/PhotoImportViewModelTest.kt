@@ -32,10 +32,11 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
     private val ai = FakeAiRepository()
     private val image = byteArrayOf(1, 2, 3)
     private val analytics = FakeAnalyticsTracker()
+    private val preparer = FakeImagePreparer()
 
     private fun createViewModel() = PhotoImportViewModel(
         ExtractWordsFromImageUseCase(
-            FakeImagePreparer(),
+            preparer,
             ai,
             RefreshFeatureAccessUseCase(FakeSubscriptionAccessRepository()),
         ),
@@ -101,6 +102,42 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
             assertEquals(SourceEffect.PremiumLapsed, awaitItem())
         }
         assertEquals(AddWordsProblem.PremiumRequired, vm.currentState.problem)
+    }
+
+    @Test
+    fun `rotatePhoto turns a quarter clockwise and wraps after a full turn`() {
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+
+        val turns = (1..5).map { vm.rotatePhoto(); vm.currentState.quarterTurns }
+
+        assertEquals(listOf(1, 2, 3, 0, 1), turns)
+    }
+
+    @Test
+    fun `a new photo starts upright`() {
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.rotatePhoto()
+
+        vm.onPhotoPicked(byteArrayOf(4, 5, 6))
+
+        assertEquals(0, vm.currentState.quarterTurns)
+    }
+
+    @Test
+    fun `extract uploads the photo turned as shown`() = runTest {
+        ai.drafts = Try.success(listOf(WordDraft.of("Hund", "dog").getOrThrow()))
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.rotatePhoto()
+
+        vm.effects.test {
+            vm.extract(languages)
+            awaitItem()
+        }
+
+        assertEquals(1, preparer.lastQuarterTurns)
     }
 
     @Test

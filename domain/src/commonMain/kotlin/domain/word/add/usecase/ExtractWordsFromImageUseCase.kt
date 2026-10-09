@@ -18,10 +18,11 @@ class ExtractWordsFromImageUseCase(
     private val refreshFeatureAccess: RefreshFeatureAccessUseCase,
 ) : UseCase<ExtractWordsFromImageUseCase.Params, List<WordDraft>> {
 
-    class Params(val image: ByteArray, val languages: LanguagePair)
+    /** [quarterTurns]: clockwise 90° turns the user applied in the preview (sideways photos are misread). */
+    class Params(val image: ByteArray, val languages: LanguagePair, val quarterTurns: Int = 0)
 
     override suspend fun invoke(params: Params): Try<List<WordDraft>> =
-        imagePreparer.prepare(params.image)
+        imagePreparer.prepare(params.image, params.quarterTurns)
             .flatMap { prepared -> aiRepository.extractWords(prepared, params.languages) }
             .flatMap { drafts ->
                 if (drafts.isEmpty()) Try.failure(DomainError.AddWords.NothingRecognized) else Try.success(drafts)
