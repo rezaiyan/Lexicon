@@ -64,7 +64,8 @@ house	casa
 ## Photo
 - `IImagePreparer` re-encodes the photo with smaller size and quality until it is ≤ 3 MB. Under 128 bytes means unreadable.
 - `POST /ai/extract-words` (v2) sends the language pair and gets structured items back.
-- Older servers return 404, and the client falls back to v1 `/ai/extract-vocabulary` plus the text parser. Remove the fallback one release after v2 ships.
+- The client only calls v2. The server keeps v1 `/ai/extract-vocabulary` for app versions that predate v2.
+- Sideways photos are misread by the model, so the preview has a Rotate button; the upload is turned the same way (`quarterTurns`).
 
 ## Export Format (ExportWordsUseCase)
 

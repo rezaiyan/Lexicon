@@ -43,14 +43,12 @@ class AiRepositoryImplTest {
     }
 
     @Test
-    fun `extractWords falls back to v1 on servers without the endpoint and asks for native translations`() = runTest {
+    fun `extractWords reports a missing endpoint as a failure instead of falling back to v1`() = runTest {
         remoteDataSource.extractResult = Try.failure(DomainError.Network.ServerError(404))
-        remoteDataSource.result = Try.success("Hund,dog;Katze,cat")
 
-        val drafts = createRepo().extractWords(byteArrayOf(1, 2), germanFromEnglish).getOrThrow()
+        val error = createRepo().extractWords(byteArrayOf(1, 2), germanFromEnglish).exceptionOrNull()
 
-        assertEquals(listOf("Hund", "Katze"), drafts.map { it.term })
-        assertEquals(Language.ENGLISH, remoteDataSource.lastTargetLanguage)
+        assertIs<DomainError.Network.ServerError>(error)
     }
 
     @Test
@@ -60,7 +58,6 @@ class AiRepositoryImplTest {
         val error = createRepo().extractWords(byteArrayOf(1), germanFromEnglish).exceptionOrNull()
 
         assertIs<DomainError.Commerce.PremiumRequired>(error)
-        assertEquals(null, remoteDataSource.lastTargetLanguage)
     }
 
     @Test
@@ -79,7 +76,6 @@ class AiRepositoryImplTest {
     // --- Fakes ---
 
     private class FakeAiRemoteDataSource : IAiRemoteDataSource {
-        var result: Try<String> = Try.success("")
         var extractResult: Try<ExtractWordsResponse> = Try.success(ExtractWordsResponse())
         var suggestResult: Try<SuggestWordsResponse> = Try.success(SuggestWordsResponse())
         var lastExtractRequest: ExtractWordsRequest? = null
@@ -93,21 +89,6 @@ class AiRepositoryImplTest {
         override suspend fun suggestWords(request: SuggestWordsRequest): Try<SuggestWordsResponse> {
             lastSuggestRequest = request
             return suggestResult
-        }
-        var lastTargetLanguage: Language? = null
-        var lastExtractWords: Boolean? = null
-        var lastExtractSentences: Boolean? = null
-
-        override suspend fun extractVocabularyFromImage(
-            imageBytes: ByteArray,
-            targetLanguage: Language,
-            extractWords: Boolean,
-            extractSentences: Boolean
-        ): Try<String> {
-            lastTargetLanguage = targetLanguage
-            lastExtractWords = extractWords
-            lastExtractSentences = extractSentences
-            return result
         }
     }
 }

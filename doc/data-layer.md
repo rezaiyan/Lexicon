@@ -74,7 +74,7 @@ All data layer code in `data/src/commonMain/kotlin/data/`.
 | `deleteAccount()` | DELETE /auth/delete-account | - |
 
 ### Other Remote Data Sources
-- **AiRemoteDataSource**: POST /ai/extract-vocabulary (3MB max image, base64)
+- **AiRemoteDataSource**: POST /ai/extract-words (photo, base64, ≤ 3 MB after re-encoding) and POST /ai/suggest-vocabulary
 - **StreakRemoteDataSource**: GET /streak, POST /streak/record
 - **OnboardingRemoteDataSource**: POST /onboarding/preferences
 - **PushNotificationDataSource**: POST /notifications/register-token, DELETE /notifications/tokens

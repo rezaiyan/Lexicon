@@ -280,11 +280,12 @@ graph TB
 }
 ```
 
-### 2.8 AI (1 endpoint)
+### 2.8 AI (2 endpoints)
 
 | # | Method | Path | Auth | Request DTO | Response DTO | Data Source |
 |---|--------|------|------|-------------|--------------|-------------|
-| 21 | POST | `/ai/extract-vocabulary` | Yes | `ExtractVocabularyRequest` | `VocabularyExtractionResponse` | `AiRemoteDataSource` |
+| 21 | POST | `/ai/extract-words` | Yes | `ExtractWordsRequest` | `ExtractWordsResponse` | `AiRemoteDataSource` |
+| 21b | POST | `/ai/suggest-vocabulary` | Yes | `SuggestWordsRequest` | `SuggestWordsResponse` | `AiRemoteDataSource` |
 
 **Source:** `data/src/commonMain/kotlin/data/ai/remote/AiRemoteDataSource.kt`
 
@@ -747,9 +748,6 @@ sequenceDiagram
     EUC->>AIR: extractWords(image, languages)
     AIR->>AIDS: extractWords(request)
     AIDS->>BE: POST /ai/extract-words (v2)
-    alt 404 from an older server
-        AIR->>AIDS: extractVocabularyFromImage (v1)<br/>→ VocabularyTextParser
-    end
     BE-->>AIDS: items [{ term, translation, note }]
     AIR-->>PVM: Try&lt;List&lt;WordDraft&gt;&gt;
     PVM-->>UI: SourceEffect.CandidatesReady
@@ -1489,7 +1487,6 @@ graph LR
     D --> E["AiRemoteDataSource<br/>.extractWords()"]
     E -->|"POST /ai/extract-words<br/>{ imageBase64, learningLanguage,<br/>nativeLanguage }"| G["Backend"]
     G -->|"ApiResponse&lt;ExtractWordsResponse&gt;<br/>{ items: [{ term, translation, note }] }"| E
-    D -.->|"404 (older server):<br/>POST /ai/extract-vocabulary (v1)<br/>+ VocabularyTextParser"| E
     D -->|"Try&lt;List&lt;WordDraft&gt;&gt;"| A
     A -->|"candidates → shared review"| R["AddWordsViewModel"]
 

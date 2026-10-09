@@ -144,7 +144,7 @@ One pipeline: source → `WordDraft` candidates → shared review → `AddWordsU
 |------|----------|-------|
 | **Manual** | `ManualEntryViewModel` | One word at a time, no review |
 | **File** | `ParseWordFileUseCase` + `VocabularyTextParser` | Any text file, ≤ 1 MB; CSV/TSV/;/\|, quoting, header, comments |
-| **Photo** (premium) | `ExtractWordsFromImageUseCase` | v2 `/ai/extract-words`, falls back to v1 on 404 |
+| **Photo** (premium) | `ExtractWordsFromImageUseCase` | v2 `/ai/extract-words`; Rotate button turns sideways photos upright first |
 | **AI suggestions** (premium) | `SuggestWordsUseCase` | Level + topics → `/ai/suggest-vocabulary` |
 | **Onboarding** | `AddStarterWordsUseCase` | Suggested words after sign-up |
 
@@ -283,7 +283,7 @@ Onboarding skipped if user already has words in local DB.
 | Features | GET `/features/access` |
 | Onboarding | POST `/onboarding/preferences`, GET `/onboarding/status` |
 | Streaks | GET `/streaks`, POST `/streaks/activity` |
-| AI | POST `/ai/extract-vocabulary` |
+| AI | POST `/ai/extract-words`, POST `/ai/suggest-vocabulary` |
 
 ---
 

@@ -102,22 +102,23 @@ All responses wrapped in `ApiResponse<T> { success, data, message }`.
 | GET | `/streak` | Yes | `{currentStreak: Int}` |
 | POST | `/streak/record` | Yes | `{currentStreak: Int}` |
 
-## AI (1 endpoint)
+## AI (2 endpoints)
 
 | Method | Path | Auth | Request | Response |
 |--------|------|------|---------|----------|
-| POST | `/ai/extract-vocabulary` | Yes | `ExtractVocabularyRequest` | `{extractedText, wordCount}` |
+| POST | `/ai/extract-words` | Yes | `ExtractWordsRequest` | `{items: [{term, translation, note}]}` |
+| POST | `/ai/suggest-vocabulary` | Yes | `SuggestWordsRequest` | `{items: [{originalWord, translation, description}]}` |
 
-### Request
+### `/ai/extract-words` request
 ```json
 {
   "imageBase64": "...",
-  "targetLanguage": "de",
-  "extractWords": true,
-  "extractSentences": false
+  "learningLanguage": "German",
+  "nativeLanguage": "English",
+  "includePhrases": false
 }
 ```
-Constraints: image max 3MB, min 128 bytes.
+Constraints: the client re-encodes the photo to at most 3 MB (min 128 bytes) and turns it as the user rotated it.
 
 ## Push Notifications (2 endpoints)
 

@@ -14,11 +14,12 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import utils.Language
+import data.ai.remote.model.ExtractWordsRequest
+import data.ai.remote.model.SuggestWordsRequest
+import io.ktor.client.request.HttpRequestData
+import io.ktor.http.content.TextContent
 import kotlin.test.Test
-import core.error.DomainError
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class AiRemoteDataSourceTest {
@@ -38,95 +39,54 @@ class AiRemoteDataSourceTest {
     private fun successEnvelope(data: String) = """{"success":true,"data":$data}"""
     private fun jsonHeaders() = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
 
-    // Valid image bytes (> 128 bytes, < 3MB)
-    private val validImageBytes = ByteArray(256) { it.toByte() }
+    private val extractRequest = ExtractWordsRequest(imageBase64 = "aGk=", learningLanguage = "German", nativeLanguage = "English")
+
+    private fun HttpRequestData.bodyText() = (body as TextContent).text
 
     @Test
-    fun `extractVocabularyFromImage returns extracted text on success`() = runTest {
-        val mockEngine = MockEngine {
-            respond(
-                successEnvelope("""{"extractedText":"hello,world","wordCount":2}"""),
-                HttpStatusCode.OK, jsonHeaders()
-            )
-        }
-        val result = buildDataSource(mockEngine).extractVocabularyFromImage(
-            validImageBytes, Language.SPANISH, true, false
-        )
-
-        assertTrue(result is Try.Success)
-        assertEquals("hello,world", result.value)
-    }
-
-    @Test
-    fun `extractVocabularyFromImage sends POST to correct path`() = runTest {
-        var capturedPath: String? = null
+    fun `extractWords posts the language pair to extract-words and returns the items`() = runTest {
+        var path: String? = null
+        var body: String? = null
         val mockEngine = MockEngine { request ->
-            capturedPath = request.url.encodedPath
+            path = request.url.encodedPath
+            body = request.bodyText()
             respond(
-                successEnvelope("""{"extractedText":"text","wordCount":1}"""),
-                HttpStatusCode.OK, jsonHeaders()
+                successEnvelope("""{"items":[{"term":"Hund","translation":"dog","note":"der"}]}"""),
+                HttpStatusCode.OK, jsonHeaders(),
             )
         }
-        buildDataSource(mockEngine).extractVocabularyFromImage(
-            validImageBytes, Language.ENGLISH, true, false
-        )
 
-        assertEquals("/ai/extract-vocabulary", capturedPath)
+        val result = buildDataSource(mockEngine).extractWords(extractRequest)
+
+        assertEquals("/ai/extract-words", path)
+        assertTrue(body.orEmpty().contains(""""learningLanguage":"German""""))
+        assertTrue(body.orEmpty().contains(""""nativeLanguage":"English""""))
+        assertEquals(listOf("Hund"), (result as Try.Success).value.items.map { it.term })
     }
 
     @Test
-    fun `extractVocabularyFromImage returns failure when image too large`() = runTest {
-        val largeImage = ByteArray(4 * 1024 * 1024) // 4MB
-        val mockEngine = MockEngine {
-            respond("should not be called", HttpStatusCode.OK, jsonHeaders())
-        }
-        val result = buildDataSource(mockEngine).extractVocabularyFromImage(
-            largeImage, Language.ENGLISH, true, false
-        )
+    fun `extractWords returns failure on HTTP error`() = runTest {
+        val mockEngine = MockEngine { respond("""{"success":false}""", HttpStatusCode.InternalServerError, jsonHeaders()) }
 
-        assertTrue(result is Try.Failure)
-        assertIs<DomainError.AddWords.ImageTooLarge>(result.throwable)
+        assertTrue(buildDataSource(mockEngine).extractWords(extractRequest) is Try.Failure)
     }
 
     @Test
-    fun `extractVocabularyFromImage returns failure when image too small`() = runTest {
-        val tinyImage = ByteArray(10)
-        val mockEngine = MockEngine {
-            respond("should not be called", HttpStatusCode.OK, jsonHeaders())
-        }
-        val result = buildDataSource(mockEngine).extractVocabularyFromImage(
-            tinyImage, Language.ENGLISH, true, false
-        )
-
-        assertTrue(result is Try.Failure)
-        assertIs<DomainError.AddWords.ImageUnreadable>(result.throwable)
-    }
-
-    @Test
-    fun `extractVocabularyFromImage returns failure when extracted text is empty`() = runTest {
-        val mockEngine = MockEngine {
+    fun `suggestWords posts to suggest-vocabulary and returns the items`() = runTest {
+        var path: String? = null
+        val mockEngine = MockEngine { request ->
+            path = request.url.encodedPath
             respond(
-                successEnvelope("""{"extractedText":"","wordCount":0}"""),
-                HttpStatusCode.OK, jsonHeaders()
+                successEnvelope("""{"items":[{"originalWord":"Haus","translation":"house"}]}"""),
+                HttpStatusCode.OK, jsonHeaders(),
             )
         }
-        val result = buildDataSource(mockEngine).extractVocabularyFromImage(
-            validImageBytes, Language.GERMAN, true, false
+
+        val result = buildDataSource(mockEngine).suggestWords(
+            SuggestWordsRequest(targetLanguage = "German", nativeLanguage = "English", currentLevel = "beginner"),
         )
 
-        assertTrue(result is Try.Failure)
-        assertIs<DomainError.AddWords.NothingRecognized>(result.throwable)
-    }
-
-    @Test
-    fun `extractVocabularyFromImage returns failure on HTTP error`() = runTest {
-        val mockEngine = MockEngine {
-            respond("Error", HttpStatusCode.InternalServerError, jsonHeaders())
-        }
-        val result = buildDataSource(mockEngine).extractVocabularyFromImage(
-            validImageBytes, Language.ENGLISH, true, false
-        )
-
-        assertTrue(result is Try.Failure)
+        assertEquals("/ai/suggest-vocabulary", path)
+        assertEquals(listOf("Haus"), (result as Try.Success).value.items.map { it.originalWord })
     }
 }

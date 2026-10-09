@@ -2,7 +2,6 @@ package data.ai.repository
 
 import core.common.Try
 import core.common.exceptionOrNull
-import core.common.getOrThrow
 import core.error.DomainError
 import data.ai.remote.AiRemoteDataSource
 import data.core.network.client.ApiClient
@@ -45,25 +44,17 @@ class AiRepositoryHttpTest {
     )
 
     @Test
-    fun `extractWords falls back to the v1 endpoint when the server has no v2`() = runTest {
+    fun `extractWords calls only the v2 endpoint and reports a missing one as a server error`() = runTest {
         val paths = mutableListOf<String>()
         val engine = MockEngine { request ->
             paths += request.url.encodedPath
-            if (request.url.encodedPath.endsWith("/ai/extract-words")) {
-                respond("""{"success":false,"message":"Not found"}""", HttpStatusCode.NotFound, jsonHeaders)
-            } else {
-                respond(
-                    """{"success":true,"data":{"extractedText":"der Bahnhof,train station","wordCount":1}}""",
-                    HttpStatusCode.OK,
-                    jsonHeaders,
-                )
-            }
+            respond("""{"success":false,"message":"Not found"}""", HttpStatusCode.NotFound, jsonHeaders)
         }
 
-        val drafts = repository(engine).extractWords(image, languages).getOrThrow()
+        val error = (repository(engine).extractWords(image, languages) as Try.Failure).exceptionOrNull()
 
-        assertEquals(listOf("der Bahnhof"), drafts.map { it.term })
-        assertEquals(listOf("/ai/extract-words", "/ai/extract-vocabulary"), paths)
+        assertEquals(DomainError.Network.ServerError(404), error)
+        assertEquals(listOf("/ai/extract-words"), paths)
     }
 
     @Test

@@ -92,7 +92,8 @@ Local-only repository (no remote sync). Settings stored in SQLDelight singleton 
 
 | Method | Return | Notes |
 |--------|--------|-------|
-| `extractVocabularyFromImage(imageBytes, targetLanguage, extractWords, extractSentences)` | `Try<String>` | Max 3MB image, base64 encoded |
+| `extractWords(image, languages)` | `Try<List<WordDraft>>` | `POST /ai/extract-words`; image already prepared (≤ 3 MB, rotated) |
+| `suggestWords(languages, level, topics)` | `Try<List<WordDraft>>` | `POST /ai/suggest-vocabulary`; skips words the user has |
 
 ## ITtsRepository
 **Interface**: `domain/tts/repository/ITtsRepository.kt`
