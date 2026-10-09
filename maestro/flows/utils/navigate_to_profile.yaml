@@ -1,38 +1,25 @@
-# Utility flow: navigate from the main app to the Profile sheet.
+# Utility flow: navigate from the main app to the Profile tab.
 #
 # Called by profile test flows via:
 #   - runFlow: ../utils/navigate_to_profile.yaml
 #
-# Profile is accessed via Study screen → "More options" menu → "Profile".
-# The Profile sheet opens as a bottom sheet overlay (not a bottom tab).
 # Handles app restart to clear leftover overlays from prior tests.
 
 appId: com.alirezaiyan.vokab
 ---
-# Restart app to ensure a clean UI state (no leftover overlays from prior tests).
 - stopApp
 - launchApp:
     clearState: false
 
-# Wait for the Study screen to load (handles splash + auth startup).
-# 25s timeout accommodates slow CI emulators where auth + Compose init can be slow.
+# Wait for the Study screen (handles splash + auth startup).
 - extendedWaitUntil:
     visible: "Import Words"
     timeout: 25000
 
-# Tap the "More options" icon on the Study screen to open the menu.
-- tapOn: "More options"
-
-# Wait for the menu to appear with the Profile option.
-- extendedWaitUntil:
-    visible: "Profile"
-    timeout: 5000
-
-# Tap "Profile" to open the Profile sheet.
+# Profile is a bottom tab. Case-sensitive so it only matches the tab label.
 - tapOn:
-    text: "Profile"
+    text: "(?-i)Profile"
 
-# Verify the Profile sheet is open by waiting for the Logout button.
 - extendedWaitUntil:
     visible: "Logout"
     timeout: 8000

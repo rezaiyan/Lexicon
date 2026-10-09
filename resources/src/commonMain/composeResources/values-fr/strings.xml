@@ -234,8 +234,6 @@
     <string name="theme_auto_desc">Suivre les paramètres système</string>
     
     <!-- Word Manager Screen -->
-    <string name="word_manager">Gestionnaire de Mots</string>
-    <string name="word_manager_subtitle">Gérez votre vocabulaire</string>
     <string name="search_words">Rechercher des mots...</string>
     <string name="clear">Effacer</string>
     <string name="selected_count">%1$d sélectionnés</string>

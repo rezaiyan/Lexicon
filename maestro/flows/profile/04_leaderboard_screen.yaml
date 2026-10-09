@@ -3,51 +3,33 @@ tags:
   - profile
   - leaderboard
 ---
-# Test: Leaderboard screen opens from the Study menu and can be dismissed.
+# Test: Leaderboard opens from the Study Insights tab and can be dismissed.
 #
-# Leaderboard is accessed via Study screen → "More options" → "Dashboard".
-# The leaderboard opens as a fullscreen bottom sheet with dismissOnBackPress=false,
-# so it must be dismissed via the back arrow in the top navigation bar.
+# The Insights tab (premium only) has a Leaderboard icon in its top bar. The
+# leaderboard opens as a fullscreen overlay with dismissOnBackPress=false, so it
+# is dismissed via the back arrow in its top bar.
 
 - stopApp
 - launchApp:
     clearState: false
 
-# Wait for the Study screen to load.
 - extendedWaitUntil:
     visible: "Import Words"
     timeout: 25000
 
-# Tap the "More options" icon on the Study screen to open the menu.
-- tapOn: "More options"
-
-# Wait for the menu with the Dashboard option.
-- extendedWaitUntil:
-    visible: "Dashboard"
-    timeout: 5000
-
-# Tap "Dashboard" to open the Leaderboard.
-- tapOn: "Dashboard"
-
+- tapOn: "Study Insights"
 - waitForAnimationToEnd
 
-# The Leaderboard screen title must be visible.
+- tapOn: "Leaderboard"
+- waitForAnimationToEnd
+
 - extendedWaitUntil:
-    visible: "Leaderboard"
+    visible: "Refresh"
     timeout: 10000
+- assertVisible: "Leaderboard"
 
-# The refresh action button must also be visible.
-- assertVisible: "Refresh"
-
-# Dismiss by tapping the back arrow in the navigation bar.
 - tapOn: "Back"
-
 - waitForAnimationToEnd
 
-# "Leaderboard" title must no longer be visible (screen is gone).
-- assertNotVisible: "Leaderboard"
-
-# We should be back on the Study screen.
-- extendedWaitUntil:
-    visible: "Import Words"
-    timeout: 5000
+- assertNotVisible: "Refresh"
+- assertVisible: "Study Insights"

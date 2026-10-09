@@ -234,8 +234,6 @@
     <string name="theme_auto_desc">Seguir configuración del sistema</string>
     
     <!-- Word Manager Screen -->
-    <string name="word_manager">Gestor de Palabras</string>
-    <string name="word_manager_subtitle">Administra tu vocabulario</string>
     <string name="search_words">Buscar palabras...</string>
     <string name="clear">Limpiar</string>
     <string name="selected_count">%1$d seleccionadas</string>

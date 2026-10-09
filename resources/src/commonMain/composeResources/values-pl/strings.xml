@@ -295,8 +295,6 @@
     <string name="theme_auto_desc">Zgodnie z ustawieniami systemu</string>
 
     <!-- Word Manager Screen -->
-    <string name="word_manager">Menedżer słów</string>
-    <string name="word_manager_subtitle">Zarządzaj swoim słownictwem</string>
     <string name="search_words">Szukaj słów...</string>
     <string name="clear">Wyczyść</string>
     <string name="selected_count">%1$d zaznaczonych</string>

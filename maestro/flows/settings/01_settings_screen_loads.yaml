@@ -3,37 +3,23 @@ tags:
   - settings
   - smoke
 ---
-# Test: Settings screen loads with core UI elements visible.
+# Test: Settings screen loads with its cards.
 #
-# Verifies that navigating to the Settings screen from the bottom nav renders
-# all expected settings cards: Theme, Notifications, Word Manager, Subscription,
-# and About.
+# Settings opens from the Study screen's top bar. Word Manager is the Words tab
+# and Subscription lives on the Profile tab, so neither card is here.
 
 - runFlow: ../utils/navigate_to_settings.yaml
 
-# The screen title must be visible.
 - assertVisible: "Settings"
-
-# Theme card must be visible.
+- assertVisible: "Daily Goal"
+- assertVisible: "Notifications"
+- assertVisible: "Tag Manager"
+- assertVisible: "TTS Models"
 - assertVisible: "Theme"
 
-# Notifications card must be visible.
-- assertVisible: "Notifications"
-
-# Word Manager card must be visible.
-- assertVisible: "Word Manager"
-
-# Subscription card must be visible.
-- assertVisible: "Subscription"
-
-# Tag Manager card must be visible (may need to scroll).
-- scrollUntilVisible:
-    element: "Tag Manager"
-    direction: DOWN
-    timeout: 3000
-
-# About card must be visible (may need to scroll).
 - scrollUntilVisible:
     element: "About"
     direction: DOWN
     timeout: 3000
+
+- assertNotVisible: "Word Manager"
