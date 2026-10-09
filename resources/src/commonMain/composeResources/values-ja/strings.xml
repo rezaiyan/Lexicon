@@ -149,7 +149,7 @@
     <string name="completion_tough_message">難しい単語には時間がかかります。取り組んだことが大切です。</string>
     <string name="completion_remembered">覚えていた</string>
     <string name="completion_forgot">忘れた</string>
-    <string name="completion_score_percent">%1$d%%</string>
+    <string name="completion_score_percent">%1$d%</string>
     <string name="completion_cards_reviewed">%1$d 枚復習</string>
 
     <!-- Learning Stages (7 Levels) -->

@@ -149,7 +149,7 @@
     <string name="completion_tough_message">Trudne słowa wymagają czasu. Ważne, że się pojawiłeś.</string>
     <string name="completion_remembered">Zapamiętane</string>
     <string name="completion_forgot">Zapomniane</string>
-    <string name="completion_score_percent">%1$d%%</string>
+    <string name="completion_score_percent">%1$d%</string>
     <string name="completion_cards_reviewed">%1$d kart powtórzonych</string>
 
     <!-- Learning Stages (7 Levels) -->

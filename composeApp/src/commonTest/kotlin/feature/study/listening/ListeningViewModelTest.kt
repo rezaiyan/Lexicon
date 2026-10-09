@@ -274,6 +274,39 @@ class ListeningViewModelTest {
     }
 
     @Test
+    fun `retrying a failed download skips voices that already finished`() = runTest(dispatcher) {
+        givenDueWords(1)
+        ttsRepository.missingLanguages += setOf("de", "en")
+        ttsRepository.failingDownloads += "en"
+        val viewModel = startedViewModel()
+
+        viewModel.downloadMissingVoices()
+        advanceUntilIdle()
+
+        val needs = assertIs<ListeningScreenState.NeedsVoices>(viewModel.currentState.screen)
+        assertTrue(needs.downloadFailed)
+        assertEquals(listOf("en"), needs.check.missing.map { it.languageCode })
+
+        ttsRepository.failingDownloads.clear()
+        ttsRepository.downloadRequests.clear()
+        viewModel.downloadMissingVoices()
+        advanceUntilIdle()
+
+        assertEquals(listOf("en"), ttsRepository.downloadRequests)
+        assertIs<ListeningScreenState.Finished>(viewModel.currentState.screen)
+    }
+
+    @Test
+    fun `voice download progress covers every missing voice in one pass`() {
+        val first = VoiceDownload(languageCode = "de", position = 1, total = 2, progress = 0.5f)
+        val second = VoiceDownload(languageCode = "en", position = 2, total = 2, progress = 0.5f)
+
+        assertEquals(0.25f, first.overallProgress)
+        assertEquals(0.75f, second.overallProgress)
+        assertEquals(1f, second.copy(progress = 1f).overallProgress)
+    }
+
+    @Test
     fun `starting without missing voices skips only those lines`() = runTest(dispatcher) {
         givenDueWords(1)
         ttsRepository.missingLanguages += "de"

@@ -121,7 +121,7 @@
     <string name="insights_loading_levels">Loading levels…</string>
     <string name="insights_loading_words">Loading words…</string>
     <string name="insights_best_study_time">Best Study Time</string>
-    <string name="insights_accuracy_format">%1$d%% accuracy</string>
+    <string name="insights_accuracy_format">%1$d% accuracy</string>
     <string name="insights_cards_reviewed">Cards Reviewed</string>
     <string name="insights_accuracy">Accuracy</string>
     <string name="insights_words_mastered">Words Mastered</string>
@@ -137,7 +137,7 @@
     <string name="insights_activity_summary">%1$d active days, %2$d cards reviewed</string>
     <string name="insights_most_difficult_words">Most Difficult Words</string>
     <string name="insights_no_difficult_words">No difficult words found yet. Keep studying!</string>
-    <string name="insights_error_rate_format">%1$d%% error</string>
+    <string name="insights_error_rate_format">%1$d% error</string>
     <string name="insights_reviews_format">%1$d reviews</string>
     <string name="insights_empty_title">No activity yet</string>
     <string name="insights_empty_subtitle">Complete a study session to unlock your learning insights</string>
@@ -213,7 +213,7 @@
     <string name="completion_tough_message">Tough words take time. You showed up — that's what matters.</string>
     <string name="completion_remembered">Remembered</string>
     <string name="completion_forgot">Forgot</string>
-    <string name="completion_score_percent">%1$d%%</string>
+    <string name="completion_score_percent">%1$d%</string>
     <string name="completion_cards_reviewed">%1$d cards reviewed</string>
     <string name="completion_streak_days">%1$d-day streak</string>
     <string name="completion_missed_title">Missed this session</string>
@@ -1005,7 +1005,7 @@
     <string name="listening_voice_missing">Not downloaded</string>
     <string name="listening_voice_unsupported">No voice yet, shown as text</string>
     <string name="listening_download_voices">Download voices</string>
-    <string name="listening_downloading">Downloading %1$s… %2$d%%</string>
+    <string name="listening_downloading">Downloading %1$s (%2$d of %3$d)… %4$d%</string>
     <string name="listening_download_failed">Download failed. Check your connection and try again.</string>
     <string name="listening_start_without">Start without them</string>
     <string name="listening_no_voices_title">No voices available</string>
