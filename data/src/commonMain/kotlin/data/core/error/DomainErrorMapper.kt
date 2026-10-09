@@ -3,6 +3,7 @@ package data.core.error
 import core.error.DomainError
 import data.core.network.error.AuthenticationException
 import data.core.network.error.NetworkException
+import data.core.network.error.InsufficientCreditsException
 import data.core.network.error.PremiumRequiredException
 import data.core.network.error.ServerException
 import data.core.network.error.TimeoutException
@@ -16,6 +17,7 @@ fun Throwable.toDomainError(): Throwable = when (this) {
     is AuthenticationException -> if (statusCode == 403) DomainError.Auth.Unauthorized
                                   else DomainError.Auth.NotAuthenticated
     is PremiumRequiredException -> DomainError.Commerce.PremiumRequired
+    is InsufficientCreditsException -> DomainError.Commerce.InsufficientCredits
     is ServerException -> DomainError.Network.ServerError(statusCode)
     is TimeoutException -> DomainError.Network.Timeout
     is NetworkException -> DomainError.Network.NoConnection

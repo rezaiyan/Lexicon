@@ -71,15 +71,17 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `generate refused for premium reports the lapse`() = runTest {
-        ai.suggestions = Try.failure(DomainError.Commerce.PremiumRequired)
+    fun `generate refused for lack of credits hands over to the out-of-credits page`() = runTest {
+        ai.suggestions = Try.failure(DomainError.Commerce.InsufficientCredits)
         val vm = createViewModel()
         vm.selectLevel(ProficiencyLevel.BEGINNER)
 
         vm.effects.test {
             vm.generate(languages)
-            assertEquals(SourceEffect.PremiumLapsed, awaitItem())
+            assertEquals(SourceEffect.OutOfCredits, awaitItem())
         }
+        assertNull(vm.currentState.problem)
+        assertFalse(vm.currentState.isGenerating)
     }
 
     @Test

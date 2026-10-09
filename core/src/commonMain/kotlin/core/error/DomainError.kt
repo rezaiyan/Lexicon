@@ -31,6 +31,8 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
 
     sealed class Commerce : DomainError() {
         data object PremiumRequired : Commerce()
+        /** The server refused an AI action: the balance is below its cost. */
+        data object InsufficientCredits : Commerce()
         data object PurchaseFailed : Commerce()
         /** User dismissed the store sheet — not an error to surface. */
         data object PurchaseCancelled : Commerce()

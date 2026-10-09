@@ -3,11 +3,6 @@ package feature.addwords
 import app.cash.turbine.test
 import core.common.Try
 import core.common.getOrThrow
-import domain.auth.model.AuthUser
-import domain.auth.model.FeatureAccessResponse
-import domain.auth.model.FeatureFlags
-import domain.auth.model.UserFeatureAccess
-import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.tag.usecase.CreateTagUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.word.add.model.LanguagePair
@@ -17,20 +12,19 @@ import domain.word.add.parser.RejectReason
 import domain.word.add.parser.RejectedLine
 import domain.word.add.usecase.AddWordsUseCase
 import domain.word.add.usecase.ResolveAddWordsLanguagesUseCase
-import domain.word.usecase.ObserveImageImportAccessUseCase
 import core.error.DomainError
 import fakes.FakeAddWordsLanguageRepository
 import fakes.FakeAnalyticsTracker
-import fakes.FakeAuthRepository
+import fakes.FakeCreditsRepository
+import fakes.creditBalance
+import domain.credits.usecase.ObserveCreditsUseCase
+import domain.credits.usecase.RefreshCreditsUseCase
 import fakes.FakeLearningFocusRepository
-import fakes.FakeSubscriptionManager
 import fakes.FakeTagRepository
-import fakes.FakeUserManager
 import fakes.FakeWordRepository
 import feature.addwords.model.AddWordsEffect
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.AddWordsResult
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import utils.Language
@@ -49,8 +43,7 @@ class AddWordsViewModelTest : ViewModelTestBase() {
     private val languages = FakeAddWordsLanguageRepository(lastUsed = germanFromEnglish)
     private val tags = FakeTagRepository()
     private val analytics = FakeAnalyticsTracker()
-    private val auth = FakeAuthRepository()
-    private val userManager = FakeUserManager()
+    private val credits = FakeCreditsRepository()
 
     private fun draft(term: String, translation: String = "t") = WordDraft.of(term, translation).getOrThrow()
 
@@ -60,10 +53,8 @@ class AddWordsViewModelTest : ViewModelTestBase() {
         addWords = AddWordsUseCase(words, Clock.System),
         getTags = GetTagsUseCase(tags),
         createTagUseCase = CreateTagUseCase(tags),
-        observePremiumTools = ObserveImageImportAccessUseCase(
-            userManager,
-            GetFeatureAccessUseCase(auth, FakeSubscriptionManager()),
-        ),
+        observeCredits = ObserveCreditsUseCase(credits),
+        refreshCredits = RefreshCreditsUseCase(credits),
         analytics = analytics,
     )
 
@@ -86,11 +77,21 @@ class AddWordsViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `init reports premium tools for a premium user`() {
-        userManager.userFlow.value = AuthUser(1L, "a@b.c", "A")
-        auth.featureAccessFlow = flowOf(FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = true)))
+    fun `init re-reads the credit balance from the server`() {
+        val fresh = creditBalance(allowanceRemaining = 2)
+        credits.serverBalance = fresh
 
-        assertTrue(createViewModel().currentState.hasPremiumTools)
+        val vm = createViewModel()
+
+        assertEquals(1, credits.refreshCount)
+        assertEquals(fresh, vm.currentState.credits)
+    }
+
+    @Test
+    fun `credits stay unknown when the balance can't be loaded`() {
+        credits.failure = DomainError.Network.NoConnection
+
+        assertNull(createViewModel().currentState.credits)
     }
 
     @Test
@@ -315,13 +316,35 @@ class AddWordsViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `onPremiumLapsed hides premium tools`() {
-        userManager.userFlow.value = AuthUser(1L, "a@b.c", "A")
-        auth.featureAccessFlow = flowOf(FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = true)))
+    fun `candidates from a paid source re-read the balance the spend changed`() {
+        credits.serverBalance = creditBalance()
+        val vm = createViewModel()
+        credits.serverBalance = creditBalance(allowanceRemaining = 2)
+
+        vm.openReview(WordOrigin.Photo, listOf(draft("Hund")))
+
+        assertEquals(2, credits.refreshCount)
+        assertEquals(17, vm.currentState.credits?.balance)
+    }
+
+    @Test
+    fun `candidates from a free source leave the balance alone`() {
+        credits.serverBalance = creditBalance()
         val vm = createViewModel()
 
-        vm.onPremiumLapsed()
+        vm.openReview(WordOrigin.File, listOf(draft("Hund")))
 
-        assertFalse(vm.currentState.hasPremiumTools)
+        assertEquals(1, credits.refreshCount)
+    }
+
+    @Test
+    fun `onOutOfCredits re-reads the stale balance`() {
+        credits.serverBalance = creditBalance()
+        val vm = createViewModel()
+        credits.serverBalance = creditBalance(allowanceRemaining = 0, bonusBalance = 1)
+
+        vm.onOutOfCredits()
+
+        assertEquals(1, vm.currentState.credits?.balance)
     }
 }

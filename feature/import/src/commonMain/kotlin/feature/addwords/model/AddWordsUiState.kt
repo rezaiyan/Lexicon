@@ -1,5 +1,6 @@
 package feature.addwords.model
 
+import domain.credits.model.CreditBalance
 import domain.tag.model.Tag
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordOrigin
@@ -12,7 +13,8 @@ data class AddWordsUiState(
     val languagesLoaded: Boolean = false,
     val tags: List<Tag> = emptyList(),
     val selectedTagId: Long? = null,
-    val hasPremiumTools: Boolean = false,
+    /** AI credits for the paid sources (photo, AI); null while unknown, then the server decides. */
+    val credits: CreditBalance? = null,
     val review: CandidateReview? = null,
     val isCommitting: Boolean = false,
     val problem: AddWordsProblem? = null,

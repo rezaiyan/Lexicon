@@ -4,14 +4,12 @@ import app.cash.turbine.test
 import core.common.Try
 import core.common.getOrThrow
 import core.error.DomainError
-import domain.subscription.usecase.RefreshFeatureAccessUseCase
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
 import domain.word.add.usecase.ExtractWordsFromImageUseCase
 import fakes.FakeAiRepository
 import fakes.FakeAnalyticsTracker
 import fakes.FakeImagePreparer
-import fakes.FakeSubscriptionAccessRepository
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.SourceEffect
 import feature.addwords.source.PhotoImportViewModel
@@ -35,11 +33,7 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
     private val preparer = FakeImagePreparer()
 
     private fun createViewModel() = PhotoImportViewModel(
-        ExtractWordsFromImageUseCase(
-            preparer,
-            ai,
-            RefreshFeatureAccessUseCase(FakeSubscriptionAccessRepository()),
-        ),
+        ExtractWordsFromImageUseCase(preparer, ai),
         analytics,
     )
 
@@ -92,16 +86,19 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `extract refused for premium reports the lapse`() = runTest {
-        ai.drafts = Try.failure(DomainError.Commerce.PremiumRequired)
+    fun `extract refused for lack of credits hands over to the out-of-credits page`() = runTest {
+        ai.drafts = Try.failure(DomainError.Commerce.InsufficientCredits)
         val vm = createViewModel()
         vm.onPhotoPicked(image)
 
         vm.effects.test {
             vm.extract(languages)
-            assertEquals(SourceEffect.PremiumLapsed, awaitItem())
+            assertEquals(SourceEffect.OutOfCredits, awaitItem())
         }
-        assertEquals(AddWordsProblem.PremiumRequired, vm.currentState.problem)
+        // The page explains it; no inline error, and the photo is kept for after a top-up
+        assertNull(vm.currentState.problem)
+        assertNotNull(vm.currentState.photo)
+        assertFalse(vm.currentState.isExtracting)
     }
 
     @Test
@@ -141,8 +138,8 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `extract refused for premium logs the failure`() {
-        ai.drafts = Try.failure(DomainError.Commerce.PremiumRequired)
+    fun `extract refused for lack of credits logs the failure`() {
+        ai.drafts = Try.failure(DomainError.Commerce.InsufficientCredits)
         val vm = createViewModel()
         vm.onPhotoPicked(image)
 
@@ -150,7 +147,7 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
 
         assertEquals(
             listOf<Pair<String, Map<String, Any>?>>(
-                "import_failed" to mapOf("method" to "image", "step" to "extract", "error_type" to "PremiumRequired"),
+                "import_failed" to mapOf("method" to "image", "step" to "extract", "error_type" to "OutOfCredits"),
             ),
             analytics.events,
         )

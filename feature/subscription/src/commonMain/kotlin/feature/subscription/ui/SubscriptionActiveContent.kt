@@ -100,6 +100,7 @@ import theme.Theme
 @Composable
 fun SubscriptionActiveContent(
     membership: Membership,
+    monthlyAiCredits: Int?,
     onManage: () -> Unit,
 ) {
     val status = membership.status
@@ -114,7 +115,11 @@ fun SubscriptionActiveContent(
     ) {
         MembershipCard(membership = membership, onManage = onManage)
 
-        PremiumFeatureList(title = stringResource(Res.string.sub_your_features), unlocked = true)
+        PremiumFeatureList(
+            title = stringResource(Res.string.sub_your_features),
+            monthlyAiCredits = monthlyAiCredits,
+            unlocked = true,
+        )
 
         if (canCancel) {
             TextButton(onClick = onManage, modifier = Modifier.fillMaxWidth()) {
@@ -395,6 +400,7 @@ private fun BillingIssueDetails(status: MembershipStatus.BillingIssue, onFixPaym
 fun SubscriptionPausedContent(
     resumesOn: String,
     daysLeft: Int,
+    monthlyAiCredits: Int?,
     onResume: () -> Unit,
 ) {
     val accent = MaterialTheme.colorScheme.onSurfaceVariant
@@ -472,7 +478,10 @@ fun SubscriptionPausedContent(
             )
         }
 
-        PremiumFeatureList(title = stringResource(Res.string.paywall_premium_unlocks))
+        PremiumFeatureList(
+            title = stringResource(Res.string.paywall_premium_unlocks),
+            monthlyAiCredits = monthlyAiCredits,
+        )
     }
 }
 

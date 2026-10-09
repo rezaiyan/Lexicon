@@ -13,7 +13,6 @@ import performance.createPerformanceTracer
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import domain.word.usecase.ClassifyImportErrorUseCase
-import domain.word.usecase.ObserveImageImportAccessUseCase
 import org.koin.core.module.dsl.singleOf
 import presentation.viewmodel.AppNavigationViewModel
 import feature.auth.di.authModule
@@ -75,7 +74,6 @@ fun presentationModule() = module {
     }
 
     singleOf(::ClassifyImportErrorUseCase)
-    singleOf(::ObserveImageImportAccessUseCase)
 
     // Feature modules
     includes(

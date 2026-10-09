@@ -9,7 +9,11 @@ import domain.onboarding.model.ProficiencyLevel
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
 
-/** AI-generated words for a level and topics (premium). Returns drafts for review; nothing is saved. */
+/**
+ * AI-generated words for a level and topics. Spends AI credits server-side (refunded when nothing
+ * is suggested); fails with `InsufficientCredits` when the balance is short.
+ * Returns drafts for review; nothing is saved.
+ */
 class SuggestWordsUseCase(
     private val aiRepository: IAiRepository,
 ) : UseCase<SuggestWordsUseCase.Params, List<WordDraft>> {

@@ -10,6 +10,6 @@ sealed interface SourceEffect {
         val rejected: List<RejectedLine> = emptyList(),
     ) : SourceEffect
 
-    /** The premium-only source was refused by the server: access ended since the sheet opened. */
-    data object PremiumLapsed : SourceEffect
+    /** The server refused a paid source: the balance is below its cost (it changed since the sheet opened). */
+    data object OutOfCredits : SourceEffect
 }

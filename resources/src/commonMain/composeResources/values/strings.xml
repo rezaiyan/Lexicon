@@ -884,7 +884,7 @@
     <string name="paywall_timeline_charge_desc">You're charged %1$s. Your plan renews each period until you cancel.</string>
     <string name="paywall_premium_unlocks">What Premium unlocks</string>
     <string name="paywall_free_forever">Always free</string>
-    <string name="paywall_free_forever_desc">Unlimited words · Spaced-repetition reviews · Streaks and reminders · Manual word import</string>
+    <string name="paywall_free_forever_desc">Unlimited words · Spaced-repetition reviews · Streaks and reminders · Manual word import · A few AI credits every month</string>
     <string name="paywall_feature_ai_assistant">AI Word Assistant</string>
     <string name="paywall_feature_ai_assistant_desc">Name a topic and get a ready-to-study word list with translations.</string>
     <string name="paywall_feature_insights">Insights dashboard</string>
@@ -893,6 +893,10 @@
     <string name="paywall_feature_word_rush_desc">A fast-paced game that turns review into a race against the clock.</string>
     <string name="paywall_feature_export">Export &amp; share</string>
     <string name="paywall_feature_export_desc">Share any selection of your words as a text file.</string>
+    <!-- %1$d: AI credits premium includes per month -->
+    <string name="paywall_feature_ai_credits">%1$d AI credits every month</string>
+    <string name="paywall_feature_ai_credits_generic">Monthly AI credits</string>
+    <string name="paywall_feature_ai_credits_desc">Scan pages with your camera and get word lists on any topic. Refills every month.</string>
     <string name="paywall_billing_title">Billing, in plain words</string>
     <string name="paywall_restore_hint">Already subscribed on another device?</string>
     <string name="paywall_unavailable">No plans are available in your store right now. Please try again later.</string>
@@ -1033,4 +1037,24 @@
     <string name="add_words_skipped_lines">Skipped lines: %1$d (missing translation or unreadable)</string>
     <string name="add_words_duplicates_skipped">%1$d already in your list, skipped</string>
     <string name="add_words_native_title">What language are the translations in?</string>
+    <!-- AI credits -->
+    <plurals name="credits_count">
+        <item quantity="one">%1$d credit</item>
+        <item quantity="other">%1$d credits</item>
+    </plurals>
+    <!-- %1$s: credits_count, e.g. "12 credits" -->
+    <string name="credits_balance_left">%1$s left</string>
+    <!-- %1$s: credits_count, %2$s: date -->
+    <string name="credits_balance_left_refills">%1$s left · refills %2$s</string>
+    <string name="add_words_problem_out_of_credits">You're out of AI credits.</string>
+    <string name="out_of_credits_title">Not enough credits</string>
+    <!-- %1$s: credits_count the action costs, %2$s: credits_count the user has -->
+    <string name="out_of_credits_cost">This uses %1$s and you have %2$s.</string>
+    <!-- %1$s: date -->
+    <string name="out_of_credits_refill">Your monthly credits refill on %1$s.</string>
+    <string name="out_of_credits_upgrade_pitch">Premium includes a big monthly allowance, so you can scan pages and get suggestions whenever you need.</string>
+    <!-- %1$d: monthly credits included in premium -->
+    <string name="out_of_credits_upgrade_amount">Get %1$d credits every month</string>
+    <string name="out_of_credits_upgrade">Upgrade to Premium</string>
+    <string name="out_of_credits_type_instead">Type words instead</string>
 </resources>

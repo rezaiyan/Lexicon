@@ -12,6 +12,7 @@ import lexicon.resources.generated.resources.add_words_problem_missing_term
 import lexicon.resources.generated.resources.add_words_problem_missing_translation
 import lexicon.resources.generated.resources.add_words_problem_nothing_in_photo
 import lexicon.resources.generated.resources.add_words_problem_nothing_suggested
+import lexicon.resources.generated.resources.add_words_problem_out_of_credits
 import lexicon.resources.generated.resources.add_words_problem_premium
 import lexicon.resources.generated.resources.add_words_problem_too_long
 import lexicon.resources.generated.resources.add_words_problem_unsupported_file
@@ -24,6 +25,7 @@ private val AddWordsProblem.message: StringResource
     get() = when (this) {
         AddWordsProblem.Offline -> Res.string.import_error_network
         AddWordsProblem.PremiumRequired -> Res.string.add_words_problem_premium
+        AddWordsProblem.OutOfCredits -> Res.string.add_words_problem_out_of_credits
         AddWordsProblem.FileTooLarge -> Res.string.add_words_problem_file_too_large
         AddWordsProblem.UnsupportedFile -> Res.string.add_words_problem_unsupported_file
         AddWordsProblem.EmptyFile -> Res.string.add_words_problem_empty_file

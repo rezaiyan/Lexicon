@@ -1,6 +1,7 @@
 package data.network.interceptor
 
 import data.core.network.error.AuthenticationException
+import data.core.network.error.InsufficientCreditsException
 import data.core.network.error.PremiumRequiredException
 import data.core.network.error.ServerException
 import data.core.network.interceptor.ErrorInterceptor
@@ -127,6 +128,32 @@ class ErrorInterceptorTest {
 
         assertFailsWith<PremiumRequiredException> {
             client.get("https://api.test/ai/extract-vocabulary")
+        }
+    }
+
+    @Test
+    fun `402 with code INSUFFICIENT_CREDITS throws InsufficientCreditsException`() = runTest {
+        val engine = MockEngine {
+            respond(
+                """{"success":false,"message":"Not enough credits","code":"INSUFFICIENT_CREDITS"}""",
+                HttpStatusCode.PaymentRequired,
+                jsonHeaders(),
+            )
+        }
+        val client = buildClient(engine)
+
+        assertFailsWith<InsufficientCreditsException> {
+            client.get("https://api.test/ai/extract-words")
+        }
+    }
+
+    @Test
+    fun `402 with an unreadable body still means premium required`() = runTest {
+        val engine = MockEngine { respond("<html>Payment Required</html>", HttpStatusCode.PaymentRequired) }
+        val client = buildClient(engine)
+
+        assertFailsWith<PremiumRequiredException> {
+            client.get("https://api.test/ai/extract-words")
         }
     }
 

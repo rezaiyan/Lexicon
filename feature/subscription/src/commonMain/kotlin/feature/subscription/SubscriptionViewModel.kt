@@ -10,6 +10,8 @@ import core.error.DomainError
 import core.error.toUserMessage
 import domain.auth.model.UserFeatureAccess
 import domain.auth.usecase.GetFeatureAccessUseCase
+import domain.credits.usecase.ObserveCreditsUseCase
+import domain.credits.usecase.RefreshCreditsUseCase
 import domain.subscription.ISubscriptionManager
 import domain.subscription.model.SubscriptionPackage
 import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
@@ -35,6 +37,8 @@ class SubscriptionViewModel(
     private val getFeatureAccessUseCase: GetFeatureAccessUseCase,
     private val syncSubscriptionWithServerUseCase: SyncSubscriptionWithServerUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val observeCredits: ObserveCreditsUseCase,
+    private val refreshCredits: RefreshCreditsUseCase,
     private val contentFactory: SubscriptionContentFactory = SubscriptionContentFactory(),
 ) : BaseViewModel<SubscriptionScreenState, SubscriptionEffect>() {
 
@@ -46,7 +50,20 @@ class SubscriptionViewModel(
     init {
         analyticsTracker.logEvent("subscription_screen_viewed")
         observeSubscriptionStatus()
+        observeMonthlyCredits()
         loadOfferings()
+    }
+
+    /** What premium includes comes from the server's credit settings, so the paywall never lies. */
+    private fun observeMonthlyCredits() {
+        viewModelScope.launch {
+            observeCredits()
+                .map { it?.premiumMonthlyAllowance }
+                .distinctUntilChanged()
+                .catch { emit(null) }
+                .collect { updateState { copy(monthlyAiCredits = it) } }
+        }
+        viewModelScope.launch { refreshCredits() }
     }
 
     private fun observeSubscriptionStatus() {
@@ -192,8 +209,12 @@ class SubscriptionViewModel(
     }
 
     /** Unlocks server-enforced premium now instead of waiting for the store webhook. Best effort. */
+    /** After a purchase or restore the allowance grows server-side; re-read it once access is synced. */
     private fun syncWithServer() {
-        viewModelScope.launch { syncSubscriptionWithServerUseCase() }
+        viewModelScope.launch {
+            syncSubscriptionWithServerUseCase()
+            refreshCredits()
+        }
     }
 
     private fun UiState<SubscriptionContent>.paywall(): SubscriptionContent.Paywall? =

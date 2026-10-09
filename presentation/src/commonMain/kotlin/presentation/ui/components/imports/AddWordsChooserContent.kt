@@ -47,13 +47,19 @@ import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
 /**
- * Single entry point of the add-words flow. The AI card shows only when [onAiAssistant] is set
- * (premium); the photo row only with image-import access.
+ * Single entry point of the add-words flow. Every source is offered to everyone; the AI ones show
+ * their credit cost, and the balance is shown once known.
+ *
+ * @param aiCost / [photoCost] credits each costs; null while unknown.
+ * @param balance credits left; null while unknown (the line is hidden).
  */
 @Composable
 internal fun AddWordsChooserContent(
-    hasImageAccess: Boolean,
-    onAiAssistant: (() -> Unit)?,
+    aiCost: Int?,
+    photoCost: Int?,
+    balance: Int?,
+    refillsAtMillis: Long?,
+    onAiAssistant: () -> Unit,
     onTypeWord: () -> Unit,
     onImportFile: () -> Unit,
     onScanPhoto: () -> Unit,
@@ -62,9 +68,7 @@ internal fun AddWordsChooserContent(
         title = stringResource(Res.string.add_words_title),
         subtitle = stringResource(Res.string.add_words_subtitle),
     ) {
-        if (onAiAssistant != null) {
-            AiAssistantCard(onClick = onAiAssistant, modifier = Modifier.staggeredFadeSlide(0))
-        }
+        AiAssistantCard(cost = aiCost, onClick = onAiAssistant, modifier = Modifier.staggeredFadeSlide(0))
 
         Column(
             modifier = Modifier.staggeredFadeSlide(1),
@@ -84,17 +88,23 @@ internal fun AddWordsChooserContent(
                     title = stringResource(Res.string.add_words_file_title),
                     subtitle = stringResource(Res.string.add_words_file_subtitle),
                     onClick = onImportFile,
-                    showDivider = hasImageAccess,
+                    showDivider = true,
                 )
-                if (hasImageAccess) {
-                    SheetOptionRow(
-                        icon = Icons.Default.CameraAlt,
-                        title = stringResource(Res.string.add_words_photo_title),
-                        subtitle = stringResource(Res.string.add_words_photo_subtitle),
-                        onClick = onScanPhoto,
-                        showDivider = false,
-                    )
-                }
+                SheetOptionRow(
+                    icon = Icons.Default.CameraAlt,
+                    title = stringResource(Res.string.add_words_photo_title),
+                    subtitle = stringResource(Res.string.add_words_photo_subtitle),
+                    onClick = onScanPhoto,
+                    showDivider = false,
+                    trailingContent = { CreditCostBadge(photoCost) },
+                )
+            }
+            if (balance != null) {
+                CreditsBalanceLine(
+                    balance = balance,
+                    refillsAtMillis = refillsAtMillis,
+                    modifier = Modifier.padding(top = Theme.spacing.xs),
+                )
             }
         }
     }
@@ -102,7 +112,7 @@ internal fun AddWordsChooserContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AiAssistantCard(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun AiAssistantCard(cost: Int?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val accent = MaterialTheme.colorScheme.primary
     Surface(
         onClick = onClick,
@@ -150,6 +160,7 @@ private fun AiAssistantCard(onClick: () -> Unit, modifier: Modifier = Modifier) 
                         containerColor = MaterialTheme.colorScheme.surface,
                         contentColor = accent,
                     )
+                    CreditCostBadge(cost)
                 }
                 Text(
                     stringResource(Res.string.add_words_ai_subtitle),

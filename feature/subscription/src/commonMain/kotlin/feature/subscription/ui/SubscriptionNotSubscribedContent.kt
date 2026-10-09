@@ -50,6 +50,7 @@ fun SubscriptionNotSubscribedContent(
     plans: List<PlanOption>,
     selectedPlanId: String?,
     isPurchasing: Boolean,
+    monthlyAiCredits: Int?,
     onSelectPlan: (String) -> Unit,
     onPurchase: () -> Unit,
     onRestoreClick: () -> Unit,
@@ -105,7 +106,10 @@ fun SubscriptionNotSubscribedContent(
             }
         }
 
-        PremiumFeatureList(title = stringResource(Res.string.paywall_premium_unlocks))
+        PremiumFeatureList(
+            title = stringResource(Res.string.paywall_premium_unlocks),
+            monthlyAiCredits = monthlyAiCredits,
+        )
 
         FreePlanNote()
 

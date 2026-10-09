@@ -18,6 +18,10 @@ import domain.subscription.model.SubscriptionProduct
 import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
 import fakes.FakeAnalyticsTracker
 import fakes.FakeAuthRepository
+import fakes.FakeCreditsRepository
+import fakes.creditBalance
+import domain.credits.usecase.ObserveCreditsUseCase
+import domain.credits.usecase.RefreshCreditsUseCase
 import fakes.FakeSubscriptionAccessRepository
 import feature.subscription.SubscriptionViewModel
 import feature.subscription.model.MembershipStatus
@@ -69,6 +73,7 @@ class SubscriptionViewModelTest : ViewModelTestBase() {
     private val customerInfoFlow = MutableStateFlow<SubscriptionCustomerInfo?>(null)
     private val backendAccess = MutableStateFlow(UserFeatureAccess())
     private val subscriptionAccessRepository = FakeSubscriptionAccessRepository()
+    private val credits = FakeCreditsRepository(creditBalance())
 
     private val subscriptionManager = object : ISubscriptionManager {
         override val customerInfo = customerInfoFlow
@@ -100,6 +105,8 @@ class SubscriptionViewModelTest : ViewModelTestBase() {
             getFeatureAccessUseCase = GetFeatureAccessUseCase(authRepository, subscriptionManager),
             syncSubscriptionWithServerUseCase = SyncSubscriptionWithServerUseCase(subscriptionAccessRepository),
             analyticsTracker = FakeAnalyticsTracker(),
+            observeCredits = ObserveCreditsUseCase(credits),
+            refreshCredits = RefreshCreditsUseCase(credits),
         )
     }
 
@@ -183,6 +190,23 @@ class SubscriptionViewModelTest : ViewModelTestBase() {
         assertFalse(vm.currentState.isPurchasing)
         assertEquals(1, subscriptionAccessRepository.syncCount)
         assertIs<SubscriptionContent.Member>(vm.loaded())
+    }
+
+    @Test
+    fun `paywall shows the monthly credits premium includes, from the server`() = runTest {
+        val vm = createViewModel()
+
+        assertEquals(300, vm.currentState.monthlyAiCredits)
+    }
+
+    @Test
+    fun `purchase re-reads credits after syncing, as the allowance grew`() = runTest {
+        val vm = createViewModel()
+        val refreshesBefore = credits.refreshCount
+
+        vm.purchaseSelectedPlan()
+
+        assertEquals(refreshesBefore + 1, credits.refreshCount)
     }
 
     @Test

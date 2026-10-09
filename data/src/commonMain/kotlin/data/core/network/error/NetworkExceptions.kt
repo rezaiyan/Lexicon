@@ -8,3 +8,6 @@ class TimeoutException(message: String) : NetworkException(message)
 /** HTTP 402: the feature needs premium. Not an auth error — the session stays valid. */
 class PremiumRequiredException(message: String) : Exception(message)
 
+/** HTTP 402 with code INSUFFICIENT_CREDITS: the AI action costs more credits than the user has. */
+class InsufficientCreditsException(message: String) : Exception(message)
+
