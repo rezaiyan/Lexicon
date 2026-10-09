@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 class CreditCostTest {
 
     @Test
-    fun `free sources can always start, even with no credits`() {
+    fun `free sources can always start even with no credits`() {
         val broke = creditBalance(allowanceRemaining = 0, bonusBalance = 0)
 
         assertTrue(broke.canStart(WordOrigin.Manual))

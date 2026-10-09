@@ -193,14 +193,14 @@ class SubscriptionViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `paywall shows the monthly credits premium includes, from the server`() = runTest {
+    fun `paywall shows the monthly credits premium includes from the server`() = runTest {
         val vm = createViewModel()
 
         assertEquals(300, vm.currentState.monthlyAiCredits)
     }
 
     @Test
-    fun `purchase re-reads credits after syncing, as the allowance grew`() = runTest {
+    fun `purchase re-reads credits after syncing because the allowance grew`() = runTest {
         val vm = createViewModel()
         val refreshesBefore = credits.refreshCount
 
