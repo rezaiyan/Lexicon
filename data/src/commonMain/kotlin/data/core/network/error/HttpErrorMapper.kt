@@ -7,35 +7,31 @@ object HttpErrorMapper {
 
     fun mapHttpResponse(response: HttpResponse): Exception {
         val statusCode = response.status
-        val message = when {
-            statusCode.value in 400..499 -> {
-                when (statusCode) {
-                    HttpStatusCode.Unauthorized -> "Authentication failed. Please sign in again."
-                    HttpStatusCode.Forbidden -> "Authentication failed. Account may be deleted or deactivated. Please sign in again."
-                    HttpStatusCode.PaymentRequired -> "This feature requires a subscription."
-                    HttpStatusCode.NotFound -> "Resource not found."
-                    HttpStatusCode.BadRequest -> "Invalid request. Please check your input."
-                    else -> "Client error: ${statusCode.value}"
-                }
-            }
-
-            statusCode.value in 500..599 -> {
-                "Server error: ${statusCode.value}. Please try again later."
-            }
-
-            else -> {
-                "Unexpected error: ${statusCode.value}"
-            }
-        }
-
+        val message = messageFor(statusCode)
         return when (statusCode) {
             HttpStatusCode.Unauthorized,
             HttpStatusCode.Forbidden -> AuthenticationException(message, statusCode.value)
 
             HttpStatusCode.PaymentRequired -> PremiumRequiredException(message)
 
+            HttpStatusCode.TooManyRequests -> RateLimitedException(message)
+
             // The server answered, so this is never a connectivity problem: keep the status for callers.
             else -> ServerException(message, statusCode.value)
+        }
+    }
+
+    private fun messageFor(statusCode: HttpStatusCode): String = when (statusCode) {
+        HttpStatusCode.Unauthorized -> "Authentication failed. Please sign in again."
+        HttpStatusCode.Forbidden -> "Authentication failed. Account may be deleted or deactivated. Please sign in again."
+        HttpStatusCode.PaymentRequired -> "This feature requires a subscription."
+        HttpStatusCode.NotFound -> "Resource not found."
+        HttpStatusCode.BadRequest -> "Invalid request. Please check your input."
+        HttpStatusCode.TooManyRequests -> "Too many requests. Please try again in a few minutes."
+        else -> when (statusCode.value) {
+            in 400..499 -> "Client error: ${statusCode.value}"
+            in 500..599 -> "Server error: ${statusCode.value}. Please try again later."
+            else -> "Unexpected error: ${statusCode.value}"
         }
     }
 
@@ -43,6 +39,7 @@ object HttpErrorMapper {
         return when (exception) {
             is AuthenticationException,
             is PremiumRequiredException,
+            is RateLimitedException,
             is ServerException,
             is NetworkException -> exception
 

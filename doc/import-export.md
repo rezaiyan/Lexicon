@@ -38,6 +38,8 @@ Code lives in:
 ### Errors
 Domain errors (`DomainError.AddWords.*`, network errors) map to the `AddWordsProblem` enum and then to string resources in `AddWordsProblemText.kt`. No error string is sniffed from exception messages.
 
+The AI endpoints (photo, suggestions) limit calls per user over a 5-minute window on the server. A 429 maps to `DomainError.Network.RateLimited` and shows `AddWordsProblem.RateLimited` ("try again in a few minutes"). The sheet shows no counter.
+
 ## File format (`VocabularyTextParser`)
 
 ```
