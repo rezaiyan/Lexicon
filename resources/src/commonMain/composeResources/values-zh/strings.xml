@@ -469,7 +469,6 @@
 
     <!-- Import Source Language -->
     <string name="original_language_question">原始词汇是什么语言？</string>
-    <string name="translation_language_hint">翻译将使用%1$s。你可以在设置中更改。</string>
     <string name="filter_all">全部</string>
     <string name="filters">筛选</string>
     <string name="account_section">账户</string>

@@ -106,7 +106,6 @@
     <string name="import_words">単語をインポート</string>
     <string name="choose_import_method">単語の追加方法を選んでください</string>
     <string name="original_language_question">元の単語はどの言語ですか？</string>
-    <string name="translation_language_hint">翻訳は%1$sになります。設定で変更できます。</string>
     <string name="generating_daily_insight">デイリーインサイトを生成中...</string>
     <string name="cards_waiting">%1$d 枚のカードが待っています</string>
     <string name="all_caught_up">すべて完了！よくできました。</string>

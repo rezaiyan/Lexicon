@@ -155,6 +155,10 @@ internal fun WordListContent(
                                 onOpenDetail(word)
                             }
                         },
+                        // The list's long-press-drag gesture selects (see dragSelectGesture). A long-click
+                        // handler here only stops the release from also counting as a tap, which would
+                        // toggle the word straight back off.
+                        onLongPress = {},
                         modifier = Modifier.animateItem()
                     )
                 }

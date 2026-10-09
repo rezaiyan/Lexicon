@@ -469,7 +469,6 @@
 
     <!-- Import Source Language -->
     <string name="original_language_question">¿En qué idioma están las palabras originales?</string>
-    <string name="translation_language_hint">Las traducciones serán en %1$s. Puedes cambiar esto en Ajustes.</string>
     <string name="filter_all">Todas</string>
     <string name="filters">Filtros</string>
     <string name="account_section">Cuenta</string>

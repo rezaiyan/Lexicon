@@ -106,7 +106,6 @@
     <string name="import_words">Importuj słowa</string>
     <string name="choose_import_method">Jak chcesz dodać słówka?</string>
     <string name="original_language_question">W jakim języku są oryginalne słowa?</string>
-    <string name="translation_language_hint">Tłumaczenia będą w języku %1$s. Możesz to zmienić w Ustawieniach.</string>
     <string name="generating_daily_insight">Generowanie dziennych statystyk...</string>
     <string name="cards_waiting">%1$d kart czeka na Ciebie</string>
     <string name="all_caught_up">Wszystko zrobione! Świetna robota.</string>

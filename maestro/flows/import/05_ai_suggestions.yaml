@@ -1,0 +1,53 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - import
+  - ai
+  - premium
+---
+# Test: AI suggestions reach the shared review and can be discarded.
+#
+# Requires a premium test account (the "Generate with AI" option is premium) and
+# a reachable backend: one real /ai/suggest-vocabulary call is made. The review
+# is discarded at the end, so no words are added to the account.
+#
+# Flow:
+#   1. Open the add-words sheet and choose "Generate with AI".
+#   2. Pick a level and a topic, then generate.
+#   3. The shared review lists the suggestions with the language pair.
+#   4. Close asks to discard; discarding returns to the AI page.
+
+- runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/open_add_words.yaml
+
+- tapOn: "Generate with AI"
+- runFlow: ../utils/pick_add_words_languages.yaml
+
+- extendedWaitUntil:
+    visible: "What's your current level?"
+    timeout: 5000
+- tapOn: "Beginner"
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible: "What topics interest you?"
+    timeout: 5000
+- tapOn: "Travel"
+- tapOn: "Generate Words"
+
+# The AI call can take a while.
+- extendedWaitUntil:
+    visible: "We found .* words"
+    timeout: 90000
+- assertVisible:
+    text: "Add \\d+ words"
+
+- takeScreenshot: maestro/recordings/ai_suggestions_01_review
+
+# Leaving the review asks before dropping the suggestions.
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible: "Discard these words?"
+    timeout: 5000
+- tapOn: "Discard"
+- waitForAnimationToEnd
+- assertNotVisible: "We found .* words"

@@ -170,7 +170,6 @@
     <string name="import_words">Import Words</string>
     <string name="choose_import_method">How would you like to add words?</string>
     <string name="original_language_question">What language are the original words?</string>
-    <string name="translation_language_hint">Translations will be in %1$s. You can change this in Settings.</string>
     <string name="generating_daily_insight">Generating your daily insight...</string>
     <string name="cards_waiting">%1$d cards waiting for you</string>
     <string name="all_caught_up">All caught up! Well done.</string>
