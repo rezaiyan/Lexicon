@@ -686,6 +686,8 @@
     <string name="sub_trial_note">トライアル終了前に解約すれば請求されません。</string>
     <string name="sub_your_features">ご利用中のプランに含まれるもの</string>
     <string name="sub_manage_in_store">%1$sで管理</string>
+    <string name="sub_managed_on_app_store">App Store で登録したサブスクリプションです。変更・解約は iPhone または iPad の「設定 › サブスクリプション」から行えます。</string>
+    <string name="sub_managed_on_google_play">Google Play で登録したサブスクリプションです。変更・解約は Android 端末の「Play ストア › お支払いと定期購入」から行えます。</string>
     <string name="sub_status_canceled">解約済み</string>
     <string name="sub_canceled_title">Premiumは%1$sまで利用できます</string>
     <string name="sub_canceled_trial_title">トライアルを解約しました — 請求はありません</string>

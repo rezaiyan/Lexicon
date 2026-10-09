@@ -6,6 +6,7 @@ import domain.common.util.EpochDateFormatter
 import domain.subscription.model.PackagePeriod
 import domain.subscription.model.SubscriptionCustomerInfo
 import domain.subscription.model.SubscriptionPackage
+import domain.subscription.model.SubscriptionStore
 import feature.subscription.model.Membership
 import feature.subscription.model.MembershipStatus
 import feature.subscription.model.SubscriptionContent
@@ -53,6 +54,7 @@ class SubscriptionContentFactory(
         pauseResumesAt: Long?,
     ): Membership {
         val entitlement = customerInfo?.primaryEntitlement
+        val isManageable = customerInfo?.isManageableHere == true
         val plan = PlanPricing.matchingOption(plans, entitlement?.productIdentifier)
         val period = plan?.period ?: entitlement?.productIdentifier?.let(::periodFromProductId)
         val status = when {
@@ -84,7 +86,8 @@ class SubscriptionContentFactory(
             period = period,
             price = plan?.price,
             status = status,
-            isManageable = customerInfo?.isSubscribed == true,
+            isManageable = isManageable,
+            managedOn = entitlement?.store?.takeIf { !isManageable && it != SubscriptionStore.OTHER },
         )
     }
 

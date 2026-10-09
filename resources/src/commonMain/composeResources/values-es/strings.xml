@@ -527,6 +527,8 @@
     <string name="sub_trial_note">Cancela antes de que termine la prueba y no se te cobrará.</string>
     <string name="sub_your_features">Incluido en tu plan</string>
     <string name="sub_manage_in_store">Gestionar en %1$s</string>
+    <string name="sub_managed_on_app_store">Te suscribiste a través de la App Store. Para cambiarla o cancelarla, abre Ajustes › Suscripciones en tu iPhone o iPad.</string>
+    <string name="sub_managed_on_google_play">Te suscribiste a través de Google Play. Para cambiarla o cancelarla, abre Play Store › Pagos y suscripciones en tu dispositivo Android.</string>
     <string name="sub_status_canceled">Cancelada</string>
     <string name="sub_canceled_title">Premium sigue activo hasta el %1$s</string>
     <string name="sub_canceled_trial_title">Prueba cancelada: no se te cobrará</string>

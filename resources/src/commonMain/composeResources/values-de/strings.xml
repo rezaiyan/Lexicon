@@ -527,6 +527,8 @@
     <string name="sub_trial_note">Kündige vor Ende der Testphase und es wird nichts berechnet.</string>
     <string name="sub_your_features">In deinem Tarif enthalten</string>
     <string name="sub_manage_in_store">In %1$s verwalten</string>
+    <string name="sub_managed_on_app_store">Du hast über den App Store abonniert. Ändern oder kündigen kannst du unter Einstellungen › Abonnements auf deinem iPhone oder iPad.</string>
+    <string name="sub_managed_on_google_play">Du hast über Google Play abonniert. Ändern oder kündigen kannst du im Play Store unter Zahlungen und Abos auf deinem Android-Gerät.</string>
     <string name="sub_status_canceled">Gekündigt</string>
     <string name="sub_canceled_title">Premium bleibt aktiv bis %1$s</string>
     <string name="sub_canceled_trial_title">Testphase gekündigt – es wird nichts berechnet</string>

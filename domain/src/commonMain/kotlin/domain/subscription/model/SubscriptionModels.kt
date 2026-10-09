@@ -24,6 +24,9 @@ data class SubscriptionOffering(
     val availablePackages: List<SubscriptionPackage>
 )
 
+/** Who bills a subscription. Only the two app stores have a management page the user can open. */
+enum class SubscriptionStore { APP_STORE, PLAY_STORE, OTHER }
+
 data class SubscriptionEntitlement(
     val identifier: String,
     val isActive: Boolean,
@@ -35,11 +38,18 @@ data class SubscriptionEntitlement(
     val billingIssueDetectedAtMillis: Long? = null,
     /** Set once the user turned auto-renew off. Unlike willRenew = false, a scheduled pause doesn't set it. */
     val unsubscribeDetectedAtMillis: Long? = null,
+    val store: SubscriptionStore = SubscriptionStore.OTHER,
 )
 
+/**
+ * The store customer, shared by every platform the account signs in on: a subscription bought on
+ * iPhone is active on Android too, and [managementUrlString] then points at the App Store.
+ */
 data class SubscriptionCustomerInfo(
     val activeEntitlements: Map<String, SubscriptionEntitlement>,
-    val managementUrlString: String? = null
+    val managementUrlString: String? = null,
+    /** The store this device buys through; null where there is none (web). */
+    val deviceStore: SubscriptionStore? = null,
 ) {
     /** Single rule for "this store customer is subscribed" — any active entitlement. */
     val isSubscribed: Boolean get() = activeEntitlements.values.any { it.isActive }
@@ -49,4 +59,12 @@ data class SubscriptionCustomerInfo(
         get() = activeEntitlements.values
             .filter { it.isActive }
             .maxByOrNull { it.expirationDateMillis ?: Long.MAX_VALUE }
+
+    /**
+     * This device's store bills [primaryEntitlement], so its management page applies here. A
+     * purchase from the other platform's store can only be managed on that platform.
+     */
+    val isManageableHere: Boolean
+        get() = deviceStore != null && deviceStore != SubscriptionStore.OTHER &&
+            primaryEntitlement?.store == deviceStore
 }

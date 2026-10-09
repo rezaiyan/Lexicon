@@ -686,6 +686,8 @@
     <string name="sub_trial_note">Anuluj przed końcem okresu próbnego, a nie zostaniesz obciążony.</string>
     <string name="sub_your_features">W Twoim planie</string>
     <string name="sub_manage_in_store">Zarządzaj w %1$s</string>
+    <string name="sub_managed_on_app_store">Subskrypcja została kupiona w App Store. Aby ją zmienić lub anulować, otwórz Ustawienia › Subskrypcje na iPhonie lub iPadzie.</string>
+    <string name="sub_managed_on_google_play">Subskrypcja została kupiona w Google Play. Aby ją zmienić lub anulować, otwórz Sklep Play › Płatności i subskrypcje na urządzeniu z Androidem.</string>
     <string name="sub_status_canceled">Anulowana</string>
     <string name="sub_canceled_title">Premium działa do %1$s</string>
     <string name="sub_canceled_trial_title">Okres próbny anulowany — nie zostaniesz obciążony</string>

@@ -12,6 +12,7 @@ import com.revenuecat.purchases.kmp.models.PeriodType
 import com.revenuecat.purchases.kmp.models.PeriodUnit
 import com.revenuecat.purchases.kmp.models.PurchasesError
 import com.revenuecat.purchases.kmp.models.PurchasesErrorCode
+import com.revenuecat.purchases.kmp.models.Store
 import com.revenuecat.purchases.kmp.models.StoreProduct
 import com.revenuecat.purchases.kmp.models.StoreTransaction
 import com.revenuecat.purchases.kmp.models.freePhase
@@ -26,6 +27,7 @@ import domain.subscription.model.SubscriptionEntitlement
 import domain.subscription.model.SubscriptionOffering
 import domain.subscription.model.SubscriptionPackage
 import domain.subscription.model.SubscriptionProduct
+import domain.subscription.model.SubscriptionStore
 import expects.openUrl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -180,8 +182,11 @@ class RevenueCatSubscriptionManager : ISubscriptionManager, PurchasesDelegate {
     }
 
     override suspend fun manageSubscription(): Try<Unit> {
-        val managementUrl = getRawCustomerInfo().getOrNull()?.managementUrlString
-        if (managementUrl.isNullOrBlank()) {
+        val info = getRawCustomerInfo().getOrNull()?.toDomain()
+        val managementUrl = info?.managementUrlString
+        // RevenueCat's URL follows whichever store billed the subscription, so on Android a
+        // subscription bought on iPhone would open the App Store page. Only open our own store.
+        if (info?.isManageableHere != true || managementUrl.isNullOrBlank()) {
             return Try.failure(DomainError.Commerce.ManagementUnavailable)
         }
         return Try.success(openUrl(managementUrl))
@@ -212,12 +217,21 @@ private fun CustomerInfo.toDomain(): SubscriptionCustomerInfo {
             isInTrial = entitlement.periodType == PeriodType.TRIAL,
             billingIssueDetectedAtMillis = entitlement.billingIssueDetectedAtMillis,
             unsubscribeDetectedAtMillis = entitlement.unsubscribeDetectedAtMillis,
+            store = entitlement.store.toDomain(),
         )
     }
     return SubscriptionCustomerInfo(
         activeEntitlements = activeEntitlements,
-        managementUrlString = managementUrlString
+        managementUrlString = managementUrlString,
+        deviceStore = deviceStore,
     )
+}
+
+/** Promotional, Stripe, Amazon and the rest have no store page the user can manage from the app. */
+private fun Store.toDomain(): SubscriptionStore = when (this) {
+    Store.APP_STORE, Store.MAC_APP_STORE -> SubscriptionStore.APP_STORE
+    Store.PLAY_STORE -> SubscriptionStore.PLAY_STORE
+    else -> SubscriptionStore.OTHER
 }
 
 private fun Offerings.toDomain(): SubscriptionOffering {

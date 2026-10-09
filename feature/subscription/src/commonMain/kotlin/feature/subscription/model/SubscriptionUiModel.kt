@@ -3,6 +3,7 @@ package feature.subscription.model
 import androidx.compose.runtime.Immutable
 import core.common.UiState
 import domain.subscription.model.PackagePeriod
+import domain.subscription.model.SubscriptionStore
 import feature.subscription.PlanOption
 
 data class SubscriptionScreenState(
@@ -37,8 +38,13 @@ data class Membership(
     /** Store price for one billing period, when the plan could be matched to an offering. */
     val price: String?,
     val status: MembershipStatus,
-    /** Bought through the store on this account, so the store can manage it. */
+    /** Bought through this device's store, so its management page can change or cancel it. */
     val isManageable: Boolean,
+    /**
+     * Bought through the other platform's store (e.g. on iPhone while this is Android): only
+     * that store can manage it, so the UI says where instead of offering a button.
+     */
+    val managedOn: SubscriptionStore? = null,
 )
 
 /**

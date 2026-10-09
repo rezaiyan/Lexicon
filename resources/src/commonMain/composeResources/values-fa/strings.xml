@@ -526,6 +526,8 @@
     <string name="sub_trial_note">پیش از پایان دوره آزمایشی لغو کنید تا هزینه‌ای کسر نشود.</string>
     <string name="sub_your_features">در طرح شما</string>
     <string name="sub_manage_in_store">مدیریت در %1$s</string>
+    <string name="sub_managed_on_app_store">اشتراک شما از طریق App Store خریداری شده است. برای تغییر یا لغو، در آیفون یا آیپد به تنظیمات › اشتراک‌ها بروید.</string>
+    <string name="sub_managed_on_google_play">اشتراک شما از طریق Google Play خریداری شده است. برای تغییر یا لغو، در دستگاه اندرویدی به Play Store › پرداخت‌ها و اشتراک‌ها بروید.</string>
     <string name="sub_status_canceled">لغوشده</string>
     <string name="sub_canceled_title">پریمیوم تا %1$s فعال می‌ماند</string>
     <string name="sub_canceled_trial_title">دوره آزمایشی لغو شد — هزینه‌ای کسر نمی‌شود</string>

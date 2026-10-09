@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import components.Pill
 import components.sheet.SheetPrimaryButton
 import domain.subscription.model.PackagePeriod
+import domain.subscription.model.SubscriptionStore
 import feature.subscription.model.Membership
 import feature.subscription.model.MembershipStatus
 import lexicon.resources.generated.resources.Res
@@ -62,6 +63,8 @@ import lexicon.resources.generated.resources.sub_keep_premium_hint
 import lexicon.resources.generated.resources.sub_last_day
 import lexicon.resources.generated.resources.sub_lifetime_note
 import lexicon.resources.generated.resources.sub_manage_in_store
+import lexicon.resources.generated.resources.sub_managed_on_app_store
+import lexicon.resources.generated.resources.sub_managed_on_google_play
 import lexicon.resources.generated.resources.sub_next_grant_end
 import lexicon.resources.generated.resources.sub_next_renewal
 import lexicon.resources.generated.resources.sub_next_trial_end
@@ -159,7 +162,7 @@ private fun MembershipCard(membership: Membership, onManage: () -> Unit) {
                 is MembershipStatus.Canceled -> CanceledDetails(
                     status = status,
                     accent = accent,
-                    isManageable = membership.isManageable,
+                    membership = membership,
                     onKeepPremium = onManage,
                 )
                 is MembershipStatus.Renewing -> {
@@ -170,7 +173,7 @@ private fun MembershipCard(membership: Membership, onManage: () -> Unit) {
                         accent = accent,
                     )
                     CardNote(stringResource(Res.string.sub_active_note))
-                    ManageButton(membership.isManageable, onManage)
+                    ManageButton(membership, onManage)
                 }
                 is MembershipStatus.Trial -> {
                     NextEventRow(
@@ -181,7 +184,7 @@ private fun MembershipCard(membership: Membership, onManage: () -> Unit) {
                         badge = daysLeftLabel(status.daysLeft),
                     )
                     CardNote(stringResource(Res.string.sub_trial_note))
-                    ManageButton(membership.isManageable, onManage)
+                    ManageButton(membership, onManage)
                 }
                 is MembershipStatus.Granted -> {
                     status.until?.let { until ->
@@ -194,7 +197,7 @@ private fun MembershipCard(membership: Membership, onManage: () -> Unit) {
                     }
                     CardNote(stringResource(Res.string.sub_grant_note))
                 }
-                is MembershipStatus.BillingIssue -> BillingIssueDetails(status = status, onFixPayment = onManage)
+                is MembershipStatus.BillingIssue -> BillingIssueDetails(status, membership, onFixPayment = onManage)
                 is MembershipStatus.PauseScheduled -> {
                     NextEventRow(
                         label = stringResource(Res.string.sub_pause_next),
@@ -203,7 +206,7 @@ private fun MembershipCard(membership: Membership, onManage: () -> Unit) {
                         accent = accent,
                     )
                     CardNote(stringResource(Res.string.sub_pause_note))
-                    ManageButton(membership.isManageable, onManage)
+                    ManageButton(membership, onManage)
                 }
                 MembershipStatus.Lifetime -> CardNote(stringResource(Res.string.sub_lifetime_note))
             }
@@ -265,7 +268,7 @@ private fun PlanHeader(
 private fun ColumnScope.CanceledDetails(
     status: MembershipStatus.Canceled,
     accent: Color,
-    isManageable: Boolean,
+    membership: Membership,
     onKeepPremium: () -> Unit,
 ) {
     Text(
@@ -318,7 +321,7 @@ private fun ColumnScope.CanceledDetails(
         )
     }
 
-    if (isManageable) {
+    if (membership.isManageable) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -337,16 +340,22 @@ private fun ColumnScope.CanceledDetails(
                 textAlign = TextAlign.Center,
             )
         }
+    } else {
+        OtherStoreNote(membership.managedOn)
     }
 }
 
 /**
  * The store couldn't charge the renewal. Premium usually keeps working while the store retries
- * (grace period), so say how long, and make fixing the payment the one obvious action. The button
- * shows even when this device didn't make the purchase: the store page is where it gets fixed.
+ * (grace period), so say how long, and make fixing the payment the one obvious action. A purchase
+ * from the other platform's store can only be fixed there, so it gets a note instead of the button.
  */
 @Composable
-private fun BillingIssueDetails(status: MembershipStatus.BillingIssue, onFixPayment: () -> Unit) {
+private fun BillingIssueDetails(
+    status: MembershipStatus.BillingIssue,
+    membership: Membership,
+    onFixPayment: () -> Unit,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
@@ -383,12 +392,16 @@ private fun BillingIssueDetails(status: MembershipStatus.BillingIssue, onFixPaym
         )
     }
 
-    SheetPrimaryButton(
-        text = stringResource(Res.string.sub_billing_fix, storeName()),
-        onClick = onFixPayment,
-        containerColor = MaterialTheme.colorScheme.error,
-        contentColor = MaterialTheme.colorScheme.onError,
-    )
+    if (membership.isManageable) {
+        SheetPrimaryButton(
+            text = stringResource(Res.string.sub_billing_fix, storeName()),
+            onClick = onFixPayment,
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError,
+        )
+    } else {
+        OtherStoreNote(membership.managedOn)
+    }
 }
 
 /**
@@ -561,14 +574,28 @@ private fun CardNote(text: String) {
 }
 
 @Composable
-private fun ManageButton(isManageable: Boolean, onManage: () -> Unit) {
-    if (!isManageable) return
+private fun ManageButton(membership: Membership, onManage: () -> Unit) {
+    if (!membership.isManageable) {
+        OtherStoreNote(membership.managedOn)
+        return
+    }
     SheetPrimaryButton(
         text = stringResource(Res.string.sub_manage_in_store, storeName()),
         onClick = onManage,
         containerColor = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     )
+}
+
+/** Bought on the other platform: this device's store can't open it, so say where it's managed. */
+@Composable
+private fun OtherStoreNote(store: SubscriptionStore?) {
+    val text = when (store) {
+        SubscriptionStore.APP_STORE -> Res.string.sub_managed_on_app_store
+        SubscriptionStore.PLAY_STORE -> Res.string.sub_managed_on_google_play
+        SubscriptionStore.OTHER, null -> return
+    }
+    CardNote(stringResource(text))
 }
 
 @Composable
