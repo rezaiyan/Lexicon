@@ -144,7 +144,9 @@ if [[ -n "${BUMP}" && "${NO_COMMIT}" != true ]]; then
   fi
   (cd "${GIT_ROOT}" && git commit -m "Bump version to ${version_name} (${version_code})")
   (cd "${GIT_ROOT}" && git tag "${tag_name}")
-  echo "Committed and created tag ${tag_name}. Push with: git push && git push origin ${tag_name}"
+  # One atomic push: if the branch lands before the tag, CI on main checks for an unpublished tag
+  # too early, finds the previous (already deployed) version and skips every deploy.
+  echo "Committed and created tag ${tag_name}. Push with: git push --atomic origin HEAD ${tag_name}"
 fi
 
 if [[ -n "${BUMP}" && "${NO_COMMIT}" == true ]]; then
