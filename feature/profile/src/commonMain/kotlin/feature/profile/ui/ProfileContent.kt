@@ -60,7 +60,6 @@ internal fun ProfileContent(
             modifier = Modifier.staggeredFadeSlide(0),
             creditBalance = profileData.credits?.balance,
             creditsRefillAtMillis = profileData.credits?.periodEndsAtMillis,
-            onCreditsClick = onOpenSubscription,
         )
 
         GroupedSection(title = stringResource(Res.string.account_section)) {

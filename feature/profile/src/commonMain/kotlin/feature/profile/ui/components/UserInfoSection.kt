@@ -48,8 +48,6 @@ import lexicon.resources.generated.resources.profile_premium_until
 import lexicon.resources.generated.resources.trial_active
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.HorizontalDivider
 import domain.common.util.EpochDateFormatter
@@ -69,7 +67,6 @@ fun UserInfoSection(
     modifier: Modifier = Modifier,
     creditBalance: Int? = null,
     creditsRefillAtMillis: Long? = null,
-    onCreditsClick: () -> Unit = {},
 ) {
     val displayName = userInfo.displayAlias ?: userInfo.name.ifBlank { userInfo.email }
     val memberSinceText = memberSince?.let {
@@ -126,7 +123,7 @@ fun UserInfoSection(
                     thickness = Theme.dimensions.hairlineThickness,
                     color = MaterialTheme.colorScheme.outlineVariant,
                 )
-                CreditsRow(balance = creditBalance, refillsAtMillis = creditsRefillAtMillis, onClick = onCreditsClick)
+                CreditsRow(balance = creditBalance, refillsAtMillis = creditsRefillAtMillis)
             }
         }
     }
@@ -134,14 +131,13 @@ fun UserInfoSection(
 
 /**
  * "305 AI credits · Refills Nov 9, 2026" along the bottom of the header. Follows the shared balance,
- * so it changes as soon as a spend is known. Opens the plan page, where the monthly allowance lives.
+ * so it changes as soon as a spend is known.
  */
 @Composable
-private fun CreditsRow(balance: Int, refillsAtMillis: Long?, onClick: () -> Unit) {
+private fun CreditsRow(balance: Int, refillsAtMillis: Long?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
             .padding(horizontal = Theme.spacing.heroPadding, vertical = Theme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
@@ -161,11 +157,6 @@ private fun CreditsRow(balance: Int, refillsAtMillis: Long?, onClick: () -> Unit
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
