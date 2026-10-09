@@ -48,10 +48,10 @@ import theme.Theme
 
 /**
  * Single entry point of the add-words flow. Every source is offered to everyone; the AI ones show
- * their credit cost, and the balance is shown once known.
+ * their credit cost, and the balance leads the page once known.
  *
  * @param aiCost / [photoCost] credits each costs; null while unknown.
- * @param balance credits left; null while unknown (the line is hidden).
+ * @param balance credits left; null while unknown (the card is hidden).
  */
 @Composable
 internal fun AddWordsChooserContent(
@@ -68,6 +68,8 @@ internal fun AddWordsChooserContent(
         title = stringResource(Res.string.add_words_title),
         subtitle = stringResource(Res.string.add_words_subtitle),
     ) {
+        if (balance != null) CreditsBalanceCard(balance = balance, refillsAtMillis = refillsAtMillis)
+
         AiAssistantCard(cost = aiCost, onClick = onAiAssistant, modifier = Modifier.staggeredFadeSlide(0))
 
         Column(
@@ -97,13 +99,6 @@ internal fun AddWordsChooserContent(
                     onClick = onScanPhoto,
                     showDivider = false,
                     trailingContent = { CreditCostBadge(photoCost) },
-                )
-            }
-            if (balance != null) {
-                CreditsBalanceLine(
-                    balance = balance,
-                    refillsAtMillis = refillsAtMillis,
-                    modifier = Modifier.padding(top = Theme.spacing.xs),
                 )
             }
         }

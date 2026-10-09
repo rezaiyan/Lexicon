@@ -1045,10 +1045,14 @@
         <item quantity="one">%1$d credit</item>
         <item quantity="other">%1$d credits</item>
     </plurals>
-    <!-- %1$s: credits_count, e.g. "12 credits" -->
-    <string name="credits_balance_left">%1$s left</string>
-    <!-- %1$s: credits_count, %2$s: date -->
-    <string name="credits_balance_left_refills">%1$s left · refills %2$s</string>
+    <plurals name="credits_balance_title">
+        <item quantity="one">%1$d AI credit</item>
+        <item quantity="other">%1$d AI credits</item>
+    </plurals>
+    <!-- %1$s: date -->
+    <string name="credits_balance_refills">Refills %1$s</string>
+    <!-- Under a button that spends credits. %1$s: credits_count it uses, %2$d: credits left now -->
+    <string name="credits_spend_hint">Uses %1$s · %2$d left</string>
     <string name="add_words_problem_out_of_credits">You're out of AI credits.</string>
     <string name="out_of_credits_title">Not enough credits</string>
     <!-- %1$s: credits_count the action costs, %2$s: credits_count the user has -->

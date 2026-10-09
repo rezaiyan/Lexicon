@@ -13,6 +13,7 @@ import data.ai.remote.model.SuggestWordsResponse
 import data.ai.remote.model.SuggestedWordDto
 import domain.onboarding.model.ProficiencyLevel
 import domain.word.add.model.LanguagePair
+import fakes.FakeCreditsRepository
 import kotlinx.coroutines.test.runTest
 import utils.Language
 import kotlin.test.Test
@@ -22,8 +23,9 @@ import kotlin.test.assertIs
 class AiRepositoryImplTest {
 
     private val remoteDataSource = FakeAiRemoteDataSource()
+    private val credits = FakeCreditsRepository()
 
-    private fun createRepo() = AiRepositoryImpl(remoteDataSource)
+    private fun createRepo() = AiRepositoryImpl(remoteDataSource, credits)
 
     // --- v2 contract ---
 
@@ -71,6 +73,19 @@ class AiRepositoryImplTest {
             SuggestWordsRequest("German", "English", "intermediate", listOf("Food"), targetLanguageCode = "de"),
             remoteDataSource.lastSuggestRequest,
         )
+    }
+
+    // --- Credits ---
+
+    @Test
+    fun `every paid call re-reads the credit balance whatever the outcome`() = runTest {
+        val repo = createRepo()
+
+        repo.extractWords(byteArrayOf(1), germanFromEnglish)
+        remoteDataSource.suggestResult = Try.failure(DomainError.Commerce.InsufficientCredits)
+        repo.suggestWords(germanFromEnglish, ProficiencyLevel.BEGINNER, emptyList())
+
+        assertEquals(2, credits.invalidateCount)
     }
 
     // --- Fakes ---

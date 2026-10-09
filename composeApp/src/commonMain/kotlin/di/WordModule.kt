@@ -95,7 +95,7 @@ fun wordModule() = module {
     }
 
     single {
-        AiRepositoryImpl(aiRemoteDataSource = get())
+        AiRepositoryImpl(aiRemoteDataSource = get(), credits = get())
     } bind IAiRepository::class
 
     // Use Cases - Vocabulary

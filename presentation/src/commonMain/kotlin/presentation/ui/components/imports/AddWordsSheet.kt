@@ -105,10 +105,7 @@ private fun AddWordsSheetContent(
     val onSourceEffect: (WordOrigin, SourceEffect) -> Unit = { origin, effect ->
         when (effect) {
             is SourceEffect.CandidatesReady -> host.openReview(origin, effect.drafts, effect.rejected)
-            SourceEffect.OutOfCredits -> {
-                host.onOutOfCredits()
-                pages.navigateTo(AddWordsPage.OutOfCredits(origin))
-            }
+            SourceEffect.OutOfCredits -> pages.navigateTo(AddWordsPage.OutOfCredits(origin))
         }
     }
     // Typed words are saved one by one, so refresh right away: the user may close without tapping Done.
@@ -270,6 +267,8 @@ private fun AddWordsSheetContent(
                         onToggleTopic = ai::toggleTopic,
                         onGenerate = { ai.generate(state.languages) },
                         generateEnabled = aiState.canGenerate,
+                        cost = state.credits?.costOf(CreditAction.AI_SUGGESTION),
+                        balance = state.credits?.balance,
                     )
                 }
             }
@@ -369,6 +368,8 @@ private fun PhotoPage(
             onRotate = photo::rotatePhoto,
             onConfirm = { photo.extract(state.languages) },
             onRetake = photo::clearPhoto,
+            cost = state.credits?.costOf(CreditAction.PHOTO_EXTRACTION),
+            balance = state.credits?.balance,
         )
     }
 }

@@ -73,6 +73,8 @@ internal fun PhotoPreviewPage(
     onRotate: () -> Unit,
     onConfirm: () -> Unit,
     onRetake: () -> Unit,
+    cost: Int? = null,
+    balance: Int? = null,
 ) {
     val decoded = remember(imageBytes) { imageBytes.toImageBitmap() }
     // Shown exactly as it will be uploaded: sideways text is misread, so the user turns it upright here.
@@ -97,6 +99,7 @@ internal fun PhotoPreviewPage(
                     modifier = Modifier.weight(1f),
                 )
             }
+            CreditSpendHint(cost = cost, balance = balance)
         },
     ) {
         if (imageBitmap != null) {
