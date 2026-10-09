@@ -1,9 +1,11 @@
 package data.core.network.interceptor
 
 import data.auth.refresh.ITokenRefreshManager
+import data.core.network.error.AuthenticationException
 import core.common.fold
 import expects.logNetwork
 import io.ktor.client.HttpClient
+import io.ktor.client.call.HttpClientCall
 import io.ktor.client.plugins.HttpClientPlugin
 import io.ktor.client.plugins.HttpSend
 import io.ktor.client.plugins.plugin
@@ -40,38 +42,46 @@ class RefreshAndRetryInterceptor(
 
         override fun install(plugin: RefreshAndRetryInterceptor, scope: HttpClient) {
             scope.plugin(HttpSend).intercept { request ->
-                val originalCall = execute(request)
+                // ErrorInterceptor turns a 401/403 into an AuthenticationException while the response is
+                // received, i.e. inside execute(); catch it here or an expired access token would never be
+                // refreshed and the user would be signed out instead.
+                val originalCall = try {
+                    execute(request)
+                } catch (error: AuthenticationException) {
+                    if (!plugin.shouldAttemptRefresh(error.statusCode, request)) throw error
+                    return@intercept plugin.refreshAndRetry(request, error.statusCode) { execute(it) } ?: throw error
+                }
 
                 if (!plugin.shouldAttemptRefresh(originalCall.response.status.value, request)) {
                     return@intercept originalCall
                 }
-
-                logNetwork(
-                    "RefreshAndRetry",
-                    "Received ${originalCall.response.status.value} for authenticated request, attempting token refresh"
-                )
-
-                val refreshResult = plugin.tokenRefreshManagerProvider().refresh()
-                refreshResult.fold(
-                    onSuccess = { newAccessToken ->
-                        logNetwork("RefreshAndRetry", "Token refresh successful, retrying original request")
-                        request.headers.remove(HttpHeaders.Authorization)
-                        request.headers.append(HttpHeaders.Authorization, "Bearer $newAccessToken")
-                        request.attributes.put(RETRY_KEY, true)
-                        val retryCall = execute(request)
-                        logNetwork("RefreshAndRetry", "Retry completed with status ${retryCall.response.status.value}")
-                        retryCall
-                    },
-                    onFailure = { error ->
-                        logNetwork(
-                            "RefreshAndRetry",
-                            "Token refresh failed: ${error.message}, propagating original response"
-                        )
-                        originalCall
-                    }
-                )
+                plugin.refreshAndRetry(request, originalCall.response.status.value) { execute(it) } ?: originalCall
             }
         }
+    }
+
+    /** Refreshes the access token and resends [request] once; null when the refresh failed. */
+    private suspend fun refreshAndRetry(
+        request: HttpRequestBuilder,
+        status: Int,
+        send: suspend (HttpRequestBuilder) -> HttpClientCall,
+    ): HttpClientCall? {
+        logNetwork("RefreshAndRetry", "Received $status for authenticated request, attempting token refresh")
+        return tokenRefreshManagerProvider().refresh().fold(
+            onSuccess = { newAccessToken ->
+                logNetwork("RefreshAndRetry", "Token refresh successful, retrying original request")
+                request.headers.remove(HttpHeaders.Authorization)
+                request.headers.append(HttpHeaders.Authorization, "Bearer $newAccessToken")
+                request.attributes.put(RETRY_KEY, true)
+                send(request).also {
+                    logNetwork("RefreshAndRetry", "Retry completed with status ${it.response.status.value}")
+                }
+            },
+            onFailure = { error ->
+                logNetwork("RefreshAndRetry", "Token refresh failed: ${error.message}, propagating original response")
+                null
+            },
+        )
     }
 
     private fun shouldAttemptRefresh(statusCode: Int, request: HttpRequestBuilder): Boolean =
