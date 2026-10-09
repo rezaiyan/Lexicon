@@ -75,6 +75,18 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `extract over the call limit says to try again later and keeps the photo`() {
+        ai.drafts = Try.failure(DomainError.Network.RateLimited)
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+
+        vm.extract(languages)
+
+        assertEquals(AddWordsProblem.RateLimited, vm.currentState.problem)
+        assertNotNull(vm.currentState.photo)
+    }
+
+    @Test
     fun `extract offline shows offline`() {
         ai.drafts = Try.failure(DomainError.Network.NoConnection)
         val vm = createViewModel()

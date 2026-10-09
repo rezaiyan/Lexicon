@@ -3,6 +3,7 @@ package data.network.interceptor
 import data.core.network.error.AuthenticationException
 import data.core.network.error.InsufficientCreditsException
 import data.core.network.error.PremiumRequiredException
+import data.core.network.error.RateLimitedException
 import data.core.network.error.ServerException
 import data.core.network.interceptor.ErrorInterceptor
 import io.ktor.client.HttpClient
@@ -158,16 +159,15 @@ class ErrorInterceptorTest {
     }
 
     @Test
-    fun `429 Too Many Requests throws ServerException with the status`() = runTest {
+    fun `429 Too Many Requests throws RateLimitedException`() = runTest {
         val engine = MockEngine {
             respond("Too Many Requests", HttpStatusCode.TooManyRequests, jsonHeaders())
         }
         val client = buildClient(engine)
 
-        val ex = assertFailsWith<ServerException> {
+        assertFailsWith<RateLimitedException> {
             client.get("https://api.test/resource")
         }
-        assertEquals(429, ex.statusCode)
     }
 
     // -------------------------------------------------------------------------

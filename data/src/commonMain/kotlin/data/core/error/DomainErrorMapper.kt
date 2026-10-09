@@ -5,6 +5,7 @@ import data.core.network.error.AuthenticationException
 import data.core.network.error.NetworkException
 import data.core.network.error.InsufficientCreditsException
 import data.core.network.error.PremiumRequiredException
+import data.core.network.error.RateLimitedException
 import data.core.network.error.ServerException
 import data.core.network.error.TimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -18,6 +19,7 @@ fun Throwable.toDomainError(): Throwable = when (this) {
                                   else DomainError.Auth.NotAuthenticated
     is PremiumRequiredException -> DomainError.Commerce.PremiumRequired
     is InsufficientCreditsException -> DomainError.Commerce.InsufficientCredits
+    is RateLimitedException -> DomainError.Network.RateLimited
     is ServerException -> DomainError.Network.ServerError(statusCode)
     is TimeoutException -> DomainError.Network.Timeout
     is NetworkException -> DomainError.Network.NoConnection

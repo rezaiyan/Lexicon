@@ -14,6 +14,7 @@ fun Throwable.toUserMessage(): String = when (this) {
     is DomainError.Network.NoConnection -> "No internet connection"
     is DomainError.Network.Timeout -> "Request timed out. Try again."
     is DomainError.Network.ServerError -> "Server error. Please try again later."
+    is DomainError.Network.RateLimited -> "Too many requests. Please try again in a few minutes."
     is DomainError.Auth.NotAuthenticated -> "Please sign in to continue."
     is DomainError.Auth.SessionExpired -> "Your session expired. Please sign in again."
     is DomainError.Auth.Unauthorized -> "You don't have permission to do that."
