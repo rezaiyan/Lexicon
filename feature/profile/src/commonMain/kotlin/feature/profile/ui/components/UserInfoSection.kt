@@ -48,6 +48,14 @@ import lexicon.resources.generated.resources.profile_premium_until
 import lexicon.resources.generated.resources.trial_active
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material3.HorizontalDivider
+import domain.common.util.EpochDateFormatter
+import lexicon.resources.generated.resources.credits_balance_refills
+import lexicon.resources.generated.resources.credits_balance_title
+import org.jetbrains.compose.resources.pluralStringResource
 
 /**
  * Profile header card: compact avatar, display name, email, subscription status pill and
@@ -58,7 +66,10 @@ fun UserInfoSection(
     userInfo: ProfileUserUiModel,
     memberSince: String?,
     subscriptionStatus: ProfileSubscriptionStatus,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    creditBalance: Int? = null,
+    creditsRefillAtMillis: Long? = null,
+    onCreditsClick: () -> Unit = {},
 ) {
     val displayName = userInfo.displayAlias ?: userInfo.name.ifBlank { userInfo.email }
     val memberSinceText = memberSince?.let {
@@ -71,44 +82,90 @@ fun UserInfoSection(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = Theme.elevation.low),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Theme.spacing.heroPadding),
-            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            CompactAvatar(name = userInfo.name, email = userInfo.email)
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.textGap),
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Theme.spacing.heroPadding),
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = displayName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = userInfo.email,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                SubscriptionStatusPill(status = subscriptionStatus)
-                if (memberSinceText != null) {
+                CompactAvatar(name = userInfo.name, email = userInfo.email)
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.textGap),
+                ) {
                     Text(
-                        text = memberSinceText,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = displayName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = userInfo.email,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
+                    SubscriptionStatusPill(status = subscriptionStatus)
+                    if (memberSinceText != null) {
+                        Text(
+                            text = memberSinceText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
+            if (creditBalance != null) {
+                HorizontalDivider(
+                    thickness = Theme.dimensions.hairlineThickness,
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                )
+                CreditsRow(balance = creditBalance, refillsAtMillis = creditsRefillAtMillis, onClick = onCreditsClick)
+            }
         }
+    }
+}
+
+/**
+ * "305 AI credits · Refills Nov 9, 2026" along the bottom of the header. Follows the shared balance,
+ * so it changes as soon as a spend is known. Opens the plan page, where the monthly allowance lives.
+ */
+@Composable
+private fun CreditsRow(balance: Int, refillsAtMillis: Long?, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = Theme.spacing.heroPadding, vertical = Theme.spacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+    ) {
+        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Text(
+            text = pluralStringResource(Res.plurals.credits_balance_title, balance, balance),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+        )
+        refillsAtMillis?.let {
+            Text(
+                text = stringResource(Res.string.credits_balance_refills, EpochDateFormatter.toMediumDate(it)),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

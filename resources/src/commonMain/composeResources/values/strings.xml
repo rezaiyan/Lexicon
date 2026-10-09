@@ -1051,8 +1051,6 @@
     </plurals>
     <!-- %1$s: date -->
     <string name="credits_balance_refills">Refills %1$s</string>
-    <!-- Under a button that spends credits. %1$s: credits_count it uses, %2$d: credits left now -->
-    <string name="credits_spend_hint">Uses %1$s · %2$d left</string>
     <string name="add_words_problem_out_of_credits">You're out of AI credits.</string>
     <string name="out_of_credits_title">Not enough credits</string>
     <!-- %1$s: credits_count the action costs, %2$s: credits_count the user has -->

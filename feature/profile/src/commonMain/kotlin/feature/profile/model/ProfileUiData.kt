@@ -2,6 +2,7 @@ package feature.profile.model
 
 import domain.streak.model.StreakData
 import domain.auth.model.FeatureAccessResponse
+import domain.credits.model.CreditBalance
 
 data class ProfileUiData(
     val userInfo: ProfileUserUiModel?,
@@ -11,6 +12,8 @@ data class ProfileUiData(
     val shouldShowSubscriptionUI: Boolean,
     val profileStats: ProfileStatsUiModel? = null,
     val subscriptionStatus: ProfileSubscriptionStatus = ProfileSubscriptionStatus.Free,
+    /** AI credit balance shown at the top; null while unknown. */
+    val credits: CreditBalance? = null,
 )
 
 /** Subscription state shown on the profile header. */

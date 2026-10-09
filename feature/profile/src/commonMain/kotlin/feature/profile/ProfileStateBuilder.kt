@@ -1,5 +1,6 @@
 package feature.profile
 
+import domain.credits.model.CreditBalance
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.PremiumSource
@@ -18,7 +19,8 @@ internal object ProfileStateBuilder {
         user: AuthUser?,
         streak: UiState<StreakData>,
         featureAccessState: UiState<FeatureAccessResponse?>,
-        profileStats: ProfileStatsUiModel?
+        profileStats: ProfileStatsUiModel?,
+        credits: CreditBalance? = null,
     ): UiState<ProfileUiData> {
         return when {
             user == null -> createUnauthenticatedState()
@@ -26,7 +28,7 @@ internal object ProfileStateBuilder {
             streak is UiState.Error -> UiState.Error(streak.message)
             else -> {
                 val featureAccess = (featureAccessState as? UiState.Loaded)?.value
-                createLoadedState(user, streak, featureAccess, profileStats)
+                createLoadedState(user, streak, featureAccess, profileStats, credits)
             }
         }
     }
@@ -47,7 +49,8 @@ internal object ProfileStateBuilder {
         user: AuthUser,
         streak: UiState<StreakData>,
         featureAccess: FeatureAccessResponse?,
-        profileStats: ProfileStatsUiModel?
+        profileStats: ProfileStatsUiModel?,
+        credits: CreditBalance?,
     ): UiState.Loaded<ProfileUiData> {
         val streakData = when (streak) {
             is UiState.Loaded -> streak.value
@@ -65,6 +68,7 @@ internal object ProfileStateBuilder {
                 shouldShowSubscriptionUI = !hasPremiumAccess,
                 profileStats = profileStats,
                 subscriptionStatus = featureAccess?.userAccess.toSubscriptionStatus(),
+                credits = credits,
             )
         )
     }

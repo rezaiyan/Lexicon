@@ -1,5 +1,9 @@
 package presentation.feature.profile
 
+import domain.credits.usecase.ObserveCreditsUseCase
+import domain.credits.usecase.RefreshCreditsUseCase
+import fakes.FakeCreditsRepository
+import fakes.creditBalance
 import fakes.FakeSubscriptionManager
 import core.common.Try
 import domain.auth.manager.IUserManager
@@ -102,7 +106,8 @@ class ProfileViewModelTest : ViewModelTestBase() {
         userManager: IUserManager = fakeUserManager(),
         streakManager: IStreakManager = fakeStreakManager(),
         authRepository: IAuthRepository = fakeAuthRepository(),
-        profileStatsRepository: IProfileStatsRepository = fakeProfileStatsRepository()
+        profileStatsRepository: IProfileStatsRepository = fakeProfileStatsRepository(),
+        credits: FakeCreditsRepository = FakeCreditsRepository(),
     ): ProfileViewModel {
         return ProfileViewModel(
             userManager = userManager,
@@ -110,10 +115,31 @@ class ProfileViewModelTest : ViewModelTestBase() {
             streakManager = streakManager,
             getProfileStatsUseCase = GetProfileStatsUseCase(profileStatsRepository),
             enrichProfileStatsUseCase = EnrichProfileStatsUseCase(),
+            observeCredits = ObserveCreditsUseCase(credits),
+            refreshCredits = RefreshCreditsUseCase(credits),
         )
     }
 
     // --- Tests ---
+
+    @Test
+    fun `profile shows the credit balance and follows every change to it`() {
+        val credits = FakeCreditsRepository().apply { serverBalance = creditBalance(allowanceRemaining = 290) }
+        val vm = createViewModel(credits = credits)
+
+        assertEquals(305, (vm.currentState as UiState.Loaded).value.credits?.balance)
+
+        credits.balance.value = creditBalance(allowanceRemaining = 288) // a spend elsewhere
+        assertEquals(303, (vm.currentState as UiState.Loaded).value.credits?.balance)
+    }
+
+    @Test
+    fun `opening the profile re-reads the balance`() {
+        val credits = FakeCreditsRepository()
+        createViewModel(credits = credits)
+
+        assertEquals(1, credits.refreshCount)
+    }
 
     @Test
     fun `initial state is Loading before flows emit`() {
