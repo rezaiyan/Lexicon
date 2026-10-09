@@ -13,6 +13,10 @@ data class ListeningVoiceCheck(val voices: List<LanguageVoice>) {
 
     /** False when no language in the queue can be spoken at all. */
     val canSpeakAnything: Boolean get() = voices.any { it.status != VoiceStatus.UNSUPPORTED }
+
+    fun markReady(languageCode: String): ListeningVoiceCheck = copy(
+        voices = voices.map { if (it.languageCode == languageCode) it.copy(status = VoiceStatus.READY) else it }
+    )
 }
 
 /** A listening queue; [isRecentFallback] is true when nothing was due and recent words were used instead. */

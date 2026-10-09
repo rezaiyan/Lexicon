@@ -399,11 +399,13 @@ private fun VoicesContent(needs: ListeningScreenState.NeedsVoices, actions: List
                 text = stringResource(
                     Res.string.listening_downloading,
                     Language.fromCode(download.languageCode).displayName,
-                    (download.progress * PERCENT).toInt(),
+                    download.position,
+                    download.total,
+                    (download.overallProgress * PERCENT).toInt(),
                 ),
                 style = MaterialTheme.typography.bodyMedium,
             )
-            LinearProgressIndicator(progress = { download.progress }, modifier = Modifier.fillMaxWidth())
+            LinearProgressIndicator(progress = { download.overallProgress }, modifier = Modifier.fillMaxWidth())
         } else {
             if (needs.downloadFailed) {
                 Text(

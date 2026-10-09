@@ -66,7 +66,16 @@ sealed interface ListeningScreenState {
     data class Error(val message: String) : ListeningScreenState
 }
 
-data class VoiceDownload(val languageCode: String, val progress: Float)
+/** Download of voice [position] (1-based) of [total]; [progress] is for this voice alone. */
+data class VoiceDownload(
+    val languageCode: String,
+    val position: Int,
+    val total: Int,
+    val progress: Float,
+) {
+    /** Progress across all voices in this pass, so the bar fills once instead of once per voice. */
+    val overallProgress: Float get() = ((position - 1) + progress) / total
+}
 
 data class ListeningState(
     val screen: ListeningScreenState = ListeningScreenState.Idle,
@@ -141,17 +150,21 @@ class ListeningViewModel(
     fun downloadMissingVoices() {
         val needs = currentState.screen as? ListeningScreenState.NeedsVoices ?: return
         if (needs.download != null) return
+        val missing = needs.check.missing
         setupJob = viewModelScope.launch {
             var failed = false
-            for (voice in needs.check.missing) {
-                updateNeedsVoices { copy(download = VoiceDownload(voice.languageCode, 0f), downloadFailed = false) }
+            for ((index, voice) in missing.withIndex()) {
+                val download = VoiceDownload(voice.languageCode, index + 1, missing.size, 0f)
+                updateNeedsVoices { copy(download = download, downloadFailed = false) }
                 downloadVoice(voice.languageCode)
                     .onEach { progress ->
-                        updateNeedsVoices { copy(download = VoiceDownload(voice.languageCode, progress)) }
+                        updateNeedsVoices { copy(download = download.copy(progress = progress)) }
                     }
                     .catch { failed = true }
                     .collect { }
                 if (failed) break
+                // Mark it ready so the row updates and a retry after a later failure skips it.
+                updateNeedsVoices { copy(check = check.markReady(voice.languageCode)) }
             }
             if (failed) {
                 updateNeedsVoices { copy(download = null, downloadFailed = true) }

@@ -149,7 +149,7 @@
     <string name="completion_tough_message">어려운 단어는 시간이 걸려요. 도전한 것 자체가 중요해요.</string>
     <string name="completion_remembered">기억함</string>
     <string name="completion_forgot">잊음</string>
-    <string name="completion_score_percent">%1$d%%</string>
+    <string name="completion_score_percent">%1$d%</string>
     <string name="completion_cards_reviewed">%1$d장 복습</string>
 
     <!-- Learning Stages (7 Levels) -->

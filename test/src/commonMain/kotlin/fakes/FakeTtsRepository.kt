@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.onCompletion
 
 class FakeTtsRepository : ITtsRepository {
@@ -22,6 +22,9 @@ class FakeTtsRepository : ITtsRepository {
     var unsupportedLanguages: Set<String> = emptySet()
     val missingLanguages = mutableSetOf<String>()
     var downloadShouldFail = false
+    val failingDownloads = mutableSetOf<String>()
+    var downloadProgress: List<Float> = listOf(1.0f)
+    val downloadRequests = mutableListOf<String>()
     val spoken = mutableListOf<Pair<String, String>>()
     var stopCount = 0
 
@@ -45,12 +48,14 @@ class FakeTtsRepository : ITtsRepository {
 
     override suspend fun isModelDownloaded(languageCode: String): Try<Boolean> =
         Try.success(modelDownloaded && languageCode !in missingLanguages)
-    override suspend fun downloadModel(languageCode: String): Flow<Float> =
-        if (downloadShouldFail) {
+    override suspend fun downloadModel(languageCode: String): Flow<Float> {
+        downloadRequests += languageCode
+        return if (downloadShouldFail || languageCode in failingDownloads) {
             flow { throw RuntimeException("download failed") }
         } else {
-            flowOf(1.0f).onCompletion { missingLanguages.remove(languageCode) }
+            downloadProgress.asFlow().onCompletion { missingLanguages.remove(languageCode) }
         }
+    }
     override fun isLanguageSupported(languageCode: String): Boolean =
         languageSupported && languageCode !in unsupportedLanguages
     override fun getSupportedLanguageCodes(): Set<String> = setOf("en")

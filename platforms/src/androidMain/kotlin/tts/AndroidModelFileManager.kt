@@ -72,6 +72,7 @@ class AndroidModelFileManager(
 
         val totalBytes = finalConnection.contentLengthLong
         var downloadedBytes = 0L
+        var lastPercent = -1
 
         Log.d(TAG, "Download size: ${totalBytes / (1024 * 1024)} MB")
 
@@ -83,7 +84,13 @@ class AndroidModelFileManager(
                     output.write(buffer, 0, bytesRead)
                     downloadedBytes += bytesRead
                     if (totalBytes > 0) {
-                        emit(downloadedBytes.toFloat() / totalBytes.toFloat() * 0.8f)
+                        val progress = downloadedBytes.toFloat() / totalBytes.toFloat() * 0.8f
+                        // One emission per whole percent; per-chunk emits flood the UI with state updates.
+                        val percent = (progress * 100).toInt()
+                        if (percent != lastPercent) {
+                            lastPercent = percent
+                            emit(progress)
+                        }
                     }
                 }
             }
