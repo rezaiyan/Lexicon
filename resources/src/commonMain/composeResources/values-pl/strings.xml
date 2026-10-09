@@ -633,7 +633,7 @@
     <string name="account_section">Konto</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">Ucz się szybciej z Premium</string>
-    <string name="paywall_subtitle">Narzędzia AI, które zamieniają to, co czytasz, w słowa, które zapamiętasz – i jasny wgląd w to, jak się uczysz.</string>
+    <string name="paywall_subtitle">Więcej kredytów AI co miesiąc na skanowanie stron i listy słów na dowolny temat. Cała reszta jest za darmo.</string>
     <string name="paywall_choose_plan">Wybierz plan</string>
     <string name="paywall_best_value">Najlepsza oferta</string>
     <string name="paywall_save_percent">Oszczędzasz %1$d%</string>
@@ -650,20 +650,15 @@
     <string name="paywall_store_generic">ustawieniach sklepu</string>
     <string name="paywall_timeline_title">Jak działa okres próbny</string>
     <string name="paywall_timeline_today">Dziś</string>
-    <string name="paywall_timeline_today_desc">Wszystkie funkcje Premium odblokowane. Nic nie płacisz.</string>
+    <string name="paywall_timeline_today_desc">Dostajesz kredyty AI Premium. Nic nie płacisz.</string>
     <string name="paywall_timeline_cancel">Do %1$s</string>
     <string name="paywall_timeline_cancel_desc">Anuluj w %1$s, a nie zostaniesz obciążony.</string>
     <string name="paywall_timeline_charge_desc">Zostaniesz obciążony kwotą %1$s. Plan odnawia się co okres, dopóki go nie anulujesz.</string>
     <string name="paywall_premium_unlocks">Co odblokowuje Premium</string>
     <string name="paywall_free_forever">Zawsze za darmo</string>
-    <string name="paywall_free_forever_desc">Nielimitowane słowa · Powtórki w odstępach · Serie i przypomnienia · Ręczny import słów</string>
+    <string name="paywall_free_forever_desc">Nielimitowane słowa · Powtórki w odstępach · Statystyki i codzienna wskazówka AI · Word Rush · Eksport i udostępnianie · Trochę kredytów AI co miesiąc</string>
     <string name="paywall_feature_ai_assistant">Asystent słów AI</string>
     <string name="paywall_feature_ai_assistant_desc">Podaj temat i otrzymaj gotową listę słów z tłumaczeniami.</string>
-    <string name="paywall_feature_insights">Panel statystyk</string>
-    <string name="paywall_feature_insights_desc">Mapa nauki, trendy trafności, najtrudniejsze słowa i codzienna wskazówka AI.</string>
-    <string name="paywall_feature_word_rush_desc">Szybka gra, która zmienia powtórki w wyścig z czasem.</string>
-    <string name="paywall_feature_export">Eksport i udostępnianie</string>
-    <string name="paywall_feature_export_desc">Udostępnij dowolny wybór słów jako plik tekstowy.</string>
     <string name="paywall_billing_title">Płatności – jasno i prosto</string>
     <string name="paywall_restore_hint">Masz już subskrypcję na innym urządzeniu?</string>
     <string name="paywall_unavailable">W Twoim sklepie nie ma teraz dostępnych planów. Spróbuj ponownie później.</string>

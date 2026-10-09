@@ -633,7 +633,7 @@
     <string name="account_section">アカウント</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">Premiumでもっと速く学ぼう</string>
-    <string name="paywall_subtitle">読んだ文章を覚えられる単語に変えるAIツールと、学習の様子がひと目でわかる分析。</string>
+    <string name="paywall_subtitle">毎月のAIクレジットが増え、ページのスキャンやテーマ別の単語リスト作成に使えます。その他の機能はすべて無料です。</string>
     <string name="paywall_choose_plan">プランを選択</string>
     <string name="paywall_best_value">いちばんお得</string>
     <string name="paywall_save_percent">%1$d%お得</string>
@@ -650,20 +650,15 @@
     <string name="paywall_store_generic">ストアの設定</string>
     <string name="paywall_timeline_title">無料トライアルの流れ</string>
     <string name="paywall_timeline_today">今日</string>
-    <string name="paywall_timeline_today_desc">すべてのPremium機能が使えます。料金はかかりません。</string>
+    <string name="paywall_timeline_today_desc">PremiumのAIクレジットが追加されます。料金はかかりません。</string>
     <string name="paywall_timeline_cancel">%1$sまで</string>
     <string name="paywall_timeline_cancel_desc">%1$sで解約すれば請求されません。</string>
     <string name="paywall_timeline_charge_desc">%1$sが請求されます。解約するまで期間ごとに自動更新されます。</string>
     <string name="paywall_premium_unlocks">Premiumでできること</string>
     <string name="paywall_free_forever">ずっと無料</string>
-    <string name="paywall_free_forever_desc">単語数無制限 · 間隔反復の復習 · 連続記録とリマインダー · 単語の手動追加</string>
+    <string name="paywall_free_forever_desc">単語数無制限 · 間隔反復の復習 · 学習分析と毎日のAIヒント · Word Rush · エクスポートと共有 · 毎月少しのAIクレジット</string>
     <string name="paywall_feature_ai_assistant">AI単語アシスタント</string>
     <string name="paywall_feature_ai_assistant_desc">トピックを伝えるだけで、訳付きの単語リストがすぐに届きます。</string>
-    <string name="paywall_feature_insights">インサイトダッシュボード</string>
-    <string name="paywall_feature_insights_desc">学習ヒートマップ、正答率の推移、苦手な単語、毎日のAIアドバイス。</string>
-    <string name="paywall_feature_word_rush_desc">復習を時間との勝負に変える、テンポの速いゲーム。</string>
-    <string name="paywall_feature_export">エクスポートと共有</string>
-    <string name="paywall_feature_export_desc">選んだ単語をテキストファイルで共有できます。</string>
     <string name="paywall_billing_title">お支払いについて、わかりやすく</string>
     <string name="paywall_restore_hint">別の端末ですでに購読していますか？</string>
     <string name="paywall_unavailable">現在ストアで利用できるプランはありません。しばらくしてからもう一度お試しください。</string>

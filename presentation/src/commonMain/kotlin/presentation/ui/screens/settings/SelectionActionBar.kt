@@ -52,7 +52,6 @@ import theme.Theme
 internal fun SelectionActionBar(
     isVisible: Boolean,
     selectedCount: Int,
-    isUserSubscribed: Boolean,
     onClose: () -> Unit,
     onSelectAll: () -> Unit,
     onDelete: () -> Unit,
@@ -141,15 +140,13 @@ internal fun SelectionActionBar(
                         onClick = onDelete,
                         modifier = Modifier.weight(1f)
                     )
-                    if (isUserSubscribed) {
-                        SelectionAction(
-                            icon = Icons.Default.FileUpload,
-                            label = stringResource(Res.string.share),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            onClick = onShare,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                    SelectionAction(
+                        icon = Icons.Default.FileUpload,
+                        label = stringResource(Res.string.share),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        onClick = onShare,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }

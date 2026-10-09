@@ -1,15 +1,8 @@
 package presentation.viewmodel
 
 import domain.word.add.model.AddWordsOutcome
-import fakes.FakeSubscriptionManager
 import analytics.IAnalyticsTracker
 import core.common.Try
-import domain.auth.model.FeatureAccessResponse
-import domain.auth.model.FeatureFlags
-import domain.auth.model.UserFeatureAccess
-import domain.auth.repository.IAuthRepository
-import domain.auth.model.AuthUser
-import domain.auth.usecase.GetFeatureAccessUseCase
 import domain.focus.model.LearningFocus
 import domain.focus.usecase.ObserveLearningFocusUseCase
 import fakes.FakeLearningFocusRepository
@@ -88,19 +81,6 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
     }
 
-    private fun fakeAuthRepo() = object : IAuthRepository {
-        override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = Try.failure(RuntimeException(""))
-        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = Try.failure(RuntimeException(""))
-        override suspend fun logout(): Try<Unit> = Try.success(Unit)
-        override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
-        override suspend fun getAccessToken(): String? = null
-        override suspend fun isAuthenticated(): Boolean = false
-        override fun isAuthenticatedAsFlow(): Flow<Boolean> = flowOf(false)
-        override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(
-            FeatureAccessResponse(FeatureFlags(), UserFeatureAccess(hasPremiumAccess = false))
-        )
-    }
-
     private fun fakeAnalytics() = object : IAnalyticsTracker {
         override fun logScreenView(screenName: String) {}
         override fun logEvent(eventName: String, parameters: Map<String, Any>?) {}
@@ -144,7 +124,6 @@ class WordManagerViewModelTest : ViewModelTestBase() {
             batchAssignTagsUseCase = BatchAssignTagsUseCase(fakeTagRepo()),
             updateWordUseCase = UpdateWordUseCase(wordRepo),
             exportWordsUseCase = ExportWordsUseCase(),
-            getFeatureAccessUseCase = GetFeatureAccessUseCase(fakeAuthRepo(), FakeSubscriptionManager()),
             filterAndSortWordsUseCase = FilterAndSortWordsUseCase(),
             classifyImportErrorUseCase = ClassifyImportErrorUseCase(),
             analyticsTracker = fakeAnalytics(),

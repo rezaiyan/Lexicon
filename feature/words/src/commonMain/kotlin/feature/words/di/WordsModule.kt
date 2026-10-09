@@ -29,7 +29,6 @@ fun wordsModule() = module {
             batchAssignTagsUseCase = get(),
             updateWordUseCase = get(),
             exportWordsUseCase = get(),
-            getFeatureAccessUseCase = get(),
             filterAndSortWordsUseCase = get(),
             classifyImportErrorUseCase = get(),
             analyticsTracker = get(),

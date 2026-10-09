@@ -30,7 +30,6 @@ fun studyModule() = module {
         StudyProgressViewModel(
             evaluateProgressUseCase = get(),
             scheduleNotificationsUseCase = get(),
-            getFeatureAccessUseCase = get(),
             analyticsTracker = get(),
             performanceTracer = get(),
             tagUseCases = StudyTagUseCases(

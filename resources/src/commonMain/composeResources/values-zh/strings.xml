@@ -474,7 +474,7 @@
     <string name="account_section">账户</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">用 Premium 学得更快</string>
-    <string name="paywall_subtitle">AI 工具把你读到的内容变成记得住的单词，还能清楚看到你的学习情况。</string>
+    <string name="paywall_subtitle">每月更多 AI 点数，用来扫描页面、按任意主题生成单词表。其余功能全部免费。</string>
     <string name="paywall_choose_plan">选择套餐</string>
     <string name="paywall_best_value">最划算</string>
     <string name="paywall_save_percent">省 %1$d%</string>
@@ -491,20 +491,15 @@
     <string name="paywall_store_generic">商店设置</string>
     <string name="paywall_timeline_title">试用期如何运作</string>
     <string name="paywall_timeline_today">今天</string>
-    <string name="paywall_timeline_today_desc">解锁全部 Premium 功能，无需付费。</string>
+    <string name="paywall_timeline_today_desc">Premium AI 点数已到账，无需付费。</string>
     <string name="paywall_timeline_cancel">%1$s 之前</string>
     <string name="paywall_timeline_cancel_desc">在%1$s取消即不会扣费。</string>
     <string name="paywall_timeline_charge_desc">将扣费 %1$s。套餐会按周期自动续订，直到你取消。</string>
     <string name="paywall_premium_unlocks">Premium 解锁的功能</string>
     <string name="paywall_free_forever">永久免费</string>
-    <string name="paywall_free_forever_desc">无限单词 · 间隔重复复习 · 连续打卡和提醒 · 手动添加单词</string>
+    <string name="paywall_free_forever_desc">无限单词 · 间隔重复复习 · 学习统计和每日 AI 提示 · Word Rush · 导出和分享 · 每月少量 AI 点数</string>
     <string name="paywall_feature_ai_assistant">AI 单词助手</string>
     <string name="paywall_feature_ai_assistant_desc">说出一个主题，即可获得带翻译的现成单词表。</string>
-    <string name="paywall_feature_insights">学习洞察面板</string>
-    <string name="paywall_feature_insights_desc">学习热力图、正确率趋势、最难的单词以及每日 AI 建议。</string>
-    <string name="paywall_feature_word_rush_desc">节奏飞快的游戏，让复习变成与时间赛跑。</string>
-    <string name="paywall_feature_export">导出和分享</string>
-    <string name="paywall_feature_export_desc">将任意选中的单词以文本文件分享。</string>
     <string name="paywall_billing_title">扣费说明，一目了然</string>
     <string name="paywall_restore_hint">已在其他设备上订阅？</string>
     <string name="paywall_unavailable">你所在的商店目前没有可用的套餐，请稍后再试。</string>

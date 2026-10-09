@@ -473,7 +473,7 @@
     <string name="account_section">حساب کاربری</string>
     <!-- Paywall redesign -->
     <string name="paywall_title">با پریمیوم سریع‌تر یاد بگیرید</string>
-    <string name="paywall_subtitle">ابزارهای هوش مصنوعی که هر چه می‌خوانید را به واژه‌هایی ماندگار تبدیل می‌کنند، به‌همراه تصویری روشن از روند یادگیری‌تان.</string>
+    <string name="paywall_subtitle">اعتبار هوش مصنوعی بیشتر در هر ماه برای اسکن صفحه‌ها و ساخت فهرست واژه درباره هر موضوعی. بقیه امکانات رایگان است.</string>
     <string name="paywall_choose_plan">طرح خود را انتخاب کنید</string>
     <string name="paywall_best_value">بهترین انتخاب</string>
     <string name="paywall_save_percent">%1$d% صرفه‌جویی</string>
@@ -490,20 +490,15 @@
     <string name="paywall_store_generic">تنظیمات فروشگاه</string>
     <string name="paywall_timeline_title">دوره آزمایشی چگونه کار می‌کند</string>
     <string name="paywall_timeline_today">امروز</string>
-    <string name="paywall_timeline_today_desc">همه امکانات پریمیوم باز می‌شود. چیزی پرداخت نمی‌کنید.</string>
+    <string name="paywall_timeline_today_desc">اعتبار هوش مصنوعی پریمیوم به حسابتان اضافه می‌شود. چیزی پرداخت نمی‌کنید.</string>
     <string name="paywall_timeline_cancel">تا %1$s</string>
     <string name="paywall_timeline_cancel_desc">در %1$s لغو کنید تا هزینه‌ای از شما کسر نشود.</string>
     <string name="paywall_timeline_charge_desc">مبلغ %1$s از شما کسر می‌شود. طرح شما تا زمان لغو، هر دوره تمدید می‌شود.</string>
     <string name="paywall_premium_unlocks">پریمیوم چه چیزهایی را باز می‌کند</string>
     <string name="paywall_free_forever">همیشه رایگان</string>
-    <string name="paywall_free_forever_desc">واژه‌های نامحدود · مرور فاصله‌دار · زنجیره روزانه و یادآورها · افزودن دستی واژه</string>
+    <string name="paywall_free_forever_desc">واژه‌های نامحدود · مرور فاصله‌دار · آمار و نکته روزانه هوش مصنوعی · Word Rush · خروجی و اشتراک‌گذاری · کمی اعتبار هوش مصنوعی در هر ماه</string>
     <string name="paywall_feature_ai_assistant">دستیار واژه هوش مصنوعی</string>
     <string name="paywall_feature_ai_assistant_desc">یک موضوع بگویید و فهرست واژه‌های آماده مطالعه را با ترجمه دریافت کنید.</string>
-    <string name="paywall_feature_insights">داشبورد تحلیل</string>
-    <string name="paywall_feature_insights_desc">نقشه حرارتی مطالعه، روند دقت، سخت‌ترین واژه‌ها و یک نکته روزانه از هوش مصنوعی.</string>
-    <string name="paywall_feature_word_rush_desc">بازی‌ای سریع که مرور را به مسابقه با زمان تبدیل می‌کند.</string>
-    <string name="paywall_feature_export">خروجی و اشتراک‌گذاری</string>
-    <string name="paywall_feature_export_desc">هر مجموعه‌ای از واژه‌هایتان را به‌صورت فایل متنی به اشتراک بگذارید.</string>
     <string name="paywall_billing_title">پرداخت، به زبان ساده</string>
     <string name="paywall_restore_hint">در دستگاه دیگری مشترک شده‌اید؟</string>
     <string name="paywall_unavailable">در حال حاضر طرحی در فروشگاه شما موجود نیست. لطفاً بعداً دوباره تلاش کنید.</string>

@@ -11,7 +11,6 @@ data class WordManagerScreenState(
     val words: List<Word> = emptyList(),
     val filteredWords: List<Word> = emptyList(),
     val tags: List<Tag> = emptyList(),
-    val isUserSubscribed: Boolean = false,
     val isLoading: Boolean = false,
     val isDeletingWords: Boolean = false,
     val isBatchUpdatingLanguages: Boolean = false,
