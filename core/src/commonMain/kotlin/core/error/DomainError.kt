@@ -21,6 +21,8 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
         data object NoConnection : Network("No internet connection")
         data object Timeout : Network("Connection timed out")
         data class ServerError(val code: Int, val body: String? = null) : Network("Server error: $code")
+        /** HTTP 429: too many calls in the server's window; the limit resets within minutes. */
+        data object RateLimited : Network("Too many requests")
     }
 
     sealed class Auth(message: String? = null) : DomainError(message) {

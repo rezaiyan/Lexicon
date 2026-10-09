@@ -71,6 +71,18 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `generate over the call limit says to try again later`() {
+        ai.suggestions = Try.failure(DomainError.Network.RateLimited)
+        val vm = createViewModel()
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
+
+        vm.generate(languages)
+
+        assertEquals(AddWordsProblem.RateLimited, vm.currentState.problem)
+        assertFalse(vm.currentState.isGenerating)
+    }
+
+    @Test
     fun `generate refused for premium reports the lapse`() = runTest {
         ai.suggestions = Try.failure(DomainError.Commerce.PremiumRequired)
         val vm = createViewModel()

@@ -58,13 +58,13 @@ class AiRepositoryHttpTest {
     }
 
     @Test
-    fun `extractWords reports a client error as a server error not as offline`() = runTest {
+    fun `extractWords reports too many requests as rate limited`() = runTest {
         val engine = MockEngine {
             respond("""{"success":false,"message":"Too many requests"}""", HttpStatusCode.TooManyRequests, jsonHeaders)
         }
 
         val error = (repository(engine).extractWords(image, languages) as Try.Failure).exceptionOrNull()
 
-        assertEquals(DomainError.Network.ServerError(429), error)
+        assertEquals(DomainError.Network.RateLimited, error)
     }
 }
