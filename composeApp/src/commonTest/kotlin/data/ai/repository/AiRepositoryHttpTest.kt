@@ -7,6 +7,7 @@ import data.ai.remote.AiRemoteDataSource
 import data.core.network.client.ApiClient
 import data.core.network.mapper.ApiResponseMapper
 import domain.word.add.model.LanguagePair
+import fakes.FakeCreditsRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -41,6 +42,7 @@ class AiRepositoryHttpTest {
                 ApiResponseMapper(),
             ),
         ),
+        FakeCreditsRepository(),
     )
 
     @Test

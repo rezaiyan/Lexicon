@@ -21,7 +21,6 @@ import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.AddWordsResult
 import feature.addwords.model.AddWordsUiState
 import feature.addwords.model.CandidateReview
-import feature.addwords.model.creditAction
 import feature.addwords.model.logImportEvent
 import feature.addwords.model.logImportFailed
 import feature.addwords.model.toProblem
@@ -97,7 +96,6 @@ class AddWordsViewModel(
     fun openReview(origin: WordOrigin, drafts: List<WordDraft>, rejected: List<RejectedLine> = emptyList()) {
         updateState { copy(review = CandidateReview.of(origin, drafts, rejected), problem = null, result = null) }
         emitEffect(AddWordsEffect.OpenReview)
-        if (origin.creditAction != null) reloadCredits()
         analytics.logImportEvent(
             "import_preview_shown", origin, "word_count" to drafts.size, "rejected_count" to rejected.size,
         )
@@ -178,14 +176,14 @@ class AddWordsViewModel(
         emitEffect(AddWordsEffect.ShowResult)
     }
 
-    // --- Credits ---
-
-    /** A paid source was refused for lack of credits: our balance was stale, so re-read it. */
-    fun onOutOfCredits() = reloadCredits()
-
     fun dismissProblem() = updateState { copy(problem = null) }
 
-    /** Best effort: on failure the last known balance stays and the server still has the final say. */
+    // --- Credits ---
+
+    /**
+     * Best effort: on failure the last known balance stays and the server still has the final say.
+     * Spends need no call here: the AI repository re-reads the shared balance after every paid call.
+     */
     private fun reloadCredits() {
         viewModelScope.launch { refreshCredits() }
     }

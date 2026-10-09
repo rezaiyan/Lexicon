@@ -12,6 +12,12 @@ import domain.auth.model.AuthUser
 import domain.credits.model.CreditAction
 import domain.credits.model.CreditTier
 import fakes.FakeUserManager
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -24,10 +30,15 @@ class CreditsRepositoryImplTest {
     private val bob = AuthUser(2L, "b@b.c", "Bob")
     private val userManager = FakeUserManager(alice)
     private val remote = FakeCreditsRemoteDataSource()
-    private val repository = CreditsRepositoryImpl(remote, userManager)
+    private val testScope = TestScope()
+
+    // On the test's scheduler, so advanceUntilIdle runs the re-reads invalidate() starts
+    private val repository = CreditsRepositoryImpl(
+        remote, userManager, CoroutineScope(StandardTestDispatcher(testScope.testScheduler)),
+    )
 
     @Test
-    fun `refresh publishes the server balance mapped to the domain`() = runTest {
+    fun `refresh publishes the server balance mapped to the domain`() = testScope.runTest {
         remote.result = Try.success(dto(allowance = 2, bonus = 15))
 
         val balance = repository.refresh().getOrThrow()
@@ -41,12 +52,12 @@ class CreditsRepositoryImplTest {
     }
 
     @Test
-    fun `balance is unknown until loaded`() = runTest {
+    fun `balance is unknown until loaded`() = testScope.runTest {
         repository.observeBalance().test { assertNull(awaitItem()) }
     }
 
     @Test
-    fun `a failed refresh keeps the last known balance`() = runTest {
+    fun `a failed refresh keeps the last known balance`() = testScope.runTest {
         remote.result = Try.success(dto(allowance = 5))
         repository.refresh()
         remote.result = Try.failure(DomainError.Network.NoConnection)
@@ -56,7 +67,7 @@ class CreditsRepositoryImplTest {
     }
 
     @Test
-    fun `one account's balance is never shown to another`() = runTest {
+    fun `one account's balance is never shown to another`() = testScope.runTest {
         remote.result = Try.success(dto(allowance = 5))
         repository.refresh()
 
@@ -70,7 +81,7 @@ class CreditsRepositoryImplTest {
     }
 
     @Test
-    fun `refresh when signed out fails without calling the server`() = runTest {
+    fun `refresh when signed out fails without calling the server`() = testScope.runTest {
         userManager.setUser(null)
 
         assertIs<DomainError.Auth.NotAuthenticated>(repository.refresh().exceptionOrNull())
@@ -78,7 +89,7 @@ class CreditsRepositoryImplTest {
     }
 
     @Test
-    fun `unknown actions and tiers from a newer server are ignored`() = runTest {
+    fun `unknown actions and tiers from a newer server are ignored`() = testScope.runTest {
         remote.result = Try.success(
             dto().copy(
                 tier = "PLATINUM",
@@ -90,6 +101,34 @@ class CreditsRepositoryImplTest {
 
         assertEquals(CreditTier.FREE, balance.tier)
         assertEquals(mapOf(CreditAction.PHOTO_EXTRACTION to 3), balance.costs)
+    }
+
+    @Test
+    fun `invalidate re-reads the balance in the background`() = testScope.runTest {
+        remote.result = Try.success(dto(allowance = 5))
+        repository.refresh()
+        remote.result = Try.success(dto(allowance = 4))
+
+        repository.invalidate()
+        advanceUntilIdle()
+
+        repository.observeBalance().test { assertEquals(19, awaitItem()?.balance) }
+    }
+
+    @Test
+    fun `a slow earlier read can't overwrite a later one`() = testScope.runTest {
+        val slow = CompletableDeferred<Unit>()
+        remote.responses += { slow.await(); Try.success(dto(allowance = 5)) } // read before a spend
+        remote.responses += { Try.success(dto(allowance = 4)) } // read after it
+
+        repository.invalidate()
+        runCurrent()
+        repository.invalidate()
+        runCurrent()
+        slow.complete(Unit)
+        advanceUntilIdle()
+
+        repository.observeBalance().test { assertEquals(19, awaitItem()?.balance) }
     }
 
     private fun dto(allowance: Int = 5, bonus: Int = 15) = CreditBalanceDto(
@@ -104,10 +143,12 @@ class CreditsRepositoryImplTest {
 
     private class FakeCreditsRemoteDataSource : ICreditsRemoteDataSource {
         var result: Try<CreditBalanceDto> = Try.failure(IllegalStateException("not set"))
+        /** Answers for the next calls, in order; [result] once they run out. */
+        val responses = ArrayDeque<suspend () -> Try<CreditBalanceDto>>()
         var calls = 0
         override suspend fun fetchBalance(): Try<CreditBalanceDto> {
             calls++
-            return result
+            return responses.removeFirstOrNull()?.invoke() ?: result
         }
     }
 }

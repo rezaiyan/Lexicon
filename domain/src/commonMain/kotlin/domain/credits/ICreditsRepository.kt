@@ -17,4 +17,10 @@ interface ICreditsRepository {
 
     /** Re-reads the balance from the server. On failure the last known value is kept. */
     suspend fun refresh(): Try<CreditBalance>
+
+    /**
+     * The server balance may have changed (a paid call spent, refunded or was refused): re-read it
+     * in the background, so every [observeBalance] collector updates without asking.
+     */
+    fun invalidate()
 }

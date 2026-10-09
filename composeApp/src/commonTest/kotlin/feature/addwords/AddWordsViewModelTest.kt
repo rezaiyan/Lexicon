@@ -316,35 +316,13 @@ class AddWordsViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `candidates from a paid source re-read the balance the spend changed`() {
+    fun `balance shown follows every change to the shared balance without the screen asking`() {
         credits.serverBalance = creditBalance()
         val vm = createViewModel()
-        credits.serverBalance = creditBalance(allowanceRemaining = 2)
 
-        vm.openReview(WordOrigin.Photo, listOf(draft("Hund")))
+        credits.balance.value = creditBalance(allowanceRemaining = 2) // e.g. a spend elsewhere
 
-        assertEquals(2, credits.refreshCount)
         assertEquals(17, vm.currentState.credits?.balance)
-    }
-
-    @Test
-    fun `candidates from a free source leave the balance alone`() {
-        credits.serverBalance = creditBalance()
-        val vm = createViewModel()
-
-        vm.openReview(WordOrigin.File, listOf(draft("Hund")))
-
-        assertEquals(1, credits.refreshCount)
-    }
-
-    @Test
-    fun `onOutOfCredits re-reads the stale balance`() {
-        credits.serverBalance = creditBalance()
-        val vm = createViewModel()
-        credits.serverBalance = creditBalance(allowanceRemaining = 0, bonusBalance = 1)
-
-        vm.onOutOfCredits()
-
-        assertEquals(1, vm.currentState.credits?.balance)
+        assertEquals(1, credits.refreshCount) // only the read on open
     }
 }

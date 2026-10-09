@@ -8,13 +8,19 @@ import data.ai.remote.model.ExtractWordsRequest
 import data.ai.remote.model.SuggestWordsRequest
 import data.onboarding.remote.model.toApiValue
 import domain.ai.repository.IAiRepository
+import domain.credits.ICreditsRepository
 import domain.onboarding.model.ProficiencyLevel
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
 import kotlin.io.encoding.Base64
 
+/**
+ * Both calls spend AI credits on the server (or refund, or refuse with 402), so each one ends by
+ * telling [credits] the balance changed: every screen showing it updates without asking.
+ */
 class AiRepositoryImpl(
-    private val aiRemoteDataSource: IAiRemoteDataSource
+    private val aiRemoteDataSource: IAiRemoteDataSource,
+    private val credits: ICreditsRepository,
 ) : IAiRepository {
 
     override suspend fun extractWords(image: ByteArray, languages: LanguagePair): Try<List<WordDraft>> {
@@ -23,9 +29,9 @@ class AiRepositoryImpl(
             learningLanguage = languages.learning.aiPromptName,
             nativeLanguage = languages.native.aiPromptName,
         )
-        return aiRemoteDataSource.extractWords(request).map { body ->
-            body.items.mapNotNull { WordDraft.of(it.term, it.translation, it.note).getOrNull() }
-        }
+        return aiRemoteDataSource.extractWords(request)
+            .also { credits.invalidate() }
+            .map { body -> body.items.mapNotNull { WordDraft.of(it.term, it.translation, it.note).getOrNull() } }
     }
 
     override suspend fun suggestWords(
@@ -40,7 +46,9 @@ class AiRepositoryImpl(
             interests = topics,
             targetLanguageCode = languages.learning.code,
         ),
-    ).map { response ->
-        response.items.mapNotNull { WordDraft.of(it.originalWord, it.translation, it.description).getOrNull() }
-    }
+    )
+        .also { credits.invalidate() }
+        .map { response ->
+            response.items.mapNotNull { WordDraft.of(it.originalWord, it.translation, it.description).getOrNull() }
+        }
 }

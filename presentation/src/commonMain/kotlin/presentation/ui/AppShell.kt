@@ -39,6 +39,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import domain.credits.usecase.RefreshCreditsUseCase
 import domain.subscription.usecase.RefreshFeatureAccessUseCase
 import kotlinx.coroutines.launch
 import presentation.model.SettingsRoute
@@ -65,10 +66,13 @@ internal fun AppContent(
 
     // Pick up grants, expirations and purchases made elsewhere when the app comes back to the
     // foreground. Throttled in the data layer, so frequent resumes don't hit the network.
+    // Same for the AI credit balance: a renewal reset or a purchase on another device changes it.
     val refreshFeatureAccess = koinInject<RefreshFeatureAccessUseCase>()
+    val refreshCredits = koinInject<RefreshCreditsUseCase>()
     val scope = rememberCoroutineScope()
-    LifecycleResumeEffect(refreshFeatureAccess) {
+    LifecycleResumeEffect(refreshFeatureAccess, refreshCredits) {
         scope.launch { refreshFeatureAccess() }
+        scope.launch { refreshCredits() }
         onPauseOrDispose { }
     }
 

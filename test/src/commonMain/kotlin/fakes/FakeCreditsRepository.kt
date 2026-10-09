@@ -18,6 +18,8 @@ class FakeCreditsRepository(initial: CreditBalance? = null) : ICreditsRepository
     var failure: Throwable? = null
     var refreshCount = 0
         private set
+    var invalidateCount = 0
+        private set
 
     override fun observeBalance(): Flow<CreditBalance?> = balance
 
@@ -27,6 +29,12 @@ class FakeCreditsRepository(initial: CreditBalance? = null) : ICreditsRepository
         val current = serverBalance ?: return Try.failure(IllegalStateException("no server balance"))
         balance.value = current
         return Try.success(current)
+    }
+
+    /** Counted, and published at once: a test sees the re-read without running a background job. */
+    override fun invalidate() {
+        invalidateCount++
+        serverBalance?.let { balance.value = it }
     }
 }
 
