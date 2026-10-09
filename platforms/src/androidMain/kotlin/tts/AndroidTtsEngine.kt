@@ -9,6 +9,7 @@ import com.k2fsa.sherpa.onnx.OfflineTtsConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTtsVitsModelConfig
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
@@ -16,6 +17,9 @@ import kotlin.coroutines.coroutineContext
 class AndroidTtsEngine : ITtsEngine {
 
     private var offlineTts: OfflineTts? = null
+    private val trackLock = Any()
+
+    @Volatile
     private var audioTrack: AudioTrack? = null
     private var currentSampleRate: Int = 0
 
@@ -68,7 +72,8 @@ class AndroidTtsEngine : ITtsEngine {
         }
     }
 
-    private fun playAudio(samples: FloatArray, sampleRate: Int) {
+    /** Plays [samples] and suspends until playback ends or another call stops/replaces the track. */
+    private suspend fun playAudio(samples: FloatArray, sampleRate: Int) {
         stopAudioTrack()
 
         val bufferSize = AudioTrack.getMinBufferSize(
@@ -101,6 +106,11 @@ class AndroidTtsEngine : ITtsEngine {
         track.write(samples, 0, samples.size, AudioTrack.WRITE_BLOCKING)
         track.play()
         Log.d(TAG, "Audio playback started (${samples.size} samples, buffer=$actualBufferSize)")
+
+        // Callers sequence utterances (listening mode), so return only once the clip has played.
+        while (coroutineContext.isActive && isStillPlaying(track, samples.size)) {
+            delay(PLAYBACK_POLL_MS)
+        }
     }
 
     override suspend fun stop() {
@@ -109,7 +119,7 @@ class AndroidTtsEngine : ITtsEngine {
         }
     }
 
-    private fun stopAudioTrack() {
+    private fun stopAudioTrack() = synchronized(trackLock) {
         audioTrack?.let { track ->
             if (track.playState == AudioTrack.PLAYSTATE_PLAYING) {
                 track.stop()
@@ -117,6 +127,13 @@ class AndroidTtsEngine : ITtsEngine {
             track.release()
         }
         audioTrack = null
+    }
+
+    /** True while [track] is still the live track and has samples left to play. */
+    private fun isStillPlaying(track: AudioTrack, totalFrames: Int): Boolean = synchronized(trackLock) {
+        audioTrack === track &&
+            track.playState == AudioTrack.PLAYSTATE_PLAYING &&
+            track.playbackHeadPosition < totalFrames
     }
 
     override fun release() {
@@ -131,5 +148,6 @@ class AndroidTtsEngine : ITtsEngine {
 
     companion object {
         private const val TAG = "TtsEngine"
+        private const val PLAYBACK_POLL_MS = 20L
     }
 }

@@ -10,6 +10,7 @@ import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
 import feature.study.StudyFocusUseCases
 import feature.study.StudyTagUseCases
+import feature.study.listening.ListeningViewModel
 import feature.study.wordrush.WordRushViewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -46,6 +47,7 @@ fun studyModule() = module {
     }
 
     viewModelOf(::ReviewViewModel)
+    viewModelOf(::ListeningViewModel)
     viewModel {
         WordRushViewModel(
             getWordRushWordsUseCase = get(),

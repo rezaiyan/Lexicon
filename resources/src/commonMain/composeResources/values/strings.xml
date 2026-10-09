@@ -979,5 +979,43 @@
     <string name="onboarding_word_count">%1$d words</string>
     <string name="onboarding_add_words">Add %1$d words and start</string>
     <string name="onboarding_start_empty">Start with an empty list</string>
-</resources>
 
+    <!-- Listening mode -->
+    <string name="listening_title">Listening mode</string>
+    <string name="listening_card_subtitle">Hands-free: hear each word, then its meaning</string>
+    <string name="listening_card_action">Listen</string>
+    <string name="listening_loading">Preparing your words…</string>
+    <string name="listening_empty_title">Nothing to listen to yet</string>
+    <string name="listening_empty_subtitle">Add a few words and come back.</string>
+    <string name="listening_recent_fallback">Nothing due today, playing your newest words</string>
+    <string name="listening_progress">%1$d / %2$d</string>
+    <string name="listening_play">Play</string>
+    <string name="listening_pause_playback">Pause</string>
+    <string name="listening_next">Next word</string>
+    <string name="listening_previous">Previous word</string>
+    <string name="listening_setting_pause">Pause</string>
+    <string name="listening_seconds">%1$ds</string>
+    <string name="listening_setting_order">Order</string>
+    <string name="listening_order_word_first">Word first</string>
+    <string name="listening_order_translation_first">Meaning first</string>
+    <string name="listening_setting_repeat">Repeat</string>
+    <string name="listening_times">%1$d×</string>
+    <string name="listening_setting_speed">Speed</string>
+    <string name="listening_voices_title">Download voices</string>
+    <string name="listening_voices_body">Voices run on your device. Download them once to hear every word.</string>
+    <string name="listening_voice_ready">Ready</string>
+    <string name="listening_voice_missing">Not downloaded</string>
+    <string name="listening_voice_unsupported">No voice yet, shown as text</string>
+    <string name="listening_download_voices">Download voices</string>
+    <string name="listening_downloading">Downloading %1$s… %2$d%%</string>
+    <string name="listening_download_failed">Download failed. Check your connection and try again.</string>
+    <string name="listening_start_without">Start without them</string>
+    <string name="listening_no_voices_title">No voices available</string>
+    <string name="listening_no_voices_subtitle">There is no voice for these languages yet.</string>
+    <string name="listening_finished_title">Nice listening!</string>
+    <string name="listening_finished_body">%1$d words · %2$d min</string>
+    <string name="listening_listen_again">Listen again</string>
+    <string name="listening_done">Done</string>
+    <string name="listening_error_title">Couldn't load your words</string>
+    <string name="listening_retry">Try again</string>
+</resources>

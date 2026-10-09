@@ -4,7 +4,11 @@ import analytics.IAnalyticsTracker
 
 class FakeAnalyticsTracker : IAnalyticsTracker {
     override fun logScreenView(screenName: String) = Unit
-    override fun logEvent(eventName: String, parameters: Map<String, Any>?) = Unit
+    val events = mutableListOf<Pair<String, Map<String, Any>?>>()
+
+    override fun logEvent(eventName: String, parameters: Map<String, Any>?) {
+        events += eventName to parameters
+    }
     override fun logWordReviewed(rating: Int, wordLevel: Int, wasCorrect: Boolean) = Unit
     override fun logReviewSessionStart(cardCount: Int) = Unit
     override fun logReviewSessionComplete(cardsReviewed: Int, durationMs: Long, perfectCount: Int) = Unit

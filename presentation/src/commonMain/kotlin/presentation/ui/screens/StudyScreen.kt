@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import components.ErrorScreen
+import core.getPlatformName
 import components.LoadingScreen
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
@@ -45,6 +46,9 @@ import feature.study.ui.focus.FocusNudgeCard
 import feature.study.ui.focus.LanguageSwitcherSheetContent
 import feature.study.ui.focus.FocusIntroCard
 import feature.study.ui.focus.FocusLanguageIcon
+import feature.study.listening.ListeningViewModel
+import feature.study.ui.listening.ListeningCard
+import feature.study.ui.listening.ListeningScreen
 import feature.study.ui.review.ReviewScreen
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -102,6 +106,7 @@ fun StudyScreen(
     val progressViewModel = koinViewModel<StudyProgressViewModel>()
     val reviewViewModel = koinViewModel<ReviewViewModel>()
     val wordRushViewModel = koinViewModel<WordRushViewModel>()
+    val listeningViewModel = koinViewModel<ListeningViewModel>()
     val overlayHost = LocalOverlayHost.current
     val snackbarHostState = LocalSnackbarHostState.current
     val coroutineScope = rememberCoroutineScope()
@@ -112,6 +117,8 @@ fun StudyScreen(
     val dueTags = progressState.dueTags
     val skipTagSelector = progressState.skipTagSelector
     val stageTagsMap = progressState.stageTagsMap
+
+    val isListeningSupported = remember { getPlatformName() != "Web" }
 
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
@@ -160,6 +167,26 @@ fun StudyScreen(
     OnEvents(koinInject<NotificationNavigator>().reviewRequests) {
         if (reviewViewModel.currentState.review !is ReviewState.Active) {
             openReviewScreen(ReviewSource.DueCards)
+        }
+    }
+
+    val openListening: () -> Unit = {
+        listeningViewModel.start(ReviewSource.DueCards)
+        overlayHost.showFullScreen(
+            tag = "listening",
+            properties = FullScreenProperties(
+                dismissOnBackPress = false,
+                isNavigationBarsPaddingEnabled = true,
+            ),
+        ) { navigator ->
+            ListeningScreen(
+                viewModel = listeningViewModel,
+                onRestart = { listeningViewModel.start(ReviewSource.DueCards) },
+                onDismiss = {
+                    listeningViewModel.abandon()
+                    navigator.dismiss()
+                },
+            )
         }
     }
 
@@ -403,6 +430,14 @@ fun StudyScreen(
                         },
                         modifier = Modifier.padding(top = Theme.spacing.md),
                     )
+
+                    // WasmJs has no on-device TTS engine, so listening mode is mobile-only.
+                    if (isListeningSupported) {
+                        ListeningCard(
+                            onListen = openListening,
+                            modifier = Modifier.padding(top = Theme.spacing.md),
+                        )
+                    }
 
                     LearningStagesSection(
                         stats = loadedStats,
