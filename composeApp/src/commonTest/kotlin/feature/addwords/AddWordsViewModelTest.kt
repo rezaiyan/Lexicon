@@ -13,6 +13,8 @@ import domain.tag.usecase.GetTagsUseCase
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
 import domain.word.add.model.WordOrigin
+import domain.word.add.parser.RejectReason
+import domain.word.add.parser.RejectedLine
 import domain.word.add.usecase.AddWordsUseCase
 import domain.word.add.usecase.ResolveAddWordsLanguagesUseCase
 import domain.word.usecase.ObserveImageImportAccessUseCase
@@ -207,10 +209,48 @@ class AddWordsViewModelTest : ViewModelTestBase() {
         assertEquals(AddWordsProblem.Generic, vm.currentState.problem)
         assertNull(vm.currentState.result)
         assertEquals(
-            listOf<Pair<String, Map<String, Any>?>>("import_failed" to mapOf("method" to "file", "reason" to "Generic")),
+            listOf<Pair<String, Map<String, Any>?>>(
+                "import_preview_shown" to mapOf("method" to "file", "word_count" to 1, "rejected_count" to 0),
+                "import_failed" to mapOf("method" to "file", "step" to "commit", "error_type" to "Generic"),
+            ),
             analytics.events,
         )
         assertEquals(emptyList<Pair<Int, String>>(), analytics.wordsImported)
+    }
+
+    @Test
+    fun `the funnel logs start then preview then confirmation with the method`() {
+        val vm = createViewModel()
+
+        vm.sourceOpened(WordOrigin.Photo)
+        vm.openReview(
+            WordOrigin.Photo,
+            listOf(draft("Hund", "dog"), draft("Maus", "mouse")),
+            listOf(RejectedLine(3, "?", RejectReason.Malformed)),
+        )
+        vm.commitReview()
+
+        assertEquals(
+            listOf<Pair<String, Map<String, Any>?>>(
+                "import_started" to mapOf("method" to "image"),
+                "import_preview_shown" to mapOf("method" to "image", "word_count" to 2, "rejected_count" to 1),
+                "import_confirmed" to mapOf("method" to "image", "word_count" to 2, "duplicates" to 0),
+            ),
+            analytics.events,
+        )
+    }
+
+    @Test
+    fun `discarding the review logs a cancel at the review step`() {
+        val vm = createViewModel()
+        vm.openReview(WordOrigin.AiSuggestion, listOf(draft("Hund", "dog")))
+
+        vm.discardReview()
+
+        assertEquals(
+            "import_cancelled" to mapOf<String, Any>("method" to "ai", "at_step" to "review"),
+            analytics.events.last(),
+        )
     }
 
     @Test

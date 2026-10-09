@@ -11,6 +11,8 @@ import domain.word.add.model.WordOrigin
 import domain.word.add.usecase.SuggestWordsUseCase
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.SourceEffect
+import feature.addwords.model.logImportEvent
+import feature.addwords.model.logImportFailed
 import feature.addwords.model.toProblem
 import kotlinx.coroutines.launch
 
@@ -44,7 +46,8 @@ class AiSuggestViewModel(
     fun toggleTopic(topic: String) {
         val adding = topic !in currentState.topics
         updateState { copy(topics = if (adding) topics + topic else topics - topic) }
-        if (adding) analytics.logEvent("import_topic_entered", mapOf("topic" to topic))
+        // Topics are a fixed list, never free text, so the topic itself is safe to log.
+        if (adding) analytics.logImportEvent("import_topic_entered", WordOrigin.AiSuggestion, "topic" to topic)
     }
 
     fun generate(languages: LanguagePair?) {
@@ -58,11 +61,11 @@ class AiSuggestViewModel(
                 onSuccess = { drafts ->
                     updateState { copy(isGenerating = false) }
                     emitEffect(SourceEffect.CandidatesReady(drafts))
-                    analytics.logEvent("import_preview_shown", mapOf("word_count" to drafts.size.toString()))
                 },
                 onFailure = { error ->
-                    updateState { copy(isGenerating = false, problem = error.toProblem(WordOrigin.AiSuggestion)) }
-                    analytics.logEvent("import_failed", mapOf("reason" to (error::class.simpleName ?: "unknown")))
+                    val problem = error.toProblem(WordOrigin.AiSuggestion)
+                    updateState { copy(isGenerating = false, problem = problem) }
+                    analytics.logImportFailed(WordOrigin.AiSuggestion, step = "extract", problem)
                     if (error is DomainError.Commerce.PremiumRequired) emitEffect(SourceEffect.PremiumLapsed)
                 },
             )

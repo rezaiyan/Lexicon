@@ -100,7 +100,7 @@ private fun AddWordsSheetContent(
     }
     // Typed words are saved one by one, so refresh right away: the user may close without tapping Done.
     OnEvents(manual.effects) { effect -> if (effect == ManualEntryEffect.WordAdded) onWordsAdded() }
-        OnEvents(file.effects) { onSourceEffect(WordOrigin.File, it) }
+    OnEvents(file.effects) { onSourceEffect(WordOrigin.File, it) }
     OnEvents(photo.effects) { onSourceEffect(WordOrigin.Photo, it) }
     OnEvents(ai.effects) { onSourceEffect(WordOrigin.AiSuggestion, it) }
 
@@ -111,6 +111,10 @@ private fun AddWordsSheetContent(
             state.languages == null -> pages.navigateTo(AddWordsPage.Learning(then = page))
             else -> pages.navigateTo(page)
         }
+    }
+    val openSource: (WordOrigin, AddWordsPage) -> Unit = { origin, page ->
+        if (state.languagesLoaded) host.sourceOpened(origin)
+        open(page)
     }
     val changeLanguages = { pages.navigateTo(AddWordsPage.Learning(then = null)) }
     val openCreateTag = { pages.navigateTo(AddWordsPage.CreateTag) }
@@ -139,10 +143,14 @@ private fun AddWordsSheetContent(
         when (page) {
             AddWordsPage.Chooser -> AddWordsChooserContent(
                 hasImageAccess = state.hasPremiumTools,
-                onAiAssistant = if (state.hasPremiumTools) ({ open(AddWordsPage.AiLevel) }) else null,
-                onTypeWord = { open(AddWordsPage.Manual) },
-                onImportFile = { open(AddWordsPage.File) },
-                onScanPhoto = { open(AddWordsPage.Photo) },
+                onAiAssistant = if (state.hasPremiumTools) {
+                    { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiLevel) }
+                } else {
+                    null
+                },
+                onTypeWord = { openSource(WordOrigin.Manual, AddWordsPage.Manual) },
+                onImportFile = { openSource(WordOrigin.File, AddWordsPage.File) },
+                onScanPhoto = { openSource(WordOrigin.Photo, AddWordsPage.Photo) },
             )
 
             is AddWordsPage.Learning -> ImportLanguageListPage(

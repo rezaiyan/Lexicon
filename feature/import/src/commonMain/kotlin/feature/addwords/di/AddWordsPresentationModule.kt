@@ -13,7 +13,7 @@ import org.koin.dsl.module
 fun addWordsPresentationModule() = module {
     viewModelOf(::AddWordsViewModel)
     viewModelOf(::ManualEntryViewModel)
-    viewModel { FileImportViewModel(get()) }
+    viewModel { FileImportViewModel(get(), get()) }
     viewModelOf(::PhotoImportViewModel)
     viewModelOf(::AiSuggestViewModel)
 }

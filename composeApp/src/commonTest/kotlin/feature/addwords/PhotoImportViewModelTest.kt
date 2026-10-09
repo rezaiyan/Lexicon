@@ -9,6 +9,7 @@ import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
 import domain.word.add.usecase.ExtractWordsFromImageUseCase
 import fakes.FakeAiRepository
+import fakes.FakeAnalyticsTracker
 import fakes.FakeImagePreparer
 import fakes.FakeSubscriptionAccessRepository
 import feature.addwords.model.AddWordsProblem
@@ -30,6 +31,7 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
     private val languages = LanguagePair(Language.GERMAN, Language.ENGLISH)
     private val ai = FakeAiRepository()
     private val image = byteArrayOf(1, 2, 3)
+    private val analytics = FakeAnalyticsTracker()
 
     private fun createViewModel() = PhotoImportViewModel(
         ExtractWordsFromImageUseCase(
@@ -37,6 +39,7 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
             ai,
             RefreshFeatureAccessUseCase(FakeSubscriptionAccessRepository()),
         ),
+        analytics,
     )
 
     @Test
@@ -98,6 +101,22 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
             assertEquals(SourceEffect.PremiumLapsed, awaitItem())
         }
         assertEquals(AddWordsProblem.PremiumRequired, vm.currentState.problem)
+    }
+
+    @Test
+    fun `extract refused for premium logs the failure`() {
+        ai.drafts = Try.failure(DomainError.Commerce.PremiumRequired)
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+
+        vm.extract(languages)
+
+        assertEquals(
+            listOf<Pair<String, Map<String, Any>?>>(
+                "import_failed" to mapOf("method" to "image", "step" to "extract", "error_type" to "PremiumRequired"),
+            ),
+            analytics.events,
+        )
     }
 
     @Test

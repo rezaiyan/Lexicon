@@ -20,6 +20,8 @@ import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.AddWordsResult
 import feature.addwords.model.AddWordsUiState
 import feature.addwords.model.CandidateReview
+import feature.addwords.model.logImportEvent
+import feature.addwords.model.logImportFailed
 import feature.addwords.model.toProblem
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -84,9 +86,15 @@ class AddWordsViewModel(
 
     // --- Review ---
 
+    /** The user picked a way of adding words: top of the add-words funnel. */
+    fun sourceOpened(origin: WordOrigin) = analytics.logImportEvent("import_started", origin)
+
     fun openReview(origin: WordOrigin, drafts: List<WordDraft>, rejected: List<RejectedLine> = emptyList()) {
         updateState { copy(review = CandidateReview.of(origin, drafts, rejected), problem = null, result = null) }
         emitEffect(AddWordsEffect.OpenReview)
+        analytics.logImportEvent(
+            "import_preview_shown", origin, "word_count" to drafts.size, "rejected_count" to rejected.size,
+        )
     }
 
     fun toggleCandidate(id: Int) = updateReview { toggle(id) }
@@ -107,7 +115,11 @@ class AddWordsViewModel(
         )
     }
 
-    fun discardReview() = updateState { copy(review = null, problem = null) }
+    fun discardReview() {
+        val origin = currentState.review?.origin ?: return
+        updateState { copy(review = null, problem = null) }
+        analytics.logImportEvent("import_cancelled", origin, "at_step" to "review")
+    }
 
     fun commitReview() {
         val state = currentState
@@ -130,6 +142,10 @@ class AddWordsViewModel(
                     }
                     emitEffect(AddWordsEffect.ShowResult)
                     // Logged last so a tracker failure can't leave the sheet stuck mid-commit.
+                    analytics.logImportEvent(
+                        "import_confirmed", review.origin,
+                        "word_count" to outcome.added, "duplicates" to outcome.duplicates,
+                    )
                     if (outcome.added > 0) {
                         analytics.logWordsImported(count = outcome.added, method = review.origin.analyticsName)
                     }
@@ -138,10 +154,7 @@ class AddWordsViewModel(
                 onFailure = { error ->
                     val problem = error.toProblem(review.origin)
                     updateState { copy(isCommitting = false, problem = problem) }
-                    analytics.logEvent(
-                        "import_failed",
-                        mapOf("method" to review.origin.analyticsName, "reason" to problem.name),
-                    )
+                    analytics.logImportFailed(review.origin, step = "commit", problem)
                 },
             )
         }

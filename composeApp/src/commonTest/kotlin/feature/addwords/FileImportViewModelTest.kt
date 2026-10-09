@@ -2,6 +2,7 @@ package feature.addwords
 
 import app.cash.turbine.test
 import domain.word.add.usecase.ParseWordFileUseCase
+import fakes.FakeAnalyticsTracker
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.SourceEffect
 import feature.addwords.source.FileImportViewModel
@@ -15,7 +16,9 @@ import kotlin.test.assertIs
 
 class FileImportViewModelTest : ViewModelTestBase() {
 
-    private fun createViewModel() = FileImportViewModel(ParseWordFileUseCase(), UnconfinedTestDispatcher())
+    private val analytics = FakeAnalyticsTracker()
+
+    private fun createViewModel() = FileImportViewModel(ParseWordFileUseCase(), analytics, UnconfinedTestDispatcher())
 
     @Test
     fun `onFilePicked emits the parsed words and the skipped lines`() = runTest {
@@ -48,6 +51,18 @@ class FileImportViewModelTest : ViewModelTestBase() {
         vm.onFilePicked("photo.png", byteArrayOf(0x89.toByte(), 0x50, 0, 0, 0x0D, 0x0A))
 
         assertEquals(AddWordsProblem.UnsupportedFile, vm.currentState.problem)
+    }
+
+    @Test
+    fun `onFilePicked failure logs the load failure`() {
+        createViewModel().onFilePicked("photo.png", byteArrayOf(0x89.toByte(), 0x50, 0, 0, 0x0D, 0x0A))
+
+        assertEquals(
+            listOf<Pair<String, Map<String, Any>?>>(
+                "import_failed" to mapOf("method" to "file", "step" to "load", "error_type" to "UnsupportedFile"),
+            ),
+            analytics.events,
+        )
     }
 
     @Test

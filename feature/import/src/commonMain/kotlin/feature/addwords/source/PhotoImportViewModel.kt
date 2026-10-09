@@ -1,5 +1,6 @@
 package feature.addwords.source
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
@@ -9,6 +10,7 @@ import domain.word.add.model.WordOrigin
 import domain.word.add.usecase.ExtractWordsFromImageUseCase
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.SourceEffect
+import feature.addwords.model.logImportFailed
 import feature.addwords.model.toProblem
 import kotlinx.coroutines.launch
 
@@ -26,6 +28,7 @@ data class PhotoImportState(
 /** Picks a photo and asks the AI for the words in it. Nothing is saved here. */
 class PhotoImportViewModel(
     private val extractWords: ExtractWordsFromImageUseCase,
+    private val analytics: IAnalyticsTracker,
 ) : BaseViewModel<PhotoImportState, SourceEffect>() {
 
     override fun initialState() = PhotoImportState()
@@ -54,7 +57,9 @@ class PhotoImportViewModel(
                     emitEffect(SourceEffect.CandidatesReady(drafts))
                 },
                 onFailure = { error ->
-                    updateState { copy(isExtracting = false, problem = error.toProblem(WordOrigin.Photo)) }
+                    val problem = error.toProblem(WordOrigin.Photo)
+                    updateState { copy(isExtracting = false, problem = problem) }
+                    analytics.logImportFailed(WordOrigin.Photo, step = "extract", problem)
                     if (error is DomainError.Commerce.PremiumRequired) emitEffect(SourceEffect.PremiumLapsed)
                 },
             )

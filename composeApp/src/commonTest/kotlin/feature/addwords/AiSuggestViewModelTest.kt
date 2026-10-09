@@ -27,7 +27,9 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
     private val languages = LanguagePair(Language.SPANISH, Language.ENGLISH)
     private val ai = FakeAiRepository()
 
-    private fun createViewModel() = AiSuggestViewModel(SuggestWordsUseCase(ai), FakeAnalyticsTracker())
+    private val analytics = FakeAnalyticsTracker()
+
+    private fun createViewModel() = AiSuggestViewModel(SuggestWordsUseCase(ai), analytics)
 
     @Test
     fun `generate without a level does nothing`() {
@@ -78,5 +80,23 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
             vm.generate(languages)
             assertEquals(SourceEffect.PremiumLapsed, awaitItem())
         }
+    }
+
+    @Test
+    fun `generate failure logs the topics picked and the failure`() {
+        ai.suggestions = Try.failure(DomainError.Network.NoConnection)
+        val vm = createViewModel()
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
+        vm.toggleTopic("Travel")
+
+        vm.generate(languages)
+
+        assertEquals(
+            listOf<Pair<String, Map<String, Any>?>>(
+                "import_topic_entered" to mapOf("method" to "ai", "topic" to "Travel"),
+                "import_failed" to mapOf("method" to "ai", "step" to "extract", "error_type" to "Offline"),
+            ),
+            analytics.events,
+        )
     }
 }

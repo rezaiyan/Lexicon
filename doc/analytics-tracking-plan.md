@@ -193,12 +193,12 @@ if (previousCount < dailyGoal && currentCount >= dailyGoal) {
 
 ### 2.4 `logWordsImported(count, method)`
 
-**Where to call**: `AiWordImportViewModel` — after import is confirmed and saved.
+**Where it is called** (implemented):
+- `AddWordsViewModel.commitReview`: words from a file, photo or AI review, after `AddWordsUseCase` succeeds.
+- `ManualEntryViewModel.add`: each typed word.
+- `AppNavigationViewModel`: onboarding starter words.
 
-```kotlin
-// AiWordImportViewModel.kt — after saveWordsUseCase succeeds
-analyticsTracker.logWordsImported(count = words.size, method = "ai")
-```
+It is logged only when at least one word was added (all duplicates → no event). `method` is `WordOrigin.analyticsName`: `manual`, `file`, `image`, `ai` or `onboarding`.
 
 ---
 
@@ -269,43 +269,20 @@ ORDER BY 1;
 
 ---
 
-### 3.2 AI Import Funnel
+### 3.2 Add-Words Funnel (implemented)
 
-**File**: `feature/import/src/commonMain/kotlin/feature/aiimport/AiWordImportViewModel.kt`
+One funnel covers every way of adding words. Every event carries `method` (`manual`, `file`, `image`, `ai`), so the funnel can be split by source. Helpers live in `feature/import/.../feature/addwords/model/AddWordsAnalytics.kt`.
 
-**Events to add**:
+| Event | Params | Logged by | When |
+|---|---|---|---|
+| `import_started` | `method` | `AddWordsViewModel.sourceOpened` | User picks a source in the add-words sheet |
+| `import_topic_entered` | `method`, `topic` | `AiSuggestViewModel` | AI topic chip selected. Topics are a fixed list, never free text, so the topic itself is logged |
+| `import_preview_shown` | `method`, `word_count`, `rejected_count` | `AddWordsViewModel.openReview` | Candidates reach the review (file, photo, AI) |
+| `import_confirmed` | `method`, `word_count` (added), `duplicates` | `AddWordsViewModel.commitReview` | Review saved, even when every word was a duplicate |
+| `import_cancelled` | `method`, `at_step` (`review`) | `AddWordsViewModel.discardReview` | User discards the review |
+| `import_failed` | `method`, `step`, `error_type` | source ViewModels and `commitReview` | `step`: `load` (file read), `extract` (photo or AI call) or `commit` (save). `error_type`: `AddWordsProblem` name, e.g. `Offline`, `PremiumRequired`, `UnsupportedFile` |
 
-```kotlin
-// User opens import screen
-analyticsTracker.logEvent("import_started", mapOf("method" to "ai"))
-
-// User types a topic and requests generation
-analyticsTracker.logEvent("import_topic_entered", mapOf("topic_length" to topic.length))
-
-// AI returns preview
-analyticsTracker.logEvent("import_preview_shown", mapOf(
-    "word_count" to words.size,
-    "topic" to topic
-))
-
-// User accepts and saves
-analyticsTracker.logWordsImported(count = words.size, method = "ai")
-analyticsTracker.logEvent("import_confirmed", mapOf(
-    "word_count" to words.size,
-    "topic" to topic
-))
-
-// User cancels at any step
-analyticsTracker.logEvent("import_cancelled", mapOf("at_step" to currentStep))
-
-// AI call fails
-analyticsTracker.logEvent("import_failed", mapOf(
-    "error_type" to errorType,
-    "topic" to topic
-))
-```
-
----
+A premium lapse in the middle of the flow is `import_failed` with `error_type = PremiumRequired`. Manual entry has no review step: it logs `import_started`, then `words_imported` for each word.
 
 ### 3.3 Subscription / Paywall Funnel
 
@@ -662,11 +639,11 @@ onboarding_skipped { at_step }
 
 # Import
 import_started { method }
-import_topic_entered { topic_length }
-import_preview_shown { word_count, topic }
-import_confirmed { word_count, topic }
-import_cancelled { at_step }
-import_failed { error_type, topic }
+import_topic_entered { method, topic }
+import_preview_shown { method, word_count, rejected_count }
+import_confirmed { method, word_count, duplicates }
+import_cancelled { method, at_step }
+import_failed { method, step, error_type }
 
 # Subscription
 subscription_screen_viewed { entry_point }
@@ -703,7 +680,6 @@ words_imported { count, method }                 ← logWordsImported
 | `presentation/src/commonMain/kotlin/presentation/ui/NavigationGraph.kt` | Add `OnDestinationChangedListener` |
 | `feature/study/src/commonMain/kotlin/feature/study/ReviewViewModel.kt` | Wire `logStreakUpdated`, `logWordMastered`, `updateUserProgress` |
 | `feature/study/src/commonMain/kotlin/feature/study/StudyProgressViewModel.kt` | Wire `logDailyGoalCompleted` |
-| `feature/import/src/commonMain/kotlin/feature/aiimport/AiWordImportViewModel.kt` | Add full import funnel events |
 | `feature/onboarding/src/commonMain/kotlin/feature/onboarding/OnboardingViewModel.kt` | Add full onboarding funnel events |
 | `feature/subscription/src/commonMain/kotlin/feature/subscription/SubscriptionViewModel.kt` | Add full subscription funnel events |
 | `feature/leaderboard/src/commonMain/kotlin/feature/leaderboard/LeaderboardViewModel.kt` | Add leaderboard engagement events |

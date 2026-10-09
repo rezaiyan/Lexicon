@@ -1,5 +1,6 @@
 package feature.addwords.source
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
@@ -8,6 +9,7 @@ import domain.word.add.model.WordOrigin
 import domain.word.add.usecase.ParseWordFileUseCase
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.SourceEffect
+import feature.addwords.model.logImportFailed
 import feature.addwords.model.toProblem
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +24,7 @@ data class FileImportState(
 /** Reads a picked text file into candidates for review. Nothing is saved here. */
 class FileImportViewModel(
     private val parseWordFile: ParseWordFileUseCase,
+    private val analytics: IAnalyticsTracker,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : BaseViewModel<FileImportState, SourceEffect>() {
 
@@ -39,7 +42,9 @@ class FileImportViewModel(
                     emitEffect(SourceEffect.CandidatesReady(report.drafts, report.rejected))
                 },
                 onFailure = { error ->
-                    updateState { copy(isParsing = false, problem = error.toProblem(WordOrigin.File)) }
+                    val problem = error.toProblem(WordOrigin.File)
+                    updateState { copy(isParsing = false, problem = problem) }
+                    analytics.logImportFailed(WordOrigin.File, step = "load", problem)
                 },
             )
         }
