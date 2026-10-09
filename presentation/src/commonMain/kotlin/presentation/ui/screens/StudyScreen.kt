@@ -384,7 +384,12 @@ fun StudyScreen(
 
                     // WasmJs has no on-device TTS engine, so listening mode is mobile-only.
                     if (isListeningSupported) {
+                        val listeningStateHolder = listeningViewModel.state()
+                        val listeningHasWords by remember {
+                            derivedStateOf { listeningStateHolder.value.hasWords }
+                        }
                         ListeningCard(
+                            hasWords = listeningHasWords,
                             onListen = openListening,
                             modifier = Modifier.padding(top = Theme.spacing.md),
                         )

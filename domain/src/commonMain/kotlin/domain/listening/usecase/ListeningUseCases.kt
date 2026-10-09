@@ -18,6 +18,8 @@ import domain.word.model.Word
 import domain.word.repository.IWordRepository
 import domain.word.usecase.LoadReviewQueueUseCase
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import utils.Language
 
@@ -40,6 +42,20 @@ class SaveListeningSettingsUseCase(
             repeatCount = params.repeatCount.coerceIn(ListeningSettings.MIN_REPEAT, ListeningSettings.MAX_REPEAT),
         )
     )
+}
+
+/**
+ * Whether a listening session would have any words. Mirrors [BuildListeningQueueUseCase]: due words
+ * come from the focused words, and with none due it falls back to them, so any focused word is enough.
+ */
+class ObserveHasListeningWordsUseCase(
+    private val wordRepository: IWordRepository,
+    private val observeLearningFocus: ObserveLearningFocusUseCase,
+) : NoParamFlowUseCase<Boolean> {
+    override fun invoke(params: Unit): Flow<Boolean> =
+        combine(wordRepository.getAllWords(), observeLearningFocus()) { words, focus ->
+            words.filterBy(focus).isNotEmpty()
+        }.distinctUntilChanged()
 }
 
 /**
