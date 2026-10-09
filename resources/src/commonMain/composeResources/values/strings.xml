@@ -1012,9 +1012,16 @@
     <string name="listening_no_voices_title">No voices available</string>
     <string name="listening_no_voices_subtitle">There is no voice for these languages yet.</string>
     <string name="listening_finished_title">Nice listening!</string>
-    <string name="listening_finished_body">%1$d words · %2$d min</string>
     <string name="listening_listen_again">Listen again</string>
     <string name="listening_done">Done</string>
+    <string name="listening_phase_listen">Listen</string>
+    <string name="listening_phase_recall">Recall the meaning</string>
+    <string name="listening_phase_meaning">Meaning</string>
+    <string name="listening_phase_paused">Paused</string>
+    <string name="listening_settings">Playback settings</string>
+    <string name="listening_round">Round %1$d of %2$d</string>
+    <string name="listening_stat_words">words heard</string>
+    <string name="listening_stat_minutes">minutes</string>
     <string name="listening_error_title">Couldn't load your words</string>
     <string name="listening_retry">Try again</string>
     <!-- Add words (unified sheet) -->
