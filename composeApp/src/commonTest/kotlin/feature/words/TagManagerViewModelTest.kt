@@ -15,7 +15,6 @@ import feature.words.model.TagManagerEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import utils.Language
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -49,8 +48,6 @@ class TagManagerViewModelTest : ViewModelTestBase() {
     }
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)

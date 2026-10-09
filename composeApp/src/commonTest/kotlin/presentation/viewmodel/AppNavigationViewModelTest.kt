@@ -1,11 +1,15 @@
 package presentation.viewmodel
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.NoParamUseCase
 import core.common.Try
 import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
-import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
+import domain.word.add.usecase.AddStarterWordsUseCase
+import domain.word.add.usecase.AddWordsUseCase
+import fakes.FakeAddWordsLanguageRepository
+import kotlin.time.Clock
 import domain.startup.usecase.DetermineAppStartupStateUseCase
 import domain.startup.usecase.DeterminePostAuthDestinationUseCase
 import domain.word.model.LearningStage
@@ -21,6 +25,9 @@ import presentation.ViewModelTestBase
 import feature.auth.AuthPhase
 import presentation.model.AppUiState
 import utils.Language
+import domain.word.add.usecase.UploadPendingWordsUseCase
+import fakes.FakeAnalyticsTracker
+import fakes.FakeWordRepository
 import kotlin.test.Test
 import kotlin.test.assertIs
 import kotlin.test.assertEquals
@@ -63,6 +70,11 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> {
+            insertedWords = words
+            return Try.success(AddWordsOutcome(words.size, 0))
+        }
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun insertWords(words: List<Word>): Try<Int> {
             insertedWords = words
             return Try.success(words.size)
@@ -87,19 +99,23 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
     }
 
+    private val analytics = FakeAnalyticsTracker()
+
     private fun createViewModel(
         hasCompleted: Boolean = true,
         totalWordCount: Int = 0,
         retryAnalyticsSyncUseCase: NoParamUseCase<Unit> = FakeRetryAnalyticsSyncUseCase(),
+        wordRepo: IWordRepository = fakeWordRepo(totalWordCount),
     ): AppNavigationViewModel {
         val onboardingRepo = fakeOnboardingRepo(hasCompleted)
-        val wordRepo = fakeWordRepo(totalWordCount)
         return AppNavigationViewModel(
             onboardingRepository = onboardingRepo,
             retryAnalyticsSyncUseCase = retryAnalyticsSyncUseCase,
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(wordRepo),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
+            analytics = analytics,
         )
     }
 
@@ -155,7 +171,9 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(wordRepo),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
+            analytics = analytics,
         )
         vm.onSessionVerified(isAuthenticated = true)
         assertIs<AppUiState.Ready>(vm.currentState)
@@ -180,7 +198,9 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(wordRepo),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
+            analytics = analytics,
         )
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Ready>(vm.currentState)
@@ -196,7 +216,9 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            importSuggestedVocabularyUseCase = ImportSuggestedVocabularyUseCase(wordRepo),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
+            analytics = analytics,
         )
         vm.onAuthCompleteCheckingData()
         assertIs<AppUiState.Onboarding>(vm.currentState)
@@ -244,6 +266,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         assertEquals(listOf("hola"), insertedWords.map { it.originalWord })
         assertEquals(Language.SPANISH, insertedWords.single().targetLanguage)
         assertEquals(true, onboardingMarkedComplete)
+        assertEquals(listOf(1 to "onboarding"), analytics.wordsImported)
     }
 
     @Test
@@ -255,6 +278,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         assertIs<AppUiState.Ready>(vm.currentState)
         assertEquals(emptyList(), insertedWords)
         assertEquals(true, onboardingMarkedComplete)
+        assertEquals(emptyList(), analytics.wordsImported)
     }
 
     @Test
@@ -279,5 +303,25 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
         val vm = createViewModel(hasCompleted = true, retryAnalyticsSyncUseCase = retryUseCase)
         vm.onSessionVerified(isAuthenticated = false)
         assertEquals(false, retryUseCase.called)
+    }
+
+    @Test
+    fun `onSessionVerified authenticated uploads words added while offline`() = runTest {
+        val words = FakeWordRepository()
+        val vm = createViewModel(hasCompleted = true, wordRepo = words)
+
+        vm.onSessionVerified(isAuthenticated = true)
+
+        assertEquals(1, words.uploadCallCount)
+    }
+
+    @Test
+    fun `onSessionVerified unauthenticated does not upload words`() = runTest {
+        val words = FakeWordRepository()
+        val vm = createViewModel(hasCompleted = true, wordRepo = words)
+
+        vm.onSessionVerified(isAuthenticated = false)
+
+        assertEquals(0, words.uploadCallCount)
     }
 }

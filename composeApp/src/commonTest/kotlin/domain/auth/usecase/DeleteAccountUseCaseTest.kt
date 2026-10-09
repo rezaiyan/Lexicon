@@ -1,5 +1,6 @@
 package domain.auth.usecase
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.Try
 import domain.auth.model.AuthUser
 import domain.auth.service.IAuthenticationService
@@ -19,7 +20,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -95,6 +95,8 @@ class DeleteAccountUseCaseTest {
         override fun getDueCardsByTag(tagId: Long): Flow<List<Word>> = flowOf(emptyList())
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
@@ -119,8 +121,6 @@ class DeleteAccountUseCaseTest {
     private class FakeSettingsRepo : ISettingsRepository {
         var clearSettingsCalled = false
         override suspend fun clearSettings(): Try<Unit> { clearSettingsCalled = true; return Try.success(Unit) }
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override fun getNotificationsEnabled(): Flow<Boolean> = flowOf(true)

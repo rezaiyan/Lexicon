@@ -126,13 +126,6 @@ class AndroidAnalyticsTracker : IAnalyticsTracker {
         analytics.logEvent("theme_changed", bundle)
     }
     
-    override fun logLanguageChanged(language: String) {
-        val bundle = Bundle().apply {
-            putString("target_language", language)
-        }
-        analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle)
-    }
-    
     override fun setUserProperty(name: String, value: String) {
         analytics.setUserProperty(name, value)
     }

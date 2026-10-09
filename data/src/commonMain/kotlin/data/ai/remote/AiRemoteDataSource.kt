@@ -1,11 +1,16 @@
 package data.ai.remote
 
 import data.ai.remote.model.ExtractVocabularyRequest
+import data.ai.remote.model.ExtractWordsRequest
+import data.ai.remote.model.ExtractWordsResponse
+import data.ai.remote.model.SuggestWordsRequest
+import data.ai.remote.model.SuggestWordsResponse
 import data.ai.remote.model.VocabularyExtractionResponse
 import data.core.network.client.ApiClient
 import core.common.Try
 import core.common.fold
 import core.error.DomainError
+import domain.word.add.service.ImageLimits
 import expects.logNetwork
 import utils.Language
 import kotlin.io.encoding.Base64
@@ -18,20 +23,23 @@ class AiRemoteDataSource(
     private val apiClient: ApiClient
 ) : IAiRemoteDataSource {
 
+    override suspend fun extractWords(request: ExtractWordsRequest): Try<ExtractWordsResponse> =
+        apiClient.postNotNull("/ai/extract-words", request)
+
+    override suspend fun suggestWords(request: SuggestWordsRequest): Try<SuggestWordsResponse> =
+        apiClient.postNotNull("/ai/suggest-vocabulary", request)
+
     override suspend fun extractVocabularyFromImage(
         imageBytes: ByteArray,
         targetLanguage: Language,
         extractWords: Boolean,
         extractSentences: Boolean
     ): Try<String> {
-        // Validate image size
-        val maxSizeBytes = 3 * 1024 * 1024
-        if (imageBytes.size > maxSizeBytes) {
-            return Try.failure(Exception("Image too large. Maximum size is 5MB. Please use a smaller image."))
+        if (imageBytes.size > ImageLimits.MAX_UPLOAD_BYTES) {
+            return Try.failure(DomainError.AddWords.ImageTooLarge(ImageLimits.MAX_UPLOAD_BYTES))
         }
-
-        if (imageBytes.size < 128) {
-            return Try.failure(Exception("Image too small or corrupted. Please try a different image."))
+        if (imageBytes.size < ImageLimits.MIN_UPLOAD_BYTES) {
+            return Try.failure(DomainError.AddWords.ImageUnreadable)
         }
 
         val base64Image = Base64.encode(imageBytes)
@@ -52,8 +60,8 @@ class AiRemoteDataSource(
         return result.fold(
             onSuccess = { response ->
                 val extractedText = response.extractedText
-                if (extractedText.isEmpty()) {
-                    Try.failure(Exception("No vocabulary found in the image. Please use an image with visible text."))
+                if (extractedText.isBlank()) {
+                    Try.failure(DomainError.AddWords.NothingRecognized)
                 } else {
                     logNetwork("AiRemoteDataSource", "Successfully extracted vocabulary from image")
                     Try.success(extractedText)
@@ -61,9 +69,9 @@ class AiRemoteDataSource(
             },
             onFailure = { error ->
                 logNetwork("AiRemoteDataSource", "Error extracting vocabulary: ${error.message}")
-                // Typed so the use case can react (refresh access, lock the feature) instead of
-                // showing a generic message.
-                if (error is DomainError.Commerce.PremiumRequired) {
+                // Typed errors pass through so callers can react (premium lapse, offline) without
+                // parsing messages.
+                if (error is DomainError) {
                     Try.failure(error)
                 } else {
                     val userMessage = when {

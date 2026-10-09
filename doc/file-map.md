@@ -40,10 +40,7 @@ word/model/ProgressStats.kt         # Level counts, due cards
 word/model/LearningStage.kt         # 7-level enum
 word/repository/IWordRepository.kt
 word/service/WordSyncService.kt
-word/service/ImportValidationService.kt
 word/usecase/ReviewWordUseCase.kt   # SRS algorithm
-word/usecase/ImportWordsUseCase.kt
-word/usecase/ImportViaFileUseCase.kt
 word/usecase/ExportWordsUseCase.kt
 word/usecase/GetAllWordsUseCase.kt
 word/usecase/GetDueWordsUseCase.kt
@@ -54,11 +51,25 @@ word/usecase/DeleteWordUseCase.kt
 word/usecase/DeleteWordsUseCase.kt
 word/usecase/SyncRemoteToLocalUseCase.kt
 
+word/add/model/WordDraft.kt          # Validated candidate (term, translation, note)
+word/add/model/LanguagePair.kt       # learning + native, never equal
+word/add/model/AddWordsCommand.kt
+word/add/model/WordFile.kt
+word/add/parser/VocabularyTextParser.kt  # CSV/TSV/;/| text → drafts + rejected lines
+word/add/parser/TextDecoder.kt
+word/add/repository/IAddWordsLanguageRepository.kt
+word/add/service/IImagePreparer.kt
+word/add/usecase/AddWordsUseCase.kt  # Single write path (dedupe, tags, upload queue)
+word/add/usecase/AddStarterWordsUseCase.kt
+word/add/usecase/ParseWordFileUseCase.kt
+word/add/usecase/ExtractWordsFromImageUseCase.kt
+word/add/usecase/SuggestWordsUseCase.kt
+word/add/usecase/ResolveAddWordsLanguagesUseCase.kt
+word/add/usecase/UploadPendingWordsUseCase.kt
+
 settings/model/ReviewSettings.kt    # SRS settings (presets)
 settings/model/ThemeMode.kt
 settings/repository/ISettingsRepository.kt
-settings/usecase/GetCurrentLanguageUseCase.kt
-settings/usecase/SetLanguageUseCase.kt
 settings/usecase/GetReviewSettingsUseCase.kt
 settings/usecase/SetThemeModeUseCase.kt
 settings/usecase/SetNotificationsEnabledUseCase.kt
@@ -78,7 +89,6 @@ tts/usecase/SpeakWordUseCase.kt
 tts/usecase/StopSpeakingUseCase.kt
 
 ai/repository/IAiRepository.kt
-ai/usecase/ImportFromImageUseCase.kt
 ai/usecase/IsAiAvailableUseCase.kt
 
 notifications/repository/INotificationRepository.kt
@@ -93,7 +103,6 @@ onboarding/model/OnboardingPreferences.kt
 onboarding/model/SuggestedVocabulary.kt
 onboarding/repository/IOnboardingRepository.kt
 onboarding/usecase/SubmitPreferencesUseCase.kt
-onboarding/usecase/ImportSuggestedVocabularyUseCase.kt
 ```
 
 ## Data Module (`data/src/commonMain/kotlin/data/`)
@@ -183,12 +192,16 @@ ui/screens/subscription/SubscriptionScreen.kt
 ui/screens/subscription/PlanCard.kt
 ui/screens/subscription/ComparisonTable.kt
 
-ui/components/imports/ImportBottomSheet.kt
-ui/components/imports/ImportViewModel.kt
-ui/components/imports/ImportUiState.kt
-ui/components/imports/ImportEffect.kt
-ui/components/imports/AiWordImportBottomSheet.kt
-ui/components/imports/ImportMethodSelectorContent.kt
+ui/components/imports/AddWordsSheet.kt          # Page router for all add-words sources
+ui/components/imports/ScopedViewModelStore.kt   # Sheet-scoped ViewModels
+ui/components/imports/AddWordsChooserContent.kt
+ui/components/imports/CandidateReviewPage.kt    # Shared review (file/photo/AI)
+ui/components/imports/AddWordsProblemText.kt
+ui/components/imports/TextImportTab.kt
+ui/components/imports/FileImportContent.kt
+ui/components/imports/ImagePreviewContent.kt
+ui/components/imports/AiWizardSteps.kt
+ui/components/imports/ImportOutcomeContent.kt
 
 ui/components/FlashCard.kt
 ui/components/LevelBucketCard.kt
@@ -210,7 +223,8 @@ feature/settings/SettingsViewModel.kt
 feature/subscription/SubscriptionViewModel.kt
 feature/onboarding/OnboardingViewModel.kt
 feature/onboarding/VocabularyPreviewViewModel.kt
-feature/aiimport/AiWordImportViewModel.kt
+feature/addwords/AddWordsViewModel.kt          # :feature:import — add-words host VM
+feature/addwords/source/*ViewModel.kt          # Manual / File / Photo / AiSuggest sources
 
 viewmodel/AppNavigationViewModel.kt
 viewmodel/VocabularyViewModel.kt
@@ -274,9 +288,10 @@ iosMain/kotlin/analytics/IOSAnalyticsTracker.kt
 ## Tests
 ```
 composeApp/src/commonTest/kotlin/domain/word/usecase/ReviewWordUseCaseTest.kt
-composeApp/src/commonTest/kotlin/domain/word/usecase/ImportWordsUseCaseTest.kt
 composeApp/src/commonTest/kotlin/domain/word/usecase/ExportWordsUseCaseTest.kt
-composeApp/src/commonTest/kotlin/domain/word/service/ImportValidationServiceTest.kt
+composeApp/src/commonTest/kotlin/domain/word/add/          # Parser, drafts, add-words use cases
+composeApp/src/commonTest/kotlin/feature/addwords/        # AddWords host + source ViewModels
+data/src/androidUnitTest/kotlin/data/word/                # Real-SQLite add/dedupe + language repo
 composeApp/src/commonTest/kotlin/domain/word/model/WordTest.kt
 composeApp/src/commonTest/kotlin/domain/model/ReviewSettingsTest.kt
 composeApp/src/androidInstrumentedTest/kotlin/.../EndToEndReviewTest.kt
@@ -295,7 +310,7 @@ utils/src/commonMain/kotlin/utils/Language.kt          # 14 languages enum
 utils/src/commonMain/kotlin/utils/StringFormatting.kt   # String.format()
 utils/src/commonMain/kotlin/utils/ImageUtils.kt         # ByteArray.toImageBitmap()
 utils/src/commonMain/kotlin/utils/CameraUtils.kt        # rememberCameraLauncher()
-utils/src/commonMain/kotlin/utils/FilePickerCompose.kt  # rememberTextFilePickerLauncher()
+utils/src/commonMain/kotlin/utils/PickedFile.kt         # rememberWordFilePickerLauncher()
 ```
 
 ## iOS App

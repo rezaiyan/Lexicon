@@ -30,6 +30,7 @@ import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
 import components.sheet.SheetSectionLabel
 import domain.tag.model.Tag
+import domain.word.add.usecase.ParseWordFileUseCase
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.add_words_file_title
 import lexicon.resources.generated.resources.choose_a_file
@@ -45,7 +46,8 @@ import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
 import utils.Language
-import utils.rememberTextFilePickerLauncher
+import utils.PickedFile
+import utils.rememberWordFilePickerLauncher
 
 private val SampleLines = listOf(
     "die Wohnung, apartment",
@@ -56,28 +58,23 @@ private val SampleLines = listOf(
 @Composable
 internal fun FileImportContent(
     isLoading: Boolean,
-    sourceLanguage: Language,
-    targetLanguage: Language,
+    problem: String?,
+    learning: Language,
+    native: Language,
     tags: List<Tag>,
     selectedTagId: Long?,
     onTagSelected: (Long?) -> Unit,
     onCreateTag: () -> Unit,
     onChangeLanguage: () -> Unit,
-    importFile: (String, String?) -> Unit,
+    onFilePicked: (PickedFile?) -> Unit,
 ) {
-    val filePickerLauncher = rememberTextFilePickerLauncher { fileContent, fileName ->
-        if (fileContent != null) {
-            importFile(fileContent, fileName)
-        } else if (fileName != null) {
-            importFile("", fileName)
-        }
-    }
+    val filePickerLauncher = rememberWordFilePickerLauncher(ParseWordFileUseCase.MAX_FILE_BYTES, onFilePicked)
 
     SheetPage(
         title = stringResource(Res.string.add_words_file_title),
         subtitle = stringResource(Res.string.file_import_subtitle),
         headerAccessory = {
-            LanguagePairChip(source = sourceLanguage, target = targetLanguage, onClick = onChangeLanguage)
+            LanguagePairChip(source = learning, target = native, onClick = onChangeLanguage)
         },
         footer = {
             SheetPrimaryButton(
@@ -88,6 +85,8 @@ internal fun FileImportContent(
         },
     ) {
         FileDropZone(onClick = filePickerLauncher, isLoading = isLoading)
+
+        ErrorMessage(problem)
 
         Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
             SheetSectionLabel(stringResource(Res.string.how_to_format))

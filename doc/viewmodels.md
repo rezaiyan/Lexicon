@@ -104,20 +104,16 @@ sealed interface WordManagerEvent {
 **Effects**: WordDeleted(count), WordUpdated(word), WordsShared(count, text, timestamp), ShareFailed, Error(message)
 **Sub-handlers**: WordDeletionHandler, WordExportHandler, WordEditingHandler
 
-## ImportViewModel (`ui/components/imports/ImportViewModel.kt`)
-**State**: `state: ImportUiState` (tabs, selectedTab, textInputState, fileImportState, imageImportState)
-Uses `@Composable` state function with `produceState` for dynamic tab visibility based on feature access.
+## AddWordsViewModel (`:feature:import`, `feature/addwords/AddWordsViewModel.kt`)
+**State**: `AddWordsUiState` (learning, native, tags, selectedTagId, hasPremiumTools, review: CandidateReview?, isCommitting, problem, result)
+**Effects**: OpenReview, ShowResult
+**Methods**: `setLearningLanguage()`, `setNativeLanguage()`, `swapLanguages()`, `selectTag()`, `createTag()`, `openReview()`, `toggleCandidate()`, `setAllCandidatesSelected()`, `removeCandidate()`, `startEditingCandidate()`, `saveCandidateEdit()`, `discardReview()`, `commitReview()`, `finishManualEntry()`, `onPremiumLapsed()`
 
-**Events**: FileImportSuccessful, ImageImportSuccessful, Error
-
-**Methods**: `selectTab()`, `updateWord()`, `updateTranslation()`, `addWord()`, `selectImage()`, `importImage()`, `importFile()`, `confirmImport()`, `selectSourceLanguage()`, `selectTargetLanguage()`
-
-## AiWordImportViewModel (`feature/aiimport/AiWordImportViewModel.kt`)
-**State**: `state: StateFlow<AiWordImportUiState>`
-**Steps**: TARGET_LANG -> NATIVE_LANG -> LEVEL -> TOPICS -> PREVIEW
-
-**Events**: ImportSuccess(count), Dismiss
-**Methods**: `selectTargetLanguage()`, `selectNativeLanguage()`, `selectLevel()`, `toggleTopic()`, `toggleWordSelection()`, `nextStep()`, `previousStep()`, `submit()`, `importSelected()`, `reset()`
+Source VMs (`feature/addwords/source/`) produce candidates and emit `SourceEffect.CandidatesReady` / `PremiumLapsed`:
+- `ManualEntryViewModel`: `add(languages, tagIds)`; saves directly, with a double-submit guard and a duplicate message.
+- `FileImportViewModel`: `onFilePicked(name, bytes)`.
+- `PhotoImportViewModel`: `onPhotoPicked()`, `clearPhoto()`, `extract(languages)`.
+- `AiSuggestViewModel`: `selectLevel()`, `toggleTopic()`, `generate(languages)`.
 
 ## OnboardingViewModel (`feature/onboarding/OnboardingViewModel.kt`)
 **State**: `state: StateFlow<OnboardingUiState>` (currentStep, selectedLanguages, selectedLevel, interests, isLoading, error)

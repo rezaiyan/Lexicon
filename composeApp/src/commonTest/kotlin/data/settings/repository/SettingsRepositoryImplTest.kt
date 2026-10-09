@@ -15,7 +15,6 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -30,53 +29,6 @@ class SettingsRepositoryImplTest {
         remote: ISettingsRemoteDataSource = FakeSettingsRemoteDataSource(),
         scope: CoroutineScope = CoroutineScope(UnconfinedTestDispatcher()),
     ) = SettingsRepositoryImpl(localDataSource, remote, scope)
-
-    // --- Language ---
-
-    @Test
-    fun `getLanguage returns English when no settings exist`() = runTest {
-        val repo = createRepo()
-
-        val language = repo.getLanguage().first()
-
-        assertEquals(Language.ENGLISH, language)
-    }
-
-    @Test
-    fun `getLanguage returns stored language`() = runTest {
-        localDataSource.settings = SettingsEntityData(languageCode = "de")
-        val repo = createRepo()
-
-        val language = repo.getLanguage().first()
-
-        assertEquals(Language.GERMAN, language)
-    }
-
-    @Test
-    fun `setLanguage saves language code`() = runTest {
-        val repo = createRepo()
-
-        repo.setLanguage(Language.SPANISH)
-
-        assertEquals("es", localDataSource.settings?.languageCode)
-    }
-
-    @Test
-    fun `setLanguage preserves other settings`() = runTest {
-        localDataSource.settings = SettingsEntityData(
-            languageCode = "en",
-            themeMode = "DARK",
-            notificationsEnabled = false
-        )
-        val repo = createRepo()
-
-        repo.setLanguage(Language.FRENCH)
-
-        val saved = localDataSource.settings
-        assertEquals("fr", saved?.languageCode)
-        assertEquals("DARK", saved?.themeMode)
-        assertFalse(saved!!.notificationsEnabled)
-    }
 
     // --- Theme Mode ---
 
@@ -268,28 +220,14 @@ class SettingsRepositoryImplTest {
     // --- Edge Cases ---
 
     @Test
-    fun `setLanguage creates default settings when none exist`() = runTest {
-        val repo = createRepo()
-
-        repo.setLanguage(Language.PERSIAN)
-
-        val saved = localDataSource.settings
-        assertEquals("fa", saved?.languageCode)
-        assertEquals("AUTO", saved?.themeMode)
-        assertTrue(saved!!.notificationsEnabled)
-    }
-
-    @Test
     fun `multiple setters accumulate on same settings record`() = runTest {
         val repo = createRepo()
 
-        repo.setLanguage(Language.GERMAN)
         repo.setThemeMode(ThemeMode.DARK)
         repo.setNotificationsEnabled(false)
         repo.setMinimumDueCards(20)
 
         val saved = localDataSource.settings
-        assertEquals("de", saved?.languageCode)
         assertEquals("DARK", saved?.themeMode)
         assertFalse(saved!!.notificationsEnabled)
         assertEquals(20, saved.minimumDueCards)

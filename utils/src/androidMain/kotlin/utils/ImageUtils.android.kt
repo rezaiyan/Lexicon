@@ -11,26 +11,8 @@ import java.io.ByteArrayOutputStream
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap? {
     return try {
-        var bitmap = BitmapFactory.decodeByteArray(this, 0, this.size) ?: return null
-        
-        val exif = ExifInterface(ByteArrayInputStream(this))
-        val orientation = exif.getAttributeInt(
-            ExifInterface.TAG_ORIENTATION,
-            ExifInterface.ORIENTATION_NORMAL
-        )
-        
-        bitmap = when (orientation) {
-            ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(bitmap, 90f)
-            ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(bitmap, 180f)
-            ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(bitmap, 270f)
-            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> flipBitmap(bitmap, horizontal = true)
-            ExifInterface.ORIENTATION_FLIP_VERTICAL -> flipBitmap(bitmap, vertical = true)
-            ExifInterface.ORIENTATION_TRANSPOSE -> transposeBitmap(bitmap)
-            ExifInterface.ORIENTATION_TRANSVERSE -> transverseBitmap(bitmap)
-            else -> bitmap
-        }
-        
-        bitmap.asImageBitmap()
+        val bitmap = BitmapFactory.decodeByteArray(this, 0, this.size) ?: return null
+        bitmap.applyExifOrientation(this).asImageBitmap()
     } catch (e: Exception) {
         try {
             val bitmap = BitmapFactory.decodeByteArray(this, 0, this.size)
@@ -40,6 +22,56 @@ actual fun ByteArray.toImageBitmap(): ImageBitmap? {
         }
     }
 }
+
+private fun Bitmap.applyExifOrientation(source: ByteArray): Bitmap {
+    val orientation = ExifInterface(ByteArrayInputStream(source)).getAttributeInt(
+        ExifInterface.TAG_ORIENTATION,
+        ExifInterface.ORIENTATION_NORMAL
+    )
+    return when (orientation) {
+        ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(this, 90f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(this, 180f)
+        ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(this, 270f)
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> flipBitmap(this, horizontal = true)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> flipBitmap(this, vertical = true)
+        ExifInterface.ORIENTATION_TRANSPOSE -> transposeBitmap(this)
+        ExifInterface.ORIENTATION_TRANSVERSE -> transverseBitmap(this)
+        else -> this
+    }
+}
+
+@Suppress("SwallowedException")
+actual fun ByteArray.normalizeForUpload(maxEdgePx: Int, quality: Float): ByteArray? = try {
+    decodeSampled(maxEdgePx)
+        ?.applyExifOrientation(this)
+        ?.scaledToFit(maxEdgePx)
+        ?.toJpeg(quality)
+} catch (_: IllegalArgumentException) {
+    null
+} catch (_: OutOfMemoryError) {
+    null
+}
+
+/** Decodes at the smallest power-of-two sample that still covers [maxEdgePx], so big photos fit in memory. */
+private fun ByteArray.decodeSampled(maxEdgePx: Int): Bitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(this, 0, size, bounds)
+    val longest = maxOf(bounds.outWidth, bounds.outHeight)
+    if (longest <= 0) return null
+    var sample = 1
+    while (longest / (sample * 2) >= maxEdgePx) sample *= 2
+    return BitmapFactory.decodeByteArray(this, 0, size, BitmapFactory.Options().apply { inSampleSize = sample })
+}
+
+private fun Bitmap.scaledToFit(maxEdgePx: Int): Bitmap {
+    val scale = maxEdgePx / maxOf(width, height).toFloat()
+    if (scale >= 1f) return this
+    return Bitmap.createScaledBitmap(this, (width * scale).toInt(), (height * scale).toInt(), true)
+}
+
+private fun Bitmap.toJpeg(quality: Float): ByteArray = ByteArrayOutputStream().also { out ->
+    compress(Bitmap.CompressFormat.JPEG, (quality.coerceIn(0f, 1f) * 100).toInt(), out)
+}.toByteArray()
 
 private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
     val matrix = Matrix().apply { postRotate(degrees) }

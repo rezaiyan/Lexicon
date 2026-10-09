@@ -44,18 +44,17 @@ Includes all sub-modules.
 - **Data sources**: WordLocalDataSource, WordRemoteDataSource, AiRemoteDataSource
 - **Sync**: WordRemoteSyncHandler, WordConflictResolver
 - **Repositories**: IWordRepository (WordRepositoryImpl), IAiRepository (AiRepositoryImpl)
-- **Services**: IImportValidationService (ImportValidationService)
-- **Use cases**: ReviewWordUseCase, ImportWordsUseCase, ImportFromImageUseCase, ImportViaFileUseCase, GetProgressStatsUseCase, GetWordsByStageUseCase, GetDueWordsUseCase, IsAiAvailableUseCase, SyncRemoteToLocalUseCase, GetAllWordsUseCase, DeleteWord/DeleteWordsUseCase, UpdateWordUseCase, ExportWordsUseCase
+- **Use cases**: ReviewWordUseCase, GetProgressStatsUseCase, GetWordsByStageUseCase, GetDueWordsUseCase, IsAiAvailableUseCase, SyncRemoteToLocalUseCase, GetAllWordsUseCase, DeleteWord/DeleteWordsUseCase, UpdateWordUseCase, ExportWordsUseCase
 
 ## SettingsModule (`di/SettingsModule.kt`)
 - **Data sources**: StreakRemoteDataSource
 - **Repositories**: ISettingsRepository (SettingsRepositoryImpl), IStreakRepository (StreakRepositoryImpl)
-- **Use cases**: GetCurrentLanguageUseCase, GetReviewSettingsUseCase, SetLanguageUseCase, SetThemeModeUseCase, SetNotificationsEnabledUseCase, GetStreakUseCase, RecordStreakActivityUseCase
+- **Use cases**: GetReviewSettingsUseCase, SetThemeModeUseCase, SetNotificationsEnabledUseCase, GetStreakUseCase, RecordStreakActivityUseCase
 
 ## OnboardingModule (`di/OnboardingModule.kt`)
 - **Data source**: OnboardingRemoteDataSource
 - **Repository**: IOnboardingRepository (OnboardingRepositoryImpl)
-- **Use cases**: SubmitPreferencesUseCase, ImportSuggestedVocabularyUseCase
+- **Use cases**: SubmitPreferencesUseCase
 
 ## TtsModule (`di/TtsModule.kt`)
 - Creates TTS engine and model file manager via platform factories
@@ -76,19 +75,21 @@ Includes all sub-modules.
 - **Platform**: IAnalyticsTracker (platform factory)
 - **Managers**: IUserManager (UserManagerImpl), IStreakManager (StreakManagerImpl)
 - **Notification permission monitor**
-- **ViewModels** (13 total):
+- **ViewModels**:
   1. AuthViewModel
   2. SettingsViewModel
   3. AppNavigationViewModel
   4. StudyViewModel
-  5. ImportViewModel
-  6. VocabularyViewModel
-  7. WordManagerViewModel
-  8. ProfileViewModel
-  9. SubscriptionViewModel
-  10. OnboardingViewModel
-  11. VocabularyPreviewViewModel
-  12. AiWordImportViewModel
+  5. VocabularyViewModel
+  6. WordManagerViewModel
+  7. ProfileViewModel
+  8. SubscriptionViewModel
+  9. OnboardingViewModel
+  10. VocabularyPreviewViewModel
+
+## AddWords modules
+- `AddWordsModule` (composeApp): add-words use cases, `IAddWordsLanguageRepository`, `IImagePreparer`, `UploadPendingWordsUseCase`.
+- `addWordsPresentationModule()` (`:feature:import`): AddWordsViewModel + Manual/File/Photo/AiSuggest source VMs. They are resolved inside the sheet's `ScopedViewModelStore`, so they are cleared when the sheet closes.
 
 ## Platform Modules
 

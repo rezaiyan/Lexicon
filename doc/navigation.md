@@ -74,7 +74,7 @@ overlayHost.showDialog(tag = "logout") { nav ->
 
 // Show full-screen bottom sheet
 overlayHost.showFullscreenBottomSheet(tag = "import", properties = ...) { nav ->
-    ImportBottomSheet(onDismiss = { nav.dismiss() })
+    AddWordsSheet(onClose = { nav.dismiss() }, onWordsAdded = {}, onStartReview = {})
 }
 ```
 

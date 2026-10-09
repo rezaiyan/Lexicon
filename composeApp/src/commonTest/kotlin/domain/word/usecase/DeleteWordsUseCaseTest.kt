@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.Try
 import domain.word.repository.DeleteWordsProgress
 import domain.word.repository.IWordRepository
@@ -270,6 +271,8 @@ internal class FakeWordRepositoryForDelete : IWordRepository {
     override fun getDueCardsByTag(tagId: Long) = kotlinx.coroutines.flow.flowOf<List<domain.word.model.Word>>(emptyList())
     override fun getWordsByStage(stage: domain.word.model.LearningStage) = kotlinx.coroutines.flow.flowOf<List<domain.word.model.Word>>(emptyList())
     override suspend fun getWordById(id: Int) = null
+    override suspend fun addWords(words: List<domain.word.model.Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+    override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
     override suspend fun insertWords(words: List<domain.word.model.Word>): Try<Int> = Try.success(words.size)
     override suspend fun updateWord(word: domain.word.model.Word): Try<Unit> = Try.success(Unit)
     override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)

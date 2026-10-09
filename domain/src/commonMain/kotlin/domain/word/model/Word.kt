@@ -32,5 +32,35 @@ data class Word(
         return originalWord.trim().equals(other.originalWord.trim(), ignoreCase = true) &&
                 translation.trim().equals(other.translation.trim(), ignoreCase = true)
     }
+
+    /** Identity used to skip duplicates when adding: same term and translation in the same learning language. */
+    val identity: WordIdentity
+        get() = WordIdentity(originalWord.trim().lowercase(), translation.trim().lowercase(), targetLanguage)
+
+    companion object {
+        /** A brand-new card with default spaced-repetition state, due right away. */
+        @Suppress("LongParameterList")
+        fun newCard(
+            term: String,
+            translation: String,
+            note: String,
+            learningLanguage: Language,
+            nativeLanguage: Language,
+            tagIds: List<Long>,
+            nowMillis: Long,
+        ) = Word(
+            id = 0,
+            originalWord = term,
+            translation = translation,
+            description = note,
+            sourceLanguage = nativeLanguage,
+            targetLanguage = learningLanguage,
+            nextReviewDate = nowMillis,
+            dateAdded = nowMillis,
+            tagIds = tagIds,
+        )
+    }
 }
+
+data class WordIdentity(val term: String, val translation: String, val learningLanguage: Language)
 

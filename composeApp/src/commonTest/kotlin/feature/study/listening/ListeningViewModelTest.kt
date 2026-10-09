@@ -8,7 +8,6 @@ import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
-import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
@@ -95,7 +94,7 @@ class ListeningViewModelTest {
             buildQueue = BuildListeningQueueUseCase(loadQueue, wordRepository, observeFocus),
             checkVoices = CheckListeningVoicesUseCase(ttsRepository),
             downloadVoice = DownloadTtsModelUseCase(ttsRepository),
-            speakWord = SpeakWordUseCase(ttsRepository, GetCurrentLanguageUseCase(settings)),
+            speakWord = SpeakWordUseCase(ttsRepository),
             stopSpeaking = StopSpeakingUseCase(ttsRepository),
             observeSettings = ObserveListeningSettingsUseCase(listeningSettings),
             saveSettings = SaveListeningSettingsUseCase(listeningSettings),

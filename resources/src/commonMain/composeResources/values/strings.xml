@@ -297,7 +297,7 @@
     <string name="supported_format">Supported Format</string>
     <string name="format_example_1">word,translation</string>
     <string name="format_example_2">word,translation,description</string>
-    <string name="format_example_3">Separated by semicolons or new lines</string>
+    <string name="format_example_3">Commas, semicolons or tabs all work</string>
     <string name="format_hint_comma_separated">Format: word,translation</string>
     <string name="ai_powered_extraction">AI-Powered Extraction</string>
     <string name="capture_vocab_from_image">Capture vocabulary from photos or screenshots</string>
@@ -629,8 +629,8 @@
     <string name="ai_wizard_select_all">Select all</string>
     <string name="ai_wizard_deselect_all">Deselect all</string>
     <string name="ai_wizard_ai_suggestions">AI Suggestions</string>
-    <string name="ai_wizard_discard_title">Discard suggestions?</string>
-    <string name="ai_wizard_discard_message">Your AI-generated vocabulary list will be lost.</string>
+    <string name="ai_wizard_discard_title">Discard these words?</string>
+    <string name="ai_wizard_discard_message">Words you haven't added yet will be lost.</string>
     <string name="ai_wizard_discard">Discard</string>
     <string name="ai_wizard_keep">Keep</string>
     <string name="ai_import_success">Added %1$d words to your library!</string>
@@ -795,7 +795,7 @@
     <string name="add_words_type_title">Type a word</string>
     <string name="add_words_type_subtitle">One at a time, with translation and a note</string>
     <string name="add_words_file_title">Import a file</string>
-    <string name="add_words_file_subtitle">A .txt list, one word per line</string>
+    <string name="add_words_file_subtitle">A text or CSV list, one word per line</string>
     <string name="add_words_photo_title">Scan a photo</string>
     <string name="add_words_photo_subtitle">Pull words from a page or screenshot</string>
     <string name="word_language_title">What language are your words in?</string>
@@ -809,9 +809,9 @@
     <string name="no_tag">None</string>
     <string name="added_this_session">Added this session</string>
     <string name="added_count">%1$d added</string>
-    <string name="file_import_subtitle">Bring in a whole list at once from a .txt file.</string>
+    <string name="file_import_subtitle">Bring in a whole list at once from a text or CSV file.</string>
     <string name="choose_a_file">Choose a file</string>
-    <string name="file_hint">.txt · one word per line</string>
+    <string name="file_hint">.txt, .csv or .tsv · one word per line</string>
     <string name="how_to_format">How to format it</string>
     <string name="confirm_import_title">Check your languages</string>
     <string name="confirm_import_subtitle">Make sure translations line up before importing.</string>
@@ -823,7 +823,7 @@
     <string name="photo_best_results">For best results</string>
     <string name="photo_tip_light">Good light, page flat</string>
     <string name="photo_tip_sharp">Text sharp and fully in frame</string>
-    <string name="photo_tip_format">JPEG or PNG, under 5 MB</string>
+    <string name="photo_tip_format">JPEG or PNG, large photos are shrunk for you</string>
     <string name="take_photo">Take a photo</string>
     <string name="choose_from_gallery_cta">Choose from gallery</string>
     <string name="photo_preview_title">Looks good?</string>
@@ -831,7 +831,7 @@
     <string name="retake">Retake</string>
     <string name="extract_words">Extract words</string>
     <string name="review_found_title">We found %1$d words</string>
-    <string name="review_found_subtitle">Edit anything that looks off, or remove what you don't need.</string>
+    <string name="review_found_subtitle">Untick what you don't need, or tap the pencil to fix a word.</string>
     <string name="edit_word_cd">Edit %1$s</string>
     <string name="remove_word_cd">Remove %1$s</string>
     <string name="step_of">Step %1$d of %2$d</string>
@@ -1018,4 +1018,21 @@
     <string name="listening_done">Done</string>
     <string name="listening_error_title">Couldn't load your words</string>
     <string name="listening_retry">Try again</string>
+    <!-- Add words (unified sheet) -->
+    <string name="add_words_problem_premium">This needs Lexicon Premium. Your subscription may have ended.</string>
+    <string name="add_words_problem_file_too_large">This file is too big. Split it into files under 1 MB.</string>
+    <string name="add_words_problem_unsupported_file">This isn't a text file. Pick a .txt, .csv or .tsv file.</string>
+    <string name="add_words_problem_empty_file">This file is empty.</string>
+    <string name="add_words_problem_nothing_in_photo">No words found in this photo. Try a sharper, well-lit shot.</string>
+    <string name="add_words_problem_nothing_suggested">No suggestions this time. Try other topics.</string>
+    <string name="add_words_problem_image_unreadable">Couldn't read this image. Try another photo.</string>
+    <string name="add_words_problem_image_too_large">This photo is too large. Try a smaller one.</string>
+    <string name="add_words_problem_missing_term">Enter the word.</string>
+    <string name="add_words_problem_missing_translation">Enter a translation.</string>
+    <string name="add_words_problem_too_long">That's too long. Keep words under 200 characters.</string>
+    <string name="add_words_problem_generic">Something went wrong. Please try again.</string>
+    <string name="add_words_already_added">You already have this word.</string>
+    <string name="add_words_skipped_lines">Skipped lines: %1$d (missing translation or unreadable)</string>
+    <string name="add_words_duplicates_skipped">%1$d already in your list, skipped</string>
+    <string name="add_words_native_title">What language are the translations in?</string>
 </resources>

@@ -1,7 +1,6 @@
 package data.network.interceptor
 
 import data.core.network.error.AuthenticationException
-import data.core.network.error.NetworkException
 import data.core.network.error.PremiumRequiredException
 import data.core.network.error.ServerException
 import data.core.network.interceptor.ErrorInterceptor
@@ -18,7 +17,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertIs
 
 /**
  * Tests for ErrorInterceptor: verifies that it maps non-2xx status codes to typed domain
@@ -95,24 +93,25 @@ class ErrorInterceptorTest {
     }
 
     @Test
-    fun `404 Not Found throws NetworkException`() = runTest {
+    fun `404 Not Found throws ServerException with the status not a connectivity error`() = runTest {
         val engine = MockEngine { respond("Not Found", HttpStatusCode.NotFound, jsonHeaders()) }
         val client = buildClient(engine)
 
-        val ex = assertFailsWith<NetworkException> {
+        val ex = assertFailsWith<ServerException> {
             client.get("https://api.test/missing")
         }
-        assertIs<NetworkException>(ex)
+        assertEquals(404, ex.statusCode)
     }
 
     @Test
-    fun `400 Bad Request throws NetworkException`() = runTest {
+    fun `400 Bad Request throws ServerException with the status`() = runTest {
         val engine = MockEngine { respond("Bad Request", HttpStatusCode.BadRequest, jsonHeaders()) }
         val client = buildClient(engine)
 
-        assertFailsWith<NetworkException> {
+        val ex = assertFailsWith<ServerException> {
             client.get("https://api.test/resource")
         }
+        assertEquals(400, ex.statusCode)
     }
 
     @Test
@@ -132,15 +131,16 @@ class ErrorInterceptorTest {
     }
 
     @Test
-    fun `429 Too Many Requests throws NetworkException`() = runTest {
+    fun `429 Too Many Requests throws ServerException with the status`() = runTest {
         val engine = MockEngine {
             respond("Too Many Requests", HttpStatusCode.TooManyRequests, jsonHeaders())
         }
         val client = buildClient(engine)
 
-        assertFailsWith<NetworkException> {
+        val ex = assertFailsWith<ServerException> {
             client.get("https://api.test/resource")
         }
+        assertEquals(429, ex.statusCode)
     }
 
     // -------------------------------------------------------------------------

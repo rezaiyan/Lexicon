@@ -38,7 +38,7 @@ class NotificationTapHandlerTest {
     }
 
     @Test
-    fun `review reminder tap opens study tab, requests a due review and reports the open`() = runTest {
+    fun `review reminder tap opens study tab and requests a due review and reports the open`() = runTest {
         navigator.reviewRequests.test {
             handler().onNotificationTapped(
                 mapOf(NotificationTapHandler.TYPE_KEY to PushTypes.REVIEW_REMINDER, "notification_log_id" to "5")

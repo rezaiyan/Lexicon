@@ -16,7 +16,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import utils.Language
 import kotlin.test.Test
+import core.error.DomainError
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class AiRemoteDataSourceTest {
@@ -83,8 +85,7 @@ class AiRemoteDataSourceTest {
         )
 
         assertTrue(result is Try.Failure)
-        val message = requireNotNull(result.throwable.message) { "Expected non-null error message" }
-        assertTrue(message.contains("too large"))
+        assertIs<DomainError.AddWords.ImageTooLarge>(result.throwable)
     }
 
     @Test
@@ -98,8 +99,7 @@ class AiRemoteDataSourceTest {
         )
 
         assertTrue(result is Try.Failure)
-        val message = requireNotNull(result.throwable.message) { "Expected non-null error message" }
-        assertTrue(message.contains("too small"))
+        assertIs<DomainError.AddWords.ImageUnreadable>(result.throwable)
     }
 
     @Test
@@ -115,8 +115,7 @@ class AiRemoteDataSourceTest {
         )
 
         assertTrue(result is Try.Failure)
-        val message = requireNotNull(result.throwable.message) { "Expected non-null error message" }
-        assertTrue(message.contains("No vocabulary found"))
+        assertIs<DomainError.AddWords.NothingRecognized>(result.throwable)
     }
 
     @Test

@@ -5,7 +5,6 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import data.core.database.LexiconDatabase
 import data.core.database.LexiconQueries
 import data.tag.local.TagLocalDataSource
-import fakes.FakeSettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
@@ -33,7 +32,7 @@ class WordDeletionTagCountTest {
         driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         LexiconDatabase.Schema.synchronous().create(driver)
         queries = LexiconDatabase(driver).lexiconQueries
-        words = WordLocalDataSource(queries, FakeSettingsRepository())
+        words = WordLocalDataSource(queries)
         tags = TagLocalDataSource(queries)
     }
 

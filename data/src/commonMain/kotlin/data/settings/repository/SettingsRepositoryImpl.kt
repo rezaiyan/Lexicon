@@ -12,24 +12,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import utils.Language
 
 class SettingsRepositoryImpl(
     private val localDataSource: ISettingsLocalDataSource,
     private val remoteDataSource: ISettingsRemoteDataSource,
     private val scope: CoroutineScope,
 ) : ISettingsRepository {
-
-    override fun getLanguage(): Flow<Language> {
-        return localDataSource.observeSettings()
-            .map { settings -> Language.fromCode(settings?.languageCode ?: "en") }
-    }
-
-    override suspend fun setLanguage(language: Language): Try<Unit> = Try {
-        val current = localDataSource.getSettings() ?: SettingsEntityData()
-        val updated = current.copy(languageCode = language.code)
-        localDataSource.saveSettings(updated)
-    }
 
     override fun getThemeMode(): Flow<ThemeMode> {
         return localDataSource.observeSettings()

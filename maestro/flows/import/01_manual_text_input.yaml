@@ -3,91 +3,64 @@ tags:
   - import
   - manual-input
 ---
-# Test: Add a word via manual text input on the import sheet.
+# Test: add a word by typing it, then try the same word again.
 #
-# Verifies the full manual word entry flow: open import sheet → choose method →
-# pick source language → fill in word/translation/description → tap "Add Word" →
-# success counter shown → close.
-#
-# Uses a unique word name (Import + timestamp) so the word is always NEW and
-# "1 word added" always appears — avoids the "already exist" ambiguity and
-# ensures the backend actually processed the import.
+# open sheet → "Type a word" → fill word/translation/note → Add Word → word is
+# listed under "Added this session" → same word again (different case) is
+# refused with "You already have this word." → Done → result page → Done.
 
-# Generate a unique word so the import always succeeds with "1 word added".
 - evalScript: ${output.importWord = 'Import' + Date.now()}
 
 - runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/open_add_words.yaml
+- tapOn: "Type a word"
+- runFlow: ../utils/pick_add_words_languages.yaml
 
-# Open the import picker.
-- tapOn: "Import Words"
-
-# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
-- tapOn: "Manually"
-
-# The import method chooser page shows cards for each import method.
-- assertVisible: "Type Text"
-- assertVisible: "From File"
-
-# Tap "Type Text" to start the manual text input flow.
-- tapOn: "Type Text"
-
-# The source language chooser appears.
 - extendedWaitUntil:
-    visible: "What language are the original words?"
+    visible: "Translation"
     timeout: 5000
+- assertVisible: "Word"
+- assertVisible: "Note · optional"
 
-# Select "English" as the source language.
-- tapOn: "English"
-
-# The manual entry section header must be visible.
-- extendedWaitUntil:
-    visible: "Add a Word"
-    timeout: 5000
-
-# The subtitle must be visible.
-- assertVisible: "Add vocabulary words one at a time with translation and optional description"
-
-# Visible form fields must be present (Description is below the fold).
-- assertVisible: "Original Word"
-- assertVisible: "Translation"
-
-# Fill in the "Original Word" field.
-# waitForAnimationToEnd after tap ensures Compose establishes the IME connection
-# before eraseText/inputText — without it, inputText intermittently types nothing.
-- tapOn: "Original Word"
+- tapOn: "Word"
 - waitForAnimationToEnd
 - eraseText: 50
 - inputText: "${output.importWord}"
-- hideKeyboard
-
-# Fill in the "Translation" field.
 - tapOn: "Translation"
 - waitForAnimationToEnd
 - eraseText: 50
 - inputText: "TestImport"
-- hideKeyboard
-
-# Scroll down to reveal the Description field and Add Word button.
-- scrollUntilVisible:
-    element: "Description (Optional)"
-    direction: DOWN
-
-# Fill in the optional "Description" field.
-- tapOn: "Description (Optional)"
+- tapOn: "Note · optional"
+- waitForAnimationToEnd
 - inputText: "Added by Maestro import test"
-- hideKeyboard
 
-# Tap "Add Word" to submit.
 - tapOn: "Add Word"
-
-# The unique word is always new → "1 word added" must appear.
-# If this times out the backend failed or inputText typed nothing.
 - extendedWaitUntil:
-    visible: "1 word added"
+    visible: "Added this session"
+    timeout: 8000
+- assertVisible: "${output.importWord} · TestImport"
+
+# Same word, different case: it's a duplicate and is not added again.
+- tapOn: "Word"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "${output.importWord.toLowerCase()}"
+- tapOn: "Translation"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "testimport"
+- tapOn: "Add Word"
+- extendedWaitUntil:
+    visible: "You already have this word."
     timeout: 8000
 
-# Close the import sheet via the X icon (content description: "Close").
+- tapOn: "Done"
+- extendedWaitUntil:
+    visible: "1 word added"
+    timeout: 5000
+- assertVisible: "Start Review"
+- assertVisible: "Add more words"
 - tapOn: "Close"
-
-# Verify we are back on the Study screen.
-- assertVisible: "Import Words"
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

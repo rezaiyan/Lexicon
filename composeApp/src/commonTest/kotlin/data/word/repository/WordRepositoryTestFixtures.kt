@@ -9,10 +9,12 @@ import data.word.remote.model.RemoteWord
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
 import domain.auth.session.ISessionManager
+import domain.word.add.model.AddWordsOutcome
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -82,6 +84,24 @@ internal class FakeWordLocalDataSource : IWordLocalDataSource {
     }
 
     override suspend fun getMostCommonSourceLanguage(): String? = null
+
+    val pendingUploadIds = mutableListOf<Int>()
+    private var nextId = 1000
+
+    override suspend fun addNewWords(words: List<Word>): AddWordsOutcome {
+        if (shouldThrowOnInsert) throw RuntimeException("Local insert failed")
+        val known = storedWords.mapTo(mutableSetOf()) { it.identity }
+        val fresh = words.filter { known.add(it.identity) }.map { it.copy(id = nextId++) }
+        storedWords.addAll(fresh)
+        pendingUploadIds.addAll(fresh.map { it.id })
+        return AddWordsOutcome(fresh.size, words.size - fresh.size, fresh.map { it.originalWord })
+    }
+
+    override suspend fun getPendingUploads(): List<Word> = storedWords.filter { it.id in pendingUploadIds }
+
+    override suspend fun markUploaded(ids: List<Int>) {
+        pendingUploadIds.removeAll(ids)
+    }
 }
 
 internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
@@ -250,4 +270,5 @@ internal fun makeRepository(
     resolver: FakeWordConflictResolver = FakeWordConflictResolver(),
     session: FakeSessionManager = FakeSessionManager(authenticated = true),
     settings: FakeSettingsLocalDataSource = FakeSettingsLocalDataSource(),
-) = WordRepositoryImpl(local, remote, resolver, session, settings)
+    scope: CoroutineScope = CoroutineScope(UnconfinedTestDispatcher()),
+) = WordRepositoryImpl(local, remote, resolver, session, settings, scope)

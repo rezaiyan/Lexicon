@@ -1,5 +1,6 @@
 package presentation.feature.auth
 
+import domain.word.add.model.AddWordsOutcome
 import fakes.FakeSubscriptionAccessRepository
 import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
 import feature.auth.AuthViewModel
@@ -91,6 +92,8 @@ class AuthViewModelTest : ViewModelTestBase() {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flowOf()
@@ -156,7 +159,6 @@ class AuthViewModelTest : ViewModelTestBase() {
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
-        override fun logLanguageChanged(language: String) {}
         override fun setUserProperty(name: String, value: String) {}
         override fun updateUserProgress(totalWords: Int, matureWords: Int, currentStreak: Int) {}
         override fun logError(error: Throwable, context: String?) {}

@@ -24,6 +24,7 @@ Quick-reference documentation for Claude AI to understand and work on the Lexico
 | [navigation.md](navigation.md) | Navigation routes, app flow, overlay system |
 | [testing.md](testing.md) | Test structure, patterns, fake implementations |
 | [notifications.md](notifications.md) | Push/local notification system, payload handlers |
+| [deeplinks.md](deeplinks.md) | App entry points: notification tap routing, widget, OAuth callback |
 | [auth-flow.md](auth-flow.md) | Authentication flow, token management, session handling |
 | [spaced-repetition.md](spaced-repetition.md) | 7-bucket SRS algorithm details |
 | [import-export.md](import-export.md) | Word import/export formats and flows |

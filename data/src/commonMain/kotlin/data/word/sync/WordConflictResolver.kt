@@ -20,7 +20,8 @@ class WordConflictResolver : IWordConflictResolver {
         val localWordMapByContent = localWords.associateBy { entity ->
             WordContentKey(
                 originalWord = entity.originalWord.trim().lowercase(),
-                translation = entity.translation.trim().lowercase()
+                translation = entity.translation.trim().lowercase(),
+                learningLanguage = entity.targetLanguage,
             )
         }
 
@@ -30,7 +31,8 @@ class WordConflictResolver : IWordConflictResolver {
         for (remote in validRemoteWords) {
             val contentKey = WordContentKey(
                 originalWord = remote.originalWord.trim().lowercase(),
-                translation = remote.translation.trim().lowercase()
+                translation = remote.translation.trim().lowercase(),
+                learningLanguage = remote.targetLanguage,
             )
 
             val existingByContent = localWordMapByContent[contentKey]
@@ -64,5 +66,6 @@ class WordConflictResolver : IWordConflictResolver {
         return entitiesByContent.values.toList()
     }
 
-    private data class WordContentKey(val originalWord: String, val translation: String)
+    /** Same identity as adding words: the same word in another learning language is a different word. */
+    private data class WordContentKey(val originalWord: String, val translation: String, val learningLanguage: String)
 }

@@ -13,7 +13,6 @@ fun onboardingModule() = module {
     viewModel {
         OnboardingViewModel(
             submitPreferencesUseCase = get(),
-            setLanguageUseCase = get(),
             setDailyGoalWordsUseCase = get(),
             analyticsTracker = get(),
             deviceLanguageProvider = get(),

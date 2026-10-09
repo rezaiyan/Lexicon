@@ -1,5 +1,6 @@
 package domain.word.service
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.Try
 import core.common.getOrThrow
 import domain.word.model.LearningStage
@@ -97,6 +98,8 @@ class WordSyncServiceTest {
 
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(existingFlow.value)
         override fun getAllWords(): Flow<List<Word>> = existingFlow
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun insertWords(words: List<Word>): Try<Int> {
             if (words.isNotEmpty()) {
                 lastInserted.clear()

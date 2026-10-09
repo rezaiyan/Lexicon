@@ -10,7 +10,6 @@ import domain.onboarding.model.OnboardingPreferences
 import domain.onboarding.model.ProficiencyLevel
 import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.usecase.SetDailyGoalWordsUseCase
-import domain.settings.usecase.SetLanguageUseCase
 import feature.onboarding.model.DailyGoalOption
 import feature.onboarding.model.OnboardingEffect
 import feature.onboarding.model.OnboardingStep
@@ -21,7 +20,6 @@ import utils.Language
 
 class OnboardingViewModel(
     private val submitPreferencesUseCase: SubmitPreferencesUseCase,
-    private val setLanguageUseCase: SetLanguageUseCase,
     private val setDailyGoalWordsUseCase: SetDailyGoalWordsUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     deviceLanguageProvider: DeviceLanguageProvider,
@@ -108,7 +106,6 @@ class OnboardingViewModel(
         viewModelScope.launch {
             submitPreferencesUseCase(OnboardingPreferences(target, native, level))
                 .onSuccess { words ->
-                    setLanguageUseCase(target)
                     setDailyGoalWordsUseCase(state.dailyGoal.words)
                     analyticsTracker.logEvent("onboarding_completed")
                     // Submission stays InProgress so the progress screen holds until navigation swaps it out.

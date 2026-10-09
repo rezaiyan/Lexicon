@@ -9,7 +9,6 @@ import domain.onboarding.usecase.SubmitPreferencesUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.SetDailyGoalWordsUseCase
-import domain.settings.usecase.SetLanguageUseCase
 import fakes.FakeAnalyticsTracker
 import feature.onboarding.DeviceLanguageProvider
 import feature.onboarding.OnboardingViewModel
@@ -38,7 +37,6 @@ class OnboardingViewModelTest : ViewModelTestBase() {
     private var submitGate: CompletableDeferred<Unit>? = null
     private var submittedPreferences: OnboardingPreferences? = null
     private var submitCount = 0
-    private var languageSet: Language? = null
     private var dailyGoalSet: Int? = null
 
     private fun testResponse() = listOf(
@@ -60,11 +58,6 @@ class OnboardingViewModelTest : ViewModelTestBase() {
     }
 
     private val settingsRepository = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> {
-            languageSet = language
-            return Try.success(Unit)
-        }
         override suspend fun setDailyGoalWords(count: Int): Try<Unit> {
             dailyGoalSet = count
             return Try.success(Unit)
@@ -86,7 +79,6 @@ class OnboardingViewModelTest : ViewModelTestBase() {
 
     private fun createViewModel(deviceLanguage: String? = "en") = OnboardingViewModel(
         submitPreferencesUseCase = SubmitPreferencesUseCase(onboardingRepository),
-        setLanguageUseCase = SetLanguageUseCase(settingsRepository),
         setDailyGoalWordsUseCase = SetDailyGoalWordsUseCase(settingsRepository),
         analyticsTracker = FakeAnalyticsTracker(),
         deviceLanguageProvider = DeviceLanguageProvider { deviceLanguage },
@@ -268,7 +260,6 @@ class OnboardingViewModelTest : ViewModelTestBase() {
             OnboardingPreferences(Language.GERMAN, Language.ENGLISH, ProficiencyLevel.INTERMEDIATE),
             submittedPreferences,
         )
-        assertEquals(Language.GERMAN, languageSet)
         assertEquals(20, dailyGoalSet)
     }
 
@@ -291,7 +282,6 @@ class OnboardingViewModelTest : ViewModelTestBase() {
         vm.next()
 
         assertEquals(OnboardingSubmission.Failed("Network error"), vm.currentState.submission)
-        assertNull(languageSet)
         assertNull(dailyGoalSet)
     }
 

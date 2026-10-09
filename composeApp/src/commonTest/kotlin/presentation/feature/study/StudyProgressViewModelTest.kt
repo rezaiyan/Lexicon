@@ -1,5 +1,6 @@
 package presentation.feature.study
 
+import domain.word.add.model.AddWordsOutcome
 import fakes.FakeSubscriptionManager
 import analytics.IAnalyticsTracker
 import core.common.Try
@@ -61,6 +62,8 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = allWords
         override suspend fun getWordById(id: Int): Word? = null
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
         override fun updateWordsLanguages(
@@ -102,8 +105,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
     }
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
@@ -147,7 +148,6 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
-        override fun logLanguageChanged(language: String) {}
         override fun setUserProperty(name: String, value: String) {}
         override fun updateUserProgress(totalWords: Int, matureWords: Int, currentStreak: Int) {}
         override fun logError(error: Throwable, context: String?) {}

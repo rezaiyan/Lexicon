@@ -40,124 +40,51 @@ tags:
 # 2. LAUNCH — Navigate to Study screen
 # ─────────────────────────────────────────────
 - runFlow: ../utils/navigate_to_study.yaml
-
-# ─────────────────────────────────────────────
-# 3. OPEN IMPORT SHEET
-# ─────────────────────────────────────────────
-- tapOn: "Import Words"
+- runFlow: ../utils/open_add_words.yaml
+- tapOn: "Scan a photo"
+- runFlow: ../utils/pick_add_words_languages.yaml
 
 - extendedWaitUntil:
-    visible: "Manually"
-    timeout: 10000
-
-- waitForAnimationToEnd
-
-# ─────────────────────────────────────────────
-# 4. CHOOSE MANUAL → FROM IMAGE
-# ─────────────────────────────────────────────
-- tapOn: "Manually"
-
-- extendedWaitUntil:
-    visible: "From Image"
-    timeout: 10000
-
-- waitForAnimationToEnd
-
-- tapOn: "From Image"
-
-- waitForAnimationToEnd
-
-# ─────────────────────────────────────────────
-# 5. SET SOURCE LANGUAGE = GERMAN
-# ─────────────────────────────────────────────
-# The worksheet is a German vocabulary list — select German as the source.
-- extendedWaitUntil:
-    visible: "What language are the original words?"
+    visible: "Choose from gallery"
     timeout: 5000
-
-# Verify the chooser subtitle references the user's translation language.
-- assertVisible: "What language are the original words?"
-
-- tapOn: "German"
-
-- waitForAnimationToEnd
-
-# ─────────────────────────────────────────────
-# 6. VERIFY IMAGE CONTENT PAGE
-# ─────────────────────────────────────────────
-# The ImageContent page must show two picker options.
-- extendedWaitUntil:
-    visible: "Gallery"
-    timeout: 5000
-
-- assertVisible: "Gallery"
-- assertVisible: "Camera"
-
-# ─────────────────────────────────────────────
-# 7. OPEN GALLERY PICKER
-# ─────────────────────────────────────────────
-- tapOn: "Gallery"
-
-# Wait for the system photo picker to fully render.
+- assertVisible: "Take a photo"
+- tapOn: "Choose from gallery"
 - waitForAnimationToEnd
 - waitForAnimationToEnd
 
-# ─────────────────────────────────────────────
-# 8. SELECT THE SEEDED IMAGE
-# ─────────────────────────────────────────────
-# The Android photo picker (PickVisualMedia) shows a bottom-sheet with a
-# "Lexicon will only have access to the photos you select" privacy banner.
-# Dismiss it first so the photo grid becomes fully interactive.
+# Android 14+ photo picker may show a one-time banner; dismiss it if present.
 - tapOn:
     text: "Dismiss"
     optional: true
-
 - waitForAnimationToEnd
 
-# The seeded image is the most recently added — it appears at the top-left
-# of the grid (first thumbnail, left column) after the banner is dismissed.
-# Coordinates: x≈17% (left column), y≈30% (near top of photo grid).
+# Tap the first image in the picker grid (the asset pushed via addMedia).
 - tapOn:
     point: "17%,30%"
-
 - waitForAnimationToEnd
 - waitForAnimationToEnd
 
-# ─────────────────────────────────────────────
-# 9. VERIFY IMAGE PREVIEW IS SHOWN
-# ─────────────────────────────────────────────
-# After selecting the image, the app shows a preview card with a
-# "Confirm & Extract" button and an optional "Remove" / cancel link.
 - extendedWaitUntil:
-    visible: "Confirm & Extract"
+    visible: "Extract words"
     timeout: 15000
-
-- assertVisible: "Confirm & Extract"
-
 - takeScreenshot: maestro/recordings/image_import_gallery_01_preview
-
-# ─────────────────────────────────────────────
-# 10. TRIGGER AI EXTRACTION
-# ─────────────────────────────────────────────
-- tapOn: "Confirm & Extract"
-
+- tapOn: "Extract words"
 - waitForAnimationToEnd
-
-# Capture the AI scan overlay (animated wave on the thumbnail).
 - takeScreenshot: maestro/recordings/image_import_gallery_02_ai_scan
 
-# ─────────────────────────────────────────────
-# 11. WAIT FOR EXTRACTION TO COMPLETE
-# ─────────────────────────────────────────────
-# On success: ImportEffect.ImageImportSuccessful dismisses the sheet and
-# shows a snackbar "X words imported". Wait for the Study screen to return.
-# 90 s ceiling covers slow backend / CI emulator conditions.
+# The AI call can take a while; the shared review page opens with the words found.
+- extendedWaitUntil:
+    visible: "We found .* words"
+    timeout: 90000
+- tapOn: "Add .* words"
+- extendedWaitUntil:
+    visible: ".*added"
+    timeout: 15000
+- tapOn: "Close"
 - extendedWaitUntil:
     visible: "Import Words"
-    timeout: 90000
-
+    timeout: 5000
 - waitForAnimationToEnd
-
 - takeScreenshot: maestro/recordings/image_import_gallery_03_success
 
 # Verify the Study screen is fully restored (import sheet is gone).

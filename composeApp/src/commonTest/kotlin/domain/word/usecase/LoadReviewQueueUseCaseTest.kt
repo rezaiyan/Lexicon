@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.Try
 import core.common.getOrNull
 import domain.focus.model.LearningFocus
@@ -65,6 +66,8 @@ class LoadReviewQueueUseCaseTest {
         override fun getAllWords(): Flow<List<Word>> = flowOf(allWords)
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(allWords)
         override suspend fun getWordById(id: Int): Word? = null
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
@@ -92,8 +95,6 @@ class LoadReviewQueueUseCaseTest {
     private inner class FakeSettingsRepository(
         private val dailyGoal: Int = Int.MAX_VALUE,
     ) : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language) = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode) = Try.success(Unit)
         override suspend fun clearSettings() = Try.success(Unit)

@@ -16,7 +16,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import tts.IModelFileManager
 import tts.ITtsEngine
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -30,8 +29,6 @@ class TtsRepositoryImplTest {
     private val modelFileManager = FakeModelFileManager()
     private val performanceTracer = FakePerformanceTracer()
     private val fakeSettingsRepository = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)

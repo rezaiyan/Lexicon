@@ -20,65 +20,50 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.animation.AiScanOverlay
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
-import components.sheet.SheetSectionLabel
 import components.sheet.SheetTonalButton
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.extract_words
 import lexicon.resources.generated.resources.failed_to_load_image
-import lexicon.resources.generated.resources.image_too_large_warning
 import lexicon.resources.generated.resources.photo_preview_title
-import lexicon.resources.generated.resources.photo_quality
 import lexicon.resources.generated.resources.preview_selected_image
 import lexicon.resources.generated.resources.retake
 import lexicon.resources.generated.resources.try_another_image
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import utils.LexiconFormatters
 import utils.toImageBitmap
 
-private const val MaxImageBytes = 5 * 1024 * 1024
 private val ErrorPlaceholderHeight = 180.dp
 
-// Portrait shots are letterboxed at 3:4 so the quality slider stays above the fold
+// Portrait shots are letterboxed at 3:4 so the actions stay above the fold
 private const val MinAspectRatio = 0.75f
 private const val MaxAspectRatio = 2.5f
 
-/** "Looks good?" — the picked photo, quality control and extract / retake actions. */
+/** "Looks good?" — the picked photo with extract / retake actions. */
 @Composable
 internal fun PhotoPreviewPage(
     imageBytes: ByteArray,
     isLoading: Boolean,
     isEnabled: Boolean,
-    imageQuality: Float,
-    onQualityChange: (Float) -> Unit,
+    problem: String?,
     onConfirm: () -> Unit,
     onRetake: () -> Unit,
 ) {
     val imageBitmap = remember(imageBytes) { imageBytes.toImageBitmap() }
-    val isTooBig = imageBytes.size > MaxImageBytes
 
     SheetPage(
         title = stringResource(Res.string.photo_preview_title),
@@ -93,7 +78,7 @@ internal fun PhotoPreviewPage(
                 SheetPrimaryButton(
                     text = stringResource(Res.string.extract_words),
                     onClick = onConfirm,
-                    enabled = isEnabled && imageBitmap != null && !isTooBig,
+                    enabled = isEnabled && imageBitmap != null,
                     isLoading = isLoading,
                     icon = Icons.Default.AutoAwesome,
                     modifier = Modifier.weight(1f),
@@ -130,69 +115,7 @@ internal fun PhotoPreviewPage(
             ImageLoadError()
         }
 
-        if (imageBitmap != null && !isLoading) {
-            QualityControl(
-                imageBytes = imageBytes,
-                isTooBig = isTooBig,
-                isEnabled = isEnabled,
-                imageQuality = imageQuality,
-                onQualityChange = onQualityChange,
-            )
-        }
-
-        if (isTooBig) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { liveRegion = LiveRegionMode.Polite }
-                    .clip(RoundedCornerShape(Theme.shapes.medium))
-                    .background(MaterialTheme.colorScheme.errorContainer)
-                    .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
-                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs + Theme.spacing.xxxs),
-            ) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
-                )
-                Text(
-                    stringResource(Res.string.image_too_large_warning),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun QualityControl(
-    imageBytes: ByteArray,
-    isTooBig: Boolean,
-    isEnabled: Boolean,
-    imageQuality: Float,
-    onQualityChange: (Float) -> Unit,
-) {
-    var sliderValue by remember(imageQuality) { mutableFloatStateOf(imageQuality) }
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SheetSectionLabel(stringResource(Res.string.photo_quality), Modifier.weight(1f))
-            Text(
-                LexiconFormatters.fileSizeApprox(imageBytes.size),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (isTooBig) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Slider(
-            value = sliderValue,
-            onValueChange = { sliderValue = it },
-            onValueChangeFinished = { onQualityChange(sliderValue) },
-            valueRange = 0.2f..1.0f,
-            enabled = isEnabled,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        ErrorMessage(problem)
     }
 }
 

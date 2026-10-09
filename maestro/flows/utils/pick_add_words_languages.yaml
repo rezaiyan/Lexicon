@@ -1,0 +1,14 @@
+# Utility flow: answer the language questions the sheet asks when it can't
+# guess a pair (no words yet and nothing added before). Does nothing otherwise.
+appId: com.alirezaiyan.vokab
+---
+- runFlow:
+    when:
+      visible: "What language are your words in?"
+    commands:
+      - tapOn: "German"
+      - extendedWaitUntil:
+          visible: "What language are the translations in?"
+          timeout: 5000
+      - tapOn: "English"
+      - waitForAnimationToEnd

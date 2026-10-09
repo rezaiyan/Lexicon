@@ -6,8 +6,15 @@ import data.word.mapper.toDomain
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
 import core.common.Try
+import core.common.flatMap
 import core.common.fold
+import core.common.map
+import core.common.onSuccess
 import domain.auth.session.ISessionManager
+import domain.word.add.model.AddWordsOutcome
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -30,7 +37,10 @@ class WordRepositoryImpl(
     private val conflictResolver: IWordConflictResolver,
     private val sessionManager: ISessionManager,
     private val settingsLocalDataSource: ISettingsLocalDataSource,
+    private val scope: CoroutineScope,
 ) : IWordRepository {
+
+    private val uploadMutex = Mutex()
 
     companion object {
         private const val SYNC_FRESH_THRESHOLD_MS = 30_000L
@@ -82,6 +92,23 @@ class WordRepositoryImpl(
             remoteSyncHandler.syncWordsToRemote(newWords)
             settingsLocalDataSource.setWordSyncTimestamp(Clock.System.now().toEpochMilliseconds())
             newWords.size + wordsToUpdate.size
+        }
+    }
+
+    override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> {
+        if (words.isEmpty()) return Try.success(AddWordsOutcome(added = 0, duplicates = 0))
+        return Try { localDataSource.addNewWords(words) }
+            .onSuccess { outcome -> if (outcome.added > 0) scope.launch { uploadPendingWords() } }
+    }
+
+    override suspend fun uploadPendingWords(): Try<Int> = uploadMutex.withLock {
+        if (!sessionManager.isAuthenticated()) return@withLock Try.success(0)
+        Try { localDataSource.getPendingUploads() }.flatMap { pending ->
+            if (pending.isEmpty()) return@flatMap Try.success(0)
+            // Local ids mean nothing to the server; it matches new words by content.
+            remoteSyncHandler.syncWordsToRemote(pending.map { it.copy(id = 0) })
+                .flatMap { Try { localDataSource.markUploaded(pending.map { it.id }) } }
+                .map { pending.size }
         }
     }
 
@@ -186,6 +213,8 @@ class WordRepositoryImpl(
 
     override suspend fun syncWithRemote(): Try<Unit> {
         if (!sessionManager.isAuthenticated()) return Try.success(Unit)
+        // Push before pull: words added offline reach the server even when the pull is skipped as fresh.
+        uploadPendingWords()
         val lastSyncedAt = settingsLocalDataSource.getWordSyncTimestamp()
         val syncStartedAt = Clock.System.now().toEpochMilliseconds()
         if (syncStartedAt - lastSyncedAt < SYNC_FRESH_THRESHOLD_MS) return Try.success(Unit)

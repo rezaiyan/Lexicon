@@ -1,13 +1,17 @@
 package presentation.viewmodel
 
+import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.common.NoParamUseCase
 import core.common.fold
 import core.common.getOrDefault
+import core.common.onSuccess
 import domain.onboarding.model.SuggestedVocabulary
 import domain.onboarding.repository.IOnboardingRepository
-import domain.onboarding.usecase.ImportSuggestedVocabularyUseCase
+import domain.word.add.model.WordOrigin
 import domain.startup.model.AppStartupDestination
+import domain.word.add.usecase.AddStarterWordsUseCase
+import domain.word.add.usecase.UploadPendingWordsUseCase
 import domain.startup.usecase.DetermineAppStartupStateUseCase
 import domain.startup.usecase.DeterminePostAuthDestinationUseCase
 import kotlinx.coroutines.launch
@@ -20,7 +24,9 @@ class AppNavigationViewModel(
     private val retryAnalyticsSyncUseCase: NoParamUseCase<Unit>,
     private val determineAppStartupStateUseCase: DetermineAppStartupStateUseCase,
     private val determinePostAuthDestinationUseCase: DeterminePostAuthDestinationUseCase,
-    private val importSuggestedVocabularyUseCase: ImportSuggestedVocabularyUseCase,
+    private val addStarterWordsUseCase: AddStarterWordsUseCase,
+    private val uploadPendingWordsUseCase: UploadPendingWordsUseCase,
+    private val analytics: IAnalyticsTracker,
 ) : BaseViewModel<AppUiState, Nothing>() {
 
     override fun initialState(): AppUiState = AppUiState.Auth()
@@ -29,9 +35,10 @@ class AppNavigationViewModel(
     val isVerifying: Boolean get() = (currentState as? AppUiState.Auth)?.phase == AuthPhase.Verifying
 
     fun onSessionVerified(isAuthenticated: Boolean) {
-        // Retry any sessions that failed to sync in a previous run — fire-and-forget.
+        // Retry what failed to reach the server in a previous run (analytics, words added offline) — fire-and-forget.
         if (isAuthenticated) {
             viewModelScope.launch { retryAnalyticsSyncUseCase(Unit) }
+            viewModelScope.launch { uploadPendingWordsUseCase(Unit) }
         }
         viewModelScope.launch {
             determineAppStartupStateUseCase(isAuthenticated).fold(
@@ -51,8 +58,8 @@ class AppNavigationViewModel(
      */
     fun onOnboardingFinished(words: List<SuggestedVocabulary>) {
         viewModelScope.launch {
-            if (words.isNotEmpty()) {
-                importSuggestedVocabularyUseCase(ImportSuggestedVocabularyUseCase.Params(words))
+            addStarterWordsUseCase(words).onSuccess { outcome ->
+                if (outcome.added > 0) analytics.logWordsImported(outcome.added, WordOrigin.Onboarding.analyticsName)
             }
             onboardingRepository.markOnboardingCompleted()
             updateState { AppUiState.Ready }
