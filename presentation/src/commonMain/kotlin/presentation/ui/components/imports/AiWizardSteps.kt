@@ -157,8 +157,6 @@ internal fun AiTopicsStep(
     onToggleTopic: (String) -> Unit,
     onGenerate: () -> Unit,
     generateEnabled: Boolean = true,
-    cost: Int? = null,
-    balance: Int? = null,
 ) {
     SheetPage(
         title = stringResource(Res.string.ai_wizard_topics_title),
@@ -180,7 +178,6 @@ internal fun AiTopicsStep(
                 enabled = generateEnabled,
                 icon = Icons.Default.AutoAwesome,
             )
-            CreditSpendHint(cost = cost, balance = balance)
         },
     ) {
         BoxWithConstraints {

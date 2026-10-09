@@ -265,8 +265,6 @@ private fun AddWordsSheetContent(
                         onToggleTopic = ai::toggleTopic,
                         onGenerate = { ai.generate(state.languages) },
                         generateEnabled = aiState.canGenerate,
-                        cost = state.credits?.costOf(CreditAction.AI_SUGGESTION),
-                        balance = state.credits?.balance,
                     )
                 }
             }
@@ -366,8 +364,6 @@ private fun PhotoPage(
             onRotate = photo::rotatePhoto,
             onConfirm = { photo.extract(state.languages) },
             onRetake = photo::clearPhoto,
-            cost = state.credits?.costOf(CreditAction.PHOTO_EXTRACTION),
-            balance = state.credits?.balance,
         )
     }
 }
