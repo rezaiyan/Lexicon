@@ -17,6 +17,7 @@ fun appModule(
         ttsModule(),
         listeningModule(),
         addWordsModule(),
+        creditsModule(),
         settingsModule(),
         onboardingModule(),
         profileModule(),

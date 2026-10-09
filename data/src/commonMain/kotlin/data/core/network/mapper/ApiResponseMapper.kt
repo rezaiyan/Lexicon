@@ -35,7 +35,7 @@ class ApiResponseMapper {
         return Try.success(apiResponse.data)
     }
 
-    fun mapUnitResponse(
+    suspend fun mapUnitResponse(
         httpResponse: HttpResponse
     ): Try<Unit> {
         if (httpResponse.status.value !in 200..299) {

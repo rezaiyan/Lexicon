@@ -90,6 +90,7 @@ internal fun NavigationGraph(
         composable<TabDestination.Study> {
             StudyScreen(
                 onNavigateToSettings = { navController.navigate(SettingsRoute) },
+                onOpenSubscription = { navController.navigate(SubscriptionRoute) { launchSingleTop = true } },
             )
         }
 

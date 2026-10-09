@@ -19,6 +19,7 @@ fun Throwable.toUserMessage(): String = when (this) {
     is DomainError.Auth.SessionExpired -> "Your session expired. Please sign in again."
     is DomainError.Auth.Unauthorized -> "You don't have permission to do that."
     is DomainError.Commerce.PremiumRequired -> "This feature requires a subscription."
+    is DomainError.Commerce.InsufficientCredits -> "You don't have enough credits for this."
     is DomainError.Commerce.PurchaseFailed -> "Purchase failed. Please try again."
     is DomainError.Commerce.PurchaseCancelled -> "Purchase cancelled."
     is DomainError.Commerce.PaymentPending -> "Payment is pending. Premium unlocks as soon as the store confirms it."

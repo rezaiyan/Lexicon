@@ -95,17 +95,20 @@ fun SubscriptionScreen(
             is UiState.Loaded -> when (val value = content.value) {
                 is SubscriptionContent.Member -> SubscriptionActiveContent(
                     membership = value.membership,
+                    monthlyAiCredits = state.monthlyAiCredits,
                     onManage = actions.onManage,
                 )
                 is SubscriptionContent.Paused -> SubscriptionPausedContent(
                     resumesOn = value.resumesOn,
                     daysLeft = value.daysLeft,
+                    monthlyAiCredits = state.monthlyAiCredits,
                     onResume = actions.onManage,
                 )
                 is SubscriptionContent.Paywall -> SubscriptionNotSubscribedContent(
                     plans = value.plans,
                     selectedPlanId = state.selectedPlanId,
                     isPurchasing = state.isPurchasing,
+                    monthlyAiCredits = state.monthlyAiCredits,
                     onSelectPlan = actions.onSelectPlan,
                     onPurchase = actions.onPurchase,
                     onRestoreClick = actions.onRestore,

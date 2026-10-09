@@ -8,6 +8,7 @@ import domain.word.add.model.WordOrigin
 enum class AddWordsProblem {
     Offline,
     PremiumRequired,
+    OutOfCredits,
     RateLimited,
     FileTooLarge,
     UnsupportedFile,
@@ -26,6 +27,7 @@ enum class AddWordsProblem {
 fun Throwable.toProblem(origin: WordOrigin): AddWordsProblem = when (this) {
     is DomainError.Network.NoConnection, is DomainError.Network.Timeout -> AddWordsProblem.Offline
     is DomainError.Commerce.PremiumRequired -> AddWordsProblem.PremiumRequired
+    is DomainError.Commerce.InsufficientCredits -> AddWordsProblem.OutOfCredits
     is DomainError.Network.RateLimited -> AddWordsProblem.RateLimited
     is DomainError.AddWords.FileTooLarge -> AddWordsProblem.FileTooLarge
     is DomainError.AddWords.UnsupportedFile -> AddWordsProblem.UnsupportedFile

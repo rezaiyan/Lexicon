@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import domain.credits.model.CreditAction
+import domain.credits.model.CreditTier
 import domain.word.add.model.WordOrigin
 import events.OnEvents
 import expects.BackHandler
@@ -12,6 +14,8 @@ import feature.addwords.AddWordsViewModel
 import feature.addwords.model.AddWordsEffect
 import feature.addwords.model.AddWordsUiState
 import feature.addwords.model.SourceEffect
+import feature.addwords.model.canStart
+import feature.addwords.model.creditAction
 import feature.addwords.source.AiSuggestViewModel
 import feature.addwords.source.FileImportViewModel
 import feature.addwords.source.ManualEntryEffect
@@ -44,6 +48,9 @@ private sealed interface AddWordsPage {
     data object Result : AddWordsPage
     data object CreateTag : AddWordsPage
 
+    /** [origin] (a paid source) costs more credits than the user has. */
+    data class OutOfCredits(val origin: WordOrigin) : AddWordsPage
+
     /** Language setup; continues to [then] (or back to where it was opened) once both are picked. */
     data class Learning(val then: AddWordsPage?) : AddWordsPage
     data class Native(val then: AddWordsPage?) : AddWordsPage
@@ -55,14 +62,16 @@ private sealed interface AddWordsPage {
  *
  * @param onWordsAdded called after words were saved (refresh counts).
  * @param onStartReview offered on the result page when non-null.
+ * @param onOpenSubscription offered when credits run out; the caller closes the sheet and opens the paywall.
  */
 @Composable
 fun AddWordsSheet(
     onClose: () -> Unit,
     onWordsAdded: () -> Unit,
     onStartReview: (() -> Unit)? = null,
+    onOpenSubscription: (() -> Unit)? = null,
 ) = ScopedViewModelStore {
-    AddWordsSheetContent(onClose, onWordsAdded, onStartReview)
+    AddWordsSheetContent(onClose, onWordsAdded, onStartReview, onOpenSubscription)
 }
 
 @Composable
@@ -71,6 +80,7 @@ private fun AddWordsSheetContent(
     onClose: () -> Unit,
     onWordsAdded: () -> Unit,
     onStartReview: (() -> Unit)?,
+    onOpenSubscription: (() -> Unit)?,
 ) {
     val host = koinViewModel<AddWordsViewModel>()
     val manual = koinViewModel<ManualEntryViewModel>()
@@ -95,7 +105,10 @@ private fun AddWordsSheetContent(
     val onSourceEffect: (WordOrigin, SourceEffect) -> Unit = { origin, effect ->
         when (effect) {
             is SourceEffect.CandidatesReady -> host.openReview(origin, effect.drafts, effect.rejected)
-            SourceEffect.PremiumLapsed -> host.onPremiumLapsed()
+            SourceEffect.OutOfCredits -> {
+                host.onOutOfCredits()
+                pages.navigateTo(AddWordsPage.OutOfCredits(origin))
+            }
         }
     }
     // Typed words are saved one by one, so refresh right away: the user may close without tapping Done.
@@ -113,8 +126,14 @@ private fun AddWordsSheetContent(
         }
     }
     val openSource: (WordOrigin, AddWordsPage) -> Unit = { origin, page ->
-        if (state.languagesLoaded) host.sourceOpened(origin)
-        open(page)
+        when {
+            // Known to be short: say so now rather than after the user picked a photo or topics
+            !state.credits.canStart(origin) -> pages.navigateTo(AddWordsPage.OutOfCredits(origin))
+            else -> {
+                if (state.languagesLoaded) host.sourceOpened(origin)
+                open(page)
+            }
+        }
     }
     val changeLanguages = { pages.navigateTo(AddWordsPage.Learning(then = null)) }
     val openCreateTag = { pages.navigateTo(AddWordsPage.CreateTag) }
@@ -145,13 +164,13 @@ private fun AddWordsSheetContent(
                 // The sheet ignores Back (LockedSheetProperties) so deeper pages can't lose work;
                 // the chooser has nothing to lose, so Back closes the sheet here.
                 BackHandler(onBack = onClose)
+                val credits = state.credits
                 AddWordsChooserContent(
-                    hasImageAccess = state.hasPremiumTools,
-                    onAiAssistant = if (state.hasPremiumTools) {
-                        { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiLevel) }
-                    } else {
-                        null
-                    },
+                    aiCost = credits?.costOf(CreditAction.AI_SUGGESTION),
+                    photoCost = credits?.costOf(CreditAction.PHOTO_EXTRACTION),
+                    balance = credits?.balance,
+                    refillsAtMillis = credits?.periodEndsAtMillis,
+                    onAiAssistant = { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiLevel) },
                     onTypeWord = { openSource(WordOrigin.Manual, AddWordsPage.Manual) },
                     onImportFile = { openSource(WordOrigin.File, AddWordsPage.File) },
                     onScanPhoto = { openSource(WordOrigin.Photo, AddWordsPage.Photo) },
@@ -274,6 +293,22 @@ private fun AddWordsSheetContent(
                     onStartReview = onStartReview,
                     onAddMore = { while (pages.canNavigateBack) pages.navigateBack() },
                     onDone = onClose,
+                )
+            }
+
+            is AddWordsPage.OutOfCredits -> {
+                val credits = state.credits
+                OutOfCreditsContent(
+                    cost = page.origin.creditAction?.let { credits?.costOf(it) },
+                    balance = credits?.balance,
+                    refillsAtMillis = credits?.periodEndsAtMillis,
+                    premiumMonthlyAllowance = credits?.premiumMonthlyAllowance,
+                    // Premium members can't buy more; they wait for the refill
+                    onUpgrade = onOpenSubscription?.takeIf { credits?.tier != CreditTier.PREMIUM },
+                    onTypeInstead = {
+                        while (pages.currentPage != AddWordsPage.Chooser && pages.navigateBack()) Unit
+                        openSource(WordOrigin.Manual, AddWordsPage.Manual)
+                    },
                 )
             }
 

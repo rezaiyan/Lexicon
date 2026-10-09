@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
 import core.common.getOrNull
+import domain.credits.usecase.ObserveCreditsUseCase
+import domain.credits.usecase.RefreshCreditsUseCase
 import domain.tag.usecase.CreateTagUseCase
 import domain.tag.usecase.GetTagsUseCase
 import domain.word.add.model.AddWordsCommand
@@ -14,12 +16,12 @@ import domain.word.add.parser.RejectedLine
 import domain.word.add.repository.IAddWordsLanguageRepository
 import domain.word.add.usecase.AddWordsUseCase
 import domain.word.add.usecase.ResolveAddWordsLanguagesUseCase
-import domain.word.usecase.ObserveImageImportAccessUseCase
 import feature.addwords.model.AddWordsEffect
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.AddWordsResult
 import feature.addwords.model.AddWordsUiState
 import feature.addwords.model.CandidateReview
+import feature.addwords.model.creditAction
 import feature.addwords.model.logImportEvent
 import feature.addwords.model.logImportFailed
 import feature.addwords.model.toProblem
@@ -30,7 +32,7 @@ import utils.Language
 private const val PREVIEW_TERMS = 3
 
 /**
- * Host of one add-words sheet. Owns the shared context (languages, tag, premium access), the review of
+ * Host of one add-words sheet. Owns the shared context (languages, tag, AI credits), the review of
  * candidates produced by any source, and the single commit through [AddWordsUseCase].
  */
 @Suppress("TooManyFunctions") // event sink: one small public method per user action
@@ -40,7 +42,8 @@ class AddWordsViewModel(
     private val addWords: AddWordsUseCase,
     private val getTags: GetTagsUseCase,
     private val createTagUseCase: CreateTagUseCase,
-    private val observePremiumTools: ObserveImageImportAccessUseCase,
+    private val observeCredits: ObserveCreditsUseCase,
+    private val refreshCredits: RefreshCreditsUseCase,
     private val analytics: IAnalyticsTracker,
 ) : BaseViewModel<AddWordsUiState, AddWordsEffect>() {
 
@@ -55,8 +58,10 @@ class AddWordsViewModel(
             getTags().catch { emit(emptyList()) }.collect { tags -> updateState { copy(tags = tags) } }
         }
         viewModelScope.launch {
-            observePremiumTools(Unit).catch { emit(false) }.collect { updateState { copy(hasPremiumTools = it) } }
+            observeCredits().catch { emit(null) }.collect { updateState { copy(credits = it) } }
         }
+        // The cached balance may be stale (renewal, purchase, another device): re-read on open
+        reloadCredits()
     }
 
     // --- Languages ---
@@ -92,6 +97,7 @@ class AddWordsViewModel(
     fun openReview(origin: WordOrigin, drafts: List<WordDraft>, rejected: List<RejectedLine> = emptyList()) {
         updateState { copy(review = CandidateReview.of(origin, drafts, rejected), problem = null, result = null) }
         emitEffect(AddWordsEffect.OpenReview)
+        if (origin.creditAction != null) reloadCredits()
         analytics.logImportEvent(
             "import_preview_shown", origin, "word_count" to drafts.size, "rejected_count" to rejected.size,
         )
@@ -172,10 +178,17 @@ class AddWordsViewModel(
         emitEffect(AddWordsEffect.ShowResult)
     }
 
-    /** A premium source was refused by the server: hide premium options until access is back. */
-    fun onPremiumLapsed() = updateState { copy(hasPremiumTools = false) }
+    // --- Credits ---
+
+    /** A paid source was refused for lack of credits: our balance was stale, so re-read it. */
+    fun onOutOfCredits() = reloadCredits()
 
     fun dismissProblem() = updateState { copy(problem = null) }
+
+    /** Best effort: on failure the last known balance stays and the server still has the final say. */
+    private fun reloadCredits() {
+        viewModelScope.launch { refreshCredits() }
+    }
 
     private fun updateReview(change: CandidateReview.() -> CandidateReview) =
         updateState { copy(review = review?.change(), problem = null) }

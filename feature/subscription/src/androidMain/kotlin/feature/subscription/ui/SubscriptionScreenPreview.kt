@@ -52,6 +52,7 @@ private fun PaywallPreview() {
                     plans = previewPlans,
                     selectedPlanId = selected,
                     isPurchasing = false,
+                    monthlyAiCredits = 300,
                     onSelectPlan = { selected = it },
                     onPurchase = {},
                     onRestoreClick = {},
@@ -96,6 +97,7 @@ private fun MembershipPreview(@PreviewParameter(MembershipStatusProvider::class)
                         status = status,
                         isManageable = status !is MembershipStatus.Granted,
                     ),
+                    monthlyAiCredits = 300,
                     onManage = {},
                 )
             }
@@ -109,7 +111,12 @@ private fun PausedPreview() {
     LexiconTheme {
         Surface {
             Column(Modifier.padding(Theme.spacing.md)) {
-                SubscriptionPausedContent(resumesOn = "Jan 3, 2027", daysLeft = 91, onResume = {})
+                SubscriptionPausedContent(
+                    resumesOn = "Jan 3, 2027",
+                    daysLeft = 91,
+                    monthlyAiCredits = 300,
+                    onResume = {},
+                )
             }
         }
     }

@@ -9,8 +9,6 @@ import domain.word.add.model.WordDraft
 import domain.word.add.usecase.ExtractWordsFromImageUseCase
 import fakes.FakeAiRepository
 import fakes.FakeImagePreparer
-import fakes.FakeSubscriptionAccessRepository
-import domain.subscription.usecase.RefreshFeatureAccessUseCase
 import kotlinx.coroutines.test.runTest
 import utils.Language
 import kotlin.test.Test
@@ -22,8 +20,7 @@ class ExtractWordsFromImageUseCaseTest {
 
     private val preparer = FakeImagePreparer()
     private val ai = FakeAiRepository()
-    private val access = FakeSubscriptionAccessRepository()
-    private val useCase = ExtractWordsFromImageUseCase(preparer, ai, RefreshFeatureAccessUseCase(access))
+    private val useCase = ExtractWordsFromImageUseCase(preparer, ai)
     private val languages = LanguagePair(Language.GERMAN, Language.ENGLISH)
     private val photo = byteArrayOf(1, 2, 3)
 
@@ -68,12 +65,11 @@ class ExtractWordsFromImageUseCaseTest {
     }
 
     @Test
-    fun `invoke refreshes access when premium lapsed`() = runTest {
-        ai.drafts = Try.failure(DomainError.Commerce.PremiumRequired)
+    fun `invoke passes an out-of-credits refusal through unchanged`() = runTest {
+        ai.drafts = Try.failure(DomainError.Commerce.InsufficientCredits)
 
         val error = useCase(ExtractWordsFromImageUseCase.Params(photo, languages)).exceptionOrNull()
 
-        assertIs<DomainError.Commerce.PremiumRequired>(error)
-        assertEquals(1, access.refreshCount)
+        assertIs<DomainError.Commerce.InsufficientCredits>(error)
     }
 }

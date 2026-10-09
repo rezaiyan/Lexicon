@@ -4,7 +4,6 @@ import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
-import core.error.DomainError
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordOrigin
 import domain.word.add.usecase.ExtractWordsFromImageUseCase
@@ -68,9 +67,14 @@ class PhotoImportViewModel(
                 },
                 onFailure = { error ->
                     val problem = error.toProblem(WordOrigin.Photo)
-                    updateState { copy(isExtracting = false, problem = problem) }
                     analytics.logImportFailed(WordOrigin.Photo, step = "extract", problem)
-                    if (error is DomainError.Commerce.PremiumRequired) emitEffect(SourceEffect.PremiumLapsed)
+                    // Out of credits gets its own page (with the way to get more), not an inline error
+                    if (problem == AddWordsProblem.OutOfCredits) {
+                        updateState { copy(isExtracting = false) }
+                        emitEffect(SourceEffect.OutOfCredits)
+                    } else {
+                        updateState { copy(isExtracting = false, problem = problem) }
+                    }
                 },
             )
         }

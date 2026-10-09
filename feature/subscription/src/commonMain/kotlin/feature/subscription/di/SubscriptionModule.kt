@@ -10,7 +10,9 @@ fun subscriptionModule() = module {
             subscriptionManager = get(),
             getFeatureAccessUseCase = get(),
             syncSubscriptionWithServerUseCase = get(),
-            analyticsTracker = get()
+            analyticsTracker = get(),
+            observeCredits = get(),
+            refreshCredits = get(),
         )
     }
 }

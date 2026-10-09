@@ -10,6 +10,8 @@ data class SubscriptionScreenState(
     /** Plan the paywall CTA will buy; defaults to annual once offerings load. */
     val selectedPlanId: String? = null,
     val isPurchasing: Boolean = false,
+    /** AI credits premium includes per month, from the server; null while unknown. */
+    val monthlyAiCredits: Int? = null,
 )
 
 /** What the screen shows: the paywall for free users, the membership for premium users. */

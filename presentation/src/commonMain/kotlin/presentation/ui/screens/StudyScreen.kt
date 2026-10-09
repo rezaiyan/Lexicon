@@ -89,6 +89,7 @@ private val LockedSheetProperties = BottomSheetProperties(
 @Composable
 fun StudyScreen(
     onNavigateToSettings: () -> Unit,
+    onOpenSubscription: () -> Unit,
 ) {
     val progressViewModel = koinViewModel<StudyProgressViewModel>()
     val reviewViewModel = koinViewModel<ReviewViewModel>()
@@ -179,6 +180,10 @@ fun StudyScreen(
                 onStartReview = {
                     sheetNav.dismiss()
                     openReviewScreen(ReviewSource.DueCards)
+                },
+                onOpenSubscription = {
+                    sheetNav.dismiss()
+                    onOpenSubscription()
                 },
             )
         }
