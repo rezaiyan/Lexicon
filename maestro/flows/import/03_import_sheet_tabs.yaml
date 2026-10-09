@@ -3,59 +3,35 @@ tags:
   - import
   - method-chooser
 ---
-# Test: Import method chooser page displays all import options.
-#
-# Verifies that the import method chooser page — displayed after tapping
-# "Manually" — shows all three import method cards: "Type Text", "From File",
-# and "From Image". Then verifies navigation to each method's source language
-# chooser works via back navigation.
-
+# Test: the chooser lists every way to add words, and Back returns to it.
 - runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/open_add_words.yaml
 
-# Open the import picker.
-- tapOn: "Import Words"
+- assertVisible: "Type a word"
+- assertVisible: "Import a file"
+- assertVisible: "Scan a photo"
+- assertVisible: "Generate with AI"
 
-# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
-- tapOn: "Manually"
-
-# --- Verify all three import method cards are visible ---
-# Longer timeout: nested bottom sheet page transition + staggered fade animation.
+- tapOn: "Type a word"
+- runFlow: ../utils/pick_add_words_languages.yaml
 - extendedWaitUntil:
-    visible: "Type Text"
-    timeout: 10000
-- assertVisible: "From File"
-- assertVisible: "How would you like to add words?"
-
-# --- Navigate to "Type Text" and verify language chooser, then go back ---
-- tapOn: "Type Text"
+    visible: "Add Word"
+    timeout: 5000
+- tapOn: "Back"
 - extendedWaitUntil:
-    visible: "What language are the original words?"
+    visible: "Import a file"
     timeout: 5000
 
-# Go back to the import method chooser.
-- pressKey: back
-
-# Method chooser should be visible again.
+- tapOn: "Import a file"
 - extendedWaitUntil:
-    visible: "Type Text"
+    visible: "Choose a file"
+    timeout: 5000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Type a word"
     timeout: 5000
 
-# --- Navigate to "From File" and verify language chooser, then go back ---
-- tapOn: "From File"
-- extendedWaitUntil:
-    visible: "What language are the original words?"
-    timeout: 5000
-
-# Go back to the import method chooser.
-- pressKey: back
-
-# Method chooser should be visible again.
-- extendedWaitUntil:
-    visible: "From File"
-    timeout: 5000
-
-# Close the import sheet via the X icon.
 - tapOn: "Close"
-
-# Verify we are back on the Study screen.
-- assertVisible: "Import Words"
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

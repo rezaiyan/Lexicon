@@ -17,12 +17,14 @@ Components in `presentation/src/commonMain/kotlin/presentation/ui/`.
 
 | Component | File | Purpose |
 |-----------|------|---------|
-| `ImportBottomSheet` | `components/imports/ImportBottomSheet.kt` | Multi-tab import (Text/File/Image) |
-| `AiWordImportBottomSheet` | `components/imports/AiWordImportBottomSheet.kt` | AI vocabulary generation wizard |
-| `ImportMethodSelectorContent` | `components/imports/ImportMethodSelectorContent.kt` | Choose manual or AI import |
-| `ImportTabV2.Text` | `components/imports/ImportTabV2.kt` | Manual text input tab |
-| `ImportTabV2.File` | `components/imports/ImportTabV2.kt` | File upload tab |
-| `ImportTabV2.Image` | `components/imports/ImportTabV2.kt` | Image OCR tab (premium) |
+| `AddWordsSheet` | `components/imports/AddWordsSheet.kt` | Entry point; routes chooser → source → review → result, owns sheet-scoped VMs |
+| `AddWordsChooserContent` | `components/imports/AddWordsChooserContent.kt` | Pick manual / file / photo / AI |
+| `TextImportContent` | `components/imports/TextImportTab.kt` | Manual entry form |
+| `FileImportContent` | `components/imports/FileImportContent.kt` | Text/CSV file picker + format help |
+| `ImagePreviewContent` | `components/imports/ImagePreviewContent.kt` | Photo preview before extraction (premium) |
+| `AiWizardSteps` | `components/imports/AiWizardSteps.kt` | AI level / topics / generating pages (premium) |
+| `CandidateReviewPage` | `components/imports/CandidateReviewPage.kt` | Shared review: select, edit, tag, skipped lines |
+| `ImportOutcomeContent` | `components/imports/ImportOutcomeContent.kt` | Result page (added / duplicates) |
 
 ## Profile Components
 
@@ -37,7 +39,6 @@ Components in `presentation/src/commonMain/kotlin/presentation/ui/`.
 
 | Component | File |
 |-----------|------|
-| `LanguageSettingsCard` | `components/settings/LanguageSettingsCard.kt` |
 | `ThemeSettingsCard` | `components/settings/ThemeSettingsCard.kt` |
 | `NotificationSettingsCard` | `components/settings/NotificationSettingsCard.kt` |
 | `SubscriptionCard` | `components/settings/SubscriptionCard.kt` |
@@ -134,7 +135,7 @@ overlayHost.showFullscreenBottomSheet(
         sheetGesturesEnabled = false,
     )
 ) { navigator ->
-    ImportBottomSheet(onDismiss = { navigator.dismiss() })
+    AddWordsSheet(onClose = { navigator.dismiss() }, onWordsAdded = {}, onStartReview = {})
 }
 ```
 

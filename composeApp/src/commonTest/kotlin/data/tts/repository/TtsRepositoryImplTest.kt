@@ -7,13 +7,15 @@ import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsState
 import fakes.FakePerformanceTracer
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import tts.IModelFileManager
 import tts.ITtsEngine
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -23,11 +25,10 @@ import kotlin.test.assertTrue
 class TtsRepositoryImplTest {
 
     private val ttsEngine = FakeTtsEngine()
+    private val createdEngines = mutableListOf<FakeTtsEngine>()
     private val modelFileManager = FakeModelFileManager()
     private val performanceTracer = FakePerformanceTracer()
     private val fakeSettingsRepository = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
@@ -43,7 +44,26 @@ class TtsRepositoryImplTest {
         override suspend fun setMinimumDueCards(count: Int): Try<Unit> = Try.success(Unit)
     }
 
-    private fun createRepo() = TtsRepositoryImpl(ttsEngine, modelFileManager, performanceTracer, fakeSettingsRepository)
+    // First engine handed out is [ttsEngine]; later ones are fresh fakes sharing its init outcome.
+    private fun createRepo() = TtsRepositoryImpl(
+        engineFactory = {
+            val engine = if (createdEngines.isEmpty()) {
+                ttsEngine
+            } else {
+                FakeTtsEngine().apply { initializeSuccess = ttsEngine.initializeSuccess }
+            }
+            engine.also { createdEngines += it }
+        },
+        modelFileManager = modelFileManager,
+        performanceTracer = performanceTracer,
+        settingsRepository = fakeSettingsRepository,
+    )
+
+    private fun givenModelFiles() {
+        modelFileManager.modelPath = "/models/model.onnx"
+        modelFileManager.tokensPath = "/models/tokens.txt"
+        modelFileManager.dataDir = "/models"
+    }
 
     @Test
     fun `speak initializes engine and plays when not initialized`() = runTest {
@@ -101,22 +121,72 @@ class TtsRepositoryImplTest {
     }
 
     @Test
-    fun `speak reinitializes engine when language changes`() = runTest {
-        modelFileManager.modelPath = "/models/model.onnx"
-        modelFileManager.tokensPath = "/models/tokens.txt"
-        modelFileManager.dataDir = "/models"
-        ttsEngine.initializeSuccess = true
+    fun `speak keeps one engine per language so alternating languages does not reinitialize`() = runTest {
+        givenModelFiles()
         val repo = createRepo()
 
         repo.speak("Hello", "en")
         repo.speak("Hola", "es")
+        repo.speak("World", "en")
+        repo.speak("Mundo", "es")
 
-        assertEquals(2, ttsEngine.initializeCount)
+        assertEquals(2, createdEngines.size)
+        assertEquals(2, createdEngines.sumOf { it.initializeCount })
+        assertEquals("World", createdEngines[0].lastSpokenText)
+        assertEquals("Mundo", createdEngines[1].lastSpokenText)
+    }
+
+    @Test
+    fun `speak releases least recently used engine when a third language loads`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+
+        repo.speak("Hello", "en")
+        repo.speak("Hola", "es")
+        repo.speak("Hallo", "de")
+
+        assertFalse(createdEngines[0].initialized)
+        assertTrue(createdEngines[1].initialized)
+        assertTrue(createdEngines[2].initialized)
+
+        repo.speak("Otra", "es")
+        assertEquals(3, createdEngines.size)
+    }
+
+    @Test
+    fun `speak stays in Speaking state until engine playback completes`() = runTest {
+        givenModelFiles()
+        val gate = CompletableDeferred<Unit>()
+        ttsEngine.playbackGate = gate
+        val repo = createRepo()
+
+        val job = launch { repo.speak("Hello", "en") }
+        runCurrent()
+        assertIs<TtsState.Speaking>(repo.ttsState.value)
+
+        gate.complete(Unit)
+        job.join()
+        assertIs<TtsState.Idle>(repo.ttsState.value)
+    }
+
+    @Test
+    fun `stop stops every loaded engine`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+        repo.speak("Hello", "en")
+        repo.speak("Hola", "es")
+
+        repo.stop()
+
+        assertTrue(createdEngines.all { it.stopped })
+        assertIs<TtsState.Idle>(repo.ttsState.value)
     }
 
     @Test
     fun `stop sets state to idle`() = runTest {
+        givenModelFiles()
         val repo = createRepo()
+        repo.speak("Hello", "en")
 
         repo.stop()
 
@@ -169,7 +239,7 @@ class TtsRepositoryImplTest {
         // A second speak call must re-attempt initialization (not reuse a stale language)
         ttsEngine.initializeSuccess = true
         repo.speak("Hello", "en")
-        assertTrue(ttsEngine.initialized)
+        assertTrue(createdEngines.last().initialized)
     }
 
     // -------------------------------------------------------------------------
@@ -253,10 +323,10 @@ class TtsRepositoryImplTest {
 
         // Engine released (initialized = false after release())
         assertFalse(ttsEngine.initialized)
-        // Subsequent speak must re-initialize (initializeCount should increment)
-        ttsEngine.initializeCount = 0
+        // Subsequent speak must load a fresh engine
         repo.speak("Hello", "en")
-        assertEquals(1, ttsEngine.initializeCount)
+        assertEquals(2, createdEngines.size)
+        assertTrue(createdEngines.last().initialized)
     }
 
     @Test
@@ -286,6 +356,7 @@ class TtsRepositoryImplTest {
         var initializeCount = 0
         var lastSpokenText: String? = null
         var stopped = false
+        var playbackGate: CompletableDeferred<Unit>? = null
 
         override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String) {
             initializeCount++
@@ -294,6 +365,7 @@ class TtsRepositoryImplTest {
 
         override suspend fun synthesizeAndPlay(text: String, speed: Float, speakerId: Int) {
             lastSpokenText = text
+            playbackGate?.await()
         }
 
         override suspend fun stop() {

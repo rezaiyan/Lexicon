@@ -138,16 +138,22 @@ syncTagsFromRemote(): Try<Unit>
 
 ### 4. Import
 
-Three import paths:
+One pipeline: source → `WordDraft` candidates → shared review → `AddWordsUseCase` (the single write path) → local DB + upload queue. Full details in `doc/import-export.md`.
 
-| Path | Use case | Description |
-|------|----------|-------------|
-| **File** | `ImportViaFileUseCase` | CSV / plain text, word-translation pairs |
-| **AI Image** | `ImportFromImageUseCase` | Extract vocabulary from photo via AI |
-| **AI Text** | (within ImportViewModel) | Paste text, AI extracts vocabulary |
-| **Onboarding** | `ImportSuggestedVocabularyUseCase` | AI-suggested words based on user preferences |
+| Path | Producer | Notes |
+|------|----------|-------|
+| **Manual** | `ManualEntryViewModel` | One word at a time, no review |
+| **File** | `ParseWordFileUseCase` + `VocabularyTextParser` | Any text file, ≤ 1 MB; CSV/TSV/;/\|, quoting, header, comments |
+| **Photo** (premium) | `ExtractWordsFromImageUseCase` | v2 `/ai/extract-words`; Rotate button turns sideways photos upright first |
+| **AI suggestions** (premium) | `SuggestWordsUseCase` | Level + topics → `/ai/suggest-vocabulary` |
+| **Onboarding** | `AddStarterWordsUseCase` | Suggested words after sign-up |
 
-Multi-step wizard for AI import: pick image → extraction type → target language → preview → import.
+**Before touching it:**
+- Every add carries an explicit `LanguagePair`. There is no settings language; it was removed.
+- The default pair comes from `ResolveAddWordsLanguagesUseCase`: last used, else the most common pair, else ask.
+- Dedupe is (term, translation, learning language), ignoring case and spaces.
+- Offline adds are queued and flushed on app start (`UploadPendingWordsUseCase`).
+- UI: `AddWordsSheet` (sheet-scoped VMs via `ScopedViewModelStore`); host VM is `AddWordsViewModel` in `:feature:import`.
 
 ---
 
@@ -244,7 +250,7 @@ Global ranking by streak / mastered words. Each `LeaderboardEntry`: rank, displa
 
 ### 12. Onboarding
 
-Collected: `targetLanguage`, `nativeLanguage`, `level`, `interests` → submitted via `SubmitPreferencesUseCase` → backend returns suggested vocabulary → user previews/approves → `ImportSuggestedVocabularyUseCase`.
+Collected: `targetLanguage`, `nativeLanguage`, `level`, `interests` → submitted via `SubmitPreferencesUseCase` → backend returns suggested vocabulary → user previews/approves → `AddStarterWordsUseCase` (through `AddWordsUseCase`, saves the pair as last used).
 
 Onboarding skipped if user already has words in local DB.
 
@@ -277,7 +283,7 @@ Onboarding skipped if user already has words in local DB.
 | Features | GET `/features/access` |
 | Onboarding | POST `/onboarding/preferences`, GET `/onboarding/status` |
 | Streaks | GET `/streaks`, POST `/streaks/activity` |
-| AI | POST `/ai/extract-vocabulary` |
+| AI | POST `/ai/extract-words`, POST `/ai/suggest-vocabulary` |
 
 ---
 

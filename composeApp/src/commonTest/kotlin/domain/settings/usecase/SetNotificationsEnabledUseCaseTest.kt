@@ -1,5 +1,6 @@
 package domain.settings.usecase
 
+import fakes.FakeSettingsRepository
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertFalse

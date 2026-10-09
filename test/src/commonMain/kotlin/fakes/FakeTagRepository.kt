@@ -15,7 +15,12 @@ class FakeTagRepository : ITagRepository {
     override fun getTags(): Flow<List<Tag>> = flowOf(tags)
     override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
     override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
-    override suspend fun createTag(name: String): Try<Tag> = throw NotImplementedError()
+    /** Null: creates `Tag(nextTagId, name)`. */
+    var createTagResult: Try<Tag>? = null
+    var nextTagId = 100L
+
+    override suspend fun createTag(name: String): Try<Tag> =
+        createTagResult ?: Try.success(Tag(nextTagId, name, 0L, 0L, 0L))
     override suspend fun renameTag(id: Long, name: String): Try<Tag> = throw NotImplementedError()
     override suspend fun deleteTag(id: Long): Try<Unit> = throw NotImplementedError()
     override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> = throw NotImplementedError()

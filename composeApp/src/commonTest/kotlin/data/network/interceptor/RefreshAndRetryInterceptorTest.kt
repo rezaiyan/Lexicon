@@ -1,7 +1,9 @@
 package data.network.interceptor
 
+import data.core.network.error.AuthenticationException
 import core.common.Try
 import data.auth.refresh.ITokenRefreshManager
+import data.core.network.interceptor.ErrorInterceptor
 import data.core.network.interceptor.RefreshAndRetryInterceptor
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -17,6 +19,7 @@ import io.ktor.http.contentType
 import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import kotlin.test.assertEquals
 
 /**
@@ -72,6 +75,51 @@ class RefreshAndRetryInterceptorTest {
     // -------------------------------------------------------------------------
     // Conditions that trigger refresh+retry
     // -------------------------------------------------------------------------
+
+    @Test
+    fun `401 is refreshed and retried with the error interceptor installed as in production`() = runTest {
+        val refreshManager = FakeTokenRefreshManager(refreshResult = Try.success("new-refreshed-token"))
+        var callCount = 0
+        val engine = MockEngine {
+            callCount++
+            if (callCount == 1) {
+                respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeaders())
+            } else {
+                respond("""{"ok":true}""", HttpStatusCode.OK, jsonHeaders())
+            }
+        }
+        // Same order as HttpClientProvider: refresh-and-retry, then the error interceptor.
+        val client = HttpClient(engine) {
+            install(RefreshAndRetryInterceptor) { tokenRefreshManagerProvider = { refreshManager } }
+            install(ErrorInterceptor().createPlugin())
+        }
+
+        val response = client.get("https://api.test/words") {
+            header(HttpHeaders.Authorization, "Bearer expired-token")
+        }
+
+        assertEquals(200, response.status.value)
+        assertEquals(1, refreshManager.refreshCallCount)
+    }
+
+    @Test
+    fun `failed refresh with the error interceptor installed still surfaces the auth error`() = runTest {
+        val refreshManager = FakeTokenRefreshManager(
+            refreshResult = Try.failure(AuthenticationException("Refresh token rejected")),
+        )
+        val engine = MockEngine { respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeaders()) }
+        val client = HttpClient(engine) {
+            install(RefreshAndRetryInterceptor) { tokenRefreshManagerProvider = { refreshManager } }
+            install(ErrorInterceptor().createPlugin())
+        }
+
+        val error = assertFailsWith<AuthenticationException> {
+            client.get("https://api.test/words") { header(HttpHeaders.Authorization, "Bearer expired-token") }
+        }
+
+        assertEquals(401, error.statusCode)
+        assertEquals(1, refreshManager.refreshCallCount)
+    }
 
     @Test
     fun `401 response for authenticated request triggers token refresh and retries`() = runTest {

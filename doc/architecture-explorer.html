@@ -830,16 +830,17 @@ const ARCH = {
     subtitle: 'AI-powered word import from images',
     color: 'var(--pink)', bg: 'var(--pink-dim)',
     icon: '\uD83E\uDD16',
-    badge: '3 files',
-    desc: 'AI image recognition for vocabulary import',
-    meta: ['1 ViewModel', 'AI'],
+    badge: '12 files',
+    desc: 'Add words: manual, text file, photo (AI) and AI suggestions',
+    meta: ['5 ViewModels', 'AI'],
     leaf: true,
     detail: {
       groups: [
         { title: 'Components', items: [
-          { icon: '\uD83E\uDDE0', text: 'AiWordImportViewModel', desc: 'AI import flow management' },
-          { icon: '\uD83D\uDCCB', text: 'AiWordImportUiState', desc: 'Import state model' },
-          { icon: '\uD83D\uDD17', text: 'ImportModule', desc: 'DI registration' },
+          { icon: '\uD83E\uDDE0', text: 'AddWordsViewModel', desc: 'Host: languages, tag, shared review, commit' },
+          { icon: '\uD83E\uDDE0', text: 'ManualEntry / FileImport / PhotoImport / AiSuggest ViewModels', desc: 'One per source; produce candidates' },
+          { icon: '\uD83D\uDCCB', text: 'CandidateReview / AddWordsUiState / AddWordsProblem', desc: 'State models' },
+          { icon: '\uD83D\uDD17', text: 'AddWordsPresentationModule', desc: 'DI registration' },
         ]}
       ]
     }
@@ -901,7 +902,7 @@ const ARCH = {
           { icon: '\uD83D\uDCAC', text: 'NotificationDialogs' },
         ]},
         { title: 'Settings Cards', items: [
-          { icon: '\uD83C\uDFA8', text: 'LanguageSettingsCard / ThemeSettingsCard' },
+          { icon: '\uD83C\uDFA8', text: 'ThemeSettingsCard' },
           { icon: '\uD83C\uDFA8', text: 'NotificationSettingsCard / SubscriptionCard' },
           { icon: '\uD83C\uDFA8', text: 'AboutSettingsCard / NavigationSettingsCards' },
         ]},
@@ -937,17 +938,16 @@ const ARCH = {
     subtitle: 'Shared import bottom sheet and tab components',
     color: 'var(--green)', bg: 'var(--green-dim)',
     icon: '\uD83D\uDCE5',
-    badge: '8 files',
-    desc: 'ImportViewModel, ImportBottomSheet, file import flow',
-    meta: ['1 ViewModel'],
+    badge: '13 files',
+    desc: 'AddWordsSheet: chooser, source pages, shared review, result',
+    meta: ['UI only'],
     leaf: true,
     detail: {
       groups: [
         { title: 'Components', items: [
-          { icon: '\uD83E\uDDE0', text: 'ImportViewModel', desc: 'Import flow management' },
-          { icon: '\uD83C\uDFA8', text: 'ImportBottomSheet / ImportTabV2', desc: 'Import UI' },
-          { icon: '\uD83C\uDFA8', text: 'AiWordImportBottomSheet', desc: 'AI import sheet' },
-          { icon: '\uD83D\uDCCB', text: 'ImportUiState / ImportFileState / ImportEffect', desc: 'State models' },
+          { icon: '\uD83C\uDFA8', text: 'AddWordsSheet', desc: 'Page router for the add-words sheet' },
+          { icon: '\uD83C\uDFA8', text: 'CandidateReviewPage', desc: 'Shared review for file, photo and AI' },
+          { icon: '\uD83C\uDFA8', text: 'Manual / file / photo / AI pages, result page', desc: 'Source UIs' },
         ]}
       ]
     }
@@ -1016,8 +1016,8 @@ const ARCH = {
         ]},
         { title: 'Interfaces', items: [
           { icon: '\uD83D\uDD0C', text: 'IWordRepository', desc: 'Word CRUD + sync' },
-          { icon: '\u2699\uFE0F', text: 'ImportValidationService', desc: 'Import validation' },
-          { icon: '\u2699\uFE0F', text: 'WordSyncService', desc: 'Remote sync logic' },
+          { icon: '\u2699\uFE0F', text: 'VocabularyTextParser / WordDraft', desc: 'Parsing and validation of new words' },
+          { icon: '\u2699\uFE0F', text: 'WordConflictResolver', desc: 'Pull sync: match by content, move to server ids' },
         ]},
         { title: 'Query Use Cases', items: [
           { icon: '\uD83D\uDD0D', text: 'GetAllWordsUseCase / GetDueWordsUseCase' },
@@ -1028,7 +1028,7 @@ const ARCH = {
           { icon: '\u270F\uFE0F', text: 'EvaluateProgressUseCase / DeleteWordUseCase' },
         ]},
         { title: 'Import/Export Use Cases', items: [
-          { icon: '\uD83D\uDCE5', text: 'ImportWordsUseCase / ImportViaFileUseCase / ExportWordsUseCase' },
+          { icon: '\uD83D\uDCE5', text: 'AddWordsUseCase / ParseWordFileUseCase / ExportWordsUseCase' },
           { icon: '\uD83D\uDCE5', text: 'BatchUpdateLanguagesUseCase / SyncRemoteToLocalUseCase' },
         ]}
       ]
@@ -1045,7 +1045,6 @@ const ARCH = {
       { title: 'Models', items: [{ icon: '\uD83D\uDCCB', text: 'ReviewSettings / ThemeMode' }]},
       { title: 'Interface', items: [{ icon: '\uD83D\uDD0C', text: 'ISettingsRepository' }]},
       { title: 'Use Cases', items: [
-        { icon: '\u25B6\uFE0F', text: 'GetCurrentLanguageUseCase / SetLanguageUseCase' },
         { icon: '\u25B6\uFE0F', text: 'SetThemeModeUseCase / SetNotificationsEnabledUseCase' },
       ]}
     ]}
@@ -1144,7 +1143,7 @@ const ARCH = {
       { title: 'Components', items: [
         { icon: '\uD83D\uDCCB', text: 'OnboardingPreferences / SuggestedVocabulary' },
         { icon: '\uD83D\uDD0C', text: 'IOnboardingRepository' },
-        { icon: '\u25B6\uFE0F', text: 'SubmitPreferencesUseCase / ImportSuggestedVocabularyUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'SubmitPreferencesUseCase / AddStarterWordsUseCase' },
       ]}
     ]}
   },
@@ -1158,7 +1157,7 @@ const ARCH = {
     detail: { groups: [
       { title: 'Components', items: [
         { icon: '\uD83D\uDD0C', text: 'IAiRepository' },
-        { icon: '\u25B6\uFE0F', text: 'IsAiAvailableUseCase / ImportFromImageUseCase' },
+        { icon: '\u25B6\uFE0F', text: 'IsAiAvailableUseCase / ExtractWordsFromImageUseCase / SuggestWordsUseCase' },
       ]}
     ]}
   },

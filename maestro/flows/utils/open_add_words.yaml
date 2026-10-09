@@ -1,0 +1,10 @@
+# Utility flow: open the "Add words" sheet from the Study screen.
+#
+# Assumes the app is on the Study screen and the sheet is closed.
+appId: com.alirezaiyan.vokab
+---
+- tapOn: "Import Words"
+- extendedWaitUntil:
+    visible: "Add words"
+    timeout: 10000
+- waitForAnimationToEnd

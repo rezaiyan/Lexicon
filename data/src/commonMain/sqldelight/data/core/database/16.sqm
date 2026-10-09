@@ -1,0 +1,13 @@
+-- Migration from version 16 to version 17
+-- Add-words pipeline: duplicate-check index, upload outbox, last-used language pair.
+CREATE INDEX IF NOT EXISTS WordEntity_targetLanguage ON WordEntity(targetLanguage);
+
+CREATE TABLE IF NOT EXISTS WordUploadQueue (
+    wordId INTEGER NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE IF NOT EXISTS AddWordsPreferenceEntity (
+    id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    learningLanguage TEXT NOT NULL,
+    nativeLanguage TEXT NOT NULL
+);

@@ -1,6 +1,7 @@
 package data.word.remote
 
 import core.common.Try
+import core.common.getOrThrow
 import data.word.remote.model.BatchUpdateLanguagesRequest
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -33,6 +34,34 @@ class WordRemoteDataSourceWriteTest {
         val result = dataSource.upsertWords(words)
 
         assertTrue(result is Try.Success, "Expected Try.Success but got $result")
+    }
+
+    @Test
+    fun `upsertWords - returns the words the server saved with their ids`() = runTest {
+        val mockEngine = MockEngine {
+            respond(
+                content = """{"success":true,"data":[{"id":42,"originalWord":"Hund","translation":"dog",""" +
+                    """"description":"","sourceLanguage":"en","targetLanguage":"de","level":0,"easeFactor":2.5,""" +
+                    """"interval":0,"repetitions":0,"lastReviewDate":0,"nextReviewDate":0}],"message":"Upserted"}""",
+                status = HttpStatusCode.OK,
+                headers = jsonHeaders()
+            )
+        }
+        val dataSource = buildDataSource(mockEngine)
+
+        val result = dataSource.upsertWords(listOf(remoteWord()))
+
+        assertEquals(listOf(42L to "Hund"), result.getOrThrow().map { it.id to it.originalWord })
+    }
+
+    @Test
+    fun `upsertWords - server without saved words returns an empty list`() = runTest {
+        val mockEngine = MockEngine {
+            respond(content = """{"success":true,"message":"Upserted"}""", status = HttpStatusCode.OK, headers = jsonHeaders())
+        }
+        val dataSource = buildDataSource(mockEngine)
+
+        assertEquals(emptyList(), dataSource.upsertWords(listOf(remoteWord())).getOrThrow())
     }
 
     @Test

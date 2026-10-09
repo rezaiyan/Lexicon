@@ -9,110 +9,6 @@ import kotlin.test.assertTrue
 class WordRepositoryImplTest {
 
     // -------------------------------------------------------------------------
-    // insertWords — deduplication
-    // -------------------------------------------------------------------------
-
-    @Test
-    fun `insertWords with empty list returns success with zero count`() = runTest {
-        val local = FakeWordLocalDataSource()
-        val remote = FakeWordRemoteSyncHandler()
-        val repo = makeRepository(local = local, remote = remote)
-
-        val result = repo.insertWords(emptyList())
-
-        assertTrue(result.isSuccess)
-        assertEquals(0, result.getOrThrow())
-        assertEquals(0, remote.syncWordsToRemoteCallCount)
-        assertTrue(local.insertedWords.isEmpty())
-    }
-
-    @Test
-    fun `insertWords inserts words that do not already exist`() = runTest {
-        val local = FakeWordLocalDataSource()
-        val remote = FakeWordRemoteSyncHandler()
-        val repo = makeRepository(local = local, remote = remote)
-
-        val word = makeWord(id = 1, originalWord = "hello", translation = "hola")
-        val result = repo.insertWords(listOf(word))
-
-        assertTrue(result.isSuccess)
-        assertEquals(1, result.getOrThrow())
-        assertEquals(1, local.insertedWords.size)
-        assertEquals(1, remote.syncWordsToRemoteCallCount)
-    }
-
-    @Test
-    fun `insertWords deduplicates words with same originalWord and translation case-insensitively`() = runTest {
-        val local = FakeWordLocalDataSource()
-        val remote = FakeWordRemoteSyncHandler()
-        val repo = makeRepository(local = local, remote = remote)
-
-        val existing = makeWord(id = 1, originalWord = "Hello", translation = "Hola")
-        local.storedWords.add(existing)
-
-        val duplicate = makeWord(id = 2, originalWord = "hello", translation = "hola")
-        val result = repo.insertWords(listOf(duplicate))
-
-        assertTrue(result.isSuccess)
-        assertEquals(0, result.getOrThrow())
-        assertTrue(local.insertedWords.isEmpty())
-        assertEquals(0, remote.syncWordsToRemoteCallCount)
-    }
-
-    @Test
-    fun `insertWords deduplicates words with leading and trailing whitespace`() = runTest {
-        val local = FakeWordLocalDataSource()
-        val remote = FakeWordRemoteSyncHandler()
-        val repo = makeRepository(local = local, remote = remote)
-
-        val existing = makeWord(id = 1, originalWord = "hello", translation = "hola")
-        local.storedWords.add(existing)
-
-        val duplicate = makeWord(id = 2, originalWord = "  hello  ", translation = "  hola  ")
-        val result = repo.insertWords(listOf(duplicate))
-
-        assertTrue(result.isSuccess)
-        assertEquals(0, result.getOrThrow())
-        assertTrue(local.insertedWords.isEmpty())
-    }
-
-    @Test
-    fun `insertWords only inserts words that are not duplicates from a mixed list`() = runTest {
-        val local = FakeWordLocalDataSource()
-        val remote = FakeWordRemoteSyncHandler()
-        val repo = makeRepository(local = local, remote = remote)
-
-        val existing = makeWord(id = 1, originalWord = "hello", translation = "hola")
-        local.storedWords.add(existing)
-
-        val duplicate = makeWord(id = 2, originalWord = "hello", translation = "hola")
-        val newWord = makeWord(id = 3, originalWord = "world", translation = "mundo")
-        val result = repo.insertWords(listOf(duplicate, newWord))
-
-        assertTrue(result.isSuccess)
-        assertEquals(1, result.getOrThrow())
-        assertEquals(1, local.insertedWords.size)
-        assertEquals("world", local.insertedWords.first().originalWord)
-    }
-
-    @Test
-    fun `insertWords considers words with same originalWord but different translation as distinct`() = runTest {
-        val local = FakeWordLocalDataSource()
-        val remote = FakeWordRemoteSyncHandler()
-        val repo = makeRepository(local = local, remote = remote)
-
-        val existing = makeWord(id = 1, originalWord = "hello", translation = "hola")
-        local.storedWords.add(existing)
-
-        val different = makeWord(id = 2, originalWord = "hello", translation = "saludo")
-        val result = repo.insertWords(listOf(different))
-
-        assertTrue(result.isSuccess)
-        assertEquals(1, result.getOrThrow())
-        assertEquals(1, local.insertedWords.size)
-    }
-
-    // -------------------------------------------------------------------------
     // updateWord — syncs to remote then updates local
     // -------------------------------------------------------------------------
 
@@ -277,6 +173,19 @@ class WordRepositoryImplTest {
     }
 
     @Test
+    fun `syncWithRemote moves local words to their server ids before storing the pulled words`() = runTest {
+        val local = FakeWordLocalDataSource().apply { storedWords = mutableListOf(makeWord(id = 3, originalWord = "cat")) }
+        val remote = FakeWordRemoteSyncHandler().apply { remoteWordsToReturn = listOf(makeRemoteWord(id = 40L)) }
+        val resolver = FakeWordConflictResolver().apply { localIdMoves = mapOf(3 to 40) }
+        val repo = makeRepository(local = local, remote = remote, resolver = resolver)
+
+        repo.syncWithRemote()
+
+        assertEquals(mapOf(3 to 40), local.idMoves)
+        assertEquals(listOf(40), local.storedWords.map { it.id })
+    }
+
+    @Test
     fun `syncWithRemote with multiple resolved entities inserts all of them`() = runTest {
         val local = FakeWordLocalDataSource()
         val remoteWords = listOf(
@@ -360,17 +269,6 @@ class WordRepositoryImplTest {
         repo.syncWithRemote()  // second call — should be suppressed by timestamp guard
 
         assertEquals(1, remote.syncFromRemoteCallCount)
-    }
-
-    @Test
-    fun `insertWords stamps lastSyncedAt so immediate follow-up syncWithRemote is suppressed`() = runTest {
-        val remote = FakeWordRemoteSyncHandler()
-        val repo = makeRepository(remote = remote)
-
-        repo.insertWords(listOf(makeWord()))  // stamps lastSyncedAt
-        repo.syncWithRemote()  // should be suppressed within the 30s threshold
-
-        assertEquals(0, remote.syncFromRemoteCallCount)
     }
 
     // -------------------------------------------------------------------------

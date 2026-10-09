@@ -57,10 +57,6 @@ class IOSAnalyticsTracker : IAnalyticsTracker {
         log("Theme Changed: $themeMode (dark=$isDark)")
     }
 
-    override fun logLanguageChanged(language: String) {
-        log("Language Changed: $language")
-    }
-
     override fun setUserProperty(name: String, value: String) {
         log("User Property Set: $name = $value")
     }

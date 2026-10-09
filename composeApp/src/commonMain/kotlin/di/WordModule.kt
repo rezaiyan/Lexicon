@@ -19,8 +19,9 @@ import data.word.sync.IWordRemoteSyncHandler
 import data.word.sync.WordConflictResolver
 import data.word.sync.WordRemoteSyncHandler
 import domain.ai.repository.IAiRepository
-import domain.ai.usecase.ExtractVocabularyFromImageUseCase
-import domain.ai.usecase.ImportFromImageUseCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import domain.ai.usecase.IsAiAvailableUseCase
 import domain.tag.repository.ITagRepository
 import domain.tag.usecase.AssignWordTagsUseCase
@@ -34,8 +35,6 @@ import domain.tag.usecase.RenameTagUseCase
 import domain.tag.usecase.SyncTagsFromRemoteUseCase
 import domain.word.repository.IReviewSyncRepository
 import domain.word.repository.IWordRepository
-import domain.word.service.IImportValidationService
-import domain.word.service.ImportValidationService
 import domain.word.usecase.DeleteWordUseCase
 import domain.word.usecase.EvaluateProgressUseCase
 import domain.word.usecase.BatchUpdateLanguagesUseCase
@@ -48,8 +47,6 @@ import domain.word.usecase.GetDueWordsUseCase
 import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
-import domain.word.usecase.ImportViaFileUseCase
-import domain.word.usecase.ImportWordsUseCase
 import domain.word.usecase.FlushReviewSyncQueueUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
@@ -78,7 +75,7 @@ fun wordModule() = module {
     singleOf(::SyncTagsFromRemoteUseCase)
 
     // Word Data Components
-    single<IWordLocalDataSource> { WordLocalDataSource(queries = get(), settingsRepository = get()) }
+    single<IWordLocalDataSource> { WordLocalDataSource(queries = get()) }
     single<IWordRemoteSyncHandler> {
         WordRemoteSyncHandler(wordRemoteDataSource = get(), performanceTracer = get())
     }
@@ -92,29 +89,17 @@ fun wordModule() = module {
     single<IReviewSyncRepository> { ReviewSyncRepository(queries = get()) }
 
     single<IWordRepository> {
-        WordRepositoryImpl(
-            localDataSource = get(),
-            remoteSyncHandler = get(),
-            conflictResolver = get(),
-            sessionManager = get(),
-            settingsLocalDataSource = get()
-        )
+        // localDataSource, remoteSyncHandler, conflictResolver, sessionManager, settingsLocalDataSource, scope
+        val uploadScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        WordRepositoryImpl(get(), get(), get(), get(), get(), uploadScope)
     }
 
     single {
         AiRepositoryImpl(aiRemoteDataSource = get())
     } bind IAiRepository::class
 
-    // Domain Services
-    single<IImportValidationService> { ImportValidationService() }
-
     // Use Cases - Vocabulary
     singleOf(::ReviewWordUseCase)
-    singleOf(::ImportWordsUseCase)
-    singleOf(::ImportFromImageUseCase)
-    single {
-        ImportViaFileUseCase(importWordsUseCase = get())
-    }
     singleOf(::GetProgressStatsUseCase)
     singleOf(::EvaluateProgressUseCase)
     singleOf(::GetWordsByStageUseCase)
@@ -122,7 +107,6 @@ fun wordModule() = module {
     singleOf(::LoadReviewQueueUseCase)
     singleOf(::GetDueWordsByTagUseCase)
     singleOf(::IsAiAvailableUseCase)
-    singleOf(::ExtractVocabularyFromImageUseCase)
     singleOf(::SyncRemoteToLocalUseCase)
     singleOf(::FlushReviewSyncQueueUseCase)
 

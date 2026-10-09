@@ -3,63 +3,23 @@ tags:
   - import
   - file-import
 ---
-# Test: File import page renders correct UI elements.
-#
-# Navigates to the "From File" import page via the multi-page flow and verifies
-# that all static UI elements are displayed. Does NOT automate the system file
-# picker (not possible in Maestro), so this is a UI verification test only.
-
+# Test: the file import page shows the picker and the format help.
 - runFlow: ../utils/navigate_to_study.yaml
+- runFlow: ../utils/open_add_words.yaml
+- tapOn: "Import a file"
+- runFlow: ../utils/pick_add_words_languages.yaml
 
-# Open the import picker.
-- tapOn: "Import Words"
-
-# Wait for the method selector to appear.
 - extendedWaitUntil:
-    visible: "Manually"
+    visible: "Choose a file"
     timeout: 5000
-
-# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
-- tapOn: "Manually"
-
-# The import method chooser page shows cards for each import method.
-- extendedWaitUntil:
-    visible: "From File"
-    timeout: 5000
-
-# Tap "From File" to navigate to the file import flow.
-- tapOn: "From File"
-
-# The source language chooser appears. Select "English".
-- extendedWaitUntil:
-    visible: "What language are the original words?"
-    timeout: 5000
-- tapOn: "English"
-
-# The file import page must now be visible.
-- extendedWaitUntil:
-    visible: "Import from File"
-    timeout: 5000
-
-# The description subtitle must be visible.
-- assertVisible: "Select a .txt file containing your vocabulary list"
-
-# The "Choose File" button must be present.
-- assertVisible: "Choose File"
-
-# The file format badge must be visible.
-- assertVisible: ".txt format"
-
-# The supported format section must be visible.
-- assertVisible: "Supported Format"
-
-# Format examples must be shown.
+- assertVisible: "Bring in a whole list at once from a text or CSV file."
+- assertVisible: "How to format it"
 - assertVisible: "word,translation"
 - assertVisible: "word,translation,description"
-- assertVisible: "Separated by semicolons or new lines"
+- assertVisible: "Commas, semicolons or tabs all work"
+- assertVisible: "Choose File"
 
-# Close the import sheet via the X icon.
 - tapOn: "Close"
-
-# Verify we are back on the Study screen.
-- assertVisible: "Import Words"
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

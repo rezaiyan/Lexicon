@@ -234,8 +234,6 @@
     <string name="theme_auto_desc">Seguir configuración del sistema</string>
     
     <!-- Word Manager Screen -->
-    <string name="word_manager">Gestor de Palabras</string>
-    <string name="word_manager_subtitle">Administra tu vocabulario</string>
     <string name="search_words">Buscar palabras...</string>
     <string name="clear">Limpiar</string>
     <string name="selected_count">%1$d seleccionadas</string>
@@ -471,7 +469,6 @@
 
     <!-- Import Source Language -->
     <string name="original_language_question">¿En qué idioma están las palabras originales?</string>
-    <string name="translation_language_hint">Las traducciones serán en %1$s. Puedes cambiar esto en Ajustes.</string>
     <string name="filter_all">Todas</string>
     <string name="filters">Filtros</string>
     <string name="account_section">Cuenta</string>

@@ -1,4 +1,4 @@
-# Utility flow: navigate from the main app to the Word Manager screen.
+# Utility flow: navigate from the main app to the Word Manager (the "Words" bottom tab).
 #
 # Called by word manager test flows via:
 #   - runFlow: ../utils/navigate_to_word_manager.yaml
@@ -14,25 +14,14 @@ appId: com.alirezaiyan.vokab
 
 # Wait for the bottom navigation bar to load (handles splash + auth startup).
 - extendedWaitUntil:
-    visible: "Settings"
+    visible: "(?-i)Words"
     timeout: 15000
 
-# Navigate to the Settings tab via the bottom navigation bar.
+# Case-sensitive: the Study screen's stage cards also show an uppercase "WORDS" label.
 - tapOn:
-    text: "Settings"
+    text: "(?-i)Words"
 
-# Wait for the Settings screen to load with the Word Manager card.
-# 15 s ceiling: after a cold-start relaunch the Settings screen does async
-# loading (subscription status, feature flags) which can take several seconds.
+# Either the word list (search bar) or the empty library state.
 - extendedWaitUntil:
-    visible: "Word Manager"
-    timeout: 15000
-
-# Tap the Word Manager card on the Settings screen.
-- tapOn:
-    text: "Word Manager"
-
-# Verify Word Manager screen is open by checking the top bar title.
-- extendedWaitUntil:
-    visible: "Word Manager"
-    timeout: 5000
+    visible: "Search words\\.\\.\\.|Your word library is empty"
+    timeout: 10000

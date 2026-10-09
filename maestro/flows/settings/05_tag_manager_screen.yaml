@@ -101,11 +101,15 @@ tags:
 - assertVisible: "Cancel"
 
 # Confirm deletion.
-- tapOn: "Delete Tag"
+# The dialog title and its confirm button share the text; index 1 is the button.
+- tapOn:
+    text: "Delete Tag"
+    index: 1
 - waitForAnimationToEnd
 
-# After deletion the "No tags yet" empty state must appear again.
-- assertVisible: "No tags yet"
+# After deletion the test tag must be gone.
+# Other tags may exist on the test account; only the test tag must be gone.
+- assertNotVisible: "TestTagRenamed"
 
 # ── Close Tag Manager ─────────────────────────────────────────────────────────
 

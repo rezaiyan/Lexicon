@@ -54,7 +54,7 @@ factoryOf(::ReviewWordUseCase)
 factoryOf(::SyncWordsUseCase)
 
 // Parameterized use cases — Koin resolves constructor params automatically
-factoryOf(::ImportViaFileUseCase)
+factoryOf(::ParseWordFileUseCase)
 ```
 
 ### ViewModel

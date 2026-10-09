@@ -13,6 +13,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -52,6 +53,8 @@ object HttpClientProvider {
                     }
                 }
                 level = if (isDebugMode()) LogLevel.HEADERS else LogLevel.NONE
+                // Debug logs still must not leak credentials (logcat is readable by tooling and bug reports).
+                sanitizeHeader { header -> header == HttpHeaders.Authorization }
             }
 
             // Logging + timing: always installed first so it wraps all other interceptors

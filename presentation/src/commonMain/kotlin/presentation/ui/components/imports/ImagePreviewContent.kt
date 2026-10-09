@@ -20,65 +20,63 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Rotate90DegreesCw
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.animation.AiScanOverlay
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
-import components.sheet.SheetSectionLabel
 import components.sheet.SheetTonalButton
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.extract_words
 import lexicon.resources.generated.resources.failed_to_load_image
-import lexicon.resources.generated.resources.image_too_large_warning
 import lexicon.resources.generated.resources.photo_preview_title
-import lexicon.resources.generated.resources.photo_quality
 import lexicon.resources.generated.resources.preview_selected_image
 import lexicon.resources.generated.resources.retake
+import lexicon.resources.generated.resources.rotate_photo
 import lexicon.resources.generated.resources.try_another_image
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
-import utils.LexiconFormatters
 import utils.toImageBitmap
 
-private const val MaxImageBytes = 5 * 1024 * 1024
 private val ErrorPlaceholderHeight = 180.dp
 
-// Portrait shots are letterboxed at 3:4 so the quality slider stays above the fold
+// Portrait shots are letterboxed at 3:4 so the actions stay above the fold
 private const val MinAspectRatio = 0.75f
 private const val MaxAspectRatio = 2.5f
+private const val QUARTER_TURNS = 4
+private const val RIGHT_ANGLE_DEGREES = 90f
 
-/** "Looks good?" — the picked photo, quality control and extract / retake actions. */
+/** "Looks good?" — the picked photo with extract / retake actions. */
 @Composable
 internal fun PhotoPreviewPage(
     imageBytes: ByteArray,
     isLoading: Boolean,
     isEnabled: Boolean,
-    imageQuality: Float,
-    onQualityChange: (Float) -> Unit,
+    problem: String?,
+    quarterTurns: Int,
+    onRotate: () -> Unit,
     onConfirm: () -> Unit,
     onRetake: () -> Unit,
 ) {
-    val imageBitmap = remember(imageBytes) { imageBytes.toImageBitmap() }
-    val isTooBig = imageBytes.size > MaxImageBytes
+    val decoded = remember(imageBytes) { imageBytes.toImageBitmap() }
+    // Shown exactly as it will be uploaded: sideways text is misread, so the user turns it upright here.
+    val imageBitmap = remember(decoded, quarterTurns) { decoded?.rotatedClockwise(quarterTurns) }
 
     SheetPage(
         title = stringResource(Res.string.photo_preview_title),
@@ -93,7 +91,7 @@ internal fun PhotoPreviewPage(
                 SheetPrimaryButton(
                     text = stringResource(Res.string.extract_words),
                     onClick = onConfirm,
-                    enabled = isEnabled && imageBitmap != null && !isTooBig,
+                    enabled = isEnabled && imageBitmap != null,
                     isLoading = isLoading,
                     icon = Icons.Default.AutoAwesome,
                     modifier = Modifier.weight(1f),
@@ -125,75 +123,40 @@ internal fun PhotoPreviewPage(
                 ) {
                     AiScanOverlay(modifier = Modifier.fillMaxWidth().aspectRatio(aspectRatio))
                 }
+                if (!isLoading) {
+                    FilledTonalIconButton(
+                        onClick = onRotate,
+                        enabled = isEnabled,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(Theme.spacing.sm),
+                    ) {
+                        Icon(
+                            Icons.Default.Rotate90DegreesCw,
+                            contentDescription = stringResource(Res.string.rotate_photo),
+                        )
+                    }
+                }
             }
         } else {
             ImageLoadError()
         }
 
-        if (imageBitmap != null && !isLoading) {
-            QualityControl(
-                imageBytes = imageBytes,
-                isTooBig = isTooBig,
-                isEnabled = isEnabled,
-                imageQuality = imageQuality,
-                onQualityChange = onQualityChange,
-            )
-        }
-
-        if (isTooBig) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { liveRegion = LiveRegionMode.Polite }
-                    .clip(RoundedCornerShape(Theme.shapes.medium))
-                    .background(MaterialTheme.colorScheme.errorContainer)
-                    .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
-                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs + Theme.spacing.xxxs),
-            ) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
-                )
-                Text(
-                    stringResource(Res.string.image_too_large_warning),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-            }
-        }
+        ErrorMessage(problem)
     }
 }
 
-@Composable
-private fun QualityControl(
-    imageBytes: ByteArray,
-    isTooBig: Boolean,
-    isEnabled: Boolean,
-    imageQuality: Float,
-    onQualityChange: (Float) -> Unit,
-) {
-    var sliderValue by remember(imageQuality) { mutableFloatStateOf(imageQuality) }
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SheetSectionLabel(stringResource(Res.string.photo_quality), Modifier.weight(1f))
-            Text(
-                LexiconFormatters.fileSizeApprox(imageBytes.size),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = if (isTooBig) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Slider(
-            value = sliderValue,
-            onValueChange = { sliderValue = it },
-            onValueChangeFinished = { onQualityChange(sliderValue) },
-            valueRange = 0.2f..1.0f,
-            enabled = isEnabled,
-            modifier = Modifier.fillMaxWidth(),
-        )
+/** The bitmap turned [quarterTurns] × 90° clockwise (drawn into a new bitmap so layout gets the new aspect). */
+private fun ImageBitmap.rotatedClockwise(quarterTurns: Int): ImageBitmap {
+    val turns = quarterTurns.mod(QUARTER_TURNS)
+    if (turns == 0) return this
+    val sideways = turns % 2 == 1
+    val result = ImageBitmap(if (sideways) height else width, if (sideways) width else height)
+    Canvas(result).apply {
+        translate(result.width / 2f, result.height / 2f)
+        rotate(RIGHT_ANGLE_DEGREES * turns)
+        translate(-width / 2f, -height / 2f)
+        drawImage(this@rotatedClockwise, Offset.Zero, Paint())
     }
+    return result
 }
 
 @Composable

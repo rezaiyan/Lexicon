@@ -45,7 +45,6 @@ object AppColors {
     val settingsThemeIcon = Color(0xFFE91E63)
     val settingsSubscriptionIcon = Color(0xFFE91E63)
     val settingsAboutIcon = Color(0xFF78909C)
-    val settingsWordManagerIcon = Color(0xFFFF9800)
     val settingsNotificationIcon = Color(0xFF5C6BC0)
     val settingsTtsIcon = Color(0xFF00897B)
     val settingsTagManagerIcon = Color(0xFF4CAF50)

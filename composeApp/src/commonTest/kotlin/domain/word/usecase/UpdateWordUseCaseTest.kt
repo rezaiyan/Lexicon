@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.Try
 import core.common.exceptionOrNull
 import core.common.getOrThrow
@@ -305,7 +306,8 @@ internal class FakeWordRepositoryForUpdate : IWordRepository {
     override fun getDueCardsByTag(tagId: Long) = kotlinx.coroutines.flow.flowOf<List<Word>>(emptyList())
     override fun getWordsByStage(stage: domain.word.model.LearningStage) = kotlinx.coroutines.flow.flowOf<List<Word>>(emptyList())
     override suspend fun getWordById(id: Int) = null
-    override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
+    override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+    override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
     override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
     override fun deleteWords(ids: List<Int>) = kotlinx.coroutines.flow.flowOf(domain.word.repository.DeleteWordsProgress.Completed(0))
     override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)

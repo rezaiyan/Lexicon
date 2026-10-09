@@ -1,6 +1,7 @@
 package fakes
 
 import core.common.Try
+import domain.word.add.model.AddWordsOutcome
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -44,11 +45,23 @@ class FakeWordRepository : IWordRepository {
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
     override suspend fun getWordById(id: Int): Word? = storedWords.find { it.id == id }
 
-    override suspend fun insertWords(words: List<Word>): Try<Int> {
-        insertCallCount++
-        insertedWords.addAll(words)
-        storedWords.addAll(words)
-        return if (insertResult.isSuccess) Try.success(words.size) else insertResult
+    val addedWords = mutableListOf<Word>()
+    var addResult: Try<AddWordsOutcome>? = null
+
+    override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> {
+        addResult?.let { return it }
+        val existing = storedWords.mapTo(mutableSetOf()) { it.identity }
+        val fresh = words.filter { existing.add(it.identity) }
+        addedWords.addAll(fresh)
+        storedWords.addAll(fresh)
+        return Try.success(AddWordsOutcome(fresh.size, words.size - fresh.size, fresh.map { it.originalWord }))
+    }
+
+    var uploadCallCount = 0
+
+    override suspend fun uploadPendingWords(): Try<Int> {
+        uploadCallCount++
+        return Try.success(0)
     }
 
     override suspend fun updateWord(word: Word): Try<Unit> {

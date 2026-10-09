@@ -11,18 +11,17 @@ import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Sell
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import components.ErrorScreen
+import core.getPlatformName
 import components.LoadingScreen
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
@@ -45,6 +44,9 @@ import feature.study.ui.focus.FocusNudgeCard
 import feature.study.ui.focus.LanguageSwitcherSheetContent
 import feature.study.ui.focus.FocusIntroCard
 import feature.study.ui.focus.FocusLanguageIcon
+import feature.study.listening.ListeningViewModel
+import feature.study.ui.listening.ListeningCard
+import feature.study.ui.listening.ListeningScreen
 import feature.study.ui.review.ReviewScreen
 import feature.study.ui.study.CollapsedStatsBar
 import feature.study.ui.study.LearningStagesSection
@@ -54,7 +56,6 @@ import feature.study.ui.wordrush.WordRushCard
 import feature.study.ui.wordrush.WordRushGameScreen
 import feature.study.wordrush.WordRushEffect
 import feature.study.wordrush.WordRushViewModel
-import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.focus_all_languages
 import lexicon.resources.generated.resources.focus_current
@@ -68,17 +69,12 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
-import overlay.bottomsheet.BottomSheetPageConfig
-import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.BottomSheetProperties
-import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
 import presentation.navigation.NotificationNavigator
-import presentation.ui.LocalSnackbarHostState
-import presentation.ui.components.imports.AiWordImportBottomSheet
-import presentation.ui.components.imports.ImportBottomSheet
+import presentation.ui.components.imports.AddWordsSheet
 import theme.Theme
 
 /** Non-dismissable sheet configuration reused for import flows. */
@@ -90,11 +86,6 @@ private val LockedSheetProperties = BottomSheetProperties(
     showDragHandle = false,
 )
 
-private sealed interface ImportFlowPage {
-    data object Manual : ImportFlowPage
-    data object AiAssistant : ImportFlowPage
-}
-
 @Composable
 fun StudyScreen(
     onNavigateToSettings: () -> Unit,
@@ -102,9 +93,8 @@ fun StudyScreen(
     val progressViewModel = koinViewModel<StudyProgressViewModel>()
     val reviewViewModel = koinViewModel<ReviewViewModel>()
     val wordRushViewModel = koinViewModel<WordRushViewModel>()
+    val listeningViewModel = koinViewModel<ListeningViewModel>()
     val overlayHost = LocalOverlayHost.current
-    val snackbarHostState = LocalSnackbarHostState.current
-    val coroutineScope = rememberCoroutineScope()
 
     val progressState by progressViewModel.state()
     val uiState = progressState.progress
@@ -113,6 +103,8 @@ fun StudyScreen(
     val skipTagSelector = progressState.skipTagSelector
     val stageTagsMap = progressState.stageTagsMap
 
+    val isListeningSupported = remember { getPlatformName() != "Web" }
+
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
     val isStatsSectionScrolledAway = remember(scrollState.value, statsSectionBottom) {
@@ -120,13 +112,6 @@ fun StudyScreen(
     }
 
     val progressStats = (uiState as? UiState.Loaded)?.value?.progressStats
-
-    val onImportSuccess: (String) -> Unit = { message ->
-        progressViewModel.refreshStats()
-        coroutineScope.launch {
-            snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Short)
-        }
-    }
 
     // Single entry point for all review flows — eliminates 5+ repetitive call sites.
     val openReviewScreen: (ReviewSource) -> Unit = { source ->
@@ -163,50 +148,39 @@ fun StudyScreen(
         }
     }
 
+    val openListening: () -> Unit = {
+        listeningViewModel.start(ReviewSource.DueCards)
+        overlayHost.showFullScreen(
+            tag = "listening",
+            properties = FullScreenProperties(
+                dismissOnBackPress = false,
+                isNavigationBarsPaddingEnabled = true,
+            ),
+        ) { navigator ->
+            ListeningScreen(
+                viewModel = listeningViewModel,
+                onRestart = { listeningViewModel.start(ReviewSource.DueCards) },
+                onDismiss = {
+                    listeningViewModel.abandon()
+                    navigator.dismiss()
+                },
+            )
+        }
+    }
+
     val openImportSheet: () -> Unit = {
         overlayHost.showSizeToFitBottomSheet(
             tag = "import",
             properties = LockedSheetProperties,
         ) { sheetNav ->
-            val pages = rememberBottomSheetPageNavigator<ImportFlowPage>(ImportFlowPage.Manual)
-            val onClose: () -> Unit = { sheetNav.dismiss() }
-            val onStartReview: () -> Unit = {
-                sheetNav.dismiss()
-                openReviewScreen(ReviewSource.DueCards)
-            }
-
-            BottomSheetPages(
-                navigator = pages,
-                onClose = onClose,
-                pageConfig = { page ->
-                    when (page) {
-                        is ImportFlowPage.Manual -> BottomSheetPageConfig(showBackButton = false)
-                        // The AI wizard draws its own back / progress / close bar
-                        is ImportFlowPage.AiAssistant -> BottomSheetPageConfig(
-                            showBackButton = false,
-                            showCloseButton = false,
-                        )
-                    }
+            AddWordsSheet(
+                onClose = { sheetNav.dismiss() },
+                onWordsAdded = progressViewModel::refreshStats,
+                onStartReview = {
+                    sheetNav.dismiss()
+                    openReviewScreen(ReviewSource.DueCards)
                 },
-            ) { currentPage ->
-                when (currentPage) {
-                    is ImportFlowPage.Manual -> ImportBottomSheet(
-                        onDismiss = onClose,
-                        onShowSnackBar = onImportSuccess,
-                        onAiAssistant = if (hasPremiumAccess) {
-                            { pages.navigateTo(ImportFlowPage.AiAssistant) }
-                        } else {
-                            null
-                        },
-                        onStartReview = onStartReview,
-                    )
-                    is ImportFlowPage.AiAssistant -> AiWordImportBottomSheet(
-                        onDismiss = onClose,
-                        onBackToChooser = { pages.navigateBack() },
-                        onStartReview = onStartReview,
-                    )
-                }
-            }
+            )
         }
     }
 
@@ -403,6 +377,14 @@ fun StudyScreen(
                         },
                         modifier = Modifier.padding(top = Theme.spacing.md),
                     )
+
+                    // WasmJs has no on-device TTS engine, so listening mode is mobile-only.
+                    if (isListeningSupported) {
+                        ListeningCard(
+                            onListen = openListening,
+                            modifier = Modifier.padding(top = Theme.spacing.md),
+                        )
+                    }
 
                     LearningStagesSection(
                         stats = loadedStats,

@@ -1,0 +1,16 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - profile
+  - smoke
+---
+# Test: the Profile tab lists the account actions.
+#
+# Subscription, Edit Profile, Delete Account and Logout sit in the ACCOUNT
+# section of the Profile tab (they used to be behind a "More options" menu).
+
+- runFlow: ../utils/navigate_to_profile.yaml
+
+- assertVisible: "Subscription"
+- assertVisible: "Edit Profile"
+- assertVisible: "Delete Account"
+- assertVisible: "Logout"

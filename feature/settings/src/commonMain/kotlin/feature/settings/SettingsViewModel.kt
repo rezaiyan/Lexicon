@@ -2,14 +2,12 @@ package feature.settings
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
-import domain.auth.repository.IAuthRepository
 import domain.notifications.repository.INotificationRepository
 import domain.notifications.usecase.OpenNotificationSettingsUseCase
 import domain.notifications.usecase.RequestNotificationPermissionUseCase
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.settings.usecase.SetDailyGoalWordsUseCase
-import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
@@ -33,7 +31,6 @@ import platform.IAppVersionProvider
 import core.base.BaseViewModel
 import feature.settings.model.SettingsScreenState
 import domain.settings.model.ThemeMode
-import utils.Language
 
 data class SettingsState(
     val screen: SettingsScreenState = SettingsScreenState(),
@@ -48,7 +45,6 @@ data class SettingsState(
 @Suppress("LongParameterList")
 class SettingsViewModel(
     notificationRepository: INotificationRepository,
-    private val setLanguageUseCase: SetLanguageUseCase,
     private val setThemeModeUseCase: SetThemeModeUseCase,
     private val setNotificationsEnabledUseCase: SetNotificationsEnabledUseCase,
     private val setReviewRemindersEnabledUseCase: SetReviewRemindersEnabledUseCase,
@@ -64,7 +60,6 @@ class SettingsViewModel(
     getDailyGoalWordsUseCase: GetDailyGoalWordsUseCase,
     private val setDailyGoalWordsUseCase: SetDailyGoalWordsUseCase,
     settingsRepository: ISettingsRepository,
-    authRepository: IAuthRepository,
     appVersionProvider: IAppVersionProvider,
 ) : BaseViewModel<SettingsState, Nothing>() {
 
@@ -87,7 +82,7 @@ class SettingsViewModel(
             }
             notificationPermissionMonitor.refresh()
         }
-        observeSettingsState(settingsRepository, authRepository, appVersionProvider)
+        observeSettingsState(settingsRepository, appVersionProvider)
         settingsRepository.getTtsSettings()
             .onEach { settings -> updateState { copy(ttsSettings = settings) } }
             .launchIn(viewModelScope)
@@ -101,17 +96,14 @@ class SettingsViewModel(
 
     private fun observeSettingsState(
         settingsRepository: ISettingsRepository,
-        authRepository: IAuthRepository,
         appVersionProvider: IAppVersionProvider,
     ) {
         viewModelScope.launch {
             SettingsStateBuilder.buildStateFlow(
-                currentLanguage = settingsRepository.getLanguage(),
                 themeMode = settingsRepository.getThemeMode(),
                 notificationsEnabled = settingsRepository.getNotificationsEnabled(),
                 systemNotificationsEnabled = systemNotificationsEnabled,
                 appVersion = flowOf(appVersionProvider.getVersion()),
-                featureAccessFlow = authRepository.getFeatureAccessAsFlow(),
                 reviewRemindersEnabled = settingsRepository.getReviewRemindersEnabled()
             ).catch { e ->
                 analyticsTracker.logNonFatalError(
@@ -121,13 +113,6 @@ class SettingsViewModel(
             }.collect { screenState ->
                 updateState { copy(screen = screenState) }
             }
-        }
-    }
-
-    fun setLanguage(language: Language) {
-        viewModelScope.launch {
-            setLanguageUseCase(language)
-            analyticsTracker.logLanguageChanged(language = language.name)
         }
     }
 

@@ -53,4 +53,17 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
     sealed class Validation(message: String) : DomainError(message) {
         data class BlankField(val fieldName: String) : Validation("$fieldName cannot be blank")
     }
+
+    /** Failures of the add-words pipeline (manual, file, photo, AI suggestions). */
+    sealed class AddWords(message: String? = null) : DomainError(message) {
+        data object EmptyInput : AddWords("Nothing to add")
+        data class InvalidDraft(val reason: Reason) : AddWords("Invalid word: $reason") {
+            enum class Reason { BlankTerm, BlankTranslation, TooLong }
+        }
+        data object UnsupportedFile : AddWords("Unsupported file")
+        data class FileTooLarge(val maxBytes: Int) : AddWords("File too large")
+        data class ImageTooLarge(val maxBytes: Int) : AddWords("Image too large")
+        data object ImageUnreadable : AddWords("Image unreadable")
+        data object NothingRecognized : AddWords("No vocabulary found")
+    }
 }

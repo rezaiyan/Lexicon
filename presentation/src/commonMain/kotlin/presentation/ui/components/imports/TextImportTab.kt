@@ -48,7 +48,9 @@ import components.sheet.SheetSectionLabel
 import components.sheet.SheetTonalButton
 import domain.tag.model.Tag
 import lexicon.resources.generated.resources.Res
+import feature.addwords.source.ManualEntryState
 import lexicon.resources.generated.resources.add_word
+import lexicon.resources.generated.resources.add_words_already_added
 import lexicon.resources.generated.resources.add_words_type_title
 import lexicon.resources.generated.resources.added_count
 import lexicon.resources.generated.resources.added_this_session
@@ -65,37 +67,37 @@ import utils.Language
 
 @Composable
 internal fun TextImportContent(
-    textInputState: TextInputState,
-    sourceLanguage: Language,
-    targetLanguage: Language,
+    state: ManualEntryState,
+    learning: Language,
+    native: Language,
     tags: List<Tag>,
     selectedTagId: Long?,
     onTagSelected: (Long?) -> Unit,
     onCreateTag: () -> Unit,
     onChangeLanguage: () -> Unit,
-    onWordChange: (String) -> Unit,
+    onTermChange: (String) -> Unit,
     onTranslationChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
+    onNoteChange: (String) -> Unit,
     onAddWord: () -> Unit,
     onDone: () -> Unit,
 ) {
     val wordFocusRequester = remember { FocusRequester() }
     val translationFocusRequester = remember { FocusRequester() }
     val descriptionFocusRequester = remember { FocusRequester() }
-    var previousWordsAdded by remember { mutableIntStateOf(textInputState.wordsAddedCount) }
+    var previousWordsAdded by remember { mutableIntStateOf(state.addedCount) }
 
     // Return focus to the word field after each successful add for rapid entry
-    LaunchedEffect(textInputState.wordsAddedCount) {
-        if (textInputState.wordsAddedCount > previousWordsAdded) {
+    LaunchedEffect(state.addedCount) {
+        if (state.addedCount > previousWordsAdded) {
             wordFocusRequester.requestFocus()
         }
-        previousWordsAdded = textInputState.wordsAddedCount
+        previousWordsAdded = state.addedCount
     }
 
     SheetPage(
         title = stringResource(Res.string.add_words_type_title),
         headerAccessory = {
-            LanguagePairChip(source = sourceLanguage, target = targetLanguage, onClick = onChangeLanguage)
+            LanguagePairChip(source = learning, target = native, onClick = onChangeLanguage)
         },
         footer = {
             Row(horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
@@ -107,8 +109,8 @@ internal fun TextImportContent(
                 SheetPrimaryButton(
                     text = stringResource(Res.string.add_word),
                     onClick = onAddWord,
-                    enabled = textInputState.isAddEnabled,
-                    isLoading = !textInputState.isEnabled,
+                    enabled = state.canAdd,
+                    isLoading = state.isSaving,
                     icon = Icons.Default.Add,
                     modifier = Modifier.weight(1f),
                 )
@@ -118,9 +120,9 @@ internal fun TextImportContent(
         Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
             SheetField(
                 label = stringResource(Res.string.field_word),
-                value = textInputState.word,
-                onValueChange = onWordChange,
-                enabled = textInputState.isEnabled,
+                value = state.term,
+                onValueChange = onTermChange,
+                enabled = !state.isSaving,
                 textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 imeAction = ImeAction.Next,
                 onImeAction = { translationFocusRequester.requestFocus() },
@@ -128,9 +130,9 @@ internal fun TextImportContent(
             )
             SheetField(
                 label = stringResource(Res.string.translation_label),
-                value = textInputState.translation,
+                value = state.translation,
                 onValueChange = onTranslationChange,
-                enabled = textInputState.isEnabled,
+                enabled = !state.isSaving,
                 imeAction = ImeAction.Next,
                 onImeAction = { descriptionFocusRequester.requestFocus() },
                 modifier = Modifier.focusRequester(translationFocusRequester),
@@ -138,17 +140,19 @@ internal fun TextImportContent(
             SheetField(
                 label = stringResource(Res.string.field_note),
                 optionalSuffix = stringResource(Res.string.field_optional),
-                value = textInputState.description,
-                onValueChange = onDescriptionChange,
-                enabled = textInputState.isEnabled,
+                value = state.note,
+                onValueChange = onNoteChange,
+                enabled = !state.isSaving,
                 placeholder = stringResource(Res.string.note_placeholder),
                 imeAction = ImeAction.Done,
-                onImeAction = { if (textInputState.isAddEnabled) onAddWord() },
+                onImeAction = { if (state.canAdd) onAddWord() },
                 modifier = Modifier.focusRequester(descriptionFocusRequester),
             )
         }
 
-        ErrorMessage(textInputState.errorMessage)
+        ErrorMessage(
+            if (state.alreadyAdded) stringResource(Res.string.add_words_already_added) else state.problem.text()
+        )
 
         TagSelectorRow(
             tags = tags,
@@ -157,15 +161,15 @@ internal fun TextImportContent(
             onCreateTag = onCreateTag,
         )
 
-        RecentWords(textInputState)
+        RecentWords(state)
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RecentWords(textInputState: TextInputState) {
+private fun RecentWords(state: ManualEntryState) {
     AnimatedVisibility(
-        visible = textInputState.recentWords.isNotEmpty(),
+        visible = state.recent.isNotEmpty(),
         enter = fadeIn() + expandVertically(),
         exit = fadeOut() + shrinkVertically(),
     ) {
@@ -176,7 +180,7 @@ private fun RecentWords(textInputState: TextInputState) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SheetSectionLabel(stringResource(Res.string.added_this_session), Modifier.weight(1f))
                 SheetBadge(
-                    text = stringResource(Res.string.added_count, textInputState.wordsAddedCount),
+                    text = stringResource(Res.string.added_count, state.addedCount),
                     containerColor = AppColors.secondary.copy(alpha = Theme.opacity.focus),
                     contentColor = MaterialTheme.colorScheme.onSurface,
                 )
@@ -185,11 +189,11 @@ private fun RecentWords(textInputState: TextInputState) {
                 horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
                 verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
             ) {
-                textInputState.recentWords.forEach { added ->
+                state.recent.forEach { added ->
                     val muted = MaterialTheme.colorScheme.onSurfaceVariant
                     Text(
                         text = buildAnnotatedString {
-                            append(added.word)
+                            append(added.term)
                             withStyle(SpanStyle(color = muted)) { append(" · ${added.translation}") }
                         },
                         style = MaterialTheme.typography.bodyMedium,

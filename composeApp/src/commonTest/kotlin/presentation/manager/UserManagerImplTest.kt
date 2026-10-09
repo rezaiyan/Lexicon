@@ -1,5 +1,6 @@
 package presentation.manager
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.Try
 import domain.auth.model.AuthUser
 import domain.auth.model.FeatureAccessResponse
@@ -34,7 +35,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -63,7 +63,8 @@ class UserManagerImplTest {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
-        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> = flowOf()
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
@@ -79,8 +80,6 @@ class UserManagerImplTest {
     }
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)

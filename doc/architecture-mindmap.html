@@ -451,10 +451,10 @@ const NODES = {
     ]}]}
   },
   presImport: {
-    label: 'Import UI', icon: '\uD83D\uDCE5', color: 'var(--green)', desc: 'ImportViewModel + Sheets',
-    detail: { subtitle:'Shared import bottom sheet and tab components.', tags:[{l:'8 files',c:'var(--green)'}],
+    label: 'Add words UI', icon: '\uD83D\uDCE5', color: 'var(--green)', desc: 'AddWordsSheet + pages',
+    detail: { subtitle:'One add-words sheet: chooser, source pages, shared candidate review, result.', tags:[{l:'presentation/ui/components/imports',c:'var(--green)'}],
       sections:[{title:'Components',items:[
-        {i:'\uD83E\uDDE0',t:'ImportViewModel'},{i:'\uD83C\uDFA8',t:'ImportBottomSheet / ImportTabV2 / AiWordImportBottomSheet'},
+        {i:'\uD83C\uDFA8',t:'AddWordsSheet (page router)'},{i:'\uD83D\uDCCB',t:'CandidateReviewPage'},
     ]}]}
   },
 
@@ -519,9 +519,9 @@ const NODES = {
       sections:[{title:'Components',items:[{i:'\uD83E\uDDE0',t:'LeaderboardViewModel'},{i:'\uD83D\uDCF1',t:'LeaderboardScreen'}]}]}
   },
   fImport: {
-    label: 'import', icon: '\uD83E\uDD16', color: 'var(--pink)', desc: '3 files, AI',
-    detail: { subtitle:'AI-powered word import from images.', tags:[{l:'3 files',c:'var(--pink)'}],
-      sections:[{title:'Components',items:[{i:'\uD83E\uDDE0',t:'AiWordImportViewModel'},{i:'\uD83D\uDCCB',t:'AiWordImportUiState'}]}]}
+    label: 'import', icon: '\uD83E\uDD16', color: 'var(--pink)', desc: 'Add-words ViewModels',
+    detail: { subtitle:'Every way of adding words: one host and one ViewModel per source.', tags:[{l:'12 files',c:'var(--pink)'}],
+      sections:[{title:'Components',items:[{i:'\uD83E\uDDE0',t:'AddWordsViewModel (host, review, commit)'},{i:'\uD83E\uDDE0',t:'ManualEntry / FileImport / PhotoImport / AiSuggest ViewModels'}]}]}
   },
 
   // ── DOMAIN CHILDREN (sorted by use case count desc) ──

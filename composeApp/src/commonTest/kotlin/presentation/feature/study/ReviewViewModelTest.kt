@@ -1,5 +1,6 @@
 package presentation.feature.study
 
+import domain.word.add.model.AddWordsOutcome
 import app.cash.turbine.test
 import core.common.Try
 import domain.analytics.model.ReviewEventParams
@@ -9,7 +10,6 @@ import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
-import domain.settings.usecase.GetCurrentLanguageUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.streak.model.StreakData
@@ -130,7 +130,8 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
         override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
-        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(0)
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf()
         override fun updateWordsLanguages(
             ids: List<Int>,
@@ -148,8 +149,6 @@ class ReviewViewModelTest : ViewModelTestBase() {
     }
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-        override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
@@ -225,7 +224,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             endSessionUseCase = EndStudySessionUseCase(recorder),
             recordEventUseCase = RecordReviewEventUseCase(recorder),
             recordStreakUseCase = RecordStreakActivityUseCase(fakeStreakRepo()),
-            speakWordUseCase = SpeakWordUseCase(ttsRepo, GetCurrentLanguageUseCase(settingsRepo)),
+            speakWordUseCase = SpeakWordUseCase(ttsRepo),
             observeTtsState = ObserveTtsStateUseCase(ttsRepo),
             observeSpeechRate = ObserveSpeechRateUseCase(settingsRepo),
             setSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),

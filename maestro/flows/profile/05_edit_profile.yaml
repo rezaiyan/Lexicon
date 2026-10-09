@@ -8,19 +8,15 @@ tags:
 #
 # Flow:
 #   1. Navigate to Profile screen.
-#   2. Open the "More options" bottom sheet.
-#   3. Tap "Edit Profile" to open the edit screen.
-#   4. Assert the edit screen loads with Username and Email fields.
-#   5. Clear the Username field and type a new alias.
-#   6. Tap "Save".
-#   7. Assert the Profile screen is visible again (sheet dismissed after save).
+#   2. Tap "Edit Profile" in the ACCOUNT section to open the edit sheet.
+#   3. Assert the edit screen loads with Username and Email fields.
+#   4. Clear the Username field and type a new alias.
+#   5. Tap "Save".
+#   6. Assert the Profile screen is visible again (sheet dismissed after save).
 
 - runFlow: ../utils/navigate_to_profile.yaml
 
-# Tap the "More options" icon in the top bar to open the sheet.
-- tapOn: "More options"
-
-# The more options sheet must appear with the Edit Profile option.
+# The ACCOUNT section lists Edit Profile.
 - assertVisible: "Edit Profile"
 
 # Tap "Edit Profile" to navigate into the edit screen.

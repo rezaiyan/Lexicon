@@ -8,7 +8,6 @@ import domain.tts.model.TtsSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -21,8 +20,6 @@ import kotlin.test.assertTrue
 private class EnhancedFakeSettingsRepository : ISettingsRepository {
 
     // Non-TTS required overrides (sensible defaults)
-    override fun getLanguage(): Flow<Language> = flowOf(Language.ENGLISH)
-    override suspend fun setLanguage(language: Language): Try<Unit> = Try.success(Unit)
     override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
     override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
     override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)

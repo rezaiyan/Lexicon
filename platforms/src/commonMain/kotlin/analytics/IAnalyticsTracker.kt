@@ -35,8 +35,6 @@ interface IAnalyticsTracker {
 
     fun logThemeChanged(themeMode: String, isDark: Boolean)
 
-    fun logLanguageChanged(language: String)
-
     fun setUserProperty(name: String, value: String)
 
     fun updateUserProgress(

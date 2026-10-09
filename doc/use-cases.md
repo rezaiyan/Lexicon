@@ -27,17 +27,27 @@ All use cases in `domain/src/commonMain/kotlin/domain/`. Each is a standalone cl
 | `UpdateWordUseCase` | IWordRepository | `(word): Try<Word>` (suspend) | Update word content, preserves learning progress |
 | `DeleteWordUseCase` | IWordRepository | `(wordId: Int): Try<Unit>` (suspend) | Delete single word |
 | `DeleteWordsUseCase` | IWordRepository | `(ids: List<Int>): Flow<DeleteWordsResult>` | Batch delete with progress states |
-| `ImportWordsUseCase` | IWordRepository, IImportValidationService, GetCurrentLanguageUseCase | `(text): Flow<Try<Int>>` / `execute(text, src?, tgt?): Try<Int>` | Parse CSV, deduplicate, insert |
-| `ImportViaFileUseCase` | ImportWordsUseCase | `(content, fileName?, src?, tgt?): Try<Int>` | Validates .txt format, delegates to ImportWordsUseCase |
 | `ExportWordsUseCase` | (none) | `(words): String` | Format: `word,translation[,description];...` |
 | `SyncRemoteToLocalUseCase` | IWordRepository | `(clearFirst: Boolean): Try<Unit>` | Pull words from backend |
+
+## Add Words Use Cases (`domain/word/add/usecase/`)
+
+See `doc/import-export.md` for the pipeline.
+
+| Use Case | Dependencies | Signature | Behavior |
+|----------|-------------|-----------|----------|
+| `AddWordsUseCase` | IWordRepository | `(AddWordsCommand): Try<AddWordsOutcome>` | Single write path: validate drafts, dedupe (term, translation, learning lang), link tags, enqueue upload |
+| `AddStarterWordsUseCase` | AddWordsUseCase, IAddWordsLanguageRepository | `(List<SuggestedVocabulary>): Try<AddWordsOutcome>` | Onboarding starter words |
+| `ParseWordFileUseCase` | (none) | `(WordFile): Try<ParseReport>` | Decode text (≤ 1 MB) and parse into drafts + rejected lines |
+| `ExtractWordsFromImageUseCase` | IImagePreparer, IAiRepository, RefreshFeatureAccessUseCase | `(Params(image, languages, quarterTurns)): Try<List<WordDraft>>` | Turn as rotated, shrink to ≤ 3 MB, extract via `/ai/extract-words` |
+| `SuggestWordsUseCase` | IAiRepository | `(Params(languages, level, topics)): Try<List<WordDraft>>` | AI suggestions |
+| `ResolveAddWordsLanguagesUseCase` | IAddWordsLanguageRepository | `(): Try<LanguagePair?>` | Last used pair, else most common, else null |
+| `UploadPendingWordsUseCase` | IWordRepository | `(): Try<Int>` | Flush the upload queue (called on app start) |
 
 ## Settings Use Cases (`domain/settings/usecase/`)
 
 | Use Case | Dependencies | Signature | Behavior |
 |----------|-------------|-----------|----------|
-| `GetCurrentLanguageUseCase` | ISettingsRepository | `(): Language` (suspend) | Current language, defaults to ENGLISH |
-| `SetLanguageUseCase` | ISettingsRepository | `(language: Language)` (suspend) | Set app language |
 | `GetReviewSettingsUseCase` | (none) | `(): ReviewSettings` | Returns BALANCED preset (fixed) |
 | `SetThemeModeUseCase` | ISettingsRepository | `(mode: ThemeMode)` (suspend) | Set theme |
 | `SetNotificationsEnabledUseCase` | ISettingsRepository | `(enabled: Boolean)` (suspend) | Toggle notifications |
@@ -53,14 +63,13 @@ All use cases in `domain/src/commonMain/kotlin/domain/`. Each is a standalone cl
 
 | Use Case | Dependencies | Signature | Behavior |
 |----------|-------------|-----------|----------|
-| `SpeakWordUseCase` | ITtsRepository, GetCurrentLanguageUseCase | `(text, languageCode)` (suspend) | Normalize lang, download model if needed, speak |
+| `SpeakWordUseCase` | ITtsRepository | `(text, languageCode)` (suspend) | Normalize lang, download model if needed, speak; blank/unsupported code → skip (no guessed voice) |
 | `StopSpeakingUseCase` | ITtsRepository | `()` (suspend) | Stop TTS playback |
 
 ## AI Use Cases (`domain/ai/usecase/`)
 
 | Use Case | Dependencies | Signature | Behavior |
 |----------|-------------|-----------|----------|
-| `ImportFromImageUseCase` | IAiRepository, ImportWordsUseCase, GetCurrentLanguageUseCase | `(imageBytes, extractWords, extractSentences): Flow<ImportImageResult>` | Extract vocab from image via AI, then import |
 | `IsAiAvailableUseCase` | IAuthRepository | `(): Boolean` (suspend) | Returns true if authenticated |
 
 ## Notification Use Cases (`domain/notifications/usecase/`)
@@ -78,12 +87,9 @@ All use cases in `domain/src/commonMain/kotlin/domain/`. Each is a standalone cl
 | Use Case | Dependencies | Signature | Behavior |
 |----------|-------------|-----------|----------|
 | `SubmitPreferencesUseCase` | IOnboardingRepository | `(preferences): Try<SuggestedVocabularyResponse>` (suspend) | Submit prefs, get vocab suggestions |
-| `ImportSuggestedVocabularyUseCase` | IWordRepository | `(suggestions): Try<Int>` (suspend) | Convert SuggestedVocabulary to Word, insert |
 
 ## Services (Domain Layer)
 
 | Service | Interface | Implementation | Behavior |
 |---------|----------|----------------|----------|
 | `AuthenticationService` | IAuthenticationService | AuthenticationService | Wraps repository auth calls in Flow<Try<>> |
-| `WordSyncService` | IWordSyncService | WordSyncService | Syncs remote words, deduplicates by (originalWord, translation) |
-| `ImportValidationService` | IImportValidationService | ImportValidationService | Parses CSV import format, validates, returns List<Word> |

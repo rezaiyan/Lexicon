@@ -2,11 +2,6 @@ package presentation.feature.settings
 
 import analytics.IAnalyticsTracker
 import core.common.Try
-import domain.auth.model.FeatureAccessResponse
-import domain.auth.model.FeatureFlags
-import domain.auth.model.UserFeatureAccess
-import domain.auth.repository.IAuthRepository
-import domain.auth.model.AuthUser
 import domain.notifications.repository.INotificationRepository
 import domain.notifications.usecase.OpenNotificationSettingsUseCase
 import domain.notifications.usecase.RequestNotificationPermissionUseCase
@@ -14,7 +9,6 @@ import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.settings.usecase.SetDailyGoalWordsUseCase
-import domain.settings.usecase.SetLanguageUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
@@ -35,20 +29,17 @@ import platform.IAppVersionProvider
 import feature.settings.NotificationPermissionMonitor
 import feature.settings.SettingsViewModel
 import presentation.ViewModelTestBase
-import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class SettingsViewModelTest : ViewModelTestBase() {
 
-    private var languageFlow = MutableStateFlow(Language.ENGLISH)
     private var themeModeFlow = MutableStateFlow(ThemeMode.AUTO)
     private var notificationsEnabledFlow = MutableStateFlow(true)
     private var systemNotificationsEnabled = true
     private var requestPermissionResult = true
     private val loggedEvents = mutableListOf<String>()
-    private var lastSetLanguage: Language? = null
     private var lastSetThemeMode: ThemeMode? = null
     private var lastSetNotificationsEnabled: Boolean? = null
     private var lastSetReviewRemindersEnabled: Boolean? = null
@@ -57,11 +48,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
     private var storedDailyGoalWords: Int = 10
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
-        override fun getLanguage(): Flow<Language> = languageFlow
-        override suspend fun setLanguage(language: Language): Try<Unit> {
-            lastSetLanguage = language
-            return Try.success(Unit)
-        }
         override fun getThemeMode(): Flow<ThemeMode> = themeModeFlow
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> {
             lastSetThemeMode = mode
@@ -106,22 +92,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
         override suspend fun openNotificationSettings(): Try<Unit> = Try.success(Unit)
     }
 
-    private fun fakeAuthRepo() = object : IAuthRepository {
-        override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = Try.failure(RuntimeException("not implemented"))
-        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = Try.failure(RuntimeException("not implemented"))
-        override suspend fun logout(): Try<Unit> = Try.success(Unit)
-        override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
-        override suspend fun getAccessToken(): String? = null
-        override suspend fun isAuthenticated(): Boolean = false
-        override fun isAuthenticatedAsFlow(): Flow<Boolean> = flowOf(false)
-        override fun getFeatureAccessAsFlow(): Flow<FeatureAccessResponse> = flowOf(
-            FeatureAccessResponse(
-                featureFlags = FeatureFlags(),
-                userAccess = UserFeatureAccess(hasPremiumAccess = false)
-            )
-        )
-    }
-
     private fun fakeAppVersionProvider() = object : IAppVersionProvider {
         override fun getVersion(): String = "1.0.0"
     }
@@ -137,7 +107,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) { loggedEvents += "theme_changed" }
-        override fun logLanguageChanged(language: String) { loggedEvents += "language_changed" }
         override fun setUserProperty(name: String, value: String) {}
         override fun updateUserProgress(totalWords: Int, matureWords: Int, currentStreak: Int) {}
         override fun logError(error: Throwable, context: String?) {}
@@ -163,7 +132,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
         val ttsRepo = fakeTtsRepo()
         return SettingsViewModel(
             notificationRepository = notifRepo,
-            setLanguageUseCase = SetLanguageUseCase(settingsRepo),
             setThemeModeUseCase = SetThemeModeUseCase(settingsRepo),
             setNotificationsEnabledUseCase = SetNotificationsEnabledUseCase(settingsRepo),
             setReviewRemindersEnabledUseCase = SetReviewRemindersEnabledUseCase(settingsRepo),
@@ -179,23 +147,8 @@ class SettingsViewModelTest : ViewModelTestBase() {
             getDailyGoalWordsUseCase = GetDailyGoalWordsUseCase(settingsRepo),
             setDailyGoalWordsUseCase = SetDailyGoalWordsUseCase(settingsRepo),
             settingsRepository = settingsRepo,
-            authRepository = fakeAuthRepo(),
             appVersionProvider = fakeAppVersionProvider()
         )
-    }
-
-    @Test
-    fun `setLanguage delegates to use case`() = runTest {
-        val vm = createViewModel()
-        vm.setLanguage(Language.GERMAN)
-        assertEquals(Language.GERMAN, lastSetLanguage)
-    }
-
-    @Test
-    fun `setLanguage logs analytics`() = runTest {
-        val vm = createViewModel()
-        vm.setLanguage(Language.GERMAN)
-        assertTrue(loggedEvents.contains("language_changed"))
     }
 
     @Test
@@ -223,7 +176,6 @@ class SettingsViewModelTest : ViewModelTestBase() {
     fun `settings state is built from repository flows`() = runTest {
         val vm = createViewModel()
         val screen = vm.currentState.screen
-        assertEquals(Language.ENGLISH, screen.currentLanguage)
         assertEquals(ThemeMode.AUTO, screen.themeMode)
         assertEquals("1.0.0", screen.appVersion)
     }

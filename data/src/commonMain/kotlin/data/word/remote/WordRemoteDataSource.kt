@@ -24,11 +24,11 @@ class WordRemoteDataSource(
         return apiClient.get<List<RemoteWord>>(path).map { it ?: emptyList() }
     }
 
-    override suspend fun upsertWords(words: List<RemoteWord>): Try<Unit> =
-        apiClient.postUnit(
+    override suspend fun upsertWords(words: List<RemoteWord>): Try<List<RemoteWord>> =
+        apiClient.post<List<RemoteWord>>(
             path = "/words",
             body = UpsertWordsPayload(words)
-        )
+        ).map { it ?: emptyList() }
 
     override suspend fun updateWord(id: Long, word: RemoteWord): Try<Unit> =
         apiClient.patchUnit(

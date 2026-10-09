@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
@@ -62,8 +63,12 @@ fun SheetField(
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val outline = MaterialTheme.colorScheme.outlineVariant
     val container = if (readOnly) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surface
+    val accessibleLabel = if (optionalSuffix != null) "$label · $optionalSuffix" else label
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs + Theme.spacing.xxxs)) {
+        // The visible label is announced as the field's name instead, so screen readers and UI tests
+        // find one labelled text field rather than a loose label next to an unnamed edit box.
         Text(
+            modifier = Modifier.clearAndSetSemantics {},
             text = buildAnnotatedString {
                 append(label)
                 if (optionalSuffix != null) {
@@ -79,7 +84,7 @@ fun SheetField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier.fillMaxWidth(),
+            modifier = modifier.fillMaxWidth().semantics { contentDescription = accessibleLabel },
             enabled = enabled,
             readOnly = readOnly,
             singleLine = singleLine,

@@ -13,8 +13,7 @@ LexiconApp (root composable)
 └── AppContent (bottom nav)
      ├── ProfileScreen (tab 1)
      ├── StudyScreen (tab 2, default)
-     │    ├── ImportBottomSheet (manual import)
-     │    ├── AiWordImportBottomSheet (AI import)
+     │    ├── AddWordsSheet (manual / file / photo / AI → shared review)
      │    └── ReviewBottomSheet (flashcard review)
      └── SettingsScreen (tab 3)
           ├── WordManagerScreen (sub-screen)
@@ -57,10 +56,10 @@ Main learning hub. Sections:
 1. **StatsSection** - Progress overview (total, mature, due)
 2. **LearningStagesSection** - 7 stage cards (Level 0-6)
 3. **Review Buttons** - Start due review or browse by stage
-4. **Import button** - Opens method selector (Manual/AI)
+4. **Add words button** - Opens `AddWordsSheet` (chooser → source → review → result)
 
 **ViewModel**: `StudyViewModel`
-**Child sheets**: ImportBottomSheet, AiWordImportBottomSheet, ReviewBottomSheet
+**Child sheets**: AddWordsSheet, ReviewBottomSheet
 
 ## ProfileScreen (`ui/screens/ProfileScreen.kt`)
 - UserInfoSection (name, email, avatar)
@@ -71,7 +70,6 @@ Main learning hub. Sections:
 
 ## SettingsScreen (`ui/screens/SettingsScreen.kt`)
 Setting cards:
-1. LanguageSettingsCard - Select target language
 2. ThemeSettingsCard - Auto/Light/Dark
 3. NotificationSettingsCard - Enable/disable
 4. WordManagerCard - Navigate to word manager

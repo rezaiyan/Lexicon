@@ -2,17 +2,17 @@ package domain.word.model
 
 import utils.Language
 import kotlin.test.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class WordTest {
 
     @Test
-    fun `identical words are considered same content`() {
+    fun `identical words are the same word`() {
         val first = createWord(original = "Hello", translation = "Hola")
         val second = createWord(original = "Hello", translation = "Hola")
 
-        assertTrue(first.isSameContent(second))
+        assertEquals(first.identity, second.identity)
     }
 
     @Test
@@ -20,23 +20,23 @@ class WordTest {
         val first = createWord(original = "  Hello ", translation = " Hola ")
         val second = createWord(original = "hello", translation = "hola")
 
-        assertTrue(first.isSameContent(second))
+        assertEquals(first.identity, second.identity)
     }
 
     @Test
-    fun `different translation is not same content`() {
+    fun `different translation is a different word`() {
         val first = createWord(original = "Hello", translation = "Hola")
         val second = createWord(original = "Hello", translation = "Salut")
 
-        assertFalse(first.isSameContent(second))
+        assertNotEquals(first.identity, second.identity)
     }
 
     @Test
-    fun `different original word is not same content`() {
+    fun `different original word is a different word`() {
         val first = createWord(original = "Hello", translation = "Hola")
         val second = createWord(original = "Hi", translation = "Hola")
 
-        assertFalse(first.isSameContent(second))
+        assertNotEquals(first.identity, second.identity)
     }
 
     @Test
@@ -44,20 +44,29 @@ class WordTest {
         val first = createWord(original = "Café", translation = "Crème")
         val second = createWord(original = "café", translation = "crème")
 
-        assertTrue(first.isSameContent(second))
+        assertEquals(first.identity, second.identity)
+    }
+
+    @Test
+    fun `the same word in another learning language is a different word`() {
+        val first = createWord(original = "chat", translation = "cat", learning = Language.FRENCH)
+        val second = createWord(original = "chat", translation = "cat", learning = Language.GERMAN)
+
+        assertNotEquals(first.identity, second.identity)
     }
 
     private fun createWord(
         id: Int = 1,
         original: String,
-        translation: String
+        translation: String,
+        learning: Language = Language.SPANISH,
     ) = Word(
         id = id,
         originalWord = original,
         translation = translation,
         description = "",
         sourceLanguage = Language.ENGLISH,
-        targetLanguage = Language.SPANISH,
+        targetLanguage = learning,
         level = 0,
         easeFactor = 2.5f,
         interval = 0,

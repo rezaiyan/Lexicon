@@ -3,11 +3,19 @@ package data.word.repository
 import data.settings.local.ISettingsLocalDataSource
 import data.word.local.IWordLocalDataSource
 import data.word.mapper.toDomain
+import data.word.remote.model.RemoteWord
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
 import core.common.Try
+import core.common.flatMap
 import core.common.fold
+import core.common.map
+import core.common.onSuccess
 import domain.auth.session.ISessionManager
+import domain.word.add.model.AddWordsOutcome
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -30,7 +38,10 @@ class WordRepositoryImpl(
     private val conflictResolver: IWordConflictResolver,
     private val sessionManager: ISessionManager,
     private val settingsLocalDataSource: ISettingsLocalDataSource,
+    private val scope: CoroutineScope,
 ) : IWordRepository {
+
+    private val uploadMutex = Mutex()
 
     companion object {
         private const val SYNC_FRESH_THRESHOLD_MS = 30_000L
@@ -56,32 +67,23 @@ class WordRepositoryImpl(
         return localDataSource.getWordsByStage(stage)
     }
 
-    override suspend fun insertWords(words: List<Word>): Try<Int> {
-        if (words.isEmpty()) return Try.success(0)
+    override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> {
+        if (words.isEmpty()) return Try.success(AddWordsOutcome(added = 0, duplicates = 0))
+        return Try { localDataSource.addNewWords(words) }
+            .onSuccess { outcome -> if (outcome.added > 0) scope.launch { uploadPendingWords() } }
+    }
 
-        return Try {
-            val existingWords = localDataSource.getAllWordsAsync()
-
-            // Same word/translation but different sourceLanguage → correct the language on the existing record
-            val wordsToUpdate = words.mapNotNull { newWord ->
-                existingWords.find { it.isSameContent(newWord) && it.sourceLanguage != newWord.sourceLanguage }
-                    ?.copy(sourceLanguage = newWord.sourceLanguage)
-            }
-            wordsToUpdate.forEach { updated ->
-                localDataSource.updateWord(updated)
-                remoteSyncHandler.syncWordUpdateToRemote(updated.id.toLong(), updated)
-            }
-
-            val newWords = words.filter { newWord ->
-                existingWords.none { it.isSameContent(newWord) }
-            }
-
-            if (newWords.isEmpty()) return Try.success(wordsToUpdate.size)
-
-            localDataSource.insertWords(newWords)
-            remoteSyncHandler.syncWordsToRemote(newWords)
-            settingsLocalDataSource.setWordSyncTimestamp(Clock.System.now().toEpochMilliseconds())
-            newWords.size + wordsToUpdate.size
+    override suspend fun uploadPendingWords(): Try<Int> = uploadMutex.withLock {
+        if (!sessionManager.isAuthenticated()) return@withLock Try.success(0)
+        Try { localDataSource.getPendingUploads() }.flatMap { pending ->
+            if (pending.isEmpty()) return@flatMap Try.success(0)
+            // Local ids mean nothing to the server; it matches new words by content.
+            remoteSyncHandler.syncWordsToRemote(pending.map { it.copy(id = 0) })
+                .flatMap { saved ->
+                    // Move each word to its server id so later edits and deletes address the right word.
+                    Try { localDataSource.completeUpload(pending.map { it.id }, serverIdsOf(pending, saved)) }
+                }
+                .map { pending.size }
         }
     }
 
@@ -102,7 +104,7 @@ class WordRepositoryImpl(
 
     override suspend fun batchSyncWords(words: List<Word>): Try<Unit> {
         if (words.isEmpty()) return Try.success(Unit)
-        return remoteSyncHandler.syncWordsToRemote(words)
+        return remoteSyncHandler.syncWordsToRemote(words).map { }
     }
 
     override suspend fun deleteWord(id: Int): Try<Unit> {
@@ -186,6 +188,8 @@ class WordRepositoryImpl(
 
     override suspend fun syncWithRemote(): Try<Unit> {
         if (!sessionManager.isAuthenticated()) return Try.success(Unit)
+        // Push before pull: words added offline reach the server even when the pull is skipped as fresh.
+        uploadPendingWords()
         val lastSyncedAt = settingsLocalDataSource.getWordSyncTimestamp()
         val syncStartedAt = Clock.System.now().toEpochMilliseconds()
         if (syncStartedAt - lastSyncedAt < SYNC_FRESH_THRESHOLD_MS) return Try.success(Unit)
@@ -196,13 +200,16 @@ class WordRepositoryImpl(
                 onSuccess = { remoteWords ->
                     val localWords = localDataSource.getAllWordsOnce()
 
-                    val resolvedEntities = conflictResolver.resolveConflicts(
+                    val resolved = conflictResolver.resolveConflicts(
                         localWords = localWords,
                         remoteWords = remoteWords
                     )
+                    if (resolved.localIdMoves.isNotEmpty()) {
+                        localDataSource.completeUpload(uploaded = emptyList(), serverIds = resolved.localIdMoves)
+                    }
 
-                    if (resolvedEntities.isNotEmpty()) {
-                        val resolvedWords = resolvedEntities.map { entity ->
+                    if (resolved.entities.isNotEmpty()) {
+                        val resolvedWords = resolved.entities.map { entity ->
                             entity.toDomain()
                         }
                         localDataSource.insertWords(resolvedWords)
@@ -252,4 +259,16 @@ class WordRepositoryImpl(
     override suspend fun getMostCommonSourceLanguage(): Try<String?> {
         return Try { localDataSource.getMostCommonSourceLanguage() }
     }
+}
+
+/** Local id → server id for each uploaded word, paired by the same identity adding words uses. */
+private fun serverIdsOf(pending: List<Word>, saved: List<RemoteWord>): Map<Int, Int> {
+    fun key(term: String, translation: String, learningLanguage: String) =
+        Triple(term.trim().lowercase(), translation.trim().lowercase(), learningLanguage)
+    val serverIdByKey = saved.mapNotNull { remote ->
+        remote.id?.let { key(remote.originalWord, remote.translation, remote.targetLanguage) to it.toInt() }
+    }.toMap()
+    return pending.mapNotNull { word ->
+        serverIdByKey[key(word.originalWord, word.translation, word.targetLanguage.code)]?.let { word.id to it }
+    }.toMap()
 }

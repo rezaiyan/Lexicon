@@ -13,12 +13,8 @@ import performance.createPerformanceTracer
 import presentation.manager.StreakManagerImpl
 import presentation.manager.UserManagerImpl
 import domain.word.usecase.ClassifyImportErrorUseCase
-import domain.word.usecase.FormatWordsToCsvUseCase
 import domain.word.usecase.ObserveImageImportAccessUseCase
-import domain.word.usecase.ParseCsvWordsUseCase
 import org.koin.core.module.dsl.singleOf
-import presentation.ui.components.imports.ImportTagUseCases
-import presentation.ui.components.imports.ImportViewModel
 import presentation.viewmodel.AppNavigationViewModel
 import feature.auth.di.authModule
 import feature.study.di.studyModule
@@ -28,7 +24,7 @@ import feature.settings.di.settingsModule
 import feature.onboarding.di.onboardingModule
 import feature.subscription.di.subscriptionModule
 import feature.leaderboard.di.leaderboardModule
-import feature.aiimport.di.importModule
+import feature.addwords.di.addWordsPresentationModule
 import domain.analytics.usecase.RetryAnalyticsSyncUseCase
 import domain.startup.usecase.DetermineAppStartupStateUseCase
 import domain.startup.usecase.DeterminePostAuthDestinationUseCase
@@ -72,32 +68,14 @@ fun presentationModule() = module {
             retryAnalyticsSyncUseCase = get<RetryAnalyticsSyncUseCase>(),
             determineAppStartupStateUseCase = get(),
             determinePostAuthDestinationUseCase = get(),
-            importSuggestedVocabularyUseCase = get(),
+            addStarterWordsUseCase = get(),
+            uploadPendingWordsUseCase = get(),
+            analytics = get(),
         )
     }
 
-    // Import domain use cases
-    singleOf(::ParseCsvWordsUseCase)
-    singleOf(::FormatWordsToCsvUseCase)
     singleOf(::ClassifyImportErrorUseCase)
     singleOf(::ObserveImageImportAccessUseCase)
-
-    // Import VM (stays in presentation — depends on Compose UI types)
-    viewModel {
-        ImportViewModel(
-            importWordsUseCase = get(),
-            importViaFileUseCase = get(),
-            extractVocabularyFromImageUseCase = get(),
-            getCurrentLanguageUseCase = get(),
-            getSourceLanguageUseCase = get(),
-            tagUseCases = ImportTagUseCases(getTags = get(), createTag = get()),
-            performanceTracer = get(),
-            parseCsvWordsUseCase = get(),
-            formatWordsToCsvUseCase = get(),
-            classifyImportErrorUseCase = get(),
-            observeImageImportAccessUseCase = get(),
-        )
-    }
 
     // Feature modules
     includes(
@@ -109,7 +87,7 @@ fun presentationModule() = module {
         onboardingModule(),
         subscriptionModule(),
         leaderboardModule(),
-        importModule(),
+        addWordsPresentationModule(),
         insightsModule(),
     )
 }

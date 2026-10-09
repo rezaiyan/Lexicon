@@ -14,4 +14,11 @@ expect fun ByteArray.toImageBitmap(): ImageBitmap?
  */
 expect fun ByteArray.compressImage(quality: Float): ByteArray
 
+/**
+ * Re-encodes a photo for upload: rotated upright (EXIF), then turned [quarterTurns] × 90° clockwise,
+ * longest edge at most [maxEdgePx], JPEG at [quality].
+ * Returns null when the bytes are not a decodable image. Platforms without an encoder return the input unchanged.
+ */
+expect fun ByteArray.normalizeForUpload(maxEdgePx: Int, quality: Float, quarterTurns: Int = 0): ByteArray?
+
 

@@ -34,11 +34,8 @@ object HttpErrorMapper {
 
             HttpStatusCode.PaymentRequired -> PremiumRequiredException(message)
 
-            HttpStatusCode.InternalServerError,
-            HttpStatusCode.BadGateway,
-            HttpStatusCode.ServiceUnavailable -> ServerException(message, statusCode.value)
-
-            else -> NetworkException(message)
+            // The server answered, so this is never a connectivity problem: keep the status for callers.
+            else -> ServerException(message, statusCode.value)
         }
     }
 

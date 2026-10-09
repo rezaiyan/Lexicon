@@ -12,14 +12,15 @@ import data.word.mapper.toDomain
 import data.word.mapper.toDomainList
 import data.word.mapper.toEntityData
 import data.word.mapper.toEntityDataList
-import domain.settings.repository.ISettingsRepository
+import domain.word.add.model.AddWordsOutcome
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
+import domain.word.model.WordIdentity
+import utils.Language
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlin.time.Clock
 
@@ -42,21 +43,27 @@ interface IWordLocalDataSource {
     suspend fun getNextDueAt(): Long?
     suspend fun deleteAllWords()
     suspend fun getMostCommonSourceLanguage(): String?
+    /** Inserts words whose identity is new, in one transaction, and queues them for upload. */
+    suspend fun addNewWords(words: List<Word>): AddWordsOutcome
+    suspend fun getPendingUploads(): List<Word>
+    /**
+     * Marks [uploaded] as sent and moves each word in [serverIds] (local id → server id) to its server id,
+     * with its tags and pending review, so later edits and deletes address the right server word.
+     */
+    suspend fun completeUpload(uploaded: List<Int>, serverIds: Map<Int, Int>)
 }
 
 class WordLocalDataSource(
     private val queries: LexiconQueries,
-    private val settingsRepository: ISettingsRepository
 ) : IWordLocalDataSource {
 
     override suspend fun getAllWordsAsync(): List<Word> {
-        val fallback = settingsRepository.getLanguage().first()
         val entities = queries.getAllWords().awaitAsList()
         if (entities.isEmpty()) return emptyList()
         val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
             .awaitAsList().groupBy { it.wordId }
         return entities.map { entity ->
-            entity.toDomain(fallback, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+            entity.toDomain(tagIds = tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
         }
     }
 
@@ -68,12 +75,11 @@ class WordLocalDataSource(
             queries.countWordTags().asFlow().mapToOneOrNull(Dispatchers.Default)
         ) { entities, _ -> entities }
             .map { entities ->
-                val language = settingsRepository.getLanguage().first()
                 if (entities.isEmpty()) return@map emptyList()
                 val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
                     .awaitAsList().groupBy { it.wordId }
                 entities.map { entity ->
-                    entity.toDomain(language, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+                    entity.toDomain(tagIds = tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
                 }
             }
     }
@@ -84,14 +90,13 @@ class WordLocalDataSource(
             queries.countWordTags().asFlow().mapToOneOrNull(Dispatchers.Default)
         ) { _, _ -> }
             .map {
-                val language = settingsRepository.getLanguage().first()
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 val entities = queries.getDueCards(currentTime).awaitAsList()
                 if (entities.isEmpty()) return@map emptyList()
                 val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
                     .awaitAsList().groupBy { it.wordId }
                 entities.map { entity ->
-                    entity.toDomain(language, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+                    entity.toDomain(tagIds = tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
                 }
             }
     }
@@ -103,14 +108,13 @@ class WordLocalDataSource(
             queries.countWordTags().asFlow().mapToOneOrNull(Dispatchers.Default)
         ) { _, _ -> }
             .map {
-                val language = settingsRepository.getLanguage().first()
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 val entities = queries.getDueCardsByTag(tagId, currentTime).awaitAsList()
                 if (entities.isEmpty()) return@map emptyList()
                 val tagMappings = queries.getTagMappingsForWords(entities.map { it.id })
                     .awaitAsList().groupBy { it.wordId }
                 entities.map { entity ->
-                    entity.toDomain(language, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+                    entity.toDomain(tagIds = tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
                 }
             }
     }
@@ -118,18 +122,16 @@ class WordLocalDataSource(
     override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> {
         return queries.countWords().asFlow().mapToOneOrNull(Dispatchers.Default)
             .map {
-                val language = settingsRepository.getLanguage().first()
                 val currentTime = Clock.System.now().toEpochMilliseconds()
                 queries.getWordsByLevel(stage.level.toLong(), currentTime)
-                    .awaitAsList().toDomainList(language)
+                    .awaitAsList().toDomainList()
             }
     }
 
     override suspend fun getWordById(id: Int): Word? {
-        val fallback = settingsRepository.getLanguage().first()
         val entity = queries.getWordById(id.toLong()).awaitAsOneOrNull() ?: return null
         val tagIds = queries.getTagIdsForWord(id.toLong()).awaitAsList()
-        return entity.toDomain(fallback, tagIds)
+        return entity.toDomain(tagIds = tagIds)
     }
 
     override suspend fun insertWords(words: List<Word>) {
@@ -209,6 +211,7 @@ class WordLocalDataSource(
         queries.transaction {
             queries.deleteWordTagsForWord(id.toLong())
             queries.deleteWord(id.toLong())
+            queries.removeWordUploads(listOf(id.toLong()))
         }
     }
 
@@ -218,6 +221,7 @@ class WordLocalDataSource(
         queries.transaction {
             queries.deleteWordTagsForWords(longIds)
             queries.deleteWords(longIds)
+            queries.removeWordUploads(longIds)
         }
         return ids.size
     }
@@ -278,10 +282,99 @@ class WordLocalDataSource(
         queries.transaction {
             queries.deleteAllWordTags()
             queries.deleteAllWords()
+            queries.clearWordUploadQueue()
         }
     }
 
     override suspend fun getMostCommonSourceLanguage(): String? {
         return queries.getMostCommonSourceLanguage().awaitAsOneOrNull()
+    }
+
+    override suspend fun addNewWords(words: List<Word>): AddWordsOutcome {
+        val addedTerms = mutableListOf<String>()
+        queries.transaction {
+            val known = words.map { it.targetLanguage }.distinct().flatMapTo(mutableSetOf()) { language ->
+                queries.getWordIdentitiesForLanguage(language.code).awaitAsList().map { row ->
+                    WordIdentity(row.originalWord.trim().lowercase(), row.translation.trim().lowercase(), language)
+                }
+            }
+            words.filter { known.add(it.identity) }.forEach { word ->
+                val entity = word.toEntityData()
+                queries.insertWord(
+                    originalWord = entity.originalWord,
+                    translation = entity.translation,
+                    description = entity.description,
+                    sourceLanguage = entity.sourceLanguage,
+                    targetLanguage = entity.targetLanguage,
+                    level = entity.level.toLong(),
+                    easeFactor = entity.easeFactor.toDouble(),
+                    interval = entity.interval.toLong(),
+                    repetitions = entity.repetitions.toLong(),
+                    lastReviewDate = entity.lastReviewDate,
+                    nextReviewDate = entity.nextReviewDate,
+                    dateAdded = entity.dateAdded,
+                )
+                val id = queries.lastInsertRowId().awaitAsOne()
+                word.tagIds.forEach { tagId -> queries.insertWordTag(id, tagId) }
+                queries.enqueueWordUpload(id)
+                addedTerms += word.originalWord
+            }
+        }
+        return AddWordsOutcome(addedTerms.size, words.size - addedTerms.size, addedTerms)
+    }
+
+    override suspend fun getPendingUploads(): List<Word> {
+        val ids = queries.getWordUploadQueue().awaitAsList()
+        if (ids.isEmpty()) return emptyList()
+        val tagMappings = queries.getTagMappingsForWords(ids).awaitAsList().groupBy { it.wordId }
+        return queries.getWordsByIds(ids).awaitAsList().map { entity ->
+            entity.toDomain(Language.ENGLISH, tagMappings[entity.id]?.map { it.tagId } ?: emptyList())
+        }
+    }
+
+    override suspend fun completeUpload(uploaded: List<Int>, serverIds: Map<Int, Int>) {
+        queries.transaction {
+            if (uploaded.isNotEmpty()) queries.removeWordUploads(uploaded.map { it.toLong() })
+            // Where each word sits now: a word may be moved aside before its own move comes up.
+            val location = mutableMapOf<Long, Long>()
+            serverIds.forEach { (local, server) ->
+                val oldId = location[local.toLong()] ?: local.toLong()
+                val newId = server.toLong()
+                if (oldId == newId) return@forEach
+                val moving = queries.getWordById(oldId).awaitAsOneOrNull() ?: return@forEach
+                val occupant = queries.getWordById(newId).awaitAsOneOrNull()
+                when {
+                    occupant == null -> moveWordRow(oldId, newId)
+                    // Already pulled from the server under its own id: this row is a duplicate.
+                    occupant.toDomain().identity == moving.toDomain().identity -> dropDuplicateWordRow(oldId, newId)
+                    else -> {
+                        // An unrelated word whose device-local id is this server id: move it aside.
+                        val freeId = (queries.maxWordId().awaitAsOne().MAX ?: newId) + 1
+                        moveWordRow(newId, freeId)
+                        location[newId] = freeId
+                        moveWordRow(oldId, newId)
+                    }
+                }
+            }
+        }
+    }
+
+    /** Moves a word row with its tags, pending review and upload entry. Caller holds a transaction. */
+    private suspend fun moveWordRow(oldId: Long, newId: Long) {
+        queries.moveWordTags(newId = newId, oldId = oldId)
+        queries.deleteWordTagsForWord(oldId)
+        queries.moveReviewSyncEntry(newId = newId, oldId = oldId)
+        queries.removeReviewSyncEntry(oldId)
+        queries.moveWordUpload(newId = newId, oldId = oldId)
+        queries.removeWordUploads(listOf(oldId))
+        queries.changeWordId(newId = newId, oldId = oldId)
+    }
+
+    private suspend fun dropDuplicateWordRow(oldId: Long, keptId: Long) {
+        queries.moveWordTags(newId = keptId, oldId = oldId)
+        queries.moveReviewSyncEntry(newId = keptId, oldId = oldId)
+        queries.removeReviewSyncEntry(oldId)
+        queries.removeWordUploads(listOf(oldId))
+        queries.deleteWord(oldId)
     }
 }

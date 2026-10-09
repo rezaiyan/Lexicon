@@ -1,83 +1,20 @@
 package data.ai.remote
 
-import data.ai.remote.model.ExtractVocabularyRequest
-import data.ai.remote.model.VocabularyExtractionResponse
+import data.ai.remote.model.ExtractWordsRequest
+import data.ai.remote.model.ExtractWordsResponse
+import data.ai.remote.model.SuggestWordsRequest
+import data.ai.remote.model.SuggestWordsResponse
 import data.core.network.client.ApiClient
 import core.common.Try
-import core.common.fold
-import core.error.DomainError
-import expects.logNetwork
-import utils.Language
-import kotlin.io.encoding.Base64
 
-/**
- * Remote data source for AI-powered operations
- * Handles vocabulary extraction from images
- */
+/** AI endpoints: words from a photo (`/ai/extract-words`) and topic suggestions (`/ai/suggest-vocabulary`). */
 class AiRemoteDataSource(
     private val apiClient: ApiClient
 ) : IAiRemoteDataSource {
 
-    override suspend fun extractVocabularyFromImage(
-        imageBytes: ByteArray,
-        targetLanguage: Language,
-        extractWords: Boolean,
-        extractSentences: Boolean
-    ): Try<String> {
-        // Validate image size
-        val maxSizeBytes = 3 * 1024 * 1024
-        if (imageBytes.size > maxSizeBytes) {
-            return Try.failure(Exception("Image too large. Maximum size is 5MB. Please use a smaller image."))
-        }
+    override suspend fun extractWords(request: ExtractWordsRequest): Try<ExtractWordsResponse> =
+        apiClient.postNotNull("/ai/extract-words", request)
 
-        if (imageBytes.size < 128) {
-            return Try.failure(Exception("Image too small or corrupted. Please try a different image."))
-        }
-
-        val base64Image = Base64.encode(imageBytes)
-        val request = ExtractVocabularyRequest(
-            imageBase64 = base64Image,
-            targetLanguage = targetLanguage.aiPromptName,
-            extractWords = extractWords,
-            extractSentences = extractSentences
-        )
-
-        logNetwork("AiRemoteDataSource", "Extracting vocabulary from image (${imageBytes.size} bytes)")
-
-        val result = apiClient.postNotNull<VocabularyExtractionResponse>(
-            path = "/ai/extract-vocabulary",
-            body = request
-        )
-
-        return result.fold(
-            onSuccess = { response ->
-                val extractedText = response.extractedText
-                if (extractedText.isEmpty()) {
-                    Try.failure(Exception("No vocabulary found in the image. Please use an image with visible text."))
-                } else {
-                    logNetwork("AiRemoteDataSource", "Successfully extracted vocabulary from image")
-                    Try.success(extractedText)
-                }
-            },
-            onFailure = { error ->
-                logNetwork("AiRemoteDataSource", "Error extracting vocabulary: ${error.message}")
-                // Typed so the use case can react (refresh access, lock the feature) instead of
-                // showing a generic message.
-                if (error is DomainError.Commerce.PremiumRequired) {
-                    Try.failure(error)
-                } else {
-                    val userMessage = when {
-                        error.message?.contains("Unable to resolve host", ignoreCase = true) == true ->
-                            "No internet connection. Please check your network."
-
-                        error.message?.contains("timeout", ignoreCase = true) == true ->
-                            "Request timed out. Please check your connection and try again."
-
-                        else -> error.message ?: "Service temporarily unavailable. Please try again later."
-                    }
-                    Try.failure(Exception(userMessage))
-                }
-            }
-        )
-    }
+    override suspend fun suggestWords(request: SuggestWordsRequest): Try<SuggestWordsResponse> =
+        apiClient.postNotNull("/ai/suggest-vocabulary", request)
 }

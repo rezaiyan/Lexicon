@@ -32,6 +32,7 @@ import components.sheet.ConfirmTone
 import components.sheet.SheetPrimaryButton
 import components.sheet.SheetTonalButton
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.add_words_duplicates_skipped
 import lexicon.resources.generated.resources.add_more_words
 import lexicon.resources.generated.resources.ai_wizard_discard
 import lexicon.resources.generated.resources.ai_wizard_discard_message
@@ -78,6 +79,7 @@ internal fun ImportSuccessContent(
     onStartReview: (() -> Unit)?,
     onAddMore: () -> Unit,
     onDone: () -> Unit,
+    duplicates: Int = 0,
 ) {
     Column(
         modifier = Modifier
@@ -120,6 +122,14 @@ internal fun ImportSuccessContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
+            if (duplicates > 0) {
+                Text(
+                    stringResource(Res.string.add_words_duplicates_skipped, duplicates),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
 
         if (previewWords.isNotEmpty()) {

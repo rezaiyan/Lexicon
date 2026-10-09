@@ -1,5 +1,6 @@
 package presentation.viewmodel
 
+import domain.word.add.model.AddWordsOutcome
 import fakes.FakeSubscriptionManager
 import analytics.IAnalyticsTracker
 import core.common.Try
@@ -68,7 +69,8 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override fun getWordsByStage(stage: LearningStage): Flow<List<Word>> = flowOf(emptyList())
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(wordsFlow.value)
-        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(ids.size))
@@ -110,7 +112,6 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
-        override fun logLanguageChanged(language: String) {}
         override fun setUserProperty(name: String, value: String) {}
         override fun updateUserProgress(totalWords: Int, matureWords: Int, currentStreak: Int) {}
         override fun logError(error: Throwable, context: String?) {}

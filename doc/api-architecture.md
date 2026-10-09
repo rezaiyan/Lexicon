@@ -280,11 +280,12 @@ graph TB
 }
 ```
 
-### 2.8 AI (1 endpoint)
+### 2.8 AI (2 endpoints)
 
 | # | Method | Path | Auth | Request DTO | Response DTO | Data Source |
 |---|--------|------|------|-------------|--------------|-------------|
-| 21 | POST | `/ai/extract-vocabulary` | Yes | `ExtractVocabularyRequest` | `VocabularyExtractionResponse` | `AiRemoteDataSource` |
+| 21 | POST | `/ai/extract-words` | Yes | `ExtractWordsRequest` | `ExtractWordsResponse` | `AiRemoteDataSource` |
+| 21b | POST | `/ai/suggest-vocabulary` | Yes | `SuggestWordsRequest` | `SuggestWordsResponse` | `AiRemoteDataSource` |
 
 **Source:** `data/src/commonMain/kotlin/data/ai/remote/AiRemoteDataSource.kt`
 
@@ -727,34 +728,35 @@ sequenceDiagram
     PVM->>PVM: Update state with<br/>streak, languages,<br/>weekly activity
 ```
 
-### 6c. AI Image Import
+### 6c. Photo Import (add-words pipeline)
 
 ```mermaid
 sequenceDiagram
-    participant UI as ImportScreen
-    participant IVM as ImportViewModel
-    participant EUC as ExtractVocabularyUseCase
-    participant IUC as InsertWordsUseCase
-    participant AIR as AiRepository
+    participant UI as AddWordsSheet
+    participant PVM as PhotoImportViewModel
+    participant EUC as ExtractWordsFromImageUseCase
+    participant AIR as AiRepositoryImpl
     participant AIDS as AiRemoteDataSource
-    participant WR as WordRepository
+    participant HVM as AddWordsViewModel
+    participant AUC as AddWordsUseCase
+    participant WR as WordRepositoryImpl
     participant BE as Backend
 
-    UI->>IVM: onImageSelected(bytes)
-    IVM->>EUC: invoke(imageBytes, targetLang)
-
-    EUC->>EUC: Validate size<br/>(128B ≤ size ≤ 3MB)
-    EUC->>AIR: extractVocabulary(imageBytes, targetLang)
-    AIR->>AIDS: extractVocabulary(bytes, lang)
-    AIDS->>AIDS: Base64.encode(bytes)
-    AIDS->>BE: POST /ai/extract-vocabulary<br/>{ imageBase64, targetLanguage }
-    BE-->>AIDS: Try&lt;VocabularyExtractionResponse&gt;
-    AIDS-->>AIR: Try&lt;String&gt; (extractedText)
-
-    IVM->>IVM: Parse extracted text<br/>into word pairs
-    IVM->>IUC: invoke(parsedWords)
-    IUC->>WR: insertWords(words)
-    Note over WR: Remote-first sync<br/>(see §5a)
+    UI->>PVM: extract(languagePair)
+    PVM->>EUC: invoke(image, languages)
+    EUC->>EUC: IImagePreparer: re-encode to ≤ 3 MB<br/>refresh premium access
+    EUC->>AIR: extractWords(image, languages)
+    AIR->>AIDS: extractWords(request)
+    AIDS->>BE: POST /ai/extract-words (v2)
+    BE-->>AIDS: items [{ term, translation, note }]
+    AIR-->>PVM: Try&lt;List&lt;WordDraft&gt;&gt;
+    PVM-->>UI: SourceEffect.CandidatesReady
+    UI->>HVM: openReview(Photo, drafts)
+    Note over HVM: User ticks / edits candidates
+    HVM->>AUC: invoke(AddWordsCommand)
+    AUC->>WR: addWords(words)
+    WR->>WR: local insert + dedupe + upload queue
+    WR-)BE: POST /words (background, see §11.9)
 ```
 
 ### 6d. Leaderboard
@@ -1199,7 +1201,7 @@ graph LR
     A1["ProfileViewModel"]
     A2["StudyViewModel"]
     A3["WordManagerViewModel"]
-    A4["ImportViewModel"]
+    A4["AddWordsViewModel<br/>(ObserveImageImportAccessUseCase)"]
     A5["SettingsViewModel<br/>(direct, no UseCase)"]
 
     A1 --> B["GetFeatureAccessUseCase"]
@@ -1247,25 +1249,25 @@ graph LR
 
 ### 11.9 POST `/words` — Upsert Words
 
+New words are written locally first and uploaded from an outbox (`WordUploadQueue`).
+
 ```mermaid
 graph LR
-    A1["ImportViewModel<br/>.addWord() / .confirmImport()"]
-    A2["OnboardingViewModel<br/>.submit()"]
-    A3["AiWordImportViewModel<br/>.importSelected()"]
+    A1["AddWordsViewModel<br/>.commitReview()"]
+    A2["ManualEntryViewModel<br/>.add()"]
+    A3["AppNavigationViewModel<br/>(onboarding starter words)"]
 
-    A1 --> B["ImportWordsUseCase"]
-    A2 --> C["ImportSuggestedVocabularyUseCase"]
-    A3 --> C
-
-    B --> D["WordRepositoryImpl<br/>.insertWords()"]
-    C --> D
-    D --> E["Filter duplicates<br/>(isSameContent)"]
-    E --> F["WordRemoteSyncHandler<br/>.syncWordsToRemote()"]
-    F --> G["Word.toRemote()"]
-    G --> H["WordRemoteDataSource<br/>.upsertWords()"]
-    H -->|"POST /words<br/>{ words: [...] }<br/>(via ApiClient.postUnit)"| I["Backend"]
-    I -->|"Try&lt;Unit&gt;"| H
-    D --> J["WordLocalDataSource<br/>.insertWords()"]
+    A1 --> B["AddWordsUseCase"]
+    A2 --> B
+    A3 --> C["AddStarterWordsUseCase"] --> B
+    B --> D["WordRepositoryImpl<br/>.addWords()"]
+    D --> J["WordLocalDataSource<br/>.addNewWords()<br/>insert + dedupe + enqueue"]
+    D -.->|"background, and on app start<br/>(UploadPendingWordsUseCase)"| U["uploadPendingWords()"]
+    U --> F["WordRemoteSyncHandler<br/>.syncWordsToRemote()"]
+    F --> H["WordRemoteDataSource<br/>.upsertWords()"]
+    H -->|"POST /words<br/>{ words: [...] }"| I["Backend"]
+    I -->|"ApiResponse&lt;List&lt;WordDto&gt;&gt;<br/>(saved words with server ids)"| H
+    U --> K["WordLocalDataSource<br/>.completeUpload()<br/>re-key to server ids, drop from queue"]
 
     style H fill:#d4edda
     style I fill:#e8e8e8
@@ -1475,35 +1477,32 @@ graph LR
     style E fill:#e8e8e8
 ```
 
-### 11.21 POST `/ai/extract-vocabulary` — AI Image Extraction
+### 11.21 POST `/ai/extract-words` — Photo Extraction (v2)
 
 ```mermaid
 graph LR
-    A["ImportViewModel<br/>.importImage()"] --> B["ImportFromImageUseCase"]
-    B --> C["Validate size<br/>(128B ≤ size ≤ 3MB)"]
-    C --> D["AiRepositoryImpl<br/>.extractVocabularyFromImage()"]
-    D --> E["AiRemoteDataSource<br/>.extractVocabularyFromImage()"]
-    E --> F["Base64.encode(bytes)"]
-    F -->|"POST /ai/extract-vocabulary<br/>{ imageBase64, targetLanguage,<br/>extractWords, extractSentences }<br/>(via ApiClient.postNotNull)"| G["Backend"]
-    G -->|"ApiResponse&lt;VocabularyExtractionResponse&gt;<br/>{ extractedText, wordCount }"| E
-    E -->|"Try&lt;String&gt;"| D
-    D -->|"Try&lt;String&gt;"| B
-    B --> H["ImportWordsUseCase<br/>→ parse text<br/>→ POST /words"]
-    B -->|"Try&lt;Int&gt;<br/>(imported count)"| A
+    A["PhotoImportViewModel<br/>.extract()"] --> B["ExtractWordsFromImageUseCase"]
+    B --> C["IImagePreparer<br/>(re-encode to ≤ 3 MB)"]
+    C --> D["AiRepositoryImpl<br/>.extractWords()"]
+    D --> E["AiRemoteDataSource<br/>.extractWords()"]
+    E -->|"POST /ai/extract-words<br/>{ imageBase64, learningLanguage,<br/>nativeLanguage }"| G["Backend"]
+    G -->|"ApiResponse&lt;ExtractWordsResponse&gt;<br/>{ items: [{ term, translation, note }] }"| E
+    D -->|"Try&lt;List&lt;WordDraft&gt;&gt;"| A
+    A -->|"candidates → shared review"| R["AddWordsViewModel"]
 
     style E fill:#d4edda
     style G fill:#e8e8e8
 ```
+
+AI suggestions follow the same shape: `AiSuggestViewModel` → `SuggestWordsUseCase` → `POST /ai/suggest-vocabulary` → review.
 
 ### 11.22 POST `/onboarding/preferences` — Submit Onboarding Preferences
 
 ```mermaid
 graph LR
     A1["OnboardingViewModel<br/>.submit()"]
-    A2["AiWordImportViewModel<br/>.submit()"]
 
     A1 --> B["SubmitPreferencesUseCase"]
-    A2 --> B
     B --> C["OnboardingRepositoryImpl<br/>.submitPreferences()"]
     C --> D["OnboardingRemoteDataSource<br/>.submitPreferences()"]
     D -->|"POST /onboarding/preferences<br/>{ targetLanguage, nativeLanguage,<br/>currentLevel, interests }<br/>(via ApiClient.postNotNull)"| E["Backend"]

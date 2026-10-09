@@ -5,14 +5,11 @@ import domain.settings.model.ThemeMode
 import domain.tts.model.TtsSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import utils.Language
 
 /**
  * Domain layer repository interface for settings
  */
 interface ISettingsRepository {
-    fun getLanguage(): Flow<Language>
-    suspend fun setLanguage(language: Language): Try<Unit>
     fun getThemeMode(): Flow<ThemeMode>
     suspend fun setThemeMode(mode: ThemeMode): Try<Unit>
     suspend fun clearSettings(): Try<Unit>

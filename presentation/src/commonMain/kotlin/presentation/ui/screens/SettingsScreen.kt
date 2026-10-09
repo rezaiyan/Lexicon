@@ -15,12 +15,10 @@ import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
-import presentation.ui.components.LanguageSelectionContent
 import presentation.ui.components.ThemeModeContent
 import presentation.ui.components.DailyGoalContent
 import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.DailyGoalSettingsCard
-import presentation.ui.components.settings.LanguageSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
 import presentation.ui.components.settings.ThemeSettingsCard
 import presentation.ui.components.settings.TtsModelCacheCard
@@ -58,7 +56,6 @@ private fun SettingsSections() {
     val viewModel = koinViewModel<SettingsViewModel>()
     val settingsState by viewModel.state()
     val state = settingsState.screen
-    val currentLanguage = state.currentLanguage
     val themeMode = state.themeMode
     val notificationsEnabled = state.notificationsEnabled
     val systemNotificationsEnabled = state.systemNotificationsEnabled
@@ -66,24 +63,6 @@ private fun SettingsSections() {
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
         GroupedSection(title = stringResource(Res.string.learning)) {
-            if (state.isPremiumFeatureEnabled) {
-                LanguageSettingsCard(
-                    currentLanguage = currentLanguage,
-                    onShowLanguageDialog = {
-                        overlayHost.showSizeToFitBottomSheet(tag = "language-selection") { nav ->
-                            LanguageSelectionContent(
-                                currentLanguage = currentLanguage,
-                                onLanguageSelected = { language ->
-                                    viewModel.setLanguage(language)
-                                    nav.dismiss()
-                                },
-                                onClose = { nav.dismiss() },
-                            )
-                        }
-                    }
-                )
-            }
-
             DailyGoalSettingsCard(
                 onClick = {
                     overlayHost.showSizeToFitBottomSheet(tag = "daily-goal") { nav ->

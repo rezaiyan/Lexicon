@@ -50,10 +50,6 @@ class WasmJsAnalyticsTracker : IAnalyticsTracker {
         println("[Analytics] Theme changed: mode=$themeMode, dark=$isDark")
     }
 
-    override fun logLanguageChanged(language: String) {
-        println("[Analytics] Language changed: $language")
-    }
-
     override fun setUserProperty(name: String, value: String) {
         println("[Analytics] User property: $name=$value")
     }

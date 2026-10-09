@@ -1,87 +1,48 @@
-# Utility flow: add a single test word via manual import.
+# Utility flow: add a single test word by typing it.
 #
 # Called by test flows that need at least one word to exist:
 #   - runFlow: ../utils/add_test_word.yaml
 #
-# Adds a word using the manual text input page on the import bottom sheet.
-# Each invocation generates a unique word name via Date.now(), so the word is
-# always NEW and immediately due for review (not affected by SRS scheduling
-# from previous test runs or other tests in the same suite).
+# Each invocation uses a unique word (Date.now()), so the word is always new and
+# immediately due for review.
 #
-# Assumes:
-#   - The app is already on the Study screen.
-#   - The import sheet is NOT currently open.
-
+# Assumes the app is on the Study screen and the add-words sheet is closed.
 appId: com.alirezaiyan.vokab
 ---
-# Generate a unique word name for this invocation.
 - evalScript: ${output.word = 'Test' + Date.now()}
 
-# Open the import picker via the "Import Words" button (content description).
-- tapOn: "Import Words"
+- runFlow: open_add_words.yaml
+- tapOn: "Type a word"
+- runFlow: pick_add_words_languages.yaml
 
-# The "Add Words" picker sheet appears first. Tap "Manually" to open manual import.
-- tapOn: "Manually"
-
-# The import method chooser page appears with cards: "Type Text", "From File", "From Image".
-# Tap "Type Text" to enter manual text input flow.
-- tapOn: "Type Text"
-
-# The source language chooser page appears ("What language are the original words?").
-# Select "English" as the source language.
 - extendedWaitUntil:
-    visible: "What language are the original words?"
+    visible: "Translation"
     timeout: 5000
-- tapOn: "English"
 
-# Wait for the text import form to fully render (all assertions give Compose TextFields
-# time to become interactive — without these, inputText types nothing).
-- extendedWaitUntil:
-    visible: "Add a Word"
-    timeout: 5000
-- assertVisible: "Original Word"
-- assertVisible: "Translation"
-
-# Fill in the "Original Word" field.
-# eraseText before inputText ensures Maestro establishes the IME connection
-# with Compose TextFields — without it, inputText intermittently types nothing.
-- tapOn: "Original Word"
+# eraseText before inputText makes Maestro establish the IME connection with
+# Compose TextFields; without it inputText intermittently types nothing.
+- tapOn: "Word"
 - waitForAnimationToEnd
 - eraseText: 50
 - inputText: "${output.word}"
-- hideKeyboard
-
-# Fill in the "Translation" field.
 - tapOn: "Translation"
 - waitForAnimationToEnd
 - eraseText: 50
 - inputText: "TestTranslation"
-- hideKeyboard
 
-# Scroll to the Add Word button (keyboard may have pushed it off-screen).
-- scrollUntilVisible:
-    element: "Add Word"
-    direction: DOWN
-    timeout: 3000
-
-# Tap "Add Word" to submit.
 - tapOn: "Add Word"
 
-# After success, the form resets and the first field may auto-focus, showing the
-# keyboard. Dismiss it so the "1 word added" counter is not hidden behind it.
-- hideKeyboard
-
-# Wait for the "1 word added" counter to appear.
-# This text persists (wordsAddedCount stays at 1) — only the checkmark icon
-# fades after 1.5s. If this times out, inputText likely failed to type.
+# The session list appears once the word is saved.
 - extendedWaitUntil:
-    visible: "1 word added"
+    visible: "Added this session"
     timeout: 8000
 
-# Close the import sheet via the X icon.
+# Done shows the result page; Close there closes the sheet.
+- tapOn: "Done"
+- extendedWaitUntil:
+    visible: "1 word added"
+    timeout: 5000
 - tapOn: "Close"
-
-# Verify we are back on the Study screen (wait for the + icon to render).
 - extendedWaitUntil:
     visible: "Import Words"
     timeout: 5000

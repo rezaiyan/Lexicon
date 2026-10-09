@@ -9,7 +9,7 @@ import org.koin.core.component.KoinComponent
 import performance.IPerformanceTracer
 
 interface IWordRemoteSyncHandler {
-    suspend fun syncWordsToRemote(words: List<Word>): Try<Unit>
+    suspend fun syncWordsToRemote(words: List<Word>): Try<List<RemoteWord>>
     suspend fun syncWordUpdateToRemote(id: Long, word: Word): Try<Unit>
     suspend fun syncWordDeletionToRemote(id: Long): Try<Unit>
     suspend fun syncWordsDeletionToRemote(ids: List<Long>): Try<Unit>
@@ -27,8 +27,8 @@ class WordRemoteSyncHandler(
     private val performanceTracer: IPerformanceTracer,
 ) : IWordRemoteSyncHandler, KoinComponent {
 
-    override suspend fun syncWordsToRemote(words: List<Word>): Try<Unit> {
-        if (words.isEmpty()) return Try.success(Unit)
+    override suspend fun syncWordsToRemote(words: List<Word>): Try<List<RemoteWord>> {
+        if (words.isEmpty()) return Try.success(emptyList())
 
         val trace = performanceTracer.startTrace("word_sync_to_remote")
         performanceTracer.putMetric(trace, "word_count", words.size.toLong())

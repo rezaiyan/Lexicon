@@ -106,7 +106,6 @@
     <string name="import_words">단어 가져오기</string>
     <string name="choose_import_method">단어를 어떻게 추가할까요?</string>
     <string name="original_language_question">원래 단어의 언어는 무엇인가요?</string>
-    <string name="translation_language_hint">번역은 %1$s(으)로 됩니다. 설정에서 변경할 수 있어요.</string>
     <string name="generating_daily_insight">일일 인사이트 생성 중...</string>
     <string name="cards_waiting">%1$d장의 카드가 기다리고 있어요</string>
     <string name="all_caught_up">모두 완료! 잘하셨어요.</string>
@@ -295,8 +294,6 @@
     <string name="theme_auto_desc">시스템 설정을 따름</string>
 
     <!-- Word Manager Screen -->
-    <string name="word_manager">단어 관리</string>
-    <string name="word_manager_subtitle">어휘를 관리하세요</string>
     <string name="search_words">단어 검색...</string>
     <string name="clear">지우기</string>
     <string name="selected_count">%1$d개 선택됨</string>

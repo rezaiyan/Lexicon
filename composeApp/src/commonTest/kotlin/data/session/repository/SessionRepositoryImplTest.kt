@@ -30,7 +30,6 @@ class SessionRepositoryImplTest {
         override fun logStreakUpdated(days: Int, isNewRecord: Boolean) {}
         override fun logDailyGoalCompleted(cardsTarget: Int, cardsActual: Int) {}
         override fun logThemeChanged(themeMode: String, isDark: Boolean) {}
-        override fun logLanguageChanged(language: String) {}
         override fun setUserProperty(name: String, value: String) {}
         override fun updateUserProgress(totalWords: Int, matureWords: Int, currentStreak: Int) {}
         override fun logError(error: Throwable, context: String?) {}

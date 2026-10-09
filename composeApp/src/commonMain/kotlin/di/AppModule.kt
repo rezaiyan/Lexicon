@@ -15,6 +15,8 @@ fun appModule(
         focusModule(),
         notificationModule(backendUrl, platform),
         ttsModule(),
+        listeningModule(),
+        addWordsModule(),
         settingsModule(),
         onboardingModule(),
         profileModule(),

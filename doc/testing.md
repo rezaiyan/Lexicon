@@ -14,9 +14,7 @@
 | File | Tests | Count |
 |------|-------|-------|
 | `ReviewWordUseCaseTest.kt` | SRS algorithm (forgot drops level, remembered advances, floor at 0, mastered exponential) | 7 |
-| `ImportWordsUseCaseTest.kt` | CSV parsing, dedup, special chars, round-trip, languages | 25 |
 | `ExportWordsUseCaseTest.kt` | Export format, UTF-8, special chars, round-trip, large datasets | 31 |
-| `ImportValidationServiceTest.kt` | Parsing, validation, comments, blank lines, errors | 8 |
 | `ReviewSettingsTest.kt` | Validation, presets, equality, copy, boundary | 25 |
 | `GetProgressStatsUseCaseTest.kt` | Stats flow from repository | ~3 |
 | `DeleteWordUseCaseTest.kt` | Successful delete, exception, negative ID | 3 |
@@ -25,10 +23,14 @@
 | `WordTest.kt` | isSameContent (case-insensitive, trim, accents) | 5 |
 | `LearningStageTest.kt` | Learning stage enum tests | ~5 |
 | `ProgressStatsTest.kt` | Progress stats model tests | ~5 |
-| `WordSyncServiceTest.kt` | Sync deduplication | ~5 |
 | `GetReviewSettingsUseCaseTest.kt` | Settings retrieval | ~2 |
 | `SubmitPreferencesUseCaseTest.kt` | Onboarding submission | ~3 |
-| `ImportSuggestedVocabularyUseCaseTest.kt` | Suggested vocab import | ~3 |
+| `domain/word/add/VocabularyTextParserTest.kt` | Delimiters, quoting, header, comments, legacy format, rejected lines | 18 |
+| `domain/word/add/WordDraftTest.kt` | Draft validation and normalisation | 11 |
+| `domain/word/add/AddWordsUseCaseTest.kt` + other add use cases | Write path, file parsing, photo, suggestions, language resolution | 32 |
+| `feature/addwords/*Test.kt` | AddWords host + Manual/File/Photo/AI source VMs, CandidateReview | 50 |
+| `data/ai/repository/AiRepositoryHttpTest.kt` | Real ApiClient: only v2 is called (404 is a server error), 429 is not "offline" | 2 |
+| `data/.../AddNewWordsTest.kt`, `AddWordsLanguageRepositoryImplTest.kt` (androidUnitTest) | Real SQLite: dedupe, tags, upload queue, language pair | 9 |
 
 ## Android Instrumented Tests
 

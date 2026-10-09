@@ -1,6 +1,7 @@
 package domain.word.repository
 
 import core.common.Try
+import domain.word.add.model.AddWordsOutcome
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
 import domain.word.model.Word
@@ -17,7 +18,13 @@ interface IWordRepository {
     fun getDueCardsByTag(tagId: Long): Flow<List<Word>>
     fun getWordsByStage(stage: LearningStage): Flow<List<Word>>
     suspend fun getWordById(id: Int): Word?
-    suspend fun insertWords(words: List<Word>): Try<Int>
+    /**
+     * Adds new cards locally in one transaction, skipping any whose [Word.identity] already exists,
+     * and queues them for upload. Never changes existing words and never blocks on the network.
+     */
+    suspend fun addWords(words: List<Word>): Try<AddWordsOutcome>
+    /** Sends words added locally but not yet on the server. Safe to call repeatedly; returns how many were sent. */
+    suspend fun uploadPendingWords(): Try<Int>
     suspend fun updateWord(word: Word): Try<Unit>
     /** Update word in local DB only — no remote sync. Used during review sessions; batch sync via [batchSyncWords]. */
     suspend fun updateWordLocal(word: Word): Try<Unit>

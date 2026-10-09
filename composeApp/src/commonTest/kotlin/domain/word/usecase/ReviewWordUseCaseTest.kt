@@ -1,5 +1,6 @@
 package domain.word.usecase
 
+import domain.word.add.model.AddWordsOutcome
 import core.common.Try
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
@@ -349,7 +350,8 @@ class ReviewWordUseCaseTest {
 
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
-        override suspend fun insertWords(words: List<Word>): Try<Int> = Try.success(words.size)
+        override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
+        override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)

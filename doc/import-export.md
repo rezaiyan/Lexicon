@@ -1,105 +1,76 @@
 # Import & Export
 
-## Import Methods
+## Adding Words: one pipeline
 
-### 1. Manual Text Input (ImportViewModel)
-- User types word + translation + optional description
-- Single word at a time
-- Immediate insert + sync to remote
+Every way of adding words follows the same path:
 
-### 2. File Import (ImportViaFileUseCase)
-- Accepts `.txt` files only
-- Parses using ImportValidationService
-- Delegates to ImportWordsUseCase
-
-### 3. Image Import (ImportFromImageUseCase)
-- Requires authentication (premium feature check via IsAiAvailableUseCase)
-- Flow: capture/pick image → base64 encode → POST /ai/extract-vocabulary → parse response → import
-- Max 3MB image, min 128 bytes
-- Returns extracted text in CSV format
-
-### 4. AI Word Generation (AiWordImportViewModel)
-- Multi-step wizard: target lang → native lang → level → topics → preview
-- POST /onboarding/preferences → receives SuggestedVocabulary list
-- User selects which words to import
-- ImportSuggestedVocabularyUseCase converts to Word objects
-
-### 5. Onboarding Import (VocabularyPreviewViewModel)
-- After onboarding, suggested words previewed
-- User selects/deselects, then imports on auth complete
-
-## Import Format (CSV)
-
-### Parsing Rules (ImportValidationService)
 ```
-word,translation[,description]
+Source → candidates (WordDraft) → review → AddWordsUseCase → local DB + upload queue
 ```
 
-**Separators between entries**: newline (`\n`) or semicolon (`;`)
-**Separators within entry**: comma (`,`)
-**Comments**: lines starting with `#` are ignored
-**Blank lines**: ignored
+| Source | Producer | Review step |
+|--------|----------|-------------|
+| Manual entry | `ManualEntryViewModel` → `WordDraft.create` | none (saved one at a time) |
+| Text / CSV file | `FileImportViewModel` → `ParseWordFileUseCase` | shared review |
+| Photo (premium) | `PhotoImportViewModel` → `ExtractWordsFromImageUseCase` | shared review |
+| AI suggestions (premium) | `AiSuggestViewModel` → `SuggestWordsUseCase` | shared review |
+| Onboarding starter words | `AddStarterWordsUseCase` (from `AppNavigationViewModel`) | onboarding preview |
 
-### Examples
+Code lives in:
+- `domain/word/add/`: models (`WordDraft`, `LanguagePair`, `AddWordsCommand`, `WordFile`), `VocabularyTextParser`, and the use cases.
+- `feature/import/.../feature/addwords/`: `AddWordsViewModel` (host) and the source VMs in `source/`.
+- `presentation/ui/components/imports/`: `AddWordsSheet` (page router), `CandidateReviewPage`, and the per-source pages.
+
+### Languages
+- Each add uses an explicit `LanguagePair(learning, native)`. There is no global "settings language".
+- `ResolveAddWordsLanguagesUseCase` picks the default pair: the last pair used (`AddWordsPreferenceEntity`), else the most common pair in the collection, else none. With none, the sheet asks for both languages first.
+- The pair used is saved after every successful commit.
+
+### Writing (`AddWordsUseCase`)
+- It is the single write path. It validates drafts, builds `Word.newCard`, and calls `IWordRepository.addWords`.
+- That stores the words locally in one transaction, links the tags, and enqueues each word in the upload queue.
+- **Dedupe** is keyed on (term, translation, learning language), ignoring case and surrounding spaces. The same word in another learning language counts as new.
+- `AddWordsOutcome(added, duplicates, addedTerms)` is returned. The result page previews `addedTerms`.
+- **Upload**: the queue flushes in the background after each add and on every app start (`UploadPendingWordsUseCase` in `AppNavigationViewModel.onSessionVerified`). Words added offline reach the server on the next start.
+- **Server ids**: `POST /words` returns the saved words. `WordLocalDataSource.completeUpload` moves each uploaded row (with its tags, pending review and queue entry) to its server id, so later edits and deletes address the right server word. If the server id is already stored locally as the same word, the local copy is dropped. If it is held by a different word, that word is moved to a free id first. Rows from before this change are moved when a pull returns their server copy (`ResolvedWords.localIdMoves`).
+- **Analytics**: see "Add-words funnel" in `analytics-tracking-plan.md`.
+
+### Errors
+Domain errors (`DomainError.AddWords.*`, network errors) map to the `AddWordsProblem` enum and then to string resources in `AddWordsProblemText.kt`. No error string is sniffed from exception messages.
+
+## File format (`VocabularyTextParser`)
+
 ```
+term,translation[,note]
+```
+
+- **Delimiters**: comma, tab, semicolon or pipe, auto-detected. A line that lacks the file's delimiter is split by its own.
+- **Quoting**: RFC-4180. Fields may contain the delimiter, escaped quotes and line breaks.
+- **Ignored**: BOM, Windows line endings, `#` and `//` comments, blank lines, and a header row (`word,translation`, …).
+- **Legacy** single-line `word,translation;word,translation` (the export format) is still read.
+- **Extra columns** are folded into the note.
+- **Limits**: file ≤ 1 MB; term/translation ≤ 200 chars; note ≤ 1000 chars.
+- **Encoding**: any text file is accepted. `TextDecoder` reads UTF-16 when there is a byte order mark and UTF-8 otherwise; binary content is rejected.
+- **Rejected lines** (missing translation, too long, malformed) are listed under "Skipped lines" in the review.
+
+```
+word,translation,note
 hello,hola
-goodbye,adiós,a farewell greeting
-house,casa;car,coche
-# This is a comment
-dog,perro,a loyal animal
+"to go, to leave",irse,"with ""se"""
+house	casa
+# comment
 ```
 
-### Edge Cases
-- Commas within description are preserved (only first 2 commas split)
-- Whitespace is trimmed from each part
-- Empty word or translation → entry skipped
-- Special characters (accents, CJK, Arabic, emoji) fully supported
-
-### Deduplication
-On import, words are deduplicated against existing words using:
-```kotlin
-Word.isSameContent(other) // compares originalWord + translation (lowercase, trimmed)
-```
-
-### New Word Defaults
-Imported words get:
-- `level = 0`
-- `nextReviewDate = now - 1000` (immediately due)
-- `easeFactor = 2.5`
-- `sourceLanguage` / `targetLanguage` from user's current language setting or explicit params
+## Photo
+- `IImagePreparer` re-encodes the photo with smaller size and quality until it is ≤ 3 MB. Under 128 bytes means unreadable.
+- `POST /ai/extract-words` (v2) sends the language pair and gets structured items back.
+- The client only calls v2. The server keeps v1 `/ai/extract-vocabulary` for app versions that predate v2.
+- Sideways photos are misread by the model, so the preview has a Rotate button; the upload is turned the same way (`quarterTurns`).
 
 ## Export Format (ExportWordsUseCase)
 
-### Format
 ```
 word1,translation1;word2,translation2,description2;word3,translation3
 ```
 
-Semicolon-separated entries. Each entry is comma-delimited: `word,translation[,description]`
-
-Description is omitted if empty.
-
-### Round-Trip Compatibility
-Export format is designed to be re-importable. Tests verify:
-```kotlin
-val exported = ExportWordsUseCase()(words)
-val reimported = ImportWordsUseCase().execute(exported)
-// reimported matches original words
-```
-
-## Import Flow in UI
-
-```
-StudyScreen → Import Button → ImportMethodSelectorContent
-    │
-    ├── "Manual" → ImportBottomSheet (fullscreen)
-    │    ├── Text tab (single word input)
-    │    ├── File tab (.txt upload)
-    │    └── Image tab (camera/gallery → AI OCR)
-    │
-    └── "AI Generate" → AiWordImportBottomSheet
-         └── Wizard: lang → lang → level → topics → preview → import
-```
-
-## Language Confirmation
-When importing via file or image, if detected source/target languages differ from user's setting, a confirmation dialog appears before proceeding.
+Entries are separated by semicolons, and each entry is `word,translation[,description]`. The description is omitted when empty. `VocabularyTextParser` reads this format back (legacy mode).

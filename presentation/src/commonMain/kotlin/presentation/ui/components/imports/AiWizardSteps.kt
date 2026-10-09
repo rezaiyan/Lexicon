@@ -41,8 +41,6 @@ import components.sheet.SelectableCard
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
 import domain.onboarding.model.ProficiencyLevel
-import feature.aiimport.model.AiWordImportStep
-import feature.aiimport.model.AiWordImportUiState
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advanced
 import lexicon.resources.generated.resources.ai_wizard_continue
@@ -50,12 +48,6 @@ import lexicon.resources.generated.resources.ai_wizard_generate_words
 import lexicon.resources.generated.resources.ai_wizard_level_highlight
 import lexicon.resources.generated.resources.ai_wizard_level_subtitle
 import lexicon.resources.generated.resources.ai_wizard_level_title
-import lexicon.resources.generated.resources.ai_wizard_native_highlight
-import lexicon.resources.generated.resources.ai_wizard_native_subtitle
-import lexicon.resources.generated.resources.ai_wizard_native_title
-import lexicon.resources.generated.resources.ai_wizard_target_highlight
-import lexicon.resources.generated.resources.ai_wizard_target_subtitle
-import lexicon.resources.generated.resources.ai_wizard_target_title
 import lexicon.resources.generated.resources.ai_wizard_topics_highlight
 import lexicon.resources.generated.resources.ai_wizard_topics_subtitle
 import lexicon.resources.generated.resources.ai_wizard_topics_title
@@ -69,7 +61,6 @@ import lexicon.resources.generated.resources.intermediate
 import lexicon.resources.generated.resources.onboarding_advanced_desc
 import lexicon.resources.generated.resources.onboarding_beginner_desc
 import lexicon.resources.generated.resources.onboarding_intermediate_desc
-import lexicon.resources.generated.resources.step_of
 import lexicon.resources.generated.resources.topics_selected
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -78,44 +69,6 @@ import utils.Language
 
 // Font-scaled width below which topic cards stack in one column
 private val TwoColumnMinWidth = 300.dp
-
-@Composable
-private fun stepEyebrow(step: AiWordImportStep): String =
-    stringResource(Res.string.step_of, step.ordinal + 1, AiWizardTotalSteps)
-
-@Composable
-internal fun AiTargetLanguageStep(
-    languages: List<Language>,
-    selected: Language?,
-    onSelected: (Language) -> Unit,
-) {
-    ImportLanguageListPage(
-        eyebrow = stepEyebrow(AiWordImportStep.TARGET_LANG),
-        title = stringResource(Res.string.ai_wizard_target_title),
-        highlight = stringResource(Res.string.ai_wizard_target_highlight),
-        subtitle = stringResource(Res.string.ai_wizard_target_subtitle),
-        languages = languages,
-        selected = selected,
-        onLanguageSelected = onSelected,
-    )
-}
-
-@Composable
-internal fun AiNativeLanguageStep(
-    languages: List<Language>,
-    selected: Language?,
-    onSelected: (Language) -> Unit,
-) {
-    ImportLanguageListPage(
-        eyebrow = stepEyebrow(AiWordImportStep.NATIVE_LANG),
-        title = stringResource(Res.string.ai_wizard_native_title),
-        highlight = stringResource(Res.string.ai_wizard_native_highlight),
-        subtitle = stringResource(Res.string.ai_wizard_native_subtitle),
-        languages = languages,
-        selected = selected,
-        onLanguageSelected = onSelected,
-    )
-}
 
 internal val ProficiencyLevel.title: StringResource
     get() = when (this) {
@@ -139,7 +92,6 @@ internal fun AiLevelStep(
     onContinue: () -> Unit,
 ) {
     SheetPage(
-        eyebrow = stepEyebrow(AiWordImportStep.LEVEL),
         title = stringResource(Res.string.ai_wizard_level_title),
         highlight = stringResource(Res.string.ai_wizard_level_highlight),
         subtitle = stringResource(Res.string.ai_wizard_level_subtitle),
@@ -180,7 +132,7 @@ internal fun AiLevelStep(
                 }
             }
         }
-        error?.let { ErrorMessage(it) }
+        ErrorMessage(error)
     }
 }
 
@@ -204,9 +156,9 @@ internal fun AiTopicsStep(
     error: String?,
     onToggleTopic: (String) -> Unit,
     onGenerate: () -> Unit,
+    generateEnabled: Boolean = true,
 ) {
     SheetPage(
-        eyebrow = stepEyebrow(AiWordImportStep.TOPICS),
         title = stringResource(Res.string.ai_wizard_topics_title),
         highlight = stringResource(Res.string.ai_wizard_topics_highlight),
         subtitle = stringResource(Res.string.ai_wizard_topics_subtitle),
@@ -223,6 +175,7 @@ internal fun AiTopicsStep(
             SheetPrimaryButton(
                 text = stringResource(Res.string.ai_wizard_generate_words),
                 onClick = onGenerate,
+                enabled = generateEnabled,
                 icon = Icons.Default.AutoAwesome,
             )
         },
@@ -265,17 +218,7 @@ internal fun AiTopicsStep(
                 }
             }
         }
-        error?.let { ErrorMessage(friendlyGenerationError(it)) }
-    }
-}
-
-private fun friendlyGenerationError(error: String): String {
-    val isNetworkError = listOf("timeout", "connect", "network", "internet")
-        .any { error.contains(it, ignoreCase = true) }
-    return when {
-        isNetworkError -> "You're offline -- check your connection and try again."
-        error.contains("limit", ignoreCase = true) || error.contains("quota", ignoreCase = true) -> error
-        else -> "Generation failed -- please try again or pick different topics."
+        ErrorMessage(error)
     }
 }
 
@@ -288,11 +231,11 @@ private val GeneratingSteps = listOf(
 
 /** Shown while suggestions are generated. */
 @Composable
-internal fun AiGeneratingContent(state: AiWordImportUiState) {
+internal fun AiGeneratingContent(learning: Language?, level: ProficiencyLevel?, topics: Set<String>) {
     val summary = listOfNotNull(
-        state.selectedTargetLanguage?.displayName,
-        state.selectedLevel?.let { stringResource(it.title) },
-        state.selectedTopics.takeIf { it.isNotEmpty() }?.joinToString(", "),
+        learning?.displayName,
+        level?.let { stringResource(it.title) },
+        topics.takeIf { it.isNotEmpty() }?.joinToString(", "),
     ).joinToString(" · ")
 
     GeneratingProgress(

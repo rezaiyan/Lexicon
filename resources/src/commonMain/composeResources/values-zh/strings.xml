@@ -234,8 +234,6 @@
     <string name="theme_auto_desc">跟随系统设置</string>
     
     <!-- Word Manager Screen -->
-    <string name="word_manager">单词管理</string>
-    <string name="word_manager_subtitle">管理您的词汇</string>
     <string name="search_words">搜索单词...</string>
     <string name="clear">清除</string>
     <string name="selected_count">已选择 %1$d 个</string>
@@ -471,7 +469,6 @@
 
     <!-- Import Source Language -->
     <string name="original_language_question">原始词汇是什么语言？</string>
-    <string name="translation_language_hint">翻译将使用%1$s。你可以在设置中更改。</string>
     <string name="filter_all">全部</string>
     <string name="filters">筛选</string>
     <string name="account_section">账户</string>
