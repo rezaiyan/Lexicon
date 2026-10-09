@@ -46,7 +46,11 @@ interface IWordLocalDataSource {
     /** Inserts words whose identity is new, in one transaction, and queues them for upload. */
     suspend fun addNewWords(words: List<Word>): AddWordsOutcome
     suspend fun getPendingUploads(): List<Word>
-    suspend fun markUploaded(ids: List<Int>)
+    /**
+     * Marks [uploaded] as sent and moves each word in [serverIds] (local id → server id) to its server id,
+     * with its tags and pending review, so later edits and deletes address the right server word.
+     */
+    suspend fun completeUpload(uploaded: List<Int>, serverIds: Map<Int, Int>)
 }
 
 class WordLocalDataSource(
@@ -328,7 +332,49 @@ class WordLocalDataSource(
         }
     }
 
-    override suspend fun markUploaded(ids: List<Int>) {
-        if (ids.isNotEmpty()) queries.removeWordUploads(ids.map { it.toLong() })
+    override suspend fun completeUpload(uploaded: List<Int>, serverIds: Map<Int, Int>) {
+        queries.transaction {
+            if (uploaded.isNotEmpty()) queries.removeWordUploads(uploaded.map { it.toLong() })
+            // Where each word sits now: a word may be moved aside before its own move comes up.
+            val location = mutableMapOf<Long, Long>()
+            serverIds.forEach { (local, server) ->
+                val oldId = location[local.toLong()] ?: local.toLong()
+                val newId = server.toLong()
+                if (oldId == newId) return@forEach
+                val moving = queries.getWordById(oldId).awaitAsOneOrNull() ?: return@forEach
+                val occupant = queries.getWordById(newId).awaitAsOneOrNull()
+                when {
+                    occupant == null -> moveWordRow(oldId, newId)
+                    // Already pulled from the server under its own id: this row is a duplicate.
+                    occupant.toDomain().identity == moving.toDomain().identity -> dropDuplicateWordRow(oldId, newId)
+                    else -> {
+                        // An unrelated word whose device-local id is this server id: move it aside.
+                        val freeId = (queries.maxWordId().awaitAsOne().MAX ?: newId) + 1
+                        moveWordRow(newId, freeId)
+                        location[newId] = freeId
+                        moveWordRow(oldId, newId)
+                    }
+                }
+            }
+        }
+    }
+
+    /** Moves a word row with its tags, pending review and upload entry. Caller holds a transaction. */
+    private suspend fun moveWordRow(oldId: Long, newId: Long) {
+        queries.moveWordTags(newId = newId, oldId = oldId)
+        queries.deleteWordTagsForWord(oldId)
+        queries.moveReviewSyncEntry(newId = newId, oldId = oldId)
+        queries.removeReviewSyncEntry(oldId)
+        queries.moveWordUpload(newId = newId, oldId = oldId)
+        queries.removeWordUploads(listOf(oldId))
+        queries.changeWordId(newId = newId, oldId = oldId)
+    }
+
+    private suspend fun dropDuplicateWordRow(oldId: Long, keptId: Long) {
+        queries.moveWordTags(newId = keptId, oldId = oldId)
+        queries.moveReviewSyncEntry(newId = keptId, oldId = oldId)
+        queries.removeReviewSyncEntry(oldId)
+        queries.removeWordUploads(listOf(oldId))
+        queries.deleteWord(oldId)
     }
 }

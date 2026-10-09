@@ -19,7 +19,7 @@ class WordRemoteSyncHandlerTest {
 
     private class FakeWordRemoteDataSource : IWordRemoteDataSource {
         var getWordsResult: Try<List<RemoteWord>> = Try.success(emptyList())
-        var upsertWordsResult: Try<Unit> = Try.success(Unit)
+        var upsertWordsResult: Try<List<RemoteWord>> = Try.success(emptyList())
         var updateWordResult: Try<Unit> = Try.success(Unit)
         var deleteWordResult: Try<Unit> = Try.success(Unit)
         var deleteWordsResult: Try<Unit> = Try.success(Unit)
@@ -33,7 +33,7 @@ class WordRemoteSyncHandlerTest {
         var batchUpdateRequest: BatchUpdateLanguagesRequest? = null
 
         override suspend fun getWords(updatedAfter: Long?): Try<List<RemoteWord>> = getWordsResult
-        override suspend fun upsertWords(words: List<RemoteWord>): Try<Unit> {
+        override suspend fun upsertWords(words: List<RemoteWord>): Try<List<RemoteWord>> {
             upsertedWords = words
             return upsertWordsResult
         }

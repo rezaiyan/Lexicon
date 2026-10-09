@@ -3,6 +3,7 @@ package data.word.repository
 import data.settings.local.ISettingsLocalDataSource
 import data.word.local.IWordLocalDataSource
 import data.word.mapper.toDomain
+import data.word.remote.model.RemoteWord
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
 import core.common.Try
@@ -107,7 +108,10 @@ class WordRepositoryImpl(
             if (pending.isEmpty()) return@flatMap Try.success(0)
             // Local ids mean nothing to the server; it matches new words by content.
             remoteSyncHandler.syncWordsToRemote(pending.map { it.copy(id = 0) })
-                .flatMap { Try { localDataSource.markUploaded(pending.map { it.id }) } }
+                .flatMap { saved ->
+                    // Move each word to its server id so later edits and deletes address the right word.
+                    Try { localDataSource.completeUpload(pending.map { it.id }, serverIdsOf(pending, saved)) }
+                }
                 .map { pending.size }
         }
     }
@@ -129,7 +133,7 @@ class WordRepositoryImpl(
 
     override suspend fun batchSyncWords(words: List<Word>): Try<Unit> {
         if (words.isEmpty()) return Try.success(Unit)
-        return remoteSyncHandler.syncWordsToRemote(words)
+        return remoteSyncHandler.syncWordsToRemote(words).map { }
     }
 
     override suspend fun deleteWord(id: Int): Try<Unit> {
@@ -225,13 +229,16 @@ class WordRepositoryImpl(
                 onSuccess = { remoteWords ->
                     val localWords = localDataSource.getAllWordsOnce()
 
-                    val resolvedEntities = conflictResolver.resolveConflicts(
+                    val resolved = conflictResolver.resolveConflicts(
                         localWords = localWords,
                         remoteWords = remoteWords
                     )
+                    if (resolved.localIdMoves.isNotEmpty()) {
+                        localDataSource.completeUpload(uploaded = emptyList(), serverIds = resolved.localIdMoves)
+                    }
 
-                    if (resolvedEntities.isNotEmpty()) {
-                        val resolvedWords = resolvedEntities.map { entity ->
+                    if (resolved.entities.isNotEmpty()) {
+                        val resolvedWords = resolved.entities.map { entity ->
                             entity.toDomain()
                         }
                         localDataSource.insertWords(resolvedWords)
@@ -281,4 +288,16 @@ class WordRepositoryImpl(
     override suspend fun getMostCommonSourceLanguage(): Try<String?> {
         return Try { localDataSource.getMostCommonSourceLanguage() }
     }
+}
+
+/** Local id → server id for each uploaded word, paired by the same identity adding words uses. */
+private fun serverIdsOf(pending: List<Word>, saved: List<RemoteWord>): Map<Int, Int> {
+    fun key(term: String, translation: String, learningLanguage: String) =
+        Triple(term.trim().lowercase(), translation.trim().lowercase(), learningLanguage)
+    val serverIdByKey = saved.mapNotNull { remote ->
+        remote.id?.let { key(remote.originalWord, remote.translation, remote.targetLanguage) to it.toInt() }
+    }.toMap()
+    return pending.mapNotNull { word ->
+        serverIdByKey[key(word.originalWord, word.translation, word.targetLanguage.code)]?.let { word.id to it }
+    }.toMap()
 }

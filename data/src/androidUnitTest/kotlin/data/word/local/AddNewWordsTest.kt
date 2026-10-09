@@ -93,6 +93,53 @@ class AddNewWordsTest {
         assertEquals(listOf(third), queries.getWordUploadQueue().awaitAsList())
     }
 
+    @Test
+    fun `completeUpload moves uploaded words to their server ids with tags and pending reviews`() = runTest {
+        tags.insertOrReplaceTag(TAG_ID, "travel", 0, 0)
+        words.addNewWords(listOf(card("Hund", "dog", tagIds = listOf(TAG_ID)), card("Katze", "cat")))
+        val (hund, katze) = queries.getWordUploadQueue().awaitAsList()
+        queries.insertReviewSyncEntry(hund)
+
+        words.completeUpload(uploaded = listOf(hund.toInt(), katze.toInt()), serverIds = mapOf(hund.toInt() to 500))
+
+        assertEquals(emptyList(), queries.getWordUploadQueue().awaitAsList())
+        assertEquals("Hund", words.getWordById(500)?.originalWord)
+        assertEquals(listOf(TAG_ID), words.getWordById(500)?.tagIds)
+        assertEquals(null, words.getWordById(hund.toInt()))
+        assertEquals("Katze", words.getWordById(katze.toInt())?.originalWord)
+        assertEquals(listOf(500L), queries.getAllReviewSyncEntries().awaitAsList())
+    }
+
+    @Test
+    fun `completeUpload drops the local copy when the server word is already stored`() = runTest {
+        words.addNewWords(listOf(card("Hund", "dog")))
+        val local = queries.getWordUploadQueue().awaitAsList().single()
+        // The same word already pulled from the server under its server id.
+        words.insertWords(listOf(card("Hund", "dog").copy(id = 500)))
+
+        words.completeUpload(uploaded = listOf(local.toInt()), serverIds = mapOf(local.toInt() to 500))
+
+        assertEquals(null, words.getWordById(local.toInt()))
+        assertEquals("Hund", words.getWordById(500)?.originalWord)
+    }
+
+    @Test
+    fun `completeUpload moves an unrelated word holding the server id out of the way`() = runTest {
+        tags.insertOrReplaceTag(TAG_ID, "travel", 0, 0)
+        // A word added before re-keying existed: its local id happens to be another word's server id.
+        words.insertWords(listOf(card("Maus", "mouse", tagIds = listOf(TAG_ID)).copy(id = 500)))
+        queries.insertReviewSyncEntry(500)
+        words.addNewWords(listOf(card("Hund", "dog")))
+        val hund = queries.getWordUploadQueue().awaitAsList().single()
+
+        words.completeUpload(uploaded = listOf(hund.toInt()), serverIds = mapOf(hund.toInt() to 500))
+
+        assertEquals("Hund", words.getWordById(500)?.originalWord)
+        val maus = words.getAllWordsAsync().single { it.originalWord == "Maus" }
+        assertEquals(listOf(TAG_ID), maus.tagIds)
+        assertEquals(listOf(maus.id.toLong()), queries.getAllReviewSyncEntries().awaitAsList())
+    }
+
     private companion object {
         const val TAG_ID = 7L
     }

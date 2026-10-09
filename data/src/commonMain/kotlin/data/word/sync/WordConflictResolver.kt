@@ -3,11 +3,21 @@ package data.word.sync
 import data.core.database.WordEntity
 import data.core.database.WordEntityData
 import data.word.remote.model.RemoteWord
+
+/**
+ * Remote words to store, all under their server ids, and the local words that must first move to those
+ * ids (local id → server id): words added on this device before uploads re-keyed them.
+ */
+data class ResolvedWords(
+    val entities: List<WordEntityData>,
+    val localIdMoves: Map<Int, Int> = emptyMap(),
+)
+
 interface IWordConflictResolver {
     fun resolveConflicts(
         localWords: List<WordEntity>,
         remoteWords: List<RemoteWord>
-    ): List<WordEntityData>
+    ): ResolvedWords
 }
 
 class WordConflictResolver : IWordConflictResolver {
@@ -15,7 +25,7 @@ class WordConflictResolver : IWordConflictResolver {
     override fun resolveConflicts(
         localWords: List<WordEntity>,
         remoteWords: List<RemoteWord>
-    ): List<WordEntityData> {
+    ): ResolvedWords {
         val localWordMapById = localWords.associateBy { it.id }
         val localWordMapByContent = localWords.associateBy { entity ->
             WordContentKey(
@@ -27,6 +37,7 @@ class WordConflictResolver : IWordConflictResolver {
 
         val validRemoteWords = remoteWords.filter { it.id != null && it.id > 0 }
         val entitiesByContent = mutableMapOf<WordContentKey, WordEntityData>()
+        val localIdMoves = mutableMapOf<Int, Int>()
 
         for (remote in validRemoteWords) {
             val contentKey = WordContentKey(
@@ -39,7 +50,9 @@ class WordConflictResolver : IWordConflictResolver {
             val existingById = remote.id?.let { localWordMapById[it] }
             val existingEntity = existingByContent ?: existingById
 
-            val entityId = existingEntity?.id?.toInt() ?: (remote.id?.toInt() ?: 0)
+            // validRemoteWords only holds words with a server id.
+            val entityId = remote.id?.toInt() ?: 0
+            existingByContent?.id?.toInt()?.takeIf { it != entityId }?.let { localIdMoves[it] = entityId }
 
             val entity = WordEntityData(
                 id = entityId,
@@ -63,7 +76,7 @@ class WordConflictResolver : IWordConflictResolver {
             entitiesByContent[contentKey] = entity
         }
 
-        return entitiesByContent.values.toList()
+        return ResolvedWords(entitiesByContent.values.toList(), localIdMoves)
     }
 
     /** Same identity as adding words: the same word in another learning language is a different word. */

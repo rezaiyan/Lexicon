@@ -277,6 +277,19 @@ class WordRepositoryImplTest {
     }
 
     @Test
+    fun `syncWithRemote moves local words to their server ids before storing the pulled words`() = runTest {
+        val local = FakeWordLocalDataSource().apply { storedWords = mutableListOf(makeWord(id = 3, originalWord = "cat")) }
+        val remote = FakeWordRemoteSyncHandler().apply { remoteWordsToReturn = listOf(makeRemoteWord(id = 40L)) }
+        val resolver = FakeWordConflictResolver().apply { localIdMoves = mapOf(3 to 40) }
+        val repo = makeRepository(local = local, remote = remote, resolver = resolver)
+
+        repo.syncWithRemote()
+
+        assertEquals(mapOf(3 to 40), local.idMoves)
+        assertEquals(listOf(40), local.storedWords.map { it.id })
+    }
+
+    @Test
     fun `syncWithRemote with multiple resolved entities inserts all of them`() = runTest {
         val local = FakeWordLocalDataSource()
         val remoteWords = listOf(

@@ -48,18 +48,31 @@ class WordConflictResolverTest {
         )
 
         assertEquals(
-            setOf(Triple(1, "fr", 2), Triple(2, "de", 3)),
-            resolved.map { Triple(it.id, it.targetLanguage, it.level) }.toSet(),
+            setOf(Triple(10, "fr", 2), Triple(11, "de", 3)),
+            resolved.entities.map { Triple(it.id, it.targetLanguage, it.level) }.toSet(),
         )
+        assertEquals(mapOf(1 to 10, 2 to 11), resolved.localIdMoves)
     }
 
     @Test
-    fun `resolveConflicts matches a remote word to the local word with the same content ignoring case`() {
+    fun `resolveConflicts moves a local word with the same content to the server id ignoring case`() {
         val resolved = resolver.resolveConflicts(
             localWords = listOf(local(1, "Hund", "dog", "de")),
             remoteWords = listOf(remote(10, " hund", "Dog ", "de", level = 4)),
         )
 
-        assertEquals(listOf(1 to 4), resolved.map { it.id to it.level })
+        assertEquals(listOf(10 to 4), resolved.entities.map { it.id to it.level })
+        assertEquals(mapOf(1 to 10), resolved.localIdMoves)
+    }
+
+    @Test
+    fun `resolveConflicts moves nothing when the local word already has the server id`() {
+        val resolved = resolver.resolveConflicts(
+            localWords = listOf(local(10, "Hund", "dog", "de")),
+            remoteWords = listOf(remote(10, "Hund", "dog", "de")),
+        )
+
+        assertEquals(listOf(10), resolved.entities.map { it.id })
+        assertEquals(emptyMap(), resolved.localIdMoves)
     }
 }

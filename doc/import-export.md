@@ -32,6 +32,8 @@ Code lives in:
 - **Dedupe** is keyed on (term, translation, learning language), ignoring case and surrounding spaces. The same word in another learning language counts as new.
 - `AddWordsOutcome(added, duplicates, addedTerms)` is returned. The result page previews `addedTerms`.
 - **Upload**: the queue flushes in the background after each add and on every app start (`UploadPendingWordsUseCase` in `AppNavigationViewModel.onSessionVerified`). Words added offline reach the server on the next start.
+- **Server ids**: `POST /words` returns the saved words. `WordLocalDataSource.completeUpload` moves each uploaded row (with its tags, pending review and queue entry) to its server id, so later edits and deletes address the right server word. If the server id is already stored locally as the same word, the local copy is dropped. If it is held by a different word, that word is moved to a free id first. Rows from before this change are moved when a pull returns their server copy (`ResolvedWords.localIdMoves`).
+- **Analytics**: see "Add-words funnel" in `analytics-tracking-plan.md`.
 
 ### Errors
 Domain errors (`DomainError.AddWords.*`, network errors) map to the `AddWordsProblem` enum and then to string resources in `AddWordsProblemText.kt`. No error string is sniffed from exception messages.

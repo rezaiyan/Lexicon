@@ -66,6 +66,40 @@ class WordRepositoryAddWordsTest {
     }
 
     @Test
+    fun `uploadPendingWords moves uploaded words to the ids the server saved them under`() = runTest {
+        val local = FakeWordLocalDataSource()
+        val remote = FakeWordRemoteSyncHandler().apply {
+            shouldFailSyncWordsToRemote = true
+            savedWordsToReturn = listOf(
+                makeRemoteWord(id = 77L, originalWord = "hund ", translation = "Dog", sourceLanguage = "en", targetLanguage = "de"),
+                // Same term in another learning language: not this upload's word.
+                makeRemoteWord(id = 78L, originalWord = "Katze", translation = "cat", sourceLanguage = "en", targetLanguage = "fr"),
+            )
+        }
+        val repository = makeRepository(local = local, remote = remote)
+        repository.addWords(listOf(newWord("Hund", "dog"), newWord("Katze", "cat")))
+        val (hund, katze) = local.pendingUploadIds.toList()
+        remote.shouldFailSyncWordsToRemote = false
+
+        repository.uploadPendingWords().getOrThrow()
+
+        assertEquals(mapOf(hund to 77), local.idMoves)
+        assertEquals(setOf(77, katze), local.storedWords.map { it.id }.toSet())
+        assertTrue(local.pendingUploadIds.isEmpty())
+    }
+
+    @Test
+    fun `uploadPendingWords keeps local ids when the server does not return saved words`() = runTest {
+        val local = FakeWordLocalDataSource()
+        val repository = makeRepository(local = local)
+
+        repository.addWords(listOf(newWord("Hund", "dog")))
+
+        assertTrue(local.idMoves.isEmpty())
+        assertTrue(local.pendingUploadIds.isEmpty())
+    }
+
+    @Test
     fun `uploadPendingWords waits while signed out`() = runTest {
         val local = FakeWordLocalDataSource()
         val remote = FakeWordRemoteSyncHandler()

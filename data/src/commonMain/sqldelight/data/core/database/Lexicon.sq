@@ -385,6 +385,25 @@ DELETE FROM WordUploadQueue WHERE wordId IN ?;
 clearWordUploadQueue:
 DELETE FROM WordUploadQueue;
 
+-- Re-keying a word to its server id once uploaded (local id = server id for every synced word).
+maxWordId:
+SELECT MAX(id) FROM WordEntity;
+
+moveWordUpload:
+UPDATE OR IGNORE WordUploadQueue SET wordId = :newId WHERE wordId = :oldId;
+
+changeWordId:
+UPDATE WordEntity SET id = :newId WHERE id = :oldId;
+
+moveWordTags:
+UPDATE OR IGNORE WordTagEntity SET wordId = :newId WHERE wordId = :oldId;
+
+moveReviewSyncEntry:
+UPDATE OR IGNORE ReviewSyncQueue SET wordId = :newId WHERE wordId = :oldId;
+
+removeReviewSyncEntry:
+DELETE FROM ReviewSyncQueue WHERE wordId = ?;
+
 -- AddWordsPreferenceEntity: single-row, client-only. Language pair last used when adding words.
 CREATE TABLE AddWordsPreferenceEntity (
     id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,

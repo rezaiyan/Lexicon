@@ -7,6 +7,7 @@ import data.settings.local.ISettingsLocalDataSource
 import data.word.local.IWordLocalDataSource
 import data.word.remote.model.RemoteWord
 import data.word.sync.IWordConflictResolver
+import data.word.sync.ResolvedWords
 import data.word.sync.IWordRemoteSyncHandler
 import domain.auth.session.ISessionManager
 import domain.word.add.model.AddWordsOutcome
@@ -99,8 +100,12 @@ internal class FakeWordLocalDataSource : IWordLocalDataSource {
 
     override suspend fun getPendingUploads(): List<Word> = storedWords.filter { it.id in pendingUploadIds }
 
-    override suspend fun markUploaded(ids: List<Int>) {
-        pendingUploadIds.removeAll(ids)
+    val idMoves = mutableMapOf<Int, Int>()
+
+    override suspend fun completeUpload(uploaded: List<Int>, serverIds: Map<Int, Int>) {
+        pendingUploadIds.removeAll(uploaded)
+        idMoves.putAll(serverIds)
+        storedWords = storedWords.map { word -> serverIds[word.id]?.let { word.copy(id = it) } ?: word }.toMutableList()
     }
 }
 
@@ -118,13 +123,16 @@ internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
     var shouldFailSyncWordDeletion = false
     var shouldFailSyncFromRemote = false
 
-    override suspend fun syncWordsToRemote(words: List<Word>): Try<Unit> {
+    /** What the server answers with: the saved words with their server ids. */
+    var savedWordsToReturn: List<RemoteWord> = emptyList()
+
+    override suspend fun syncWordsToRemote(words: List<Word>): Try<List<RemoteWord>> {
         syncWordsToRemoteCallCount++
         syncedWords.addAll(words)
         return if (shouldFailSyncWordsToRemote) {
             Try.failure(RuntimeException("Remote sync failed"))
         } else {
-            Try.success(Unit)
+            Try.success(savedWordsToReturn)
         }
     }
 
@@ -170,14 +178,15 @@ internal class FakeWordConflictResolver : IWordConflictResolver {
     var resolvedEntities: List<WordEntityData> = emptyList()
     var lastLocalWords: List<WordEntity> = emptyList()
     var lastRemoteWords: List<RemoteWord> = emptyList()
+    var localIdMoves: Map<Int, Int> = emptyMap()
 
     override fun resolveConflicts(
         localWords: List<WordEntity>,
         remoteWords: List<RemoteWord>
-    ): List<WordEntityData> {
+    ): ResolvedWords {
         lastLocalWords = localWords
         lastRemoteWords = remoteWords
-        return resolvedEntities
+        return ResolvedWords(resolvedEntities, localIdMoves)
     }
 }
 

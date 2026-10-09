@@ -157,7 +157,7 @@ class WordLocalDataSourceTest {
         override suspend fun addNewWords(words: List<Word>) =
             domain.word.add.model.AddWordsOutcome(added = words.size, duplicates = 0).also { insertWords(words) }
         override suspend fun getPendingUploads(): List<Word> = emptyList()
-        override suspend fun markUploaded(ids: List<Int>) = Unit
+        override suspend fun completeUpload(uploaded: List<Int>, serverIds: Map<Int, Int>) = Unit
 
         override suspend fun getMostCommonSourceLanguage(): String? =
             words.values
