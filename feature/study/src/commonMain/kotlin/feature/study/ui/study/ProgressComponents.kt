@@ -11,11 +11,13 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import domain.word.model.LearningStage
 import domain.word.model.ProgressStats
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import components.animation.staggeredFadeSlide
 import feature.study.ui.components.LevelBucketCard
@@ -39,124 +41,110 @@ import lexicon.resources.generated.resources.level_6_mastered
 
 private const val STAGE_DESCRIPTION_SEPARATOR = "•"
 
-data class LevelBucketData(
+private data class StageStyle(
     val stage: LearningStage,
-    val nameResId: org.jetbrains.compose.resources.StringResource,
-    val descriptionResId: org.jetbrains.compose.resources.StringResource,
+    val nameResId: StringResource,
+    val descriptionResId: StringResource,
     val icon: ImageVector,
     val color: Color,
-    val count: Int
 )
 
+private val StageStyles = listOf(
+    StageStyle(
+        LearningStage.LEVEL_0_FRESH,
+        Res.string.level_0_fresh,
+        Res.string.level_0_description,
+        Icons.Rounded.Lightbulb,
+        AppColors.novice,
+    ),
+    StageStyle(
+        LearningStage.LEVEL_1_LEARNING,
+        Res.string.level_1_learning,
+        Res.string.level_1_description,
+        Icons.Rounded.MenuBook,
+        AppColors.apprentice,
+    ),
+    StageStyle(
+        LearningStage.LEVEL_2_FAMILIAR,
+        Res.string.level_2_familiar,
+        Res.string.level_2_description,
+        Icons.Rounded.AutoAwesome,
+        AppColors.apprentice,
+    ),
+    StageStyle(
+        LearningStage.LEVEL_3_BUILDING,
+        Res.string.level_3_building,
+        Res.string.level_3_description,
+        Icons.Rounded.TrendingUp,
+        AppColors.adept,
+    ),
+    StageStyle(
+        LearningStage.LEVEL_4_ALMOST,
+        Res.string.level_4_almost,
+        Res.string.level_4_description,
+        Icons.Rounded.Verified,
+        AppColors.adept,
+    ),
+    StageStyle(
+        LearningStage.LEVEL_5_STRONG,
+        Res.string.level_5_strong,
+        Res.string.level_5_description,
+        Icons.Rounded.Star,
+        AppColors.master,
+    ),
+    StageStyle(
+        LearningStage.LEVEL_6_MASTERED,
+        Res.string.level_6_mastered,
+        Res.string.level_6_description,
+        Icons.Rounded.EmojiEvents,
+        AppColors.master,
+    ),
+)
+
+/**
+ * One card per learning stage. With [showEmptyStages] off, stages holding no words are left
+ * out so the list only shows where the user's words actually are.
+ */
 @Composable
 fun LearningStagesList(
     stats: ProgressStats,
     onStageClick: (LearningStage, String) -> Unit,
     onStageLongClick: ((LearningStage, String) -> Unit)? = null,
-    levelTexts: List<String>? = null,
-    levelNames: List<String>? = null,
-    levelDescriptions: List<String>? = null,
+    showEmptyStages: Boolean = true,
 ) {
-    val level0Text = levelTexts?.getOrNull(0) ?: stringResource(Res.string.level_0_fresh)
-    val level1Text = levelTexts?.getOrNull(1) ?: stringResource(Res.string.level_1_learning)
-    val level2Text = levelTexts?.getOrNull(2) ?: stringResource(Res.string.level_2_familiar)
-    val level3Text = levelTexts?.getOrNull(3) ?: stringResource(Res.string.level_3_building)
-    val level4Text = levelTexts?.getOrNull(4) ?: stringResource(Res.string.level_4_almost)
-    val level5Text = levelTexts?.getOrNull(5) ?: stringResource(Res.string.level_5_strong)
-    val level6Text = levelTexts?.getOrNull(6) ?: stringResource(Res.string.level_6_mastered)
-
-    val levels = listOf(
-        LevelBucketData(
-            LearningStage.LEVEL_0_FRESH,
-            Res.string.level_0_fresh,
-            Res.string.level_0_description,
-            Icons.Rounded.Lightbulb,
-            AppColors.novice,
-            stats.level0Count
-        ),
-        LevelBucketData(
-            LearningStage.LEVEL_1_LEARNING,
-            Res.string.level_1_learning,
-            Res.string.level_1_description,
-            Icons.Rounded.MenuBook,
-            AppColors.apprentice,
-            stats.level1Count
-        ),
-        LevelBucketData(
-            LearningStage.LEVEL_2_FAMILIAR,
-            Res.string.level_2_familiar,
-            Res.string.level_2_description,
-            Icons.Rounded.AutoAwesome,
-            AppColors.apprentice,
-            stats.level2Count
-        ),
-        LevelBucketData(
-            LearningStage.LEVEL_3_BUILDING,
-            Res.string.level_3_building,
-            Res.string.level_3_description,
-            Icons.Rounded.TrendingUp,
-            AppColors.adept,
-            stats.level3Count
-        ),
-        LevelBucketData(
-            LearningStage.LEVEL_4_ALMOST,
-            Res.string.level_4_almost,
-            Res.string.level_4_description,
-            Icons.Rounded.Verified,
-            AppColors.adept,
-            stats.level4Count
-        ),
-        LevelBucketData(
-            LearningStage.LEVEL_5_STRONG,
-            Res.string.level_5_strong,
-            Res.string.level_5_description,
-            Icons.Rounded.Star,
-            AppColors.master,
-            stats.level5Count
-        ),
-        LevelBucketData(
-            LearningStage.LEVEL_6_MASTERED,
-            Res.string.level_6_mastered,
-            Res.string.level_6_description,
-            Icons.Rounded.EmojiEvents,
-            AppColors.master,
-            stats.level6Count
-        )
-    )
-
-    val clickTexts =
-        listOf(level0Text, level1Text, level2Text, level3Text, level4Text, level5Text, level6Text)
-
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.listGap)) {
-        levels.forEachIndexed { index, level ->
-            // Descriptions read "Level 1 • Just discovered" in every locale: split into overline + subtitle
-            val fullDescription = levelDescriptions?.getOrNull(index) ?: stringResource(level.descriptionResId)
-            val hasOverline = fullDescription.contains(STAGE_DESCRIPTION_SEPARATOR)
-            LevelBucketCard(
-                modifier = Modifier.staggeredFadeSlide(index + 1),
-                level = levelNames?.getOrNull(index) ?: stringResource(level.nameResId),
-                overline = if (hasOverline) {
-                    fullDescription.substringBefore(STAGE_DESCRIPTION_SEPARATOR).trim().uppercase()
-                } else {
-                    null
-                },
-                description = if (hasOverline) {
-                    fullDescription.substringAfter(STAGE_DESCRIPTION_SEPARATOR).trim()
-                } else {
-                    fullDescription
-                },
-                count = level.count,
-                color = level.color,
-                icon = level.icon,
-                onClick = {
-                    if (level.count > 0) {
-                        onStageClick(level.stage, clickTexts[index])
-                    }
-                },
-                onLongClick = if (level.count > 0 && onStageLongClick != null) {
-                    { onStageLongClick(level.stage, clickTexts[index]) }
-                } else null,
-            )
+        StageStyles.forEachIndexed { index, style ->
+            val count = stats.countFor(style.stage)
+            if (count == 0 && !showEmptyStages) return@forEachIndexed
+            key(style.stage) {
+                val name = stringResource(style.nameResId)
+                // Descriptions read "Level 1 • Just discovered" in every locale: split into overline + subtitle
+                val fullDescription = stringResource(style.descriptionResId)
+                val hasOverline = fullDescription.contains(STAGE_DESCRIPTION_SEPARATOR)
+                LevelBucketCard(
+                    modifier = Modifier.staggeredFadeSlide(index + 1),
+                    level = name,
+                    overline = if (hasOverline) {
+                        fullDescription.substringBefore(STAGE_DESCRIPTION_SEPARATOR).trim().uppercase()
+                    } else {
+                        null
+                    },
+                    description = if (hasOverline) {
+                        fullDescription.substringAfter(STAGE_DESCRIPTION_SEPARATOR).trim()
+                    } else {
+                        fullDescription
+                    },
+                    count = count,
+                    color = style.color,
+                    icon = style.icon,
+                    onClick = { if (count > 0) onStageClick(style.stage, name) },
+                    onLongClick = if (count > 0 && onStageLongClick != null) {
+                        { onStageLongClick(style.stage, name) }
+                    } else {
+                        null
+                    },
+                )
+            }
         }
     }
 }

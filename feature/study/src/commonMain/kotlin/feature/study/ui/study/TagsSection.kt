@@ -16,7 +16,6 @@ import theme.AppColors
 import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.tags
-import lexicon.resources.generated.resources.word_count_label
 
 @Composable
 fun TagsSection(
@@ -39,7 +38,7 @@ fun TagsSection(
                 LevelBucketCard(
                     modifier = Modifier.staggeredFadeSlide(index + 1),
                     level = tag.name,
-                    description = stringResource(Res.string.word_count_label, tag.wordCount.toInt()),
+                    description = null,
                     count = tag.wordCount.toInt(),
                     color = AppColors.adept,
                     icon = Icons.Rounded.Label,

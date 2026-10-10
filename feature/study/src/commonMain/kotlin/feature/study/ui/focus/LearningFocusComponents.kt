@@ -157,7 +157,7 @@ fun FocusNudgeCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.dimensions.cardCornerRadius))
+            .clip(RoundedCornerShape(Theme.shapes.large))
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(start = Theme.spacing.cardPadding, top = Theme.spacing.xxs, bottom = Theme.spacing.xxs),
         verticalAlignment = Alignment.CenterVertically,
@@ -185,15 +185,15 @@ fun FocusIntroCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.dimensions.cardCornerRadius))
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus))
             .padding(start = Theme.spacing.cardPadding, top = Theme.spacing.xs, bottom = Theme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = stringResource(Res.string.focus_intro_message, languageCount),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
         TextButton(onClick = onGotIt) { Text(stringResource(Res.string.focus_intro_got_it)) }

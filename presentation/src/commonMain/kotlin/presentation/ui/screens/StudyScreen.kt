@@ -1,6 +1,11 @@
 package presentation.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -21,8 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import components.ErrorScreen
-import core.getPlatformName
 import components.LoadingScreen
+import components.SectionHeader
 import components.scaffold.ActionIconConfig
 import components.scaffold.LexiconColumn
 import components.sheet.SheetBadge
@@ -31,20 +36,21 @@ import components.sheet.SheetOptionRow
 import components.sheet.SheetPage
 import components.sheet.SheetSwitchRow
 import core.common.UiState
+import core.getPlatformName
+import domain.focus.model.LearningFocus
 import domain.tag.model.Tag
-import domain.word.model.LearningStage
+import domain.word.model.ProgressTier
 import domain.word.model.ReviewSource
 import events.OnEvents
 import feature.study.ReviewEffect
 import feature.study.ReviewState
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
-import domain.focus.model.LearningFocus
-import feature.study.ui.focus.FocusNudgeCard
-import feature.study.ui.focus.LanguageSwitcherSheetContent
+import feature.study.listening.ListeningViewModel
 import feature.study.ui.focus.FocusIntroCard
 import feature.study.ui.focus.FocusLanguageIcon
-import feature.study.listening.ListeningViewModel
+import feature.study.ui.focus.FocusNudgeCard
+import feature.study.ui.focus.LanguageSwitcherSheetContent
 import feature.study.ui.listening.ListeningCard
 import feature.study.ui.listening.ListeningScreen
 import feature.study.ui.review.ReviewScreen
@@ -57,13 +63,22 @@ import feature.study.ui.wordrush.WordRushGameScreen
 import feature.study.wordrush.WordRushEffect
 import feature.study.wordrush.WordRushViewModel
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.filter_tag
 import lexicon.resources.generated.resources.focus_all_languages
 import lexicon.resources.generated.resources.focus_current
-import lexicon.resources.generated.resources.filter_tag
 import lexicon.resources.generated.resources.import_words
+import lexicon.resources.generated.resources.no_connection
+import lexicon.resources.generated.resources.offline_changes_will_sync
+import lexicon.resources.generated.resources.retry
+import lexicon.resources.generated.resources.review_all_due
+import lexicon.resources.generated.resources.review_all_in_stage
 import lexicon.resources.generated.resources.settings
 import lexicon.resources.generated.resources.skip_tag_selector_label
 import lexicon.resources.generated.resources.start_review
+import lexicon.resources.generated.resources.study_error_title
+import lexicon.resources.generated.resources.study_load_failed
+import lexicon.resources.generated.resources.study_loading
+import lexicon.resources.generated.resources.study_practice
 import lexicon.resources.generated.resources.word_count_label
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -86,6 +101,13 @@ private val LockedSheetProperties = BottomSheetProperties(
     showDragHandle = false,
 )
 
+private val DismissableSheetProperties = BottomSheetProperties(
+    dismissOnBackPress = true,
+    dismissOnTouchOutside = true,
+)
+
+private val NetworkErrorHints = listOf("timeout", "connect", "network", "internet")
+
 @Composable
 fun StudyScreen(
     onNavigateToSettings: () -> Unit,
@@ -99,21 +121,20 @@ fun StudyScreen(
 
     val progressState by progressViewModel.state()
     val uiState = progressState.progress
-    val dueTags = progressState.dueTags
     val skipTagSelector = progressState.skipTagSelector
-    val stageTagsMap = progressState.stageTagsMap
 
+    // WasmJs has no on-device TTS engine, so listening mode is mobile-only.
     val isListeningSupported = remember { getPlatformName() != "Web" }
 
     val scrollState = rememberScrollState()
     var statsSectionBottom by remember { mutableIntStateOf(0) }
-    val isStatsSectionScrolledAway = remember(scrollState.value, statsSectionBottom) {
-        scrollState.value > statsSectionBottom && statsSectionBottom > 0
+    val isStatsSectionScrolledAway by remember {
+        derivedStateOf { statsSectionBottom > 0 && scrollState.value > statsSectionBottom }
     }
 
-    val progressStats = (uiState as? UiState.Loaded)?.value?.progressStats
+    val loadedProgress = (uiState as? UiState.Loaded)?.value
 
-    // Single entry point for all review flows — eliminates 5+ repetitive call sites.
+    // Single entry point for all review flows.
     val openReviewScreen: (ReviewSource) -> Unit = { source ->
         reviewViewModel.startSession(source)
         overlayHost.showFullScreen(
@@ -148,6 +169,40 @@ fun StudyScreen(
         }
     }
 
+    /**
+     * Opens the review directly, or — when [tags] narrow it further and the user hasn't opted
+     * out — asks first whether to review everything or a single tag.
+     */
+    val reviewWithOptionalTagChoice: (ReviewChoice) -> Unit = { choice ->
+        if (choice.tags.isEmpty() || skipTagSelector) {
+            openReviewScreen(choice.allSource)
+        } else {
+            overlayHost.showSizeToFitBottomSheet(
+                tag = "review-selector-${choice.allSource}",
+                properties = DismissableSheetProperties,
+            ) { nav ->
+                val sheetProgressState by progressViewModel.state()
+                ReviewSelectorSheetContent(
+                    title = choice.title(),
+                    allLabel = choice.allLabel(),
+                    allCount = choice.allCount,
+                    tags = choice.tags,
+                    skipTagSelector = sheetProgressState.skipTagSelector,
+                    onSkipTagSelectorChanged = progressViewModel::setSkipTagSelector,
+                    onAllSelected = {
+                        nav.dismiss()
+                        openReviewScreen(choice.allSource)
+                    },
+                    onTagSelected = { tag ->
+                        nav.dismiss()
+                        openReviewScreen(choice.tagSource(tag))
+                    },
+                    onClose = { nav.dismiss() },
+                )
+            }
+        }
+    }
+
     val openListening: () -> Unit = {
         listeningViewModel.open()
         overlayHost.showFullScreen(
@@ -161,6 +216,37 @@ fun StudyScreen(
                 viewModel = listeningViewModel,
                 onDismiss = {
                     listeningViewModel.abandon()
+                    navigator.dismiss()
+                },
+            )
+        }
+    }
+
+    val openWordRush: () -> Unit = {
+        wordRushViewModel.startGame()
+        overlayHost.showFullScreen(
+            tag = "word-rush",
+            properties = FullScreenProperties(
+                dismissOnBackPress = false,
+                isNavigationBarsPaddingEnabled = true,
+            ),
+        ) { navigator ->
+            // No `by` — stateHolder is passed directly to WordRushGameScreen,
+            // which uses derivedStateOf internally. This overlay composable
+            // itself does not recompose on every 50 ms timer tick.
+            val gameStateHolder = wordRushViewModel.state()
+            OnEvents(wordRushViewModel.effects) { effect ->
+                when (effect) {
+                    WordRushEffect.GameComplete -> progressViewModel.refreshStats()
+                }
+            }
+            WordRushGameScreen(
+                stateHolder = gameStateHolder,
+                onSelectAnswer = wordRushViewModel::selectAnswer,
+                onUsePowerUp = wordRushViewModel::usePowerUp,
+                onPlayAgain = wordRushViewModel::startGame,
+                onDismiss = {
+                    wordRushViewModel.dismiss()
                     navigator.dismiss()
                 },
             )
@@ -190,10 +276,7 @@ fun StudyScreen(
     val openFocusSwitcher: () -> Unit = {
         overlayHost.showSizeToFitBottomSheet(
             tag = "focus-switcher",
-            properties = BottomSheetProperties(
-                dismissOnBackPress = true,
-                dismissOnTouchOutside = true,
-            ),
+            properties = DismissableSheetProperties,
         ) { nav ->
             val sheetProgressState by progressViewModel.state()
             LanguageSwitcherSheetContent(
@@ -212,8 +295,9 @@ fun StudyScreen(
         scrollState = scrollState,
         collapsedContent = {
             CollapsedStatsBar(
-                visible = isStatsSectionScrolledAway && progressStats != null,
-                stats = progressStats ?: return@LexiconColumn,
+                visible = isStatsSectionScrolledAway && loadedProgress != null,
+                stats = loadedProgress?.progressStats ?: return@LexiconColumn,
+                evaluation = loadedProgress.progressEvaluation,
             )
         },
         actionIcon1 = ActionIconConfig(
@@ -249,34 +333,29 @@ fun StudyScreen(
     ) {
         Column(Modifier.padding(bottom = Theme.spacing.sectionGap)) {
             when (uiState) {
-                is UiState.Loading -> {
-                    LoadingScreen(message = "Preparing your study session...")
-                }
+                is UiState.Loading -> LoadingScreen(message = stringResource(Res.string.study_loading))
 
                 is UiState.Error -> {
-                    val errorMessage = uiState.message
-                    val isNetworkError = errorMessage.contains("timeout", ignoreCase = true) ||
-                        errorMessage.contains("connect", ignoreCase = true) ||
-                        errorMessage.contains("network", ignoreCase = true) ||
-                        errorMessage.contains("internet", ignoreCase = true)
-
+                    val isNetworkError = NetworkErrorHints.any { uiState.message.contains(it, ignoreCase = true) }
                     ErrorScreen(
-                        message = if (isNetworkError) {
-                            "You're offline -- changes will sync when reconnected."
-                        } else {
-                            errorMessage.ifEmpty { "Something went wrong loading your progress." }
+                        message = when {
+                            isNetworkError -> stringResource(Res.string.offline_changes_will_sync)
+                            uiState.message.isNotEmpty() -> uiState.message
+                            else -> stringResource(Res.string.study_load_failed)
                         },
-                        title = if (isNetworkError) "No Connection" else "Oops!",
+                        title = stringResource(
+                            if (isNetworkError) Res.string.no_connection else Res.string.study_error_title
+                        ),
                         icon = if (isNetworkError) Icons.Default.WifiOff else null,
-                        retryLabel = "Try Again",
-                        onRetry = { progressViewModel.refreshStats() },
+                        retryLabel = stringResource(Res.string.retry),
+                        onRetry = progressViewModel::refreshStats,
                     )
                 }
 
                 is UiState.Loaded -> {
-                    val loadedState = uiState.value
-                    val loadedStats = loadedState.progressStats
-                    val evaluation = loadedState.progressEvaluation
+                    val stats = uiState.value.progressStats
+                    val evaluation = uiState.value.progressEvaluation
+                    val hasWords = evaluation.tier != ProgressTier.EMPTY
 
                     if (progressState.showFocusSwitcher && progressState.showIntro) {
                         FocusIntroCard(
@@ -288,44 +367,23 @@ fun StudyScreen(
 
                     StatsSection(
                         modifier = Modifier.onGloballyPositioned { coordinates ->
-                            statsSectionBottom =
-                                (coordinates.positionInParent().y + coordinates.size.height).toInt()
+                            statsSectionBottom = (coordinates.positionInParent().y + coordinates.size.height).toInt()
                         },
                         evaluation = evaluation,
-                        dueCards = loadedStats.dueCards,
+                        dueCards = stats.dueCards,
                         onImportWords = openImportSheet,
                         onStartReviewLongPress = { openReviewScreen(ReviewSource.DueCards) },
                         onStartReview = {
-                            if (dueTags.isNotEmpty() && !skipTagSelector) {
-                                overlayHost.showSizeToFitBottomSheet(
-                                    tag = "review-selector",
-                                    properties = BottomSheetProperties(
-                                        dismissOnBackPress = true,
-                                        dismissOnTouchOutside = true,
-                                    ),
-                                ) { nav ->
-                                    val sheetProgressState by progressViewModel.state()
-                                    ReviewSelectorSheetContent(
-                                        title = stringResource(Res.string.start_review),
-                                        allLabel = "All due words",
-                                        allCount = loadedStats.dueCards,
-                                        tags = dueTags,
-                                        skipTagSelector = sheetProgressState.skipTagSelector,
-                                        onSkipTagSelectorChanged = { progressViewModel.setSkipTagSelector(it) },
-                                        onAllSelected = {
-                                            nav.dismiss()
-                                            openReviewScreen(ReviewSource.DueCards)
-                                        },
-                                        onTagSelected = { tag ->
-                                            nav.dismiss()
-                                            openReviewScreen(ReviewSource.ByTag(tag.id))
-                                        },
-                                        onClose = { nav.dismiss() },
-                                    )
-                                }
-                            } else {
-                                openReviewScreen(ReviewSource.DueCards)
-                            }
+                            reviewWithOptionalTagChoice(
+                                ReviewChoice(
+                                    title = { stringResource(Res.string.start_review) },
+                                    allLabel = { stringResource(Res.string.review_all_due) },
+                                    allCount = stats.dueCards,
+                                    tags = progressState.dueTags,
+                                    allSource = ReviewSource.DueCards,
+                                    tagSource = { tag -> ReviewSource.ByTag(tag.id) },
+                                )
+                            )
                         },
                     )
 
@@ -338,121 +396,95 @@ fun StudyScreen(
                         )
                     }
 
-                    val wordRushStateHolder = wordRushViewModel.state()
-                    val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }
-                    val wordRushHasEnoughWords by remember {
-                        derivedStateOf { wordRushStateHolder.value.hasEnoughWords }
-                    }
-                    WordRushCard(
-                        bestStreak = wordRushBestStreak,
-                        hasEnoughWords = wordRushHasEnoughWords,
-                        onPlay = {
-                            wordRushViewModel.startGame()
-                            overlayHost.showFullScreen(
-                                tag = "word-rush",
-                                properties = FullScreenProperties(
-                                    dismissOnBackPress = false,
-                                    isNavigationBarsPaddingEnabled = true,
-                                ),
-                            ) { navigator ->
-                                // No `by` — stateHolder is passed directly to WordRushGameScreen,
-                                // which uses derivedStateOf internally. This overlay composable
-                                // itself does not recompose on every 50 ms timer tick.
-                                val gameStateHolder = wordRushViewModel.state()
-                                OnEvents(wordRushViewModel.effects) { effect ->
-                                    when (effect) {
-                                        WordRushEffect.GameComplete -> {
-                                            progressViewModel.refreshStats()
-                                        }
-                                    }
-                                }
-                                WordRushGameScreen(
-                                    stateHolder = gameStateHolder,
-                                    onSelectAnswer = wordRushViewModel::selectAnswer,
-                                    onUsePowerUp = wordRushViewModel::usePowerUp,
-                                    onPlayAgain = wordRushViewModel::startGame,
-                                    onDismiss = {
-                                        wordRushViewModel.dismiss()
-                                        navigator.dismiss()
-                                    },
-                                )
-                            }
-                        },
-                        modifier = Modifier.padding(top = Theme.spacing.md),
-                    )
-
-                    // WasmJs has no on-device TTS engine, so listening mode is mobile-only.
-                    if (isListeningSupported) {
-                        val listeningStateHolder = listeningViewModel.state()
-                        val listeningHasWords by remember {
-                            derivedStateOf { listeningStateHolder.value.hasWords }
-                        }
-                        ListeningCard(
-                            hasWords = listeningHasWords,
+                    // A brand-new library has nothing to practise or sort into stages; the hero's
+                    // import button is the only useful action, so keep the screen focused on it.
+                    if (hasWords) {
+                        PracticeSection(
+                            wordRushViewModel = wordRushViewModel,
+                            listeningViewModel = listeningViewModel.takeIf { isListeningSupported },
+                            onPlayWordRush = openWordRush,
                             onListen = openListening,
-                            modifier = Modifier.padding(top = Theme.spacing.md),
+                        )
+
+                        LearningStagesSection(
+                            stats = stats,
+                            onStageLongClick = { stage, _ -> openReviewScreen(ReviewSource.ByStage(stage)) },
+                            onStageClick = { stage, stageName ->
+                                reviewWithOptionalTagChoice(
+                                    ReviewChoice(
+                                        title = { stageName },
+                                        allLabel = { stringResource(Res.string.review_all_in_stage, stageName) },
+                                        allCount = stats.countFor(stage),
+                                        tags = progressState.stageTagsMap[stage.ordinal].orEmpty(),
+                                        allSource = ReviewSource.ByStage(stage),
+                                        tagSource = { tag -> ReviewSource.ByStageAndTag(stage, tag.id) },
+                                    )
+                                )
+                            },
+                        )
+
+                        TagsSection(
+                            tags = progressState.tags,
+                            onTagClick = { tag -> openReviewScreen(ReviewSource.ByTag(tag.id)) },
                         )
                     }
-
-                    LearningStagesSection(
-                        stats = loadedStats,
-                        onStageLongClick = { stage, _ ->
-                            openReviewScreen(ReviewSource.ByStage(stage))
-                        },
-                        onStageClick = { stage, stageName ->
-                            val stageTags = stageTagsMap[stage.ordinal].orEmpty()
-                            if (stageTags.isNotEmpty() && !skipTagSelector) {
-                                val stageCount = when (stage) {
-                                    LearningStage.LEVEL_0_FRESH -> loadedStats.level0Count
-                                    LearningStage.LEVEL_1_LEARNING -> loadedStats.level1Count
-                                    LearningStage.LEVEL_2_FAMILIAR -> loadedStats.level2Count
-                                    LearningStage.LEVEL_3_BUILDING -> loadedStats.level3Count
-                                    LearningStage.LEVEL_4_ALMOST -> loadedStats.level4Count
-                                    LearningStage.LEVEL_5_STRONG -> loadedStats.level5Count
-                                    LearningStage.LEVEL_6_MASTERED -> loadedStats.level6Count
-                                }
-                                overlayHost.showSizeToFitBottomSheet(
-                                    tag = "stage-selector-${stage}",
-                                    properties = BottomSheetProperties(
-                                        dismissOnBackPress = true,
-                                        dismissOnTouchOutside = true,
-                                    ),
-                                ) { nav ->
-                                    val sheetProgressState by progressViewModel.state()
-                                    ReviewSelectorSheetContent(
-                                        title = stageName,
-                                        allLabel = "All $stageName",
-                                        allCount = stageCount,
-                                        tags = stageTags,
-                                        skipTagSelector = sheetProgressState.skipTagSelector,
-                                        onSkipTagSelectorChanged = { progressViewModel.setSkipTagSelector(it) },
-                                        onAllSelected = {
-                                            nav.dismiss()
-                                            openReviewScreen(ReviewSource.ByStage(stage))
-                                        },
-                                        onTagSelected = { tag ->
-                                            nav.dismiss()
-                                            openReviewScreen(ReviewSource.ByStageAndTag(stage, tag.id))
-                                        },
-                                        onClose = { nav.dismiss() },
-                                    )
-                                }
-                            } else {
-                                openReviewScreen(ReviewSource.ByStage(stage))
-                            }
-                        },
-                    )
-
-                    TagsSection(
-                        tags = progressState.tags,
-                        onTagClick = { tag -> openReviewScreen(ReviewSource.ByTag(tag.id)) },
-                    )
                 }
             }
         }
     }
 }
 
+/** What a tap on "Start Review" or a stage card can review: everything, or one of [tags]. */
+private class ReviewChoice(
+    val title: @Composable () -> String,
+    val allLabel: @Composable () -> String,
+    val allCount: Int,
+    val tags: List<Tag>,
+    val allSource: ReviewSource,
+    val tagSource: (Tag) -> ReviewSource,
+)
+
+/** Word Rush and Listening side by side, equal height. Listening is null where TTS is unavailable. */
+@Composable
+private fun PracticeSection(
+    wordRushViewModel: WordRushViewModel,
+    listeningViewModel: ListeningViewModel?,
+    onPlayWordRush: () -> Unit,
+    onListen: () -> Unit,
+) {
+    val wordRushStateHolder = wordRushViewModel.state()
+    val wordRushBestStreak by remember { derivedStateOf { wordRushStateHolder.value.bestStreak } }
+    val wordRushHasEnoughWords by remember { derivedStateOf { wordRushStateHolder.value.hasEnoughWords } }
+
+    Column(
+        modifier = Modifier.padding(top = Theme.spacing.sectionGap),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.sectionHeaderGap),
+    ) {
+        SectionHeader(title = stringResource(Res.string.study_practice))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.listGap),
+        ) {
+            WordRushCard(
+                bestStreak = wordRushBestStreak,
+                hasEnoughWords = wordRushHasEnoughWords,
+                onPlay = onPlayWordRush,
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            )
+            if (listeningViewModel != null) {
+                val listeningStateHolder = listeningViewModel.state()
+                val listeningHasWords by remember { derivedStateOf { listeningStateHolder.value.hasWords } }
+                ListeningCard(
+                    hasWords = listeningHasWords,
+                    onListen = onListen,
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun ReviewSelectorSheetContent(

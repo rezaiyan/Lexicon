@@ -16,5 +16,15 @@ data class ProgressStats(
 ) {
     val learningWords: Int get() = level1Count + level2Count
     val matureWords: Int get() = level5Count + level6Count
+
+    fun countFor(stage: LearningStage): Int = when (stage) {
+        LearningStage.LEVEL_0_FRESH -> level0Count
+        LearningStage.LEVEL_1_LEARNING -> level1Count
+        LearningStage.LEVEL_2_FAMILIAR -> level2Count
+        LearningStage.LEVEL_3_BUILDING -> level3Count
+        LearningStage.LEVEL_4_ALMOST -> level4Count
+        LearningStage.LEVEL_5_STRONG -> level5Count
+        LearningStage.LEVEL_6_MASTERED -> level6Count
+    }
 }
 

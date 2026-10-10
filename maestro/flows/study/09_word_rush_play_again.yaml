@@ -14,7 +14,7 @@ tags:
 - runFlow: ../utils/navigate_to_study.yaml
 
 # Start the game.
-- tapOn: "Play"
+- tapOn: "Word Rush"
 
 # Wait for game to load.
 - extendedWaitUntil:

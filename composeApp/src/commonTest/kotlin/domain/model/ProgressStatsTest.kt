@@ -341,6 +341,25 @@ class ProgressStatsTest {
     }
     
     @Test
+    fun `countFor returns the count of each stage`() {
+        val stats = ProgressStats(
+            level0Count = 1,
+            level1Count = 2,
+            level2Count = 3,
+            level3Count = 4,
+            level4Count = 5,
+            level5Count = 6,
+            level6Count = 7,
+            totalWords = 28
+        )
+
+        assertEquals(
+            listOf(1, 2, 3, 4, 5, 6, 7),
+            LearningStage.entries.map(stats::countFor)
+        )
+    }
+
+    @Test
     fun `stats with negative values should work`() {
         // Given: Stats with negative values (edge case)
         val stats = ProgressStats(
