@@ -231,11 +231,14 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return
         }
 
-        // Silent signal ("subscription changed, refetch"): do the work, display nothing
-        if userInfo["type"] as? String == "subscription_updated" {
-            print(" Silent push: subscription_updated - refreshing subscription")
-            MainViewControllerKt.handleSilentPush(type: "subscription_updated") {
-                print(" Silent push: subscription refresh finished")
+        // Silent signals ("subscription changed, refetch"; "today's insight, cache it"): do the
+        // work, display nothing. A visible daily_insight carries an aps alert and is shown below.
+        let pushType = userInfo["type"] as? String
+        let hasAlert = (userInfo["aps"] as? [AnyHashable: Any])?["alert"] != nil
+        if let pushType = pushType, !hasAlert, Self.silentPushTypes.contains(pushType) {
+            print(" Silent push: \(pushType)")
+            MainViewControllerKt.handleSilentPush(type: pushType, data: Self.stringData(userInfo)) {
+                print(" Silent push: \(pushType) handled")
                 completionHandler(.newData)
             }
             return
@@ -295,6 +298,18 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         completionHandler(.newData)
     }
     
+    /** Data-only push types handled in the background without showing anything. */
+    private static let silentPushTypes: Set<String> = ["subscription_updated", "daily_insight"]
+
+    /** The push's custom string data (FCM data keys), without the aps dictionary. */
+    private static func stringData(_ userInfo: [AnyHashable: Any]) -> [String: String] {
+        var data: [String: String] = [:]
+        for (key, value) in userInfo {
+            if let key = key as? String, let value = value as? String { data[key] = value }
+        }
+        return data
+    }
+
     // Handle URL callbacks (for Google Sign-In)
     func application(
         _ app: UIApplication,

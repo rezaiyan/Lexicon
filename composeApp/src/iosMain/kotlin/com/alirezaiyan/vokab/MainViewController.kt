@@ -118,10 +118,11 @@ fun notifyNotificationTapped(notificationLogId: String?, type: String?, deepLink
 }
 
 /**
- * Called from Swift for a silent (content-available) push. [onComplete] runs once the work is
- * done, so Swift can call the background fetch completion handler only then.
+ * Called from Swift for a silent (content-available) push with its string data (e.g. the
+ * insight text under "body"). [onComplete] runs once the work is done, so Swift can call the
+ * background fetch completion handler only then.
  */
-fun handleSilentPush(type: String?, onComplete: () -> Unit) {
+fun handleSilentPush(type: String?, data: Map<String, String>, onComplete: () -> Unit) {
     startKoinIfNeeded()
     val registry = koinInstance?.get<NotificationPayloadHandlerRegistry>()
     if (registry == null) {
@@ -129,7 +130,7 @@ fun handleSilentPush(type: String?, onComplete: () -> Unit) {
         return
     }
     MainScope().launch {
-        registry.handleAndAwait(type, emptyMap())
+        registry.handleAndAwait(type, data)
         onComplete()
     }
 }
