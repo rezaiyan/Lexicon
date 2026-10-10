@@ -32,6 +32,7 @@ import components.EmptyScreen
 import components.ErrorScreen
 import components.LoadingScreen
 import domain.listening.model.ListeningOrder
+import domain.listening.model.ListeningSource
 import feature.study.listening.ListeningScreenState
 import feature.study.listening.ListeningState
 import feature.study.listening.ListeningViewModel
@@ -54,7 +55,6 @@ import theme.Theme
 @Composable
 fun ListeningScreen(
     viewModel: ListeningViewModel,
-    onRestart: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val state by viewModel.state()
@@ -70,7 +70,11 @@ fun ListeningScreen(
             onSpeedSelected = viewModel::setSpeechRate,
             onDownloadVoices = viewModel::downloadMissingVoices,
             onStartWithoutVoices = viewModel::startWithoutMissingVoices,
-            onRestart = onRestart,
+            onSourceSelected = viewModel::selectSource,
+            onLimitSelected = viewModel::setWordLimit,
+            onShuffleChanged = viewModel::setShuffle,
+            onStart = viewModel::start,
+            onChangeWords = viewModel::open,
             onDismiss = onDismiss,
         ),
     )
@@ -88,7 +92,13 @@ class ListeningActions(
     val onSpeedSelected: (Float) -> Unit,
     val onDownloadVoices: () -> Unit,
     val onStartWithoutVoices: () -> Unit,
-    val onRestart: () -> Unit,
+    val onSourceSelected: (ListeningSource) -> Unit,
+    val onLimitSelected: (Int) -> Unit,
+    val onShuffleChanged: (Boolean) -> Unit,
+    /** Plays the current selection: setup's start button, "Listen again" and retry. */
+    val onStart: () -> Unit,
+    /** Back to setup to pick other words. */
+    val onChangeWords: () -> Unit,
     val onDismiss: () -> Unit,
 )
 
@@ -118,12 +128,13 @@ fun ListeningContent(state: ListeningState, actions: ListeningActions) {
                 ListeningScreenState.Idle, ListeningScreenState.Loading ->
                     LoadingScreen(message = stringResource(Res.string.listening_loading))
 
-                ListeningScreenState.Empty -> EmptyScreen(
-                    title = stringResource(Res.string.listening_empty_title),
-                    subtitle = stringResource(Res.string.listening_empty_subtitle),
-                    actionLabel = stringResource(Res.string.listening_done),
-                    onAction = actions.onDismiss,
-                )
+                ListeningScreenState.Setup -> if (state.hasWords) {
+                    SetupContent(state, actions)
+                } else {
+                    ListeningEmpty(actions)
+                }
+
+                ListeningScreenState.Empty -> ListeningEmpty(actions)
 
                 ListeningScreenState.NoVoices -> EmptyScreen(
                     title = stringResource(Res.string.listening_no_voices_title),
@@ -143,7 +154,7 @@ fun ListeningContent(state: ListeningState, actions: ListeningActions) {
                     message = screen.message,
                     title = stringResource(Res.string.listening_error_title),
                     retryLabel = stringResource(Res.string.listening_retry),
-                    onRetry = actions.onRestart,
+                    onRetry = actions.onStart,
                 )
 
                 is ListeningScreenState.NeedsVoices -> VoicesContent(screen, actions)
@@ -158,6 +169,16 @@ fun ListeningContent(state: ListeningState, actions: ListeningActions) {
             }
         }
     }
+}
+
+@Composable
+private fun ListeningEmpty(actions: ListeningActions) {
+    EmptyScreen(
+        title = stringResource(Res.string.listening_empty_title),
+        subtitle = stringResource(Res.string.listening_empty_subtitle),
+        actionLabel = stringResource(Res.string.listening_done),
+        onAction = actions.onDismiss,
+    )
 }
 
 @Composable

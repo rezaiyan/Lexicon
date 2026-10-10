@@ -1,0 +1,5 @@
+-- Migration from version 18 to version 19
+-- Listening mode: remember which words to play (source, how many, shuffled).
+ALTER TABLE ListeningSettingsEntity ADD COLUMN sourceKey TEXT NOT NULL DEFAULT 'DUE';
+ALTER TABLE ListeningSettingsEntity ADD COLUMN wordLimit INTEGER NOT NULL DEFAULT 20;
+ALTER TABLE ListeningSettingsEntity ADD COLUMN shuffle INTEGER NOT NULL DEFAULT 0;

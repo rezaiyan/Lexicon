@@ -1,7 +1,5 @@
 package domain.listening.model
 
-import domain.word.model.Word
-
 enum class VoiceStatus { READY, MISSING, UNSUPPORTED }
 
 data class LanguageVoice(val languageCode: String, val status: VoiceStatus)
@@ -18,6 +16,3 @@ data class ListeningVoiceCheck(val voices: List<LanguageVoice>) {
         voices = voices.map { if (it.languageCode == languageCode) it.copy(status = VoiceStatus.READY) else it }
     )
 }
-
-/** A listening queue; [isRecentFallback] is true when nothing was due and recent words were used instead. */
-data class ListeningQueue(val words: List<Word>, val isRecentFallback: Boolean)

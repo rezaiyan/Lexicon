@@ -72,7 +72,6 @@ import lexicon.resources.generated.resources.listening_phase_paused
 import lexicon.resources.generated.resources.listening_phase_recall
 import lexicon.resources.generated.resources.listening_play
 import lexicon.resources.generated.resources.listening_previous
-import lexicon.resources.generated.resources.listening_recent_fallback
 import lexicon.resources.generated.resources.listening_round
 import lexicon.resources.generated.resources.listening_seconds
 import lexicon.resources.generated.resources.listening_setting_order
@@ -114,18 +113,6 @@ internal fun PlayerContent(
             height = PROGRESS_HEIGHT,
             modifier = Modifier.padding(top = Theme.spacing.xs),
         )
-        if (active.isRecentFallback) {
-            Text(
-                text = stringResource(Res.string.listening_recent_fallback),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Theme.spacing.sm),
-            )
-        }
-
         Spacer(Modifier.height(Theme.spacing.md))
         WordCard(
             active = active,
@@ -375,7 +362,7 @@ private fun TransportControls(isPlaying: Boolean, actions: ListeningActions) {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun ListeningSettingsPanel(
+internal fun ListeningSettingsPanel(
     settings: ListeningSettings,
     speechRate: Float,
     actions: ListeningActions,
@@ -454,7 +441,7 @@ private fun SettingRow(label: String, chips: @Composable () -> Unit) {
 
 /** Brand-tinted chip: the default FilterChip selection colour is the green secondary. */
 @Composable
-private fun OptionChip(text: String, selected: Boolean, onClick: () -> Unit) {
+internal fun OptionChip(text: String, selected: Boolean, onClick: () -> Unit) {
     val primary = MaterialTheme.colorScheme.primary
     FilterChip(
         selected = selected,

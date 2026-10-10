@@ -6,7 +6,7 @@ import data.listening.ListeningSettingsRepositoryImpl
 import domain.listening.repository.IListeningSettingsRepository
 import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
-import domain.listening.usecase.ObserveHasListeningWordsUseCase
+import domain.listening.usecase.ObserveListeningOptionsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import org.koin.core.module.dsl.factoryOf
@@ -19,8 +19,8 @@ fun listeningModule() = module {
     single { ListeningSettingsRepositoryImpl(localDataSource = get()) } bind IListeningSettingsRepository::class
 
     factoryOf(::ObserveListeningSettingsUseCase)
-    factoryOf(::ObserveHasListeningWordsUseCase)
+    factoryOf(::ObserveListeningOptionsUseCase)
     factoryOf(::SaveListeningSettingsUseCase)
-    factoryOf(::BuildListeningQueueUseCase)
+    factory { BuildListeningQueueUseCase(wordRepository = get(), observeLearningFocus = get()) }
     factoryOf(::CheckListeningVoicesUseCase)
 }
