@@ -81,7 +81,7 @@ class ListeningUseCasesTest {
     }
 
     @Test
-    fun `options count due, all, each level and each tag within the focus`() = runTest {
+    fun `options count due and all words plus each level and tag within the focus`() = runTest {
         val repo = FakeWordRepository().apply {
             storedWords = mutableListOf(
                 word(1, level = 0, tagIds = listOf(10L)),
@@ -127,7 +127,7 @@ class ListeningUseCasesTest {
     // --- BuildListeningQueueUseCase ---
 
     @Test
-    fun `due source plays due words in the focus, capped at the limit`() = runTest {
+    fun `due source plays due words in the focus capped at the limit`() = runTest {
         val repo = FakeWordRepository().apply {
             dueWords = (1..30).map { word(it) } + word(99, target = Language.SPANISH)
         }
@@ -217,7 +217,7 @@ class ListeningUseCasesTest {
     }
 
     @Test
-    fun `session size is the limit or what is available, whichever is smaller`() {
+    fun `session size is the smaller of the limit and what is available`() {
         assertEquals(10, ListeningSelection(limit = 10).sessionSize(available = 40))
         assertEquals(4, ListeningSelection(limit = 10).sessionSize(available = 4))
         assertEquals(40, ListeningSelection(limit = ListeningSelection.LIMIT_ALL).sessionSize(available = 40))
