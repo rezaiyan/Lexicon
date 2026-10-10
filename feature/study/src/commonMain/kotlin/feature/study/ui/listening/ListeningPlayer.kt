@@ -185,11 +185,11 @@ private fun WordCard(
         ) {
             PhaseIndicator(step = session.step, isPlaying = active.isPlaying)
 
+            val motion = Theme.motion
             AnimatedContent(
                 targetState = session.index,
                 transitionSpec = {
                     val direction = if (targetState > initialState) 1 else -1
-                    val motion = Theme.motion
                     val enter = slideInHorizontally(tween(motion.durationLong, easing = motion.easingEmphasized)) {
                         it * direction / WORD_SLIDE_DIVISOR
                     } + fadeIn(tween(motion.durationMedium2, delayMillis = motion.durationXShort)) +

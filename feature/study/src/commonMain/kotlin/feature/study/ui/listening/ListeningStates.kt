@@ -1,5 +1,9 @@
 package feature.study.ui.listening
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,8 +29,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -64,6 +72,9 @@ private const val MS_PER_MINUTE = 60_000L
 private const val PERCENT = 100
 private val HERO_SIZE = 88.dp
 private val DOWNLOAD_PROGRESS_HEIGHT = 6.dp
+private val ENTRANCE_RISE = 16.dp
+private const val ENTRANCE_STAGGER_MS = 70
+private const val ENTRANCE_POP_START = 0.6f
 
 // ---------------------------------------------------------------------------
 // Pre-flight: voices
@@ -217,16 +228,20 @@ internal fun FinishedContent(finished: ListeningScreenState.Finished, actions: L
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            HeroIcon()
+            // Summary builds up piece by piece: hero pops, then title, stats and actions rise in.
+            HeroIcon(modifier = Modifier.entrance(order = 0, pop = true))
             Spacer(Modifier.height(Theme.spacing.lg))
             Text(
                 text = stringResource(Res.string.listening_finished_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
+                modifier = Modifier.entrance(order = 1),
             )
             Spacer(Modifier.height(Theme.spacing.lg))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .entrance(order = 2),
                 horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
             ) {
                 StatTile(
@@ -244,7 +259,8 @@ internal fun FinishedContent(finished: ListeningScreenState.Finished, actions: L
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = Theme.spacing.md),
+                .padding(vertical = Theme.spacing.md)
+                .entrance(order = 3),
             verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
         ) {
             SheetPrimaryButton(
@@ -296,9 +312,9 @@ private fun StatTile(value: String, label: String, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun HeroIcon() {
+private fun HeroIcon(modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(HERO_SIZE)
             .background(Theme.gradients.primaryWash, CircleShape)
             .background(MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus), CircleShape),
@@ -310,5 +326,37 @@ private fun HeroIcon() {
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(Theme.dimensions.iconSizeHuge),
         )
+    }
+}
+
+/**
+ * One-shot entrance: fades in and rises (or [pop]s with a soft overshoot), [order] steps after the
+ * screen appears, so a summary assembles itself instead of appearing all at once.
+ */
+@Composable
+private fun Modifier.entrance(order: Int, pop: Boolean = false): Modifier {
+    val motion = Theme.motion
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        progress.animateTo(
+            targetValue = 1f,
+            animationSpec = if (pop) {
+                spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+            } else {
+                tween(motion.durationLong, delayMillis = order * ENTRANCE_STAGGER_MS, easing = motion.easingEmphasized)
+            },
+        )
+    }
+    val rise = with(LocalDensity.current) { ENTRANCE_RISE.toPx() }
+    return graphicsLayer {
+        val value = progress.value
+        alpha = value.coerceIn(0f, 1f)
+        if (pop) {
+            val scale = ENTRANCE_POP_START + (1f - ENTRANCE_POP_START) * value
+            scaleX = scale
+            scaleY = scale
+        } else {
+            translationY = (1f - value) * rise
+        }
     }
 }

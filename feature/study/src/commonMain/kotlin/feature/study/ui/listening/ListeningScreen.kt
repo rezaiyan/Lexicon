@@ -277,7 +277,8 @@ private fun ListeningTopBar(
         }
         // Fixed slot keeps the title centred whether or not the settings button is shown.
         Box(modifier = Modifier.size(Theme.dimensions.touchTarget), contentAlignment = Alignment.Center) {
-            AnimatedVisibility(
+            // Qualified: the enclosing RowScope overload would otherwise be picked and rejected.
+            androidx.compose.animation.AnimatedVisibility(
                 visible = active != null,
                 enter = fadeIn() + scaleIn(initialScale = SETTINGS_ENTER_SCALE),
                 exit = fadeOut() + scaleOut(targetScale = SETTINGS_ENTER_SCALE),
