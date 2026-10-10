@@ -34,11 +34,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -76,7 +78,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import components.LottieMotionIcon
 import domain.wordrush.model.WordRushDirection
 import domain.wordrush.model.WordRushQuestion
@@ -276,27 +280,11 @@ internal fun PlayingContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .background(
-                        color = AppColors.primary.copy(alpha = 0.08f),
-                        shape = RoundedCornerShape(Theme.shapes.small),
-                    )
-                    .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xxs),
-            ) {
-                Text(
-                    text = animatedScore.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.primary,
-                )
-                Text(
-                    text = stringResource(Res.string.word_rush_score),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AppColors.primary.copy(alpha = 0.7f),
-                )
-            }
+            StatChip(
+                label = stringResource(Res.string.word_rush_score),
+                value = animatedScore.toString(),
+                color = AppColors.primary,
+            )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AnimatedVisibility(
@@ -376,7 +364,7 @@ internal fun PlayingContent(
             )
         }
 
-        Spacer(Modifier.height(Theme.spacing.lg))
+        Spacer(Modifier.height(Theme.spacing.md))
 
         val cardBorderColor by animateColorAsState(
             targetValue = when {
@@ -387,8 +375,13 @@ internal fun PlayingContent(
             animationSpec = tween(motion.durationShort2),
             label = "card-border",
         )
+        // The card absorbs whatever height the HUD and options leave, so the whole round
+        // always fits on screen; the prompt shrinks instead of pushing the options off.
         AnimatedContent(
             targetState = phase.questionIndex,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
             transitionSpec = {
                 if (targetState > initialState) {
                     (slideInHorizontally { it / 3 } + fadeIn(tween(250)))
@@ -403,7 +396,7 @@ internal fun PlayingContent(
             val scheme = MaterialTheme.colorScheme
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .border(
                         width = 1.5.dp,
                         color = cardBorderColor,
@@ -412,27 +405,24 @@ internal fun PlayingContent(
                 shape = RoundedCornerShape(Theme.shapes.large),
                 colors = CardDefaults.cardColors(containerColor = scheme.primaryContainer),
             ) {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = "${phase.questionIndex + 1} / ${phase.totalQuestions}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = scheme.onPrimaryContainer.copy(alpha = 0.5f),
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(Theme.spacing.sm),
-                    )
+                Box(modifier = Modifier.fillMaxSize()) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = Theme.spacing.xxl, horizontal = Theme.spacing.md),
+                            .fillMaxSize()
+                            .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(
+                            space = Theme.spacing.xs,
+                            alignment = Alignment.CenterVertically,
+                        ),
                     ) {
                         Text(
                             text = promptCaption(phase.question),
                             style = MaterialTheme.typography.labelLarge,
                             color = scheme.onPrimaryContainer.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             text = phase.question.prompt,
@@ -440,6 +430,17 @@ internal fun PlayingContent(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             color = scheme.onPrimaryContainer,
+                            maxLines = 3,
+                            autoSize = TextAutoSize.StepBased(
+                                minFontSize = 16.sp,
+                                maxFontSize = MaterialTheme.typography.headlineLarge.fontSize,
+                                stepSize = 2.sp,
+                            ),
+                            // Weighted so the word claims the card's remaining height and
+                            // auto-size fits it there, rather than being measured last and clipped.
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false),
                         )
                     }
                 }
@@ -700,7 +701,8 @@ private fun OptionsColumn(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.md),
+                        .heightIn(min = 48.dp)
+                        .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
@@ -725,6 +727,12 @@ private fun OptionsColumn(
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = optionFontWeight,
                         color = textColor,
+                        maxLines = 2,
+                        autoSize = TextAutoSize.StepBased(
+                            minFontSize = 12.sp,
+                            maxFontSize = MaterialTheme.typography.bodyLarge.fontSize,
+                            stepSize = 1.sp,
+                        ),
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -845,8 +853,25 @@ private fun ProgressDots(
     hasAnswered: Boolean,
     isCorrect: Boolean?,
 ) {
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        ProgressDotsRow(currentIndex, totalCount, hasAnswered, isCorrect)
+        Text(
+            text = "${currentIndex + 1} / $totalCount",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.CenterEnd),
+        )
+    }
+}
+
+@Composable
+private fun ProgressDotsRow(
+    currentIndex: Int,
+    totalCount: Int,
+    hasAnswered: Boolean,
+    isCorrect: Boolean?,
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -879,8 +904,10 @@ private fun ProgressDots(
 
 @Composable
 private fun StatChip(label: String, value: String, color: Color) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    // Single line (value + label side by side) keeps the HUD short so the question card gets the height.
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
         modifier = Modifier
             .background(
                 color = color.copy(alpha = 0.08f),
@@ -888,17 +915,15 @@ private fun StatChip(label: String, value: String, color: Color) {
             )
             .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xxs),
     ) {
-        if (value.isNotEmpty()) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = color,
-            )
-        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = color,
+        )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             color = color.copy(alpha = 0.7f),
         )
     }

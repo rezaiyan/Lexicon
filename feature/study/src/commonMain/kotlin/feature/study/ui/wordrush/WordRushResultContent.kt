@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.LottieMotionIcon
 import components.animation.ConfettiOverlay
@@ -119,50 +120,56 @@ internal fun ResultContent(
     val style = gradeStyleOf(phase.grade)
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Scrolls when the missed-words list is long; actions stay pinned below.
-            Column(
+        // Summary and actions always fit on one screen; only the missed-words list
+        // (unbounded length) takes the leftover height and scrolls inside its card.
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ResultGradeBadge(grade = phase.grade, style = style)
+                ResultReactionAnimation(tier = style.tier)
+            }
+            Spacer(Modifier.height(Theme.spacing.sm))
+            Text(
+                text = stringResource(
+                    if (phase.endedByLives) Res.string.word_rush_out_of_lives else Res.string.word_rush_game_over,
+                ),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = stringResource(style.messageRes),
+                style = MaterialTheme.typography.titleMedium,
+                color = style.color,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+            )
+            ResultNewBestBadge(isNewBest = phase.isNewBest)
+            Spacer(Modifier.height(Theme.spacing.md))
+            ResultStatsRow(phase = phase)
+            Spacer(Modifier.height(Theme.spacing.sm))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ResultLivesRow(livesRemaining = phase.livesRemaining)
+                ResultStreakRow(bestStreak = phase.bestStreak)
+            }
+            Spacer(Modifier.height(Theme.spacing.md))
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                Spacer(Modifier.height(Theme.spacing.md))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ResultGradeBadge(grade = phase.grade, style = style)
-                    ResultReactionAnimation(tier = style.tier)
-                }
-                Spacer(Modifier.height(Theme.spacing.md))
-                Text(
-                    text = stringResource(
-                        if (phase.endedByLives) Res.string.word_rush_out_of_lives else Res.string.word_rush_game_over,
-                    ),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.height(Theme.spacing.xs))
-                Text(
-                    text = stringResource(style.messageRes),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = style.color,
-                    fontWeight = FontWeight.Medium,
-                )
-                Spacer(Modifier.height(Theme.spacing.md))
-                ResultLivesRow(livesRemaining = phase.livesRemaining)
-                Spacer(Modifier.height(Theme.spacing.lg))
-                ResultStatsRow(phase = phase)
-                Spacer(Modifier.height(Theme.spacing.lg))
-                ResultStreakRow(bestStreak = phase.bestStreak)
-                ResultNewBestBadge(isNewBest = phase.isNewBest)
-                Spacer(Modifier.height(Theme.spacing.lg))
                 ResultMissedWords(
                     misses = phase.missedWords,
                     showPerfect = phase.missedWords.isEmpty() && phase.answeredCount > 0,
                 )
-                Spacer(Modifier.height(Theme.spacing.lg))
             }
-            Spacer(Modifier.height(Theme.spacing.sm))
+            Spacer(Modifier.height(Theme.spacing.md))
             ResultActions(onPlayAgain = onPlayAgain, onDismiss = onDismiss)
         }
 
@@ -179,13 +186,13 @@ private fun ResultGradeBadge(grade: WordRushGrade, style: GradeStyle) {
         }
         Box(
             modifier = Modifier
-                .size(96.dp)
+                .size(80.dp)
                 .background(color = style.color.copy(alpha = 0.15f), shape = CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = grade.code,
-                style = MaterialTheme.typography.displayMedium,
+                style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
                 color = style.color,
             )
@@ -207,7 +214,7 @@ private fun ExcellentGlowRing(color: Color) {
     )
     Box(
         modifier = Modifier
-            .size(116.dp)
+            .size(96.dp)
             .drawBehind {
                 drawArc(
                     brush = Brush.sweepGradient(
@@ -241,7 +248,7 @@ private fun ResultLivesRow(livesRemaining: Int) {
                 contentDescription = null,
                 tint = if (isAlive) AppColors.error else MaterialTheme.colorScheme.outlineVariant,
                 modifier = Modifier
-                    .size(24.dp)
+                    .size(20.dp)
                     .graphicsLayer { alpha = if (isAlive) 1f else 0.35f },
             )
             if (index < WordRushViewModel.INITIAL_LIVES - 1) Spacer(Modifier.width(4.dp))
@@ -298,7 +305,7 @@ private fun ResultStreakRow(bestStreak: Int) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        val fireCount = bestStreak.coerceAtMost(5)
+        val fireCount = bestStreak.coerceAtMost(3)
         if (fireCount > 0) {
             repeat(fireCount) {
                 Icon(
@@ -312,7 +319,7 @@ private fun ResultStreakRow(bestStreak: Int) {
         }
         Text(
             text = stringResource(Res.string.word_rush_best_streak_result, bestStreak),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -359,36 +366,38 @@ private fun ResultNewBestBadge(isNewBest: Boolean) {
 
 @Composable
 private fun ResultActions(onPlayAgain: () -> Unit, onDismiss: () -> Unit) {
-    Button(
-        onClick = onPlayAgain,
-        colors = ButtonDefaults.buttonColors(containerColor = AppColors.tertiary),
-        shape = RoundedCornerShape(Theme.shapes.pill),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.xl),
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
-        Text(
-            text = stringResource(Res.string.word_rush_play_again),
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = Theme.spacing.xs),
-        )
-    }
-    Spacer(Modifier.height(Theme.spacing.sm))
-    Button(
-        onClick = onDismiss,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
-        shape = RoundedCornerShape(Theme.shapes.pill),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.xl),
-    ) {
-        Text(
-            text = stringResource(Res.string.close),
-            modifier = Modifier.padding(vertical = Theme.spacing.xs),
-        )
+        Button(
+            onClick = onDismiss,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            shape = RoundedCornerShape(Theme.shapes.pill),
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(
+                text = stringResource(Res.string.close),
+                maxLines = 1,
+                modifier = Modifier.padding(vertical = Theme.spacing.xs),
+            )
+        }
+        Button(
+            onClick = onPlayAgain,
+            colors = ButtonDefaults.buttonColors(containerColor = AppColors.tertiary),
+            shape = RoundedCornerShape(Theme.shapes.pill),
+            modifier = Modifier.weight(1.5f),
+        ) {
+            Text(
+                text = stringResource(Res.string.word_rush_play_again),
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                modifier = Modifier.padding(vertical = Theme.spacing.xs),
+            )
+        }
     }
 }
 
@@ -402,12 +411,12 @@ private fun ResultReactionAnimation(tier: ResultTier) {
         ResultTier.Excellent -> Unit
         ResultTier.Average -> LottieMotionIcon(
             url = THUMBS_UP_LOTTIE_URL,
-            modifier = Modifier.size(72.dp),
+            modifier = Modifier.size(64.dp),
             iterations = 1,
         )
         ResultTier.Poor -> LottieMotionIcon(
             url = REJECT_WORST_RESULT_LOTTIE_URL,
-            modifier = Modifier.size(72.dp),
+            modifier = Modifier.size(64.dp),
             iterations = 1,
         )
     }
@@ -450,19 +459,29 @@ private fun ResultMissedWords(misses: List<WordRushMiss>, showPerfect: Boolean) 
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                 shape = RoundedCornerShape(Theme.shapes.large),
             )
-            .padding(Theme.spacing.md),
+            .padding(vertical = Theme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
         Text(
             text = stringResource(Res.string.word_rush_review_title),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = Theme.spacing.md),
         )
-        misses.forEachIndexed { index, miss ->
-            if (index > 0) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        // Header stays visible; only the rows scroll when they outgrow the space left.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = Theme.spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+        ) {
+            misses.forEachIndexed { index, miss ->
+                if (index > 0) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                }
+                MissedWordRow(miss)
             }
-            MissedWordRow(miss)
         }
     }
 }
