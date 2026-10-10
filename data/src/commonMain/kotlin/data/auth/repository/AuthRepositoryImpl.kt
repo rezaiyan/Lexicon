@@ -5,6 +5,7 @@ import auth.IGoogleAuthStateProvider
 import data.auth.mapper.toDomain
 import data.auth.remote.IAuthDataSource
 import data.auth.remote.IFeatureAccessRemoteDataSource
+import data.insights.local.IInsightsScreenLocalDataSource
 import domain.auth.session.ISessionManager
 import data.auth.token.ITokenManager
 import domain.auth.model.AuthUser
@@ -25,7 +26,8 @@ class AuthRepositoryImpl(
     private val featureAccessRemoteDataSource: IFeatureAccessRemoteDataSource,
     private val authDataSource: IAuthDataSource,
     private val googleAuthStateProvider: IGoogleAuthStateProvider,
-    private val appleAuthStateProvider: IAppleAuthStateProvider
+    private val appleAuthStateProvider: IAppleAuthStateProvider,
+    private val insightsScreenLocal: IInsightsScreenLocalDataSource,
 ) : IAuthRepository {
 
     override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> {
@@ -78,6 +80,7 @@ class AuthRepositoryImpl(
         tokenManager.clearTokens()
         sessionManager.setAuthenticated(false)
         featureAccessRemoteDataSource.clearCache()
+        insightsScreenLocal.clear()
 
         return Try.success(Unit)
     }
@@ -101,6 +104,7 @@ class AuthRepositoryImpl(
         tokenManager.clearTokens()
         sessionManager.setAuthenticated(false)
         featureAccessRemoteDataSource.clearCache()
+        insightsScreenLocal.clear()
 
         return Try.success(Unit)
     }

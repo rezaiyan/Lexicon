@@ -9,6 +9,7 @@ import data.auth.remote.IFeatureAccessRemoteDataSource
 import data.auth.remote.model.AuthResponse
 import data.auth.remote.model.UserDto
 import data.auth.token.ITokenManager
+import data.insights.FakeInsightsScreenLocalDataSource
 import domain.auth.model.FeatureAccessResponse
 import domain.auth.model.FeatureFlags
 import domain.auth.model.UserFeatureAccess
@@ -33,6 +34,7 @@ class AuthRepositoryImplTest {
     private val authDataSource = FakeAuthDataSource()
     private val googleAuthProvider = FakeGoogleAuthProvider()
     private val appleAuthProvider = FakeAppleAuthProvider()
+    private val insightsLocal = FakeInsightsScreenLocalDataSource()
 
     private fun createRepo() = AuthRepositoryImpl(
         tokenManager = tokenManager,
@@ -40,7 +42,8 @@ class AuthRepositoryImplTest {
         featureAccessRemoteDataSource = featureAccessDataSource,
         authDataSource = authDataSource,
         googleAuthStateProvider = googleAuthProvider,
-        appleAuthStateProvider = appleAuthProvider
+        appleAuthStateProvider = appleAuthProvider,
+        insightsScreenLocal = insightsLocal,
     )
 
     private val testUserDto = UserDto(
@@ -160,6 +163,15 @@ class AuthRepositoryImplTest {
         assertEquals("my-refresh", authDataSource.lastLogoutRefreshToken)
     }
 
+    @Test
+    fun `logout when called clears insights cache`() = runTest {
+        val repo = createRepo()
+
+        repo.logout()
+
+        assertEquals(1, insightsLocal.clearCount)
+    }
+
     // --- deleteAccount ---
 
     @Test
@@ -194,6 +206,18 @@ class AuthRepositoryImplTest {
         val result = repo.deleteAccount()
 
         assertTrue(result.isFailure)
+        assertEquals(0, insightsLocal.clearCount)
+    }
+
+    @Test
+    fun `deleteAccount when backend succeeds clears insights cache`() = runTest {
+        tokenManager.savedAccessToken = "token"
+        authDataSource.deleteResult = Try.success(Unit)
+        val repo = createRepo()
+
+        repo.deleteAccount()
+
+        assertEquals(1, insightsLocal.clearCount)
     }
 
     // --- getAccessToken / isAuthenticated ---

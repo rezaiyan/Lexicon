@@ -9,6 +9,12 @@ import data.analytics.remote.IAnalyticsWordDataSource
 import data.analytics.repository.AnalyticsRecorderImpl
 import data.analytics.repository.AnalyticsStatsRepositoryImpl
 import data.analytics.repository.AnalyticsWordRepositoryImpl
+import data.insights.local.IInsightsScreenLocalDataSource
+import data.insights.local.InsightsScreenLocalDataSource
+import data.insights.remote.IInsightsScreenRemoteDataSource
+import data.insights.remote.InsightsScreenRemoteDataSource
+import data.insights.repository.DismissedCoachCardsRepositoryImpl
+import data.insights.repository.InsightsScreenRepositoryImpl
 import data.wordrush.remote.IWordRushDataSource
 import data.wordrush.remote.WordRushRemoteDataSource
 import data.wordrush.repository.WordRushRecorderImpl
@@ -29,6 +35,12 @@ import domain.analytics.usecase.GetResponseTimeTrendUseCase
 import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
+import domain.insights.repository.IDismissedCoachCardsRepository
+import domain.insights.repository.IInsightsScreenRepository
+import domain.insights.usecase.DismissCoachCardUseCase
+import domain.insights.usecase.ObserveDismissedCoachCardsUseCase
+import domain.insights.usecase.ObserveInsightsScreenUseCase
+import domain.insights.usecase.RefreshInsightsScreenUseCase
 import domain.wordrush.repository.IWordRushRecorder
 import domain.wordrush.repository.IWordRushStatsRepository
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
@@ -81,4 +93,20 @@ fun analyticsModule() = module {
     // Use Cases
     factoryOf(::RecordWordRushGameUseCase)
     factoryOf(::GetWordRushInsightsUseCase)
+
+    // --- Insights coach screen (cached server screen + dismissed cards) ---
+
+    // Data Sources (explicit lambdas: constructors have defaulted params Koin must not resolve)
+    single<IInsightsScreenRemoteDataSource> { InsightsScreenRemoteDataSource(apiClient = get()) }
+    single<IInsightsScreenLocalDataSource> { InsightsScreenLocalDataSource(queries = get()) }
+
+    // Repositories
+    single<IInsightsScreenRepository> { InsightsScreenRepositoryImpl(remote = get(), local = get()) }
+    single<IDismissedCoachCardsRepository> { DismissedCoachCardsRepositoryImpl(local = get()) }
+
+    // Use Cases
+    factoryOf(::ObserveInsightsScreenUseCase)
+    factoryOf(::RefreshInsightsScreenUseCase)
+    factoryOf(::ObserveDismissedCoachCardsUseCase)
+    factoryOf(::DismissCoachCardUseCase)
 }

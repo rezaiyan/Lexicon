@@ -79,7 +79,8 @@ fun authModule(backendUrl: String) = module {
             featureAccessRemoteDataSource = get(),
             authDataSource = get(),
             googleAuthStateProvider = get(),
-            appleAuthStateProvider = get()
+            appleAuthStateProvider = get(),
+            insightsScreenLocal = get(),
         )
     }
 
