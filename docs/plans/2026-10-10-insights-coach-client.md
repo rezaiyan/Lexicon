@@ -311,8 +311,9 @@ data class InsightsScreen(
     val locked: List<LockedSection>,
 )
 
-data class Metric(val value: Int, val previous: Int) {
-    val change: Int get() = value - previous
+/** [previous] is null when last week had too little data to compare (server sample gate). */
+data class Metric(val value: Int, val previous: Int?) {
+    val change: Int? get() = previous?.let { value - it }
 }
 
 data class DayCount(val date: LocalDate, val reviews: Int)
@@ -645,7 +646,7 @@ data class InsightsScreenDto(
     val locked: List<LockedSectionDto> = emptyList(),
 )
 
-@Serializable data class MetricDto(val value: Int = 0, val previous: Int = 0)
+@Serializable data class MetricDto(val value: Int = 0, val previous: Int? = null)
 @Serializable data class DayCountDto(val date: String, val reviews: Int = 0)
 
 @Serializable
@@ -1496,7 +1497,13 @@ enum class ChangeUnit { COUNT, POINTS }
 
 /** A big number with its change vs last week; the UI renders arrow + sign + words (never color alone). */
 @Immutable
-data class StatUi(val value: String, val trend: Trend, val changeAmount: Int, val unit: ChangeUnit)
+data class StatUi(
+    val value: String,
+    /** Null when there is nothing to compare against; the UI then shows no change line. */
+    val trend: Trend?,
+    val changeAmount: Int,
+    val unit: ChangeUnit,
+)
 
 @Immutable
 data class DayDotUi(val isoDay: Int, val reviews: Int, val isToday: Boolean, val isFuture: Boolean)
@@ -1614,6 +1621,12 @@ class InsightsUiMapperTest {
     }
 
     @Test
+    fun `no comparison when last week had too little data`() {
+        val hero = map(InsightsFixtures.screen(hero = InsightsFixtures.hero(accuracy = Metric(84, null)))).hero
+        assertEquals(StatUi("84%", null, 0, ChangeUnit.POINTS), hero.accuracy)
+    }
+
+    @Test
     fun `large counts are compact`() {
         val hero = map(InsightsFixtures.screen(hero = InsightsFixtures.hero(reviews = Metric(1249, 2000)))).hero
         assertEquals(StatUi("1.2k", Trend.DOWN, 751, ChangeUnit.COUNT), hero.reviews)
@@ -1722,16 +1735,20 @@ object InsightsUiMapper {
         },
     )
 
-    private fun Metric.toStat(display: String, unit: ChangeUnit) = StatUi(
-        value = display,
-        trend = when {
-            change > 0 -> Trend.UP
-            change < 0 -> Trend.DOWN
-            else -> Trend.FLAT
-        },
-        changeAmount = kotlin.math.abs(change),
-        unit = unit,
-    )
+    private fun Metric.toStat(display: String, unit: ChangeUnit): StatUi {
+        val delta = change
+        return StatUi(
+            value = display,
+            trend = when {
+                delta == null -> null
+                delta > 0 -> Trend.UP
+                delta < 0 -> Trend.DOWN
+                else -> Trend.FLAT
+            },
+            changeAmount = kotlin.math.abs(delta ?: 0),
+            unit = unit,
+        )
+    }
 
     private fun CoachCard.toUi(use24Hour: Boolean) = CoachCardUi(
         id = id,
@@ -2247,14 +2264,15 @@ import theme.AppColors
 /** Change vs last week: arrow + amount + words, so meaning never depends on color alone. */
 @Composable
 internal fun ChangeLabel(stat: StatUi, modifier: Modifier = Modifier) {
-    val text = when (stat.trend) {
+    val trend = stat.trend ?: return
+    val text = when (trend) {
         Trend.FLAT -> stringResource(Res.string.insights_coach_change_same)
         Trend.UP -> if (stat.unit == ChangeUnit.POINTS) stringResource(Res.string.insights_coach_change_points_up, stat.changeAmount)
             else stringResource(Res.string.insights_coach_change_more, stat.changeAmount)
         Trend.DOWN -> if (stat.unit == ChangeUnit.POINTS) stringResource(Res.string.insights_coach_change_points_down, stat.changeAmount)
             else stringResource(Res.string.insights_coach_change_fewer, stat.changeAmount)
     }
-    val color = when (stat.trend) {
+    val color = when (trend) {
         Trend.UP -> AppColors.success
         Trend.DOWN -> MaterialTheme.colorScheme.onSurfaceVariant
         Trend.FLAT -> MaterialTheme.colorScheme.onSurfaceVariant
