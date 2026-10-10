@@ -38,3 +38,6 @@ fastlane/report.xml
 *.bak
 
 # TTS native binaries are tracked via Git LFS (see .gitattributes)
+
+# Local code-index tool data
+.codegraph/
