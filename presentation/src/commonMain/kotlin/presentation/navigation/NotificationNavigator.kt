@@ -1,7 +1,6 @@
 package presentation.navigation
 
 import domain.word.model.ReviewSource
-import domain.word.model.ReviewSource
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
