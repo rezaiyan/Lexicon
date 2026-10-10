@@ -10,9 +10,11 @@ import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
 import domain.listening.usecase.ObserveListeningOptionsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
+import domain.listening.usecase.RecordListeningSessionUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
+import domain.study.usecase.GenerateSessionIdUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
@@ -20,6 +22,7 @@ import domain.tag.model.Tag
 import domain.word.model.Word
 import fakes.FakeAnalyticsTracker
 import fakes.FakeLearningFocusRepository
+import fakes.FakeListeningRecorder
 import fakes.FakeListeningSettingsRepository
 import fakes.FakeSettingsRepository
 import fakes.FakeTagRepository
@@ -52,6 +55,7 @@ class ListeningViewModelTest {
     private val listeningSettings = FakeListeningSettingsRepository()
     private val analytics = FakeAnalyticsTracker()
     private val tagRepository = FakeTagRepository()
+    private val recorder = FakeListeningRecorder()
 
     private val pauseMs = ListeningSettings.DEFAULT_PAUSE_MS
 
@@ -98,6 +102,8 @@ class ListeningViewModelTest {
             observeSpeechRate = ObserveSpeechRateUseCase(settings),
             setTtsSpeechRate = SetTtsSpeechRateUseCase(settings),
             analyticsTracker = analytics,
+            recordSession = RecordListeningSessionUseCase(recorder),
+            generateSessionId = GenerateSessionIdUseCase(Random(2)),
         )
     }
 
@@ -470,5 +476,83 @@ class ListeningViewModelTest {
         viewModel.open()
 
         assertIs<ListeningScreenState.Setup>(viewModel.currentState.screen)
+    }
+
+    // ---------------------------------------------------------------------------
+    // Session recording (study insights)
+    // ---------------------------------------------------------------------------
+
+    @Test
+    fun `finished session is recorded with every heard word`() = runTest(dispatcher) {
+        givenDueWords(1, 2)
+        startedViewModel()
+
+        advanceUntilIdle()
+
+        val record = recorder.recorded.single()
+        assertTrue(record.completedNormally)
+        assertEquals(listOf(1, 2), record.heardWords.map { it.wordId })
+        assertEquals(listOf("en" to "de", "en" to "de"), record.heardWords.map { it.sourceLanguage to it.targetLanguage })
+        assertEquals(2, record.plannedWords)
+        assertEquals(ListeningSource.Due, record.selection.source)
+        assertEquals(0, record.wordsSkipped)
+        assertEquals(0, record.pauseCount)
+    }
+
+    @Test
+    fun `abandoned session is recorded as not completed`() = runTest(dispatcher) {
+        givenDueWords(1, 2)
+        val viewModel = startedViewModel()
+        advanceTimeBy(pauseMs)
+        runCurrent()
+
+        viewModel.abandon()
+        advanceUntilIdle()
+
+        val record = recorder.recorded.single()
+        assertFalse(record.completedNormally)
+        assertEquals(listOf(1), record.heardWords.map { it.wordId })
+        assertEquals(2, record.plannedWords)
+    }
+
+    @Test
+    fun `leaving before any answer is spoken records nothing`() = runTest(dispatcher) {
+        givenDueWords(1, 2)
+        val viewModel = startedViewModel()
+
+        viewModel.abandon()
+        advanceUntilIdle()
+
+        assertTrue(recorder.recorded.isEmpty())
+    }
+
+    @Test
+    fun `pauses and skips are counted in the recorded session`() = runTest(dispatcher) {
+        givenDueWords(1, 2, 3)
+        val viewModel = startedViewModel()
+
+        viewModel.togglePlayback()
+        viewModel.togglePlayback()
+        runCurrent()
+        viewModel.next()
+        advanceUntilIdle()
+
+        val record = recorder.recorded.single()
+        assertEquals(1, record.pauseCount)
+        assertEquals(1, record.wordsSkipped)
+        assertEquals(listOf(2, 3), record.heardWords.map { it.wordId })
+        assertTrue(record.completedNormally)
+    }
+
+    @Test
+    fun `session is recorded once even when abandoned after finishing`() = runTest(dispatcher) {
+        givenDueWords(1)
+        val viewModel = startedViewModel()
+        advanceUntilIdle()
+
+        viewModel.abandon()
+        advanceUntilIdle()
+
+        assertEquals(1, recorder.recorded.size)
     }
 }

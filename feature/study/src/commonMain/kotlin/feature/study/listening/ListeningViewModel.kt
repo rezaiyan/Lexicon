@@ -12,6 +12,7 @@ import domain.listening.model.ListeningOrder
 import domain.listening.model.ListeningReducer
 import domain.listening.model.ListeningSelection
 import domain.listening.model.ListeningSession
+import domain.listening.model.ListeningSessionTracker
 import domain.listening.model.ListeningSettings
 import domain.listening.model.ListeningSource
 import domain.listening.model.ListeningStep
@@ -23,9 +24,11 @@ import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
 import domain.listening.usecase.ObserveListeningOptionsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
+import domain.listening.usecase.RecordListeningSessionUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
+import domain.study.usecase.GenerateSessionIdUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
@@ -118,6 +121,8 @@ class ListeningViewModel(
     observeSpeechRate: ObserveSpeechRateUseCase,
     private val setTtsSpeechRate: SetTtsSpeechRateUseCase,
     private val analyticsTracker: IAnalyticsTracker,
+    private val recordSession: RecordListeningSessionUseCase,
+    private val generateSessionId: GenerateSessionIdUseCase,
 ) : BaseViewModel<ListeningState, Nothing>() {
 
     override fun initialState() = ListeningState()
@@ -126,6 +131,9 @@ class ListeningViewModel(
     private var stopJob: Job? = null
     private var setupJob: Job? = null
     private var startedAt: Long = 0L
+
+    /** What the current session has done so far; null when no session is playing. */
+    private var tracker: ListeningSessionTracker? = null
 
     init {
         observeSettings(Unit)
@@ -221,14 +229,19 @@ class ListeningViewModel(
         val active = currentState.screen as? ListeningScreenState.Active ?: return
         if (active.isPlaying) {
             haltPlayback()
+            tracker = tracker?.paused(now())
             updateActive { copy(isPlaying = false) }
         } else {
+            tracker = tracker?.resumed(now())
             updateActive { copy(isPlaying = true) }
             play()
         }
     }
 
-    fun next() = jump(ListeningCommand.Next)
+    fun next() {
+        if (currentState.screen is ListeningScreenState.Active) tracker = tracker?.skipped()
+        jump(ListeningCommand.Next)
+    }
 
     fun previous() = jump(ListeningCommand.Previous)
 
@@ -244,7 +257,7 @@ class ListeningViewModel(
 
     /** User left the screen mid-session. */
     fun abandon() {
-        (currentState.screen as? ListeningScreenState.Active)?.let { logSession(it, completed = false) }
+        (currentState.screen as? ListeningScreenState.Active)?.let { endSession(it, completed = false) }
         haltPlayback()
         setupJob?.cancel()
         updateState { copy(screen = ListeningScreenState.Idle) }
@@ -254,7 +267,7 @@ class ListeningViewModel(
         super.onCleared()
         playJob?.cancel()
         setupJob?.cancel()
-        (currentState.screen as? ListeningScreenState.Active)?.let { logSession(it, completed = false) }
+        (currentState.screen as? ListeningScreenState.Active)?.let { endSession(it, completed = false) }
         viewModelScope.launch(NonCancellable) { stopSpeaking() }
     }
 
@@ -274,7 +287,15 @@ class ListeningViewModel(
     }
 
     private fun begin(words: List<Word>, check: ListeningVoiceCheck, source: ListeningSource) {
-        startedAt = Clock.System.now().toEpochMilliseconds()
+        startedAt = now()
+        tracker = ListeningSessionTracker(
+            clientSessionId = generateSessionId(),
+            selection = currentState.selection.copy(source = source),
+            settings = currentState.settings,
+            speechRate = currentState.speechRate,
+            plannedWords = words.size,
+            startedAt = startedAt,
+        )
         val speakable = check.voices
             .filter { it.status == VoiceStatus.READY }
             .mapTo(mutableSetOf()) { it.languageCode }
@@ -312,6 +333,7 @@ class ListeningViewModel(
                     currentState.settings.repeatCount,
                 )
                 val heard = if (active.session.step == ListeningStep.Answer) {
+                    tracker = tracker?.heard(active.session.currentWord, now())
                     active.heardWordIds + active.session.currentWord.id
                 } else {
                     active.heardWordIds
@@ -365,8 +387,8 @@ class ListeningViewModel(
     }
 
     private fun finish(active: ListeningScreenState.Active) {
-        val durationMs = Clock.System.now().toEpochMilliseconds() - startedAt
-        logSession(active, completed = true)
+        val durationMs = now() - startedAt
+        endSession(active, completed = true)
         updateState {
             copy(screen = ListeningScreenState.Finished(active.heardWordIds.size, durationMs))
         }
@@ -394,13 +416,24 @@ class ListeningViewModel(
             is ListeningSource.Tag -> "tag"
         }
 
+    /** Logs the session and stores it for study insights; runs once per session. */
+    private fun endSession(active: ListeningScreenState.Active, completed: Boolean) {
+        logSession(active, completed)
+        val record = tracker?.end(now(), completed) ?: return
+        tracker = null
+        // NonCancellable: the session is often ended by leaving the screen, which clears this scope.
+        viewModelScope.launch(NonCancellable) { recordSession(record) }
+    }
+
+    private fun now(): Long = Clock.System.now().toEpochMilliseconds()
+
     private fun logSession(active: ListeningScreenState.Active, completed: Boolean) {
         analyticsTracker.logEvent(
             if (completed) "listening_session_complete" else "listening_session_abandoned",
             mapOf(
                 "words_heard" to active.heardWordIds.size,
                 "word_count" to active.session.words.size,
-                "duration_ms" to Clock.System.now().toEpochMilliseconds() - startedAt,
+                "duration_ms" to now() - startedAt,
             ),
         )
     }

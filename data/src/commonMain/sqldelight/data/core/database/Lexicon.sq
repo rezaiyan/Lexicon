@@ -297,6 +297,22 @@ SELECT * FROM WordRushPendingGames;
 deleteAllWordRushPendingGames:
 DELETE FROM WordRushPendingGames;
 
+-- ListeningPendingSessions table (offline queue for listening sessions; payload is the sync JSON)
+CREATE TABLE ListeningPendingSessions (
+    client_session_id TEXT    NOT NULL PRIMARY KEY,
+    request_json      TEXT    NOT NULL,
+    created_at        INTEGER NOT NULL
+);
+
+insertListeningPendingSession:
+INSERT OR IGNORE INTO ListeningPendingSessions VALUES (?, ?, ?);
+
+selectAllListeningPendingSessions:
+SELECT * FROM ListeningPendingSessions ORDER BY created_at ASC;
+
+deleteListeningPendingSessions:
+DELETE FROM ListeningPendingSessions WHERE client_session_id IN ?;
+
 -- LearningFocusEntity: single-row, client-only learning focus preference.
 -- Separate table on purpose: insertSettings is INSERT OR REPLACE with an explicit
 -- column list, so extra SettingsEntity columns would be reset on every settings save.

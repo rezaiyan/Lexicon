@@ -1,0 +1,7 @@
+-- Migration from version 19 to version 20
+-- Listening mode: offline queue of sessions waiting to sync to the backend.
+CREATE TABLE IF NOT EXISTS ListeningPendingSessions (
+    client_session_id TEXT    NOT NULL PRIMARY KEY,
+    request_json      TEXT    NOT NULL,
+    created_at        INTEGER NOT NULL
+);
