@@ -213,6 +213,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
                 getDueWordsByTag = GetDueWordsByTagUseCase(wordRepo),
                 getDailyGoalWords = GetDailyGoalWordsUseCase(settingsRepo),
                 observeLearningFocus = ObserveLearningFocusUseCase(wordRepo, FakeLearningFocusRepository()),
+                wordRepository = wordRepo,
             ),
             reviewWordUseCase = ReviewWordUseCase(wordRepo, syncRepo),
             flushReviewSyncQueueUseCase = FlushReviewSyncQueueUseCase(syncRepo, wordRepo),

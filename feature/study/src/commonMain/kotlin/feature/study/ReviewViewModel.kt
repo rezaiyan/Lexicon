@@ -376,7 +376,7 @@ class ReviewViewModel(
     }
 
     private fun ReviewSource.toReviewType() = when (this) {
-        is ReviewSource.DueCards, is ReviewSource.ByTag -> ReviewType.REVIEW
+        is ReviewSource.DueCards, is ReviewSource.ByTag, is ReviewSource.ByWords -> ReviewType.REVIEW
         is ReviewSource.ByStage, is ReviewSource.ByStageAndTag -> ReviewType.BROWSE
     }
 

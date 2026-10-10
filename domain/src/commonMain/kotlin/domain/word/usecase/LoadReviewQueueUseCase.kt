@@ -8,6 +8,7 @@ import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.word.model.ReviewSource
 import domain.word.model.Word
+import domain.word.repository.IWordRepository
 import kotlinx.coroutines.flow.first
 
 /**
@@ -26,6 +27,7 @@ class LoadReviewQueueUseCase(
     private val getDueWordsByTag: GetDueWordsByTagUseCase,
     private val getDailyGoalWords: GetDailyGoalWordsUseCase,
     private val observeLearningFocus: ObserveLearningFocusUseCase,
+    private val wordRepository: IWordRepository,
 ) : UseCase<ReviewSource, List<Word>> {
 
     override suspend fun invoke(params: ReviewSource): Try<List<Word>> = Try<List<Word>> {
@@ -40,6 +42,11 @@ class LoadReviewQueueUseCase(
 
             is ReviewSource.ByTag ->
                 getDueWordsByTag(params.tagId).first().filterBy(focus).take(limit)
+
+            is ReviewSource.ByWords -> {
+                val ids = params.wordIds.toSet()
+                wordRepository.getAllWords().first().filter { it.id.toLong() in ids }.filterBy(focus)
+            }
 
             is ReviewSource.ByStageAndTag ->
                 getWordsByStage(params.stage).first()

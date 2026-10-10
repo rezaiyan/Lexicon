@@ -17,6 +17,11 @@ sealed class ReviewSource {
         override val sessionTypeLabel: String = "REVIEW"
     }
 
+    /** A hand-picked set of words, e.g. from an Insights coach card. Not capped by the daily goal. */
+    data class ByWords(val wordIds: List<Long>) : ReviewSource() {
+        override val sessionTypeLabel: String = "REVIEW"
+    }
+
     data class ByStageAndTag(val stage: LearningStage, val tagId: Long) : ReviewSource() {
         override val sessionTypeLabel: String = "BROWSE"
     }

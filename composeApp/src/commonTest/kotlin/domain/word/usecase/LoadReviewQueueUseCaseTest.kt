@@ -127,6 +127,7 @@ class LoadReviewQueueUseCaseTest {
             getDueWordsByTag,
             getDailyGoalWords,
             observeLearningFocus,
+            repo,
         )
     }
 
@@ -230,6 +231,17 @@ class LoadReviewQueueUseCaseTest {
         val words = result.getOrNull()!!
         assertEquals(1, words.size)
         assertEquals(matchingWord, words.first())
+    }
+
+    @Test
+    fun `ByWords returns only the requested words in focus, ignoring daily goal`() = runTest {
+        val words = (1..5).map { testWord(it) }
+        val repo = ConfigurableWordRepository(allWords = words)
+        val useCase = buildUseCase(repo, dailyGoal = 1)
+
+        val result = useCase(ReviewSource.ByWords(listOf(2L, 4L, 99L)))
+
+        assertEquals(listOf(words[1], words[3]), result.getOrNull())
     }
 
     @Test
