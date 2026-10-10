@@ -28,7 +28,45 @@ class SettingsRepositoryImplTest {
     private fun createRepo(
         remote: ISettingsRemoteDataSource = FakeSettingsRemoteDataSource(),
         scope: CoroutineScope = CoroutineScope(UnconfinedTestDispatcher()),
-    ) = SettingsRepositoryImpl(localDataSource, remote, scope)
+        deviceTimezone: () -> String = { "Europe/Berlin" },
+    ) = SettingsRepositoryImpl(localDataSource, remote, scope, deviceTimezone)
+
+    // --- Device timezone ---
+
+    @Test
+    fun `syncDeviceTimezone reports the zone once while it is unchanged`() = runTest {
+        val remote = FakeSettingsRemoteDataSource()
+        val repo = createRepo(remote = remote)
+
+        repo.syncDeviceTimezone()
+        repo.syncDeviceTimezone()
+
+        assertEquals(listOf("Europe/Berlin"), remote.syncedTimezones)
+    }
+
+    @Test
+    fun `syncDeviceTimezone reports a new zone after the device moved`() = runTest {
+        val remote = FakeSettingsRemoteDataSource()
+        var zone = "Europe/Berlin"
+        val repo = createRepo(remote = remote, deviceTimezone = { zone })
+
+        repo.syncDeviceTimezone()
+        zone = "Asia/Tokyo"
+        repo.syncDeviceTimezone()
+
+        assertEquals(listOf("Europe/Berlin", "Asia/Tokyo"), remote.syncedTimezones)
+    }
+
+    @Test
+    fun `syncDeviceTimezone retries on the next call after a failure`() = runTest {
+        val remote = FakeSettingsRemoteDataSource(shouldFail = true)
+        val repo = createRepo(remote = remote)
+
+        repo.syncDeviceTimezone()
+        repo.syncDeviceTimezone()
+
+        assertEquals(2, remote.syncedTimezones.size)
+    }
 
     // --- Theme Mode ---
 
@@ -306,6 +344,13 @@ class SettingsRepositoryImplTest {
         override suspend fun syncSettings(settings: SettingsSyncDto): Try<Unit> {
             syncCallCount++
             lastSyncedDto = settings
+            return if (shouldFail) Try { error("sync failed") } else Try.Success(Unit)
+        }
+
+        val syncedTimezones = mutableListOf<String>()
+
+        override suspend fun syncTimezone(timezone: String): Try<Unit> {
+            syncedTimezones += timezone
             return if (shouldFail) Try { error("sync failed") } else Try.Success(Unit)
         }
     }
