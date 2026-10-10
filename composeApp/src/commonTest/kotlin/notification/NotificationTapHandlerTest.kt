@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runTest
 import notification.payload.SubscriptionUpdatedHandler
 import presentation.navigation.NotificationDestination
 import presentation.navigation.NotificationNavigator
+import domain.word.model.ReviewSource
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -104,9 +105,21 @@ class NotificationTapHandlerTest {
     }
 
     @Test
-    fun `word deep link opens the words tab`() = runTest {
-        navigator.destinations.test {
+    fun `word deep link starts a review of that word`() = runTest {
+        navigator.reviewRequests.test {
             handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://word/42"))
+
+            assertEquals(ReviewSource.ByWords(listOf(42L)), awaitItem())
+        }
+        navigator.destinations.test {
+            assertEquals(NotificationDestination.Study, awaitItem())
+        }
+    }
+
+    @Test
+    fun `word deep link with a malformed id opens the words tab`() = runTest {
+        navigator.destinations.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://word/abc"))
 
             assertEquals(NotificationDestination.Words, awaitItem())
         }
