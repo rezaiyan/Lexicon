@@ -10,3 +10,6 @@ data class SettingsSyncDto(
     val dailyReminderTime: String,
     val reviewRemindersEnabled: Boolean,
 )
+
+@Serializable
+data class TimezoneSyncDto(val timezone: String)

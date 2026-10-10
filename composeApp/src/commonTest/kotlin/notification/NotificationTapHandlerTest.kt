@@ -67,6 +67,62 @@ class NotificationTapHandlerTest {
     }
 
     @Test
+    fun `due cards tap follows its review deep link`() = runTest {
+        navigator.reviewRequests.test {
+            handler().onNotificationTapped(
+                mapOf(NotificationTapHandler.TYPE_KEY to "due_cards", NotificationTapHandler.DEEP_LINK_KEY to "vokab://review/due")
+            )
+
+            awaitItem()
+        }
+        navigator.destinations.test {
+            assertEquals(NotificationDestination.Study, awaitItem())
+        }
+    }
+
+    @Test
+    fun `insight and stats deep links open the insights tab`() = runTest {
+        navigator.destinations.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://insights"))
+            assertEquals(NotificationDestination.Insights, awaitItem())
+
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://stats/weekly"))
+            assertEquals(NotificationDestination.Insights, awaitItem())
+        }
+    }
+
+    @Test
+    fun `add words deep link opens the add words sheet on the study tab`() = runTest {
+        navigator.addWordsRequests.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://words/add"))
+
+            awaitItem()
+        }
+        navigator.destinations.test {
+            assertEquals(NotificationDestination.Study, awaitItem())
+        }
+    }
+
+    @Test
+    fun `word deep link opens the words tab`() = runTest {
+        navigator.destinations.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://word/42"))
+
+            assertEquals(NotificationDestination.Words, awaitItem())
+        }
+    }
+
+    @Test
+    fun `unknown deep links are ignored`() = runTest {
+        navigator.destinations.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "https://evil.example/review"))
+            testScheduler.advanceUntilIdle()
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
     fun `subscription updated push force refreshes subscription state`() = runTest {
         val accessRepository = FakeSubscriptionAccessRepository()
         val subscriptionManager = FakeSubscriptionManager()

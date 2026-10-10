@@ -16,6 +16,7 @@ import domain.settings.usecase.GetSkipTagSelectorUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetSkipTagSelectorUseCase
+import domain.settings.usecase.SyncDeviceTimezoneUseCase
 import domain.settings.usecase.SetThemeModeUseCase
 import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetTtsVoiceUseCase
@@ -27,6 +28,7 @@ import domain.streak.usecase.RecordStreakActivityUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -68,6 +70,7 @@ fun settingsModule() = module {
     singleOf(::SetTtsExpressivenessUseCase)
     singleOf(::GetSkipTagSelectorUseCase)
     singleOf(::SetSkipTagSelectorUseCase)
+    factoryOf(::SyncDeviceTimezoneUseCase)
 
     // Use Cases - Streak
     singleOf(::GetStreakUseCase)

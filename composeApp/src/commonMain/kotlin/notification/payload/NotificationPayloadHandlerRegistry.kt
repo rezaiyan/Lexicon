@@ -18,10 +18,20 @@ class NotificationPayloadHandlerRegistry(
 
     fun handle(type: String?, body: String, data: Map<String, String>) {
         getHandler(type)?.let { handler ->
+            val payload = payloadWithBody(body, data)
             CoroutineScope(Dispatchers.Default).launch {
-                handler.handle(data + ("body" to body))
+                handler.handle(payload)
             }
         }
+    }
+
+    internal companion object {
+        /**
+         * [body] is the displayed notification's text; a data-only (silent) push has none, so its
+         * own "body" data entry (e.g. today's insight) is kept instead of being blanked out.
+         */
+        fun payloadWithBody(body: String, data: Map<String, String>): Map<String, String> =
+            if (body.isBlank()) data else data + ("body" to body)
     }
 }
 

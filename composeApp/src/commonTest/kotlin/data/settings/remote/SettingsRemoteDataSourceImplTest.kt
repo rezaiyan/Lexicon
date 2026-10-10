@@ -77,4 +77,24 @@ class SettingsRemoteDataSourceImplTest {
         val result = buildDataSource(mockEngine).syncSettings(dto)
         assertTrue(result is Try.Failure)
     }
+
+    @Test
+    fun `syncTimezone sends PUT with the zone id`() = runTest {
+        var capturedPath: String? = null
+        var capturedMethod: HttpMethod? = null
+        var capturedBody: String? = null
+        val mockEngine = MockEngine { request ->
+            capturedPath = request.url.encodedPath
+            capturedMethod = request.method
+            capturedBody = (request.body as io.ktor.http.content.TextContent).text
+            respond(SuccessEnvelope, HttpStatusCode.OK, jsonHeaders())
+        }
+
+        val result = buildDataSource(mockEngine).syncTimezone("Europe/Berlin")
+
+        assertTrue(result is Try.Success)
+        assertEquals("/settings/timezone", capturedPath)
+        assertEquals(HttpMethod.Put, capturedMethod)
+        assertEquals("""{"timezone":"Europe/Berlin"}""", capturedBody)
+    }
 }

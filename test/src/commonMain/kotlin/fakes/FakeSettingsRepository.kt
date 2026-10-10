@@ -42,4 +42,11 @@ class FakeSettingsRepository : ISettingsRepository {
     }
     override suspend fun getMinimumDueCards(): Try<Int> = Try.success(minimumDueCards)
     override suspend fun setMinimumDueCards(count: Int): Try<Unit> { minimumDueCards = count; return Try.success(Unit) }
+
+    var timezoneSyncCount = 0
+
+    override suspend fun syncDeviceTimezone(): Try<Unit> {
+        timezoneSyncCount++
+        return Try.success(Unit)
+    }
 }
