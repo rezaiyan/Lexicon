@@ -1,6 +1,7 @@
 package notification
 
 import domain.notifications.usecase.ReportNotificationOpenedUseCase
+import domain.word.model.ReviewSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import presentation.navigation.NotificationDestination
@@ -33,15 +34,26 @@ class NotificationTapHandler(
         when {
             link == "vokab://review" || link.startsWith("vokab://review/") -> navigator.openDueReview()
             link == "vokab://words/add" -> navigator.openAddWords()
-            link.startsWith("vokab://word/") -> navigator.open(NotificationDestination.Words)
+            link.startsWith(WORD_LINK_PREFIX) -> openWord(link.removePrefix(WORD_LINK_PREFIX))
             link == "vokab://insights" || link.startsWith("vokab://stats/") ->
                 navigator.open(NotificationDestination.Insights)
+        }
+    }
+
+    /** "<word> wants a rematch": review just that word; a malformed id falls back to the Words tab. */
+    private fun openWord(id: String) {
+        val wordId = id.toLongOrNull()
+        if (wordId != null) {
+            navigator.openReview(ReviewSource.ByWords(listOf(wordId)))
+        } else {
+            navigator.open(NotificationDestination.Words)
         }
     }
 
     companion object {
         const val TYPE_KEY = "type"
         const val DEEP_LINK_KEY = "deep_link"
+        private const val WORD_LINK_PREFIX = "vokab://word/"
     }
 }
 
