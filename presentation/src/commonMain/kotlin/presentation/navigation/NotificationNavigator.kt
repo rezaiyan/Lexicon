@@ -1,5 +1,6 @@
 package presentation.navigation
 
+import domain.word.model.ReviewSource
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -16,21 +17,34 @@ enum class NotificationDestination { Subscription, Study }
 class NotificationNavigator {
 
     private val requests = Channel<NotificationDestination>(Channel.CONFLATED)
-    private val reviews = Channel<Unit>(Channel.CONFLATED)
+    private val reviews = Channel<ReviewSource>(Channel.CONFLATED)
+    private val wordRush = Channel<Unit>(Channel.CONFLATED)
 
     /** One-shot destinations; collect with OnEvents. */
     val destinations: Flow<NotificationDestination> = requests.receiveAsFlow()
 
-    /** One-shot requests to start a due-cards review; collected by the Study screen once it's shown. */
-    val reviewRequests: Flow<Unit> = reviews.receiveAsFlow()
+    /** One-shot requests to start a review; collected by the Study screen once it's shown. */
+    val reviewRequests: Flow<ReviewSource> = reviews.receiveAsFlow()
+
+    /** One-shot requests to start a Word Rush game; collected by the Study screen once it's shown. */
+    val wordRushRequests: Flow<Unit> = wordRush.receiveAsFlow()
 
     fun open(destination: NotificationDestination) {
         requests.trySend(destination)
     }
 
     /** Switches to the Study tab and starts a review of the due cards there. */
-    fun openDueReview() {
+    fun openDueReview() = openReview(ReviewSource.DueCards)
+
+    /** Switches to the Study tab and starts a review of [source] there. */
+    fun openReview(source: ReviewSource) {
         open(NotificationDestination.Study)
-        reviews.trySend(Unit)
+        reviews.trySend(source)
+    }
+
+    /** Switches to the Study tab and starts a Word Rush game there. */
+    fun openWordRush() {
+        open(NotificationDestination.Study)
+        wordRush.trySend(Unit)
     }
 }

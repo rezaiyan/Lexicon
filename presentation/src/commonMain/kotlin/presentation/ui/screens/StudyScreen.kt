@@ -163,11 +163,12 @@ fun StudyScreen(
         }
     }
 
-    // Review-reminder tap: start a due-cards review, unless one is already running (restarting it
-    // would drop the user's place and orphan the session's analytics)
-    OnEvents(koinInject<NotificationNavigator>().reviewRequests) {
+    val studyLauncher = koinInject<NotificationNavigator>()
+    // Review requests from reminders and other tabs: start the review, unless one is already running
+    // (restarting it would drop the user's place and orphan the session's analytics)
+    OnEvents(studyLauncher.reviewRequests) { source ->
         if (reviewViewModel.currentState.review !is ReviewState.Active) {
-            openReviewScreen(ReviewSource.DueCards)
+            openReviewScreen(source)
         }
     }
 
@@ -257,6 +258,8 @@ fun StudyScreen(
             )
         }
     }
+
+    OnEvents(studyLauncher.wordRushRequests) { openWordRush() }
 
     val openImportSheet: () -> Unit = {
         overlayHost.showSizeToFitBottomSheet(
