@@ -16,8 +16,21 @@ class ScheduleNotificationsUseCaseTest {
 
     private val notificationRepo = FakeNotificationRepository()
     private val settingsRepo = FakeSettingsRepo()
+    private val pushTokenRepo = FakePushTokenRepository()
 
-    private fun createUseCase() = ScheduleNotificationsUseCase(notificationRepo, settingsRepo)
+    private fun createUseCase() = ScheduleNotificationsUseCase(notificationRepo, settingsRepo, pushTokenRepo)
+
+    @Test
+    fun `does not schedule a local reminder when the server can push to this device`() = runTest {
+        settingsRepo.reviewRemindersOn = true
+        settingsRepo.minDueCards = 1
+        pushTokenRepo.registeredWithServer = true
+
+        val result = createUseCase()(ProgressStats(dueCards = 10, totalWords = 20), { "T" }, { "M" })
+
+        assertTrue(result.isSuccess)
+        assertFalse(notificationRepo.scheduledReminder)
+    }
 
     @Test
     fun `schedules reminder when enabled and due cards meet minimum`() = runTest {

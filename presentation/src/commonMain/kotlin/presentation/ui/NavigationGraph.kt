@@ -14,6 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import events.OnEvents
+import feature.insights.navigation.InsightsRoute
 import feature.insights.navigation.insightsGraph
 import feature.leaderboard.navigation.showLeaderboard
 import feature.profile.navigation.profileGraph
@@ -51,13 +52,15 @@ internal fun NavigationGraph(
         onDispose { navController.removeOnDestinationChangedListener(listener) }
     }
 
-    // Taps on actionable notifications (e.g. a failed renewal, a review reminder) open the screen they're about
+    // Taps on actionable notifications (a failed renewal, due cards, an insight...) open the screen they're about
     OnEvents(koinInject<NotificationNavigator>().destinations) { destination ->
         when (destination) {
             NotificationDestination.Subscription -> navController.navigate(SubscriptionRoute) {
                 launchSingleTop = true
             }
             NotificationDestination.Study -> navController.navigateToTab(TabDestination.Study)
+            NotificationDestination.Insights -> navController.navigateToTab(InsightsRoute)
+            NotificationDestination.Words -> navController.navigateToTab(TabDestination.Words)
         }
     }
 

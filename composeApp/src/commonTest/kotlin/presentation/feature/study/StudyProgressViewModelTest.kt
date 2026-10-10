@@ -4,6 +4,7 @@ import domain.word.add.model.AddWordsOutcome
 import analytics.IAnalyticsTracker
 import core.common.Try
 import fakes.FakePerformanceTracer
+import fakes.FakePushTokenRepository
 import feature.study.StudyProgressViewModel
 import feature.study.StudyTagUseCases
 import feature.study.StudyFocusUseCases
@@ -167,7 +168,7 @@ class StudyProgressViewModelTest : ViewModelTestBase() {
         focusRepo = FakeLearningFocusRepository(preference)
         return StudyProgressViewModel(
             evaluateProgressUseCase = EvaluateProgressUseCase(),
-            scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo),
+            scheduleNotificationsUseCase = ScheduleNotificationsUseCase(notifRepo, settingsRepo, FakePushTokenRepository()),
             analyticsTracker = fakeAnalytics(),
             performanceTracer = FakePerformanceTracer(),
             tagUseCases = StudyTagUseCases(

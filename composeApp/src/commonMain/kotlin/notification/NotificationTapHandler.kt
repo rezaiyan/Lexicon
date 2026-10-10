@@ -20,12 +20,28 @@ class NotificationTapHandler(
         when (data[TYPE_KEY]) {
             PushTypes.BILLING_ISSUE -> navigator.open(NotificationDestination.Subscription)
             PushTypes.REVIEW_REMINDER -> navigator.openDueReview()
+            else -> data[DEEP_LINK_KEY]?.let(::openDeepLink)
         }
         scope.launch { reportNotificationOpened(data) }
     }
 
+    /**
+     * Smart pushes (due cards, streak, insight, milestone...) say where they lead with a
+     * `deep_link`. Only these known links are followed; anything else just opens the app.
+     */
+    private fun openDeepLink(link: String) {
+        when {
+            link == "vokab://review" || link.startsWith("vokab://review/") -> navigator.openDueReview()
+            link == "vokab://words/add" -> navigator.openAddWords()
+            link.startsWith("vokab://word/") -> navigator.open(NotificationDestination.Words)
+            link == "vokab://insights" || link.startsWith("vokab://stats/") ->
+                navigator.open(NotificationDestination.Insights)
+        }
+    }
+
     companion object {
         const val TYPE_KEY = "type"
+        const val DEEP_LINK_KEY = "deep_link"
     }
 }
 

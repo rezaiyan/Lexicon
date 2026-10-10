@@ -5,12 +5,19 @@ import core.common.UseCase
 import core.common.getOrThrow
 import domain.word.model.ProgressStats
 import domain.notifications.repository.INotificationRepository
+import domain.notifications.repository.IPushTokenRepository
 import domain.settings.repository.ISettingsRepository
 import kotlinx.coroutines.flow.first
 
+/**
+ * Schedules an on-device review reminder for a day from now. Only a fallback for devices the
+ * server can't reach: once the push token is registered, the server sends due-card reminders at
+ * the user's usual study hour (and skips days they already studied), so a local one would double up.
+ */
 class ScheduleNotificationsUseCase(
     private val notificationRepository: INotificationRepository,
-    private val settingsRepository: ISettingsRepository
+    private val settingsRepository: ISettingsRepository,
+    private val pushTokenRepository: IPushTokenRepository,
 ) : UseCase<ScheduleNotificationsUseCase.Params, Unit> {
     private var hasScheduled: Boolean = false
 
@@ -28,6 +35,8 @@ class ScheduleNotificationsUseCase(
         titleProvider: (Int) -> String,
         messageProvider: (Int) -> String
     ): Try<Unit> = Try {
+        if (pushTokenRepository.isRegisteredWithServer()) return@Try
+
         val enabled = settingsRepository.getReviewRemindersEnabled().first()
         val minimumCards = settingsRepository.getMinimumDueCards().getOrThrow()
 

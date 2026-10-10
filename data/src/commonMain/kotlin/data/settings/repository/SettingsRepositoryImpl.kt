@@ -1,6 +1,7 @@
 package data.settings.repository
 
 import core.common.Try
+import core.common.onSuccess
 import data.core.database.SettingsEntityData
 import data.settings.local.ISettingsLocalDataSource
 import data.settings.remote.ISettingsRemoteDataSource
@@ -12,12 +13,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
 
 class SettingsRepositoryImpl(
     private val localDataSource: ISettingsLocalDataSource,
     private val remoteDataSource: ISettingsRemoteDataSource,
     private val scope: CoroutineScope,
+    private val deviceTimezone: () -> String = { TimeZone.currentSystemDefault().id },
 ) : ISettingsRepository {
+
+    /** Last zone the server accepted in this process; resumes in the same zone send nothing. */
+    private var syncedTimezone: String? = null
 
     override fun getThemeMode(): Flow<ThemeMode> {
         return localDataSource.observeSettings()
@@ -143,7 +149,15 @@ class SettingsRepositoryImpl(
         localDataSource.saveSettings(current.copy(dailyGoalWords = count))
     }
 
+    override suspend fun syncDeviceTimezone(): Try<Unit> {
+        val timezone = deviceTimezone()
+        if (timezone == syncedTimezone) return Try.success(Unit)
+        return remoteDataSource.syncTimezone(timezone).onSuccess { syncedTimezone = timezone }
+    }
+
     override suspend fun clearSettings(): Try<Unit> = Try {
+        // A different account may sign in next; it must report its timezone too
+        syncedTimezone = null
         localDataSource.clearSettings()
     }
 }
