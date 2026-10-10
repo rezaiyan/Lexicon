@@ -18,6 +18,7 @@ class NotificationNavigator {
 
     private val requests = Channel<NotificationDestination>(Channel.CONFLATED)
     private val reviews = Channel<ReviewSource>(Channel.CONFLATED)
+    private val wordRush = Channel<Unit>(Channel.CONFLATED)
     private val addWords = Channel<Unit>(Channel.CONFLATED)
 
     /** One-shot destinations; collect with OnEvents. */
