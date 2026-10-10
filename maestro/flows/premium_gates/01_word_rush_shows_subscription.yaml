@@ -12,7 +12,7 @@ tags:
 # Flow:
 #   1. Navigate to Study screen.
 #   2. Scroll down to where the Word Rush card would appear.
-#   3. Verify "Word Rush" and "Play" are NOT visible.
+#   3. Verify the "Word Rush" tile is NOT visible.
 
 - runFlow: ../utils/navigate_to_study.yaml
 
@@ -23,4 +23,3 @@ tags:
 
 # The Word Rush card must NOT be visible for non-premium users.
 - assertNotVisible: "Word Rush"
-- assertNotVisible: "Play"

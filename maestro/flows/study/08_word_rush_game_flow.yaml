@@ -16,15 +16,15 @@ tags:
 
 # Scroll down if needed to find the Word Rush card.
 - scrollUntilVisible:
-    element: "Play"
+    element: "Word Rush"
     direction: DOWN
     timeout: 5000
 
 # Take screenshot before starting the game.
 - takeScreenshot: screenshots/word_rush_before_play
 
-# Tap Play to start the game.
-- tapOn: "Play"
+# Tap the Word Rush tile to start the game.
+- tapOn: "Word Rush"
 
 # The game screen should load — wait for the Score label which only appears in
 # the game's Playing state header (not on the Study screen).

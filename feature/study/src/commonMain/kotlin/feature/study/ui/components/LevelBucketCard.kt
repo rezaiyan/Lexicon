@@ -32,18 +32,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.words_unit
+import org.jetbrains.compose.resources.pluralStringResource
 import theme.Theme
 
 /**
  * Card for a learning stage or tag bucket: tinted icon circle, optional [overline]
- * (e.g. "LEVEL 1"), title, description, word count and a chevron.
+ * (e.g. "LEVEL 1"), title, optional description, word count and a chevron.
  *
  * Non-empty buckets get a thin ring in [color]; empty ones are dimmed and not clickable.
  */
 @Composable
 fun LevelBucketCard(
     level: String,
-    description: String,
+    description: String?,
     count: Int,
     color: Color,
     icon: ImageVector,
@@ -54,18 +57,22 @@ fun LevelBucketCard(
 ) {
     val isEmpty = count == 0
 
-    val wordLabel = if (count == 1) "word" else "words"
+    val wordUnit = pluralStringResource(Res.plurals.words_unit, count)
     Card(
         modifier = modifier
             .semantics {
-                contentDescription = "$level: $count $wordLabel. $description"
+                contentDescription = listOfNotNull("$level: $count $wordUnit", description).joinToString(". ")
             }
             .fillMaxWidth(),
         shape = RoundedCornerShape(Theme.shapes.large),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        border = if (isEmpty) null else BorderStroke(Theme.dimensions.borderWidth, color.copy(alpha = 0.4f)),
+        border = if (isEmpty) {
+            null
+        } else {
+            BorderStroke(Theme.dimensions.borderWidth, color.copy(alpha = Theme.opacity.dimming))
+        },
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isEmpty) 0.dp else Theme.elevation.low
         )
@@ -74,7 +81,7 @@ fun LevelBucketCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(enabled = !isEmpty, onClick = onClick, onLongClick = onLongClick)
-                .alpha(if (isEmpty) 0.6f else 1f)
+                .alpha(if (isEmpty) Theme.opacity.hint else 1f)
                 .padding(Theme.spacing.cardPadding),
             horizontalArrangement = Arrangement.spacedBy(Theme.spacing.inlineGap),
             verticalAlignment = Alignment.CenterVertically
@@ -84,7 +91,7 @@ fun LevelBucketCard(
                 modifier = Modifier
                     .size(Theme.dimensions.iconSizeHuge)
                     .background(
-                        color = color.copy(alpha = 0.12f),
+                        color = color.copy(alpha = Theme.opacity.focus),
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -119,13 +126,15 @@ fun LevelBucketCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             // Count + label
@@ -142,7 +151,7 @@ fun LevelBucketCard(
                     color = countColor,
                 )
                 Text(
-                    text = if (count == 1) "WORD" else "WORDS",
+                    text = wordUnit.uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontSize = 10.sp,
                         letterSpacing = 0.6.sp

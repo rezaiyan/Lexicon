@@ -15,8 +15,8 @@ tags:
 # The Word Rush card title must be visible.
 - assertVisible: "Word Rush"
 
-# The Play button must be visible and enabled (words exist from prior import tests).
-- assertVisible: "Play"
+# The tile subtitle must show the combo hint or best streak, not the "add words" prompt.
+- assertNotVisible: "Add at least 4 words to play"
 
 # Take a screenshot of the study screen showing the Word Rush card.
 - takeScreenshot: screenshots/word_rush_card_on_study

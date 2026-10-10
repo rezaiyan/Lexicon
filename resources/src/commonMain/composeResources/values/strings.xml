@@ -1097,4 +1097,20 @@
     <string name="out_of_credits_upgrade_amount">Get %1$d credits every month</string>
     <string name="out_of_credits_upgrade">Upgrade to Premium</string>
     <string name="out_of_credits_type_instead">Type words instead</string>
+    <!-- Study tab -->
+    <string name="study_loading">Preparing your study session…</string>
+    <string name="study_load_failed">Something went wrong loading your progress.</string>
+    <string name="study_error_title">Oops!</string>
+    <string name="study_practice">Practice</string>
+    <string name="review_all_due">All due words</string>
+    <!-- %1$s: learning stage name -->
+    <string name="review_all_in_stage">All %1$s</string>
+    <!-- %1$d: number of learning stages with no words -->
+    <string name="show_empty_stages">Show %1$d empty stages</string>
+    <string name="hide_empty_stages">Hide empty stages</string>
+    <!-- Unit label shown under a word count, e.g. "12 / words" -->
+    <plurals name="words_unit">
+        <item quantity="one">word</item>
+        <item quantity="other">words</item>
+    </plurals>
 </resources>

@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import domain.word.model.ProgressEvaluation
 import domain.word.model.ProgressStats
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.due_count
@@ -47,6 +48,7 @@ import theme.Theme
 fun CollapsedStatsBar(
     visible: Boolean,
     stats: ProgressStats,
+    evaluation: ProgressEvaluation,
     modifier: Modifier = Modifier,
 ) {
     val enterTransition = slideInVertically(
@@ -76,7 +78,7 @@ fun CollapsedStatsBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
             ) {
-                MiniProgressRing(stats = stats)
+                MiniProgressRing(evaluation = evaluation)
 
                 // Weighted (fill = false) so it's measured after the pill and ellipsizes instead
                 Text(
@@ -148,42 +150,20 @@ private const val MaxDisplayedDue = 99
 
 @Composable
 private fun MiniProgressRing(
-    stats: ProgressStats,
+    evaluation: ProgressEvaluation,
 ) {
-    val progressFraction = if (stats.totalWords > 0) {
-        val weightedScore = (
-                stats.level1Count * 1 +
-                        stats.level2Count * 2 +
-                        stats.level3Count * 3 +
-                        stats.level4Count * 4 +
-                        stats.level5Count * 5 +
-                        stats.level6Count * 6
-                ).toFloat()
-        weightedScore / (stats.totalWords * 6f)
-    } else {
-        0f
-    }
-
-    val progressPercent = (progressFraction * 100).toInt()
-
-    val accentColor = if (stats.totalWords == 0 || progressPercent >= 90) {
-        AppColors.master
-    } else {
-        AppColors.secondary
-    }
-
     ProgressRing(
-        progress = progressFraction,
-        progressColor = accentColor,
+        progress = evaluation.progressFraction,
+        progressColor = progressAccent(evaluation.tier),
         modifier = Modifier.size(36.dp)
             .semantics {
-                stateDescription = "Progress: $progressPercent%"
+                stateDescription = "Progress: ${evaluation.progressPercent}%"
             },
         strokeWidth = 3.5.dp,
         trackColor = MaterialTheme.colorScheme.outlineVariant,
     ) {
         Text(
-            text = "$progressPercent",
+            text = "${evaluation.progressPercent}",
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 9.sp,
                 lineHeight = 9.sp,
