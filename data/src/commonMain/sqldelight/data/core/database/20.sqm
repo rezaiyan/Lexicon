@@ -1,0 +1,11 @@
+-- Migration from version 20 to version 21
+-- Insights coach: last server screen (raw JSON) and coach cards the user dismissed today.
+CREATE TABLE IF NOT EXISTS InsightsScreenCache (
+    id            INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    json          TEXT    NOT NULL,
+    fetched_at_ms INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS DismissedCoachCard (
+    card_id TEXT NOT NULL PRIMARY KEY
+);
