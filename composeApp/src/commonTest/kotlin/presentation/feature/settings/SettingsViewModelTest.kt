@@ -15,12 +15,20 @@ import domain.settings.usecase.SetThemeModeUseCase
 import domain.tts.model.TtsModelInfo
 import domain.tts.repository.ITtsRepository
 import domain.tts.model.TtsState
+import domain.settings.usecase.SetTtsExpressivenessUseCase
 import domain.settings.usecase.SetTtsVoiceUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
+import domain.tts.model.TtsSettings
+import domain.tts.model.TtsVoice
 import domain.tts.usecase.DeleteTtsModelUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
+import domain.tts.usecase.SelectTtsVoiceUseCase
+import domain.tts.usecase.SpeakWordUseCase
+import domain.tts.usecase.StopSpeakingUseCase
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -31,6 +39,7 @@ import feature.settings.SettingsViewModel
 import presentation.ViewModelTestBase
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SettingsViewModelTest : ViewModelTestBase() {
@@ -46,6 +55,17 @@ class SettingsViewModelTest : ViewModelTestBase() {
     private var reviewRemindersEnabledFlow = MutableStateFlow(true)
     private var lastSetDailyGoalWords: Int? = null
     private var storedDailyGoalWords: Int = 10
+    private var lastSetExpressiveness: Float? = null
+
+    // TTS fake state
+    private var modelDownloaded = false
+    private var selectedVoiceId = "en_US-kristin-medium"
+    private val selectVoiceCalls = mutableListOf<String>()
+    private var downloadCalls = 0
+    private var downloadShouldFail = false
+    private val spokenTexts = mutableListOf<String>()
+    private var speakGate: CompletableDeferred<Unit>? = null
+    private var stopCalls = 0
 
     private fun fakeSettingsRepo() = object : ISettingsRepository {
         override fun getThemeMode(): Flow<ThemeMode> = themeModeFlow
@@ -75,6 +95,10 @@ class SettingsViewModelTest : ViewModelTestBase() {
         override suspend fun setDailyGoalWords(count: Int): Try<Unit> {
             lastSetDailyGoalWords = count
             storedDailyGoalWords = count
+            return Try.success(Unit)
+        }
+        override suspend fun setTtsExpressiveness(value: Float): Try<Unit> {
+            lastSetExpressiveness = value
             return Try.success(Unit)
         }
     }
@@ -115,15 +139,44 @@ class SettingsViewModelTest : ViewModelTestBase() {
 
     private fun fakeTtsRepo() = object : ITtsRepository {
         override val ttsState: StateFlow<TtsState> = MutableStateFlow(TtsState.Idle)
-        override suspend fun speak(text: String, languageCode: String): Try<Unit> = Try.success(Unit)
-        override suspend fun stop(): Try<Unit> = Try.success(Unit)
-        override suspend fun isModelDownloaded(languageCode: String): Try<Boolean> = Try.success(false)
-        override suspend fun downloadModel(languageCode: String): Flow<Float> = flowOf(1.0f)
+        override suspend fun speak(text: String, languageCode: String): Try<Unit> {
+            spokenTexts += text
+            speakGate?.await()
+            return Try.success(Unit)
+        }
+        override suspend fun stop(): Try<Unit> {
+            stopCalls++
+            return Try.success(Unit)
+        }
+        override suspend fun isModelDownloaded(languageCode: String): Try<Boolean> = Try.success(modelDownloaded)
+        override suspend fun downloadModel(languageCode: String): Flow<Float> = flow {
+            downloadCalls++
+            emit(0.5f)
+            if (downloadShouldFail) error("network down")
+            modelDownloaded = true
+            emit(1.0f)
+        }
         override fun isLanguageSupported(languageCode: String): Boolean = true
         override fun getSupportedLanguageCodes(): Set<String> = setOf("en")
         override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> =
-            Try.success(TtsModelInfo(languageCode, displayName, false, 0L))
+            Try.success(
+                TtsModelInfo(
+                    languageCode = languageCode,
+                    languageDisplayName = displayName,
+                    isDownloaded = modelDownloaded,
+                    sizeBytes = if (modelDownloaded) 100L else 0L,
+                    voices = listOf(TtsVoice("en_US-kristin-medium", "Kristin", "US"), TtsVoice("en_GB-alan-medium", "Alan", "GB")),
+                    selectedVoiceId = selectedVoiceId,
+                    sampleText = SAMPLE,
+                )
+            )
         override suspend fun deleteModel(languageCode: String): Try<Unit> = Try.success(Unit)
+        override suspend fun selectVoice(languageCode: String, voiceId: String): Try<Unit> {
+            selectVoiceCalls += voiceId
+            selectedVoiceId = voiceId
+            modelDownloaded = false
+            return Try.success(Unit)
+        }
     }
 
     private fun createViewModel(): SettingsViewModel {
@@ -144,6 +197,10 @@ class SettingsViewModelTest : ViewModelTestBase() {
             downloadTtsModelUseCase = DownloadTtsModelUseCase(ttsRepo),
             setTtsSpeechRateUseCase = SetTtsSpeechRateUseCase(settingsRepo),
             setTtsVoiceUseCase = SetTtsVoiceUseCase(settingsRepo),
+            setTtsExpressivenessUseCase = SetTtsExpressivenessUseCase(settingsRepo),
+            selectTtsVoiceUseCase = SelectTtsVoiceUseCase(ttsRepo),
+            speakWordUseCase = SpeakWordUseCase(ttsRepo),
+            stopSpeakingUseCase = StopSpeakingUseCase(ttsRepo),
             getDailyGoalWordsUseCase = GetDailyGoalWordsUseCase(settingsRepo),
             setDailyGoalWordsUseCase = SetDailyGoalWordsUseCase(settingsRepo),
             settingsRepository = settingsRepo,
@@ -206,5 +263,112 @@ class SettingsViewModelTest : ViewModelTestBase() {
         vm.setDailyGoalWords(30)
         assertEquals(30, lastSetDailyGoalWords)
         assertEquals(30, vm.currentState.dailyGoalWords)
+    }
+
+    @Test
+    fun `selectTtsModelVoice when model downloaded switches voice and downloads it`() = runTest {
+        modelDownloaded = true
+        val vm = createViewModel()
+        vm.loadTtsModels()
+
+        vm.selectTtsModelVoice("en", "en_GB-alan-medium")
+
+        assertEquals(listOf("en_GB-alan-medium"), selectVoiceCalls)
+        assertEquals(1, downloadCalls)
+        val model = vm.currentState.ttsModels.single()
+        assertTrue(model.isDownloaded)
+        assertEquals("en_GB-alan-medium", model.selectedVoiceId)
+        assertTrue(vm.currentState.ttsDownloadProgress.isEmpty())
+    }
+
+    @Test
+    fun `selectTtsModelVoice when model not downloaded only records choice`() = runTest {
+        val vm = createViewModel()
+        vm.loadTtsModels()
+
+        vm.selectTtsModelVoice("en", "en_GB-alan-medium")
+
+        assertEquals(listOf("en_GB-alan-medium"), selectVoiceCalls)
+        assertEquals(0, downloadCalls)
+        assertEquals("en_GB-alan-medium", vm.currentState.ttsModels.single().selectedVoiceId)
+    }
+
+    @Test
+    fun `selectTtsModelVoice when voice already selected does nothing`() = runTest {
+        modelDownloaded = true
+        val vm = createViewModel()
+        vm.loadTtsModels()
+
+        vm.selectTtsModelVoice("en", "en_US-kristin-medium")
+
+        assertTrue(selectVoiceCalls.isEmpty())
+        assertEquals(0, downloadCalls)
+    }
+
+    @Test
+    fun `downloadTtsModel when download fails clears progress and keeps model not downloaded`() = runTest {
+        downloadShouldFail = true
+        val vm = createViewModel()
+        vm.loadTtsModels()
+
+        vm.downloadTtsModel("en")
+
+        assertTrue(vm.currentState.ttsDownloadProgress.isEmpty())
+        assertEquals(false, vm.currentState.ttsModels.single().isDownloaded)
+    }
+
+    @Test
+    fun `previewTtsVoice when model downloaded speaks sample and marks language while playing`() = runTest {
+        modelDownloaded = true
+        speakGate = CompletableDeferred()
+        val vm = createViewModel()
+        vm.loadTtsModels()
+
+        vm.previewTtsVoice("en")
+
+        assertEquals(listOf(SAMPLE), spokenTexts)
+        assertEquals("en", vm.currentState.ttsPreviewLanguage)
+
+        speakGate?.complete(Unit)
+        assertNull(vm.currentState.ttsPreviewLanguage)
+    }
+
+    @Test
+    fun `previewTtsVoice when model not downloaded does not speak`() = runTest {
+        val vm = createViewModel()
+        vm.loadTtsModels()
+
+        vm.previewTtsVoice("en")
+
+        assertTrue(spokenTexts.isEmpty())
+        assertNull(vm.currentState.ttsPreviewLanguage)
+    }
+
+    @Test
+    fun `stopTtsPreview stops playback and clears preview state`() = runTest {
+        modelDownloaded = true
+        speakGate = CompletableDeferred()
+        val vm = createViewModel()
+        vm.loadTtsModels()
+        vm.previewTtsVoice("en")
+        val stopsBefore = stopCalls
+
+        vm.stopTtsPreview()
+
+        assertNull(vm.currentState.ttsPreviewLanguage)
+        assertTrue(stopCalls > stopsBefore)
+    }
+
+    @Test
+    fun `setTtsExpressiveness persists value clamped to range`() = runTest {
+        val vm = createViewModel()
+
+        vm.setTtsExpressiveness(5f)
+
+        assertEquals(TtsSettings.MAX_EXPRESSIVENESS, lastSetExpressiveness)
+    }
+
+    private companion object {
+        const val SAMPLE = "Hello! This is how I will read your words."
     }
 }

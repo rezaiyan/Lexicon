@@ -180,4 +180,56 @@ class LanguageModelMappingTest {
     fun `supportedLanguages does not contain unknown code`() {
         assertFalse(LanguageModelMapping.supportedLanguages.contains("xx"))
     }
+
+    // -------------------------------------------------------------------------
+    // Voices
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun `getModelInfo without voice keeps the pre-voice-choice default models`() {
+        // Installs made before voice choice have these on disk with no stored voice id.
+        val legacy = mapOf(
+            "en" to "en_US-kristin-medium", "de" to "de_DE-thorsten-medium", "es" to "es_MX-ald-medium",
+            "fr" to "fr_FR-siwis-medium", "it" to "it_IT-riccardo-x_low", "pt" to "pt_BR-faber-medium",
+            "ru" to "ru_RU-ruslan-medium", "zh" to "zh_CN-huayan-medium", "tr" to "tr_TR-fettah-medium",
+            "nl" to "nl_NL-miro-high", "ar" to "ar_JO-kareem-medium", "hi" to "hi_IN-rohan-medium",
+            "fa" to "fa-haaniye_low",
+        )
+        legacy.forEach { (code, voiceId) ->
+            assertEquals(voiceId, LanguageModelMapping.getModelInfo(code)?.voiceId, "default for $code")
+        }
+    }
+
+    @Test
+    fun `getModelInfo with known voice returns that voice`() {
+        val info = LanguageModelMapping.getModelInfo("en", "en_GB-alan-medium")
+        assertEquals("en_GB-alan-medium", info?.voiceId)
+        assertEquals("vits-piper-en_GB-alan-medium", info?.extractedDirName)
+    }
+
+    @Test
+    fun `getModelInfo with unknown voice falls back to default voice`() {
+        assertEquals("en_US-kristin-medium", LanguageModelMapping.getModelInfo("en", "nope")?.voiceId)
+    }
+
+    @Test
+    fun `getVoices lists voice ids unique within each language`() {
+        LanguageModelMapping.supportedLanguages.forEach { code ->
+            val ids = LanguageModelMapping.getVoices(code).map { it.id }
+            assertTrue(ids.isNotEmpty(), "voices for $code")
+            assertEquals(ids.size, ids.toSet().size, "duplicate voice ids for $code")
+        }
+    }
+
+    @Test
+    fun `getSampleText is non-blank for every supported language`() {
+        LanguageModelMapping.supportedLanguages.forEach { code ->
+            assertTrue(LanguageModelMapping.getSampleText(code).isNotBlank(), "sample text for $code")
+        }
+    }
+
+    @Test
+    fun `getVoices for unknown language is empty`() {
+        assertTrue(LanguageModelMapping.getVoices("xx").isEmpty())
+    }
 }

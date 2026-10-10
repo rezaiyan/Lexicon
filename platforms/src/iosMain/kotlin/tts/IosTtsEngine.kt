@@ -36,7 +36,7 @@ class IosTtsEngine : ITtsEngine {
     private var currentSampleRate: Int = 0
     private var audioPlayer: AVAudioPlayer? = null
 
-    override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String) {
+    override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String, noiseScale: Float) {
         withContext(Dispatchers.IO) {
             release()
 
@@ -47,7 +47,7 @@ class IosTtsEngine : ITtsEngine {
                 config.model.vits.model = modelPath.cstr.ptr
                 config.model.vits.tokens = tokensPath.cstr.ptr
                 config.model.vits.data_dir = dataDir.cstr.ptr
-                config.model.vits.noise_scale = 0.667f
+                config.model.vits.noise_scale = noiseScale
                 config.model.vits.noise_scale_w = 0.8f
                 config.model.vits.length_scale = 1.0f
                 config.model.num_threads = 2

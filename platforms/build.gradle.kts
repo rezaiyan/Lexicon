@@ -66,7 +66,7 @@ kotlin {
             implementation(libs.google.firebase.crashlytics)
             implementation(libs.google.firebase.messaging)
             implementation(libs.google.firebase.perf)
-            implementation(files("libs/sherpa-onnx-1.12.26.aar"))
+            implementation(files("libs/sherpa-onnx-1.13.8.aar"))
             implementation(libs.commons.compress)
             implementation(libs.work.runtime)
         }

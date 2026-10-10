@@ -725,6 +725,14 @@
     <string name="tts_voice_speaker">Speaker %1$d</string>
     <string name="tts_playback_settings">Playback Settings</string>
     <string name="tts_all_languages">All Languages</string>
+    <string name="tts_expressiveness">Expressiveness</string>
+    <string name="tts_expressiveness_hint">Lower sounds steadier and clearer on single words. Higher sounds more natural.</string>
+    <string name="tts_expressiveness_steady">Steady</string>
+    <string name="tts_expressiveness_balanced">Balanced</string>
+    <string name="tts_expressiveness_expressive">Expressive</string>
+    <string name="tts_voice_preview">Play sample</string>
+    <string name="tts_voice_preview_stop">Stop sample</string>
+    <string name="tts_voice_switch_hint">Choosing another voice downloads it and replaces the current one.</string>
 
     <!-- Image Word Review -->
     <string name="image_review_title">Review Extracted Words</string>

@@ -624,6 +624,14 @@
     <string name="tts_models_delete_all_message">ダウンロード済みのすべての音声モデルが削除されます。必要に応じて自動的に再ダウンロードされます。</string>
     <string name="tts_models_none_downloaded">ダウンロード済みのモデルはありません</string>
     <string name="tts_playback_speed">再生速度</string>
+    <string name="tts_expressiveness">表現の豊かさ</string>
+    <string name="tts_expressiveness_hint">低いほど単語が安定してはっきり聞こえ、高いほど自然に聞こえます。</string>
+    <string name="tts_expressiveness_steady">安定</string>
+    <string name="tts_expressiveness_balanced">バランス</string>
+    <string name="tts_expressiveness_expressive">表情豊か</string>
+    <string name="tts_voice_preview">サンプルを再生</string>
+    <string name="tts_voice_preview_stop">サンプルを停止</string>
+    <string name="tts_voice_switch_hint">別の音声を選ぶとダウンロードされ、現在の音声と置き換わります。</string>
     <string name="tts_playback_speed_value">%1$sx</string>
     <string name="tts_voice_selection">音声</string>
     <string name="tts_voice_speaker">スピーカー %1$d</string>

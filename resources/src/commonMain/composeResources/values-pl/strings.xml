@@ -624,6 +624,14 @@
     <string name="tts_models_delete_all_message">Wszystkie pobrane modele głosowe zostaną usunięte. Zostaną automatycznie pobrane ponownie, gdy będą potrzebne.</string>
     <string name="tts_models_none_downloaded">Brak pobranych modeli</string>
     <string name="tts_playback_speed">Prędkość odtwarzania</string>
+    <string name="tts_expressiveness">Ekspresja</string>
+    <string name="tts_expressiveness_hint">Niżej brzmi stabilniej i wyraźniej przy pojedynczych słowach. Wyżej brzmi naturalniej.</string>
+    <string name="tts_expressiveness_steady">Stabilnie</string>
+    <string name="tts_expressiveness_balanced">Zrównoważenie</string>
+    <string name="tts_expressiveness_expressive">Ekspresyjnie</string>
+    <string name="tts_voice_preview">Odtwórz próbkę</string>
+    <string name="tts_voice_preview_stop">Zatrzymaj próbkę</string>
+    <string name="tts_voice_switch_hint">Wybranie innego głosu pobierze go i zastąpi obecny.</string>
     <string name="tts_playback_speed_value">%1$sx</string>
     <string name="tts_voice_selection">Głos</string>
     <string name="tts_voice_speaker">Głośnik %1$d</string>

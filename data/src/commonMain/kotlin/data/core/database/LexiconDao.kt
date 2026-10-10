@@ -1,5 +1,6 @@
 package data.core.database
 
+import domain.tts.model.TtsSettings
 import kotlin.time.Clock
 
 /**
@@ -37,4 +38,5 @@ data class SettingsEntityData(
     val ttsSpeakerId: Int = 0,
     val skipTagSelector: Boolean = false,
     val dailyGoalWords: Int = 10,
+    val ttsExpressiveness: Float = TtsSettings.DEFAULT_EXPRESSIVENESS,
 )

@@ -23,7 +23,7 @@ class AndroidTtsEngine : ITtsEngine {
     private var audioTrack: AudioTrack? = null
     private var currentSampleRate: Int = 0
 
-    override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String) {
+    override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String, noiseScale: Float) {
         withContext(Dispatchers.IO) {
             release()
 
@@ -31,11 +31,13 @@ class AndroidTtsEngine : ITtsEngine {
             Log.d(TAG, "  model: $modelPath")
             Log.d(TAG, "  tokens: $tokensPath")
             Log.d(TAG, "  dataDir: $dataDir")
+            Log.d(TAG, "  noiseScale: $noiseScale")
 
             val vitsConfig = OfflineTtsVitsModelConfig().apply {
                 model = modelPath
                 tokens = tokensPath
                 this.dataDir = dataDir
+                this.noiseScale = noiseScale
             }
 
             val modelConfig = OfflineTtsModelConfig().apply {

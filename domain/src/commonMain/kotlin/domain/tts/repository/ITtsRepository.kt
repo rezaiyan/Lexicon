@@ -16,4 +16,10 @@ interface ITtsRepository {
     fun getSupportedLanguageCodes(): Set<String>
     suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo>
     suspend fun deleteModel(languageCode: String): Try<Unit>
+
+    /**
+     * Makes [voiceId] the language's voice. A different voice already on disk is removed, so the
+     * next [downloadModel] fetches the new one. Default keeps existing fakes compiling.
+     */
+    suspend fun selectVoice(languageCode: String, voiceId: String): Try<Unit> = Try.success(Unit)
 }

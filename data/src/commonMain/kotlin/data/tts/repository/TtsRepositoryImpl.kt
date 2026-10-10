@@ -2,6 +2,7 @@ package data.tts.repository
 
 import core.common.Try
 import core.common.getOrDefault
+import core.common.getOrThrow
 import data.tts.LanguageModelMapping
 import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsModelInfo
@@ -39,10 +40,13 @@ class TtsRepositoryImpl(
     private val engines = LinkedHashMap<String, ITtsEngine>()
     private val engineMutex = Mutex()
 
-    override suspend fun speak(text: String, languageCode: String): Try<Unit> = Try {
-        val engine = engineFor(languageCode) ?: return@Try
+    // Noise scale each loaded engine was built with; a settings change forces a reload.
+    private val engineNoiseScales = mutableMapOf<String, Float>()
 
+    override suspend fun speak(text: String, languageCode: String): Try<Unit> = Try {
         val ttsSettings = settingsRepository.getTtsSettings().first()
+        val engine = engineFor(languageCode, ttsSettings.expressiveness) ?: return@Try
+
         val speakerId = settingsRepository.getTtsVoiceForLanguage(languageCode).first()
         _ttsState.value = TtsState.Speaking
         engine.synthesizeAndPlay(text, ttsSettings.speechRate, speakerId)
@@ -55,9 +59,9 @@ class TtsRepositoryImpl(
     }
 
     /** Returns a ready engine for [languageCode], loading it (and evicting the LRU one) if needed. */
-    private suspend fun engineFor(languageCode: String): ITtsEngine? = engineMutex.withLock {
+    private suspend fun engineFor(languageCode: String, noiseScale: Float): ITtsEngine? = engineMutex.withLock {
         engines.remove(languageCode)?.let { loaded ->
-            if (loaded.isInitialized()) {
+            if (loaded.isInitialized() && engineNoiseScales[languageCode] == noiseScale) {
                 engines[languageCode] = loaded
                 return@withLock loaded
             }
@@ -78,10 +82,11 @@ class TtsRepositoryImpl(
         while (engines.size >= MAX_LOADED_ENGINES) {
             val eldest = engines.keys.first()
             engines.remove(eldest)?.release()
+            engineNoiseScales.remove(eldest)
         }
 
         val engine = engineFactory()
-        engine.initialize(modelPath, tokensPath, dataDir)
+        engine.initialize(modelPath, tokensPath, dataDir, noiseScale)
 
         if (!engine.isInitialized()) {
             engine.release()
@@ -90,6 +95,7 @@ class TtsRepositoryImpl(
         }
 
         engines[languageCode] = engine
+        engineNoiseScales[languageCode] = noiseScale
         settingsRepository.cacheNumSpeakersForLanguage(languageCode, engine.numSpeakers())
         engine
     }
@@ -99,7 +105,8 @@ class TtsRepositoryImpl(
     }
 
     override suspend fun downloadModel(languageCode: String): Flow<Float> {
-        val modelInfo = LanguageModelMapping.getModelInfo(languageCode)
+        val voiceId = settingsRepository.getTtsVoiceIdForLanguage(languageCode).first()
+        val modelInfo = LanguageModelMapping.getModelInfo(languageCode, voiceId)
         if (modelInfo == null) {
             _ttsState.value = TtsState.Error("No model available for $languageCode")
             return flow {}
@@ -130,6 +137,7 @@ class TtsRepositoryImpl(
     }
 
     override suspend fun getModelInfo(languageCode: String, displayName: String): Try<TtsModelInfo> = Try {
+        val voiceId = settingsRepository.getTtsVoiceIdForLanguage(languageCode).first()
         val isDownloaded = modelFileManager.isModelPresent(languageCode)
         val sizeBytes = if (isDownloaded) {
             modelFileManager.getModelDirectorySize(languageCode)
@@ -142,7 +150,7 @@ class TtsRepositoryImpl(
         } else if (isDownloaded) {
             Try { settingsRepository.getNumSpeakersForLanguage(languageCode).first() }.getOrDefault(1)
         } else {
-            LanguageModelMapping.getModelInfo(languageCode)?.numSpeakers ?: 1
+            LanguageModelMapping.getModelInfo(languageCode, voiceId)?.numSpeakers ?: 1
         }
         TtsModelInfo(
             languageCode = languageCode,
@@ -150,12 +158,34 @@ class TtsRepositoryImpl(
             isDownloaded = isDownloaded,
             sizeBytes = sizeBytes,
             numSpeakers = numSpeakers,
+            voices = LanguageModelMapping.getVoices(languageCode),
+            selectedVoiceId = LanguageModelMapping.getModelInfo(languageCode, voiceId)?.voiceId,
+            sampleText = LanguageModelMapping.getSampleText(languageCode),
         )
     }
 
     override suspend fun deleteModel(languageCode: String): Try<Unit> = Try {
         // If the language being deleted is loaded, release its engine
         engineMutex.withLock { engines.remove(languageCode)?.release() }
+        modelFileManager.deleteModelFiles(languageCode)
+    }
+
+    override suspend fun selectVoice(languageCode: String, voiceId: String): Try<Unit> = Try {
+        val requested = requireNotNull(LanguageModelMapping.getModelInfo(languageCode, voiceId)) {
+            "No TTS voices for $languageCode"
+        }
+        require(requested.voiceId == voiceId) { "Unknown voice $voiceId for $languageCode" }
+
+        val currentId = settingsRepository.getTtsVoiceIdForLanguage(languageCode).first()
+        val current = LanguageModelMapping.getModelInfo(languageCode, currentId)
+        if (current?.voiceId == voiceId) return@Try
+
+        settingsRepository.setTtsVoiceIdForLanguage(languageCode, voiceId).getOrThrow()
+        // One voice per language on disk: drop the old model so the next download fetches the new one.
+        engineMutex.withLock {
+            engines.remove(languageCode)?.release()
+            engineNoiseScales.remove(languageCode)
+        }
         modelFileManager.deleteModelFiles(languageCode)
     }
 

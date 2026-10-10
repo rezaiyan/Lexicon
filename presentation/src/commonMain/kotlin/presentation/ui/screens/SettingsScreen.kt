@@ -94,7 +94,14 @@ private fun SettingsSections() {
                     overlayHost.showSizeToFitBottomSheet(tag = "tts-model-cache") { nav ->
                         val currentState by viewModel.state()
                         val pages = rememberBottomSheetPageNavigator<TtsSheetPage>(TtsSheetPage.Voices)
-                        BottomSheetPages(navigator = pages, onClose = { nav.dismiss() }, label = "ttsPages") { page ->
+                        BottomSheetPages(
+                            navigator = pages,
+                            onClose = {
+                                viewModel.stopTtsPreview()
+                                nav.dismiss()
+                            },
+                            label = "ttsPages",
+                        ) { page ->
                             when (page) {
                                 TtsSheetPage.Voices -> TtsVoiceManagerContent(
                                     models = currentState.ttsModels,
@@ -116,6 +123,11 @@ private fun SettingsSections() {
                                     onVoiceSelected = { languageCode, speakerId ->
                                         viewModel.setTtsVoice(languageCode, speakerId)
                                     },
+                                    previewLanguage = currentState.ttsPreviewLanguage,
+                                    onExpressivenessChanged = viewModel::setTtsExpressiveness,
+                                    onVoiceModelSelected = viewModel::selectTtsModelVoice,
+                                    onPreview = viewModel::previewTtsVoice,
+                                    onStopPreview = viewModel::stopTtsPreview,
                                 )
 
                                 is TtsSheetPage.ConfirmDelete -> TtsDeleteConfirmationContent(
