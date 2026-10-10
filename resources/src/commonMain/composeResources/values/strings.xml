@@ -1137,4 +1137,50 @@
         <item quantity="one">word</item>
         <item quantity="other">words</item>
     </plurals>
+
+    <!-- Insights coach -->
+    <string name="insights_coach_this_week">This week</string>
+    <string name="insights_coach_reviews">Reviews</string>
+    <string name="insights_coach_accuracy">Accuracy</string>
+    <string name="insights_coach_leveled_up">Words leveled up</string>
+    <string name="insights_coach_accuracy_locked">After 20 reviews</string>
+    <string name="insights_coach_change_more">▲ %1$d more than last week</string>
+    <string name="insights_coach_change_fewer">▼ %1$d fewer than last week</string>
+    <string name="insights_coach_change_points_up">▲ %1$d points vs last week</string>
+    <string name="insights_coach_change_points_down">▼ %1$d points vs last week</string>
+    <string name="insights_coach_change_same">Same as last week</string>
+    <string name="insights_coach_streak">%1$d-day streak</string>
+    <string name="insights_coach_next_steps">Your next steps</string>
+    <string name="insights_coach_dismiss">Hide for today</string>
+    <string name="insights_coach_more_words">+%1$d more</string>
+    <string name="insights_coach_reminder_at">Daily at %1$s</string>
+    <string name="insights_coach_deep_dive">Dig deeper</string>
+    <string name="insights_coach_section_mastery">Mastery journey</string>
+    <string name="insights_coach_section_habits">Study habits</string>
+    <string name="insights_coach_section_words">Your words</string>
+    <string name="insights_coach_section_word_rush">Word Rush</string>
+    <string name="insights_coach_locked">Unlocks after %1$d more reviews</string>
+    <string name="insights_coach_stage">Stage %1$d</string>
+    <string name="insights_coach_moved_up">%1$d moved up</string>
+    <string name="insights_coach_slipped">%1$d slipped back</string>
+    <string name="insights_coach_best_hour">Sharpest hour: %1$s (%2$d%% right)</string>
+    <string name="insights_coach_hardest">Hardest words</string>
+    <string name="insights_coach_comebacks">Comeback wins</string>
+    <string name="insights_coach_games_played">Games played</string>
+    <string name="insights_coach_best_score">Best score</string>
+    <string name="insights_coach_updated_just_now">Updated just now</string>
+    <string name="insights_coach_updated_minutes">Updated %1$dm ago</string>
+    <string name="insights_coach_updated_hours">Updated %1$dh ago</string>
+    <string name="insights_coach_updated_days">Updated %1$dd ago</string>
+    <string name="insights_coach_welcome_title">Your insights start here</string>
+    <string name="insights_coach_welcome_body">Finish your first review and we'll show how you're doing and what to study next.</string>
+    <string name="insights_coach_welcome_action">Start your first review</string>
+    <string name="insights_coach_reminder_on">Daily reminder is on</string>
+    <string name="weekday_initial_1">M</string>
+    <string name="weekday_initial_2">T</string>
+    <string name="weekday_initial_3">W</string>
+    <string name="weekday_initial_4">T</string>
+    <string name="weekday_initial_5">F</string>
+    <string name="weekday_initial_6">S</string>
+    <string name="weekday_initial_7">S</string>
 </resources>
