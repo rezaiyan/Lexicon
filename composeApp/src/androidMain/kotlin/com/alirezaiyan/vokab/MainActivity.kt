@@ -44,7 +44,11 @@ class MainActivity : ComponentActivity() {
      */
     private fun reportNotificationTap(intent: Intent?) {
         intent ?: return
-        val data = listOf(NOTIFICATION_LOG_ID_KEY, NotificationTapHandler.TYPE_KEY)
+        val data = listOf(
+            NOTIFICATION_LOG_ID_KEY,
+            NotificationTapHandler.TYPE_KEY,
+            NotificationTapHandler.DEEP_LINK_KEY,
+        )
             .mapNotNull { key -> intent.getStringExtra(key)?.let { key to it } }
             .toMap()
         if (data.isEmpty()) return

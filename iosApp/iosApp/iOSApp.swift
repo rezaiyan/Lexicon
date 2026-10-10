@@ -384,7 +384,8 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         if actionIdentifier != UNNotificationDismissActionIdentifier {
             MainViewControllerKt.notifyNotificationTapped(
                 notificationLogId: userInfo["notification_log_id"] as? String,
-                type: userInfo["type"] as? String
+                type: userInfo["type"] as? String,
+                deepLink: userInfo["deep_link"] as? String
             )
         }
         

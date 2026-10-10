@@ -104,12 +104,13 @@ fun clearUserData() {
 
 /**
  * Called from Swift's didReceive with the push's notification_log_id (absent for local
- * notifications) and type (decides which screen the tap opens).
+ * notifications), type and deep_link (together decide which screen the tap opens).
  */
-fun notifyNotificationTapped(notificationLogId: String?, type: String?) {
+fun notifyNotificationTapped(notificationLogId: String?, type: String?, deepLink: String?) {
     val data = buildMap {
         notificationLogId?.let { put(ReportNotificationOpenedUseCase.NOTIFICATION_LOG_ID_KEY, it) }
         type?.let { put(NotificationTapHandler.TYPE_KEY, it) }
+        deepLink?.let { put(NotificationTapHandler.DEEP_LINK_KEY, it) }
     }
     if (data.isEmpty()) return
     startKoinIfNeeded()
