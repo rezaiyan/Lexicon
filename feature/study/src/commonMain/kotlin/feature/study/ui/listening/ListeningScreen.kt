@@ -33,6 +33,7 @@ import components.ErrorScreen
 import components.LoadingScreen
 import domain.listening.model.ListeningOrder
 import domain.listening.model.ListeningSource
+import expects.BackHandler
 import feature.study.listening.ListeningScreenState
 import feature.study.listening.ListeningState
 import feature.study.listening.ListeningViewModel
@@ -105,6 +106,11 @@ class ListeningActions(
 @Composable
 fun ListeningContent(state: ListeningState, actions: ListeningActions) {
     var showSettings by rememberSaveable { mutableStateOf(false) }
+
+    // System back closes the settings panel first, then leaves like the close button.
+    BackHandler {
+        if (showSettings) showSettings = false else actions.onDismiss()
+    }
 
     // Opaque, tap-absorbing root: the overlay sits above the Study tab, which must not receive touches.
     Box(
