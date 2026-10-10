@@ -72,7 +72,6 @@ import lexicon.resources.generated.resources.listening_phase_paused
 import lexicon.resources.generated.resources.listening_phase_recall
 import lexicon.resources.generated.resources.listening_play
 import lexicon.resources.generated.resources.listening_previous
-import lexicon.resources.generated.resources.listening_recent_fallback
 import lexicon.resources.generated.resources.listening_round
 import lexicon.resources.generated.resources.listening_seconds
 import lexicon.resources.generated.resources.listening_setting_order
@@ -114,18 +113,6 @@ internal fun PlayerContent(
             height = PROGRESS_HEIGHT,
             modifier = Modifier.padding(top = Theme.spacing.xs),
         )
-        if (active.isRecentFallback) {
-            Text(
-                text = stringResource(Res.string.listening_recent_fallback),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = Theme.spacing.sm),
-            )
-        }
-
         Spacer(Modifier.height(Theme.spacing.md))
         WordCard(
             active = active,
@@ -375,57 +362,73 @@ private fun TransportControls(isPlaying: Boolean, actions: ListeningActions) {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun ListeningSettingsPanel(
+internal fun ListeningSettingsPanel(
     settings: ListeningSettings,
     speechRate: Float,
     actions: ListeningActions,
     modifier: Modifier = Modifier,
 ) {
     SheetGroup(modifier = modifier) {
-        Column(
+        ListeningSettingsRows(
+            settings = settings,
+            speechRate = speechRate,
+            actions = actions,
             modifier = Modifier.padding(Theme.spacing.sm),
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
-        ) {
-            SettingRow(label = stringResource(Res.string.listening_setting_pause)) {
-                ListeningSettings.PAUSE_OPTIONS_MS.forEach { option ->
-                    OptionChip(
-                        text = stringResource(Res.string.listening_seconds, (option / 1_000).toInt()),
-                        selected = settings.pauseMs == option,
-                        onClick = { actions.onPauseSelected(option) },
-                    )
-                }
+        )
+    }
+}
+
+/** Pause, order, repeat and speed rows, without a container; shared by the player and setup. */
+@Composable
+internal fun ListeningSettingsRows(
+    settings: ListeningSettings,
+    speechRate: Float,
+    actions: ListeningActions,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+    ) {
+        SettingRow(label = stringResource(Res.string.listening_setting_pause)) {
+            ListeningSettings.PAUSE_OPTIONS_MS.forEach { option ->
+                OptionChip(
+                    text = stringResource(Res.string.listening_seconds, (option / 1_000).toInt()),
+                    selected = settings.pauseMs == option,
+                    onClick = { actions.onPauseSelected(option) },
+                )
             }
-            SettingRow(label = stringResource(Res.string.listening_setting_order)) {
-                ListeningOrder.entries.forEach { order ->
-                    OptionChip(
-                        text = stringResource(
-                            when (order) {
-                                ListeningOrder.WORD_FIRST -> Res.string.listening_order_word_first
-                                ListeningOrder.TRANSLATION_FIRST -> Res.string.listening_order_translation_first
-                            }
-                        ),
-                        selected = settings.order == order,
-                        onClick = { actions.onOrderSelected(order) },
-                    )
-                }
+        }
+        SettingRow(label = stringResource(Res.string.listening_setting_order)) {
+            ListeningOrder.entries.forEach { order ->
+                OptionChip(
+                    text = stringResource(
+                        when (order) {
+                            ListeningOrder.WORD_FIRST -> Res.string.listening_order_word_first
+                            ListeningOrder.TRANSLATION_FIRST -> Res.string.listening_order_translation_first
+                        }
+                    ),
+                    selected = settings.order == order,
+                    onClick = { actions.onOrderSelected(order) },
+                )
             }
-            SettingRow(label = stringResource(Res.string.listening_setting_repeat)) {
-                for (count in ListeningSettings.MIN_REPEAT..ListeningSettings.MAX_REPEAT) {
-                    OptionChip(
-                        text = stringResource(Res.string.listening_times, count),
-                        selected = settings.repeatCount == count,
-                        onClick = { actions.onRepeatSelected(count) },
-                    )
-                }
+        }
+        SettingRow(label = stringResource(Res.string.listening_setting_repeat)) {
+            for (count in ListeningSettings.MIN_REPEAT..ListeningSettings.MAX_REPEAT) {
+                OptionChip(
+                    text = stringResource(Res.string.listening_times, count),
+                    selected = settings.repeatCount == count,
+                    onClick = { actions.onRepeatSelected(count) },
+                )
             }
-            SettingRow(label = stringResource(Res.string.listening_setting_speed)) {
-                SPEED_OPTIONS.forEach { speed ->
-                    OptionChip(
-                        text = "${speed}×",
-                        selected = speechRate == speed,
-                        onClick = { actions.onSpeedSelected(speed) },
-                    )
-                }
+        }
+        SettingRow(label = stringResource(Res.string.listening_setting_speed)) {
+            SPEED_OPTIONS.forEach { speed ->
+                OptionChip(
+                    text = "${speed}×",
+                    selected = speechRate == speed,
+                    onClick = { actions.onSpeedSelected(speed) },
+                )
             }
         }
     }
@@ -454,7 +457,7 @@ private fun SettingRow(label: String, chips: @Composable () -> Unit) {
 
 /** Brand-tinted chip: the default FilterChip selection colour is the green secondary. */
 @Composable
-private fun OptionChip(text: String, selected: Boolean, onClick: () -> Unit) {
+internal fun OptionChip(text: String, selected: Boolean, onClick: () -> Unit) {
     val primary = MaterialTheme.colorScheme.primary
     FilterChip(
         selected = selected,

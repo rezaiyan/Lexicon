@@ -988,13 +988,12 @@
 
     <!-- Listening mode -->
     <string name="listening_title">Listening mode</string>
-    <string name="listening_card_subtitle">Hands-free: hear each word, then its meaning</string>
+    <string name="listening_card_subtitle">Pick words by level or tag and listen hands-free</string>
     <string name="listening_card_action">Listen</string>
     <string name="listening_card_add_words">Add a few words to start listening</string>
     <string name="listening_loading">Preparing your words…</string>
     <string name="listening_empty_title">Nothing to listen to yet</string>
     <string name="listening_empty_subtitle">Add a few words and come back.</string>
-    <string name="listening_recent_fallback">Nothing due today, playing your newest words</string>
     <string name="listening_progress">%1$d / %2$d</string>
     <string name="listening_play">Play</string>
     <string name="listening_pause_playback">Pause</string>
@@ -1040,6 +1039,22 @@
     <string name="add_words_problem_empty_file">This file is empty.</string>
     <string name="add_words_problem_nothing_in_photo">No words found in this photo. Try a sharper, well-lit shot.</string>
     <string name="add_words_problem_nothing_suggested">No suggestions this time. Try other topics.</string>
+    <string name="listening_setup_intro">Hear a word, recall its meaning in the pause, then hear the answer. Nothing is graded.</string>
+    <string name="listening_setup_words">Words to play</string>
+    <string name="listening_source_due">Due</string>
+    <string name="listening_source_all">All</string>
+    <string name="listening_source_level">Level</string>
+    <string name="listening_source_tag">Tag</string>
+    <string name="listening_due_summary">%1$d words due for review, most overdue first</string>
+    <string name="listening_all_summary">All %1$d words, newest first</string>
+    <string name="listening_pause_summary">%1$ds pause</string>
+    <string name="listening_setup_how_many">How many</string>
+    <string name="listening_limit_all">All (%1$d)</string>
+    <string name="listening_shuffle">Shuffle</string>
+    <string name="listening_setup_playback">Playback</string>
+    <string name="listening_start">Start listening · %1$d words</string>
+    <string name="listening_estimate">About %1$d min</string>
+    <string name="listening_change_words">Choose other words</string>
     <string name="add_words_problem_image_unreadable">Couldn't read this image. Try another photo.</string>
     <string name="add_words_problem_image_too_large">This photo is too large. Try a smaller one.</string>
     <string name="add_words_problem_missing_term">Enter the word.</string>

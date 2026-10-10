@@ -40,6 +40,7 @@ import domain.listening.model.LanguageVoice
 import domain.listening.model.VoiceStatus
 import feature.study.listening.ListeningScreenState
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.listening_change_words
 import lexicon.resources.generated.resources.listening_done
 import lexicon.resources.generated.resources.listening_download_failed
 import lexicon.resources.generated.resources.listening_download_voices
@@ -253,8 +254,13 @@ internal fun FinishedContent(finished: ListeningScreenState.Finished, actions: L
             )
             SheetTonalButton(
                 text = stringResource(Res.string.listening_listen_again),
-                onClick = actions.onRestart,
+                onClick = actions.onStart,
                 modifier = Modifier.fillMaxWidth(),
+            )
+            SheetTextButton(
+                text = stringResource(Res.string.listening_change_words),
+                onClick = actions.onChangeWords,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
             )
         }
     }

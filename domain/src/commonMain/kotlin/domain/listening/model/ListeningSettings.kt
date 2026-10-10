@@ -8,9 +8,14 @@ data class ListeningSettings(
     val pauseMs: Long = DEFAULT_PAUSE_MS,
     val order: ListeningOrder = ListeningOrder.WORD_FIRST,
     val repeatCount: Int = MIN_REPEAT,
+    val selection: ListeningSelection = ListeningSelection(),
 ) {
     /** Silence between one word's answer and the next word's prompt. */
     val gapMs: Long get() = maxOf(pauseMs / 2, MIN_GAP_MS)
+
+    /** Rough session length for [wordCount] words: two spoken lines plus the pause and gap, per round. */
+    fun estimatedDurationMs(wordCount: Int): Long =
+        wordCount.toLong() * repeatCount * (2 * SPOKEN_LINE_ESTIMATE_MS + pauseMs + gapMs)
 
     companion object {
         const val DEFAULT_PAUSE_MS = 3_000L
@@ -18,5 +23,6 @@ data class ListeningSettings(
         const val MIN_REPEAT = 1
         const val MAX_REPEAT = 2
         val PAUSE_OPTIONS_MS = listOf(2_000L, 3_000L, 5_000L)
+        private const val SPOKEN_LINE_ESTIMATE_MS = 1_200L
     }
 }

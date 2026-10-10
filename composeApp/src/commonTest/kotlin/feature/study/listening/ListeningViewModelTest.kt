@@ -3,28 +3,26 @@ package feature.study.listening
 import domain.focus.model.LearningFocus
 import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.listening.model.ListeningOrder
+import domain.listening.model.ListeningSelection
 import domain.listening.model.ListeningSettings
+import domain.listening.model.ListeningSource
 import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
-import domain.listening.usecase.ObserveHasListeningWordsUseCase
+import domain.listening.usecase.ObserveListeningOptionsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
-import domain.settings.usecase.GetDailyGoalWordsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
-import domain.word.model.ReviewSource
+import domain.tag.model.Tag
 import domain.word.model.Word
-import domain.word.usecase.GetDueWordsByTagUseCase
-import domain.word.usecase.GetDueWordsUseCase
-import domain.word.usecase.GetWordsByStageUseCase
-import domain.word.usecase.LoadReviewQueueUseCase
 import fakes.FakeAnalyticsTracker
 import fakes.FakeLearningFocusRepository
 import fakes.FakeListeningSettingsRepository
 import fakes.FakeSettingsRepository
+import fakes.FakeTagRepository
 import fakes.FakeTtsRepository
 import fakes.FakeWordRepository
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +35,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import utils.Language
+import kotlin.random.Random
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -52,6 +51,7 @@ class ListeningViewModelTest {
     private val ttsRepository = FakeTtsRepository()
     private val listeningSettings = FakeListeningSettingsRepository()
     private val analytics = FakeAnalyticsTracker()
+    private val tagRepository = FakeTagRepository()
 
     private val pauseMs = ListeningSettings.DEFAULT_PAUSE_MS
 
@@ -65,7 +65,7 @@ class ListeningViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun word(id: Int) = Word(
+    private fun word(id: Int, tagIds: List<Long> = emptyList()) = Word(
         id = id,
         originalWord = "Hund$id",
         translation = "dog$id",
@@ -73,6 +73,8 @@ class ListeningViewModelTest {
         sourceLanguage = Language.ENGLISH,
         targetLanguage = Language.GERMAN,
         nextReviewDate = 0L,
+        dateAdded = id.toLong(),
+        tagIds = tagIds,
     )
 
     private fun givenDueWords(vararg ids: Int) {
@@ -84,21 +86,14 @@ class ListeningViewModelTest {
     private fun createViewModel(): ListeningViewModel {
         val settings = FakeSettingsRepository()
         val observeFocus = ObserveLearningFocusUseCase(wordRepository, FakeLearningFocusRepository(LearningFocus.All))
-        val loadQueue = LoadReviewQueueUseCase(
-            GetDueWordsUseCase(wordRepository),
-            GetWordsByStageUseCase(wordRepository),
-            GetDueWordsByTagUseCase(wordRepository),
-            GetDailyGoalWordsUseCase(settings),
-            observeFocus,
-        )
         return ListeningViewModel(
-            buildQueue = BuildListeningQueueUseCase(loadQueue, wordRepository, observeFocus),
+            buildQueue = BuildListeningQueueUseCase(wordRepository, observeFocus, Random(1)),
             checkVoices = CheckListeningVoicesUseCase(ttsRepository),
             downloadVoice = DownloadTtsModelUseCase(ttsRepository),
             speakWord = SpeakWordUseCase(ttsRepository),
             stopSpeaking = StopSpeakingUseCase(ttsRepository),
             observeSettings = ObserveListeningSettingsUseCase(listeningSettings),
-            observeHasWords = ObserveHasListeningWordsUseCase(wordRepository, observeFocus),
+            observeOptions = ObserveListeningOptionsUseCase(wordRepository, tagRepository, observeFocus),
             saveSettings = SaveListeningSettingsUseCase(listeningSettings),
             observeSpeechRate = ObserveSpeechRateUseCase(settings),
             setTtsSpeechRate = SetTtsSpeechRateUseCase(settings),
@@ -108,7 +103,8 @@ class ListeningViewModelTest {
 
     private fun TestScope.startedViewModel(): ListeningViewModel =
         createViewModel().also {
-            it.start(ReviewSource.DueCards)
+            runCurrent()
+            it.start()
             runCurrent()
         }
 
@@ -378,5 +374,101 @@ class ListeningViewModelTest {
             ListeningSettings(pauseMs = 5_000L, order = ListeningOrder.TRANSLATION_FIRST, repeatCount = 2),
             listeningSettings.settings.value,
         )
+    }
+
+    // --- Setup ---
+
+    @Test
+    fun `open shows setup and plays nothing until started`() = runTest(dispatcher) {
+        givenDueWords(1, 2)
+        val viewModel = createViewModel()
+        runCurrent()
+
+        viewModel.open()
+        advanceUntilIdle()
+
+        assertIs<ListeningScreenState.Setup>(viewModel.currentState.screen)
+        assertTrue(ttsRepository.spoken.isEmpty())
+        assertEquals(2, viewModel.currentState.sessionSize)
+    }
+
+    @Test
+    fun `default session is not capped at the daily goal`() = runTest(dispatcher) {
+        givenDueWords(*(1..25).toList().toIntArray())
+        val viewModel = startedViewModel()
+
+        assertEquals(ListeningSelection.DEFAULT_LIMIT, viewModel.active.session.words.size)
+    }
+
+    @Test
+    fun `chosen word limit sets the session size`() = runTest(dispatcher) {
+        givenDueWords(*(1..60).toList().toIntArray())
+        val viewModel = createViewModel()
+        runCurrent()
+
+        viewModel.setWordLimit(50)
+        runCurrent()
+        assertEquals(50, viewModel.currentState.sessionSize)
+
+        viewModel.setWordLimit(ListeningSelection.LIMIT_ALL)
+        viewModel.start()
+        runCurrent()
+
+        assertEquals(60, viewModel.active.session.words.size)
+        assertEquals(ListeningSelection.LIMIT_ALL, listeningSettings.settings.value.selection.limit)
+    }
+
+    @Test
+    fun `selecting a tag plays only that tag's words`() = runTest(dispatcher) {
+        val words = listOf(word(1, listOf(7L)), word(2), word(3, listOf(7L)))
+        wordRepository.storedWords = words.toMutableList()
+        wordRepository.dueWords = words
+        tagRepository.tags = listOf(Tag(7L, "animals", createdAt = 0L, updatedAt = 0L))
+        val viewModel = createViewModel()
+        runCurrent()
+
+        viewModel.selectSource(ListeningSource.Tag(7L))
+        viewModel.start()
+        runCurrent()
+
+        assertEquals(setOf(1, 3), viewModel.active.session.words.map { it.id }.toSet())
+        assertEquals(ListeningSource.Tag(7L), listeningSettings.settings.value.selection.source)
+    }
+
+    @Test
+    fun `nothing due falls back to every word`() = runTest(dispatcher) {
+        wordRepository.storedWords = mutableListOf(word(1), word(2))
+        val viewModel = createViewModel()
+        runCurrent()
+
+        assertEquals(ListeningSource.All, viewModel.currentState.selection.source)
+
+        viewModel.start()
+        runCurrent()
+        assertEquals(2, viewModel.active.session.words.size)
+    }
+
+    @Test
+    fun `shuffle is saved with the selection`() = runTest(dispatcher) {
+        givenDueWords(1)
+        val viewModel = createViewModel()
+        runCurrent()
+
+        viewModel.setShuffle(true)
+        runCurrent()
+
+        assertTrue(listeningSettings.settings.value.selection.shuffle)
+    }
+
+    @Test
+    fun `change words from the finished screen returns to setup`() = runTest(dispatcher) {
+        givenDueWords(1)
+        val viewModel = startedViewModel()
+        advanceUntilIdle()
+        assertIs<ListeningScreenState.Finished>(viewModel.currentState.screen)
+
+        viewModel.open()
+
+        assertIs<ListeningScreenState.Setup>(viewModel.currentState.screen)
     }
 }

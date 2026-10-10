@@ -7,11 +7,13 @@ import core.common.getOrNull
 import core.common.onFailure
 import core.common.onSuccess
 import domain.listening.model.ListeningCommand
+import domain.listening.model.ListeningOptions
 import domain.listening.model.ListeningOrder
-import domain.listening.model.ListeningQueue
 import domain.listening.model.ListeningReducer
+import domain.listening.model.ListeningSelection
 import domain.listening.model.ListeningSession
 import domain.listening.model.ListeningSettings
+import domain.listening.model.ListeningSource
 import domain.listening.model.ListeningStep
 import domain.listening.model.ListeningTransition
 import domain.listening.model.ListeningVoiceCheck
@@ -19,7 +21,7 @@ import domain.listening.model.Utterance
 import domain.listening.model.VoiceStatus
 import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
-import domain.listening.usecase.ObserveHasListeningWordsUseCase
+import domain.listening.usecase.ObserveListeningOptionsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
@@ -27,7 +29,7 @@ import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
-import domain.word.model.ReviewSource
+import domain.word.model.Word
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
@@ -40,12 +42,15 @@ import kotlin.time.Clock
 
 sealed interface ListeningScreenState {
     data object Idle : ListeningScreenState
+
+    /** Choosing which words to play, how many, and how. */
+    data object Setup : ListeningScreenState
     data object Loading : ListeningScreenState
     data object Empty : ListeningScreenState
 
     /** Pre-flight: some voices must be downloaded before playback can start cleanly. */
     data class NeedsVoices(
-        val queue: ListeningQueue,
+        val words: List<Word>,
         val check: ListeningVoiceCheck,
         val download: VoiceDownload? = null,
         val downloadFailed: Boolean = false,
@@ -54,7 +59,6 @@ sealed interface ListeningScreenState {
     data class Active(
         val session: ListeningSession,
         val isPlaying: Boolean,
-        val isRecentFallback: Boolean,
         /** Normalized language codes that have a ready voice; others are shown but not spoken. */
         val speakableLanguages: Set<String>,
         val heardWordIds: Set<Int> = emptySet(),
@@ -82,9 +86,17 @@ data class ListeningState(
     val screen: ListeningScreenState = ListeningScreenState.Idle,
     val settings: ListeningSettings = ListeningSettings(),
     val speechRate: Float = 1.0f,
+    val options: ListeningOptions = ListeningOptions(),
+) {
     /** Whether a session would have any words; drives the Study-tab card's CTA. */
-    val hasWords: Boolean = false,
-)
+    val hasWords: Boolean get() = options.hasWords
+
+    /** The saved selection, moved to every word when its source has nothing to play right now. */
+    val selection: ListeningSelection get() = options.resolve(settings.selection)
+
+    /** Words the current selection would play. */
+    val sessionSize: Int get() = selection.sessionSize(options.count(selection.source))
+}
 
 /**
  * Hands-free audio review: speaks prompt → pause → answer → gap for each word.
@@ -101,7 +113,7 @@ class ListeningViewModel(
     private val speakWord: SpeakWordUseCase,
     private val stopSpeaking: StopSpeakingUseCase,
     observeSettings: ObserveListeningSettingsUseCase,
-    observeHasWords: ObserveHasListeningWordsUseCase,
+    observeOptions: ObserveListeningOptionsUseCase,
     private val saveSettings: SaveListeningSettingsUseCase,
     observeSpeechRate: ObserveSpeechRateUseCase,
     private val setTtsSpeechRate: SetTtsSpeechRateUseCase,
@@ -126,8 +138,8 @@ class ListeningViewModel(
             .catch { }
             .launchIn(viewModelScope)
 
-        observeHasWords(Unit)
-            .onEach { hasWords -> updateState { copy(hasWords = hasWords) } }
+        observeOptions(Unit)
+            .onEach { options -> updateState { copy(options = options) } }
             .catch { }
             .launchIn(viewModelScope)
     }
@@ -136,17 +148,32 @@ class ListeningViewModel(
     // Public event-sink API
     // ---------------------------------------------------------------------------
 
-    fun start(source: ReviewSource) {
+    /** Shows the setup step, where the user picks words before anything plays. */
+    fun open() {
         haltPlayback()
         setupJob?.cancel()
+        updateState { copy(screen = ListeningScreenState.Setup) }
+    }
+
+    fun selectSource(source: ListeningSource) = persistSelection { copy(source = source) }
+
+    fun setWordLimit(limit: Int) = persistSelection { copy(limit = limit) }
+
+    fun setShuffle(shuffle: Boolean) = persistSelection { copy(shuffle = shuffle) }
+
+    /** Plays the current selection; also "Listen again" and retry after an error. */
+    fun start() {
+        haltPlayback()
+        setupJob?.cancel()
+        val selection = currentState.selection
         setupJob = viewModelScope.launch {
             updateState { copy(screen = ListeningScreenState.Loading) }
-            buildQueue(source)
-                .onSuccess { queue ->
-                    if (queue.words.isEmpty()) {
+            buildQueue(selection)
+                .onSuccess { words ->
+                    if (words.isEmpty()) {
                         updateState { copy(screen = ListeningScreenState.Empty) }
                     } else {
-                        prepare(queue)
+                        prepare(words, selection.source)
                     }
                 }
                 .onFailure { error ->
@@ -178,7 +205,7 @@ class ListeningViewModel(
             if (failed) {
                 updateNeedsVoices { copy(download = null, downloadFailed = true) }
             } else {
-                prepare(needs.queue)
+                prepare(needs.words, currentState.selection.source)
             }
         }
     }
@@ -187,7 +214,7 @@ class ListeningViewModel(
     fun startWithoutMissingVoices() {
         val needs = currentState.screen as? ListeningScreenState.NeedsVoices ?: return
         setupJob?.cancel()
-        begin(needs.queue, needs.check)
+        begin(needs.words, needs.check, currentState.selection.source)
     }
 
     fun togglePlayback() {
@@ -235,18 +262,18 @@ class ListeningViewModel(
     // Setup
     // ---------------------------------------------------------------------------
 
-    private suspend fun prepare(queue: ListeningQueue) {
-        val check = checkVoices(queue.words).getOrNull()
+    private suspend fun prepare(words: List<Word>, source: ListeningSource) {
+        val check = checkVoices(words).getOrNull()
             ?: ListeningVoiceCheck(emptyList())
         when {
             !check.canSpeakAnything -> updateState { copy(screen = ListeningScreenState.NoVoices) }
             check.missing.isNotEmpty() ->
-                updateState { copy(screen = ListeningScreenState.NeedsVoices(queue, check)) }
-            else -> begin(queue, check)
+                updateState { copy(screen = ListeningScreenState.NeedsVoices(words, check)) }
+            else -> begin(words, check, source)
         }
     }
 
-    private fun begin(queue: ListeningQueue, check: ListeningVoiceCheck) {
+    private fun begin(words: List<Word>, check: ListeningVoiceCheck, source: ListeningSource) {
         startedAt = Clock.System.now().toEpochMilliseconds()
         val speakable = check.voices
             .filter { it.status == VoiceStatus.READY }
@@ -254,14 +281,16 @@ class ListeningViewModel(
         updateState {
             copy(
                 screen = ListeningScreenState.Active(
-                    session = ListeningSession(queue.words),
+                    session = ListeningSession(words),
                     isPlaying = true,
-                    isRecentFallback = queue.isRecentFallback,
                     speakableLanguages = speakable,
                 )
             )
         }
-        analyticsTracker.logEvent("listening_session_start", mapOf("word_count" to queue.words.size))
+        analyticsTracker.logEvent(
+            "listening_session_start",
+            mapOf("word_count" to words.size, "source" to source.analyticsName),
+        )
         play()
     }
 
@@ -352,6 +381,18 @@ class ListeningViewModel(
         updateState { copy(settings = updated) }
         viewModelScope.launch { saveSettings(updated) }
     }
+
+    private fun persistSelection(change: ListeningSelection.() -> ListeningSelection) =
+        // Start from what the user sees, so a fallback source becomes the saved one once they edit it.
+        persist { copy(selection = currentState.selection.change()) }
+
+    private val ListeningSource.analyticsName: String
+        get() = when (this) {
+            ListeningSource.Due -> "due"
+            ListeningSource.All -> "all"
+            is ListeningSource.Level -> "level"
+            is ListeningSource.Tag -> "tag"
+        }
 
     private fun logSession(active: ListeningScreenState.Active, completed: Boolean) {
         analyticsTracker.logEvent(

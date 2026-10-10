@@ -149,7 +149,7 @@ fun StudyScreen(
     }
 
     val openListening: () -> Unit = {
-        listeningViewModel.start(ReviewSource.DueCards)
+        listeningViewModel.open()
         overlayHost.showFullScreen(
             tag = "listening",
             properties = FullScreenProperties(
@@ -159,7 +159,6 @@ fun StudyScreen(
         ) { navigator ->
             ListeningScreen(
                 viewModel = listeningViewModel,
-                onRestart = { listeningViewModel.start(ReviewSource.DueCards) },
                 onDismiss = {
                     listeningViewModel.abandon()
                     navigator.dismiss()

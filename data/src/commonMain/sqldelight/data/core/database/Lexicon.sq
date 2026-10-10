@@ -347,14 +347,20 @@ CREATE TABLE ListeningSettingsEntity (
     id INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
     pauseMs INTEGER NOT NULL DEFAULT 3000,
     listeningOrder TEXT NOT NULL DEFAULT 'WORD_FIRST',
-    repeatCount INTEGER NOT NULL DEFAULT 1
+    repeatCount INTEGER NOT NULL DEFAULT 1,
+    -- Which words to play: DUE, ALL, LEVEL:<level> or TAG:<tagId>.
+    sourceKey TEXT NOT NULL DEFAULT 'DUE',
+    -- Words per session; 0 plays every matching word.
+    wordLimit INTEGER NOT NULL DEFAULT 20,
+    shuffle INTEGER NOT NULL DEFAULT 0
 );
 
 getListeningSettings:
 SELECT * FROM ListeningSettingsEntity WHERE id = 1;
 
 saveListeningSettings:
-INSERT OR REPLACE INTO ListeningSettingsEntity(id, pauseMs, listeningOrder, repeatCount) VALUES (1, ?, ?, ?);
+INSERT OR REPLACE INTO ListeningSettingsEntity(id, pauseMs, listeningOrder, repeatCount, sourceKey, wordLimit, shuffle)
+VALUES (1, ?, ?, ?, ?, ?, ?);
 
 clearListeningSettings:
 DELETE FROM ListeningSettingsEntity;
