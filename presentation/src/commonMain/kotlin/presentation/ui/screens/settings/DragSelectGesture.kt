@@ -1,73 +1,96 @@
 package presentation.ui.screens.settings
 
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitLongPressOrCancellation
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerId
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
 
-private fun LazyListState.indexAt(y: Float): Int =
-    layoutInfo.visibleItemsInfo.firstOrNull { info ->
-        y.toInt() in info.offset until (info.offset + info.size)
-    }?.index ?: -1
-
-private const val AUTO_SCROLL_ZONE_PX = 180f
-private const val AUTO_SCROLL_MAX_SPEED_PX = 18f
+private val AutoScrollZone = 72.dp
+private val AutoScrollMaxSpeed = 14.dp
 
 /**
- * Apple Photos-style hold-and-drag multi-select gesture.
+ * Row under [y] (viewport coordinates). A finger above or below the visible rows maps to the
+ * first / last visible row, so dragging past the list edge still extends the range.
+ */
+internal fun LazyListState.rowAt(y: Float): Int {
+    val visible = layoutInfo.visibleItemsInfo
+    if (visible.isEmpty()) return -1
+    val row = visible.firstOrNull { y.toInt() in it.offset until (it.offset + it.size) }
+    return when {
+        row != null -> row.index
+        y < visible.first().offset -> visible.first().index
+        else -> visible.last().index
+    }
+}
+
+/**
+ * Photos-style hold-and-drag multi-select on a LazyColumn.
  *
- * Uses [detectDragGesturesAfterLongPress] — the same approach as the production
- * `jordond/drag-select-compose` Compose Multiplatform library. This is a single
- * unified gesture: long press detection AND drag tracking happen in the same
- * gesture scope on the LazyColumn, which works reliably on all platforms including iOS.
+ * Long press waits on the main pass, so a scroll that starts first (and consumes) cancels it.
+ * Once the long press fires, every event is read and consumed on the *initial* pass: the list's
+ * scrollable and the rows' click handlers never see the drag, so they can't steal it and the
+ * release doesn't count as a tap.
  *
- * The previous split-gesture approach (LazyColumn polls isSelectionMode() set by
- * WordCard's combinedClickable.onLongPress) fails on iOS because iOS stops sending
- * pointer events while the finger is stationary, so the polling loop never fires.
- *
- * Auto-scroll speed is written to [DragSelectState.autoScrollSpeed]. The caller
- * must run a LaunchedEffect watching that value to actually scroll the list.
- *
- * [onDragStarted]: long press threshold reached at [index] — enter selection mode.
- * [onItemEntered]: finger moved onto a new item at [index] — toggle selection.
+ * Auto-scroll speed goes to [DragSelectState.autoScrollSpeed]; the caller runs the scroll loop.
  */
 fun Modifier.dragSelectGesture(
     lazyListState: LazyListState,
     dragSelectState: DragSelectState,
-    onDragStarted: (index: Int) -> Unit,
-    onItemEntered: (index: Int) -> Unit,
-): Modifier = pointerInput(Unit) {
-    detectDragGesturesAfterLongPress(
-        onDragStart = { offset ->
-            val index = lazyListState.indexAt(offset.y)
-            if (index >= 0) {
-                dragSelectState.start(index)
-                onDragStarted(index)
+    onDragStart: (index: Int) -> Unit,
+    onDragTo: (index: Int) -> Unit,
+    onDragEnd: () -> Unit,
+): Modifier = pointerInput(lazyListState, dragSelectState) {
+    val zone = AutoScrollZone.toPx()
+    val maxSpeed = AutoScrollMaxSpeed.toPx()
+
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val longPress = awaitLongPressOrCancellation(down.id) ?: return@awaitEachGesture
+        val startIndex = lazyListState.rowAt(longPress.position.y)
+        if (startIndex < 0) return@awaitEachGesture
+
+        longPress.consume()
+        dragSelectState.start(startIndex, longPress.position.y)
+        onDragStart(startIndex)
+
+        try {
+            var change = awaitOwnChange(longPress.id)
+            while (change != null && change.pressed) {
+                val y = change.position.y
+                val viewport = lazyListState.layoutInfo.viewportSize.height.toFloat()
+                dragSelectState.fingerY = y
+                dragSelectState.autoScrollSpeed = when {
+                    y < zone -> -maxSpeed * (1f - y.coerceAtLeast(0f) / zone)
+                    y > viewport - zone -> maxSpeed * (1f - (viewport - y).coerceAtLeast(0f) / zone)
+                    else -> 0f
+                }
+                val index = lazyListState.rowAt(y)
+                if (dragSelectState.moveTo(index)) onDragTo(index)
+                change = awaitOwnChange(longPress.id)
             }
-        },
-        onDragEnd = dragSelectState::end,
-        onDragCancel = dragSelectState::end,
-        onDrag = { change, _ ->
-            change.consume()
-            val y = change.position.y
-            val viewportH = lazyListState.layoutInfo.viewportSize.height.toFloat()
-            dragSelectState.autoScrollSpeed = when {
-                y < AUTO_SCROLL_ZONE_PX ->
-                    -AUTO_SCROLL_MAX_SPEED_PX * (1f - y / AUTO_SCROLL_ZONE_PX)
-                y > viewportH - AUTO_SCROLL_ZONE_PX ->
-                    AUTO_SCROLL_MAX_SPEED_PX * (1f - (viewportH - y) / AUTO_SCROLL_ZONE_PX)
-                else -> 0f
-            }
-            val itemIndex = lazyListState.indexAt(y)
-            if (dragSelectState.moveTo(itemIndex)) onItemEntered(itemIndex)
-        },
-    )
+        } finally {
+            dragSelectState.end()
+            onDragEnd()
+        }
+    }
 }
 
+/** Next event for [pointerId], taken on the initial pass and consumed so nothing below reacts to it. */
+private suspend fun AwaitPointerEventScope.awaitOwnChange(pointerId: PointerId): PointerInputChange? =
+    awaitPointerEvent(PointerEventPass.Initial).changes
+        .firstOrNull { it.id == pointerId }
+        ?.also { it.consume() }
+
 /**
- * Platform hook — all platforms are no-ops since [detectDragGesturesAfterLongPress]
- * works natively in common Compose code on all platforms.
+ * Platform hook — all platforms are no-ops since the gesture runs in common Compose code.
  */
 @Composable
 internal expect fun DragSelectScrollViewSetup()

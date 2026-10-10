@@ -36,34 +36,53 @@ import presentation.ui.components.LanguageSelectionContent
 import presentation.ui.components.imports.LanguagePairCard
 import utils.Language
 
+/**
+ * Edits [draft] in place. The draft lives with the caller so it survives a trip to the
+ * language picker pages; Save stays off until something differs from [original].
+ */
 @Composable
 internal fun EditWordContent(
-    word: Word,
+    original: Word,
+    draft: Word,
+    onDraftChange: (Word) -> Unit,
+    onPickLearningLanguage: () -> Unit,
+    onPickNativeLanguage: () -> Unit,
     onDismiss: () -> Unit,
     onSave: (Word) -> Unit
 ) {
-    var originalWord by remember { mutableStateOf(word.originalWord) }
-    var translation by remember { mutableStateOf(word.translation) }
-    var description by remember { mutableStateOf(word.description) }
+    val trimmed = draft.copy(
+        originalWord = draft.originalWord.trim(),
+        translation = draft.translation.trim(),
+        description = draft.description.trim(),
+    )
+    val isValid = trimmed.originalWord.isNotBlank() && trimmed.translation.isNotBlank()
 
     WordFormSheetPage(
         title = stringResource(Res.string.edit_word),
-        word = originalWord,
-        onWordChange = { originalWord = it },
-        translation = translation,
-        onTranslationChange = { translation = it },
-        description = description,
-        onDescriptionChange = { description = it },
-        onSave = {
-            onSave(
-                word.copy(
-                    originalWord = originalWord.trim(),
-                    translation = translation.trim(),
-                    description = description.trim()
-                )
+        word = draft.originalWord,
+        onWordChange = { onDraftChange(draft.copy(originalWord = it)) },
+        translation = draft.translation,
+        onTranslationChange = { onDraftChange(draft.copy(translation = it)) },
+        description = draft.description,
+        onDescriptionChange = { onDraftChange(draft.copy(description = it)) },
+        saveEnabled = isValid && trimmed != original,
+        onSave = { onSave(trimmed) },
+        onCancel = onDismiss,
+        extraContent = {
+            LanguagePairCard(
+                topLabel = stringResource(Res.string.word_language),
+                top = draft.targetLanguage,
+                onTopClick = onPickLearningLanguage,
+                bottomLabel = stringResource(Res.string.translation_language_label),
+                bottom = draft.sourceLanguage,
+                onBottomClick = onPickNativeLanguage,
+                onSwap = {
+                    onDraftChange(
+                        draft.copy(targetLanguage = draft.sourceLanguage, sourceLanguage = draft.targetLanguage)
+                    )
+                },
             )
         },
-        onCancel = onDismiss,
     )
 }
 

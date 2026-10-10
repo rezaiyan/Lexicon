@@ -22,6 +22,7 @@ data class WordManagerScreenState(
     val filterTagId: Long? = null,
     val isSelectionMode: Boolean = false,
     val selectedWordIds: Set<Int> = emptySet(),
+    val dragSelection: DragSelection? = null,
     val errorMessage: String? = null,
     val errorClassification: ImportErrorClassification = ImportErrorClassification.GenericError,
 ) {

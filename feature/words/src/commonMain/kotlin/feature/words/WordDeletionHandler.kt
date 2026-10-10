@@ -63,12 +63,9 @@ class WordDeletionHandler(
                     }
 
                     is DeleteWordsResult.Error -> {
-                        stateAccess.update {
-                            copy(
-                                isDeletingWords = false,
-                                errorMessage = result.message
-                            )
-                        }
+                        // errorMessage drives the full-screen load error; a failed delete only
+                        // needs the snackbar, the list stays as it was.
+                        stateAccess.update { copy(isDeletingWords = false) }
 
                         events.send(WordManagerEffect.Error(result.message))
 

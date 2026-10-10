@@ -2,6 +2,7 @@ package components.sheet
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -24,7 +25,7 @@ import theme.Theme
 /**
  * Word / translation / description form shared by every "edit word" sheet
  * (word manager, review, photo extraction review). State is hoisted to the caller.
- * [onDelete] adds a destructive text action below the fields.
+ * [onDelete] adds a destructive text action below the fields; [extraContent] goes between the two.
  */
 @Composable
 fun WordFormSheetPage(
@@ -42,6 +43,7 @@ fun WordFormSheetPage(
     onDelete: (() -> Unit)? = null,
     onBack: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null,
+    extraContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val focusManager = LocalFocusManager.current
     val translationFocus = remember { FocusRequester() }
@@ -96,6 +98,7 @@ fun WordFormSheetPage(
                 modifier = Modifier.focusRequester(descriptionFocus),
             )
         }
+        extraContent?.invoke(this)
         onDelete?.let {
             SheetTextButton(
                 text = stringResource(Res.string.delete_word),

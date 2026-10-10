@@ -1,59 +1,58 @@
 package presentation.ui.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Label
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.IosShare
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.batch_edit_languages
-import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.delete
-import lexicon.resources.generated.resources.select_all
-import lexicon.resources.generated.resources.selected_format
-import lexicon.resources.generated.resources.set_tag
+import lexicon.resources.generated.resources.selection_action_language
+import lexicon.resources.generated.resources.selection_action_tag
 import lexicon.resources.generated.resources.share
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
+/**
+ * Floating toolbar for selection mode. Count, close and select-all live in the top bar,
+ * so this holds only the bulk actions. Actions dim and stop responding while nothing is selected.
+ */
 @Composable
 internal fun SelectionActionBar(
     isVisible: Boolean,
-    selectedCount: Int,
-    onClose: () -> Unit,
-    onSelectAll: () -> Unit,
+    enabled: Boolean,
     onDelete: () -> Unit,
     onBatchEditLanguages: () -> Unit,
     onBatchAssignTags: () -> Unit,
@@ -62,92 +61,60 @@ internal fun SelectionActionBar(
 ) {
     AnimatedVisibility(
         visible = isVisible,
-        enter = slideInVertically(tween(250)) { it } + fadeIn(tween(250)),
-        exit = slideOutVertically(tween(250)) { it } + fadeOut(tween(250)),
-        modifier = modifier
+        enter = slideInVertically(spring(dampingRatio = Spring.DampingRatioLowBouncy)) { it / 2 } +
+            scaleIn(initialScale = 0.92f) + fadeIn(tween(150)),
+        exit = slideOutVertically(tween(180)) { it / 2 } + fadeOut(tween(150)),
+        modifier = modifier,
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.md),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shadowElevation = Theme.elevation.overlay,
-            shape = RoundedCornerShape(topStart = Theme.shapes.large, topEnd = Theme.shapes.large)
+            shape = RoundedCornerShape(Theme.shapes.extraLarge),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Theme.dimensions.bottomBarHeight)
+                    .padding(horizontal = Theme.spacing.xs),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Header: close + count
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Theme.spacing.xs, vertical = Theme.spacing.xs),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = stringResource(Res.string.cancel),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    val countPattern = "%1" + '$' + "d"
-                    Text(
-                        text = stringResource(Res.string.selected_format)
-                            .replace(countPattern, selectedCount.toString()),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
-                    )
-                }
-
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-
-                // Actions row with labels
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Theme.spacing.xs, vertical = Theme.spacing.sm)
-                        .navigationBarsPadding(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SelectionAction(
-                        icon = Icons.Default.SelectAll,
-                        label = stringResource(Res.string.select_all),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        onClick = onSelectAll,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SelectionAction(
-                        icon = Icons.Default.Language,
-                        label = stringResource(Res.string.batch_edit_languages),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        onClick = onBatchEditLanguages,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SelectionAction(
-                        icon = Icons.Default.Label,
-                        label = stringResource(Res.string.set_tag),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        onClick = onBatchAssignTags,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SelectionAction(
-                        icon = Icons.Default.Delete,
-                        label = stringResource(Res.string.delete),
-                        color = MaterialTheme.colorScheme.error,
-                        onClick = onDelete,
-                        modifier = Modifier.weight(1f)
-                    )
-                    SelectionAction(
-                        icon = Icons.Default.FileUpload,
-                        label = stringResource(Res.string.share),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        onClick = onShare,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                val onSurface = MaterialTheme.colorScheme.onSurface
+                SelectionAction(
+                    icon = Icons.Outlined.Translate,
+                    label = stringResource(Res.string.selection_action_language),
+                    color = onSurface,
+                    enabled = enabled,
+                    onClick = onBatchEditLanguages,
+                    modifier = Modifier.weight(1f),
+                )
+                SelectionAction(
+                    icon = Icons.AutoMirrored.Outlined.Label,
+                    label = stringResource(Res.string.selection_action_tag),
+                    color = onSurface,
+                    enabled = enabled,
+                    onClick = onBatchAssignTags,
+                    modifier = Modifier.weight(1f),
+                )
+                SelectionAction(
+                    icon = Icons.Outlined.IosShare,
+                    label = stringResource(Res.string.share),
+                    color = onSurface,
+                    enabled = enabled,
+                    onClick = onShare,
+                    modifier = Modifier.weight(1f),
+                )
+                SelectionAction(
+                    icon = Icons.Outlined.DeleteOutline,
+                    label = stringResource(Res.string.delete),
+                    color = MaterialTheme.colorScheme.error,
+                    enabled = enabled,
+                    onClick = onDelete,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
@@ -158,29 +125,32 @@ private fun SelectionAction(
     icon: ImageVector,
     label: String,
     color: Color,
+    enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .combinedClickable(onClick = onClick)
-            .padding(vertical = Theme.spacing.xs),
+            .clip(RoundedCornerShape(Theme.shapes.large))
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .alpha(if (enabled) 1f else Theme.opacity.disabled)
+            .padding(vertical = Theme.spacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = label,
+            contentDescription = null,
             tint = color,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(Theme.dimensions.iconSize),
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
             color = color,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

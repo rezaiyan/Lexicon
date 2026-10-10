@@ -396,6 +396,16 @@
     <string name="share">Share</string>
     <string name="loading_words">Loading words...</string>
     <string name="no_results_found">No matching words</string>
+    <string name="no_results_search_hint">Try a different spelling or search by translation.</string>
+    <string name="no_results_filter_hint">No words match these filters.</string>
+    <string name="clear_filters">Clear filters</string>
+    <string name="select">Select</string>
+    <string name="selection_action_tag">Tag</string>
+    <string name="selection_action_language">Language</string>
+    <string name="offline_changes_will_sync">You're offline. Changes will sync when you reconnect.</string>
+    <string name="words_load_offline">You're offline, so your word library couldn't load. Check your connection and try again.</string>
+    <string name="words_load_failed">Something went wrong loading your words.</string>
+    <string name="no_connection">No connection</string>
     <string name="no_words_match">No words match "%1$d"</string>
     <string name="empty_library">Your word library is empty</string>
     <string name="start_by_importing">Tap the + button on the Study screen to add words via text, file, or AI assistant.</string>

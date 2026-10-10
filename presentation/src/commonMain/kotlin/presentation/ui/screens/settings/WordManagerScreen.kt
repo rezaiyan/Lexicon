@@ -9,13 +9,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Deselect
+import androidx.compose.material.icons.filled.SelectAll
+import components.scaffold.ActionIconConfig
+import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.deselect_all
+import lexicon.resources.generated.resources.select_all
+import lexicon.resources.generated.resources.selected_format
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import events.OnEvents
+import expects.BackHandler
+import presentation.ui.components.LanguageSelectionContent
+import lexicon.resources.generated.resources.offline_changes_will_sync
+import lexicon.resources.generated.resources.translation_language_label
+import lexicon.resources.generated.resources.word_language
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.jetbrains.compose.resources.stringResource
@@ -52,10 +67,12 @@ import lexicon.resources.generated.resources.words_language_updated
 import lexicon.resources.generated.resources.words_tagged
 
 private sealed interface WordDetailPage {
-    data class Detail(val word: Word) : WordDetailPage
-    data class Edit(val word: Word) : WordDetailPage
-    data class DeleteConfirm(val word: Word) : WordDetailPage
-    data class TagAssignment(val word: Word) : WordDetailPage
+    data object Detail : WordDetailPage
+    data object Edit : WordDetailPage
+    data object PickLearningLanguage : WordDetailPage
+    data object PickNativeLanguage : WordDetailPage
+    data object DeleteConfirm : WordDetailPage
+    data object TagAssignment : WordDetailPage
 }
 
 @Composable
@@ -78,10 +95,10 @@ fun WordManagerScreen() {
     val failedToUpdateWord = stringResource(Res.string.failed_to_update_word)
     val errorPrefix = stringResource(Res.string.error_prefix)
     val wordsTaggedFormat = stringResource(Res.string.words_tagged)
+    val offlineChangesSync = stringResource(Res.string.offline_changes_will_sync)
     val classifyError = remember { ClassifyImportErrorUseCase() }
 
-    LaunchedEffect(Unit) {
-        viewModel.effects.collect { event ->
+    OnEvents(viewModel.effects) { event ->
             when (event) {
                 is WordManagerEffect.WordsShared -> {
                     val pattern = "%1" + '$' + "d"
@@ -125,21 +142,38 @@ fun WordManagerScreen() {
                 is WordManagerEffect.Error -> {
                     val raw = event.message
                     val errorMsg = when (classifyError(raw)) {
-                        ImportErrorClassification.NetworkError ->
-                            "You're offline -- changes will sync when reconnected."
+                        ImportErrorClassification.NetworkError -> offlineChangesSync
                         else -> raw.ifEmpty { failedToUpdateWord }
                     }
                     snackbarHostState.showSnackbar("$errorPrefix $errorMsg")
                 }
             }
-        }
     }
 
+    BackHandler(enabled = state.isSelectionMode, onBack = viewModel::exitSelectionMode)
+
+    val allSelected = state.filteredWords.isNotEmpty() && state.selectedCount == state.filteredWords.size
     LexiconColumn(
-        title = stringResource(Res.string.words_tab),
+        title = if (state.isSelectionMode) {
+            stringResource(Res.string.selected_format, state.selectedCount)
+        } else {
+            stringResource(Res.string.words_tab)
+        },
         showNavigationIcon = state.isSelectionMode,
         navigationIcon = Icons.Default.Close,
+        navigationIconContentDescription = stringResource(Res.string.cancel),
         onNavigationClick = viewModel::exitSelectionMode,
+        actionIcon1 = if (state.isSelectionMode) {
+            ActionIconConfig(
+                icon = if (allSelected) Icons.Default.Deselect else Icons.Default.SelectAll,
+                contentDescription = stringResource(
+                    if (allSelected) Res.string.deselect_all else Res.string.select_all
+                ),
+                onClick = viewModel::selectAll,
+            )
+        } else {
+            null
+        },
         scrollable = false,
         topBarColor = TopBarColor.Background
     ) {
@@ -165,21 +199,18 @@ fun WordManagerScreen() {
                             overlayHost.showWordDetailSheet(
                                 word = word,
                                 onUpdateWord = viewModel::updateWord,
-                                onDeleteWord = { w ->
-                                    viewModel.toggleWordSelection(w.id)
-                                    viewModel.deleteSelectedWords()
-                                }
+                                onDeleteWord = { w -> viewModel.deleteWord(w.id) }
                             )
                         },
-                        onEnterSelectionMode = { wordId ->
-                            viewModel.toggleWordSelection(wordId)
-                        },
-                        onSelectAll = viewModel::selectAll,
+                        onDragSelectStart = viewModel::startDragSelection,
+                        onDragSelectTo = viewModel::dragSelectionTo,
+                        onDragSelectEnd = viewModel::endDragSelection,
                         onShareWords = viewModel::shareWords,
                         onSortOptionChange = viewModel::setSortOption,
                         onFilterLanguageChange = viewModel::setFilterLanguage,
                         onFilterLearningStageChange = viewModel::setFilterLearningStage,
                         onFilterTagChange = viewModel::setFilterTagId,
+                        onClearFilters = viewModel::clearFilters,
                         onDeleteSelected = {
                             if (state.selectedCount > 0) {
                                 overlayHost.showSizeToFitBottomSheet(
@@ -191,10 +222,7 @@ fun WordManagerScreen() {
                                             viewModel.deleteSelectedWords()
                                             nav.dismiss()
                                         },
-                                        onDismiss = {
-                                            nav.dismiss()
-                                            viewModel.exitSelectionMode()
-                                        },
+                                        onDismiss = { nav.dismiss() },
                                         onClose = { nav.dismiss() },
                                     )
                                 }
@@ -249,7 +277,6 @@ fun WordManagerScreen() {
                                 }
                             }
                         },
-                        onExitSelectionMode = viewModel::exitSelectionMode
                     )
                 }
             }
@@ -283,48 +310,86 @@ private fun OverlayHost.showWordDetailSheet(
     showSizeToFitBottomSheet(tag = "word-detail") { sheetNav ->
         val wordManagerViewModel = koinViewModel<WordManagerViewModel>()
         val liveState by wordManagerViewModel.state()
+        // Reads the word from the live list so the detail page reflects a save straight away.
+        val liveWord = liveState.words.find { it.id == word.id } ?: word
+        // Edit draft sits above the pages so it survives the language picker pages.
+        var draft by remember { mutableStateOf(liveWord) }
 
-        val pages = rememberBottomSheetPageNavigator<WordDetailPage>(WordDetailPage.Detail(word))
+        val pages = rememberBottomSheetPageNavigator<WordDetailPage>(WordDetailPage.Detail)
 
         BottomSheetPages(navigator = pages, onClose = { sheetNav.dismiss() }, label = "wordDetailPages") { page ->
             when (page) {
-                is WordDetailPage.Detail -> {
-                    val liveWord = liveState.words.find { it.id == page.word.id } ?: page.word
-                    val liveTags = liveState.tags
-                    WordDetailSheetContent(
-                        word = liveWord,
-                        tags = liveTags,
-                        onEdit = { w -> pages.navigateTo(WordDetailPage.Edit(w)) },
-                        onDelete = { w -> pages.navigateTo(WordDetailPage.DeleteConfirm(w)) },
-                        onAssignTags = { w -> pages.navigateTo(WordDetailPage.TagAssignment(w)) }
-                    )
-                }
+                WordDetailPage.Detail -> WordDetailSheetContent(
+                    word = liveWord,
+                    tags = liveState.tags,
+                    onEdit = {
+                        draft = liveWord
+                        pages.navigateTo(WordDetailPage.Edit)
+                    },
+                    onDelete = { pages.navigateTo(WordDetailPage.DeleteConfirm) },
+                    onAssignTags = { pages.navigateTo(WordDetailPage.TagAssignment) }
+                )
 
-                is WordDetailPage.Edit -> EditWordContent(
-                    word = page.word,
+                WordDetailPage.Edit -> EditWordContent(
+                    original = liveWord,
+                    draft = draft,
+                    onDraftChange = { draft = it },
+                    onPickLearningLanguage = { pages.navigateTo(WordDetailPage.PickLearningLanguage) },
+                    onPickNativeLanguage = { pages.navigateTo(WordDetailPage.PickNativeLanguage) },
                     onSave = { updatedWord ->
                         onUpdateWord(updatedWord)
-                        sheetNav.dismiss()
+                        pages.navigateBack()
                     },
                     onDismiss = { pages.navigateBack() }
                 )
 
-                is WordDetailPage.DeleteConfirm -> DeleteConfirmationContent(
+                WordDetailPage.PickLearningLanguage -> DraftLanguagePicker(
+                    current = draft.targetLanguage,
+                    title = stringResource(Res.string.word_language),
+                    onPicked = { draft = draft.copy(targetLanguage = it) },
+                    onDone = { pages.navigateBack() },
+                )
+
+                WordDetailPage.PickNativeLanguage -> DraftLanguagePicker(
+                    current = draft.sourceLanguage,
+                    title = stringResource(Res.string.translation_language_label),
+                    onPicked = { draft = draft.copy(sourceLanguage = it) },
+                    onDone = { pages.navigateBack() },
+                )
+
+                WordDetailPage.DeleteConfirm -> DeleteConfirmationContent(
                     count = 1,
                     onConfirm = {
-                        onDeleteWord(page.word)
+                        onDeleteWord(liveWord)
                         sheetNav.dismiss()
                     },
                     onDismiss = { pages.navigateBack() }
                 )
 
-                is WordDetailPage.TagAssignment -> TagAssignmentSheetContent(
-                    word = page.word,
+                WordDetailPage.TagAssignment -> TagAssignmentSheetContent(
+                    word = liveWord,
                     onDismiss = { pages.navigateBack() }
                 )
             }
         }
     }
+}
+
+@Composable
+private fun DraftLanguagePicker(
+    current: Language,
+    title: String,
+    onPicked: (Language) -> Unit,
+    onDone: () -> Unit,
+) {
+    LanguageSelectionContent(
+        currentLanguage = current,
+        onLanguageSelected = {
+            onPicked(it)
+            onDone()
+        },
+        title = title,
+    )
 }
 
 @Composable

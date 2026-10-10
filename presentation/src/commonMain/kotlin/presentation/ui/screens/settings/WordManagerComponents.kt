@@ -23,11 +23,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import domain.word.model.LearningStage
 import domain.word.model.Word
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import feature.words.model.WordManagerScreenState
 import domain.word.model.WordSortOption
@@ -41,33 +43,43 @@ internal fun WordListContent(
     onClearSearch: () -> Unit,
     onToggleSelection: (Int) -> Unit,
     onOpenDetail: (Word) -> Unit,
-    onEnterSelectionMode: (Int) -> Unit,
-    onSelectAll: () -> Unit,
+    onDragSelectStart: (index: Int) -> Unit,
+    onDragSelectTo: (index: Int) -> Unit,
+    onDragSelectEnd: () -> Unit,
     onShareWords: () -> Unit,
     onSortOptionChange: (WordSortOption) -> Unit,
     onFilterLanguageChange: (Language?) -> Unit,
     onFilterLearningStageChange: (LearningStage?) -> Unit,
     onFilterTagChange: (Long?) -> Unit,
+    onClearFilters: () -> Unit,
     onDeleteSelected: () -> Unit,
     onBatchEditLanguages: () -> Unit,
     onBatchAssignTags: () -> Unit,
-    onExitSelectionMode: () -> Unit,
 ) {
     DragSelectScrollViewSetup()
     val lazyListState = rememberLazyListState()
     val dragSelectState = remember { DragSelectState() }
-    // rememberUpdatedState ensures the gesture lambda reads the latest list
-    // even though pointerInput keeps a single coroutine alive across recompositions.
-    val currentFilteredWords = rememberUpdatedState(state.filteredWords)
+    val haptics = LocalHapticFeedback.current
+    // pointerInput keeps one coroutine alive across recompositions; read the latest callbacks.
+    val onDragStart by rememberUpdatedState<(Int) -> Unit>({ index ->
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        onDragSelectStart(index)
+    })
+    val onDragTo by rememberUpdatedState<(Int) -> Unit>({ index ->
+        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        onDragSelectTo(index)
+    })
+    val onDragEnd by rememberUpdatedState(onDragSelectEnd)
 
-    // Auto-scroll: runs whenever the gesture sets a non-zero speed.
-    // Pattern from jordond/drag-select-compose: LaunchedEffect watches the speed
-    // state so it restarts automatically when scrolling starts/stops.
-    LaunchedEffect(dragSelectState.autoScrollSpeed) {
-        if (dragSelectState.autoScrollSpeed == 0f) return@LaunchedEffect
-        while (isActive) {
+    // Auto-scroll near the list edges, one step per frame. Rows that scroll under a finger
+    // holding still are picked up here, since no pointer event arrives for them.
+    val autoScrolling = dragSelectState.autoScrollSpeed != 0f
+    LaunchedEffect(autoScrolling) {
+        while (isActive && dragSelectState.autoScrollSpeed != 0f) {
+            withFrameNanos { }
             lazyListState.scrollBy(dragSelectState.autoScrollSpeed)
-            delay(16L)
+            val index = lazyListState.rowAt(dragSelectState.fingerY)
+            if (dragSelectState.moveTo(index)) onDragTo(index)
         }
     }
 
@@ -121,20 +133,13 @@ internal fun WordListContent(
                     .dragSelectGesture(
                         lazyListState = lazyListState,
                         dragSelectState = dragSelectState,
-                        onDragStarted = { index ->
-                            currentFilteredWords.value.getOrNull(index)?.let { word ->
-                                onEnterSelectionMode(word.id)
-                            }
-                        },
-                        onItemEntered = { index ->
-                            currentFilteredWords.value.getOrNull(index)?.let { word ->
-                                onToggleSelection(word.id)
-                            }
-                        },
+                        onDragStart = { onDragStart(it) },
+                        onDragTo = { onDragTo(it) },
+                        onDragEnd = { onDragEnd() },
                     ),
                 contentPadding = PaddingValues(
                     bottom = if (state.isSelectionMode) {
-                        Theme.dimensions.bottomBarHeight + navBarBottom
+                        Theme.dimensions.bottomBarHeight + Theme.spacing.lg + navBarBottom
                     } else {
                         Theme.spacing.md + navBarBottom
                     }
@@ -155,27 +160,29 @@ internal fun WordListContent(
                                 onOpenDetail(word)
                             }
                         },
-                        // The list's long-press-drag gesture selects (see dragSelectGesture). A long-click
-                        // handler here only stops the release from also counting as a tap, which would
-                        // toggle the word straight back off.
-                        onLongPress = {},
+                        // Touch long press is the list's drag gesture; this is the accessibility action.
+                        onLongPress = {
+                            onDragSelectStart(index)
+                            onDragSelectEnd()
+                        },
                         modifier = Modifier.animateItem()
                     )
                 }
 
-                if (state.searchQuery.isNotBlank() && state.filteredWords.isEmpty()) {
-                    item {
-                        EmptySearchView()
+                if (state.isFiltered && state.filteredWords.isEmpty()) {
+                    item(key = "empty-results") {
+                        EmptySearchView(
+                            hasSearchQuery = state.searchQuery.isNotBlank(),
+                            onClearFilters = onClearFilters,
+                        )
                     }
                 }
             }
         }
 
         SelectionActionBar(
-            isVisible = state.isSelectionMode && state.selectedCount > 0,
-            selectedCount = state.selectedCount,
-            onClose = onExitSelectionMode,
-            onSelectAll = onSelectAll,
+            isVisible = state.isSelectionMode,
+            enabled = state.selectedCount > 0,
             onDelete = onDeleteSelected,
             onBatchEditLanguages = onBatchEditLanguages,
             onBatchAssignTags = onBatchAssignTags,

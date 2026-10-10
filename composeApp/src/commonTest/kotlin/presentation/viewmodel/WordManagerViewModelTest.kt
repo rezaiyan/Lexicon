@@ -54,6 +54,8 @@ class WordManagerViewModelTest : ViewModelTestBase() {
     )
 
     private val wordsFlow = MutableStateFlow(listOf(testWord(1), testWord(2), testWord(3)))
+    private val deletedIds = mutableListOf<Int>()
+    private var deleteFails = false
 
     private fun fakeWordRepo() = object : IWordRepository {
         override fun getAllWords(): Flow<List<Word>> = wordsFlow
@@ -66,7 +68,11 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
         override suspend fun updateWord(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun deleteWord(id: Int): Try<Unit> = Try.success(Unit)
-        override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> = flowOf(DeleteWordsProgress.Completed(ids.size))
+        override fun deleteWords(ids: List<Int>): Flow<DeleteWordsProgress> {
+            if (deleteFails) return flowOf(DeleteWordsProgress.Failed("Network error"))
+            deletedIds += ids
+            return flowOf(DeleteWordsProgress.Completed(ids.size))
+        }
         override fun updateWordsLanguages(ids: List<Int>, sourceLanguage: String, targetLanguage: String): Flow<UpdateWordsLanguagesProgress> =
             flowOf(UpdateWordsLanguagesProgress.Completed(ids.size))
         override suspend fun deleteAllWords(): Try<Unit> = Try.success(Unit)
@@ -265,5 +271,128 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         assertEquals(emptySet(), vm.currentState.selectedWordIds)
         assertFalse(vm.currentState.isSelectionMode)
         assertEquals("", vm.currentState.searchQuery)
+    }
+
+    @Test
+    fun `deleteWord deletes only that word and leaves selection untouched`() = runTest {
+        val vm = createViewModel()
+
+        vm.deleteWord(2)
+
+        assertEquals(listOf(2), deletedIds)
+        assertFalse(vm.currentState.isSelectionMode)
+        assertEquals(emptySet(), vm.currentState.selectedWordIds)
+    }
+
+    @Test
+    fun `deleteWord when delete fails keeps the word list visible`() = runTest {
+        deleteFails = true
+        val vm = createViewModel()
+
+        vm.deleteWord(2)
+
+        assertEquals(null, vm.currentState.errorMessage)
+        assertFalse(vm.currentState.isDeletingWords)
+        assertEquals(3, vm.currentState.filteredWords.size)
+    }
+
+    @Test
+    fun `deleteSelectedWords when delete fails keeps the word list visible`() = runTest {
+        deleteFails = true
+        val vm = createViewModel()
+        vm.toggleWordSelection(1)
+
+        vm.deleteSelectedWords()
+
+        assertEquals(null, vm.currentState.errorMessage)
+        assertEquals(setOf(1), vm.currentState.selectedWordIds)
+    }
+
+    @Test
+    fun `drag selection selects every word between anchor and finger`() = runTest {
+        wordsFlow.value = (1..6).map { testWord(it) }
+        val vm = createViewModel()
+        val ids = vm.currentState.filteredWords.map { it.id }
+
+        vm.startDragSelection(1)
+        vm.dragSelectionTo(4)
+
+        assertEquals(ids.slice(1..4).toSet(), vm.currentState.selectedWordIds)
+        assertTrue(vm.currentState.isSelectionMode)
+    }
+
+    @Test
+    fun `drag selection shrinks when finger moves back toward anchor`() = runTest {
+        wordsFlow.value = (1..6).map { testWord(it) }
+        val vm = createViewModel()
+        val ids = vm.currentState.filteredWords.map { it.id }
+
+        vm.startDragSelection(1)
+        vm.dragSelectionTo(4)
+        vm.dragSelectionTo(2)
+
+        assertEquals(ids.slice(1..2).toSet(), vm.currentState.selectedWordIds)
+    }
+
+    @Test
+    fun `drag selection works upward from anchor`() = runTest {
+        wordsFlow.value = (1..6).map { testWord(it) }
+        val vm = createViewModel()
+        val ids = vm.currentState.filteredWords.map { it.id }
+
+        vm.startDragSelection(4)
+        vm.dragSelectionTo(1)
+
+        assertEquals(ids.slice(1..4).toSet(), vm.currentState.selectedWordIds)
+    }
+
+    @Test
+    fun `drag selection keeps words selected before the drag`() = runTest {
+        wordsFlow.value = (1..6).map { testWord(it) }
+        val vm = createViewModel()
+        val ids = vm.currentState.filteredWords.map { it.id }
+        vm.toggleWordSelection(ids[5])
+
+        vm.startDragSelection(0)
+        vm.dragSelectionTo(1)
+        vm.endDragSelection()
+
+        assertEquals(setOf(ids[0], ids[1], ids[5]), vm.currentState.selectedWordIds)
+    }
+
+    @Test
+    fun `drag starting on a selected word deselects the range`() = runTest {
+        wordsFlow.value = (1..6).map { testWord(it) }
+        val vm = createViewModel()
+        val ids = vm.currentState.filteredWords.map { it.id }
+        vm.selectAll()
+
+        vm.startDragSelection(2)
+        vm.dragSelectionTo(3)
+
+        assertEquals(ids.toSet() - setOf(ids[2], ids[3]), vm.currentState.selectedWordIds)
+    }
+
+    @Test
+    fun `dragSelectionTo without a started drag does nothing`() = runTest {
+        val vm = createViewModel()
+
+        vm.dragSelectionTo(2)
+
+        assertEquals(emptySet(), vm.currentState.selectedWordIds)
+    }
+
+    @Test
+    fun `clearFilters resets search language level and tag`() = runTest {
+        val vm = createViewModel()
+        vm.updateSearchQuery("zzz")
+        vm.setFilterLanguage(Language.GERMAN)
+        vm.setFilterLearningStage(LearningStage.LEVEL_6_MASTERED)
+        vm.setFilterTagId(7L)
+
+        vm.clearFilters()
+
+        assertFalse(vm.currentState.isFiltered)
+        assertEquals(3, vm.currentState.filteredWords.size)
     }
 }

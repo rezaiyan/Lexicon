@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import core.base.BaseViewModel
+import feature.words.model.DragSelection
 import feature.words.model.WordManagerEffect
 import feature.words.model.WordManagerScreenState
 import utils.Language
@@ -175,6 +176,35 @@ class WordManagerViewModel(
         }
     }
 
+    /** Long press landed on row [index] of the visible list: begins a drag selection there. */
+    fun startDragSelection(index: Int) {
+        val word = currentState.filteredWords.getOrNull(index) ?: return
+        updateState {
+            val drag = DragSelection(
+                anchorIndex = index,
+                baseSelection = selectedWordIds,
+                selecting = word.id !in selectedWordIds,
+            )
+            copy(
+                dragSelection = drag,
+                selectedWordIds = drag.selectionAt(filteredWords.map { it.id }, index),
+                isSelectionMode = true,
+            )
+        }
+    }
+
+    /** Finger is over row [index]; selection becomes the base plus / minus the anchor..index range. */
+    fun dragSelectionTo(index: Int) {
+        updateState {
+            val drag = dragSelection ?: return@updateState this
+            copy(selectedWordIds = drag.selectionAt(filteredWords.map { it.id }, index))
+        }
+    }
+
+    fun endDragSelection() {
+        updateState { copy(dragSelection = null, isSelectionMode = selectedWordIds.isNotEmpty()) }
+    }
+
     fun updateSearchQuery(query: String) {
         updateState { copy(searchQuery = query) }
         recomputeFilteredWords()
@@ -205,12 +235,19 @@ class WordManagerViewModel(
         recomputeFilteredWords()
     }
 
+    fun clearFilters() {
+        updateState {
+            copy(searchQuery = "", filterLanguage = null, filterLearningStage = null, filterTagId = null)
+        }
+        recomputeFilteredWords()
+    }
+
     fun enterSelectionMode() {
         updateState { copy(isSelectionMode = true) }
     }
 
     fun exitSelectionMode() {
-        updateState { copy(isSelectionMode = false, selectedWordIds = emptySet()) }
+        updateState { copy(isSelectionMode = false, selectedWordIds = emptySet(), dragSelection = null) }
     }
 
     fun updateWord(word: Word) {
@@ -218,10 +255,12 @@ class WordManagerViewModel(
     }
 
     fun deleteSelectedWords() {
-        val selectedIds = currentState.selectedWordIds.toList()
-        viewModelScope.launch {
-            deletionHandler.deleteSelectedWords(selectedIds)
-        }
+        deletionHandler.deleteSelectedWords(currentState.selectedWordIds.toList())
+    }
+
+    /** Deletes one word from its detail sheet, without touching the list selection. */
+    fun deleteWord(wordId: Int) {
+        deletionHandler.deleteSelectedWords(listOf(wordId))
     }
 
     fun batchUpdateLanguages(sourceLanguage: Language, targetLanguage: Language) {

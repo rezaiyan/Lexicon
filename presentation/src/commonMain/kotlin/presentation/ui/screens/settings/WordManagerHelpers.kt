@@ -12,6 +12,13 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import lexicon.resources.generated.resources.clear_filters
+import lexicon.resources.generated.resources.no_connection
+import lexicon.resources.generated.resources.no_results_filter_hint
+import lexicon.resources.generated.resources.no_results_search_hint
+import lexicon.resources.generated.resources.words_load_failed
+import lexicon.resources.generated.resources.words_load_offline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,11 +62,11 @@ internal fun ErrorView(
     val isNetworkError = classification is ImportErrorClassification.NetworkError
     ErrorScreen(
         message = if (isNetworkError) {
-            "You're offline -- your word library couldn't be loaded. Check your connection and try again."
+            stringResource(Res.string.words_load_offline)
         } else {
-            message.ifEmpty { "Something went wrong loading your words." }
+            message.ifEmpty { stringResource(Res.string.words_load_failed) }
         },
-        title = if (isNetworkError) "No Connection" else stringResource(Res.string.error),
+        title = stringResource(if (isNetworkError) Res.string.no_connection else Res.string.error),
         icon = Icons.Default.Error,
     )
 }
@@ -80,8 +87,12 @@ internal fun EmptyLibraryView() {
     )
 }
 
+/** No word passes the search / filters. Offers a one-tap reset when filters (not just search) hide words. */
 @Composable
-internal fun EmptySearchView() {
+internal fun EmptySearchView(
+    hasSearchQuery: Boolean,
+    onClearFilters: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -102,11 +113,16 @@ internal fun EmptySearchView() {
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Try a different spelling or search by translation.",
+            text = stringResource(
+                if (hasSearchQuery) Res.string.no_results_search_hint else Res.string.no_results_filter_hint
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
+        TextButton(onClick = onClearFilters) {
+            Text(stringResource(Res.string.clear_filters))
+        }
     }
 }
 
