@@ -70,7 +70,10 @@ class InsightsCoachViewModel(
     override fun initialState() = InsightsCoachState()
 
     init {
-        combine(useCases.observeScreen(Unit), useCases.observeDismissed(Unit)) { cached, dismissed -> cached to dismissed }
+        combine(
+            useCases.observeScreen(Unit),
+            useCases.observeDismissed(Unit),
+        ) { cached, dismissed -> cached to dismissed }
             .onEach { (cached, dismissed) -> render(cached, dismissed) }
             .launchIn(viewModelScope)
     }
@@ -93,7 +96,8 @@ class InsightsCoachViewModel(
     fun onCoachAction(card: CoachCardUi) {
         analyticsTracker.logEvent("coach_card_action", mapOf("type" to card.type))
         when (val action = card.action) {
-            is CoachAction.ReviewWords -> emitEffect(InsightsCoachEffect.StartReview(ReviewSource.ByWords(action.wordIds)))
+            is CoachAction.ReviewWords ->
+                emitEffect(InsightsCoachEffect.StartReview(ReviewSource.ByWords(action.wordIds)))
             is CoachAction.StartReview -> emitEffect(InsightsCoachEffect.StartReview(ReviewSource.DueCards))
             is CoachAction.StartWordRush -> emitEffect(InsightsCoachEffect.StartWordRush)
             is CoachAction.EnableReminder -> enableReminders()
