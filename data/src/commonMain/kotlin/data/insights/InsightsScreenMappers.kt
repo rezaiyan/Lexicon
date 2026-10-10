@@ -1,7 +1,33 @@
 package data.insights
 
-import data.insights.remote.*
-import domain.insights.model.*
+import data.insights.remote.CoachActionDto
+import data.insights.remote.CoachCardDto
+import data.insights.remote.DayCountDto
+import data.insights.remote.HabitsSectionDto
+import data.insights.remote.HeroDto
+import data.insights.remote.InsightsScreenDto
+import data.insights.remote.LockedSectionDto
+import data.insights.remote.MasterySectionDto
+import data.insights.remote.MetricDto
+import data.insights.remote.WordRushSectionDto
+import data.insights.remote.WordsSectionDto
+import domain.insights.model.BestHour
+import domain.insights.model.CoachAction
+import domain.insights.model.CoachCard
+import domain.insights.model.DayCount
+import domain.insights.model.HabitsSection
+import domain.insights.model.InsightSectionKey
+import domain.insights.model.InsightWord
+import domain.insights.model.InsightsScreen
+import domain.insights.model.LevelCount
+import domain.insights.model.LockedSection
+import domain.insights.model.MasterySection
+import domain.insights.model.Metric
+import domain.insights.model.WeekdayAccuracy
+import domain.insights.model.WeeklyHero
+import domain.insights.model.WordChip
+import domain.insights.model.WordRushSection
+import domain.insights.model.WordsSection
 import kotlinx.datetime.LocalDate
 
 fun InsightsScreenDto.toDomain() = InsightsScreen(

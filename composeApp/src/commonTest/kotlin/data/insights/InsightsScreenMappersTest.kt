@@ -1,6 +1,11 @@
 package data.insights
 
-import data.insights.remote.*
+import data.insights.remote.CoachActionDto
+import data.insights.remote.CoachCardDto
+import data.insights.remote.DayCountDto
+import data.insights.remote.HeroDto
+import data.insights.remote.InsightsScreenDto
+import data.insights.remote.LockedSectionDto
 import domain.insights.model.CoachAction
 import domain.insights.model.InsightSectionKey
 import domain.insights.model.LockedSection

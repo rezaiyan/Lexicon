@@ -1,6 +1,20 @@
 package domain.insights
 
-import domain.insights.model.*
+import domain.insights.model.CachedInsights
+import domain.insights.model.CoachAction
+import domain.insights.model.CoachCard
+import domain.insights.model.DayCount
+import domain.insights.model.HabitsSection
+import domain.insights.model.InsightSectionKey
+import domain.insights.model.InsightWord
+import domain.insights.model.InsightsScreen
+import domain.insights.model.LevelCount
+import domain.insights.model.LockedSection
+import domain.insights.model.MasterySection
+import domain.insights.model.Metric
+import domain.insights.model.WeeklyHero
+import domain.insights.model.WordChip
+import domain.insights.model.WordsSection
 import kotlinx.datetime.LocalDate
 
 object InsightsFixtures {

@@ -1,7 +1,6 @@
 package domain.insights
 
 import app.cash.turbine.test
-import core.common.Try
 import domain.insights.usecase.DismissCoachCardUseCase
 import domain.insights.usecase.ObserveDismissedCoachCardsUseCase
 import domain.insights.usecase.ObserveInsightsScreenUseCase
