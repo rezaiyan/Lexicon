@@ -5,10 +5,13 @@ import core.common.Try
 import core.common.getOrThrow
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
+import domain.tts.model.TtsSettings
 import domain.tts.model.TtsState
 import fakes.FakePerformanceTracer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -20,6 +23,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TtsRepositoryImplTest {
@@ -28,7 +32,16 @@ class TtsRepositoryImplTest {
     private val createdEngines = mutableListOf<FakeTtsEngine>()
     private val modelFileManager = FakeModelFileManager()
     private val performanceTracer = FakePerformanceTracer()
+    private val ttsSettings = MutableStateFlow(TtsSettings())
+    private val voiceIds = MutableStateFlow<Map<String, String>>(emptyMap())
     private val fakeSettingsRepository = object : ISettingsRepository {
+        override fun getTtsSettings(): Flow<TtsSettings> = ttsSettings
+        override fun getTtsVoiceIdForLanguage(languageCode: String): Flow<String?> =
+            voiceIds.map { it[languageCode] }
+        override suspend fun setTtsVoiceIdForLanguage(languageCode: String, voiceId: String): Try<Unit> {
+            voiceIds.value = voiceIds.value + (languageCode to voiceId)
+            return Try.success(Unit)
+        }
         override fun getThemeMode(): Flow<ThemeMode> = flowOf(ThemeMode.AUTO)
         override suspend fun setThemeMode(mode: ThemeMode): Try<Unit> = Try.success(Unit)
         override suspend fun clearSettings(): Try<Unit> = Try.success(Unit)
@@ -348,6 +361,116 @@ class TtsRepositoryImplTest {
         assertEquals(initializedBefore, ttsEngine.initialized)
     }
 
+    @Test
+    fun `speak passes expressiveness to engine as noise scale`() = runTest {
+        givenModelFiles()
+        ttsSettings.value = TtsSettings(expressiveness = 0.3f)
+        val repo = createRepo()
+
+        repo.speak("hello", "en")
+
+        assertEquals(0.3f, ttsEngine.lastNoiseScale)
+    }
+
+    @Test
+    fun `speak when expressiveness changed reloads engine with new noise scale`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+        repo.speak("hello", "en")
+
+        ttsSettings.value = TtsSettings(expressiveness = 0.9f)
+        repo.speak("hello", "en")
+
+        assertEquals(2, createdEngines.size)
+        assertEquals(0.9f, createdEngines.last().lastNoiseScale)
+    }
+
+    @Test
+    fun `speak when expressiveness unchanged reuses loaded engine`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+
+        repo.speak("hello", "en")
+        repo.speak("again", "en")
+
+        assertEquals(1, createdEngines.size)
+        assertEquals(1, ttsEngine.initializeCount)
+    }
+
+    @Test
+    fun `downloadModel without a chosen voice fetches the default voice`() = runTest {
+        val repo = createRepo()
+
+        repo.downloadModel("en").toList()
+
+        assertEquals(
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-kristin-medium.tar.bz2",
+            modelFileManager.lastArchiveUrl,
+        )
+    }
+
+    @Test
+    fun `selectVoice persists choice deletes old model and next download fetches new voice`() = runTest {
+        modelFileManager.modelPresent = true
+        val repo = createRepo()
+
+        repo.selectVoice("en", "en_GB-alan-medium").getOrThrow()
+        repo.downloadModel("en").toList()
+
+        assertEquals("en_GB-alan-medium", voiceIds.value["en"])
+        assertEquals(listOf("en"), modelFileManager.deletedLanguages)
+        assertEquals(
+            "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_GB-alan-medium.tar.bz2",
+            modelFileManager.lastArchiveUrl,
+        )
+    }
+
+    @Test
+    fun `selectVoice when voice is already current keeps the model`() = runTest {
+        modelFileManager.modelPresent = true
+        val repo = createRepo()
+
+        repo.selectVoice("en", "en_US-kristin-medium").getOrThrow()
+
+        assertTrue(modelFileManager.deletedLanguages.isEmpty())
+        assertNull(voiceIds.value["en"])
+    }
+
+    @Test
+    fun `selectVoice with unknown voice fails and keeps the model`() = runTest {
+        modelFileManager.modelPresent = true
+        val repo = createRepo()
+
+        val result = repo.selectVoice("en", "en_US-nobody-medium")
+
+        assertTrue(result.isFailure)
+        assertTrue(modelFileManager.deletedLanguages.isEmpty())
+    }
+
+    @Test
+    fun `selectVoice releases loaded engine so the new model is loaded on next speak`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+        repo.speak("hello", "en")
+
+        repo.selectVoice("en", "en_GB-alan-medium").getOrThrow()
+        repo.speak("hello", "en")
+
+        assertEquals(2, createdEngines.size)
+    }
+
+    @Test
+    fun `getModelInfo exposes voices selected voice and sample text`() = runTest {
+        voiceIds.value = mapOf("en" to "en_US-ryan-medium")
+        val repo = createRepo()
+
+        val info = repo.getModelInfo("en", "English").getOrThrow()
+
+        assertTrue(info.voices.size > 1)
+        assertEquals("en_US-ryan-medium", info.selectedVoiceId)
+        assertTrue(info.sampleText.isNotBlank())
+    }
+
     // --- Fakes ---
 
     private class FakeTtsEngine : ITtsEngine {
@@ -358,8 +481,11 @@ class TtsRepositoryImplTest {
         var stopped = false
         var playbackGate: CompletableDeferred<Unit>? = null
 
-        override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String) {
+        var lastNoiseScale: Float? = null
+
+        override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String, noiseScale: Float) {
             initializeCount++
+            lastNoiseScale = noiseScale
             initialized = initializeSuccess
         }
 
@@ -386,18 +512,26 @@ class TtsRepositoryImplTest {
         var tokensPath = ""
         var dataDir = ""
         var downloadProgressValues: List<Float> = listOf(1.0f)
+        var lastArchiveUrl: String? = null
+        val deletedLanguages = mutableListOf<String>()
 
         override suspend fun isModelPresent(languageCode: String): Boolean = modelPresent
         override suspend fun downloadAndExtractModel(
             archiveUrl: String,
             languageCode: String,
             extractedDirName: String,
-        ): Flow<Float> = flowOf(*downloadProgressValues.toTypedArray())
+        ): Flow<Float> {
+            lastArchiveUrl = archiveUrl
+            return flowOf(*downloadProgressValues.toTypedArray())
+        }
 
         override fun getModelFilePath(languageCode: String): String = modelPath
         override fun getTokensFilePath(languageCode: String): String = tokensPath
         override fun getDataDir(languageCode: String): String = dataDir
-        override suspend fun deleteModelFiles(languageCode: String) {}
+        override suspend fun deleteModelFiles(languageCode: String) {
+            deletedLanguages += languageCode
+            modelPresent = false
+        }
         override suspend fun getModelDirectorySize(languageCode: String): Long = 0L
     }
 }

@@ -96,6 +96,7 @@ class SettingsRepositoryImpl(
         return localDataSource.observeSettings().map { settings ->
             TtsSettings(
                 speechRate = settings?.ttsSpeed ?: TtsSettings.DEFAULT_SPEECH_RATE,
+                expressiveness = settings?.ttsExpressiveness ?: TtsSettings.DEFAULT_EXPRESSIVENESS,
             )
         }
     }
@@ -105,6 +106,11 @@ class SettingsRepositoryImpl(
         localDataSource.saveSettings(current.copy(ttsSpeed = rate))
     }
 
+    override suspend fun setTtsExpressiveness(value: Float): Try<Unit> = Try {
+        val current = localDataSource.getSettings() ?: SettingsEntityData()
+        localDataSource.saveSettings(current.copy(ttsExpressiveness = value))
+    }
+
     override fun getTtsVoiceForLanguage(languageCode: String): Flow<Int> =
         localDataSource.observeVoicePreferences().map { prefs ->
             prefs[languageCode] ?: TtsSettings.DEFAULT_SPEAKER_ID
@@ -112,6 +118,13 @@ class SettingsRepositoryImpl(
 
     override suspend fun setTtsVoiceForLanguage(languageCode: String, speakerId: Int): Try<Unit> = Try {
         localDataSource.setVoiceForLanguage(languageCode, speakerId)
+    }
+
+    override fun getTtsVoiceIdForLanguage(languageCode: String): Flow<String?> =
+        localDataSource.observeVoiceIds().map { ids -> ids[languageCode] }
+
+    override suspend fun setTtsVoiceIdForLanguage(languageCode: String, voiceId: String): Try<Unit> = Try {
+        localDataSource.setVoiceIdForLanguage(languageCode, voiceId)
     }
 
     override fun getNumSpeakersForLanguage(languageCode: String): Flow<Int> =

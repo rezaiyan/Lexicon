@@ -29,7 +29,8 @@ CREATE TABLE SettingsEntity (
     ttsSpeakerId INTEGER NOT NULL DEFAULT 0,
     skipTagSelector INTEGER NOT NULL DEFAULT 0,
     word_sync_timestamp INTEGER NOT NULL DEFAULT 0,
-    dailyGoalWords INTEGER NOT NULL DEFAULT 10
+    dailyGoalWords INTEGER NOT NULL DEFAULT 10,
+    ttsExpressiveness REAL NOT NULL DEFAULT 0.667
 );
 
 -- Word queries
@@ -98,8 +99,8 @@ LIMIT 1;
 -- Settings queries
 
 insertSettings:
-INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId, skipTagSelector, dailyGoalWords)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SettingsEntity(id, languageCode, themeMode, notificationsEnabled, reviewReminders, motivationalMessages, dailyReminderTime, minimumDueCards, ttsSpeed, ttsSpeakerId, skipTagSelector, dailyGoalWords, ttsExpressiveness)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getSettings:
 SELECT * FROM SettingsEntity WHERE id = 1;
@@ -117,19 +118,20 @@ UPDATE SettingsEntity SET word_sync_timestamp = ? WHERE id = 1;
 CREATE TABLE TtsVoicePreference (
     languageCode TEXT NOT NULL PRIMARY KEY,
     speakerId INTEGER NOT NULL DEFAULT 0,
-    numSpeakers INTEGER NOT NULL DEFAULT 1
+    numSpeakers INTEGER NOT NULL DEFAULT 1,
+    voiceId TEXT
 );
 
 -- TtsVoicePreference queries
 
 selectVoicePreferenceForLanguage:
-SELECT speakerId, numSpeakers FROM TtsVoicePreference WHERE languageCode = ?;
+SELECT speakerId, numSpeakers, voiceId FROM TtsVoicePreference WHERE languageCode = ?;
 
 selectAllVoicePreferences:
-SELECT languageCode, speakerId, numSpeakers FROM TtsVoicePreference;
+SELECT languageCode, speakerId, numSpeakers, voiceId FROM TtsVoicePreference;
 
 upsertVoicePreference:
-INSERT OR REPLACE INTO TtsVoicePreference(languageCode, speakerId, numSpeakers) VALUES (?, ?, ?);
+INSERT OR REPLACE INTO TtsVoicePreference(languageCode, speakerId, numSpeakers, voiceId) VALUES (?, ?, ?, ?);
 
 -- TagEntity table
 CREATE TABLE TagEntity (

@@ -584,5 +584,13 @@
     <string name="onboarding_word_count">%1$d Wörter</string>
     <string name="onboarding_add_words">%1$d Wörter hinzufügen und starten</string>
     <string name="onboarding_start_empty">Mit leerer Liste starten</string>
+    <string name="tts_expressiveness">Ausdruck</string>
+    <string name="tts_expressiveness_hint">Niedriger klingt ruhiger und deutlicher bei einzelnen Wörtern. Höher klingt natürlicher.</string>
+    <string name="tts_expressiveness_steady">Ruhig</string>
+    <string name="tts_expressiveness_balanced">Ausgewogen</string>
+    <string name="tts_expressiveness_expressive">Lebhaft</string>
+    <string name="tts_voice_preview">Hörprobe abspielen</string>
+    <string name="tts_voice_preview_stop">Hörprobe stoppen</string>
+    <string name="tts_voice_switch_hint">Eine andere Stimme wird heruntergeladen und ersetzt die aktuelle.</string>
 </resources>
 

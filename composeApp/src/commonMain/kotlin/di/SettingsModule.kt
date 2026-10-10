@@ -19,6 +19,7 @@ import domain.settings.usecase.SetSkipTagSelectorUseCase
 import domain.settings.usecase.SetThemeModeUseCase
 import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetTtsVoiceUseCase
+import domain.settings.usecase.SetTtsExpressivenessUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.streak.repository.IStreakRepository
 import domain.streak.usecase.GetStreakUseCase
@@ -64,6 +65,7 @@ fun settingsModule() = module {
     singleOf(::SetReviewRemindersEnabledUseCase)
     singleOf(::SetTtsSpeechRateUseCase)
     singleOf(::SetTtsVoiceUseCase)
+    singleOf(::SetTtsExpressivenessUseCase)
     singleOf(::GetSkipTagSelectorUseCase)
     singleOf(::SetSkipTagSelectorUseCase)
 

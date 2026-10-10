@@ -11,6 +11,7 @@ import domain.settings.usecase.SetDailyGoalWordsUseCase
 import domain.settings.usecase.SetNotificationsEnabledUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import domain.settings.usecase.SetThemeModeUseCase
+import domain.settings.usecase.SetTtsExpressivenessUseCase
 import domain.settings.usecase.SetTtsVoiceUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.tts.model.TtsModelInfo
@@ -18,10 +19,15 @@ import domain.tts.model.TtsSettings
 import domain.tts.usecase.DeleteTtsModelUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.tts.usecase.GetTtsModelsInfoUseCase
+import domain.tts.usecase.SelectTtsVoiceUseCase
+import domain.tts.usecase.SpeakWordUseCase
+import domain.tts.usecase.StopSpeakingUseCase
+import kotlinx.coroutines.Job
 import core.common.getOrDefault
 import core.common.fold
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -39,10 +45,12 @@ data class SettingsState(
     val ttsTotalSizeBytes: Long = 0L,
     val ttsSettings: TtsSettings = TtsSettings(),
     val ttsDownloadProgress: Map<String, Float> = emptyMap(),
+    /** Language whose voice sample is playing, if any. */
+    val ttsPreviewLanguage: String? = null,
     val dailyGoalWords: Int = 10,
 )
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "TooManyFunctions")
 class SettingsViewModel(
     notificationRepository: INotificationRepository,
     private val setThemeModeUseCase: SetThemeModeUseCase,
@@ -57,6 +65,10 @@ class SettingsViewModel(
     private val downloadTtsModelUseCase: DownloadTtsModelUseCase,
     private val setTtsSpeechRateUseCase: SetTtsSpeechRateUseCase,
     private val setTtsVoiceUseCase: SetTtsVoiceUseCase,
+    private val setTtsExpressivenessUseCase: SetTtsExpressivenessUseCase,
+    private val selectTtsVoiceUseCase: SelectTtsVoiceUseCase,
+    private val speakWordUseCase: SpeakWordUseCase,
+    private val stopSpeakingUseCase: StopSpeakingUseCase,
     getDailyGoalWordsUseCase: GetDailyGoalWordsUseCase,
     private val setDailyGoalWordsUseCase: SetDailyGoalWordsUseCase,
     settingsRepository: ISettingsRepository,
@@ -64,6 +76,8 @@ class SettingsViewModel(
 ) : BaseViewModel<SettingsState, Nothing>() {
 
     override fun initialState() = SettingsState()
+
+    private var previewJob: Job? = null
 
     private val systemNotificationsEnabled =
         notificationPermissionMonitor.systemNotificationsEnabled
@@ -188,11 +202,15 @@ class SettingsViewModel(
     fun downloadTtsModel(languageCode: String) {
         viewModelScope.launch {
             downloadTtsModelUseCase(languageCode)
+                .onCompletion {
+                    updateState { copy(ttsDownloadProgress = ttsDownloadProgress - languageCode) }
+                    loadTtsModels(silently = true)
+                }
+                // A failed download leaves the row in "not downloaded" so the user can retry.
+                .catch { }
                 .collect { progress ->
                     updateState { copy(ttsDownloadProgress = ttsDownloadProgress + (languageCode to progress)) }
                 }
-            updateState { copy(ttsDownloadProgress = ttsDownloadProgress - languageCode) }
-            loadTtsModels(silently = true)
         }
     }
 
@@ -216,5 +234,53 @@ class SettingsViewModel(
             setTtsVoiceUseCase(SetTtsVoiceUseCase.Params(languageCode, speakerId))
             loadTtsModels(silently = true)
         }
+    }
+
+    fun setTtsExpressiveness(value: Float) {
+        viewModelScope.launch {
+            setTtsExpressivenessUseCase(value)
+        }
+    }
+
+    /** Switches [languageCode] to [voiceId]; an installed model is replaced by downloading the new voice. */
+    fun selectTtsModelVoice(languageCode: String, voiceId: String) {
+        val model = currentState.ttsModels.find { it.languageCode == languageCode } ?: return
+        if (model.selectedVoiceId == voiceId || languageCode in currentState.ttsDownloadProgress) return
+        if (currentState.ttsPreviewLanguage == languageCode) stopTtsPreview()
+        viewModelScope.launch {
+            selectTtsVoiceUseCase(SelectTtsVoiceUseCase.Params(languageCode, voiceId)).fold(
+                onSuccess = {
+                    if (model.isDownloaded) downloadTtsModel(languageCode) else loadTtsModels(silently = true)
+                },
+                onFailure = { loadTtsModels(silently = true) },
+            )
+        }
+    }
+
+    /** Plays a short sample in [languageCode]'s current voice, speed and expressiveness. */
+    fun previewTtsVoice(languageCode: String) {
+        val model = currentState.ttsModels.find { it.languageCode == languageCode } ?: return
+        if (!model.isDownloaded || model.sampleText.isBlank()) return
+        previewJob?.cancel()
+        updateState { copy(ttsPreviewLanguage = languageCode) }
+        val job = viewModelScope.launch {
+            stopSpeakingUseCase()
+            speakWordUseCase(model.sampleText, languageCode)
+        }
+        previewJob = job
+        // Only the latest preview may clear the indicator; a replaced job completes after its successor starts.
+        job.invokeOnCompletion {
+            if (previewJob === job) {
+                previewJob = null
+                updateState { copy(ttsPreviewLanguage = null) }
+            }
+        }
+    }
+
+    fun stopTtsPreview() {
+        previewJob?.cancel()
+        previewJob = null
+        updateState { copy(ttsPreviewLanguage = null) }
+        viewModelScope.launch { stopSpeakingUseCase() }
     }
 }

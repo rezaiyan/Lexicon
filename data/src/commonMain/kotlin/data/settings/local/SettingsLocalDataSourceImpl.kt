@@ -31,6 +31,7 @@ class SettingsLocalDataSourceImpl(
                         ttsSpeakerId = it.ttsSpeakerId.toInt(),
                         skipTagSelector = it.skipTagSelector != 0L,
                         dailyGoalWords = it.dailyGoalWords.toInt(),
+                        ttsExpressiveness = it.ttsExpressiveness.toFloat(),
                     )
                 }
             }
@@ -50,6 +51,7 @@ class SettingsLocalDataSourceImpl(
             ttsSpeakerId = entity.ttsSpeakerId.toInt(),
             skipTagSelector = entity.skipTagSelector != 0L,
             dailyGoalWords = entity.dailyGoalWords.toInt(),
+            ttsExpressiveness = entity.ttsExpressiveness.toFloat(),
         )
     }
 
@@ -67,6 +69,7 @@ class SettingsLocalDataSourceImpl(
             ttsSpeakerId = data.ttsSpeakerId.toLong(),
             skipTagSelector = if (data.skipTagSelector) 1L else 0L,
             dailyGoalWords = data.dailyGoalWords.toLong(),
+            ttsExpressiveness = data.ttsExpressiveness.toDouble(),
         )
     }
 
@@ -92,7 +95,7 @@ class SettingsLocalDataSourceImpl(
     override suspend fun setVoiceForLanguage(languageCode: String, speakerId: Int) {
         val existing = queries.selectVoicePreferenceForLanguage(languageCode).awaitAsOneOrNull()
         val currentNumSpeakers = existing?.numSpeakers ?: 1L
-        queries.upsertVoicePreference(languageCode, speakerId.toLong(), currentNumSpeakers)
+        queries.upsertVoicePreference(languageCode, speakerId.toLong(), currentNumSpeakers, existing?.voiceId)
     }
 
     override fun getNumSpeakersForLanguage(languageCode: String): Flow<Int> =
@@ -102,6 +105,15 @@ class SettingsLocalDataSourceImpl(
     override suspend fun cacheNumSpeakersForLanguage(languageCode: String, numSpeakers: Int) {
         val existing = queries.selectVoicePreferenceForLanguage(languageCode).awaitAsOneOrNull()
         val currentSpeakerId = existing?.speakerId ?: 0L
-        queries.upsertVoicePreference(languageCode, currentSpeakerId, numSpeakers.toLong())
+        queries.upsertVoicePreference(languageCode, currentSpeakerId, numSpeakers.toLong(), existing?.voiceId)
+    }
+
+    override fun observeVoiceIds(): Flow<Map<String, String>> =
+        queries.selectAllVoicePreferences().asFlow().mapToList(Dispatchers.Default)
+            .map { rows -> rows.mapNotNull { row -> row.voiceId?.let { row.languageCode to it } }.toMap() }
+
+    override suspend fun setVoiceIdForLanguage(languageCode: String, voiceId: String) {
+        // A new voice model has its own speakers, so the speaker choice and count start over.
+        queries.upsertVoicePreference(languageCode, 0L, 1L, voiceId)
     }
 }

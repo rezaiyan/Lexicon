@@ -1,7 +1,7 @@
 package tts
 
 class WasmJsTtsEngine : ITtsEngine {
-    override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String) {
+    override suspend fun initialize(modelPath: String, tokensPath: String, dataDir: String, noiseScale: Float) {
         // TTS not supported on WasmJs
     }
 

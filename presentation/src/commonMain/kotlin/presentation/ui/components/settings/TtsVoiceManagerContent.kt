@@ -13,10 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,9 +53,15 @@ import components.sheet.SheetPage
 import components.sheet.SheetSectionLabel
 import domain.tts.model.TtsModelInfo
 import domain.tts.model.TtsSettings
+import domain.tts.model.TtsVoice
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.tts_all_languages
+import lexicon.resources.generated.resources.tts_expressiveness
+import lexicon.resources.generated.resources.tts_expressiveness_balanced
+import lexicon.resources.generated.resources.tts_expressiveness_expressive
+import lexicon.resources.generated.resources.tts_expressiveness_hint
+import lexicon.resources.generated.resources.tts_expressiveness_steady
 import lexicon.resources.generated.resources.tts_model_delete
 import lexicon.resources.generated.resources.tts_model_delete_message
 import lexicon.resources.generated.resources.tts_model_delete_title
@@ -64,14 +75,20 @@ import lexicon.resources.generated.resources.tts_models_none_downloaded
 import lexicon.resources.generated.resources.tts_models_total_size
 import lexicon.resources.generated.resources.tts_playback_speed
 import lexicon.resources.generated.resources.tts_playback_speed_value
+import lexicon.resources.generated.resources.tts_voice_preview
+import lexicon.resources.generated.resources.tts_voice_preview_stop
 import lexicon.resources.generated.resources.tts_voice_selection
 import lexicon.resources.generated.resources.tts_voice_speaker
+import lexicon.resources.generated.resources.tts_voice_switch_hint
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import utils.LexiconFormatters
 
 private const val SpeedSteps = 5
+private const val ExpressivenessSteps = 7
 private const val PercentScale = 100
+private const val SteadyBelow = 0.45f
+private const val ExpressiveAbove = 0.8f
 
 /** Offline voices: playback speed, then downloaded / downloading voices, then everything else. */
 @Composable
@@ -85,6 +102,11 @@ fun TtsVoiceManagerContent(
     onDeleteModel: (String) -> Unit,
     onSpeechRateChanged: (Float) -> Unit,
     onVoiceSelected: (String, Int) -> Unit,
+    previewLanguage: String? = null,
+    onExpressivenessChanged: (Float) -> Unit = {},
+    onVoiceModelSelected: (String, String) -> Unit = { _, _ -> },
+    onPreview: (String) -> Unit = {},
+    onStopPreview: () -> Unit = {},
     onClose: (() -> Unit)? = null,
 ) {
     val (installed, available) = remember(models, downloadProgress) {
@@ -104,6 +126,7 @@ fun TtsVoiceManagerContent(
         onClose = onClose,
     ) {
         SpeedCard(currentRate = ttsSettings.speechRate, onRateChanged = onSpeechRateChanged)
+        ExpressivenessCard(current = ttsSettings.expressiveness, onChanged = onExpressivenessChanged)
 
         if (isLoading) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -115,6 +138,10 @@ fun TtsVoiceManagerContent(
                 onDownloadModel = onDownloadModel,
                 onDeleteModel = onDeleteModel,
                 onVoiceSelected = onVoiceSelected,
+                previewLanguage = previewLanguage,
+                onVoiceModelSelected = onVoiceModelSelected,
+                onPreview = onPreview,
+                onStopPreview = onStopPreview,
             )
             VoiceSection(
                 label = stringResource(Res.string.tts_all_languages),
@@ -123,6 +150,10 @@ fun TtsVoiceManagerContent(
                 onDownloadModel = onDownloadModel,
                 onDeleteModel = onDeleteModel,
                 onVoiceSelected = onVoiceSelected,
+                previewLanguage = previewLanguage,
+                onVoiceModelSelected = onVoiceModelSelected,
+                onPreview = onPreview,
+                onStopPreview = onStopPreview,
             )
         }
     }
@@ -136,6 +167,10 @@ private fun VoiceSection(
     onDownloadModel: (String) -> Unit,
     onDeleteModel: (String) -> Unit,
     onVoiceSelected: (String, Int) -> Unit,
+    previewLanguage: String?,
+    onVoiceModelSelected: (String, String) -> Unit,
+    onPreview: (String) -> Unit,
+    onStopPreview: () -> Unit,
 ) {
     if (models.isEmpty()) return
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
@@ -149,6 +184,10 @@ private fun VoiceSection(
                     onDownload = { onDownloadModel(model.languageCode) },
                     onDelete = { onDeleteModel(model.languageCode) },
                     onVoiceSelected = { speakerId -> onVoiceSelected(model.languageCode, speakerId) },
+                    isPreviewing = previewLanguage == model.languageCode,
+                    onVoiceModelSelected = { voiceId -> onVoiceModelSelected(model.languageCode, voiceId) },
+                    onPreview = { onPreview(model.languageCode) },
+                    onStopPreview = onStopPreview,
                 )
             }
         }
@@ -193,6 +232,53 @@ private fun SpeedCard(currentRate: Float, onRateChanged: (Float) -> Unit) {
 }
 
 @Composable
+private fun ExpressivenessCard(current: Float, onChanged: (Float) -> Unit) {
+    var sliderValue by remember(current) { mutableFloatStateOf(current) }
+    val label = when {
+        sliderValue < SteadyBelow -> stringResource(Res.string.tts_expressiveness_steady)
+        sliderValue > ExpressiveAbove -> stringResource(Res.string.tts_expressiveness_expressive)
+        else -> stringResource(Res.string.tts_expressiveness_balanced)
+    }
+    SheetGroup {
+        Column(
+            modifier = Modifier.padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+            ) {
+                IconTile(icon = Icons.Default.GraphicEq, tinted = true)
+                Text(
+                    text = stringResource(Res.string.tts_expressiveness),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                SheetBadge(
+                    text = label,
+                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Slider(
+                value = sliderValue,
+                onValueChange = { sliderValue = it },
+                onValueChangeFinished = { onChanged(sliderValue) },
+                valueRange = TtsSettings.MIN_EXPRESSIVENESS..TtsSettings.MAX_EXPRESSIVENESS,
+                steps = ExpressivenessSteps,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = stringResource(Res.string.tts_expressiveness_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
 private fun VoiceRow(
     model: TtsModelInfo,
     progress: Float?,
@@ -200,8 +286,13 @@ private fun VoiceRow(
     onDownload: () -> Unit,
     onDelete: () -> Unit,
     onVoiceSelected: (Int) -> Unit,
+    isPreviewing: Boolean,
+    onVoiceModelSelected: (String) -> Unit,
+    onPreview: () -> Unit,
+    onStopPreview: () -> Unit,
 ) {
     val isDownloading = progress != null
+    val selectedVoice = model.voices.firstOrNull { it.id == model.selectedVoiceId }
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -224,7 +315,10 @@ private fun VoiceRow(
                     text = when {
                         isDownloading -> stringResource(Res.string.tts_model_downloading) +
                             " ${((progress ?: 0f) * PercentScale).toInt()}%"
-                        model.isDownloaded -> LexiconFormatters.fileSize(model.sizeBytes)
+                        model.isDownloaded -> listOfNotNull(
+                            selectedVoice?.takeIf { model.voices.size > 1 }?.label(),
+                            LexiconFormatters.fileSize(model.sizeBytes),
+                        ).joinToString(" • ")
                         else -> stringResource(Res.string.tts_model_not_downloaded)
                     },
                     style = MaterialTheme.typography.bodyMedium,
@@ -239,15 +333,30 @@ private fun VoiceRow(
             }
             when {
                 isDownloading -> DownloadRing(progress = progress ?: 0f)
-                model.isDownloaded -> IconButton(onClick = onDelete) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = stringResource(Res.string.tts_model_delete),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                model.isDownloaded -> Row {
+                    PreviewButton(isPreviewing = isPreviewing, onPreview = onPreview, onStop = onStopPreview)
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = stringResource(Res.string.tts_model_delete),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 else -> GetButton(onClick = onDownload)
             }
+        }
+        AnimatedVisibility(
+            visible = (model.isDownloaded || isDownloading) && model.voices.size > 1,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
+            VoiceModelSelectorRow(
+                voices = model.voices,
+                selectedVoiceId = model.selectedVoiceId,
+                enabled = !isDownloading,
+                onVoiceSelected = onVoiceModelSelected,
+            )
         }
         AnimatedVisibility(
             visible = model.isDownloaded && model.numSpeakers > 1,
@@ -303,6 +412,62 @@ private fun GetButton(onClick: () -> Unit) {
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(start = Theme.spacing.xxs + Theme.spacing.xxxs),
+        )
+    }
+}
+
+@Composable
+private fun PreviewButton(isPreviewing: Boolean, onPreview: () -> Unit, onStop: () -> Unit) {
+    IconButton(onClick = if (isPreviewing) onStop else onPreview) {
+        Icon(
+            imageVector = if (isPreviewing) Icons.Default.Stop else Icons.Default.PlayArrow,
+            contentDescription = stringResource(
+                if (isPreviewing) Res.string.tts_voice_preview_stop else Res.string.tts_voice_preview
+            ),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+private fun TtsVoice.label(): String = region?.let { "$name · $it" } ?: name
+
+/** Voice models for one language; only one is on disk, so picking another re-downloads. */
+@Composable
+private fun VoiceModelSelectorRow(
+    voices: List<TtsVoice>,
+    selectedVoiceId: String?,
+    enabled: Boolean,
+    onVoiceSelected: (String) -> Unit,
+) {
+    val voiceLabel = stringResource(Res.string.tts_voice_selection)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = Theme.spacing.sm)
+            .semantics { contentDescription = voiceLabel },
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = Theme.spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        ) {
+            voices.forEach { voice ->
+                FilterChip(
+                    selected = voice.id == selectedVoiceId,
+                    onClick = { onVoiceSelected(voice.id) },
+                    enabled = enabled,
+                    label = { Text(voice.label()) },
+                )
+            }
+        }
+        Text(
+            text = stringResource(Res.string.tts_voice_switch_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = Theme.spacing.md),
         )
     }
 }

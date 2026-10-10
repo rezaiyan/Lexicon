@@ -33,10 +33,15 @@ interface ISettingsRepository {
     // TTS settings — default implementations keep existing fakes compiling
     fun getTtsSettings(): Flow<TtsSettings> = flowOf(TtsSettings())
     suspend fun setTtsSpeechRate(rate: Float): Try<Unit> = Try.success(Unit)
+    suspend fun setTtsExpressiveness(value: Float): Try<Unit> = Try.success(Unit)
 
     // Per-language voice preference
     fun getTtsVoiceForLanguage(languageCode: String): Flow<Int> = flowOf(TtsSettings.DEFAULT_SPEAKER_ID)
     suspend fun setTtsVoiceForLanguage(languageCode: String, speakerId: Int): Try<Unit> = Try.success(Unit)
+
+    // Per-language voice model choice; null means the language's default voice
+    fun getTtsVoiceIdForLanguage(languageCode: String): Flow<String?> = flowOf(null)
+    suspend fun setTtsVoiceIdForLanguage(languageCode: String, voiceId: String): Try<Unit> = Try.success(Unit)
 
     // Cached speaker count per language (persisted after first model load)
     fun getNumSpeakersForLanguage(languageCode: String): Flow<Int> = flowOf(1)

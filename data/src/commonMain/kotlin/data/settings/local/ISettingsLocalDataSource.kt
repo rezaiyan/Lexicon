@@ -19,4 +19,6 @@ interface ISettingsLocalDataSource {
     suspend fun setVoiceForLanguage(languageCode: String, speakerId: Int) {}
     fun getNumSpeakersForLanguage(languageCode: String): Flow<Int> = flowOf(1)
     suspend fun cacheNumSpeakersForLanguage(languageCode: String, numSpeakers: Int) {}
+    fun observeVoiceIds(): Flow<Map<String, String>> = flowOf(emptyMap())
+    suspend fun setVoiceIdForLanguage(languageCode: String, voiceId: String) {}
 }

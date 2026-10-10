@@ -25,6 +25,10 @@ fun settingsModule() = module {
             downloadTtsModelUseCase = get(),
             setTtsSpeechRateUseCase = get(),
             setTtsVoiceUseCase = get(),
+            setTtsExpressivenessUseCase = get(),
+            selectTtsVoiceUseCase = get(),
+            speakWordUseCase = get(),
+            stopSpeakingUseCase = get(),
             getDailyGoalWordsUseCase = get(),
             setDailyGoalWordsUseCase = get(),
         )

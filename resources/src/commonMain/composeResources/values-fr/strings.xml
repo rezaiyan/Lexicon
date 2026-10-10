@@ -584,5 +584,13 @@
     <string name="onboarding_word_count">%1$d mots</string>
     <string name="onboarding_add_words">Ajouter %1$d mots et commencer</string>
     <string name="onboarding_start_empty">Commencer avec une liste vide</string>
+    <string name="tts_expressiveness">Expressivité</string>
+    <string name="tts_expressiveness_hint">Plus bas : plus stable et plus net sur les mots isolés. Plus haut : plus naturel.</string>
+    <string name="tts_expressiveness_steady">Stable</string>
+    <string name="tts_expressiveness_balanced">Équilibrée</string>
+    <string name="tts_expressiveness_expressive">Expressive</string>
+    <string name="tts_voice_preview">Écouter un extrait</string>
+    <string name="tts_voice_preview_stop">Arrêter l’extrait</string>
+    <string name="tts_voice_switch_hint">Choisir une autre voix la télécharge et remplace la voix actuelle.</string>
 </resources>
 

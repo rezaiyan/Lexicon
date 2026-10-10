@@ -1,0 +1,6 @@
+-- Migration from version 17 to version 18
+-- TTS: per-language voice model choice and the expressiveness (noise scale) setting.
+
+ALTER TABLE TtsVoicePreference ADD COLUMN voiceId TEXT;
+
+ALTER TABLE SettingsEntity ADD COLUMN ttsExpressiveness REAL NOT NULL DEFAULT 0.667;

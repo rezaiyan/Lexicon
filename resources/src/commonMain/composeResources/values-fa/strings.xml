@@ -583,5 +583,13 @@
     <string name="onboarding_word_count">%1$d واژه</string>
     <string name="onboarding_add_words">افزودن %1$d واژه و شروع</string>
     <string name="onboarding_start_empty">شروع با فهرست خالی</string>
+    <string name="tts_expressiveness">حالت بیان</string>
+    <string name="tts_expressiveness_hint">کمتر برای تک‌واژه‌ها یکنواخت‌تر و واضح‌تر است. بیشتر طبیعی‌تر شنیده می‌شود.</string>
+    <string name="tts_expressiveness_steady">یکنواخت</string>
+    <string name="tts_expressiveness_balanced">متعادل</string>
+    <string name="tts_expressiveness_expressive">پرحالت</string>
+    <string name="tts_voice_preview">پخش نمونه</string>
+    <string name="tts_voice_preview_stop">توقف نمونه</string>
+    <string name="tts_voice_switch_hint">انتخاب صدای دیگر آن را دانلود می‌کند و جایگزین صدای فعلی می‌شود.</string>
 </resources>
 
