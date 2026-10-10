@@ -281,6 +281,9 @@ fun StudyScreen(
         }
     }
 
+    // "Start your word list" tap: open the add-words sheet
+    OnEvents(koinInject<NotificationNavigator>().addWordsRequests) { openImportSheet() }
+
     val openFocusSwitcher: () -> Unit = {
         overlayHost.showSizeToFitBottomSheet(
             tag = "focus-switcher",

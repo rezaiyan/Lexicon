@@ -45,6 +45,9 @@ internal class FakePushTokenRepository : IPushTokenRepository {
     var deactivateAllCalled = false
     var deactivateCurrentCalled = false
     var initializeAndRegisterCalled = false
+    var registeredWithServer = false
+
+    override fun isRegisteredWithServer(): Boolean = registeredWithServer
 
     override suspend fun registerToken(token: String): Try<Unit> {
         lastRegisteredToken = token

@@ -48,6 +48,9 @@ interface ISettingsRepository {
     suspend fun cacheNumSpeakersForLanguage(languageCode: String, numSpeakers: Int): Try<Unit> = Try.success(Unit)
 
     // Daily goal — default implementations keep existing fakes compiling
+    /** Reports the device timezone to the server when it changed since the last report. */
+    suspend fun syncDeviceTimezone(): Try<Unit> = Try.success(Unit)
+
     suspend fun getDailyGoalWords(): Try<Int> = Try.success(10)
     suspend fun setDailyGoalWords(count: Int): Try<Unit> = Try.success(Unit)
 }

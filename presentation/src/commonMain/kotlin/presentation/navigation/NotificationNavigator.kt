@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 
 /** Screens a tapped notification can open. */
-enum class NotificationDestination { Subscription, Study }
+enum class NotificationDestination { Subscription, Study, Insights, Words }
 
 /**
  * Hands a notification tap from the platform layer to the app's navigation.
@@ -18,6 +18,7 @@ class NotificationNavigator {
 
     private val requests = Channel<NotificationDestination>(Channel.CONFLATED)
     private val reviews = Channel<ReviewSource>(Channel.CONFLATED)
+    private val addWords = Channel<Unit>(Channel.CONFLATED)
     private val wordRush = Channel<Unit>(Channel.CONFLATED)
 
     /** One-shot destinations; collect with OnEvents. */
@@ -28,6 +29,9 @@ class NotificationNavigator {
 
     /** One-shot requests to start a Word Rush game; collected by the Study screen once it's shown. */
     val wordRushRequests: Flow<Unit> = wordRush.receiveAsFlow()
+
+    /** One-shot requests to open the add-words sheet; collected by the Study screen once it's shown. */
+    val addWordsRequests: Flow<Unit> = addWords.receiveAsFlow()
 
     fun open(destination: NotificationDestination) {
         requests.trySend(destination)
@@ -46,5 +50,11 @@ class NotificationNavigator {
     fun openWordRush() {
         open(NotificationDestination.Study)
         wordRush.trySend(Unit)
+    }
+
+    /** Switches to the Study tab and opens the add-words sheet there. */
+    fun openAddWords() {
+        open(NotificationDestination.Study)
+        addWords.trySend(Unit)
     }
 }

@@ -33,6 +33,9 @@ class PushTokenRepositoryImpl(
         }
     }
 
+    // The token is stored only after the server accepted it, and cleared when deactivated
+    override fun isRegisteredWithServer(): Boolean = secureStorage.getPushToken() != null
+
     override suspend fun registerToken(token: String): Try<Unit> {
         logNetwork("RegisterPushToken", " Sending token to backend...")
 
