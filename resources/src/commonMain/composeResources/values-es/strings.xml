@@ -592,5 +592,52 @@
     <string name="tts_voice_preview">Reproducir muestra</string>
     <string name="tts_voice_preview_stop">Detener muestra</string>
     <string name="tts_voice_switch_hint">Elegir otra voz la descarga y reemplaza la actual.</string>
-</resources>
 
+    <!-- Word Rush -->
+    <string name="word_rush_best_streak">Mejor racha: %1$d</string>
+    <string name="word_rush_add_words">Añade al menos 4 palabras para jugar</string>
+    <string name="word_rush_score">Puntos</string>
+    <string name="word_rush_streak">Racha</string>
+    <string name="word_rush_game_over">Ronda completada</string>
+    <string name="word_rush_best_streak_result">Mejor racha: %1$d</string>
+    <string name="word_rush_new_best">¡Nuevo récord de racha!</string>
+    <string name="word_rush_play_again">Jugar de nuevo</string>
+    <string name="word_rush_combo">¡COMBO %1$dx!</string>
+    <string name="word_rush_accuracy">Precisión</string>
+    <string name="word_rush_avg_speed">Vel. media</string>
+    <string name="word_rush_grade_s">¡Rapidísimo!</string>
+    <string name="word_rush_grade_a">¡Excelente!</string>
+    <string name="word_rush_grade_b">¡Buen trabajo!</string>
+    <string name="word_rush_grade_c">¡Sigue practicando!</string>
+    <string name="word_rush_grade_d">¡No te rindas!</string>
+    <string name="word_rush_combo_hint">¡Consigue hasta 5x de bonus combo!</string>
+    <string name="word_rush_loading">Mezclando tus palabras…</string>
+    <string name="word_rush_error_title">No se pudo iniciar Word Rush</string>
+    <string name="word_rush_error_body">Necesitas al menos 4 palabras distintas en tu enfoque de aprendizaje para jugar.</string>
+    <string name="word_rush_points_earned">+%1$d pts</string>
+    <string name="word_rush_prompt_recognize">¿Qué significa?</string>
+    <string name="word_rush_prompt_recall">¿Cuál es la palabra en %1$s?</string>
+    <string name="word_rush_paused">En pausa</string>
+    <string name="word_rush_paused_body">El temporizador se detuvo mientras no estabas.</string>
+    <string name="word_rush_resume">Reanudar</string>
+    <string name="word_rush_out_of_lives">Sin vidas</string>
+    <string name="word_rush_points">Puntos</string>
+    <string name="word_rush_correct_label">Correctas</string>
+    <string name="word_rush_review_title">Palabras para repasar</string>
+    <string name="word_rush_review_timed_out">Se acabó el tiempo</string>
+    <string name="word_rush_review_you_picked">Elegiste: %1$s</string>
+    <string name="word_rush_perfect_round">¡Sin errores en esta ronda!</string>
+    <string name="word_rush_powerup_freeze">Congelar</string>
+    <string name="word_rush_powerup_freeze_desc">Detiene el temporizador 3 segundos</string>
+    <string name="word_rush_powerup_fifty">50/50</string>
+    <string name="word_rush_powerup_fifty_desc">Quita dos respuestas incorrectas</string>
+    <string name="word_rush_powerup_peek">Vistazo</string>
+    <string name="word_rush_powerup_peek_desc">Muestra un instante la respuesta correcta</string>
+    <string name="word_rush_powerup_unlocked">%1$s desbloqueado · %2$s</string>
+    <string name="word_rush_lives_left">Te quedan %1$d vidas</string>
+    <string name="word_rush_insights_best_streak">Mejor racha</string>
+    <string name="word_rush_insights_avg_accuracy">Precisión media</string>
+    <string name="word_rush_insights_avg_score">Puntuación media</string>
+    <string name="word_rush_insights_total_time">Tiempo jugado</string>
+    <string name="word_rush_insights_completion_rate">Tasa de finalización</string>
+</resources>

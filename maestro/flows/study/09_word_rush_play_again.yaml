@@ -36,7 +36,7 @@ tags:
 
 # Wait for Game Over screen.
 - extendedWaitUntil:
-    visible: "Game Over"
+    visible: "Out of Lives|Round Complete"
     timeout: 60000
 
 # Tap Play Again.

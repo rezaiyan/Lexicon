@@ -101,8 +101,9 @@ fun LexiconApp() {
     }
 
     LexiconTheme(darkTheme = darkMode) {
+        // Same colour as the bottom navigation bar container (AppShell), so the system bar continues it
         val defaultNavBarColor = if (appUiState is AppUiState.Ready && isBottomNavLayout) {
-            MaterialTheme.colorScheme.surfaceContainer
+            MaterialTheme.colorScheme.surface
         } else {
             MaterialTheme.colorScheme.background
         }

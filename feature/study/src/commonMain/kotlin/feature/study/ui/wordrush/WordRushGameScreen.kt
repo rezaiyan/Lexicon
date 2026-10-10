@@ -1,11 +1,13 @@
 package feature.study.ui.wordrush
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,8 +18,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import components.ErrorScreen
 import components.LoadingScreen
 import feature.study.wordrush.WordRushPhase
 import feature.study.wordrush.WordRushPowerUp
@@ -39,7 +47,14 @@ import feature.study.wordrush.WordRushState
 import feature.study.wordrush.WordRushViewModel
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.close
+import lexicon.resources.generated.resources.retry
 import lexicon.resources.generated.resources.word_rush
+import lexicon.resources.generated.resources.word_rush_error_body
+import lexicon.resources.generated.resources.word_rush_error_title
+import lexicon.resources.generated.resources.word_rush_loading
+import lexicon.resources.generated.resources.word_rush_paused
+import lexicon.resources.generated.resources.word_rush_paused_body
+import lexicon.resources.generated.resources.word_rush_resume
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
@@ -49,8 +64,18 @@ fun WordRushGameScreen(
     onSelectAnswer: (Int) -> Unit,
     onUsePowerUp: (WordRushPowerUp) -> Unit,
     onPlayAgain: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    // The timer must not cost lives while the app is in the background.
+    // Resuming is explicit (Resume button) so the player is ready when the clock restarts.
+    LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { onPause() }
+
+    val isPaused by remember {
+        derivedStateOf { (stateHolder.value.phase as? WordRushPhase.Playing)?.isPaused == true }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -75,15 +100,77 @@ fun WordRushGameScreen(
         val floaterData by remember {
             derivedStateOf {
                 (stateHolder.value.phase as? WordRushPhase.Playing)
-                    ?.let { it.lastPointsEarned to it.isCorrect }
+                    ?.let { FloaterData(it.lastPointsEarned, it.isCorrect, it.earnedPowerUp) }
             }
         }
-        floaterData?.let { (points, isCorrect) ->
+        floaterData?.let { data ->
             PointsFloater(
-                lastPointsEarned = points,
-                isCorrect = isCorrect,
+                lastPointsEarned = data.points,
+                isCorrect = data.isCorrect,
+                earnedPowerUp = data.earnedPowerUp,
                 modifier = Modifier.align(Alignment.Center),
             )
+        }
+
+        AnimatedVisibility(
+            visible = isPaused,
+            enter = fadeIn(tween(Theme.motion.durationShort2)),
+            exit = fadeOut(tween(Theme.motion.durationXShort)),
+            label = "paused-overlay",
+        ) {
+            PausedOverlay(onResume = onResume)
+        }
+    }
+}
+
+private data class FloaterData(
+    val points: Int?,
+    val isCorrect: Boolean?,
+    val earnedPowerUp: WordRushPowerUp?,
+)
+
+@Composable
+private fun PausedOverlay(onResume: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.6f))
+            .pointerInput(Unit) { detectTapGestures { } },
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(Theme.spacing.xl)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(Theme.shapes.large),
+                )
+                .padding(Theme.spacing.xl),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+        ) {
+            Text(
+                text = stringResource(Res.string.word_rush_paused),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = stringResource(Res.string.word_rush_paused_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(Theme.spacing.xs))
+            Button(
+                onClick = onResume,
+                shape = RoundedCornerShape(Theme.shapes.pill),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(Res.string.word_rush_resume),
+                    fontWeight = FontWeight.Bold,
+                )
+            }
         }
     }
 }
@@ -141,7 +228,7 @@ private fun WordRushPhaseContent(
     ) { key ->
         when (key) {
             PhaseKey.Idle    -> Unit
-            PhaseKey.Loading -> LoadingScreen(message = "Preparing your challenge...")
+            PhaseKey.Loading -> LoadingScreen(message = stringResource(Res.string.word_rush_loading))
             PhaseKey.Playing -> {
                 val stablePhase by remember {
                     derivedStateOf {
@@ -172,21 +259,13 @@ private fun WordRushPhaseContent(
                     onDismiss = onDismiss,
                 )
             }
-            PhaseKey.Error -> {
-                val phase = stateHolder.value.phase as? WordRushPhase.Error ?: return@AnimatedContent
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = phase.message,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
+            PhaseKey.Error -> ErrorScreen(
+                title = stringResource(Res.string.word_rush_error_title),
+                message = stringResource(Res.string.word_rush_error_body),
+                icon = Icons.Rounded.ErrorOutline,
+                retryLabel = stringResource(Res.string.retry),
+                onRetry = onPlayAgain,
+            )
         }
     }
 }

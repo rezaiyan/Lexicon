@@ -592,5 +592,52 @@
     <string name="tts_voice_preview">播放示例</string>
     <string name="tts_voice_preview_stop">停止示例</string>
     <string name="tts_voice_switch_hint">选择其他声音会下载并替换当前声音。</string>
-</resources>
 
+    <!-- Word Rush -->
+    <string name="word_rush_best_streak">最佳连胜：%1$d</string>
+    <string name="word_rush_add_words">至少添加 4 个单词才能开始</string>
+    <string name="word_rush_score">得分</string>
+    <string name="word_rush_streak">连胜</string>
+    <string name="word_rush_game_over">本轮完成</string>
+    <string name="word_rush_best_streak_result">最佳连胜：%1$d</string>
+    <string name="word_rush_new_best">连胜新纪录！</string>
+    <string name="word_rush_play_again">再玩一次</string>
+    <string name="word_rush_combo">%1$dx 连击！</string>
+    <string name="word_rush_accuracy">准确率</string>
+    <string name="word_rush_avg_speed">平均速度</string>
+    <string name="word_rush_grade_s">快如闪电！</string>
+    <string name="word_rush_grade_a">太棒了！</string>
+    <string name="word_rush_grade_b">做得好！</string>
+    <string name="word_rush_grade_c">继续练习！</string>
+    <string name="word_rush_grade_d">别放弃！</string>
+    <string name="word_rush_combo_hint">最高可得 5 倍连击奖励！</string>
+    <string name="word_rush_loading">正在打乱你的单词…</string>
+    <string name="word_rush_error_title">无法开始 Word Rush</string>
+    <string name="word_rush_error_body">你的学习重点中至少需要 4 个不同的单词才能开始。</string>
+    <string name="word_rush_points_earned">+%1$d 分</string>
+    <string name="word_rush_prompt_recognize">这是什么意思？</string>
+    <string name="word_rush_prompt_recall">用%1$s怎么说？</string>
+    <string name="word_rush_paused">已暂停</string>
+    <string name="word_rush_paused_body">你离开时计时器已暂停。</string>
+    <string name="word_rush_resume">继续</string>
+    <string name="word_rush_out_of_lives">生命已用完</string>
+    <string name="word_rush_points">积分</string>
+    <string name="word_rush_correct_label">答对</string>
+    <string name="word_rush_review_title">需要复习的单词</string>
+    <string name="word_rush_review_timed_out">时间到</string>
+    <string name="word_rush_review_you_picked">你的选择：%1$s</string>
+    <string name="word_rush_perfect_round">本轮没有失误！</string>
+    <string name="word_rush_powerup_freeze">冻结</string>
+    <string name="word_rush_powerup_freeze_desc">让计时器停止 3 秒</string>
+    <string name="word_rush_powerup_fifty">50/50</string>
+    <string name="word_rush_powerup_fifty_desc">去掉两个错误答案</string>
+    <string name="word_rush_powerup_peek">偷看</string>
+    <string name="word_rush_powerup_peek_desc">短暂显示正确答案</string>
+    <string name="word_rush_powerup_unlocked">已解锁%1$s · %2$s</string>
+    <string name="word_rush_lives_left">剩余 %1$d 条命</string>
+    <string name="word_rush_insights_best_streak">最佳连胜</string>
+    <string name="word_rush_insights_avg_accuracy">平均准确率</string>
+    <string name="word_rush_insights_avg_score">平均得分</string>
+    <string name="word_rush_insights_total_time">游戏时长</string>
+    <string name="word_rush_insights_completion_rate">完成率</string>
+</resources>

@@ -44,15 +44,16 @@ tags:
 # dialog, and off-center coordinate taps land on the dimmed overlay behind it,
 # dismissing the game before Game Over can appear.
 - extendedWaitUntil:
-    visible: "Game Over"
+    visible: "Out of Lives|Round Complete"
     timeout: 90000
 
 # Take screenshot of the result screen.
 - takeScreenshot: screenshots/word_rush_game_over
 
 # Best streak is shown as "Best Streak: N" — use full-string regex match.
-- assertVisible:
-    text: 'Best Streak: \d+'
+- extendedWaitUntil:
+    visible: 'Best Streak: \d+'
+    timeout: 5000
 
 # Play Again button should be visible.
 - assertVisible: "Play Again"

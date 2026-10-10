@@ -28,31 +28,31 @@ class GetWordRushWordsUseCase(
         selectMixedWords(allWords, count)
     }
 
-    /**
-     * Groups words by SRS level, shuffles each group, then interleaves them
-     * round-robin so the resulting list contains words from every level present
-     * before exhausting any single level. The final list is shuffled again so
-     * the player cannot infer level order from question sequence.
-     */
-    private fun selectMixedWords(allWords: List<Word>, count: Int): List<Word> {
-        val queues = allWords
-            .groupBy { it.level }
-            .values
-            .map { ArrayDeque(it.shuffled()) }
-
-        return buildList {
-            while (size < count) {
-                val sizeBefore = size
-                for (queue in queues) {
-                    if (size >= count) break
-                    queue.removeFirstOrNull()?.let { add(it) }
-                }
-                if (size == sizeBefore) break // all queues exhausted
-            }
-        }.shuffled()
-    }
-
     companion object {
         const val MINIMUM_WORDS = 4
     }
+}
+
+/**
+ * Groups words by SRS level, shuffles each group, then interleaves them
+ * round-robin so the resulting list contains words from every level present
+ * before exhausting any single level. The final list is shuffled again so
+ * the player cannot infer level order from question sequence.
+ */
+internal fun selectMixedWords(allWords: List<Word>, count: Int): List<Word> {
+    val queues = allWords
+        .groupBy { it.level }
+        .values
+        .map { ArrayDeque(it.shuffled()) }
+
+    return buildList {
+        while (size < count) {
+            val sizeBefore = size
+            for (queue in queues) {
+                if (size >= count) break
+                queue.removeFirstOrNull()?.let { add(it) }
+            }
+            if (size == sizeBefore) break // all queues exhausted
+        }
+    }.shuffled()
 }

@@ -9,11 +9,13 @@ import utils.Language
 import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeAnalyticsTracker
 import domain.wordrush.model.WordRushGameRecord
+import domain.wordrush.model.WordRushDirection
 import domain.wordrush.model.WordRushGrade
 import domain.wordrush.model.WordRushInsights
 import domain.wordrush.repository.IWordRushRecorder
 import domain.wordrush.repository.IWordRushStatsRepository
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
+import domain.wordrush.usecase.GetWordRushRoundUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import fakes.FakeWordRepository
 import kotlinx.coroutines.test.advanceTimeBy
@@ -88,6 +90,7 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val observeLearningFocus = ObserveLearningFocusUseCase(repo, focusRepo)
         return WordRushViewModel(
             getWordRushWordsUseCase = GetWordRushWordsUseCase(repo, observeLearningFocus),
+            getWordRushRoundUseCase = GetWordRushRoundUseCase(repo, observeLearningFocus),
             recordWordRushGameUseCase = RecordWordRushGameUseCase(recorder),
             analyticsTracker = FakeAnalyticsTracker(),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(FakeWordRushStatsRepository(bestStreakEver)),
@@ -197,9 +200,12 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val vm = createViewModel()
         vm.startGame()
         val phase = vm.currentState.phase as WordRushPhase.Playing
-        val correctTranslation = phase.question.word.translation
-        assertTrue(phase.question.options.contains(correctTranslation))
-        assertEquals(correctTranslation, phase.question.options[phase.question.correctIndex])
+        val expected = when (phase.question.direction) {
+            WordRushDirection.Recognize -> phase.question.word.translation
+            WordRushDirection.Recall -> phase.question.word.originalWord
+        }
+        assertEquals(expected, phase.question.options[phase.question.correctIndex])
+        assertEquals(phase.question.options.size, phase.question.options.toSet().size)
     }
 
     @Test

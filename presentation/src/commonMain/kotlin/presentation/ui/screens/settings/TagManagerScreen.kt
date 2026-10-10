@@ -66,6 +66,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
 import overlay.OverlayHost
 import overlay.bottomsheet.showSizeToFitBottomSheet
+import overlay.fullscreen.FullScreenContainer
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
 import presentation.ui.LocalSnackbarHostState
@@ -76,7 +77,10 @@ import theme.Theme
 fun OverlayHost.showTagManagerScreen() {
     showFullScreen(
         tag = "tag-manager",
-        properties = FullScreenProperties(dismissOnBackPress = false)
+        properties = FullScreenProperties(
+            dismissOnBackPress = false,
+            container = FullScreenContainer.Background,
+        ),
     ) { nav ->
         TagManagerContent(onDismiss = { nav.dismiss() })
     }

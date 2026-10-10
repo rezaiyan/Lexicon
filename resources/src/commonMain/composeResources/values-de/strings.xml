@@ -592,5 +592,52 @@
     <string name="tts_voice_preview">Hörprobe abspielen</string>
     <string name="tts_voice_preview_stop">Hörprobe stoppen</string>
     <string name="tts_voice_switch_hint">Eine andere Stimme wird heruntergeladen und ersetzt die aktuelle.</string>
-</resources>
 
+    <!-- Word Rush -->
+    <string name="word_rush_best_streak">Beste Serie: %1$d</string>
+    <string name="word_rush_add_words">Füge mindestens 4 Wörter hinzu, um zu spielen</string>
+    <string name="word_rush_score">Punkte</string>
+    <string name="word_rush_streak">Serie</string>
+    <string name="word_rush_game_over">Runde beendet</string>
+    <string name="word_rush_best_streak_result">Beste Serie: %1$d</string>
+    <string name="word_rush_new_best">Neuer Serienrekord!</string>
+    <string name="word_rush_play_again">Nochmal spielen</string>
+    <string name="word_rush_combo">%1$dx KOMBO!</string>
+    <string name="word_rush_accuracy">Genauigkeit</string>
+    <string name="word_rush_avg_speed">Ø Tempo</string>
+    <string name="word_rush_grade_s">Blitzschnell!</string>
+    <string name="word_rush_grade_a">Ausgezeichnet!</string>
+    <string name="word_rush_grade_b">Gut gemacht!</string>
+    <string name="word_rush_grade_c">Weiter üben!</string>
+    <string name="word_rush_grade_d">Nicht aufgeben!</string>
+    <string name="word_rush_combo_hint">Bis zu 5x Kombo-Bonus!</string>
+    <string name="word_rush_loading">Deine Wörter werden gemischt…</string>
+    <string name="word_rush_error_title">Word Rush konnte nicht starten</string>
+    <string name="word_rush_error_body">Du brauchst mindestens 4 verschiedene Wörter in deinem Lernfokus, um zu spielen.</string>
+    <string name="word_rush_points_earned">+%1$d Pkt.</string>
+    <string name="word_rush_prompt_recognize">Was bedeutet das?</string>
+    <string name="word_rush_prompt_recall">Wie heißt das Wort auf %1$s?</string>
+    <string name="word_rush_paused">Pausiert</string>
+    <string name="word_rush_paused_body">Der Timer wurde angehalten, während du weg warst.</string>
+    <string name="word_rush_resume">Fortsetzen</string>
+    <string name="word_rush_out_of_lives">Keine Leben mehr</string>
+    <string name="word_rush_points">Punkte</string>
+    <string name="word_rush_correct_label">Richtig</string>
+    <string name="word_rush_review_title">Wörter zum Wiederholen</string>
+    <string name="word_rush_review_timed_out">Zeit abgelaufen</string>
+    <string name="word_rush_review_you_picked">Deine Wahl: %1$s</string>
+    <string name="word_rush_perfect_round">Keine Fehler in dieser Runde!</string>
+    <string name="word_rush_powerup_freeze">Einfrieren</string>
+    <string name="word_rush_powerup_freeze_desc">Stoppt den Timer für 3 Sekunden</string>
+    <string name="word_rush_powerup_fifty">50/50</string>
+    <string name="word_rush_powerup_fifty_desc">Entfernt zwei falsche Antworten</string>
+    <string name="word_rush_powerup_peek">Spicken</string>
+    <string name="word_rush_powerup_peek_desc">Zeigt kurz die richtige Antwort</string>
+    <string name="word_rush_powerup_unlocked">%1$s freigeschaltet · %2$s</string>
+    <string name="word_rush_lives_left">Noch %1$d Leben</string>
+    <string name="word_rush_insights_best_streak">Beste Serie</string>
+    <string name="word_rush_insights_avg_accuracy">Ø Genauigkeit</string>
+    <string name="word_rush_insights_avg_score">Ø Punkte</string>
+    <string name="word_rush_insights_total_time">Spielzeit</string>
+    <string name="word_rush_insights_completion_rate">Abschlussrate</string>
+</resources>

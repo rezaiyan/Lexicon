@@ -67,21 +67,58 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import components.LottieMotionIcon
+import domain.wordrush.model.WordRushDirection
+import domain.wordrush.model.WordRushQuestion
 import feature.study.wordrush.WordRushPhase
 import feature.study.wordrush.WordRushPowerUp
 import feature.study.wordrush.WordRushViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.language_arabic
+import lexicon.resources.generated.resources.language_chinese
+import lexicon.resources.generated.resources.language_dutch
+import lexicon.resources.generated.resources.language_english
+import lexicon.resources.generated.resources.language_french
+import lexicon.resources.generated.resources.language_german
+import lexicon.resources.generated.resources.language_italian
+import lexicon.resources.generated.resources.language_japanese
+import lexicon.resources.generated.resources.language_korean
+import lexicon.resources.generated.resources.language_persian
+import lexicon.resources.generated.resources.language_portuguese
+import lexicon.resources.generated.resources.language_russian
+import lexicon.resources.generated.resources.language_spanish
+import lexicon.resources.generated.resources.language_turkish
 import lexicon.resources.generated.resources.word_rush_combo
+import lexicon.resources.generated.resources.word_rush_lives_left
+import lexicon.resources.generated.resources.word_rush_points_earned
+import lexicon.resources.generated.resources.word_rush_powerup_fifty
+import lexicon.resources.generated.resources.word_rush_powerup_fifty_desc
+import lexicon.resources.generated.resources.word_rush_powerup_freeze
+import lexicon.resources.generated.resources.word_rush_powerup_freeze_desc
+import lexicon.resources.generated.resources.word_rush_powerup_peek
+import lexicon.resources.generated.resources.word_rush_powerup_peek_desc
+import lexicon.resources.generated.resources.word_rush_powerup_unlocked
+import lexicon.resources.generated.resources.word_rush_prompt_recall
+import lexicon.resources.generated.resources.word_rush_prompt_recognize
 import lexicon.resources.generated.resources.word_rush_score
 import lexicon.resources.generated.resources.word_rush_streak
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
 import theme.Theme
+import utils.Language
 
 private const val FIRE_LOTTIE_URL =
     "https://assets-v2.lottiefiles.com/a/9d140e5e-1121-11ef-a147-0f8f2c5fd446/12M9FMZfjS.json"
@@ -151,6 +188,15 @@ internal fun PlayingContent(
         ),
         label = "combo-glow",
     )
+
+    val haptics = LocalHapticFeedback.current
+    LaunchedEffect(phase.questionIndex, phase.isCorrect) {
+        when (phase.isCorrect) {
+            true -> haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            false -> haptics.performHapticFeedback(HapticFeedbackType.Reject)
+            null -> Unit
+        }
+    }
 
     val shouldPulse by remember(phase.selectedIndex) {
         derivedStateOf {
@@ -375,16 +421,27 @@ internal fun PlayingContent(
                             .align(Alignment.TopEnd)
                             .padding(Theme.spacing.sm),
                     )
-                    Text(
-                        text = phase.question.word.originalWord,
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = Theme.spacing.xxxl, horizontal = Theme.spacing.md),
-                        color = scheme.onPrimaryContainer,
-                    )
+                            .padding(vertical = Theme.spacing.xxl, horizontal = Theme.spacing.md),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                    ) {
+                        Text(
+                            text = promptCaption(phase.question),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = scheme.onPrimaryContainer.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
+                        )
+                        Text(
+                            text = phase.question.prompt,
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = scheme.onPrimaryContainer,
+                        )
+                    }
                 }
             }
         }
@@ -398,9 +455,41 @@ internal fun PlayingContent(
 }
 
 @Composable
+private fun promptCaption(question: WordRushQuestion): String = when (question.direction) {
+    WordRushDirection.Recognize -> stringResource(Res.string.word_rush_prompt_recognize)
+    WordRushDirection.Recall -> stringResource(
+        Res.string.word_rush_prompt_recall,
+        question.word.targetLanguage.localizedName(),
+    )
+}
+
+@Composable
+private fun Language.localizedName(): String {
+    val res = when (this) {
+        Language.ENGLISH -> Res.string.language_english
+        Language.PERSIAN -> Res.string.language_persian
+        Language.GERMAN -> Res.string.language_german
+        Language.SPANISH -> Res.string.language_spanish
+        Language.FRENCH -> Res.string.language_french
+        Language.ITALIAN -> Res.string.language_italian
+        Language.PORTUGUESE -> Res.string.language_portuguese
+        Language.RUSSIAN -> Res.string.language_russian
+        Language.CHINESE -> Res.string.language_chinese
+        Language.JAPANESE -> Res.string.language_japanese
+        Language.KOREAN -> Res.string.language_korean
+        Language.ARABIC -> Res.string.language_arabic
+        Language.TURKISH -> Res.string.language_turkish
+        Language.DUTCH -> Res.string.language_dutch
+        Language.HINDI -> null
+    }
+    return res?.let { stringResource(it) } ?: displayName
+}
+
+@Composable
 internal fun PointsFloater(
     lastPointsEarned: Int?,
     isCorrect: Boolean?,
+    earnedPowerUp: WordRushPowerUp?,
     modifier: Modifier,
 ) {
     val offsetY = remember { Animatable(0f) }
@@ -410,33 +499,93 @@ internal fun PointsFloater(
         if (lastPointsEarned != null && isCorrect == true) {
             offsetY.snapTo(0f)
             alpha.snapTo(1f)
-            launch { delay(600L); alpha.animateTo(0f, tween(300)) }
-            offsetY.animateTo(-120f, tween(900, easing = FastOutLinearInEasing))
+            // An unlocked power-up needs time to be read; plain points can fly off quickly.
+            val holdMs = if (earnedPowerUp != null) 900L else 600L
+            launch { delay(holdMs); alpha.animateTo(0f, tween(300)) }
+            offsetY.animateTo(-120f, tween(holdMs.toInt() + 300, easing = FastOutLinearInEasing))
         } else {
             alpha.snapTo(0f)
         }
     }
 
-    Box(
-        modifier = modifier
-            .graphicsLayer {
-                translationY = offsetY.value
-                this.alpha = alpha.value
-            }
-            .background(
-                color = AppColors.secondary.copy(alpha = 0.12f),
-                shape = RoundedCornerShape(Theme.shapes.pill),
-            )
-            .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.xs),
-        contentAlignment = Alignment.Center,
+    Column(
+        modifier = modifier.graphicsLayer {
+            translationY = offsetY.value
+            this.alpha = alpha.value
+        },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
     ) {
-        Text(
-            text = "+${lastPointsEarned ?: 0} pts",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = AppColors.secondary,
-        )
+        Box(
+            modifier = Modifier
+                .background(
+                    color = AppColors.secondary.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(Theme.shapes.pill),
+                )
+                .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.xs),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(Res.string.word_rush_points_earned, lastPointsEarned ?: 0),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = AppColors.secondary,
+            )
+        }
+        if (earnedPowerUp != null) {
+            val info = powerUpInfo(earnedPowerUp)
+            Row(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(Theme.shapes.pill),
+                    )
+                    .border(1.dp, info.color, RoundedCornerShape(Theme.shapes.pill))
+                    .padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.xs),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = info.icon,
+                    contentDescription = null,
+                    tint = info.color,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(Theme.spacing.xs))
+                Text(
+                    text = stringResource(
+                        Res.string.word_rush_powerup_unlocked,
+                        stringResource(info.nameRes),
+                        stringResource(info.descriptionRes),
+                    ),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     }
+}
+
+private data class PowerUpInfo(
+    val icon: ImageVector,
+    val color: Color,
+    val nameRes: StringResource,
+    val descriptionRes: StringResource,
+)
+
+private fun powerUpInfo(powerUp: WordRushPowerUp): PowerUpInfo = when (powerUp) {
+    WordRushPowerUp.Freeze -> PowerUpInfo(
+        Icons.Outlined.AcUnit, IceBlue,
+        Res.string.word_rush_powerup_freeze, Res.string.word_rush_powerup_freeze_desc,
+    )
+    WordRushPowerUp.FiftyFifty -> PowerUpInfo(
+        Icons.Outlined.ContentCut, AppColors.accentAmber,
+        Res.string.word_rush_powerup_fifty, Res.string.word_rush_powerup_fifty_desc,
+    )
+    WordRushPowerUp.Peek -> PowerUpInfo(
+        Icons.Outlined.Visibility, AppColors.tertiary,
+        Res.string.word_rush_powerup_peek, Res.string.word_rush_powerup_peek_desc,
+    )
 }
 
 @Composable
@@ -540,6 +689,7 @@ private fun OptionsColumn(
                         enabled = !hasAnswered && !isHidden,
                         interactionSource = interactionSource,
                         indication = null,
+                        role = Role.Button,
                     ) { onSelectAnswer(index) },
                 colors = CardDefaults.cardColors(containerColor = backgroundColor),
                 border = BorderStroke(
@@ -585,7 +735,9 @@ private fun OptionsColumn(
 
 @Composable
 private fun LivesRow(lives: Int, totalLives: Int) {
+    val livesLabel = stringResource(Res.string.word_rush_lives_left, lives)
     Row(
+        modifier = Modifier.clearAndSetSemantics { contentDescription = livesLabel },
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -643,11 +795,10 @@ private fun PowerUpButton(
     available: Boolean,
     onUsePowerUp: (WordRushPowerUp) -> Unit,
 ) {
-    val (icon, color) = when (powerUp) {
-        WordRushPowerUp.Freeze     -> Icons.Outlined.AcUnit to IceBlue
-        WordRushPowerUp.FiftyFifty -> Icons.Outlined.ContentCut to AppColors.accentAmber
-        WordRushPowerUp.Peek       -> Icons.Outlined.Visibility to AppColors.tertiary
-    }
+    val info = powerUpInfo(powerUp)
+    val icon = info.icon
+    val color = info.color
+    val label = "${stringResource(info.nameRes)}: ${stringResource(info.descriptionRes)}"
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -673,7 +824,9 @@ private fun PowerUpButton(
                 enabled = available,
                 interactionSource = interactionSource,
                 indication = null,
-            ) { onUsePowerUp(powerUp) },
+                role = Role.Button,
+            ) { onUsePowerUp(powerUp) }
+            .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
         Icon(

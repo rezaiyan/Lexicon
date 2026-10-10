@@ -787,6 +787,30 @@
     <string name="word_rush_grade_c">Keep Practicing!</string>
     <string name="word_rush_grade_d">Don't Give Up!</string>
     <string name="word_rush_combo_hint">Earn up to 5x combo bonus!</string>
+    <string name="word_rush_loading">Shuffling your words…</string>
+    <string name="word_rush_error_title">Couldn't start Word Rush</string>
+    <string name="word_rush_error_body">You need at least 4 different words in your learning focus to play.</string>
+    <string name="word_rush_points_earned">+%1$d pts</string>
+    <string name="word_rush_prompt_recognize">What does it mean?</string>
+    <string name="word_rush_prompt_recall">Which word is it in %1$s?</string>
+    <string name="word_rush_paused">Paused</string>
+    <string name="word_rush_paused_body">The timer stopped while you were away.</string>
+    <string name="word_rush_resume">Resume</string>
+    <string name="word_rush_out_of_lives">Out of Lives</string>
+    <string name="word_rush_points">Points</string>
+    <string name="word_rush_correct_label">Correct</string>
+    <string name="word_rush_review_title">Words to review</string>
+    <string name="word_rush_review_timed_out">Time ran out</string>
+    <string name="word_rush_review_you_picked">You picked: %1$s</string>
+    <string name="word_rush_perfect_round">No mistakes this round!</string>
+    <string name="word_rush_powerup_freeze">Freeze</string>
+    <string name="word_rush_powerup_freeze_desc">Stops the timer for 3 seconds</string>
+    <string name="word_rush_powerup_fifty">50/50</string>
+    <string name="word_rush_powerup_fifty_desc">Removes two wrong answers</string>
+    <string name="word_rush_powerup_peek">Peek</string>
+    <string name="word_rush_powerup_peek_desc">Flashes the right answer</string>
+    <string name="word_rush_powerup_unlocked">%1$s unlocked · %2$s</string>
+    <string name="word_rush_lives_left">%1$d lives left</string>
 
     <!-- Word Rush Insights -->
     <string name="word_rush_insights_title">Word Rush</string>

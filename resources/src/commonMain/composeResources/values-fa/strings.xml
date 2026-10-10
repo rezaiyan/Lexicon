@@ -591,5 +591,52 @@
     <string name="tts_voice_preview">پخش نمونه</string>
     <string name="tts_voice_preview_stop">توقف نمونه</string>
     <string name="tts_voice_switch_hint">انتخاب صدای دیگر آن را دانلود می‌کند و جایگزین صدای فعلی می‌شود.</string>
-</resources>
 
+    <!-- Word Rush -->
+    <string name="word_rush_best_streak">بهترین زنجیره: %1$d</string>
+    <string name="word_rush_add_words">برای بازی حداقل ۴ واژه اضافه کنید</string>
+    <string name="word_rush_score">امتیاز</string>
+    <string name="word_rush_streak">زنجیره</string>
+    <string name="word_rush_game_over">دور تمام شد</string>
+    <string name="word_rush_best_streak_result">بهترین زنجیره: %1$d</string>
+    <string name="word_rush_new_best">رکورد جدید زنجیره!</string>
+    <string name="word_rush_play_again">بازی دوباره</string>
+    <string name="word_rush_combo">کامبوی %1$dx!</string>
+    <string name="word_rush_accuracy">دقت</string>
+    <string name="word_rush_avg_speed">میانگین سرعت</string>
+    <string name="word_rush_grade_s">برق‌آسا!</string>
+    <string name="word_rush_grade_a">عالی!</string>
+    <string name="word_rush_grade_b">آفرین!</string>
+    <string name="word_rush_grade_c">به تمرین ادامه بده!</string>
+    <string name="word_rush_grade_d">ناامید نشو!</string>
+    <string name="word_rush_combo_hint">تا ۵ برابر پاداش کامبو بگیر!</string>
+    <string name="word_rush_loading">در حال بُر زدن واژه‌ها…</string>
+    <string name="word_rush_error_title">Word Rush شروع نشد</string>
+    <string name="word_rush_error_body">برای بازی حداقل ۴ واژهٔ متفاوت در تمرکز یادگیری‌تان لازم است.</string>
+    <string name="word_rush_points_earned">+%1$d امتیاز</string>
+    <string name="word_rush_prompt_recognize">معنی‌اش چیست؟</string>
+    <string name="word_rush_prompt_recall">این واژه به %1$s چیست؟</string>
+    <string name="word_rush_paused">متوقف شد</string>
+    <string name="word_rush_paused_body">وقتی بیرون بودید زمان‌سنج متوقف شد.</string>
+    <string name="word_rush_resume">ادامه</string>
+    <string name="word_rush_out_of_lives">جانی نماند</string>
+    <string name="word_rush_points">امتیاز</string>
+    <string name="word_rush_correct_label">درست</string>
+    <string name="word_rush_review_title">واژه‌هایی برای مرور</string>
+    <string name="word_rush_review_timed_out">وقت تمام شد</string>
+    <string name="word_rush_review_you_picked">انتخاب شما: %1$s</string>
+    <string name="word_rush_perfect_round">در این دور هیچ اشتباهی نداشتید!</string>
+    <string name="word_rush_powerup_freeze">انجماد</string>
+    <string name="word_rush_powerup_freeze_desc">زمان‌سنج را ۳ ثانیه متوقف می‌کند</string>
+    <string name="word_rush_powerup_fifty">۵۰/۵۰</string>
+    <string name="word_rush_powerup_fifty_desc">دو پاسخ نادرست را حذف می‌کند</string>
+    <string name="word_rush_powerup_peek">نگاه</string>
+    <string name="word_rush_powerup_peek_desc">پاسخ درست را لحظه‌ای نشان می‌دهد</string>
+    <string name="word_rush_powerup_unlocked">%1$s باز شد · %2$s</string>
+    <string name="word_rush_lives_left">%1$d جان باقی مانده</string>
+    <string name="word_rush_insights_best_streak">بهترین زنجیره</string>
+    <string name="word_rush_insights_avg_accuracy">میانگین دقت</string>
+    <string name="word_rush_insights_avg_score">میانگین امتیاز</string>
+    <string name="word_rush_insights_total_time">زمان بازی</string>
+    <string name="word_rush_insights_completion_rate">نرخ تکمیل</string>
+</resources>

@@ -5,6 +5,7 @@ import domain.study.usecase.ResolveCardLanguageUseCase
 import domain.word.usecase.GetNextDueDateUseCase
 import domain.word.usecase.GetWordRushWordsUseCase
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
+import domain.wordrush.usecase.GetWordRushRoundUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import feature.study.ReviewViewModel
 import feature.study.StudyProgressViewModel
@@ -23,6 +24,7 @@ fun studyModule() = module {
     singleOf(::ResolveCardLanguageUseCase)
     factoryOf(::GetNextDueDateUseCase)
     factoryOf(::GetWordRushWordsUseCase)
+    factoryOf(::GetWordRushRoundUseCase)
     factoryOf(::RecordWordRushGameUseCase)
     factoryOf(::GetWordRushInsightsUseCase)
 
@@ -50,6 +52,7 @@ fun studyModule() = module {
     viewModel {
         WordRushViewModel(
             getWordRushWordsUseCase = get(),
+            getWordRushRoundUseCase = get(),
             recordWordRushGameUseCase = get(),
             analyticsTracker = get(),
             getWordRushInsightsUseCase = get(),

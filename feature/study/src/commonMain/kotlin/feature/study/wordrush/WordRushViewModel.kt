@@ -5,11 +5,14 @@ import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
 import domain.focus.usecase.ObserveLearningFocusUseCase
-import domain.word.model.Word
 import domain.word.usecase.GetWordRushWordsUseCase
+import domain.wordrush.model.WordRushDirection
 import domain.wordrush.model.WordRushGameRecord
 import domain.wordrush.model.WordRushGrade
+import domain.wordrush.model.WordRushMiss
+import domain.wordrush.model.WordRushQuestion
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
+import domain.wordrush.usecase.GetWordRushRoundUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,12 +25,6 @@ sealed interface WordRushPowerUp {
     data object FiftyFifty : WordRushPowerUp  // Remove 2 wrong options
     data object Peek : WordRushPowerUp        // Flash correct answer for 600 ms
 }
-
-data class WordRushQuestion(
-    val word: Word,
-    val options: List<String>,
-    val correctIndex: Int,
-)
 
 sealed interface WordRushPhase {
     data object Idle : WordRushPhase
@@ -44,16 +41,20 @@ sealed interface WordRushPhase {
         val hiddenOptionIndices: Set<Int> = emptySet(),
         val isPeeking: Boolean = false,
         val isTimerFrozen: Boolean = false,
+        val isPaused: Boolean = false,
         val selectedIndex: Int? = null,
         val isCorrect: Boolean? = null,
         val multiplier: Int = 1,
         val lastPointsEarned: Int? = null,
         val answerTimeMs: Long? = null,
+        /** Power-up unlocked by the answer just given; shown once during the reveal. */
+        val earnedPowerUp: WordRushPowerUp? = null,
     ) : WordRushPhase
 
     data class Result(
         val score: Int,
         val totalQuestions: Int,
+        val answeredCount: Int,
         val correctCount: Int,
         val bestStreak: Int,
         val isNewBest: Boolean,
@@ -61,9 +62,12 @@ sealed interface WordRushPhase {
         val avgResponseTimeMs: Long,
         val grade: WordRushGrade,
         val livesRemaining: Int,
-    ) : WordRushPhase
+        val missedWords: List<WordRushMiss> = emptyList(),
+    ) : WordRushPhase {
+        val endedByLives: Boolean get() = livesRemaining == 0
+    }
 
-    data class Error(val message: String) : WordRushPhase
+    data object Error : WordRushPhase
 }
 
 data class WordRushState(
@@ -76,8 +80,10 @@ sealed interface WordRushEffect {
     data object GameComplete : WordRushEffect
 }
 
+@Suppress("TooManyFunctions")
 class WordRushViewModel(
     private val getWordRushWordsUseCase: GetWordRushWordsUseCase,
+    private val getWordRushRoundUseCase: GetWordRushRoundUseCase,
     private val recordWordRushGameUseCase: RecordWordRushGameUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
@@ -86,17 +92,26 @@ class WordRushViewModel(
 
     override fun initialState() = WordRushState()
 
-    private var allWords: List<Word> = emptyList()
     private var questions: List<WordRushQuestion> = emptyList()
     private var currentIndex = 0
     private var currentStreak = 0
     private var bestSessionStreak = 0
     private var score = 0
     private var correctCount = 0
+    private var answeredCount = 0
     private var gameStartedAt: Long = 0L
-    private var timerJob: Job? = null
-    private var questionStartTimeMs: Long = 0L
     private var responseTimes: MutableList<Long> = mutableListOf()
+    private var misses: MutableList<WordRushMiss> = mutableListOf()
+
+    private var timerJob: Job? = null
+    private var freezeJob: Job? = null
+    private var peekJob: Job? = null
+    private var advanceJob: Job? = null
+
+    // Answer time excludes spans where the clock was stopped (Freeze, app in background).
+    private var questionStartTimeMs: Long = 0L
+    private var clockStoppedAtMs: Long? = null
+    private var stoppedDurationMs: Long = 0L
 
     init {
         analyticsTracker.logScreenView("WordRush")
@@ -118,27 +133,37 @@ class WordRushViewModel(
     }
 
     fun startGame() {
+        if (currentState.phase is WordRushPhase.Loading) return
+        cancelRoundJobs()
         updateState { copy(phase = WordRushPhase.Loading) }
         viewModelScope.launch {
-            getWordRushWordsUseCase(ROUND_COUNT).fold(
-                onSuccess = { words ->
-                    allWords = words
-                    questions = buildQuestions(words)
+            getWordRushRoundUseCase(ROUND_COUNT).fold(
+                onSuccess = { round ->
+                    // The player closed the game while the round was loading.
+                    if (currentState.phase !is WordRushPhase.Loading) return@fold
+                    questions = round
                     currentIndex = 0
                     currentStreak = 0
                     bestSessionStreak = 0
                     score = 0
                     correctCount = 0
+                    answeredCount = 0
                     responseTimes = mutableListOf()
-                    gameStartedAt = Clock.System.now().toEpochMilliseconds()
+                    misses = mutableListOf()
+                    gameStartedAt = now()
                     analyticsTracker.logEvent(
                         eventName = "word_rush_game_start",
-                        parameters = mapOf("question_count" to words.size),
+                        parameters = mapOf(
+                            "question_count" to round.size,
+                            "recall_count" to round.count { it.direction == WordRushDirection.Recall },
+                        ),
                     )
-                    showQuestion()
+                    showQuestion(lives = INITIAL_LIVES, powerUps = emptyList())
                 },
-                onFailure = { error ->
-                    updateState { copy(phase = WordRushPhase.Error(error.message ?: "Failed to load words")) }
+                onFailure = {
+                    if (currentState.phase is WordRushPhase.Loading) {
+                        updateState { copy(phase = WordRushPhase.Error) }
+                    }
                 },
             )
         }
@@ -146,46 +171,38 @@ class WordRushViewModel(
 
     fun selectAnswer(index: Int) {
         val phase = currentState.phase
-        if (phase !is WordRushPhase.Playing || phase.selectedIndex != null) return
+        if (phase !is WordRushPhase.Playing || phase.selectedIndex != null || phase.isPaused) return
+        if (index !in phase.question.options.indices || index in phase.hiddenOptionIndices) return
 
         timerJob?.cancel()
-        val isCorrect = index == phase.question.correctIndex
-        val answerTimeMs = Clock.System.now().toEpochMilliseconds() - questionStartTimeMs
+        freezeJob?.cancel()
+        peekJob?.cancel()
+        val answerTimeMs = elapsedOnQuestionMs()
         responseTimes.add(answerTimeMs)
+        answeredCount++
 
-        var isGameOver = false
-
-        if (isCorrect) {
+        if (index == phase.question.correctIndex) {
             processCorrectAnswer(phase, index, answerTimeMs)
         } else {
             currentStreak = 0
-            val newLives = (phase.lives - 1).coerceAtLeast(0)
-            isGameOver = newLives == 0
+            misses.add(phase.question.toMiss(chosenAnswer = phase.question.options[index]))
             updateState {
                 copy(
                     phase = phase.copy(
                         selectedIndex = index,
                         isCorrect = false,
                         streak = 0,
-                        score = score,
                         multiplier = 1,
                         lastPointsEarned = null,
                         answerTimeMs = answerTimeMs,
-                        lives = newLives,
+                        lives = (phase.lives - 1).coerceAtLeast(0),
+                        isPeeking = false,
+                        isTimerFrozen = false,
                     ),
                 )
             }
         }
-
-        viewModelScope.launch {
-            delay(ANSWER_REVEAL_MS)
-            if (isGameOver) {
-                finishGame()
-            } else {
-                currentIndex++
-                if (currentIndex < questions.size) showQuestion() else finishGame()
-            }
-        }
+        scheduleAdvance()
     }
 
     private fun processCorrectAnswer(phase: WordRushPhase.Playing, index: Int, answerTimeMs: Long) {
@@ -194,21 +211,10 @@ class WordRushViewModel(
         if (currentStreak > bestSessionStreak) bestSessionStreak = currentStreak
 
         val multiplier = calculateMultiplier(currentStreak)
-        val speedBonus = calculateSpeedBonus(answerTimeMs)
-        val pointsEarned = (1 * multiplier) + speedBonus
+        val pointsEarned = multiplier + calculateSpeedBonus(answerTimeMs)
         score += pointsEarned
 
-        val earnedPowerUp: WordRushPowerUp? = when (currentStreak) {
-            3 -> WordRushPowerUp.Freeze
-            5 -> WordRushPowerUp.FiftyFifty
-            8 -> WordRushPowerUp.Peek
-            else -> null
-        }
-        val updatedPowerUps = if (earnedPowerUp != null && !phase.powerUps.contains(earnedPowerUp)) {
-            phase.powerUps + earnedPowerUp
-        } else {
-            phase.powerUps
-        }
+        val earnedPowerUp = powerUpForStreak(currentStreak)?.takeIf { it !in phase.powerUps }
 
         updateState {
             copy(
@@ -220,7 +226,10 @@ class WordRushViewModel(
                     multiplier = multiplier,
                     lastPointsEarned = pointsEarned,
                     answerTimeMs = answerTimeMs,
-                    powerUps = updatedPowerUps,
+                    powerUps = if (earnedPowerUp != null) phase.powerUps + earnedPowerUp else phase.powerUps,
+                    earnedPowerUp = earnedPowerUp,
+                    isPeeking = false,
+                    isTimerFrozen = false,
                 ),
             )
         }
@@ -228,7 +237,7 @@ class WordRushViewModel(
 
     fun usePowerUp(powerUp: WordRushPowerUp) {
         val phase = currentState.phase
-        if (phase !is WordRushPhase.Playing || phase.selectedIndex != null) return
+        if (phase !is WordRushPhase.Playing || phase.selectedIndex != null || phase.isPaused) return
         if (!phase.powerUps.contains(powerUp)) return
 
         val updatedPowerUps = phase.powerUps - powerUp
@@ -239,15 +248,35 @@ class WordRushViewModel(
         }
     }
 
+    /** Stops the clock while the app is in the background, so the player doesn't lose lives. */
+    fun pause() {
+        val phase = currentState.phase
+        if (phase !is WordRushPhase.Playing || phase.isPaused) return
+        cancelRoundJobs()
+        if (phase.selectedIndex == null) stopClock()
+        updateState { copy(phase = phase.copy(isPaused = true, isTimerFrozen = false, isPeeking = false)) }
+    }
+
+    fun resume() {
+        val phase = currentState.phase
+        if (phase !is WordRushPhase.Playing || !phase.isPaused) return
+        updateState { copy(phase = phase.copy(isPaused = false)) }
+        if (phase.selectedIndex != null) {
+            scheduleAdvance()
+        } else {
+            restartClock()
+            startTimer(phase.timeRemainingMs)
+        }
+    }
+
     fun dismiss() {
-        timerJob?.cancel()
-        val questionsAnswered = currentIndex + (if (currentState.phase is WordRushPhase.Playing &&
-            (currentState.phase as WordRushPhase.Playing).selectedIndex != null) 1 else 0)
-        if (currentState.phase is WordRushPhase.Playing || currentState.phase is WordRushPhase.Loading) {
+        cancelRoundJobs()
+        val phase = currentState.phase
+        if (phase is WordRushPhase.Playing || phase is WordRushPhase.Loading) {
             analyticsTracker.logEvent(
                 eventName = "word_rush_dropped_out",
                 parameters = mapOf(
-                    "questions_answered" to questionsAnswered,
+                    "questions_answered" to answeredCount,
                     "score" to score,
                 ),
             )
@@ -256,35 +285,40 @@ class WordRushViewModel(
     }
 
     private fun applyFreeze(phase: WordRushPhase.Playing, updatedPowerUps: List<WordRushPowerUp>) {
-        val frozenTime = phase.timeRemainingMs
         timerJob?.cancel()
+        stopClock()
         updateState { copy(phase = phase.copy(powerUps = updatedPowerUps, isTimerFrozen = true)) }
-        viewModelScope.launch {
+        freezeJob = viewModelScope.launch {
             delay(FREEZE_DURATION_MS)
-            val currentPhase = currentState.phase
-            if (currentPhase !is WordRushPhase.Playing || currentPhase.selectedIndex != null) return@launch
-            updateState { copy(phase = currentPhase.copy(isTimerFrozen = false)) }
-            startTimer(frozenTime)
+            val current = currentState.phase as? WordRushPhase.Playing ?: return@launch
+            updateState { copy(phase = current.copy(isTimerFrozen = false)) }
+            restartClock()
+            startTimer(current.timeRemainingMs)
         }
     }
 
     private fun applyFiftyFifty(phase: WordRushPhase.Playing, updatedPowerUps: List<WordRushPowerUp>) {
-        val wrongIndices = (0 until OPTIONS_COUNT)
-            .filter { it != phase.question.correctIndex && !phase.hiddenOptionIndices.contains(it) }
-            .shuffled()
-            .take(2)
-            .toSet()
-        updateState { copy(phase = phase.copy(powerUps = updatedPowerUps, hiddenOptionIndices = wrongIndices)) }
+        val visibleWrong = phase.question.options.indices
+            .filter { it != phase.question.correctIndex && it !in phase.hiddenOptionIndices }
+        // Always leave at least one wrong option, so it stays a choice.
+        val toHide = visibleWrong.shuffled().take((visibleWrong.size - 1).coerceAtMost(2))
+        if (toHide.isEmpty()) return
+        updateState {
+            copy(
+                phase = phase.copy(
+                    powerUps = updatedPowerUps,
+                    hiddenOptionIndices = phase.hiddenOptionIndices + toHide,
+                ),
+            )
+        }
     }
 
     private fun applyPeek(phase: WordRushPhase.Playing, updatedPowerUps: List<WordRushPowerUp>) {
         updateState { copy(phase = phase.copy(powerUps = updatedPowerUps, isPeeking = true)) }
-        viewModelScope.launch {
+        peekJob = viewModelScope.launch {
             delay(PEEK_DURATION_MS)
-            val currentPhase = currentState.phase
-            if (currentPhase is WordRushPhase.Playing) {
-                updateState { copy(phase = currentPhase.copy(isPeeking = false)) }
-            }
+            val current = currentState.phase as? WordRushPhase.Playing ?: return@launch
+            updateState { copy(phase = current.copy(isPeeking = false)) }
         }
     }
 
@@ -293,44 +327,48 @@ class WordRushViewModel(
         if (phase !is WordRushPhase.Playing || phase.selectedIndex != null) return
 
         currentStreak = 0
-        val newLives = (phase.lives - 1).coerceAtLeast(0)
-        val isGameOver = newLives == 0
+        answeredCount++
+        misses.add(phase.question.toMiss(chosenAnswer = null))
         updateState {
             copy(
                 phase = phase.copy(
-                    selectedIndex = -1,
+                    selectedIndex = TIMED_OUT_INDEX,
                     isCorrect = false,
                     streak = 0,
                     timeRemainingMs = 0,
                     multiplier = 1,
                     lastPointsEarned = null,
                     answerTimeMs = null,
-                    lives = newLives,
+                    lives = (phase.lives - 1).coerceAtLeast(0),
+                    isPeeking = false,
                 ),
             )
         }
+        scheduleAdvance()
+    }
 
-        viewModelScope.launch {
+    private fun scheduleAdvance() {
+        advanceJob?.cancel()
+        advanceJob = viewModelScope.launch {
             delay(ANSWER_REVEAL_MS)
-            if (isGameOver) {
-                finishGame()
+            val phase = currentState.phase as? WordRushPhase.Playing ?: return@launch
+            if (phase.lives == 0 || currentIndex + 1 >= questions.size) {
+                finishGame(phase)
             } else {
                 currentIndex++
-                if (currentIndex < questions.size) showQuestion() else finishGame()
+                showQuestion(lives = phase.lives, powerUps = phase.powerUps)
             }
         }
     }
 
-    private fun showQuestion() {
-        val question = questions[currentIndex]
-        questionStartTimeMs = Clock.System.now().toEpochMilliseconds()
-        val prevPhase = currentState.phase as? WordRushPhase.Playing
-        val lives = prevPhase?.lives ?: INITIAL_LIVES
-        val powerUps = prevPhase?.powerUps ?: emptyList()
+    private fun showQuestion(lives: Int, powerUps: List<WordRushPowerUp>) {
+        questionStartTimeMs = now()
+        clockStoppedAtMs = null
+        stoppedDurationMs = 0L
         updateState {
             copy(
                 phase = WordRushPhase.Playing(
-                    question = question,
+                    question = questions[currentIndex],
                     questionIndex = currentIndex,
                     totalQuestions = questions.size,
                     streak = currentStreak,
@@ -342,30 +380,27 @@ class WordRushViewModel(
                 ),
             )
         }
-        startTimer()
+        startTimer(TIME_PER_QUESTION_MS)
     }
 
-    private fun startTimer(remainingMs: Long = TIME_PER_QUESTION_MS) {
+    private fun startTimer(remainingMs: Long) {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             var elapsed = 0L
             while (elapsed < remainingMs) {
                 delay(TIMER_TICK_MS)
                 elapsed += TIMER_TICK_MS
-                val remaining = (remainingMs - elapsed).coerceAtLeast(0)
                 val phase = currentState.phase
                 if (phase !is WordRushPhase.Playing || phase.selectedIndex != null) return@launch
-                updateState { copy(phase = phase.copy(timeRemainingMs = remaining)) }
+                updateState { copy(phase = phase.copy(timeRemainingMs = (remainingMs - elapsed).coerceAtLeast(0))) }
             }
             onTimeUp()
         }
     }
 
-    private fun finishGame() {
-        val phase = currentState.phase as? WordRushPhase.Playing
-        val livesRemaining = phase?.lives ?: 0
-
-        val durationMs = Clock.System.now().toEpochMilliseconds() - gameStartedAt
+    private fun finishGame(phase: WordRushPhase.Playing) {
+        val livesRemaining = phase.lives
+        val durationMs = now() - gameStartedAt
         analyticsTracker.logEvent(
             eventName = "word_rush_game_complete",
             parameters = mapOf(
@@ -373,12 +408,11 @@ class WordRushViewModel(
                 "total_questions" to questions.size,
                 "best_streak" to bestSessionStreak,
                 "duration_ms" to durationMs,
+                "missed_count" to misses.size,
             ),
         )
-        val isNewBest = bestSessionStreak > currentState.bestStreak
-        val newBest = if (isNewBest) bestSessionStreak else currentState.bestStreak
-        val totalQuestions = questions.size
-        val answeredCount = responseTimes.size
+        val previousBest = currentState.bestStreak
+        val isNewBest = bestSessionStreak > previousBest
         val accuracy = if (answeredCount > 0) correctCount.toFloat() / answeredCount else 0f
         val avgResponseTimeMs = if (responseTimes.isNotEmpty()) responseTimes.average().toLong() else 0L
         val grade = WordRushGrade.fromAccuracy(accuracy)
@@ -387,7 +421,8 @@ class WordRushViewModel(
             copy(
                 phase = WordRushPhase.Result(
                     score = score,
-                    totalQuestions = totalQuestions,
+                    totalQuestions = questions.size,
+                    answeredCount = answeredCount,
                     correctCount = correctCount,
                     bestStreak = bestSessionStreak,
                     isNewBest = isNewBest,
@@ -395,16 +430,17 @@ class WordRushViewModel(
                     avgResponseTimeMs = avgResponseTimeMs,
                     grade = grade,
                     livesRemaining = livesRemaining,
+                    missedWords = misses.toList(),
                 ),
-                bestStreak = newBest,
+                bestStreak = maxOf(previousBest, bestSessionStreak),
             )
         }
         emitEffect(WordRushEffect.GameComplete)
 
         val record = WordRushGameRecord(
-            clientGameId = "wr_${Clock.System.now().toEpochMilliseconds()}_${(0..9999).random()}",
+            clientGameId = "wr_${now()}_${(0..9999).random()}",
             score = score,
-            totalQuestions = totalQuestions,
+            totalQuestions = questions.size,
             correctCount = correctCount,
             bestStreak = bestSessionStreak,
             durationMs = durationMs,
@@ -412,33 +448,47 @@ class WordRushViewModel(
             grade = grade,
             livesRemaining = livesRemaining,
             completedNormally = true,
-            playedAt = Clock.System.now().toEpochMilliseconds(),
+            playedAt = now(),
         )
         viewModelScope.launch { recordWordRushGameUseCase(record) }
     }
 
-    private fun buildQuestions(words: List<Word>): List<WordRushQuestion> {
-        return words.map { word ->
-            val distractors = words
-                .filter { it.id != word.id }
-                .shuffled()
-                .take(OPTIONS_COUNT - 1)
-                .map { it.translation }
-            val options = (distractors + word.translation).shuffled()
-            val correctIndex = options.indexOf(word.translation)
-            WordRushQuestion(word = word, options = options, correctIndex = correctIndex)
-        }
+    private fun cancelRoundJobs() {
+        timerJob?.cancel()
+        freezeJob?.cancel()
+        peekJob?.cancel()
+        advanceJob?.cancel()
     }
+
+    private fun stopClock() {
+        if (clockStoppedAtMs == null) clockStoppedAtMs = now()
+    }
+
+    private fun restartClock() {
+        clockStoppedAtMs?.let { stoppedDurationMs += now() - it }
+        clockStoppedAtMs = null
+    }
+
+    private fun elapsedOnQuestionMs(): Long {
+        val now = now()
+        val stoppedNow = clockStoppedAtMs?.let { now - it } ?: 0L
+        return (now - questionStartTimeMs - stoppedDurationMs - stoppedNow).coerceAtLeast(0L)
+    }
+
+    private fun now(): Long = Clock.System.now().toEpochMilliseconds()
+
+    private fun WordRushQuestion.toMiss(chosenAnswer: String?) =
+        WordRushMiss(prompt = prompt, correctAnswer = answer, chosenAnswer = chosenAnswer)
 
     companion object {
         const val ROUND_COUNT = 10
-        const val OPTIONS_COUNT = 4
         const val TIME_PER_QUESTION_MS = 5000L
         const val ANSWER_REVEAL_MS = 1200L
         const val TIMER_TICK_MS = 50L
         const val INITIAL_LIVES = 3
         const val FREEZE_DURATION_MS = 3000L
         const val PEEK_DURATION_MS = 600L
+        const val TIMED_OUT_INDEX = -1
 
         fun calculateMultiplier(streak: Int): Int = when {
             streak >= 8 -> 5
@@ -453,5 +503,11 @@ class WordRushViewModel(
             else -> 0
         }
 
+        fun powerUpForStreak(streak: Int): WordRushPowerUp? = when (streak) {
+            3 -> WordRushPowerUp.Freeze
+            5 -> WordRushPowerUp.FiftyFifty
+            8 -> WordRushPowerUp.Peek
+            else -> null
+        }
     }
 }

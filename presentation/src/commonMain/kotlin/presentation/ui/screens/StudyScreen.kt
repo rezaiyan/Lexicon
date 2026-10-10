@@ -86,6 +86,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetProperties
 import overlay.bottomsheet.showSizeToFitBottomSheet
+import overlay.fullscreen.FullScreenContainer
 import overlay.fullscreen.FullScreenProperties
 import overlay.fullscreen.showFullScreen
 import presentation.navigation.NotificationNavigator
@@ -144,6 +145,7 @@ fun StudyScreen(
                 dismissOnBackPress = false,
                 isStatusBarsPaddingEnabled = false,
                 isNavigationBarsPaddingEnabled = false,
+                container = FullScreenContainer.Background,
             ),
         ) { navigator ->
             OnEvents(reviewViewModel.effects) { effect ->
@@ -210,6 +212,7 @@ fun StudyScreen(
             properties = FullScreenProperties(
                 dismissOnBackPress = false,
                 isNavigationBarsPaddingEnabled = true,
+                container = FullScreenContainer.Background,
             ),
         ) { navigator ->
             ListeningScreen(
@@ -245,6 +248,8 @@ fun StudyScreen(
                 onSelectAnswer = wordRushViewModel::selectAnswer,
                 onUsePowerUp = wordRushViewModel::usePowerUp,
                 onPlayAgain = wordRushViewModel::startGame,
+                onPause = wordRushViewModel::pause,
+                onResume = wordRushViewModel::resume,
                 onDismiss = {
                     wordRushViewModel.dismiss()
                     navigator.dismiss()

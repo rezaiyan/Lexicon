@@ -2,6 +2,7 @@ package feature.study.ui.listening
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -11,9 +12,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -29,6 +34,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
@@ -50,6 +56,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -95,6 +103,13 @@ private val EQ_BAR_WIDTH = 3.dp
 private val EQ_BAR_MIN = 4.dp
 private val EQ_BAR_MAX = 16.dp
 private val EQ_BAR_PERIODS_MS = listOf(420, 300, 520, 360)
+private val ANSWER_RISE = 12.dp
+private const val WORD_SLIDE_DIVISOR = 5
+private const val WORD_ENTER_SCALE = 0.94f
+private const val PLAY_ICON_ENTER_SCALE = 0.5f
+private const val HALO_MAX_GROWTH = 0.22f
+private const val HALO_MAX_ALPHA = 0.18f
+private const val HALO_PERIOD_MS = 1_600
 
 @Composable
 internal fun PlayerContent(
@@ -122,10 +137,13 @@ internal fun PlayerContent(
                 .fillMaxWidth(),
         )
 
+        val motion = Theme.motion
         AnimatedVisibility(
             visible = showSettings,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut(),
+            enter = expandVertically(tween(motion.durationMedium2, easing = motion.easingEmphasized)) +
+                fadeIn(tween(motion.durationMedium, delayMillis = motion.durationXShort)),
+            exit = shrinkVertically(tween(motion.durationMedium, easing = motion.easingStandard)) +
+                fadeOut(tween(motion.durationShort)),
         ) {
             ListeningSettingsPanel(
                 settings = settings,
@@ -171,8 +189,16 @@ private fun WordCard(
                 targetState = session.index,
                 transitionSpec = {
                     val direction = if (targetState > initialState) 1 else -1
-                    (slideInHorizontally { it * direction / 4 } + fadeIn())
-                        .togetherWith(slideOutHorizontally { -it * direction / 4 } + fadeOut())
+                    val motion = Theme.motion
+                    val enter = slideInHorizontally(tween(motion.durationLong, easing = motion.easingEmphasized)) {
+                        it * direction / WORD_SLIDE_DIVISOR
+                    } + fadeIn(tween(motion.durationMedium2, delayMillis = motion.durationXShort)) +
+                        scaleIn(tween(motion.durationLong, easing = motion.easingEmphasized), WORD_ENTER_SCALE)
+                    val exit = slideOutHorizontally(tween(motion.durationMedium, easing = motion.easingAccelerate)) {
+                        -it * direction / WORD_SLIDE_DIVISOR
+                    } + fadeOut(tween(motion.durationShort2)) +
+                        scaleOut(tween(motion.durationMedium), WORD_ENTER_SCALE)
+                    enter togetherWith exit
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -203,8 +229,10 @@ private fun WordCard(
 private fun WordFaces(prompt: Utterance, answer: Utterance, revealed: Boolean) {
     val answerAlpha by animateFloatAsState(
         targetValue = if (revealed) 1f else 0f,
-        animationSpec = tween(Theme.motion.durationMedium),
+        animationSpec = tween(Theme.motion.durationMedium2, easing = Theme.motion.easingEmphasized),
+        label = "listening-answer",
     )
+    val riseDistance = with(LocalDensity.current) { ANSWER_RISE.toPx() }
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -244,7 +272,10 @@ private fun WordFaces(prompt: Utterance, answer: Utterance, revealed: Boolean) {
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.alpha(answerAlpha),
+                modifier = Modifier.graphicsLayer {
+                    alpha = answerAlpha
+                    translationY = (1f - answerAlpha) * riseDistance
+                },
             )
         }
     }
@@ -276,23 +307,39 @@ private fun PhaseIndicator(step: ListeningStep, isPlaying: Boolean) {
                 color = MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus),
                 shape = RoundedCornerShape(Theme.shapes.pill),
             )
+            .animateContentSize()
             .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xxs),
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Equalizer(active = speaking)
-        Text(
-            text = stringResource(label),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+        // Phase label rolls up as the player moves from listening to recall to meaning.
+        AnimatedContent(
+            targetState = label,
+            transitionSpec = {
+                (slideInVertically { it / 2 } + fadeIn()).togetherWith(slideOutVertically { -it / 2 } + fadeOut())
+            },
+            label = "listening-phase-label",
+        ) { phase ->
+            Text(
+                text = stringResource(phase),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
     }
 }
 
 @Composable
 private fun Equalizer(active: Boolean) {
     val transition = rememberInfiniteTransition(label = "listening-eq")
+    // Bars ease down to rest instead of snapping when speech stops.
+    val activity by animateFloatAsState(
+        targetValue = if (active) 1f else 0f,
+        animationSpec = tween(Theme.motion.durationMedium),
+        label = "listening-eq-activity",
+    )
     Row(
         modifier = Modifier.height(EQ_BAR_MAX),
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs),
@@ -308,7 +355,7 @@ private fun Equalizer(active: Boolean) {
             Box(
                 modifier = Modifier
                     .width(EQ_BAR_WIDTH)
-                    .height(if (active) lerp(EQ_BAR_MIN, EQ_BAR_MAX, fraction) else EQ_BAR_MIN)
+                    .height(lerp(EQ_BAR_MIN, EQ_BAR_MAX, fraction * activity))
                     .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(Theme.shapes.pill)),
             )
         }
@@ -338,15 +385,7 @@ private fun TransportControls(isPlaying: Boolean, actions: ListeningActions) {
         ) {
             Icon(Icons.Rounded.SkipPrevious, contentDescription = stringResource(Res.string.listening_previous))
         }
-        FilledIconButton(onClick = actions.onTogglePlayback, modifier = Modifier.size(PLAY_BUTTON_SIZE)) {
-            Icon(
-                imageVector = if (isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                contentDescription = stringResource(
-                    if (isPlaying) Res.string.listening_pause_playback else Res.string.listening_play
-                ),
-                modifier = Modifier.size(PLAY_ICON_SIZE),
-            )
-        }
+        PlayButton(isPlaying = isPlaying, onClick = actions.onTogglePlayback)
         FilledTonalIconButton(
             onClick = actions.onNext,
             modifier = Modifier.size(SKIP_BUTTON_SIZE),
@@ -355,6 +394,63 @@ private fun TransportControls(isPlaying: Boolean, actions: ListeningActions) {
             Icon(Icons.Rounded.SkipNext, contentDescription = stringResource(Res.string.listening_next))
         }
     }
+}
+
+/** Play/pause with a soft breathing halo while playing, so the screen feels alive between words. */
+@Composable
+private fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {
+    val haloStrength by animateFloatAsState(
+        targetValue = if (isPlaying) 1f else 0f,
+        animationSpec = tween(Theme.motion.durationLong),
+        label = "listening-halo-strength",
+    )
+    Box(contentAlignment = Alignment.Center) {
+        // Composed only while visible, so the pulse doesn't tick frames when paused.
+        if (haloStrength > 0f) PlayHalo(strength = { haloStrength })
+        FilledIconButton(onClick = onClick, modifier = Modifier.size(PLAY_BUTTON_SIZE)) {
+            AnimatedContent(
+                targetState = isPlaying,
+                transitionSpec = {
+                    (scaleIn(initialScale = PLAY_ICON_ENTER_SCALE) + fadeIn())
+                        .togetherWith(scaleOut(targetScale = PLAY_ICON_ENTER_SCALE) + fadeOut())
+                },
+                label = "listening-play-icon",
+            ) { playing ->
+                Icon(
+                    imageVector = if (playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    contentDescription = stringResource(
+                        if (playing) Res.string.listening_pause_playback else Res.string.listening_play
+                    ),
+                    modifier = Modifier.size(PLAY_ICON_SIZE),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PlayHalo(strength: () -> Float) {
+    val pulse by rememberInfiniteTransition(label = "listening-halo").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            tween(HALO_PERIOD_MS, easing = Theme.motion.easingStandard),
+            RepeatMode.Reverse,
+        ),
+        label = "listening-halo-pulse",
+    )
+    val primary = MaterialTheme.colorScheme.primary
+    Box(
+        modifier = Modifier
+            .size(PLAY_BUTTON_SIZE)
+            .graphicsLayer {
+                val scale = 1f + HALO_MAX_GROWTH * pulse * strength()
+                scaleX = scale
+                scaleY = scale
+                alpha = strength() * HALO_MAX_ALPHA * (1f - pulse / 2)
+            }
+            .background(primary, CircleShape),
+    )
 }
 
 // ---------------------------------------------------------------------------

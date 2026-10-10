@@ -121,12 +121,15 @@ class FullScreenOverlay(
             if (properties.dismissOnBackPress) animatedDismiss()
         }
 
-        // System bars: match sheet surface color
-        val surfaceColor = MaterialTheme.colorScheme.surface
+        // System bars: match the container so they blend into the content edge to edge
+        val containerColor = when (properties.container) {
+            FullScreenContainer.Surface -> MaterialTheme.colorScheme.surface
+            FullScreenContainer.Background -> MaterialTheme.colorScheme.background
+        }
         OverrideSystemBars(
-            statusBarColor = surfaceColor,
-            navigationBarColor = surfaceColor,
-            darkIcons = surfaceColor.luminance() > 0.5f
+            statusBarColor = containerColor,
+            navigationBarColor = containerColor,
+            darkIcons = containerColor.luminance() > 0.5f
         )
 
         Box(
@@ -145,7 +148,7 @@ class FullScreenOverlay(
                     val swipeOffset = if (swipeState.offset.isNaN()) 0f else swipeState.offset
                     this.translationY = enterTranslationY + swipeOffset
                 }
-                .background(surfaceColor)
+                .background(containerColor)
                 .then(
                     if (properties.dismissOnSwipe && isTopMost && !isDismissing)
                         Modifier.anchoredDraggable(

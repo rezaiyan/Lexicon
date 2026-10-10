@@ -1,37 +1,28 @@
 package feature.study.ui.components
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import components.AccentCard
+import components.AccentIconBadge
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.words_unit
 import org.jetbrains.compose.resources.pluralStringResource
@@ -58,51 +49,23 @@ fun LevelBucketCard(
     val isEmpty = count == 0
 
     val wordUnit = pluralStringResource(Res.plurals.words_unit, count)
-    Card(
+    AccentCard(
+        accent = color,
+        enabled = !isEmpty,
+        onClick = onClick,
+        onLongClick = onLongClick,
         modifier = modifier
             .semantics {
                 contentDescription = listOfNotNull("$level: $count $wordUnit", description).joinToString(". ")
             }
             .fillMaxWidth(),
-        shape = RoundedCornerShape(Theme.shapes.large),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        border = if (isEmpty) {
-            null
-        } else {
-            BorderStroke(Theme.dimensions.borderWidth, color.copy(alpha = Theme.opacity.dimming))
-        },
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isEmpty) 0.dp else Theme.elevation.low
-        )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(enabled = !isEmpty, onClick = onClick, onLongClick = onLongClick)
-                .alpha(if (isEmpty) Theme.opacity.hint else 1f)
-                .padding(Theme.spacing.cardPadding),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Theme.spacing.inlineGap),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon in colored circle
-            Box(
-                modifier = Modifier
-                    .size(Theme.dimensions.iconSizeHuge)
-                    .background(
-                        color = color.copy(alpha = Theme.opacity.focus),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(Theme.dimensions.iconSize)
-                )
-            }
+            AccentIconBadge(icon = icon, accent = color)
 
             // Text content
             Column(
