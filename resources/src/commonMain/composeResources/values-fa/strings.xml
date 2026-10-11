@@ -476,6 +476,10 @@
     <string name="leaderboard_error_title">بارگیری جدول رتبه‌بندی ناموفق بود</string>
     <string name="leaderboard_refresh_failed">به‌روزرسانی ناموفق بود. آخرین نتایج نمایش داده می‌شود.</string>
     <string name="leaderboard_entry_a11y">رتبه %1$d، %2$s، %3$d روز پیاپی، بهترین رکورد %4$d روز، %5$d واژه تسلط‌یافته</string>
+    <string name="leaderboard_rankings">رتبه‌ها</string>
+    <string name="leaderboard_next_up">نفر بعدی: %1$s در رتبه %2$d</string>
+    <string name="leaderboard_you_lead">شما نفر اول هستید. از جایگاهتان دفاع کنید!</string>
+    <string name="leaderboard_show_me">نمایش من</string>
 
     <!-- Import Source Language -->
     <string name="original_language_question">زبان اصلی کلمات چیست؟</string>

@@ -1,14 +1,14 @@
 package feature.leaderboard.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -26,6 +26,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import components.EmptyScreen
 import components.ErrorScreen
@@ -132,62 +133,94 @@ private fun LeaderboardContent(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
-    // Lazy list layout: [refresh banner] [podium] legend rows...
-    val bannerCount = if (refreshFailed) 1 else 0
-    val podiumIndex = if (data.podium.isNotEmpty()) bannerCount else null
-    val firstRowIndex = bannerCount + (if (podiumIndex != null) 1 else 0) + 1
+    // Lazy list layout: [refresh banner] standing [podium] rankings-header rows...
+    val standingIndex = if (refreshFailed) 1 else 0
+    val podiumIndex = if (data.podium.isNotEmpty()) standingIndex + 1 else null
+    val firstRowIndex = (podiumIndex ?: standingIndex) + 2
     val userItemIndex = when {
         data.userRowIndex != null -> firstRowIndex + data.userRowIndex
         data.podium.any { it.isCurrentUser } -> podiumIndex
         else -> null
     }
-    val isUserItemVisible by remember(listState, userItemIndex) {
-        derivedStateOf { listState.isItemVisible(userItemIndex) }
+    // The pill brings the user back to their row, or to their standing card when they have no row.
+    val pillTargetIndex = userItemIndex ?: standingIndex
+    val showFloatingPill by remember(listState, userItemIndex, standingIndex) {
+        derivedStateOf {
+            !listState.isItemVisible(standingIndex) && !listState.isItemVisible(userItemIndex)
+        }
+    }
+    val pillPointsDown by remember(listState, pillTargetIndex) {
+        derivedStateOf { pillTargetIndex > listState.firstVisibleItemIndex }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(bottom = Theme.spacing.md),
-            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(top = Theme.spacing.xs, bottom = Theme.spacing.xxxl),
         ) {
             if (refreshFailed) {
                 item(key = "refresh_failed") {
-                    RefreshFailedBanner(onRetry = onRetry)
+                    Box(modifier = Modifier.padding(bottom = Theme.spacing.md)) {
+                        RefreshFailedBanner(onRetry = onRetry)
+                    }
+                }
+            }
+            item(key = "standing") {
+                Box(modifier = Modifier.padding(bottom = Theme.spacing.lg)) {
+                    val userEntry = data.userEntry
+                    if (userEntry != null) {
+                        YourStandingCard(
+                            entry = userEntry,
+                            nextUp = data.nextUp,
+                            onShowMe = if (data.userRowIndex != null && userItemIndex != null) {
+                                { scope.launch { listState.animateScrollToItem(userItemIndex) } }
+                            } else {
+                                null
+                            },
+                        )
+                    } else {
+                        UnrankedStandingCard()
+                    }
                 }
             }
             if (data.podium.isNotEmpty()) {
                 item(key = "podium") {
-                    LeaderboardPodium(entries = data.podium)
+                    Box(modifier = Modifier.padding(bottom = Theme.spacing.lg)) {
+                        LeaderboardPodium(entries = data.podium)
+                    }
                 }
             }
-            item(key = "legend") {
-                StatsLegend()
+            if (data.rows.isNotEmpty()) {
+                item(key = "rankings_header") {
+                    RankingsHeader(count = data.podium.size + data.rows.size)
+                }
             }
             // Ranks can tie, so the index keeps keys unique.
-            itemsIndexed(data.rows, key = { index, entry -> "row-${entry.rank}-$index" }) { _, entry ->
-                LeaderboardEntryCard(entry = entry)
+            itemsIndexed(data.rows, key = { index, entry -> "row-${entry.rank}-$index" }) { index, entry ->
+                RankingRow(
+                    entry = entry,
+                    isFirst = index == 0,
+                    isLast = index == data.rows.lastIndex,
+                )
             }
         }
 
+        val userEntry = data.userEntry
         AnimatedVisibility(
-            visible = !isUserItemVisible,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
+            visible = userEntry != null && showFloatingPill,
+            enter = fadeIn() + slideInVertically { it },
+            exit = fadeOut() + slideOutVertically { it },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = Theme.spacing.md),
         ) {
-            val userEntry = data.userEntry
             if (userEntry != null) {
-                UserRankingFooter(
+                FloatingYouPill(
                     entry = userEntry,
-                    onJumpToEntry = if (userItemIndex != null) {
-                        { scope.launch { listState.animateScrollToItem(userItemIndex) } }
-                    } else {
-                        null
-                    },
+                    pointsDown = pillPointsDown,
+                    onClick = { scope.launch { listState.animateScrollToItem(pillTargetIndex) } },
                 )
-            } else {
-                UnrankedFooter()
             }
         }
     }

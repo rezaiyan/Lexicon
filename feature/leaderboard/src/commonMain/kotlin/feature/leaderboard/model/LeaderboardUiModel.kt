@@ -25,6 +25,8 @@ data class LeaderboardUiData(
     val userEntry: LeaderboardEntryUiModel?,
     /** Index of the current user's row in [rows], or null when the row is not in the list. */
     val userRowIndex: Int?,
+    /** The closest entry ranked above the current user: the next person to overtake. */
+    val nextUp: LeaderboardEntryUiModel?,
 ) {
     val isEmpty: Boolean get() = podium.isEmpty() && rows.isEmpty()
 }

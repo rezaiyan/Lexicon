@@ -619,6 +619,10 @@
     <string name="leaderboard_error_title">リーダーボードを読み込めませんでした</string>
     <string name="leaderboard_refresh_failed">更新できませんでした。前回の結果を表示しています。</string>
     <string name="leaderboard_entry_a11y">%1$d位、%2$s、%3$d日連続、最長%4$d日、%5$d語マスター</string>
+    <string name="leaderboard_rankings">ランキング</string>
+    <string name="leaderboard_next_up">次の目標: %2$d位の%1$s</string>
+    <string name="leaderboard_you_lead">あなたが1位です。この座を守りましょう！</string>
+    <string name="leaderboard_show_me">自分を表示</string>
 
     <!-- TTS Models -->
     <string name="tts_models">TTSモデル</string>

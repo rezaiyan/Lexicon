@@ -770,6 +770,10 @@
     <string name="leaderboard_error_title">Couldn't load the leaderboard</string>
     <string name="leaderboard_refresh_failed">Couldn't refresh. Showing the last results.</string>
     <string name="leaderboard_entry_a11y">Rank %1$d, %2$s, %3$d day streak, best streak %4$d days, %5$d words mastered</string>
+    <string name="leaderboard_rankings">Rankings</string>
+    <string name="leaderboard_next_up">Next up: %1$s at #%2$d</string>
+    <string name="leaderboard_you_lead">You're #1. Defend your spot!</string>
+    <string name="leaderboard_show_me">Show me</string>
 
     <!-- Word Rush Game -->
     <string name="word_rush">Word Rush</string>

@@ -477,6 +477,10 @@
     <string name="leaderboard_error_title">无法加载排行榜</string>
     <string name="leaderboard_refresh_failed">刷新失败，正在显示上次的结果。</string>
     <string name="leaderboard_entry_a11y">第%1$d名，%2$s，连续%3$d天，最佳连续%4$d天，已掌握%5$d个单词</string>
+    <string name="leaderboard_rankings">排名</string>
+    <string name="leaderboard_next_up">下一个目标：第%2$d名 %1$s</string>
+    <string name="leaderboard_you_lead">你是第一名，守住你的位置！</string>
+    <string name="leaderboard_show_me">显示我的位置</string>
 
     <!-- Import Source Language -->
     <string name="original_language_question">原始词汇是什么语言？</string>
