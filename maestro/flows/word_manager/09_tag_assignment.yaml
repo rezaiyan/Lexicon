@@ -3,69 +3,109 @@ tags:
   - word-manager
   - tags
 ---
-# Test: "Assign Tag" button in the word detail sheet opens the tag assignment
-# bottom sheet. When no tags exist the empty state is shown. Tapping "Assign Tag"
-# (save) dismisses the sheet.
+# Test: a tag can be assigned to a word from the word detail sheet, even when
+# the user has no tags yet.
 #
-# Creates a test word first to ensure at least one word exists in the library.
-# Does NOT create tags — verifies the no-tags empty state in the assignment sheet,
-# which keeps the test self-contained and non-destructive.
+# Regression: the "Assign Tag" page used to be a dead end without tags — it only
+# showed "No tags yet" and a disabled save button. It now offers "New Tag"; a tag
+# created there is selected for the word straight away.
+#
+# Setup:    add a unique test word.
+# Test:     word detail → Assign Tag → New Tag → create → Assign Tag → the tag
+#           shows on the detail sheet.
+# Teardown: delete the created tag via Settings → Tag Manager.
 
-# Navigate to Study screen and add a test word so the library is non-empty.
+- evalScript: ${output.tag = 'Tag' + Date.now()}
+
+# ── Setup: Add a test word ────────────────────────────────────────────────────
+
 - runFlow: ../utils/navigate_to_study.yaml
 - runFlow: ../utils/add_test_word.yaml
 
-# Navigate to the Word Manager.
 - runFlow: ../utils/navigate_to_word_manager.yaml
-
-# Wait for the word list to load.
 - extendedWaitUntil:
     visible: "Search words..."
     timeout: 15000
 
-# Tap the test word to open the detail sheet.
-- tapOn: "${output.word}"
+# ── Test: Create and assign a tag from the detail sheet ──────────────────────
 
-# The detail sheet must be visible.
+- tapOn: "${output.word}"
 - assertVisible: "Learning Progress"
 
-# The "Assign Tag" button must be present in the detail sheet.
-- assertVisible: "Assign Tag"
-
-# Tap "Assign Tag" to open the tag assignment bottom sheet.
 - tapOn: "Assign Tag"
 
-# The assignment sheet title must appear.
+# The assignment page offers to create a tag, whatever tags already exist.
 - extendedWaitUntil:
-    visible: "Assign Tag"
+    visible: "New Tag"
     timeout: 8000
-
-# The word name must be shown as context below the title.
+# The word is shown as context below the title.
 - assertVisible: "${output.word}"
 
-# When no tags exist the empty state message must be shown.
-# This assertion relies on study/05_tag_filter_long_press.yaml completing its
-# teardown (deleting "TestFilterTag"). If that test failed mid-teardown, a
-# residual tag may appear here, causing a failure. The assertion is intentionally
-# kept non-optional: if teardown is broken, this test should surface the problem.
-- assertVisible: "No tags yet"
+- tapOn: "New Tag"
+- extendedWaitUntil:
+    visible: "Tag name"
+    timeout: 5000
 
-# The save button must still be present (enabled even with no tags).
-- assertVisible: "Assign Tag"
+# eraseText before inputText makes Maestro establish the IME connection.
+- tapOn: "Tag name"
+- waitForAnimationToEnd
+- eraseText: 50
+- inputText: "${output.tag}"
+- hideKeyboard
 
-# Tap save — dismisses the sheet (no-op when no tags are selected).
+- tapOn: "Create Tag"
+- waitForAnimationToEnd
+
+# Back on the checklist with the new tag listed (and already ticked: saving
+# without tapping it must assign it, asserted on the detail page below).
+- extendedWaitUntil:
+    visible: "${output.tag}"
+    timeout: 8000
+
+# Save.
 - tapOn: "Assign Tag"
 - waitForAnimationToEnd
 
-# Wait for the sheet dismiss animation before asserting the detail sheet is back.
+# Back on the detail page, which now lists the assigned tag.
 - extendedWaitUntil:
     visible: "Learning Progress"
-    timeout: 5000
+    timeout: 8000
+- assertVisible: "${output.tag}"
 
-# Dismiss the detail sheet.
 - pressKey: back
-
-# The word list must be visible again.
 - extendedWaitUntil:
     visible: "Search words..."
+    timeout: 5000
+
+# ── Teardown: Delete the created tag ─────────────────────────────────────────
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Tag Manager"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Tag Manager"
+
+- extendedWaitUntil:
+    visible: "${output.tag}"
+    timeout: 8000
+
+- tapOn: "Delete Tag"
+
+- extendedWaitUntil:
+    visible: "Delete this tag? Words with this tag will not be deleted."
+    timeout: 5000
+
+- tapOn: "Delete Tag"
+- waitForAnimationToEnd
+
+- assertNotVisible: "${output.tag}"
+
+# pressKey: back does NOT work — Tag Manager uses dismissOnBackPress=false.
+- tapOn: "Close"
+
+- extendedWaitUntil:
+    visible: "Theme"
     timeout: 5000

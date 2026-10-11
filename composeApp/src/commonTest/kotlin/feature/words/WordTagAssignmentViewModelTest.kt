@@ -4,6 +4,7 @@ import core.common.Try
 import domain.tag.model.Tag
 import domain.tag.repository.ITagRepository
 import domain.tag.usecase.AssignWordTagsUseCase
+import domain.tag.usecase.CreateTagUseCase
 import domain.tag.usecase.GetTagsUseCase
 import feature.words.model.WordTagAssignmentEffect
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,8 @@ class WordTagAssignmentViewModelTest : ViewModelTestBase() {
 
     private val tagsFlow = MutableStateFlow<List<Tag>>(emptyList())
     private var assignResult: Try<Unit> = Try.success(Unit)
+    private var createResult: Try<Tag> = Try.success(tagC)
+    private var capturedTagName: String? = null
     private var capturedWordId: Long? = null
     private var capturedTagIds: List<Long>? = null
 
@@ -34,7 +37,10 @@ class WordTagAssignmentViewModelTest : ViewModelTestBase() {
         override fun getTags(): Flow<List<Tag>> = tagsFlow
         override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
         override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
-        override suspend fun createTag(name: String): Try<Tag> = Try.success(tagA)
+        override suspend fun createTag(name: String): Try<Tag> {
+            capturedTagName = name
+            return createResult
+        }
         override suspend fun renameTag(id: Long, name: String): Try<Tag> = Try.success(tagA)
         override suspend fun deleteTag(id: Long): Try<Unit> = Try.success(Unit)
         override suspend fun assignWordTags(wordId: Long, tagIds: List<Long>): Try<Unit> {
@@ -49,6 +55,7 @@ class WordTagAssignmentViewModelTest : ViewModelTestBase() {
     private fun createViewModel() = WordTagAssignmentViewModel(
         getTagsUseCase = GetTagsUseCase(fakeRepo()),
         assignWordTagsUseCase = AssignWordTagsUseCase(fakeRepo()),
+        createTagUseCase = CreateTagUseCase(fakeRepo()),
     )
 
     // --- initialize ---
@@ -242,5 +249,93 @@ class WordTagAssignmentViewModelTest : ViewModelTestBase() {
         vm.save()
 
         assertEquals(setOf(1L, 3L), capturedTagIds?.toSet())
+    }
+
+    // --- createTag ---
+
+    @Test
+    fun `createTag passes trimmed name to repository`() = runTest {
+        val vm = createViewModel()
+        vm.initialize(wordId = 1, currentTagIds = emptyList())
+
+        vm.createTag("  German  ")
+
+        assertEquals("German", capturedTagName)
+    }
+
+    @Test
+    fun `createTag on success selects the new tag for the word`() = runTest {
+        val vm = createViewModel()
+        vm.initialize(wordId = 1, currentTagIds = listOf(1L))
+
+        vm.createTag("German")
+
+        assertEquals(setOf(1L, tagC.id), vm.currentState.selectedTagIds)
+    }
+
+    @Test
+    fun `createTag on success emits TagCreated effect`() =
+        runTest(UnconfinedTestDispatcher()) {
+            val vm = createViewModel()
+            vm.initialize(wordId = 1, currentTagIds = emptyList())
+
+            vm.createTag("German")
+
+            val effect = vm.effects.first()
+            assertIs<WordTagAssignmentEffect.TagCreated>(effect)
+        }
+
+    @Test
+    fun `createTag then save assigns the new tag to the word`() = runTest {
+        val vm = createViewModel()
+        vm.initialize(wordId = 4, currentTagIds = emptyList())
+
+        vm.createTag("German")
+        vm.save()
+
+        assertEquals(4L, capturedWordId)
+        assertEquals(listOf(tagC.id), capturedTagIds)
+    }
+
+    @Test
+    fun `createTag on failure emits Error and keeps selection`() =
+        runTest(UnconfinedTestDispatcher()) {
+            createResult = Try.failure(RuntimeException("Tag already exists"))
+            val vm = createViewModel()
+            vm.initialize(wordId = 1, currentTagIds = listOf(1L))
+
+            vm.createTag("Spanish")
+
+            val effect = vm.effects.first()
+            assertIs<WordTagAssignmentEffect.Error>(effect)
+            assertEquals("Tag already exists", effect.message)
+            assertEquals(setOf(1L), vm.currentState.selectedTagIds)
+        }
+
+    @Test
+    fun `createTag with blank name does not reach repository`() = runTest {
+        val vm = createViewModel()
+        vm.initialize(wordId = 1, currentTagIds = emptyList())
+
+        vm.createTag("   ")
+
+        assertEquals(null, capturedTagName)
+        assertTrue(vm.currentState.selectedTagIds.isEmpty())
+    }
+
+    // --- re-initialize for another word ---
+
+    @Test
+    fun `initialize for another word replaces the previous selection`() = runTest {
+        tagsFlow.value = listOf(tagA, tagB)
+        val vm = createViewModel()
+        vm.initialize(wordId = 1, currentTagIds = listOf(1L))
+        vm.toggleTag(tagId = 2L)
+
+        vm.initialize(wordId = 2, currentTagIds = emptyList())
+
+        assertEquals(2, vm.currentState.wordId)
+        assertTrue(vm.currentState.selectedTagIds.isEmpty())
+        assertEquals(listOf(tagA, tagB), vm.currentState.tags)
     }
 }

@@ -2,6 +2,7 @@ package presentation.ui
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -93,6 +94,9 @@ internal fun AppContent(
     )
 
     NavigationSuiteScaffold(
+        // Edge-to-edge: without this the keyboard covers the tab bar and a focused text field
+        // (e.g. Words search) traps the user on its tab. Sheets pad for the keyboard on their own.
+        modifier = Modifier.imePadding(),
         layoutType = layoutType,
         navigationSuiteColors = NavigationSuiteDefaults.colors(
             navigationBarContainerColor = MaterialTheme.colorScheme.surface,

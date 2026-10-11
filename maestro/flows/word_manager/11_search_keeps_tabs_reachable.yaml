@@ -1,0 +1,61 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - word-manager
+  - search
+  - navigation
+---
+# Regression: after searching in the Words tab, every other tab must still be
+# reachable.
+#
+# The app draws edge-to-edge, so the soft keyboard opened by the search field
+# used to cover the bottom tab bar. Taps meant for "Study" or "Profile" landed on
+# the keyboard and the user was stuck on Words. The tab bar now rides above the
+# keyboard, so this flow taps the tabs while the keyboard is still open.
+#
+# Requires: At least one word exists in the library so that the search field is shown.
+
+- runFlow: ../utils/navigate_to_word_manager.yaml
+- assertVisible: "Search words..."
+
+- tapOn: "Search words..."
+- inputText: "zzz_no_match_query_xyz"
+- assertVisible: "No matching words"
+
+# Keyboard is still open here; do NOT hideKeyboard — that would hide the bug.
+- tapOn:
+    text: "(?-i)Study"
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000
+
+# Back to Words, search again, and leave for Profile this time.
+- tapOn:
+    text: "(?-i)Words"
+- extendedWaitUntil:
+    visible: "Search words\\.\\.\\."
+    timeout: 5000
+- tapOn: "Search words..."
+- inputText: "zzz_no_match_query_xyz"
+- assertVisible: "No matching words"
+
+- tapOn:
+    text: "(?-i)Profile"
+- extendedWaitUntil:
+    visible: "Logout"
+    timeout: 5000
+
+# The search keyboard action closes the keyboard and keeps the query.
+- tapOn:
+    text: "(?-i)Words"
+- extendedWaitUntil:
+    visible: "Search words\\.\\.\\."
+    timeout: 5000
+- tapOn: "Search words..."
+- inputText: "zzz_no_match_query_xyz"
+- pressKey: Enter
+- assertVisible: "No matching words"
+- tapOn:
+    text: "(?-i)Study"
+- extendedWaitUntil:
+    visible: "Import Words"
+    timeout: 5000

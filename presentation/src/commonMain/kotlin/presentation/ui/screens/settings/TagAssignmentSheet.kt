@@ -4,65 +4,30 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import components.sheet.SheetCheckboxRow
 import components.sheet.SheetGroup
+import components.sheet.SheetOptionRow
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
 import domain.tag.model.Tag
-import domain.word.model.Word
-import events.OnEvents
-import feature.words.WordTagAssignmentViewModel
-import feature.words.model.WordTagAssignmentEffect
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.assign_tags
+import lexicon.resources.generated.resources.new_tag
 import lexicon.resources.generated.resources.no_tags
 import lexicon.resources.generated.resources.word_count_label
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.viewmodel.koinViewModel
-import presentation.ui.LocalSnackbarHostState
-import components.snackbar.showError
 
-@Composable
-internal fun TagAssignmentSheetContent(
-    word: Word,
-    onDismiss: () -> Unit,
-) {
-    val viewModel = koinViewModel<WordTagAssignmentViewModel>()
-    val state by viewModel.state()
-    val snackbarHostState = LocalSnackbarHostState.current
-
-    LaunchedEffect(word.id) {
-        viewModel.initialize(word.id, word.tagIds)
-    }
-
-    OnEvents(viewModel.effects) { effect ->
-        when (effect) {
-            is WordTagAssignmentEffect.TagsAssigned -> onDismiss()
-            is WordTagAssignmentEffect.Error -> snackbarHostState.showError(effect.message)
-        }
-    }
-
-    TagChecklistContent(
-        title = stringResource(Res.string.assign_tags),
-        subtitle = word.originalWord,
-        tags = state.tags,
-        selectedTagIds = state.selectedTagIds,
-        onToggle = viewModel::toggleTag,
-        onApply = viewModel::save,
-        isLoading = state.isLoading,
-        isSaving = state.isSaving,
-    )
-}
-
-/** Multi-select tag list shared by single-word and batch assignment. */
+/**
+ * Multi-select tag list shared by single-word and batch assignment.
+ * Pass [onCreateTag] to offer a "New Tag" row, so the list is never a dead end when no tag fits (or none exists).
+ */
 @Composable
 internal fun TagChecklistContent(
     title: String,
@@ -74,6 +39,7 @@ internal fun TagChecklistContent(
     isLoading: Boolean = false,
     isSaving: Boolean = false,
     onClose: (() -> Unit)? = null,
+    onCreateTag: (() -> Unit)? = null,
 ) {
     SheetPage(
         title = title,
@@ -110,6 +76,17 @@ internal fun TagChecklistContent(
                         showDivider = index < tags.lastIndex,
                     )
                 }
+            }
+        }
+
+        if (onCreateTag != null && !isLoading) {
+            SheetGroup {
+                SheetOptionRow(
+                    icon = Icons.Default.Add,
+                    title = stringResource(Res.string.new_tag),
+                    onClick = onCreateTag,
+                    showDivider = false,
+                )
             }
         }
     }

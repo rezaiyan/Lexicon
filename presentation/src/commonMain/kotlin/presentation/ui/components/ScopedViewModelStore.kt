@@ -1,4 +1,4 @@
-package presentation.ui.components.imports
+package presentation.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
