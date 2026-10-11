@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
 import domain.support.model.MAX_SUPPORT_MESSAGE_LENGTH
+import domain.support.usecase.MarkSupportReadUseCase
 import domain.support.usecase.ObserveSupportMessagesUseCase
 import domain.support.usecase.RefreshSupportMessagesUseCase
 import domain.support.usecase.RetrySupportMessageUseCase
@@ -27,6 +28,7 @@ class SupportViewModel(
     private val refreshMessages: RefreshSupportMessagesUseCase,
     private val sendMessage: SendSupportMessageUseCase,
     private val retryMessage: RetrySupportMessageUseCase,
+    private val markRead: MarkSupportReadUseCase,
     pollTicks: Flow<Unit> = every(DEFAULT_POLL_INTERVAL_MS),
     clock: Clock = Clock.System,
     timeZone: TimeZone = TimeZone.currentSystemDefault(),
@@ -40,6 +42,8 @@ class SupportViewModel(
                 val today = clock.now().toLocalDateTime(timeZone).date
                 val timeline = buildSupportTimeline(messages, today, timeZone)
                 updateState { copy(messages = messages, timeline = timeline, isLoading = false) }
+                // Everything on screen counts as read, including replies arriving while it is open.
+                markRead(Unit)
             }
         }
         viewModelScope.launch {

@@ -21,3 +21,11 @@ data class SupportMessage(
 
 /** Longest message the backend accepts. */
 const val MAX_SUPPORT_MESSAGE_LENGTH = 4000
+
+/**
+ * Whether support replied since the user last looked.
+ *
+ * @param inChat A reply the user has not read in the chat yet (dot on Help & Support).
+ * @param onSettings A reply newer than the last visit to Settings (dot on the Settings icon).
+ */
+data class SupportUnread(val inChat: Boolean = false, val onSettings: Boolean = false)

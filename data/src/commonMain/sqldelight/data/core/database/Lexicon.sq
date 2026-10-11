@@ -521,3 +521,38 @@ UPDATE SupportMessageEntity SET status = ? WHERE localId = ?;
 
 clearSupportMessages:
 DELETE FROM SupportMessageEntity;
+
+-- Support chat read markers (single row, client-only): the newest admin reply the user has seen in
+-- the chat, and the newest one current when they last opened Settings. Drives the unread dots.
+CREATE TABLE SupportReadState (
+    id                   INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    readServerId         INTEGER NOT NULL DEFAULT 0,
+    settingsSeenServerId INTEGER NOT NULL DEFAULT 0
+);
+
+observeSupportUnread:
+SELECT
+    COALESCE((SELECT MAX(serverId) FROM SupportMessageEntity WHERE sender = 'ADMIN'), 0) AS latestReplyId,
+    COALESCE((SELECT readServerId FROM SupportReadState WHERE id = 1), 0) AS readServerId,
+    COALESCE((SELECT settingsSeenServerId FROM SupportReadState WHERE id = 1), 0) AS settingsSeenServerId;
+
+ensureSupportReadStateRow:
+INSERT OR IGNORE INTO SupportReadState(id) VALUES (1);
+
+-- Reading the chat also counts as having seen it from Settings.
+markSupportRead:
+UPDATE SupportReadState
+SET readServerId = (SELECT COALESCE(MAX(serverId), 0) FROM SupportMessageEntity WHERE sender = 'ADMIN'),
+    settingsSeenServerId = (SELECT COALESCE(MAX(serverId), 0) FROM SupportMessageEntity WHERE sender = 'ADMIN')
+WHERE id = 1;
+
+markSupportSeenInSettings:
+UPDATE SupportReadState
+SET settingsSeenServerId = (SELECT COALESCE(MAX(serverId), 0) FROM SupportMessageEntity WHERE sender = 'ADMIN')
+WHERE id = 1;
+
+clearSupportReadState:
+DELETE FROM SupportReadState;
+
+countSupportMessages:
+SELECT count(*) FROM SupportMessageEntity;

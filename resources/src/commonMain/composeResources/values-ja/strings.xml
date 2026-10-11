@@ -832,4 +832,5 @@
     <string name="support_team_name">Lexicon チーム</string>
     <string name="support_chars_left">残り %1$d 文字</string>
     <string name="support_not_sent">未送信</string>
+    <string name="support_unread_reply">サポートから新しい返信</string>
 </resources>

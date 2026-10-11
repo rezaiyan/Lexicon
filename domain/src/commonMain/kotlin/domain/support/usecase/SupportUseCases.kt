@@ -3,9 +3,11 @@ package domain.support.usecase
 import core.common.FlowUseCase
 import core.common.Try
 import core.common.UseCase
+import core.common.flatMap
 import core.error.DomainError
 import domain.support.model.MAX_SUPPORT_MESSAGE_LENGTH
 import domain.support.model.SupportMessage
+import domain.support.model.SupportUnread
 import domain.support.repository.ISupportRepository
 import kotlinx.coroutines.flow.Flow
 
@@ -36,4 +38,33 @@ class RetrySupportMessageUseCase(
     private val repository: ISupportRepository,
 ) : UseCase<String, Unit> {
     override suspend fun invoke(params: String): Try<Unit> = repository.retry(params)
+}
+
+class ObserveSupportUnreadUseCase(
+    private val repository: ISupportRepository,
+) : FlowUseCase<Unit, SupportUnread> {
+    override fun invoke(params: Unit): Flow<SupportUnread> = repository.observeUnread()
+}
+
+class MarkSupportReadUseCase(
+    private val repository: ISupportRepository,
+) : UseCase<Unit, Unit> {
+    override suspend fun invoke(params: Unit): Try<Unit> = repository.markRead()
+}
+
+class MarkSupportSeenInSettingsUseCase(
+    private val repository: ISupportRepository,
+) : UseCase<Unit, Unit> {
+    override suspend fun invoke(params: Unit): Try<Unit> = repository.markSeenInSettings()
+}
+
+/**
+ * Background pull of new replies (app resume, reply push). Skipped for users who never wrote to
+ * support, so the common case costs no request.
+ */
+class SyncSupportRepliesUseCase(
+    private val repository: ISupportRepository,
+) : UseCase<Unit, Unit> {
+    override suspend fun invoke(params: Unit): Try<Unit> =
+        repository.hasConversation().flatMap { has -> if (has) repository.refresh() else Try.success(Unit) }
 }

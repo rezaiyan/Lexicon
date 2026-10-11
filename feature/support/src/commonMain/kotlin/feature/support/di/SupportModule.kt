@@ -1,5 +1,6 @@
 package feature.support.di
 
+import feature.support.SupportBadgeViewModel
 import feature.support.SupportViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
@@ -11,6 +12,13 @@ fun supportModule() = module {
             refreshMessages = get(),
             sendMessage = get(),
             retryMessage = get(),
+            markRead = get(),
+        )
+    }
+    viewModel {
+        SupportBadgeViewModel(
+            observeUnread = get(),
+            markSeenInSettings = get(),
         )
     }
 }

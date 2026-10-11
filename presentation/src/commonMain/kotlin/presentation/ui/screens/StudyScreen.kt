@@ -83,6 +83,7 @@ import lexicon.resources.generated.resources.word_count_label
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import feature.support.SupportBadgeViewModel
 import overlay.LocalOverlayHost
 import overlay.bottomsheet.BottomSheetProperties
 import overlay.bottomsheet.showSizeToFitBottomSheet
@@ -118,6 +119,8 @@ fun StudyScreen(
     val reviewViewModel = koinViewModel<ReviewViewModel>()
     val wordRushViewModel = koinViewModel<WordRushViewModel>()
     val listeningViewModel = koinViewModel<ListeningViewModel>()
+    val supportBadgeViewModel = koinViewModel<SupportBadgeViewModel>()
+    val supportUnread by supportBadgeViewModel.state()
     val overlayHost = LocalOverlayHost.current
 
     val progressState by progressViewModel.state()
@@ -322,6 +325,7 @@ fun StudyScreen(
             contentDescription = stringResource(Res.string.settings),
             onClick = onNavigateToSettings,
             size = Theme.dimensions.iconSize,
+            showBadge = supportUnread.onSettings,
         ),
         actionIcon3 = if (progressState.showFocusSwitcher) {
             ActionIconConfig(

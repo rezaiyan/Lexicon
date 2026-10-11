@@ -80,6 +80,7 @@ class SettingsLocalDataSourceImpl(
         queries.clearListeningSettings()
         queries.clearAddWordsPreference()
         queries.clearSupportMessages()
+        queries.clearSupportReadState()
     }
 
     override suspend fun getWordSyncTimestamp(): Long =

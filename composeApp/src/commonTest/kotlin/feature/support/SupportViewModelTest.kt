@@ -5,6 +5,8 @@ import domain.support.model.MAX_SUPPORT_MESSAGE_LENGTH
 import domain.support.model.SupportDeliveryStatus
 import domain.support.model.SupportMessage
 import domain.support.model.SupportSender
+import domain.support.model.SupportUnread
+import domain.support.usecase.MarkSupportReadUseCase
 import domain.support.usecase.ObserveSupportMessagesUseCase
 import domain.support.usecase.RefreshSupportMessagesUseCase
 import domain.support.usecase.RetrySupportMessageUseCase
@@ -30,6 +32,7 @@ class SupportViewModelTest : ViewModelTestBase() {
         refreshMessages = RefreshSupportMessagesUseCase(repository),
         sendMessage = SendSupportMessageUseCase(repository),
         retryMessage = RetrySupportMessageUseCase(repository),
+        markRead = MarkSupportReadUseCase(repository),
         // One tick: an endless poll would never let runTest go idle
         pollTicks = flowOf(Unit),
     )
@@ -69,6 +72,17 @@ class SupportViewModelTest : ViewModelTestBase() {
 
         vm.onDraftChanged("x".repeat(MAX_SUPPORT_MESSAGE_LENGTH - 50))
         assertEquals(50, vm.currentState.remainingChars)
+    }
+
+    @Test
+    fun `opening the chat marks replies as read`() = runTest {
+        repository.messages.value = listOf(adminMessage("s-1", "Welcome"))
+        repository.unread.value = SupportUnread(inChat = true, onSettings = true)
+
+        createViewModel()
+
+        assertEquals(SupportUnread(), repository.unread.value)
+        assertTrue(repository.markReadCount >= 1)
     }
 
     @Test

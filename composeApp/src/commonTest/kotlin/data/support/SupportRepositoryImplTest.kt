@@ -2,14 +2,19 @@ package data.support
 
 import core.common.Try
 import data.core.database.SupportMessageEntity
+import core.common.getOrNull
 import data.support.local.ISupportLocalDataSource
+import data.support.local.ISupportReadStateLocalDataSource
+import data.support.local.SupportUnreadRow
 import data.support.remote.ISupportRemoteDataSource
 import data.support.remote.SendSupportMessageRequest
 import data.support.remote.SupportMessageResponse
 import domain.support.model.SupportDeliveryStatus
 import domain.support.model.SupportSender
+import domain.support.model.SupportUnread
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
@@ -19,6 +24,28 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Instant
+
+/** Read markers over [FakeSupportLocal]'s rows, computed like observeSupportUnread. */
+private class FakeSupportReadState(private val local: FakeSupportLocal) : ISupportReadStateLocalDataSource {
+    private val readServerId = MutableStateFlow(0L)
+    private val settingsSeenServerId = MutableStateFlow(0L)
+    private fun latestReplyId(values: Collection<SupportMessageEntity>) =
+        values.filter { it.sender == "ADMIN" }.mapNotNull { it.serverId }.maxOrNull() ?: 0L
+
+    override fun observeUnread(): Flow<SupportUnreadRow> =
+        combine(local.rows, readServerId, settingsSeenServerId) { r, read, seen ->
+            SupportUnreadRow(latestReplyId(r.values), read, seen)
+        }
+
+    override suspend fun markRead() {
+        readServerId.value = latestReplyId(local.rows.value.values)
+        settingsSeenServerId.value = readServerId.value
+    }
+
+    override suspend fun markSeenInSettings() {
+        settingsSeenServerId.value = latestReplyId(local.rows.value.values)
+    }
+}
 
 /** In-memory stand-in for the SQLDelight table, ordered like observeSupportMessages. */
 private class FakeSupportLocal : ISupportLocalDataSource {
@@ -40,6 +67,9 @@ private class FakeSupportLocal : ISupportLocalDataSource {
         val row = rows.value[localId] ?: return
         rows.value = rows.value + (localId to row.copy(status = status))
     }
+
+    override suspend fun count(): Long = rows.value.size.toLong()
+
 }
 
 private class FakeSupportRemote : ISupportRemoteDataSource {
@@ -72,7 +102,7 @@ class SupportRepositoryImplTest {
 
     private val local = FakeSupportLocal()
     private val remote = FakeSupportRemote()
-    private val repository = SupportRepositoryImpl(local, remote, FixedClock, Random(1))
+    private val repository = SupportRepositoryImpl(local, remote, FakeSupportReadState(local), FixedClock, Random(1))
 
     private suspend fun messages() = repository.observeMessages().first()
 
@@ -161,5 +191,58 @@ class SupportRepositoryImplTest {
 
         assertTrue(repository.refresh().isFailure)
         assertEquals(1, messages().size)
+    }
+
+    private suspend fun unread() = repository.observeUnread().first()
+
+    private suspend fun receiveReply(id: Long) {
+        remote.inbox += SupportMessageResponse(id, "ADMIN", "Reply $id", null, 2L)
+        repository.refresh()
+    }
+
+    @Test
+    fun `observeUnread with only the user's own messages shows nothing unread`() = runTest {
+        repository.send("Hello")
+
+        assertEquals(SupportUnread(inChat = false, onSettings = false), unread())
+    }
+
+    @Test
+    fun `observeUnread after an admin reply flags chat and settings`() = runTest {
+        repository.send("Hello")
+        receiveReply(200)
+
+        assertEquals(SupportUnread(inChat = true, onSettings = true), unread())
+    }
+
+    @Test
+    fun `markSeenInSettings clears only the settings dot`() = runTest {
+        repository.send("Hello")
+        receiveReply(200)
+
+        repository.markSeenInSettings()
+
+        assertEquals(SupportUnread(inChat = true, onSettings = false), unread())
+    }
+
+    @Test
+    fun `markRead clears both dots until the next reply`() = runTest {
+        repository.send("Hello")
+        receiveReply(200)
+
+        repository.markRead()
+        assertEquals(SupportUnread(), unread())
+
+        receiveReply(201)
+        assertEquals(SupportUnread(inChat = true, onSettings = true), unread())
+    }
+
+    @Test
+    fun `hasConversation is false until something is stored`() = runTest {
+        assertEquals(false, repository.hasConversation().getOrNull())
+
+        repository.send("Hello")
+
+        assertEquals(true, repository.hasConversation().getOrNull())
     }
 }

@@ -12,6 +12,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -146,38 +148,9 @@ private fun FlexibleTopBar(
             }
         },
         actions = {
-            actionIcon1?.let { config ->
-                IconButton(onClick = config.onClick) {
-                    Icon(
-                        imageVector = config.icon,
-                        contentDescription = config.contentDescription,
-                        tint = config.tint ?: LocalContentColor.current,
-                        modifier = Modifier.size(config.size)
-                    )
-                }
-            }
-
-            actionIcon2?.let { config ->
-                IconButton(onClick = config.onClick) {
-                    Icon(
-                        imageVector = config.icon,
-                        contentDescription = config.contentDescription,
-                        tint = config.tint ?: LocalContentColor.current,
-                        modifier = Modifier.size(config.size)
-                    )
-                }
-            }
-
-            actionIcon3?.let { config ->
-                IconButton(onClick = config.onClick) {
-                    Icon(
-                        imageVector = config.icon,
-                        contentDescription = config.contentDescription,
-                        tint = config.tint ?: LocalContentColor.current,
-                        modifier = Modifier.size(config.size)
-                    )
-                }
-            }
+            actionIcon1?.let { ActionIcon(it) }
+            actionIcon2?.let { ActionIcon(it) }
+            actionIcon3?.let { ActionIcon(it) }
         },
         colors = when (topBarColor) {
             TopBarColor.Default -> TopAppBarDefaults.topAppBarColors(
@@ -198,12 +171,28 @@ private fun FlexibleTopBar(
     )
 }
 
+@Composable
+private fun ActionIcon(config: ActionIconConfig) {
+    IconButton(onClick = config.onClick) {
+        BadgedBox(badge = { if (config.showBadge) Badge() }) {
+            Icon(
+                imageVector = config.icon,
+                contentDescription = config.contentDescription,
+                tint = config.tint ?: LocalContentColor.current,
+                modifier = Modifier.size(config.size)
+            )
+        }
+    }
+}
+
+/** @param showBadge Draws a small dot on the icon, e.g. for something new behind it. */
 data class ActionIconConfig(
     val icon: ImageVector,
     val contentDescription: String,
     val onClick: () -> Unit,
     val tint: Color? = null,
-    val size: Dp = 24.dp
+    val size: Dp = 24.dp,
+    val showBadge: Boolean = false,
 )
 
 sealed class TopBarColor {

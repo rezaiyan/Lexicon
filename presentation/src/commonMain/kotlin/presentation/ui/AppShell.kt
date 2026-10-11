@@ -38,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import domain.credits.usecase.RefreshCreditsUseCase
 import domain.settings.usecase.SyncDeviceTimezoneUseCase
 import domain.subscription.usecase.RefreshFeatureAccessUseCase
+import domain.support.usecase.SyncSupportRepliesUseCase
 import kotlinx.coroutines.launch
 import presentation.model.SettingsRoute
 import presentation.model.TabDestination
@@ -61,14 +62,17 @@ internal fun AppContent(
     // foreground. Throttled in the data layer, so frequent resumes don't hit the network.
     // Same for the AI credit balance: a renewal reset or a purchase on another device changes it.
     // And the device timezone (the user may have travelled), so pushes arrive at local hours.
+    // And support replies, so the unread dots show without opening the chat.
     val refreshFeatureAccess = koinInject<RefreshFeatureAccessUseCase>()
     val refreshCredits = koinInject<RefreshCreditsUseCase>()
     val syncDeviceTimezone = koinInject<SyncDeviceTimezoneUseCase>()
+    val syncSupportReplies = koinInject<SyncSupportRepliesUseCase>()
     val scope = rememberCoroutineScope()
-    LifecycleResumeEffect(refreshFeatureAccess, refreshCredits, syncDeviceTimezone) {
+    LifecycleResumeEffect(refreshFeatureAccess, refreshCredits, syncDeviceTimezone, syncSupportReplies) {
         scope.launch { refreshFeatureAccess() }
         scope.launch { refreshCredits() }
         scope.launch { syncDeviceTimezone() }
+        scope.launch { syncSupportReplies(Unit) }
         onPauseOrDispose { }
     }
 

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import components.GroupedSection
@@ -17,6 +18,7 @@ import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.components.ThemeModeContent
 import presentation.ui.components.DailyGoalContent
+import feature.support.SupportBadgeViewModel
 import feature.support.navigation.showSupport
 import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.DailyGoalSettingsCard
@@ -62,6 +64,9 @@ private fun SettingsSections() {
     val notificationsEnabled = state.notificationsEnabled
     val systemNotificationsEnabled = state.systemNotificationsEnabled
     val overlayHost = LocalOverlayHost.current
+    val supportBadge = koinViewModel<SupportBadgeViewModel>()
+    val supportUnread by supportBadge.state()
+    LaunchedEffect(supportBadge) { supportBadge.onSettingsOpened() }
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
         GroupedSection(title = stringResource(Res.string.learning)) {
@@ -164,7 +169,10 @@ private fun SettingsSections() {
                 }
             )
 
-            SupportSettingsCard(onClick = { overlayHost.showSupport() })
+            SupportSettingsCard(
+                hasUnreadReply = supportUnread.inChat,
+                onClick = { overlayHost.showSupport() },
+            )
 
             AboutSettingsCard(appVersion = state.appVersion, showDivider = false)
         }

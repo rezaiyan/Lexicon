@@ -4,6 +4,7 @@ import core.common.Try
 import domain.support.model.SupportDeliveryStatus
 import domain.support.model.SupportMessage
 import domain.support.model.SupportSender
+import domain.support.model.SupportUnread
 import domain.support.repository.ISupportRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,11 @@ class FakeSupportRepository : ISupportRepository {
         private set
     val sent = mutableListOf<String>()
     val retried = mutableListOf<String>()
+    val unread = MutableStateFlow(SupportUnread())
+    var markReadCount = 0
+        private set
+    var markSeenInSettingsCount = 0
+        private set
 
     override fun observeMessages(): Flow<List<SupportMessage>> = messages
 
@@ -40,6 +46,22 @@ class FakeSupportRepository : ISupportRepository {
 
     override suspend fun retry(messageId: String): Try<Unit> {
         retried += messageId
+        return Try.success(Unit)
+    }
+
+    override suspend fun hasConversation(): Try<Boolean> = Try.success(messages.value.isNotEmpty())
+
+    override fun observeUnread(): Flow<SupportUnread> = unread
+
+    override suspend fun markRead(): Try<Unit> {
+        markReadCount++
+        unread.value = SupportUnread()
+        return Try.success(Unit)
+    }
+
+    override suspend fun markSeenInSettings(): Try<Unit> {
+        markSeenInSettingsCount++
+        unread.value = unread.value.copy(onSettings = false)
         return Try.success(Unit)
     }
 }

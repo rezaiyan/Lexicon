@@ -27,6 +27,7 @@ import notification.NotificationTapHandler
 import presentation.navigation.NotificationNavigator
 import notification.createNotificationManager
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.scope.Scope
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import pushnotification.IPushTokenManager
@@ -42,23 +43,7 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
 
     // Notification Payload Handlers
     single<notification.payload.NotificationPayloadHandlerRegistry> {
-        val handlers = listOf(
-            notification.payload.AccountDeletionHandler(
-                clearAllUserDataUseCase = get(),
-                onboardingRepository = get(),
-            ),
-            notification.payload.SignOutHandler(
-                clearAllUserDataUseCase = get()
-            ),
-            notification.payload.DailyInsightHandler(
-                dailyInsightCache = get<DailyInsightCache>()
-            ),
-            notification.payload.NoOpHandler("streak_reminder"),
-            notification.payload.NoOpHandler("review_reminder"),
-            notification.payload.NoOpHandler("achievement_unlocked"),
-            notification.payload.SubscriptionUpdatedHandler(refreshSubscriptionState = get()),
-        ).associateBy { it.type }
-        notification.payload.NotificationPayloadHandlerRegistry(handlers)
+        notification.payload.NotificationPayloadHandlerRegistry(payloadHandlers().associateBy { it.type })
     }
 
     // Data Sources
@@ -106,3 +91,22 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
         )
     }
 }
+
+/** Handlers for data pushes, keyed by their push type. */
+private fun Scope.payloadHandlers(): List<notification.payload.NotificationPayloadHandler> = listOf(
+    notification.payload.AccountDeletionHandler(
+        clearAllUserDataUseCase = get(),
+        onboardingRepository = get(),
+    ),
+    notification.payload.SignOutHandler(
+        clearAllUserDataUseCase = get()
+    ),
+    notification.payload.DailyInsightHandler(
+        dailyInsightCache = get<DailyInsightCache>()
+    ),
+    notification.payload.NoOpHandler("streak_reminder"),
+    notification.payload.NoOpHandler("review_reminder"),
+    notification.payload.NoOpHandler("achievement_unlocked"),
+    notification.payload.SubscriptionUpdatedHandler(refreshSubscriptionState = get()),
+    notification.payload.SupportReplyHandler(syncSupportReplies = get()),
+)

@@ -1,6 +1,7 @@
 package data.support.local
 
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -17,6 +18,7 @@ interface ISupportLocalDataSource {
     suspend fun find(localId: String): SupportMessageEntity?
     suspend fun upsert(messages: List<SupportMessageEntity>)
     suspend fun setStatus(localId: String, status: String)
+    suspend fun count(): Long
 }
 
 class SupportLocalDataSource(
@@ -47,4 +49,6 @@ class SupportLocalDataSource(
     override suspend fun setStatus(localId: String, status: String) {
         queries.setSupportMessageStatus(status, localId)
     }
+
+    override suspend fun count(): Long = queries.countSupportMessages().awaitAsOne()
 }

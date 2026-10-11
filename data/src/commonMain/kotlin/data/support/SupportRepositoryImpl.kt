@@ -6,14 +6,17 @@ import core.common.fold
 import core.common.getOrDefault
 import data.core.database.SupportMessageEntity
 import data.support.local.ISupportLocalDataSource
+import data.support.local.ISupportReadStateLocalDataSource
 import data.support.remote.ISupportRemoteDataSource
 import data.support.remote.SendSupportMessageRequest
 import data.support.remote.SupportMessageResponse
 import domain.support.model.SupportDeliveryStatus
 import domain.support.model.SupportMessage
 import domain.support.model.SupportSender
+import domain.support.model.SupportUnread
 import domain.support.repository.ISupportRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -25,6 +28,7 @@ import kotlin.time.Clock
 class SupportRepositoryImpl(
     private val local: ISupportLocalDataSource,
     private val remote: ISupportRemoteDataSource,
+    private val readState: ISupportReadStateLocalDataSource,
     private val clock: Clock = Clock.System,
     private val random: Random = Random.Default,
 ) : ISupportRepository {
@@ -63,6 +67,19 @@ class SupportRepositoryImpl(
             deliver(message)
         }
     }
+
+    override suspend fun hasConversation(): Try<Boolean> = Try { local.count() > 0 }
+
+    override fun observeUnread(): Flow<SupportUnread> = readState.observeUnread().map { row ->
+        SupportUnread(
+            inChat = row.latestReplyId > row.readServerId,
+            onSettings = row.latestReplyId > maxOf(row.readServerId, row.settingsSeenServerId),
+        )
+    }.distinctUntilChanged()
+
+    override suspend fun markRead(): Try<Unit> = Try { readState.markRead() }
+
+    override suspend fun markSeenInSettings(): Try<Unit> = Try { readState.markSeenInSettings() }
 
     private suspend fun deliver(message: SupportMessageEntity) {
         remote.send(SendSupportMessageRequest(body = message.body, clientMessageId = message.localId)).fold(
