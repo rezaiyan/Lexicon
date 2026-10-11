@@ -7,28 +7,43 @@ tags:
 # Regression: after searching in the Words tab, every other tab must still be
 # reachable.
 #
-# The app draws edge-to-edge, so the soft keyboard opened by the search field
-# used to cover the bottom tab bar. Taps meant for "Study" or "Profile" landed on
-# the keyboard and the user was stuck on Words. The tab bar now rides above the
-# keyboard, so this flow taps the tabs while the keyboard is still open.
+# The soft keyboard covers the bottom tab bar while the search field is focused,
+# and nothing on screen offered a way out, so the user was stuck on Words.
+# Search mode now shows a "Cancel" button next to the field: it clears the
+# query and closes the keyboard, bringing the tab bar back. The keyboard's
+# search key and system back close the keyboard and keep the results.
+#
+# Run on a device with a full on-screen keyboard (AVD hw.keyboard=no); with a
+# hardware keyboard the IME is a small floating toolbar that never covers the tabs.
 #
 # Requires: At least one word exists in the library so that the search field is shown.
 
 - runFlow: ../utils/navigate_to_word_manager.yaml
 - assertVisible: "Search words..."
 
+# ── Cancel exits search mode ─────────────────────────────────────────────────
+
 - tapOn: "Search words..."
 - inputText: "zzz_no_match_query_xyz"
 - assertVisible: "No matching words"
 
-# Keyboard is still open here; do NOT hideKeyboard — that would hide the bug.
+- tapOn: "Cancel"
+- waitForAnimationToEnd
+# Query cleared, full list back, Cancel gone.
+- assertVisible: "Search words..."
+- assertNotVisible: "No matching words"
+- assertNotVisible: "Cancel"
+
 - tapOn:
     text: "(?-i)Study"
 - extendedWaitUntil:
     visible: "Import Words"
     timeout: 5000
 
-# Back to Words, search again, and leave for Profile this time.
+# ── System back closes the keyboard and keeps the results ────────────────────
+# (The IME search key does the same and also leaves search mode; Maestro can't
+# press IME keys portably, so it isn't covered here.)
+
 - tapOn:
     text: "(?-i)Words"
 - extendedWaitUntil:
@@ -36,26 +51,12 @@ tags:
     timeout: 5000
 - tapOn: "Search words..."
 - inputText: "zzz_no_match_query_xyz"
+- pressKey: back
+- waitForAnimationToEnd
 - assertVisible: "No matching words"
 
 - tapOn:
     text: "(?-i)Profile"
 - extendedWaitUntil:
     visible: "Logout"
-    timeout: 5000
-
-# The search keyboard action closes the keyboard and keeps the query.
-- tapOn:
-    text: "(?-i)Words"
-- extendedWaitUntil:
-    visible: "Search words\\.\\.\\."
-    timeout: 5000
-- tapOn: "Search words..."
-- inputText: "zzz_no_match_query_xyz"
-- pressKey: Enter
-- assertVisible: "No matching words"
-- tapOn:
-    text: "(?-i)Study"
-- extendedWaitUntil:
-    visible: "Import Words"
     timeout: 5000

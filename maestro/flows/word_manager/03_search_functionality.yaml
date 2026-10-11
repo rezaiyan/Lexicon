@@ -24,9 +24,9 @@ tags:
 # The search field placeholder disappears once text has been entered.
 - assertNotVisible: "Search words..."
 
-# Clear the search using the Clear icon (content description: "Cancel").
+# Clear the search using the Clear icon (content description: "Clear").
 # Plain string matches content description in Maestro.
-- tapOn: "Cancel"
+- tapOn: "Clear"
 
 # After clearing, the search field placeholder returns.
 - assertVisible: "Search words..."

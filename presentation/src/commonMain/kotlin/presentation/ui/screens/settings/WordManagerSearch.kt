@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -47,6 +49,7 @@ import domain.word.model.LearningStage
 import domain.word.model.WordSortOption
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
+import lexicon.resources.generated.resources.clear
 import lexicon.resources.generated.resources.filter_all
 import lexicon.resources.generated.resources.filter_all_languages
 import lexicon.resources.generated.resources.filter_all_levels
@@ -77,6 +80,10 @@ internal fun SearchRow(
     filtersExpanded: Boolean,
     onToggleFilters: () -> Unit,
 ) {
+    // Search mode = the field has focus. The keyboard then covers the tab bar, so search mode
+    // offers Cancel as the way out (clears the query and closes the keyboard).
+    var searchActive by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
@@ -86,13 +93,29 @@ internal fun SearchRow(
             query = searchQuery,
             onQueryChange = onSearchQueryChange,
             onClear = onClearSearch,
+            onActiveChange = { searchActive = it },
             modifier = Modifier.weight(1f),
         )
-        FilterToggleButton(
-            active = filtersActive,
-            expanded = filtersExpanded,
-            onClick = onToggleFilters,
-        )
+        if (searchActive) {
+            TextButton(
+                onClick = {
+                    onClearSearch()
+                    focusManager.clearFocus()
+                },
+            ) {
+                Text(
+                    text = stringResource(Res.string.cancel),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        } else {
+            FilterToggleButton(
+                active = filtersActive,
+                expanded = filtersExpanded,
+                onClick = onToggleFilters,
+            )
+        }
     }
 }
 
@@ -101,6 +124,7 @@ private fun PillSearchField(
     query: String,
     onQueryChange: (String) -> Unit,
     onClear: () -> Unit,
+    onActiveChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val placeholder = stringResource(Res.string.search_words)
@@ -114,7 +138,9 @@ private fun PillSearchField(
         keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        modifier = modifier.height(Theme.dimensions.touchTarget),
+        modifier = modifier
+            .height(Theme.dimensions.touchTarget)
+            .onFocusChanged { onActiveChange(it.isFocused) },
         decorationBox = { innerTextField ->
             Surface(
                 shape = RoundedCornerShape(Theme.shapes.pill),
@@ -148,7 +174,7 @@ private fun PillSearchField(
                         IconButton(onClick = onClear) {
                             Icon(
                                 Icons.Default.Clear,
-                                contentDescription = stringResource(Res.string.cancel),
+                                contentDescription = stringResource(Res.string.clear),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
