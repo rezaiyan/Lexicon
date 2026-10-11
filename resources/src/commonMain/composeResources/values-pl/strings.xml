@@ -814,4 +814,15 @@
     <string name="word_rush_insights_avg_score">Śr. wynik</string>
     <string name="word_rush_insights_total_time">Czas gry</string>
     <string name="word_rush_insights_completion_rate">Wskaźnik ukończenia</string>
+
+    <!-- Support chat -->
+    <string name="support_title">Pomoc i wsparcie</string>
+    <string name="support_settings_subtitle">Pytania, błędy lub pomysły? Napisz do nas</string>
+    <string name="support_empty_title">Jak możemy pomóc?</string>
+    <string name="support_empty_subtitle">Wyślij wiadomość, a odpowiemy tutaj. Dostaniesz powiadomienie, gdy odpiszemy.</string>
+    <string name="support_input_placeholder">Napisz wiadomość…</string>
+    <string name="support_send">Wyślij</string>
+    <string name="support_sending">Wysyłanie…</string>
+    <string name="support_not_sent_retry">Nie wysłano · Dotknij, aby ponowić</string>
+    <string name="support_offline">Brak połączenia z pomocą. Wyświetlane są zapisane wiadomości.</string>
 </resources>

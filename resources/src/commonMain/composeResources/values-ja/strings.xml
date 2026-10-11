@@ -814,4 +814,15 @@
     <string name="word_rush_insights_avg_score">平均スコア</string>
     <string name="word_rush_insights_total_time">プレイ時間</string>
     <string name="word_rush_insights_completion_rate">完了率</string>
+
+    <!-- Support chat -->
+    <string name="support_title">ヘルプとサポート</string>
+    <string name="support_settings_subtitle">質問・不具合・アイデアはチャットで</string>
+    <string name="support_empty_title">どのようなご用件ですか？</string>
+    <string name="support_empty_subtitle">メッセージを送ってください。ここで返信します。返信時に通知が届きます。</string>
+    <string name="support_input_placeholder">メッセージを入力…</string>
+    <string name="support_send">送信</string>
+    <string name="support_sending">送信中…</string>
+    <string name="support_not_sent_retry">未送信 · タップして再試行</string>
+    <string name="support_offline">現在サポートに接続できません。保存済みのメッセージを表示しています。</string>
 </resources>

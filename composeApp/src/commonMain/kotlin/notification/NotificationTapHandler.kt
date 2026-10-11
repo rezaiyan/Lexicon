@@ -21,6 +21,7 @@ class NotificationTapHandler(
         when (data[TYPE_KEY]) {
             PushTypes.BILLING_ISSUE -> navigator.open(NotificationDestination.Subscription)
             PushTypes.REVIEW_REMINDER -> navigator.openDueReview()
+            PushTypes.SUPPORT_REPLY -> navigator.open(NotificationDestination.Support)
             else -> data[DEEP_LINK_KEY]?.let(::openDeepLink)
         }
         scope.launch { reportNotificationOpened(data) }
@@ -64,6 +65,9 @@ object PushTypes {
 
     /** Visible: cards are due. Tapping starts a review of the due cards. */
     const val REVIEW_REMINDER = "review_reminder"
+
+    /** Visible: support answered the user's message. Tapping opens the support chat. */
+    const val SUPPORT_REPLY = "support_reply"
 
     /** Silent (data-only): the user's subscription changed on the server; refetch it. */
     const val SUBSCRIPTION_UPDATED = "subscription_updated"

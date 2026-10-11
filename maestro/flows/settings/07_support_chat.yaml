@@ -1,0 +1,45 @@
+appId: com.alirezaiyan.vokab
+tags:
+  - settings
+  - support
+---
+# Test: Help & Support opens from Settings and a message can be sent.
+#
+# Opens the support chat, sends a message and verifies it shows in the conversation without a
+# delivery error. The message really reaches the backend (and the admin Telegram chat), so it is
+# clearly labelled as an automated test.
+
+- runFlow: ../utils/navigate_to_settings.yaml
+
+- scrollUntilVisible:
+    element: "Help & Support"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn: "Help & Support"
+
+# The chat opens: the composer is always present (empty state or conversation above it).
+- extendedWaitUntil:
+    visible: "Write a message…"
+    timeout: 8000
+
+- tapOn: "Write a message…"
+- inputText: "[Maestro] automated support test"
+- hideKeyboard
+
+- tapOn: "Send"
+
+# The message shows in the conversation and is delivered (no retry prompt).
+- extendedWaitUntil:
+    visible: "[Maestro] automated support test"
+    timeout: 8000
+- extendedWaitUntil:
+    notVisible: "Sending…"
+    timeout: 15000
+- assertNotVisible: "Not sent · Tap to retry"
+
+# Close the chat and land back on Settings.
+- tapOn: "Close"
+- extendedWaitUntil:
+    visible: "Theme"
+    timeout: 5000

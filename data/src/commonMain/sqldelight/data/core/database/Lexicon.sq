@@ -485,3 +485,39 @@ DELETE FROM DismissedCoachCard WHERE card_id NOT LIKE '%:' || ?;
 
 clearDismissedCoachCards:
 DELETE FROM DismissedCoachCard;
+
+-- Support chat: the user's conversation with support. localId is the client message id for
+-- messages written here ("s-<serverId>" for the rest); serverId is null until the backend has it.
+-- status: SENDING | SENT | FAILED
+CREATE TABLE SupportMessageEntity (
+    localId   TEXT    NOT NULL PRIMARY KEY,
+    serverId  INTEGER UNIQUE,
+    sender    TEXT    NOT NULL,
+    body      TEXT    NOT NULL,
+    createdAt INTEGER NOT NULL,
+    status    TEXT    NOT NULL
+);
+
+-- Server order first; unsent messages after, in the order they were written.
+observeSupportMessages:
+SELECT * FROM SupportMessageEntity
+ORDER BY serverId IS NULL, serverId, createdAt;
+
+maxSupportServerId:
+SELECT MAX(serverId) AS maxId FROM SupportMessageEntity;
+
+unsentSupportMessages:
+SELECT * FROM SupportMessageEntity WHERE serverId IS NULL ORDER BY createdAt;
+
+supportMessageById:
+SELECT * FROM SupportMessageEntity WHERE localId = ?;
+
+upsertSupportMessage:
+INSERT OR REPLACE INTO SupportMessageEntity(localId, serverId, sender, body, createdAt, status)
+VALUES (?, ?, ?, ?, ?, ?);
+
+setSupportMessageStatus:
+UPDATE SupportMessageEntity SET status = ? WHERE localId = ?;
+
+clearSupportMessages:
+DELETE FROM SupportMessageEntity;

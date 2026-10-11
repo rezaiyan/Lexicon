@@ -17,6 +17,7 @@ import events.OnEvents
 import feature.insights.navigation.InsightsRoute
 import feature.insights.navigation.insightsGraph
 import feature.leaderboard.navigation.showLeaderboard
+import feature.support.navigation.showSupport
 import feature.profile.navigation.profileGraph
 import feature.subscription.navigation.SubscriptionRoute
 import feature.subscription.navigation.subscriptionGraph
@@ -61,6 +62,7 @@ internal fun NavigationGraph(
             NotificationDestination.Study -> navController.navigateToTab(TabDestination.Study)
             NotificationDestination.Insights -> navController.navigateToTab(InsightsRoute)
             NotificationDestination.Words -> navController.navigateToTab(TabDestination.Words)
+            NotificationDestination.Support -> overlayHost.showSupport()
         }
     }
 

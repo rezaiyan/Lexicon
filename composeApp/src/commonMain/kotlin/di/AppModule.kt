@@ -22,6 +22,7 @@ fun appModule(
         onboardingModule(),
         profileModule(),
         leaderboardModule(),
+        supportModule(),
         presentationModule(),
         analyticsModule(),
     )

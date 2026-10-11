@@ -1198,4 +1198,15 @@
     <string name="weekday_initial_5">F</string>
     <string name="weekday_initial_6">S</string>
     <string name="weekday_initial_7">S</string>
+
+    <!-- Support chat -->
+    <string name="support_title">Help &amp; Support</string>
+    <string name="support_settings_subtitle">Questions, bugs or ideas? Chat with us</string>
+    <string name="support_empty_title">How can we help?</string>
+    <string name="support_empty_subtitle">Send us a message and we'll reply right here. You'll get a notification when we answer.</string>
+    <string name="support_input_placeholder">Write a message…</string>
+    <string name="support_send">Send</string>
+    <string name="support_sending">Sending…</string>
+    <string name="support_not_sent_retry">Not sent · Tap to retry</string>
+    <string name="support_offline">Can't reach support right now. Showing saved messages.</string>
 </resources>

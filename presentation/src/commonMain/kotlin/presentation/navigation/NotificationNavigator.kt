@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 
 /** Screens a tapped notification can open. */
-enum class NotificationDestination { Subscription, Study, Insights, Words }
+enum class NotificationDestination { Subscription, Study, Insights, Words, Support }
 
 /**
  * Hands a notification tap from the platform layer to the app's navigation.

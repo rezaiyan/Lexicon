@@ -75,10 +75,11 @@ class SettingsLocalDataSourceImpl(
 
     override suspend fun clearSettings() {
         queries.clearSettings()
-        // Learning focus, listening and the add-words language pair are per-user: wipe them with the rest.
+        // Learning focus, listening, add-words language pair and support chat are per-user: wipe them too.
         queries.clearLearningFocus()
         queries.clearListeningSettings()
         queries.clearAddWordsPreference()
+        queries.clearSupportMessages()
     }
 
     override suspend fun getWordSyncTimestamp(): Long =

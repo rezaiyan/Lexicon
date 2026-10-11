@@ -73,7 +73,11 @@ internal fun DeepDiveSection(section: DeepDiveUi, expanded: Boolean, onToggle: (
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(titleFor(section.kind), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    titleFor(section.kind),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
                 if (section.caption.isNotEmpty()) {
                     Text(
                         text = section.caption,

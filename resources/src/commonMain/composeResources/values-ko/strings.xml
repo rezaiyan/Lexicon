@@ -814,4 +814,15 @@
     <string name="word_rush_insights_avg_score">평균 점수</string>
     <string name="word_rush_insights_total_time">플레이 시간</string>
     <string name="word_rush_insights_completion_rate">완료율</string>
+
+    <!-- Support chat -->
+    <string name="support_title">도움말 및 지원</string>
+    <string name="support_settings_subtitle">질문, 버그, 아이디어가 있나요? 채팅으로 알려주세요</string>
+    <string name="support_empty_title">무엇을 도와드릴까요?</string>
+    <string name="support_empty_subtitle">메시지를 보내주시면 여기에서 답변드립니다. 답변이 오면 알림을 받게 됩니다.</string>
+    <string name="support_input_placeholder">메시지 입력…</string>
+    <string name="support_send">보내기</string>
+    <string name="support_sending">보내는 중…</string>
+    <string name="support_not_sent_retry">전송 안 됨 · 탭하여 다시 시도</string>
+    <string name="support_offline">지금은 지원팀에 연결할 수 없습니다. 저장된 메시지를 표시합니다.</string>
 </resources>

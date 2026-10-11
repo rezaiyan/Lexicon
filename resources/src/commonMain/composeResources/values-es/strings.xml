@@ -655,4 +655,15 @@
     <string name="word_rush_insights_avg_score">Puntuación media</string>
     <string name="word_rush_insights_total_time">Tiempo jugado</string>
     <string name="word_rush_insights_completion_rate">Tasa de finalización</string>
+
+    <!-- Support chat -->
+    <string name="support_title">Ayuda y soporte</string>
+    <string name="support_settings_subtitle">¿Preguntas, errores o ideas? Escríbenos</string>
+    <string name="support_empty_title">¿Cómo podemos ayudarte?</string>
+    <string name="support_empty_subtitle">Envíanos un mensaje y te responderemos aquí. Recibirás una notificación cuando respondamos.</string>
+    <string name="support_input_placeholder">Escribe un mensaje…</string>
+    <string name="support_send">Enviar</string>
+    <string name="support_sending">Enviando…</string>
+    <string name="support_not_sent_retry">No enviado · Toca para reintentar</string>
+    <string name="support_offline">No se puede contactar con soporte ahora. Mostrando mensajes guardados.</string>
 </resources>

@@ -655,4 +655,15 @@
     <string name="word_rush_insights_avg_score">Score moy.</string>
     <string name="word_rush_insights_total_time">Temps de jeu</string>
     <string name="word_rush_insights_completion_rate">Taux de complétion</string>
+
+    <!-- Support chat -->
+    <string name="support_title">Aide et support</string>
+    <string name="support_settings_subtitle">Questions, bugs ou idées ? Écrivez-nous</string>
+    <string name="support_empty_title">Comment pouvons-nous vous aider ?</string>
+    <string name="support_empty_subtitle">Envoyez-nous un message, nous répondrons ici. Vous recevrez une notification dès notre réponse.</string>
+    <string name="support_input_placeholder">Écrire un message…</string>
+    <string name="support_send">Envoyer</string>
+    <string name="support_sending">Envoi…</string>
+    <string name="support_not_sent_retry">Non envoyé · Touchez pour réessayer</string>
+    <string name="support_offline">Support injoignable pour le moment. Messages enregistrés affichés.</string>
 </resources>

@@ -186,6 +186,7 @@ kotlin {
             implementation(project(":feature:words"))
             implementation(project(":feature:import"))
             implementation(project(":feature:insights"))
+            implementation(project(":feature:support"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)

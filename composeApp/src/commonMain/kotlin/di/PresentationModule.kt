@@ -23,6 +23,7 @@ import feature.settings.di.settingsModule
 import feature.onboarding.di.onboardingModule
 import feature.subscription.di.subscriptionModule
 import feature.leaderboard.di.leaderboardModule
+import feature.support.di.supportModule as supportPresentationModule
 import feature.addwords.di.addWordsPresentationModule
 import domain.analytics.usecase.RetryAnalyticsSyncUseCase
 import domain.startup.usecase.DetermineAppStartupStateUseCase
@@ -87,5 +88,6 @@ fun presentationModule() = module {
         leaderboardModule(),
         addWordsPresentationModule(),
         insightsModule(),
+        supportPresentationModule(),
     )
 }

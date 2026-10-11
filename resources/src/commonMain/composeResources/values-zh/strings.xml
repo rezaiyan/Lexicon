@@ -655,4 +655,15 @@
     <string name="word_rush_insights_avg_score">平均得分</string>
     <string name="word_rush_insights_total_time">游戏时长</string>
     <string name="word_rush_insights_completion_rate">完成率</string>
+
+    <!-- Support chat -->
+    <string name="support_title">帮助与支持</string>
+    <string name="support_settings_subtitle">有问题、错误或想法？和我们聊聊</string>
+    <string name="support_empty_title">我们能帮您什么？</string>
+    <string name="support_empty_subtitle">给我们发消息，我们会在这里回复。回复时您会收到通知。</string>
+    <string name="support_input_placeholder">输入消息…</string>
+    <string name="support_send">发送</string>
+    <string name="support_sending">发送中…</string>
+    <string name="support_not_sent_retry">未发送 · 点按重试</string>
+    <string name="support_offline">暂时无法连接支持团队。正在显示已保存的消息。</string>
 </resources>

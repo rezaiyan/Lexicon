@@ -654,4 +654,15 @@
     <string name="word_rush_insights_avg_score">میانگین امتیاز</string>
     <string name="word_rush_insights_total_time">زمان بازی</string>
     <string name="word_rush_insights_completion_rate">نرخ تکمیل</string>
+
+    <!-- Support chat -->
+    <string name="support_title">راهنما و پشتیبانی</string>
+    <string name="support_settings_subtitle">سؤال، مشکل یا ایده؟ با ما گفتگو کنید</string>
+    <string name="support_empty_title">چطور می‌توانیم کمک کنیم؟</string>
+    <string name="support_empty_subtitle">پیام بفرستید، همین‌جا پاسخ می‌دهیم. وقتی پاسخ دهیم اعلان دریافت می‌کنید.</string>
+    <string name="support_input_placeholder">پیام بنویسید…</string>
+    <string name="support_send">ارسال</string>
+    <string name="support_sending">در حال ارسال…</string>
+    <string name="support_not_sent_retry">ارسال نشد · برای تلاش دوباره ضربه بزنید</string>
+    <string name="support_offline">فعلاً دسترسی به پشتیبانی ممکن نیست. پیام‌های ذخیره‌شده نمایش داده می‌شوند.</string>
 </resources>

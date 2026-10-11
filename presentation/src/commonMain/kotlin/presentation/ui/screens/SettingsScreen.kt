@@ -17,9 +17,11 @@ import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.ui.components.ThemeModeContent
 import presentation.ui.components.DailyGoalContent
+import feature.support.navigation.showSupport
 import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.DailyGoalSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
+import presentation.ui.components.settings.SupportSettingsCard
 import presentation.ui.components.settings.ThemeSettingsCard
 import presentation.ui.components.settings.TtsModelCacheCard
 import presentation.ui.components.settings.TtsDeleteConfirmationContent
@@ -161,6 +163,8 @@ private fun SettingsSections() {
                     }
                 }
             )
+
+            SupportSettingsCard(onClick = { overlayHost.showSupport() })
 
             AboutSettingsCard(appVersion = state.appVersion, showDivider = false)
         }

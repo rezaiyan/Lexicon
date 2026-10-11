@@ -55,6 +55,15 @@ class NotificationTapHandlerTest {
     }
 
     @Test
+    fun `support reply tap opens the support chat`() = runTest {
+        navigator.destinations.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.TYPE_KEY to PushTypes.SUPPORT_REPLY))
+
+            assertEquals(NotificationDestination.Support, awaitItem())
+        }
+    }
+
+    @Test
     fun `tap of other types only reports the open`() = runTest {
         navigator.destinations.test {
             handler().onNotificationTapped(
