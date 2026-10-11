@@ -2,7 +2,6 @@ package feature.leaderboard.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,12 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,23 +34,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import components.SectionHeader
 import feature.leaderboard.model.LeaderboardEntryUiModel
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.leaderboard_entry_a11y
@@ -58,11 +52,9 @@ import lexicon.resources.generated.resources.leaderboard_jump_to_me
 import lexicon.resources.generated.resources.leaderboard_legend_best_streak
 import lexicon.resources.generated.resources.leaderboard_legend_mastered
 import lexicon.resources.generated.resources.leaderboard_legend_streak
+import lexicon.resources.generated.resources.leaderboard_rankings
 import lexicon.resources.generated.resources.leaderboard_refresh_failed
-import lexicon.resources.generated.resources.leaderboard_unranked_subtitle
-import lexicon.resources.generated.resources.leaderboard_unranked_title
 import lexicon.resources.generated.resources.leaderboard_you
-import lexicon.resources.generated.resources.leaderboard_your_ranking
 import lexicon.resources.generated.resources.retry
 import org.jetbrains.compose.resources.stringResource
 import theme.AppColors
@@ -72,15 +64,12 @@ internal val Gold = AppColors.leaderboardGold
 internal val Silver = AppColors.leaderboardSilver
 internal val Bronze = AppColors.leaderboardBronze
 
-private val RankBadgeSize = 36.dp
+private val RankColumnWidth = 32.dp
+private val RowAvatarSize = 40.dp
+private val FloatingAvatarSize = 24.dp
 private val StatIconSize = 12.dp
-private val PodiumWinnerAvatarSize = 64.dp
-private val PodiumAvatarSize = 52.dp
-private val PodiumWinnerPedestalHeight = 72.dp
-private val PodiumRunnerUpPedestalHeight = 52.dp
-private val PodiumThirdPedestalHeight = 36.dp
 
-private fun medalColorFor(rank: Int): Color? = when (rank) {
+internal fun medalColorFor(rank: Int): Color? = when (rank) {
     1 -> Gold
     2 -> Silver
     3 -> Bronze
@@ -89,7 +78,7 @@ private fun medalColorFor(rank: Int): Color? = when (rank) {
 
 /** One spoken sentence per entry, so screen readers don't read loose numbers and icons. */
 @Composable
-private fun LeaderboardEntryUiModel.accessibilityLabel(): String = stringResource(
+internal fun LeaderboardEntryUiModel.accessibilityLabel(): String = stringResource(
     Res.string.leaderboard_entry_a11y,
     rank,
     displayName,
@@ -98,138 +87,38 @@ private fun LeaderboardEntryUiModel.accessibilityLabel(): String = stringResourc
     masteredWords,
 )
 
-// region Podium
+// region Rankings section
 
-/** Top three entries, laid out 2nd / 1st / 3rd with the winner raised in the middle. */
-@Composable
-internal fun LeaderboardPodium(entries: List<LeaderboardEntryUiModel>) {
-    val first = entries.getOrNull(0) ?: return
-    val second = entries.getOrNull(1) ?: return
-    val third = entries.getOrNull(2) ?: return
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = Theme.spacing.sm, bottom = Theme.spacing.xs),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-        verticalAlignment = Alignment.Bottom
-    ) {
-        PodiumSpot(second, PodiumAvatarSize, PodiumRunnerUpPedestalHeight, Modifier.weight(1f))
-        PodiumSpot(first, PodiumWinnerAvatarSize, PodiumWinnerPedestalHeight, Modifier.weight(1f))
-        PodiumSpot(third, PodiumAvatarSize, PodiumThirdPedestalHeight, Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun PodiumSpot(
-    entry: LeaderboardEntryUiModel,
-    avatarSize: Dp,
-    pedestalHeight: Dp,
-    modifier: Modifier = Modifier
-) {
-    val medalColor = medalColorFor(entry.rank) ?: MaterialTheme.colorScheme.outlineVariant
-    val label = entry.accessibilityLabel()
-
-    Column(
-        modifier = modifier.clearAndSetSemantics { contentDescription = label },
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (entry.rank == 1) {
-            Icon(
-                imageVector = Icons.Rounded.EmojiEvents,
-                contentDescription = null,
-                modifier = Modifier.size(Theme.dimensions.iconSize),
-                tint = Gold
-            )
-            Spacer(modifier = Modifier.height(Theme.spacing.xxs))
-        }
-        LeaderboardAvatar(
-            profileImageUrl = entry.profileImageUrl,
-            displayName = entry.displayName,
-            size = avatarSize,
-            ringColor = medalColor
-        )
-        Spacer(modifier = Modifier.height(Theme.spacing.xs))
-        Text(
-            text = entry.displayName,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = if (entry.isCurrentUser) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        if (entry.isCurrentUser) {
-            Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
-            YouPill()
-        }
-        Spacer(modifier = Modifier.height(Theme.spacing.xxs))
-        MasteredWordsCount(count = entry.masteredWords)
-        Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
-        StreakChip(
-            icon = Icons.Default.LocalFireDepartment,
-            value = "${entry.currentStreak}",
-            tintColor = MaterialTheme.colorScheme.error
-        )
-        Spacer(modifier = Modifier.height(Theme.spacing.xs))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(pedestalHeight)
-                .clip(
-                    RoundedCornerShape(
-                        topStart = Theme.dimensions.cardCornerRadius,
-                        topEnd = Theme.dimensions.cardCornerRadius
-                    )
-                )
-                .background(
-                    Brush.verticalGradient(
-                        listOf(medalColor.copy(alpha = 0.45f), medalColor.copy(alpha = 0.08f))
-                    )
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "${entry.rank}",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-// endregion
-
-// region Legend & banners
-
-/** Explains the icons used on every row, so the numbers are not a guessing game. */
+/** "Rankings" title with the number of ranked people, plus a legend for the row icons. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun StatsLegend() {
-    FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Theme.spacing.xs),
-        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md, Alignment.CenterHorizontally),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
-    ) {
-        LegendItem(
-            icon = Icons.Default.LocalFireDepartment,
-            tint = MaterialTheme.colorScheme.error,
-            label = stringResource(Res.string.leaderboard_legend_streak)
+internal fun RankingsHeader(count: Int) {
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = Theme.spacing.sm)) {
+        SectionHeader(
+            title = stringResource(Res.string.leaderboard_rankings),
+            count = count
         )
-        LegendItem(
-            icon = Icons.Default.Star,
-            tint = MaterialTheme.colorScheme.tertiary,
-            label = stringResource(Res.string.leaderboard_legend_best_streak)
-        )
-        LegendItem(
-            icon = Icons.Default.School,
-            tint = MaterialTheme.colorScheme.primary,
-            label = stringResource(Res.string.leaderboard_legend_mastered)
-        )
+        Spacer(modifier = Modifier.height(Theme.spacing.xs))
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
+        ) {
+            LegendItem(
+                icon = Icons.Default.LocalFireDepartment,
+                tint = MaterialTheme.colorScheme.error,
+                label = stringResource(Res.string.leaderboard_legend_streak)
+            )
+            LegendItem(
+                icon = Icons.Default.Star,
+                tint = MaterialTheme.colorScheme.tertiary,
+                label = stringResource(Res.string.leaderboard_legend_best_streak)
+            )
+            LegendItem(
+                icon = Icons.Default.School,
+                tint = MaterialTheme.colorScheme.primary,
+                label = stringResource(Res.string.leaderboard_legend_mastered)
+            )
+        }
     }
 }
 
@@ -243,7 +132,7 @@ private fun LegendItem(icon: ImageVector, tint: Color, label: String) {
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(StatIconSize),
-            tint = tint.copy(alpha = 0.8f)
+            tint = tint
         )
         Text(
             text = label,
@@ -253,70 +142,54 @@ private fun LegendItem(icon: ImageVector, tint: Color, label: String) {
     }
 }
 
-/** Shown above stale content when a refresh fails, instead of wiping the list. */
+/**
+ * One row of the rankings list. Consecutive rows read as a single grouped card:
+ * only the first and last round their outer corners, and rows are split by hairlines.
+ */
 @Composable
-internal fun RefreshFailedBanner(onRetry: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Theme.dimensions.cardCornerRadius),
-        color = MaterialTheme.colorScheme.errorContainer
-    ) {
-        Row(
-            modifier = Modifier.padding(start = Theme.spacing.md, end = Theme.spacing.xs),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(Res.string.leaderboard_refresh_failed),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.weight(1f)
-            )
-            TextButton(onClick = onRetry) {
-                Text(
-                    text = stringResource(Res.string.retry),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
-// endregion
-
-// region Rows
-
-@Composable
-internal fun LeaderboardEntryCard(entry: LeaderboardEntryUiModel) {
-    val cardShape = RoundedCornerShape(Theme.dimensions.cardCornerRadius)
+internal fun RankingRow(
+    entry: LeaderboardEntryUiModel,
+    isFirst: Boolean,
+    isLast: Boolean
+) {
+    val corner = Theme.shapes.large
+    val shape = RoundedCornerShape(
+        topStart = if (isFirst) corner else 0.dp,
+        topEnd = if (isFirst) corner else 0.dp,
+        bottomStart = if (isLast) corner else 0.dp,
+        bottomEnd = if (isLast) corner else 0.dp
+    )
     val label = entry.accessibilityLabel()
-    val borderModifier = if (entry.isCurrentUser) {
-        Modifier.border(
-            width = Theme.dimensions.borderWidth,
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-            shape = cardShape
-        )
-    } else {
-        Modifier
-    }
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .then(borderModifier)
             .clearAndSetSemantics { contentDescription = label },
-        shape = cardShape,
+        shape = shape,
         color = if (entry.isCurrentUser) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.12f)
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = Theme.opacity.dimming)
         } else {
-            MaterialTheme.colorScheme.surfaceContainerLowest
-        },
-        tonalElevation = Theme.elevation.none
+            MaterialTheme.colorScheme.surface
+        }
     ) {
-        EntryRow(
-            entry = entry,
-            modifier = Modifier.padding(horizontal = Theme.spacing.md, vertical = Theme.spacing.sm)
-        )
+        Column {
+            EntryRow(
+                entry = entry,
+                modifier = Modifier.padding(
+                    horizontal = Theme.spacing.md,
+                    vertical = Theme.spacing.sm
+                )
+            )
+            if (!isLast) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(
+                        start = Theme.spacing.md + RankColumnWidth + Theme.spacing.xs
+                    ),
+                    thickness = Theme.dimensions.hairlineThickness,
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
+            }
+        }
     }
 }
 
@@ -326,13 +199,15 @@ private fun EntryRow(entry: LeaderboardEntryUiModel, modifier: Modifier = Modifi
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RankBadge(rank = entry.rank, medalColor = medalColorFor(entry.rank))
+        RankLabel(rank = entry.rank)
 
-        Spacer(modifier = Modifier.width(Theme.spacing.sm))
+        Spacer(modifier = Modifier.width(Theme.spacing.xs))
 
         LeaderboardAvatar(
             profileImageUrl = entry.profileImageUrl,
-            displayName = entry.displayName
+            displayName = entry.displayName,
+            size = RowAvatarSize,
+            ringColor = medalColorFor(entry.rank)
         )
 
         Spacer(modifier = Modifier.width(Theme.spacing.sm))
@@ -346,8 +221,7 @@ private fun EntryRow(entry: LeaderboardEntryUiModel, modifier: Modifier = Modifi
                     text = entry.displayName,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (entry.isCurrentUser) FontWeight.Bold else FontWeight.Medium,
-                    color = if (entry.isCurrentUser) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false)
@@ -356,7 +230,7 @@ private fun EntryRow(entry: LeaderboardEntryUiModel, modifier: Modifier = Modifi
                     YouPill()
                 }
             }
-            Spacer(modifier = Modifier.height(Theme.spacing.xxxs))
+            Spacer(modifier = Modifier.height(Theme.spacing.xxs))
             StreakInfo(entry = entry)
         }
 
@@ -367,11 +241,31 @@ private fun EntryRow(entry: LeaderboardEntryUiModel, modifier: Modifier = Modifi
 }
 
 @Composable
-private fun LeaderboardAvatar(
+private fun RankLabel(rank: Int) {
+    Box(
+        modifier = Modifier.width(RankColumnWidth),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "$rank",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
+    }
+}
+
+// endregion
+
+// region Shared atoms
+
+@Composable
+internal fun LeaderboardAvatar(
     profileImageUrl: String?,
     displayName: String,
+    size: Dp,
     modifier: Modifier = Modifier,
-    size: Dp = Theme.dimensions.iconSizeXLarge,
     ringColor: Color? = null
 ) {
     val ringModifier = if (ringColor != null) {
@@ -384,7 +278,7 @@ private fun LeaderboardAvatar(
             .size(size)
             .then(ringModifier)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = Theme.opacity.dimming)),
         contentAlignment = Alignment.Center
     ) {
         if (profileImageUrl != null) {
@@ -399,10 +293,10 @@ private fun LeaderboardAvatar(
             if (initial != null && initial.isLetter()) {
                 Text(
                     text = initial.toString(),
-                    style = if (size > Theme.dimensions.iconSizeXLarge) {
+                    style = if (size > RowAvatarSize) {
                         MaterialTheme.typography.titleLarge
                     } else {
-                        MaterialTheme.typography.labelMedium
+                        MaterialTheme.typography.labelLarge
                     },
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -420,28 +314,7 @@ private fun LeaderboardAvatar(
 }
 
 @Composable
-private fun RankBadge(rank: Int, medalColor: Color?) {
-    Box(
-        modifier = Modifier
-            .size(RankBadgeSize)
-            .clip(RoundedCornerShape(Theme.shapes.small))
-            .background(
-                medalColor?.copy(alpha = 0.18f)
-                    ?: MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "$rank",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun YouPill() {
+internal fun YouPill() {
     Text(
         text = stringResource(Res.string.leaderboard_you),
         style = MaterialTheme.typography.labelSmall,
@@ -478,7 +351,7 @@ private fun StreakInfo(entry: LeaderboardEntryUiModel) {
 }
 
 @Composable
-private fun StreakChip(
+internal fun StreakChip(
     icon: ImageVector,
     value: String,
     tintColor: Color
@@ -486,8 +359,8 @@ private fun StreakChip(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(Theme.shapes.pill))
-            .background(tintColor.copy(alpha = 0.08f))
-            .padding(horizontal = Theme.spacing.xxs, vertical = Theme.spacing.xxxs),
+            .background(tintColor.copy(alpha = Theme.opacity.hover))
+            .padding(horizontal = Theme.spacing.xs, vertical = Theme.spacing.xxxs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)
     ) {
@@ -495,19 +368,19 @@ private fun StreakChip(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(StatIconSize),
-            tint = tintColor.copy(alpha = 0.8f)
+            tint = tintColor
         )
         Text(
             text = value,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.SemiBold,
-            color = tintColor.copy(alpha = 0.8f)
+            color = tintColor
         )
     }
 }
 
 @Composable
-private fun MasteredWordsCount(count: Int) {
+internal fun MasteredWordsCount(count: Int) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)
@@ -516,154 +389,100 @@ private fun MasteredWordsCount(count: Int) {
             imageVector = Icons.Default.School,
             contentDescription = null,
             modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+            tint = MaterialTheme.colorScheme.primary
         )
         Text(
             text = "$count",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
 
 // endregion
 
-// region Footers
+// region Banners & floating pill
 
+/** Shown above stale content when a refresh fails, instead of wiping the list. */
 @Composable
-private fun FooterContainer(
-    onClick: (() -> Unit)?,
-    content: @Composable () -> Unit
-) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val cardCornerRadius = Theme.dimensions.cardCornerRadius
-    val borderWidth = Theme.dimensions.borderWidth
-    val cardShape = RoundedCornerShape(
-        topStart = cardCornerRadius,
-        topEnd = cardCornerRadius
-    )
-    val clickModifier = if (onClick != null) {
-        Modifier.clickable(role = Role.Button, onClick = onClick)
-    } else {
-        Modifier
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(cardShape)
-            .then(clickModifier)
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-            .drawBehind {
-                drawRoundRect(
-                    brush = Brush.linearGradient(
-                        listOf(
-                            primaryColor.copy(alpha = 0.22f),
-                            primaryColor.copy(alpha = 0.06f)
-                        )
-                    ),
-                    cornerRadius = CornerRadius(cardCornerRadius.toPx()),
-                    style = Stroke(width = borderWidth.toPx())
-                )
-            }
-            .padding(
-                start = Theme.spacing.md,
-                end = Theme.spacing.md,
-                top = Theme.spacing.sm,
-                bottom = Theme.spacing.md
-            )
+internal fun RefreshFailedBanner(onRetry: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.shapes.medium),
+        color = MaterialTheme.colorScheme.errorContainer
     ) {
-        content()
-    }
-}
-
-/**
- * Pinned card with the current user's ranking. Shown while their own row is off-screen;
- * tapping it scrolls to that row when [onJumpToEntry] is provided.
- */
-@Composable
-internal fun UserRankingFooter(
-    entry: LeaderboardEntryUiModel,
-    onJumpToEntry: (() -> Unit)?
-) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val label = entry.accessibilityLabel()
-    val jumpLabel = stringResource(Res.string.leaderboard_jump_to_me)
-
-    FooterContainer(onClick = onJumpToEntry) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.padding(start = Theme.spacing.md, end = Theme.spacing.xs),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = stringResource(Res.string.leaderboard_your_ranking),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium,
-                color = primaryColor,
-                letterSpacing = 0.3.sp,
+                text = stringResource(Res.string.leaderboard_refresh_failed),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
                 modifier = Modifier.weight(1f)
             )
-            if (onJumpToEntry != null) {
+            TextButton(onClick = onRetry) {
                 Text(
-                    text = jumpLabel,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowUp,
-                    contentDescription = null,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = stringResource(Res.string.retry),
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
-        Spacer(modifier = Modifier.height(Theme.spacing.xs))
-        EntryRow(
-            entry = entry,
-            modifier = Modifier.clearAndSetSemantics {
-                contentDescription = if (onJumpToEntry != null) "$label. $jumpLabel" else label
-            }
-        )
     }
 }
 
-/** Shown when the current user has no rank yet, with a nudge on how to get one. */
+/** Compact "#12 · You" pill floating over the list; tapping it scrolls back to the user. */
 @Composable
-internal fun UnrankedFooter() {
-    FooterContainer(onClick = null) {
+internal fun FloatingYouPill(
+    entry: LeaderboardEntryUiModel,
+    pointsDown: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val jumpLabel = stringResource(Res.string.leaderboard_jump_to_me)
+    val label = entry.accessibilityLabel()
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier.clearAndSetSemantics { contentDescription = "$label. $jumpLabel" },
+        shape = RoundedCornerShape(Theme.shapes.pill),
+        color = MaterialTheme.colorScheme.primary,
+        shadowElevation = Theme.elevation.high
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(
+                start = Theme.spacing.xs,
+                end = Theme.spacing.sm,
+                top = Theme.spacing.xs,
+                bottom = Theme.spacing.xs
+            ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(RankBadgeSize)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.EmojiEvents,
-                    contentDescription = null,
-                    modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            Spacer(modifier = Modifier.width(Theme.spacing.sm))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(Res.string.leaderboard_unranked_title),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(Res.string.leaderboard_unranked_subtitle),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            LeaderboardAvatar(
+                profileImageUrl = entry.profileImageUrl,
+                displayName = entry.displayName,
+                size = FloatingAvatarSize
+            )
+            Text(
+                text = "#${entry.rank}",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Text(
+                text = stringResource(Res.string.leaderboard_you),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Icon(
+                imageVector = if (pointsDown) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                contentDescription = null,
+                modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
         }
     }
 }

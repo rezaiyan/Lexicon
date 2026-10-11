@@ -477,6 +477,10 @@
     <string name="leaderboard_error_title">Impossible de charger le classement</string>
     <string name="leaderboard_refresh_failed">Actualisation impossible. Derniers résultats affichés.</string>
     <string name="leaderboard_entry_a11y">Rang %1$d, %2$s, série de %3$d jours, meilleure série %4$d jours, %5$d mots maîtrisés</string>
+    <string name="leaderboard_rankings">Classement</string>
+    <string name="leaderboard_next_up">Prochain objectif : %1$s, n° %2$d</string>
+    <string name="leaderboard_you_lead">Tu es n° 1. Défends ta place !</string>
+    <string name="leaderboard_show_me">Me montrer</string>
 
     <!-- Import Source Language -->
     <string name="original_language_question">Dans quelle langue sont les mots originaux ?</string>

@@ -109,6 +109,60 @@ class LeaderboardViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `load sets nextUp to the entry directly above the user`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.success(leaderboard(size = 6, userRank = 5))))
+
+        assertEquals(4, vm.loadedData().nextUp?.rank)
+    }
+
+    @Test
+    fun `load when user leads has no nextUp`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.success(leaderboard(size = 6, userRank = 1))))
+
+        assertNull(vm.loadedData().nextUp)
+    }
+
+    @Test
+    fun `load when user ties skips tied entries for nextUp`() = runTest {
+        val tied = Leaderboard(
+            entries = listOf(
+                entry(1, "A"),
+                entry(2, "B"),
+                entry(3, "C"),
+                entry(3, "Me", isCurrentUser = true)
+            ),
+            userEntry = entry(3, "Me", isCurrentUser = true)
+        )
+        val vm = createViewModel(SequenceRepository(Try.success(tied)))
+
+        assertEquals("B", vm.loadedData().nextUp?.displayName)
+    }
+
+    @Test
+    fun `load when user is far beyond the list has no nextUp`() = runTest {
+        val board = Leaderboard(
+            entries = (1..4).map { entry(it, "User $it") },
+            userEntry = entry(40, "Me", isCurrentUser = true)
+        )
+        val vm = createViewModel(SequenceRepository(Try.success(board)))
+
+        val data = vm.loadedData()
+        assertNull(data.userRowIndex)
+        assertNull(data.nextUp)
+    }
+
+    @Test
+    fun `load when user is just below the list gets last entry as nextUp`() = runTest {
+        val board = Leaderboard(
+            entries = (1..4).map { entry(it, "User $it") },
+            userEntry = entry(5, "Me", isCurrentUser = true)
+        )
+        val vm = createViewModel(SequenceRepository(Try.success(board)))
+
+        assertEquals(4, vm.loadedData().nextUp?.rank)
+    }
+
+    @Test
     fun `load with no entries is empty`() = runTest {
         val vm = createViewModel(SequenceRepository(Try.success(Leaderboard(emptyList(), null))))
 

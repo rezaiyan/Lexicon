@@ -619,6 +619,10 @@
     <string name="leaderboard_error_title">리더보드를 불러올 수 없어요</string>
     <string name="leaderboard_refresh_failed">새로고침하지 못했어요. 마지막 결과를 표시합니다.</string>
     <string name="leaderboard_entry_a11y">%1$d위, %2$s, %3$d일 연속, 최장 %4$d일, 단어 %5$d개 마스터</string>
+    <string name="leaderboard_rankings">순위</string>
+    <string name="leaderboard_next_up">다음 목표: %2$d위 %1$s</string>
+    <string name="leaderboard_you_lead">1위예요. 자리를 지켜내세요!</string>
+    <string name="leaderboard_show_me">내 위치 보기</string>
 
     <!-- TTS Models -->
     <string name="tts_models">TTS 모델</string>

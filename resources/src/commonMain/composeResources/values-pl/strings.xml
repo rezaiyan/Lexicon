@@ -619,6 +619,10 @@
     <string name="leaderboard_error_title">Nie udało się wczytać rankingu</string>
     <string name="leaderboard_refresh_failed">Nie udało się odświeżyć. Wyświetlane są ostatnie wyniki.</string>
     <string name="leaderboard_entry_a11y">Miejsce %1$d, %2$s, seria %3$d dni, najlepsza seria %4$d dni, opanowane słowa: %5$d</string>
+    <string name="leaderboard_rankings">Ranking</string>
+    <string name="leaderboard_next_up">Następny cel: %1$s na miejscu %2$d</string>
+    <string name="leaderboard_you_lead">Jesteś na 1. miejscu. Broń go!</string>
+    <string name="leaderboard_show_me">Pokaż mnie</string>
 
     <!-- TTS Models -->
     <string name="tts_models">Modele TTS</string>

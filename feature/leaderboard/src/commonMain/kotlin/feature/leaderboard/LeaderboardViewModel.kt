@@ -77,12 +77,24 @@ class LeaderboardViewModel(
         val podium = if (hasPodium) all.take(PODIUM_SIZE) else emptyList()
         val rows = if (hasPodium) all.drop(PODIUM_SIZE) else all
         val userRowIndex = rows.indexOfFirst { it.isCurrentUser }.takeIf { it >= 0 }
+        val user = userEntry?.toUiModel() ?: all.firstOrNull { it.isCurrentUser }
         return LeaderboardUiData(
             podium = podium,
             rows = rows,
-            userEntry = userEntry?.toUiModel() ?: all.firstOrNull { it.isCurrentUser },
+            userEntry = user,
             userRowIndex = userRowIndex,
+            nextUp = user?.let { me -> all.nextUpFor(me) },
         )
+    }
+
+    /**
+     * The closest entry ranked above [me]. When [me] is outside the list, the gap to the last
+     * listed entry is unknown, so it only counts if that entry is exactly one rank above.
+     */
+    private fun List<LeaderboardEntryUiModel>.nextUpFor(me: LeaderboardEntryUiModel): LeaderboardEntryUiModel? {
+        val candidate = lastOrNull { it.rank < me.rank } ?: return null
+        val meIsListed = any { it.isCurrentUser }
+        return candidate.takeIf { meIsListed || it.rank == me.rank - 1 }
     }
 
     private fun LeaderboardEntry.toUiModel() = LeaderboardEntryUiModel(
