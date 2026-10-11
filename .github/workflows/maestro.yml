@@ -1,0 +1,141 @@
+name: Maestro
+
+# On-demand run of the Maestro suite against a fresh debug build, without the release pipeline
+# (a manual CI run deploys every platform). The release gate itself is the `maestro` job in ci.yml.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: maestro-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VOKAB_BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+  GOOGLE_SERVER_CLIENT_ID: ${{ secrets.GOOGLE_SERVER_CLIENT_ID }}
+  GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+  GOOGLE_IOS_URL_SCHEME: ${{ secrets.GOOGLE_IOS_URL_SCHEME }}
+  FIREBASE_ANDROID_API_KEY: ${{ secrets.FIREBASE_ANDROID_API_KEY }}
+  FIREBASE_PROJECT_NUMBER: ${{ secrets.FIREBASE_PROJECT_NUMBER }}
+  FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+  FIREBASE_MOBILE_SDK_APP_ID: ${{ secrets.FIREBASE_MOBILE_SDK_APP_ID }}
+  ANDROID_PACKAGE_NAME: ${{ secrets.ANDROID_PACKAGE_NAME }}
+  GOOGLE_ANDROID_CLIENT_ID_RELEASE: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_RELEASE }}
+  ANDROID_CERT_HASH_RELEASE: ${{ secrets.ANDROID_CERT_HASH_RELEASE }}
+  GOOGLE_ANDROID_CLIENT_ID_DEBUG: ${{ secrets.GOOGLE_ANDROID_CLIENT_ID_DEBUG }}
+  ANDROID_CERT_HASH_DEBUG: ${{ secrets.ANDROID_CERT_HASH_DEBUG }}
+  IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+  IOS_APP_STORE_ID: ${{ secrets.IOS_APP_STORE_ID }}
+  REVENUECAT_ANDROID_KEY: ${{ secrets.REVENUECAT_ANDROID_KEY }}
+  REVENUECAT_IOS_KEY: ${{ secrets.REVENUECAT_IOS_KEY }}
+  FIREBASE_WEB_API_KEY: ${{ secrets.FIREBASE_WEB_API_KEY }}
+
+jobs:
+  maestro:
+    name: Maestro UI Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    permissions:
+      checks: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Git LFS
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: git-lfs-${{ runner.os }}-${{ hashFiles('platforms/libs/**') }}
+          restore-keys: git-lfs-${{ runner.os }}-
+
+      - name: Pull LFS files
+        run: git lfs pull
+
+      - name: Initialize configuration
+        uses: ./.github/actions/init-config
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Android APK
+        run: ./gradlew composeApp:assembleDebug --stacktrace
+
+      - name: Install Maestro CLI
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> $GITHUB_PATH
+
+      - name: Obtain CI auth tokens
+        id: ci-auth
+        env:
+          CI_TEST_SECRET: ${{ secrets.CI_TEST_SECRET }}
+          BACKEND_URL: ${{ secrets.VOKAB_BACKEND_URL }}
+        run: |
+          HTTP_CODE=$(curl -sL -o /tmp/ci-auth-response.json -w "%{http_code}" \
+            --connect-timeout 15 --max-time 30 --retry 3 --retry-delay 5 \
+            -X POST "${BACKEND_URL}/api/v1/auth/ci-token" \
+            -H "X-CI-Secret: $CI_TEST_SECRET" \
+            -H "Content-Type: application/json")
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::CI auth endpoint returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+          ACCESS_TOKEN=$(jq -r '.data.accessToken' /tmp/ci-auth-response.json)
+          REFRESH_TOKEN=$(jq -r '.data.refreshToken' /tmp/ci-auth-response.json)
+          if [ -z "$ACCESS_TOKEN" ] || [ "$ACCESS_TOKEN" = "null" ]; then
+            echo "::error::Failed to parse tokens from response"
+            exit 1
+          fi
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "::add-mask::$REFRESH_TOKEN"
+          echo "access_token=$ACCESS_TOKEN" >> $GITHUB_OUTPUT
+          echo "refresh_token=$REFRESH_TOKEN" >> $GITHUB_OUTPUT
+          echo "expires_in=$(jq -r '.data.expiresIn' /tmp/ci-auth-response.json)" >> $GITHUB_OUTPUT
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run Maestro tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          CI_ACCESS_TOKEN: ${{ steps.ci-auth.outputs.access_token }}
+          CI_REFRESH_TOKEN: ${{ steps.ci-auth.outputs.refresh_token }}
+          CI_EXPIRES_IN_MS: ${{ steps.ci-auth.outputs.expires_in }}
+        with:
+          api-level: 31
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 4096M
+          disk-size: 8G
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-boot-timeout: 600
+          script: ./scripts/ci-maestro.sh
+
+      - name: Publish Maestro test report
+        if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: ~/maestro-report.xml
+          check_name: Maestro Test Results (on demand)
+
+      - name: Upload Maestro artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-artifacts
+          path: |
+            ~/maestro-report.xml
+            ~/maestro-debug/

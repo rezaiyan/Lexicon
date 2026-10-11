@@ -562,26 +562,24 @@ jobs:
 
       - name: Run Maestro tests on emulator
         uses: reactivecircus/android-emulator-runner@v2
+        env:
+          CI_ACCESS_TOKEN: ${{ steps.ci-auth.outputs.access_token }}
+          CI_REFRESH_TOKEN: ${{ steps.ci-auth.outputs.refresh_token }}
+          CI_EXPIRES_IN_MS: ${{ steps.ci-auth.outputs.expires_in }}
         with:
           api-level: 31
           arch: x86_64
+          # Phone-sized screen: the default AVD is 320x640dp, where buttons the flows expect
+          # sit below the fold or under the keyboard.
+          profile: pixel_6
           ram-size: 4096M
           disk-size: 8G
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           emulator-boot-timeout: 600
-          script: |
-            adb install composeApp/build/outputs/apk/debug/*.apk
-            adb shell am start -n com.alirezaiyan.vokab/.MainActivity
-            sleep 8
-            adb shell "am broadcast -a com.alirezaiyan.vokab.CI_INJECT_TOKENS -n com.alirezaiyan.vokab/com.alirezaiyan.vokab.CiTokenReceiver --es accessToken '${{ steps.ci-auth.outputs.access_token }}' --es refreshToken '${{ steps.ci-auth.outputs.refresh_token }}' --el expiresInMs ${{ steps.ci-auth.outputs.expires_in }}"
-            sleep 2
-            adb shell am force-stop com.alirezaiyan.vokab
-            sleep 2
-            MAESTRO_EXIT=0
-            maestro test --format junit --output "$HOME/maestro-report.xml" --debug-output "$HOME/maestro-debug" --flatten-debug-output maestro/ || MAESTRO_EXIT=$?
-            adb uninstall com.alirezaiyan.vokab || true
-            exit $MAESTRO_EXIT
+          # One script, one shell: the action runs each `script:` line in its own shell, so an
+          # exit code saved on one line was lost on the next and failed suites passed.
+          script: ./scripts/ci-maestro.sh
 
       - name: Publish Maestro test report
         if: always()

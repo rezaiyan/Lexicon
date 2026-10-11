@@ -20,6 +20,7 @@ appId: com.alirezaiyan.vokab
 - tapOn:
     text: "(?-i)Profile"
 
+# Logout is the last row and can sit below the fold; Edit Profile is always on screen.
 - extendedWaitUntil:
-    visible: "Logout"
+    visible: "Edit Profile"
     timeout: 8000

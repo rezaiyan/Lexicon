@@ -34,8 +34,9 @@ tags:
 
 - tapOn:
     text: "(?-i)Profile"
+# Logout can sit below the fold; Edit Profile is always on screen.
 - extendedWaitUntil:
-    visible: "Logout"
+    visible: "Edit Profile"
     timeout: 5000
 
 # Round-trip back to Study.
