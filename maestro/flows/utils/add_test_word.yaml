@@ -32,7 +32,9 @@ appId: com.alirezaiyan.vokab
 
 - tapOn: "Add Word"
 
-# The session list appears once the word is saved.
+# The session list appears once the word is saved, below the form. A full
+# on-screen keyboard (focus stays in the form) would cover it.
+- hideKeyboard
 - extendedWaitUntil:
     visible: "Added this session"
     timeout: 8000

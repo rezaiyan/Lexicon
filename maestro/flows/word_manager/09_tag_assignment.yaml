@@ -62,8 +62,11 @@ tags:
     visible: "${output.tag}"
     timeout: 8000
 
-# Save.
-- tapOn: "Assign Tag"
+# Save. index 1: the page title (index 0) also reads "Assign Tag"; the save
+# button is index 1. Tapping the title is a silent no-op.
+- tapOn:
+    text: "Assign Tag"
+    index: 1
 - waitForAnimationToEnd
 
 # Back on the detail page, which now lists the assigned tag.
@@ -92,13 +95,24 @@ tags:
     visible: "${output.tag}"
     timeout: 8000
 
-- tapOn: "Delete Tag"
+# The trash icon in this tag's row: other tags may exist, so scope the tap to
+# the row that holds the tag name.
+- tapOn:
+    text: "Delete Tag"
+    childOf:
+      containsChild: "${output.tag}"
 
 - extendedWaitUntil:
     visible: "Delete this tag? Words with this tag will not be deleted."
     timeout: 5000
+# Until the sheet settles, the list's trash icons are still in the hierarchy and
+# index 1 could resolve to one of them.
+- waitForAnimationToEnd
 
-- tapOn: "Delete Tag"
+# The dialog title and its confirm button share the text; index 1 is the button.
+- tapOn:
+    text: "Delete Tag"
+    index: 1
 - waitForAnimationToEnd
 
 - assertNotVisible: "${output.tag}"

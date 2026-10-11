@@ -14,11 +14,13 @@ appId: com.alirezaiyan.vokab
 
 # Wait for the bottom navigation bar to load (handles splash + auth startup).
 # 25s timeout accommodates slow CI emulators where auth + Compose init can be slow.
+# Wait on an app-only element: right after launch the device launcher can still be
+# on screen, and its "Settings" app icon would match a bare "Settings" selector.
 - extendedWaitUntil:
-    visible: "Settings"
+    visible: "(?-i)Profile"
     timeout: 25000
 
-# Navigate to the Settings tab via the bottom navigation bar.
+# Open Settings via the gear on the Study screen (a top-bar icon, not a tab).
 - tapOn:
     text: "Settings"
 
