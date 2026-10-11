@@ -607,6 +607,18 @@
     <string name="leaderboard_longest_streak">최장 연속 기록</string>
     <string name="leaderboard_mastered">마스터 완료</string>
     <string name="leaderboard_your_ranking">나의 순위</string>
+    <string name="leaderboard_legend_streak">연속 일수</string>
+    <string name="leaderboard_legend_best_streak">최장 연속</string>
+    <string name="leaderboard_legend_mastered">마스터한 단어</string>
+    <string name="leaderboard_you">나</string>
+    <string name="leaderboard_jump_to_me">탭하여 내 순위로 이동</string>
+    <string name="leaderboard_unranked_title">아직 순위에 오르지 않았어요</string>
+    <string name="leaderboard_unranked_subtitle">연속 학습을 이어가고 단어를 마스터해 순위에 올라보세요.</string>
+    <string name="leaderboard_empty_title">아직 순위가 없어요</string>
+    <string name="leaderboard_empty_subtitle">첫 번째 주인공이 되어 보세요: 오늘 학습하고 1위를 차지하세요.</string>
+    <string name="leaderboard_error_title">리더보드를 불러올 수 없어요</string>
+    <string name="leaderboard_refresh_failed">새로고침하지 못했어요. 마지막 결과를 표시합니다.</string>
+    <string name="leaderboard_entry_a11y">%1$d위, %2$s, %3$d일 연속, 최장 %4$d일, 단어 %5$d개 마스터</string>
 
     <!-- TTS Models -->
     <string name="tts_models">TTS 모델</string>

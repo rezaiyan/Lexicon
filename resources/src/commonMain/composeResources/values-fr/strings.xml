@@ -465,6 +465,18 @@
     <string name="leaderboard_longest_streak">Plus longue série</string>
     <string name="leaderboard_mastered">Maîtrisés</string>
     <string name="leaderboard_your_ranking">Ton classement</string>
+    <string name="leaderboard_legend_streak">Jours d'affilée</string>
+    <string name="leaderboard_legend_best_streak">Meilleure série</string>
+    <string name="leaderboard_legend_mastered">Mots maîtrisés</string>
+    <string name="leaderboard_you">Toi</string>
+    <string name="leaderboard_jump_to_me">Touche pour aller à ta place</string>
+    <string name="leaderboard_unranked_title">Tu n'es pas encore au classement</string>
+    <string name="leaderboard_unranked_subtitle">Garde ta série et maîtrise des mots pour gagner ta place.</string>
+    <string name="leaderboard_empty_title">Pas encore de classement</string>
+    <string name="leaderboard_empty_subtitle">Sois le premier : étudie aujourd'hui et prends la première place.</string>
+    <string name="leaderboard_error_title">Impossible de charger le classement</string>
+    <string name="leaderboard_refresh_failed">Actualisation impossible. Derniers résultats affichés.</string>
+    <string name="leaderboard_entry_a11y">Rang %1$d, %2$s, série de %3$d jours, meilleure série %4$d jours, %5$d mots maîtrisés</string>
 
     <!-- Import Source Language -->
     <string name="original_language_question">Dans quelle langue sont les mots originaux ?</string>

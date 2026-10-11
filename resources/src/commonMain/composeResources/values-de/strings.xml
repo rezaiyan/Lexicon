@@ -465,6 +465,18 @@
     <string name="leaderboard_longest_streak">Längste Serie</string>
     <string name="leaderboard_mastered">Gemeistert</string>
     <string name="leaderboard_your_ranking">Deine Platzierung</string>
+    <string name="leaderboard_legend_streak">Tage-Serie</string>
+    <string name="leaderboard_legend_best_streak">Beste Serie</string>
+    <string name="leaderboard_legend_mastered">Gemeisterte Wörter</string>
+    <string name="leaderboard_you">Du</string>
+    <string name="leaderboard_jump_to_me">Tippen, um zu deinem Platz zu springen</string>
+    <string name="leaderboard_unranked_title">Du bist noch nicht in der Bestenliste</string>
+    <string name="leaderboard_unranked_subtitle">Halte deine Serie und meistere Wörter, um dir einen Platz zu sichern.</string>
+    <string name="leaderboard_empty_title">Noch keine Platzierungen</string>
+    <string name="leaderboard_empty_subtitle">Sei der Erste: Lerne heute und hol dir Platz eins.</string>
+    <string name="leaderboard_error_title">Bestenliste konnte nicht geladen werden</string>
+    <string name="leaderboard_refresh_failed">Aktualisierung fehlgeschlagen. Letzte Ergebnisse werden angezeigt.</string>
+    <string name="leaderboard_entry_a11y">Platz %1$d, %2$s, %3$d Tage Serie, beste Serie %4$d Tage, %5$d Wörter gemeistert</string>
 
     <!-- Import Source Language -->
     <string name="original_language_question">In welcher Sprache sind die Originalwörter?</string>
