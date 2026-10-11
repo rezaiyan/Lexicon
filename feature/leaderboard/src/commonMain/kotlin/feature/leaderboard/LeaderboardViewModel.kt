@@ -2,41 +2,52 @@ package feature.leaderboard
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
+import core.base.BaseViewModel
+import core.common.UiState
 import core.common.fold
 import core.error.toUserMessage
+import domain.leaderboard.model.Leaderboard
+import domain.leaderboard.model.LeaderboardEntry
 import domain.leaderboard.usecase.GetLeaderboardUseCase
-import kotlinx.coroutines.launch
-import core.base.BaseViewModel
 import feature.leaderboard.model.LeaderboardEntryUiModel
+import feature.leaderboard.model.LeaderboardState
 import feature.leaderboard.model.LeaderboardUiData
-import core.common.UiState
+import feature.leaderboard.model.PODIUM_SIZE
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class LeaderboardViewModel(
     private val getLeaderboardUseCase: GetLeaderboardUseCase,
     private val analyticsTracker: IAnalyticsTracker,
-) : BaseViewModel<UiState<LeaderboardUiData>, Nothing>() {
+) : BaseViewModel<LeaderboardState, Nothing>() {
 
-    override fun initialState(): UiState<LeaderboardUiData> = UiState.Loading
+    private var loadJob: Job? = null
+
+    override fun initialState(): LeaderboardState = LeaderboardState()
 
     init {
         loadLeaderboard()
     }
 
+    /** Reloads the leaderboard, keeping the current content visible while loading. */
     fun refresh() {
         loadLeaderboard()
     }
 
     private fun loadLeaderboard() {
-        viewModelScope.launch {
-            updateState { UiState.Loading }
+        if (loadJob?.isActive == true) return
+        val hasContent = currentState.content is UiState.Loaded
+        updateState {
+            if (hasContent) copy(isRefreshing = true) else copy(content = UiState.Loading)
+        }
+        loadJob = viewModelScope.launch {
             getLeaderboardUseCase().fold(
                 onSuccess = { leaderboard ->
                     updateState {
-                        UiState.Loaded(
-                            LeaderboardUiData(
-                                entries = leaderboard.entries.map { it.toUiModel() },
-                                userEntry = leaderboard.userEntry?.toUiModel()
-                            )
+                        copy(
+                            content = UiState.Loaded(leaderboard.toUiData()),
+                            isRefreshing = false,
+                            refreshFailed = false,
                         )
                     }
                     analyticsTracker.logEvent(
@@ -49,16 +60,32 @@ class LeaderboardViewModel(
                 },
                 onFailure = { error ->
                     updateState {
-                        UiState.Error(
-                            message = error.toUserMessage()
-                        )
+                        if (hasContent) {
+                            copy(isRefreshing = false, refreshFailed = true)
+                        } else {
+                            copy(content = UiState.Error(message = error.toUserMessage()))
+                        }
                     }
                 }
             )
         }
     }
 
-    private fun domain.leaderboard.model.LeaderboardEntry.toUiModel() = LeaderboardEntryUiModel(
+    private fun Leaderboard.toUiData(): LeaderboardUiData {
+        val all = entries.sortedBy { it.rank }.map { it.toUiModel() }
+        val hasPodium = all.size >= PODIUM_SIZE
+        val podium = if (hasPodium) all.take(PODIUM_SIZE) else emptyList()
+        val rows = if (hasPodium) all.drop(PODIUM_SIZE) else all
+        val userRowIndex = rows.indexOfFirst { it.isCurrentUser }.takeIf { it >= 0 }
+        return LeaderboardUiData(
+            podium = podium,
+            rows = rows,
+            userEntry = userEntry?.toUiModel() ?: all.firstOrNull { it.isCurrentUser },
+            userRowIndex = userRowIndex,
+        )
+    }
+
+    private fun LeaderboardEntry.toUiModel() = LeaderboardEntryUiModel(
         rank = rank,
         displayName = displayName,
         currentStreak = currentStreak,

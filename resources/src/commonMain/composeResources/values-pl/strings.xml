@@ -607,6 +607,18 @@
     <string name="leaderboard_longest_streak">Najdłuższa seria</string>
     <string name="leaderboard_mastered">Opanowane</string>
     <string name="leaderboard_your_ranking">Twoja pozycja</string>
+    <string name="leaderboard_legend_streak">Seria dni</string>
+    <string name="leaderboard_legend_best_streak">Najlepsza seria</string>
+    <string name="leaderboard_legend_mastered">Opanowane słowa</string>
+    <string name="leaderboard_you">Ty</string>
+    <string name="leaderboard_jump_to_me">Dotknij, aby przejść do swojej pozycji</string>
+    <string name="leaderboard_unranked_title">Nie ma Cię jeszcze w rankingu</string>
+    <string name="leaderboard_unranked_subtitle">Utrzymuj serię i opanowuj słowa, aby zdobyć miejsce.</string>
+    <string name="leaderboard_empty_title">Brak rankingu</string>
+    <string name="leaderboard_empty_subtitle">Bądź pierwszy: ucz się dziś i zajmij pierwsze miejsce.</string>
+    <string name="leaderboard_error_title">Nie udało się wczytać rankingu</string>
+    <string name="leaderboard_refresh_failed">Nie udało się odświeżyć. Wyświetlane są ostatnie wyniki.</string>
+    <string name="leaderboard_entry_a11y">Miejsce %1$d, %2$s, seria %3$d dni, najlepsza seria %4$d dni, opanowane słowa: %5$d</string>
 
     <!-- TTS Models -->
     <string name="tts_models">Modele TTS</string>

@@ -465,6 +465,18 @@
     <string name="leaderboard_longest_streak">Mejor racha</string>
     <string name="leaderboard_mastered">Dominadas</string>
     <string name="leaderboard_your_ranking">Tu clasificación</string>
+    <string name="leaderboard_legend_streak">Racha de días</string>
+    <string name="leaderboard_legend_best_streak">Mejor racha</string>
+    <string name="leaderboard_legend_mastered">Palabras dominadas</string>
+    <string name="leaderboard_you">Tú</string>
+    <string name="leaderboard_jump_to_me">Toca para ir a tu posición</string>
+    <string name="leaderboard_unranked_title">Aún no estás en la clasificación</string>
+    <string name="leaderboard_unranked_subtitle">Mantén tu racha y domina palabras para ganarte un puesto.</string>
+    <string name="leaderboard_empty_title">Aún no hay clasificación</string>
+    <string name="leaderboard_empty_subtitle">Sé el primero: estudia hoy y consigue el primer puesto.</string>
+    <string name="leaderboard_error_title">No se pudo cargar la clasificación</string>
+    <string name="leaderboard_refresh_failed">No se pudo actualizar. Mostrando los últimos resultados.</string>
+    <string name="leaderboard_entry_a11y">Puesto %1$d, %2$s, racha de %3$d días, mejor racha %4$d días, %5$d palabras dominadas</string>
 
     <!-- Import Source Language -->
     <string name="original_language_question">¿En qué idioma están las palabras originales?</string>

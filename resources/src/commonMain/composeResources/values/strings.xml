@@ -758,6 +758,18 @@
     <string name="leaderboard_longest_streak">Longest Streak</string>
     <string name="leaderboard_mastered">Mastered</string>
     <string name="leaderboard_your_ranking">Your Ranking</string>
+    <string name="leaderboard_legend_streak">Day streak</string>
+    <string name="leaderboard_legend_best_streak">Best streak</string>
+    <string name="leaderboard_legend_mastered">Words mastered</string>
+    <string name="leaderboard_you">You</string>
+    <string name="leaderboard_jump_to_me">Tap to jump to your spot</string>
+    <string name="leaderboard_unranked_title">You're not on the board yet</string>
+    <string name="leaderboard_unranked_subtitle">Keep your streak alive and master words to earn your spot.</string>
+    <string name="leaderboard_empty_title">No rankings yet</string>
+    <string name="leaderboard_empty_subtitle">Be the first: study today and claim the top spot.</string>
+    <string name="leaderboard_error_title">Couldn't load the leaderboard</string>
+    <string name="leaderboard_refresh_failed">Couldn't refresh. Showing the last results.</string>
+    <string name="leaderboard_entry_a11y">Rank %1$d, %2$s, %3$d day streak, best streak %4$d days, %5$d words mastered</string>
 
     <!-- Word Rush Game -->
     <string name="word_rush">Word Rush</string>

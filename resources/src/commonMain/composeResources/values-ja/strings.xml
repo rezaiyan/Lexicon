@@ -607,6 +607,18 @@
     <string name="leaderboard_longest_streak">最長連続日数</string>
     <string name="leaderboard_mastered">マスター済み</string>
     <string name="leaderboard_your_ranking">あなたの順位</string>
+    <string name="leaderboard_legend_streak">連続日数</string>
+    <string name="leaderboard_legend_best_streak">最長連続</string>
+    <string name="leaderboard_legend_mastered">マスターした単語</string>
+    <string name="leaderboard_you">あなた</string>
+    <string name="leaderboard_jump_to_me">タップして自分の順位へ移動</string>
+    <string name="leaderboard_unranked_title">まだランキングに入っていません</string>
+    <string name="leaderboard_unranked_subtitle">連続学習を続けて単語をマスターし、ランクインしましょう。</string>
+    <string name="leaderboard_empty_title">まだランキングがありません</string>
+    <string name="leaderboard_empty_subtitle">一番乗りを目指して、今日学習を始めましょう。</string>
+    <string name="leaderboard_error_title">リーダーボードを読み込めませんでした</string>
+    <string name="leaderboard_refresh_failed">更新できませんでした。前回の結果を表示しています。</string>
+    <string name="leaderboard_entry_a11y">%1$d位、%2$s、%3$d日連続、最長%4$d日、%5$d語マスター</string>
 
     <!-- TTS Models -->
     <string name="tts_models">TTSモデル</string>

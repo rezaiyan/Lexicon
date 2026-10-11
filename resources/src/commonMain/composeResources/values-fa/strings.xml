@@ -464,6 +464,18 @@
     <string name="leaderboard_longest_streak">طولانی‌ترین رکورد</string>
     <string name="leaderboard_mastered">تسلط یافته</string>
     <string name="leaderboard_your_ranking">رتبه شما</string>
+    <string name="leaderboard_legend_streak">روزهای پیاپی</string>
+    <string name="leaderboard_legend_best_streak">بهترین رکورد</string>
+    <string name="leaderboard_legend_mastered">واژه‌های تسلط‌یافته</string>
+    <string name="leaderboard_you">شما</string>
+    <string name="leaderboard_jump_to_me">برای رفتن به جایگاه خود ضربه بزنید</string>
+    <string name="leaderboard_unranked_title">هنوز در جدول رتبه‌بندی نیستید</string>
+    <string name="leaderboard_unranked_subtitle">رکورد روزانه‌تان را حفظ کنید و واژه‌ها را بیاموزید تا جایگاهی کسب کنید.</string>
+    <string name="leaderboard_empty_title">هنوز رتبه‌بندی وجود ندارد</string>
+    <string name="leaderboard_empty_subtitle">اولین نفر باشید: امروز مطالعه کنید و رتبه اول را بگیرید.</string>
+    <string name="leaderboard_error_title">بارگیری جدول رتبه‌بندی ناموفق بود</string>
+    <string name="leaderboard_refresh_failed">به‌روزرسانی ناموفق بود. آخرین نتایج نمایش داده می‌شود.</string>
+    <string name="leaderboard_entry_a11y">رتبه %1$d، %2$s، %3$d روز پیاپی، بهترین رکورد %4$d روز، %5$d واژه تسلط‌یافته</string>
 
     <!-- Import Source Language -->
     <string name="original_language_question">زبان اصلی کلمات چیست؟</string>

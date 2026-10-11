@@ -13,84 +13,170 @@ import presentation.ViewModelTestBase
 import core.common.UiState
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class LeaderboardViewModelTest : ViewModelTestBase() {
 
-    private fun createFakeUseCase(result: Try<Leaderboard>): GetLeaderboardUseCase {
-        val repo = object : ILeaderboardRepository {
-            override suspend fun getLeaderboard(): Try<Leaderboard> = result
+    private class SequenceRepository(vararg results: Try<Leaderboard>) : ILeaderboardRepository {
+        private val queue = ArrayDeque(results.toList())
+        var callCount = 0
+            private set
+
+        override suspend fun getLeaderboard(): Try<Leaderboard> {
+            callCount++
+            return if (queue.size > 1) queue.removeFirst() else queue.first()
         }
-        return GetLeaderboardUseCase(repo)
     }
 
-    private fun testLeaderboard() = Leaderboard(
-        entries = listOf(
-            LeaderboardEntry(
-                rank = 1,
-                displayName = "Alice",
-                currentStreak = 10,
-                longestStreak = 20,
-                masteredWords = 50,
-                isCurrentUser = false
-            ),
-            LeaderboardEntry(
-                rank = 2,
-                displayName = "Bob",
-                currentStreak = 5,
-                longestStreak = 15,
-                masteredWords = 30,
-                isCurrentUser = true
-            )
-        ),
-        userEntry = LeaderboardEntry(
-            rank = 2,
-            displayName = "Bob",
-            currentStreak = 5,
-            longestStreak = 15,
-            masteredWords = 30,
-            isCurrentUser = true
-        )
+    private fun createViewModel(repository: ILeaderboardRepository) =
+        LeaderboardViewModel(GetLeaderboardUseCase(repository), FakeAnalyticsTracker())
+
+    private fun entry(rank: Int, name: String, isCurrentUser: Boolean = false) = LeaderboardEntry(
+        rank = rank,
+        displayName = name,
+        currentStreak = 10 - rank,
+        longestStreak = 20 - rank,
+        masteredWords = 100 - rank * 10,
+        isCurrentUser = isCurrentUser
     )
 
-    @Test
-    fun `successful load maps to Loaded state`() = runTest {
-        val leaderboard = testLeaderboard()
-        val vm = LeaderboardViewModel(createFakeUseCase(Try.success(leaderboard)), FakeAnalyticsTracker())
+    private fun leaderboard(size: Int, userRank: Int?): Leaderboard {
+        val entries = (1..size).map { rank -> entry(rank, "User $rank", isCurrentUser = rank == userRank) }
+        return Leaderboard(
+            entries = entries,
+            userEntry = userRank?.let { entry(it, "User $it", isCurrentUser = true) }
+        )
+    }
 
-        val state = assertIs<UiState.Loaded<*>>(vm.currentState)
-        val data = state.value as LeaderboardUiData
-        assertEquals(2, data.entries.size)
-        assertEquals("Alice", data.entries[0].displayName)
-        assertEquals("Bob", data.userEntry?.displayName)
+    private fun LeaderboardViewModel.loadedData(): LeaderboardUiData {
+        val content = assertIs<UiState.Loaded<*>>(currentState.content)
+        return assertIs<LeaderboardUiData>(content.value)
     }
 
     @Test
-    fun `failed load maps to Error state`() = runTest {
-        val vm = LeaderboardViewModel(
-            createFakeUseCase(Try.failure(RuntimeException("Network error"))),
-            FakeAnalyticsTracker(),
-        )
+    fun `load with more than three entries splits podium and rows`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.success(leaderboard(size = 6, userRank = 5))))
 
-        val state = assertIs<UiState.Error>(vm.currentState)
-        assertEquals("Network error", state.message)
+        val data = vm.loadedData()
+        assertEquals(listOf(1, 2, 3), data.podium.map { it.rank })
+        assertEquals(listOf(4, 5, 6), data.rows.map { it.rank })
+        assertEquals(1, data.userRowIndex)
+        assertEquals(5, data.userEntry?.rank)
+    }
+
+    @Test
+    fun `load with fewer than three entries skips podium`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.success(leaderboard(size = 2, userRank = 2))))
+
+        val data = vm.loadedData()
+        assertTrue(data.podium.isEmpty())
+        assertEquals(listOf(1, 2), data.rows.map { it.rank })
+        assertEquals(1, data.userRowIndex)
+    }
+
+    @Test
+    fun `load when user is on podium has no row index`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.success(leaderboard(size = 5, userRank = 2))))
+
+        val data = vm.loadedData()
+        assertNull(data.userRowIndex)
+        assertTrue(data.podium[1].isCurrentUser)
+    }
+
+    @Test
+    fun `load when user is unranked has no user entry`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.success(leaderboard(size = 4, userRank = null))))
+
+        val data = vm.loadedData()
+        assertNull(data.userEntry)
+        assertNull(data.userRowIndex)
+    }
+
+    @Test
+    fun `load with unsorted entries orders them by rank`() = runTest {
+        val unsorted = Leaderboard(
+            entries = listOf(entry(3, "C"), entry(1, "A"), entry(4, "D"), entry(2, "B")),
+            userEntry = null
+        )
+        val vm = createViewModel(SequenceRepository(Try.success(unsorted)))
+
+        val data = vm.loadedData()
+        assertEquals(listOf("A", "B", "C"), data.podium.map { it.displayName })
+        assertEquals(listOf("D"), data.rows.map { it.displayName })
+    }
+
+    @Test
+    fun `load with no entries is empty`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.success(Leaderboard(emptyList(), null))))
+
+        assertTrue(vm.loadedData().isEmpty)
+    }
+
+    @Test
+    fun `initial load failure maps to Error state`() = runTest {
+        val vm = createViewModel(SequenceRepository(Try.failure(RuntimeException("Network error"))))
+
+        val content = assertIs<UiState.Error>(vm.currentState.content)
+        assertEquals("Network error", content.message)
     }
 
     @Test
     fun `refresh reloads leaderboard`() = runTest {
-        var callCount = 0
-        val leaderboard = testLeaderboard()
-        val repo = object : ILeaderboardRepository {
-            override suspend fun getLeaderboard(): Try<Leaderboard> {
-                callCount++
-                return Try.success(leaderboard)
-            }
-        }
-        val vm = LeaderboardViewModel(GetLeaderboardUseCase(repo), FakeAnalyticsTracker())
+        val repository = SequenceRepository(Try.success(leaderboard(size = 4, userRank = 4)))
+        val vm = createViewModel(repository)
 
-        assertEquals(1, callCount)
+        assertEquals(1, repository.callCount)
         vm.refresh()
-        assertEquals(2, callCount)
-        assertIs<UiState.Loaded<*>>(vm.currentState)
+        assertEquals(2, repository.callCount)
+        assertIs<UiState.Loaded<*>>(vm.currentState.content)
+        assertFalse(vm.currentState.isRefreshing)
+    }
+
+    @Test
+    fun `refresh failure keeps previous content and flags refresh error`() = runTest {
+        val repository = SequenceRepository(
+            Try.success(leaderboard(size = 4, userRank = 4)),
+            Try.failure(RuntimeException("Network error"))
+        )
+        val vm = createViewModel(repository)
+
+        vm.refresh()
+
+        assertEquals(4, vm.loadedData().rows.size + vm.loadedData().podium.size)
+        assertTrue(vm.currentState.refreshFailed)
+        assertFalse(vm.currentState.isRefreshing)
+    }
+
+    @Test
+    fun `refresh success after failure clears refresh error`() = runTest {
+        val repository = SequenceRepository(
+            Try.success(leaderboard(size = 4, userRank = 4)),
+            Try.failure(RuntimeException("Network error")),
+            Try.success(leaderboard(size = 5, userRank = 5))
+        )
+        val vm = createViewModel(repository)
+
+        vm.refresh()
+        vm.refresh()
+
+        assertFalse(vm.currentState.refreshFailed)
+        assertEquals(2, vm.loadedData().rows.size)
+    }
+
+    @Test
+    fun `retry after initial failure loads content`() = runTest {
+        val repository = SequenceRepository(
+            Try.failure(RuntimeException("Network error")),
+            Try.success(leaderboard(size = 3, userRank = 1))
+        )
+        val vm = createViewModel(repository)
+
+        vm.refresh()
+
+        assertEquals(3, vm.loadedData().podium.size)
+        assertFalse(vm.currentState.refreshFailed)
     }
 }
