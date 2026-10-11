@@ -16,8 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
@@ -30,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import components.snackbar.LexiconSnackbarHost
 import feature.insights.navigation.InsightsRoute
 import feature.profile.navigation.ProfileRoute
 import org.jetbrains.compose.resources.stringResource
@@ -148,27 +147,13 @@ internal fun AppContent(
                 WindowInsets(0)
             },
             snackbarHost = {
-                SnackbarHost(
+                LexiconSnackbarHost(
                     hostState = snackbarHostState,
                     modifier = if (layoutType != NavigationSuiteType.NavigationBar) {
                         Modifier.navigationBarsPadding()
                     } else {
                         Modifier
                     },
-                    snackbar = { snackbarData ->
-                        Snackbar(
-                            snackbarData = snackbarData,
-                            modifier = Modifier.padding(start = Theme.spacing.md, end = Theme.spacing.md),
-                            containerColor = if (snackbarData.visuals.message.startsWith("[Error]"))
-                                MaterialTheme.colorScheme.errorContainer
-                            else
-                                MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = if (snackbarData.visuals.message.startsWith("[Error]"))
-                                MaterialTheme.colorScheme.onErrorContainer
-                            else
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
                 )
             }
         ) { innerPadding ->

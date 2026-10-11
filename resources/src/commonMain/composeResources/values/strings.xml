@@ -334,7 +334,6 @@
     <string name="success_imported_words">Successfully imported %1$d words</string>
     <string name="success_imported_from_image">Successfully imported %1$d words from image</string>
     <string name="error_message">[Error] %1$d</string>
-    <string name="error_prefix">[Error]</string>
     <string name="error">Error</string>
     <string name="error_with_message">Error: %1$d</string>
 

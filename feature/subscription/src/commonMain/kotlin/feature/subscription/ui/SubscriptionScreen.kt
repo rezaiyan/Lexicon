@@ -26,6 +26,8 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import components.snackbar.showError
+import components.snackbar.showSuccess
 
 /** Stateful entry: wires the ViewModel, one-shot messages and store-return refresh. */
 @Composable
@@ -37,7 +39,11 @@ fun SubscriptionScreen(
     val state by viewModel.state()
 
     OnEvents(viewModel.effects) { effect ->
-        snackbarHostState.showSnackbar(effect.message())
+        when (effect) {
+            SubscriptionEffect.PurchasesRestored -> snackbarHostState.showSuccess(effect.message())
+            SubscriptionEffect.NothingToRestore -> snackbarHostState.showSnackbar(effect.message())
+            is SubscriptionEffect.Failure -> snackbarHostState.showError(effect.message())
+        }
     }
 
     // Coming back from the store page is a resume; that's when a cancel or resubscribe shows up.

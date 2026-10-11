@@ -29,6 +29,7 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.profile_updated
 import org.jetbrains.compose.resources.stringResource
 import overlay.bottomsheet.showSizeToFitBottomSheet
+import components.snackbar.showSuccess
 
 @Serializable
 data object ProfileRoute
@@ -92,7 +93,7 @@ private fun ProfileSheetContent(
                 viewModel = editProfileViewModel,
                 onSaved = {
                     pages.navigateBack()
-                    scope.launch { snackbarHostState.showSnackbar(profileUpdatedMessage) }
+                    scope.launch { snackbarHostState.showSuccess(profileUpdatedMessage) }
                 },
             )
 

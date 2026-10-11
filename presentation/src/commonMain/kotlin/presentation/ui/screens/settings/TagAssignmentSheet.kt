@@ -28,6 +28,7 @@ import lexicon.resources.generated.resources.word_count_label
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import presentation.ui.LocalSnackbarHostState
+import components.snackbar.showError
 
 @Composable
 internal fun TagAssignmentSheetContent(
@@ -45,7 +46,7 @@ internal fun TagAssignmentSheetContent(
     OnEvents(viewModel.effects) { effect ->
         when (effect) {
             is WordTagAssignmentEffect.TagsAssigned -> onDismiss()
-            is WordTagAssignmentEffect.Error -> snackbarHostState.showSnackbar(effect.message)
+            is WordTagAssignmentEffect.Error -> snackbarHostState.showError(effect.message)
         }
     }
 

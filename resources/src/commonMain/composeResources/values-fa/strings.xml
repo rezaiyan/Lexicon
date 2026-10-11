@@ -202,7 +202,6 @@
     <string name="success_imported_words">%1$d کلمه با موفقیت وارد شد</string>
     <string name="success_imported_from_image">%1$d کلمه از تصویر با موفقیت وارد شد</string>
     <string name="error_message">[Error] %1$d</string>
-    <string name="error_prefix">[Error]</string>
     <string name="error">خطا: %1$d</string>
     
     <!-- Progress Screen -->

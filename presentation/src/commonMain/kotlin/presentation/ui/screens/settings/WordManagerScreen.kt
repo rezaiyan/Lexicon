@@ -53,7 +53,6 @@ import theme.Theme
 import utils.Language
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.deleting_words_please_wait
-import lexicon.resources.generated.resources.error_prefix
 import lexicon.resources.generated.resources.failed_to_update_word
 import lexicon.resources.generated.resources.no_words_to_share
 import lexicon.resources.generated.resources.share_title_format
@@ -65,6 +64,8 @@ import lexicon.resources.generated.resources.word_updated
 import lexicon.resources.generated.resources.words_deleted
 import lexicon.resources.generated.resources.words_language_updated
 import lexicon.resources.generated.resources.words_tagged
+import components.snackbar.showError
+import components.snackbar.showSuccess
 
 private sealed interface WordDetailPage {
     data object Detail : WordDetailPage
@@ -93,7 +94,6 @@ fun WordManagerScreen() {
     val wordUpdated = stringResource(Res.string.word_updated)
     val wordsLanguageUpdatedFormat = stringResource(Res.string.words_language_updated)
     val failedToUpdateWord = stringResource(Res.string.failed_to_update_word)
-    val errorPrefix = stringResource(Res.string.error_prefix)
     val wordsTaggedFormat = stringResource(Res.string.words_tagged)
     val offlineChangesSync = stringResource(Res.string.offline_changes_will_sync)
     val classifyError = remember { ClassifyImportErrorUseCase() }
@@ -108,7 +108,7 @@ fun WordManagerScreen() {
                 }
 
                 is WordManagerEffect.ShareFailed -> {
-                    snackbarHostState.showSnackbar(noWordsToShare)
+                    snackbarHostState.showError(noWordsToShare)
                 }
 
                 is WordManagerEffect.WordDeleted -> {
@@ -118,11 +118,11 @@ fun WordManagerScreen() {
                         val pattern = "%1" + '$' + "d"
                         wordsDeletedFormat.replace(pattern, event.count.toString())
                     }
-                    snackbarHostState.showSnackbar(message)
+                    snackbarHostState.showSuccess(message)
                 }
 
                 is WordManagerEffect.WordUpdated -> {
-                    snackbarHostState.showSnackbar(wordUpdated)
+                    snackbarHostState.showSuccess(wordUpdated)
                 }
 
                 is WordManagerEffect.WordsLanguageUpdated -> {
@@ -130,13 +130,13 @@ fun WordManagerScreen() {
                     val message = wordsLanguageUpdatedFormat.replace(
                         pattern, event.count.toString()
                     )
-                    snackbarHostState.showSnackbar(message)
+                    snackbarHostState.showSuccess(message)
                 }
 
                 is WordManagerEffect.WordsTagged -> {
                     val pattern = "%1" + '$' + "d"
                     val message = wordsTaggedFormat.replace(pattern, event.count.toString())
-                    snackbarHostState.showSnackbar(message)
+                    snackbarHostState.showSuccess(message)
                 }
 
                 is WordManagerEffect.Error -> {
@@ -145,7 +145,7 @@ fun WordManagerScreen() {
                         ImportErrorClassification.NetworkError -> offlineChangesSync
                         else -> raw.ifEmpty { failedToUpdateWord }
                     }
-                    snackbarHostState.showSnackbar("$errorPrefix $errorMsg")
+                    snackbarHostState.showError(errorMsg)
                 }
             }
     }

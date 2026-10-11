@@ -73,6 +73,7 @@ import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.TagFormContent
 import theme.AppColors
 import theme.Theme
+import components.snackbar.showError
 
 fun OverlayHost.showTagManagerScreen() {
     showFullScreen(
@@ -98,7 +99,7 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
             is TagManagerEffect.TagCreated -> Unit
             is TagManagerEffect.TagRenamed -> Unit
             is TagManagerEffect.TagDeleted -> Unit
-            is TagManagerEffect.Error -> snackbarHostState.showSnackbar(effect.message)
+            is TagManagerEffect.Error -> snackbarHostState.showError(effect.message)
         }
     }
 
