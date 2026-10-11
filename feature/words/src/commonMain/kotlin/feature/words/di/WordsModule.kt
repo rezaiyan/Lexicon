@@ -49,6 +49,7 @@ fun wordsModule() = module {
         WordTagAssignmentViewModel(
             getTagsUseCase = get(),
             assignWordTagsUseCase = get(),
+            createTagUseCase = get(),
         )
     }
 }

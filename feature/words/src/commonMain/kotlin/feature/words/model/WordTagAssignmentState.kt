@@ -12,5 +12,6 @@ data class WordTagAssignmentState(
 
 sealed class WordTagAssignmentEffect {
     data object TagsAssigned : WordTagAssignmentEffect()
+    data object TagCreated : WordTagAssignmentEffect()
     data class Error(val message: String) : WordTagAssignmentEffect()
 }
