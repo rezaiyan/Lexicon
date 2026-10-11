@@ -17,6 +17,9 @@ plugins {
 
 configurations.configureEach {
     exclude(group = "com.amazon.device", module = "amazon-appstore-sdk")
+    // Its consumer rules ship `-dontoptimize`, which turns off R8 optimisation for the whole app
+    // (Play Console: "DEX code optimisation 0%"). We don't sell through Amazon.
+    exclude(group = "com.revenuecat.purchases", module = "purchases-store-amazon")
 }
 
 val localProperties = Properties().apply {
@@ -252,6 +255,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
             val releaseSigning = signingConfigs.getByName("release")
             if (releaseSigning.storeFile != null) {
                 signingConfig = releaseSigning
