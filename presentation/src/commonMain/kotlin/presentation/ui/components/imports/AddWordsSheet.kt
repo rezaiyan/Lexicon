@@ -32,6 +32,7 @@ import overlay.bottomsheet.BottomSheetPageConfig
 import overlay.bottomsheet.BottomSheetPageNavigator
 import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
+import presentation.ui.components.ScopedViewModelStore
 import presentation.ui.components.TagFormContent
 import utils.Language
 import utils.rememberCameraLauncher
