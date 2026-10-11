@@ -21,8 +21,7 @@ tags:
 #
 # Teardown
 #   8. Delete "TestFilterTag" via Settings → Tag Manager so the account is
-#      clean for subsequent tests (word_manager/09_tag_assignment.yaml expects
-#      the "No tags yet" empty state).
+#      clean for subsequent tests.
 
 # ── Setup: Create tag ─────────────────────────────────────────────────────────
 

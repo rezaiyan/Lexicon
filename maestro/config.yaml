@@ -79,6 +79,9 @@ flows:
   # 10_sort_order verifies the sort chip label updates when a different sort
   # option is selected from the dropdown.
   - "flows/word_manager/10_sort_order.yaml"
+  # 11_search_keeps_tabs_reachable: regression — the search keyboard used to
+  # cover the tab bar, trapping the user on the Words tab.
+  - "flows/word_manager/11_search_keeps_tabs_reachable.yaml"
 
 executionOrder:
   continueOnFailure: true
@@ -127,3 +130,4 @@ executionOrder:
     - flows/word_manager/08_word_detail_sheet.yaml
     - flows/word_manager/09_tag_assignment.yaml
     - flows/word_manager/10_sort_order.yaml
+    - flows/word_manager/11_search_keeps_tabs_reachable.yaml
