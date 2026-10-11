@@ -1,7 +1,14 @@
 package feature.support.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,44 +17,52 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.SupportAgent
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import components.EmptyScreen
 import components.LoadingScreen
 import components.scaffold.LexiconColumn
-import domain.support.model.SupportDeliveryStatus
-import domain.support.model.SupportMessage
 import domain.support.model.SupportSender
 import feature.support.SupportViewModel
 import feature.support.model.SupportState
+import feature.support.model.SupportTimelineItem
+import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.content_description_close
 import lexicon.resources.generated.resources.support_empty_subtitle
 import lexicon.resources.generated.resources.support_empty_title
-import lexicon.resources.generated.resources.support_input_placeholder
-import lexicon.resources.generated.resources.support_not_sent_retry
+import lexicon.resources.generated.resources.support_jump_to_latest
 import lexicon.resources.generated.resources.support_offline
-import lexicon.resources.generated.resources.support_send
-import lexicon.resources.generated.resources.support_sending
 import lexicon.resources.generated.resources.support_title
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -82,157 +97,185 @@ private fun SupportContent(
     onSend: () -> Unit,
     onRetry: (String) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding()) {
-        if (state.isOffline) OfflineBanner()
-        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+    val focusManager = LocalFocusManager.current
+    // The sheet already pads for the navigation bar; imePadding adds only what the keyboard covers
+    // beyond it, so the composer rides on top of the keyboard and the list shrinks above it.
+    Column(modifier = Modifier.fillMaxSize().imePadding()) {
+        AnimatedVisibility(
+            visible = state.isOffline,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
+            OfflineBanner()
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                // Tapping the conversation puts the keyboard away.
+                .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            val contentModifier = Modifier.fillMaxSize().widthIn(max = Theme.dimensions.contentMaxWidth)
             when {
                 state.isLoading -> LoadingScreen()
-                state.messages.isEmpty() -> EmptyScreen(
-                    title = stringResource(Res.string.support_empty_title),
-                    subtitle = stringResource(Res.string.support_empty_subtitle),
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Rounded.SupportAgent,
-                            contentDescription = null,
-                            modifier = Modifier.size(Theme.dimensions.iconSizeMassive),
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    },
-                )
-                else -> MessageList(messages = state.messages, onRetry = onRetry)
+                state.timeline.isEmpty() -> EmptyConversation(contentModifier)
+                else -> Conversation(timeline = state.timeline, onRetry = onRetry, modifier = contentModifier)
             }
         }
-        Composer(draft = state.draft, canSend = state.canSend, onDraftChanged = onDraftChanged, onSend = onSend)
-    }
-}
-
-@Composable
-private fun MessageList(messages: List<SupportMessage>, onRetry: (String) -> Unit) {
-    // Newest at the bottom; reverseLayout keeps the list pinned there as messages arrive.
-    val newestFirst = remember(messages) { messages.asReversed() }
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        reverseLayout = true,
-        contentPadding = PaddingValues(horizontal = Theme.spacing.screenGutter, vertical = Theme.spacing.sm),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-    ) {
-        items(newestFirst, key = { it.id }) { message ->
-            MessageBubble(
-                body = message.body,
-                fromUser = message.sender == SupportSender.USER,
-                status = message.status,
-                onRetry = { onRetry(message.id) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun MessageBubble(
-    body: String,
-    fromUser: Boolean,
-    status: SupportDeliveryStatus,
-    onRetry: () -> Unit,
-) {
-    val colors = MaterialTheme.colorScheme
-    val corner = Theme.shapes.large
-    val tail = Theme.shapes.extraSmall
-    // The gap on the far side keeps bubbles from spanning the whole row.
-    val farSide = Theme.spacing.xxxl
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = if (fromUser) farSide else Theme.spacing.none,
-                end = if (fromUser) Theme.spacing.none else farSide,
-            ),
-        horizontalAlignment = if (fromUser) Alignment.End else Alignment.Start,
-    ) {
-        Text(
-            text = body,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (fromUser) colors.onPrimaryContainer else colors.onSurfaceVariant,
-            modifier = Modifier
-                .background(
-                    color = if (fromUser) colors.primaryContainer else colors.surfaceVariant,
-                    shape = RoundedCornerShape(
-                        topStart = corner,
-                        topEnd = corner,
-                        bottomStart = if (fromUser) corner else tail,
-                        bottomEnd = if (fromUser) tail else corner,
-                    ),
-                )
-                .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs),
+        Composer(
+            draft = state.draft,
+            canSend = state.canSend,
+            remainingChars = state.remainingChars,
+            onDraftChanged = onDraftChanged,
+            onSend = onSend,
         )
-        when (status) {
-            SupportDeliveryStatus.SENDING -> StatusLabel(stringResource(Res.string.support_sending))
-            SupportDeliveryStatus.FAILED -> StatusLabel(
-                text = stringResource(Res.string.support_not_sent_retry),
-                isError = true,
-                modifier = Modifier.clickable(onClick = onRetry),
-            )
-            SupportDeliveryStatus.SENT -> Unit
+    }
+}
+
+@Composable
+private fun Conversation(
+    timeline: List<SupportTimelineItem>,
+    onRetry: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    // Newest at the bottom; reverseLayout keeps the list pinned there as messages arrive and as
+    // the keyboard opens.
+    val newestFirst = remember(timeline) { timeline.asReversed() }
+    val showJumpToLatest by remember { derivedStateOf { listState.firstVisibleItemIndex > JUMP_THRESHOLD } }
+
+    FollowNewestMessage(newest = timeline.lastOrNull(), listState = listState)
+
+    Box(modifier = modifier) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            reverseLayout = true,
+            contentPadding = PaddingValues(
+                start = Theme.spacing.sm,
+                end = Theme.spacing.screenGutter,
+                top = Theme.spacing.xs,
+                bottom = Theme.spacing.sm,
+            ),
+        ) {
+            items(
+                items = newestFirst,
+                key = { it.key },
+                contentType = { it::class },
+            ) { item ->
+                when (item) {
+                    is SupportTimelineItem.DayHeader -> DayHeader(day = item.day, modifier = Modifier.animateItem())
+                    is SupportTimelineItem.Bubble -> MessageRow(
+                        bubble = item,
+                        onRetry = onRetry,
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = showJumpToLatest,
+            enter = fadeIn() + scaleIn(),
+            exit = fadeOut() + scaleOut(),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(Theme.spacing.md),
+        ) {
+            SmallFloatingActionButton(
+                onClick = { scope.launch { listState.animateScrollToItem(0) } },
+                shape = CircleShape,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = stringResource(Res.string.support_jump_to_latest),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Scrolls to a newly arrived message when the reader is already near the bottom, and always for
+ * the user's own message, so sending never leaves the new bubble off screen.
+ */
+@Composable
+private fun FollowNewestMessage(newest: SupportTimelineItem?, listState: LazyListState) {
+    val newestKey = newest?.key
+    val fromUser = (newest as? SupportTimelineItem.Bubble)?.message?.sender == SupportSender.USER
+    LaunchedEffect(newestKey) {
+        if (newestKey != null && (fromUser || listState.firstVisibleItemIndex <= JUMP_THRESHOLD)) {
+            listState.animateScrollToItem(0)
         }
     }
 }
 
 @Composable
-private fun StatusLabel(text: String, modifier: Modifier = Modifier, isError: Boolean = false) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelSmall,
-        color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.padding(top = Theme.spacing.xxs, start = Theme.spacing.xxs, end = Theme.spacing.xxs),
-    )
+private fun EmptyConversation(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = Theme.spacing.xl, vertical = Theme.spacing.xl),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm, Alignment.CenterVertically),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(Theme.dimensions.iconSizeMassive + Theme.spacing.xl)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.SupportAgent,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(Theme.dimensions.iconSizeHuge),
+            )
+        }
+        Text(
+            text = stringResource(Res.string.support_empty_title),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = Theme.spacing.xs),
+        )
+        Text(
+            text = stringResource(Res.string.support_empty_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
 @Composable
 private fun OfflineBanner() {
-    Text(
-        text = stringResource(Res.string.support_offline),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(vertical = Theme.spacing.xs, horizontal = Theme.spacing.screenGutter),
-    )
-}
-
-@Composable
-private fun Composer(
-    draft: String,
-    canSend: Boolean,
-    onDraftChanged: (String) -> Unit,
-    onSend: () -> Unit,
-) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Theme.spacing.screenGutter, vertical = Theme.spacing.xs),
-        verticalAlignment = Alignment.Bottom,
+            .padding(horizontal = Theme.spacing.screenGutter, vertical = Theme.spacing.xs)
+            .clip(RoundedCornerShape(Theme.shapes.medium))
+            .background(Theme.colors.warningContainer)
+            .padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs),
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
     ) {
-        OutlinedTextField(
-            value = draft,
-            onValueChange = onDraftChanged,
-            modifier = Modifier.weight(1f),
-            placeholder = { Text(stringResource(Res.string.support_input_placeholder)) },
-            maxLines = COMPOSER_MAX_LINES,
-            shape = RoundedCornerShape(Theme.shapes.extraLarge),
+        Icon(
+            imageVector = Icons.Rounded.CloudOff,
+            contentDescription = null,
+            tint = Theme.colors.onWarningContainer,
+            modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
         )
-        FilledIconButton(
-            onClick = onSend,
-            enabled = canSend,
-            modifier = Modifier.size(Theme.dimensions.inputFieldHeight),
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Send,
-                contentDescription = stringResource(Res.string.support_send),
-            )
-        }
+        Text(
+            text = stringResource(Res.string.support_offline),
+            style = MaterialTheme.typography.labelMedium,
+            color = Theme.colors.onWarningContainer,
+        )
     }
 }
 
-private const val COMPOSER_MAX_LINES = 5
+/** Items scrolled past before the list stops following new messages and offers a jump back. */
+private const val JUMP_THRESHOLD = 2

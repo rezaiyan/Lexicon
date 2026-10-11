@@ -665,4 +665,11 @@
     <string name="support_sending">در حال ارسال…</string>
     <string name="support_not_sent_retry">ارسال نشد · برای تلاش دوباره ضربه بزنید</string>
     <string name="support_offline">فعلاً دسترسی به پشتیبانی ممکن نیست. پیام‌های ذخیره‌شده نمایش داده می‌شوند.</string>
+    <string name="support_today">امروز</string>
+    <string name="support_yesterday">دیروز</string>
+    <string name="support_jump_to_latest">رفتن به آخرین پیام</string>
+    <string name="support_sent">ارسال شد</string>
+    <string name="support_team_name">تیم Lexicon</string>
+    <string name="support_chars_left">%1$d نویسه باقی مانده</string>
+    <string name="support_not_sent">ارسال نشد</string>
 </resources>

@@ -1209,4 +1209,11 @@
     <string name="support_sending">Sending…</string>
     <string name="support_not_sent_retry">Not sent · Tap to retry</string>
     <string name="support_offline">Can't reach support right now. Showing saved messages.</string>
+    <string name="support_today">Today</string>
+    <string name="support_yesterday">Yesterday</string>
+    <string name="support_jump_to_latest">Jump to latest</string>
+    <string name="support_sent">Sent</string>
+    <string name="support_team_name">Lexicon team</string>
+    <string name="support_chars_left">%1$d characters left</string>
+    <string name="support_not_sent">Not sent</string>
 </resources>

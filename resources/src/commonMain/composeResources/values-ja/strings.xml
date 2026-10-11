@@ -825,4 +825,11 @@
     <string name="support_sending">送信中…</string>
     <string name="support_not_sent_retry">未送信 · タップして再試行</string>
     <string name="support_offline">現在サポートに接続できません。保存済みのメッセージを表示しています。</string>
+    <string name="support_today">今日</string>
+    <string name="support_yesterday">昨日</string>
+    <string name="support_jump_to_latest">最新のメッセージへ</string>
+    <string name="support_sent">送信済み</string>
+    <string name="support_team_name">Lexicon チーム</string>
+    <string name="support_chars_left">残り %1$d 文字</string>
+    <string name="support_not_sent">未送信</string>
 </resources>

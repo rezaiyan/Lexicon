@@ -666,4 +666,11 @@
     <string name="support_sending">Envoi…</string>
     <string name="support_not_sent_retry">Non envoyé · Touchez pour réessayer</string>
     <string name="support_offline">Support injoignable pour le moment. Messages enregistrés affichés.</string>
+    <string name="support_today">Aujourd’hui</string>
+    <string name="support_yesterday">Hier</string>
+    <string name="support_jump_to_latest">Aller au dernier message</string>
+    <string name="support_sent">Envoyé</string>
+    <string name="support_team_name">L’équipe Lexicon</string>
+    <string name="support_chars_left">%1$d caractères restants</string>
+    <string name="support_not_sent">Non envoyé</string>
 </resources>

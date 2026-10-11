@@ -666,4 +666,11 @@
     <string name="support_sending">Wird gesendet…</string>
     <string name="support_not_sent_retry">Nicht gesendet · Tippen zum Wiederholen</string>
     <string name="support_offline">Support gerade nicht erreichbar. Gespeicherte Nachrichten werden angezeigt.</string>
+    <string name="support_today">Heute</string>
+    <string name="support_yesterday">Gestern</string>
+    <string name="support_jump_to_latest">Zur neuesten Nachricht</string>
+    <string name="support_sent">Gesendet</string>
+    <string name="support_team_name">Lexicon-Team</string>
+    <string name="support_chars_left">Noch %1$d Zeichen</string>
+    <string name="support_not_sent">Nicht gesendet</string>
 </resources>

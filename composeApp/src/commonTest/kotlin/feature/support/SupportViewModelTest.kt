@@ -10,12 +10,15 @@ import domain.support.usecase.RefreshSupportMessagesUseCase
 import domain.support.usecase.RetrySupportMessageUseCase
 import domain.support.usecase.SendSupportMessageUseCase
 import fakes.FakeSupportRepository
+import feature.support.model.SupportTimelineItem
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SupportViewModelTest : ViewModelTestBase() {
@@ -44,6 +47,28 @@ class SupportViewModelTest : ViewModelTestBase() {
         assertEquals(listOf("Welcome"), vm.currentState.messages.map { it.body })
         assertEquals(1, repository.refreshCount)
         assertFalse(vm.currentState.isOffline)
+    }
+
+    @Test
+    fun `init builds the timeline with a day header before the messages`() = runTest {
+        repository.messages.value = listOf(adminMessage("s-1", "Welcome"), adminMessage("s-2", "Hi"))
+
+        val vm = createViewModel()
+
+        val timeline = vm.currentState.timeline
+        assertIs<SupportTimelineItem.DayHeader>(timeline.first())
+        assertEquals(listOf("s-1", "s-2"), timeline.filterIsInstance<SupportTimelineItem.Bubble>().map { it.message.id })
+    }
+
+    @Test
+    fun `remaining characters show only near the limit`() = runTest {
+        val vm = createViewModel()
+
+        vm.onDraftChanged("short")
+        assertNull(vm.currentState.remainingChars)
+
+        vm.onDraftChanged("x".repeat(MAX_SUPPORT_MESSAGE_LENGTH - 50))
+        assertEquals(50, vm.currentState.remainingChars)
     }
 
     @Test

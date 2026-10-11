@@ -825,4 +825,11 @@
     <string name="support_sending">보내는 중…</string>
     <string name="support_not_sent_retry">전송 안 됨 · 탭하여 다시 시도</string>
     <string name="support_offline">지금은 지원팀에 연결할 수 없습니다. 저장된 메시지를 표시합니다.</string>
+    <string name="support_today">오늘</string>
+    <string name="support_yesterday">어제</string>
+    <string name="support_jump_to_latest">최신 메시지로 이동</string>
+    <string name="support_sent">전송됨</string>
+    <string name="support_team_name">Lexicon 팀</string>
+    <string name="support_chars_left">%1$d자 남음</string>
+    <string name="support_not_sent">전송되지 않음</string>
 </resources>

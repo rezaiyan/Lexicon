@@ -9,10 +9,14 @@ import domain.support.usecase.RefreshSupportMessagesUseCase
 import domain.support.usecase.RetrySupportMessageUseCase
 import domain.support.usecase.SendSupportMessageUseCase
 import feature.support.model.SupportState
+import feature.support.model.buildSupportTimeline
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 /**
  * Support chat. Shows the local conversation and, while the screen is open, refreshes on every
@@ -24,6 +28,8 @@ class SupportViewModel(
     private val sendMessage: SendSupportMessageUseCase,
     private val retryMessage: RetrySupportMessageUseCase,
     pollTicks: Flow<Unit> = every(DEFAULT_POLL_INTERVAL_MS),
+    clock: Clock = Clock.System,
+    timeZone: TimeZone = TimeZone.currentSystemDefault(),
 ) : BaseViewModel<SupportState, Nothing>() {
 
     override fun initialState(): SupportState = SupportState()
@@ -31,7 +37,9 @@ class SupportViewModel(
     init {
         viewModelScope.launch {
             observeMessages(Unit).collect { messages ->
-                updateState { copy(messages = messages, isLoading = false) }
+                val today = clock.now().toLocalDateTime(timeZone).date
+                val timeline = buildSupportTimeline(messages, today, timeZone)
+                updateState { copy(messages = messages, timeline = timeline, isLoading = false) }
             }
         }
         viewModelScope.launch {

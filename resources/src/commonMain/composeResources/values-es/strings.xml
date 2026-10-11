@@ -666,4 +666,11 @@
     <string name="support_sending">Enviando…</string>
     <string name="support_not_sent_retry">No enviado · Toca para reintentar</string>
     <string name="support_offline">No se puede contactar con soporte ahora. Mostrando mensajes guardados.</string>
+    <string name="support_today">Hoy</string>
+    <string name="support_yesterday">Ayer</string>
+    <string name="support_jump_to_latest">Ir al último mensaje</string>
+    <string name="support_sent">Enviado</string>
+    <string name="support_team_name">Equipo de Lexicon</string>
+    <string name="support_chars_left">Quedan %1$d caracteres</string>
+    <string name="support_not_sent">No enviado</string>
 </resources>

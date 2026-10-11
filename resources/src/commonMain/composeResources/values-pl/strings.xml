@@ -825,4 +825,11 @@
     <string name="support_sending">Wysyłanie…</string>
     <string name="support_not_sent_retry">Nie wysłano · Dotknij, aby ponowić</string>
     <string name="support_offline">Brak połączenia z pomocą. Wyświetlane są zapisane wiadomości.</string>
+    <string name="support_today">Dzisiaj</string>
+    <string name="support_yesterday">Wczoraj</string>
+    <string name="support_jump_to_latest">Przejdź do najnowszej</string>
+    <string name="support_sent">Wysłano</string>
+    <string name="support_team_name">Zespół Lexicon</string>
+    <string name="support_chars_left">Pozostało znaków: %1$d</string>
+    <string name="support_not_sent">Nie wysłano</string>
 </resources>

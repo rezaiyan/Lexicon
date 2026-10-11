@@ -666,4 +666,11 @@
     <string name="support_sending">发送中…</string>
     <string name="support_not_sent_retry">未发送 · 点按重试</string>
     <string name="support_offline">暂时无法连接支持团队。正在显示已保存的消息。</string>
+    <string name="support_today">今天</string>
+    <string name="support_yesterday">昨天</string>
+    <string name="support_jump_to_latest">跳到最新消息</string>
+    <string name="support_sent">已发送</string>
+    <string name="support_team_name">Lexicon 团队</string>
+    <string name="support_chars_left">还可输入 %1$d 个字符</string>
+    <string name="support_not_sent">未发送</string>
 </resources>
