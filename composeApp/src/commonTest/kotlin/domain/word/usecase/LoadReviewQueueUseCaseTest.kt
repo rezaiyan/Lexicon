@@ -234,7 +234,7 @@ class LoadReviewQueueUseCaseTest {
     }
 
     @Test
-    fun `ByWords returns only the requested words in focus, ignoring daily goal`() = runTest {
+    fun `ByWords returns only the requested words in focus and ignores daily goal`() = runTest {
         val words = (1..5).map { testWord(it) }
         val repo = ConfigurableWordRepository(allWords = words)
         val useCase = buildUseCase(repo, dailyGoal = 1)
