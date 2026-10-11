@@ -203,7 +203,6 @@
     <string name="success_imported_words">成功导入 %1$d 个单词</string>
     <string name="success_imported_from_image">从图像成功导入 %1$d 个单词</string>
     <string name="error_message">[Error] %1$d</string>
-    <string name="error_prefix">[Error]</string>
     <string name="error">错误: %1$d</string>
     
     <!-- Progress Screen -->

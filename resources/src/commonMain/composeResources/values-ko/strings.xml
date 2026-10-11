@@ -262,7 +262,6 @@
     <string name="success_imported_words">%1$d개 단어를 성공적으로 가져왔습니다</string>
     <string name="success_imported_from_image">이미지에서 %1$d개 단어를 성공적으로 가져왔습니다</string>
     <string name="error_message">[오류] %1$d</string>
-    <string name="error_prefix">[오류]</string>
     <string name="error">오류</string>
     <string name="error_with_message">오류: %1$d</string>
 

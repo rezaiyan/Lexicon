@@ -1,12 +1,14 @@
 package presentation.ui
 
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import components.snackbar.showError
+import components.snackbar.showSuccess
 import events.VocabularyEffect
 import org.jetbrains.compose.resources.stringResource
 import feature.words.VocabularyViewModel
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.image_import_failed_generic
 import lexicon.resources.generated.resources.import_failed_generic
 import lexicon.resources.generated.resources.please_login_for_ai
 import lexicon.resources.generated.resources.review_complete
@@ -20,6 +22,7 @@ internal fun HandleVocabularyEffects(
 ) {
     val snackbarHostState = LocalSnackbarHostState.current
     val importFailedGeneric = stringResource(Res.string.import_failed_generic)
+    val imageImportFailed = stringResource(Res.string.image_import_failed_generic)
     val pleaseLoginForAi = stringResource(Res.string.please_login_for_ai)
     val successImportedWordsFormat = stringResource(Res.string.success_imported_words)
 
@@ -34,52 +37,29 @@ internal fun HandleVocabularyEffects(
                     val pattern = "%1" + '$' + "d"
                     val message =
                         successImportedWordsFormat.replace(pattern, event.count.toString())
-                    snackbarHostState.showSnackbar(
-                        message = message,
-                        duration = SnackbarDuration.Short
-                    )
+                    snackbarHostState.showSuccess(message)
                 }
 
                 is VocabularyEffect.ImportError -> {
-                    val message = if (event.message.isNotEmpty()) {
-                        "[Error] ${event.message}"
-                    } else {
-                        importFailedGeneric
-                    }
-                    snackbarHostState.showSnackbar(
-                        message = message,
-                        duration = SnackbarDuration.Short
-                    )
+                    snackbarHostState.showError(event.message.ifEmpty { importFailedGeneric })
                 }
 
                 is VocabularyEffect.ImageImportSuccess -> {}
 
                 is VocabularyEffect.ImageImportError -> {
-                    snackbarHostState.showSnackbar(
-                        message = "Something wrong happened!",
-                        duration = SnackbarDuration.Short
-                    )
+                    snackbarHostState.showError(imageImportFailed)
                 }
 
                 is VocabularyEffect.ImageImportRequiresLogin -> {
-                    snackbarHostState.showSnackbar(
-                        message = pleaseLoginForAi,
-                        duration = SnackbarDuration.Short
-                    )
+                    snackbarHostState.showSnackbar(pleaseLoginForAi)
                 }
 
                 is VocabularyEffect.ReviewSessionComplete -> {
-                    snackbarHostState.showSnackbar(
-                        message = "$reviewComplete\n$reviewCompleteMessage",
-                        duration = SnackbarDuration.Short
-                    )
+                    snackbarHostState.showSuccess("$reviewComplete\n$reviewCompleteMessage")
                 }
 
                 is VocabularyEffect.WordDeleted -> {
-                    snackbarHostState.showSnackbar(
-                        message = wordDeleted,
-                        duration = SnackbarDuration.Short
-                    )
+                    snackbarHostState.showSuccess(wordDeleted)
                 }
             }
         }

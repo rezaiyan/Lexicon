@@ -19,6 +19,7 @@ import core.common.UiState
 import feature.profile.ProfileViewModel
 import feature.profile.model.ProfileUiData
 import org.koin.compose.viewmodel.koinViewModel
+import components.snackbar.showError
 
 @Composable
 fun ProfileScreen(
@@ -36,10 +37,7 @@ fun ProfileScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is UiState.Error) {
-            snackbarHostState.showSnackbar(
-                message = (uiState as UiState.Error).message,
-                withDismissAction = true
-            )
+            snackbarHostState.showError((uiState as UiState.Error).message)
             profileViewModel.clearError()
         }
     }
