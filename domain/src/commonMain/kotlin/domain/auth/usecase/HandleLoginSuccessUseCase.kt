@@ -15,7 +15,8 @@ import domain.word.usecase.SyncRemoteToLocalUseCase
  * Orchestrates all domain side-effects that must run after a successful login or session restore.
  * Centralises the post-login sequence so the ViewModel doesn't know the order of operations.
  *
- * @param syncData true for fresh logins (remote → local sync needed); false for session restores.
+ * @param syncData true for fresh logins (full remote → local sync); false for session restores
+ *   (tags only).
  */
 class HandleLoginSuccessUseCase(
     private val subscriptionManager: ISubscriptionManager,
@@ -38,6 +39,11 @@ class HandleLoginSuccessUseCase(
         if (params.syncData) {
             syncTagsFromRemoteUseCase(Unit).getOrThrow()
             syncRemoteToLocalUseCase(clearFirst = false).getOrThrow()
+        } else {
+            // Session restore: refresh tags so ones made on other devices show up. Every tag write
+            // goes to the server first, so replacing local tags loses nothing. Best effort: an
+            // offline restore keeps the local tags.
+            syncTagsFromRemoteUseCase(Unit)
         }
         initializePushNotificationsUseCase(Unit).getOrThrow()
     }

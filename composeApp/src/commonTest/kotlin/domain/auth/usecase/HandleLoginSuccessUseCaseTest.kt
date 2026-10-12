@@ -202,12 +202,31 @@ class HandleLoginSuccessUseCaseTest {
     }
 
     @Test
-    fun `tag sync is not called when syncData=false`() = runTest {
+    fun `tag sync is called on session restore`() = runTest {
         val useCase = buildUseCase()
 
         useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = false))
 
-        assertFalse(fakeTagRepository.syncTagsFromRemoteCalled, "tag sync must NOT be called when syncData=false")
+        assertTrue(fakeTagRepository.syncTagsFromRemoteCalled, "tags must refresh on session restore")
+    }
+
+    @Test
+    fun `session restore succeeds when tag sync fails`() = runTest {
+        fakeTagRepository.syncTagsFromRemoteResult = Try.failure(RuntimeException("offline"))
+        val useCase = buildUseCase()
+
+        val result = useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = false))
+
+        assertTrue(result.isSuccess, "an offline restore must keep the local tags and carry on")
+    }
+
+    @Test
+    fun `word sync is not called on session restore`() = runTest {
+        val useCase = buildUseCase()
+
+        useCase(HandleLoginSuccessUseCase.Params(user = testUser, syncData = false))
+
+        assertFalse(fakeWordRepository.syncRemoteToLocalCalled, "word sync must NOT run on session restore")
     }
 
     @Test
