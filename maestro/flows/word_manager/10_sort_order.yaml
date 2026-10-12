@@ -30,9 +30,14 @@ tags:
     visible: "Search words..."
     timeout: 15000
 
-# The filter chips row must be visible.
+# The filter chips row is collapsed behind the "Filters" toggle next to the search field.
+- tapOn: "Filters"
+- waitForAnimationToEnd
+
 # The default sort chip label is "Newest" (DATE_ADDED_DESC is the default).
-- assertVisible: "Newest"
+- extendedWaitUntil:
+    visible: "Newest"
+    timeout: 5000
 
 # Tap the sort chip to open the sort dropdown.
 - tapOn: "Newest"
