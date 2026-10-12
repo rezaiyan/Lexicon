@@ -4,6 +4,9 @@ tags:
   - tags
   - review
 ---
+# Unique per run: tags live on the backend, and a name left over from an aborted run
+# makes the create request fail as a duplicate.
+- evalScript: ${output.tag = 'TestFilterTag' + (Date.now() % 100000000)}
 # Test: Long-pressing "Start Review" on the Study screen opens a tag-filter
 # picker sheet when at least one tag with assigned words exists.  Selecting a
 # tag launches a tag-filtered review session.
@@ -47,14 +50,14 @@ tags:
 - tapOn: "Tag name"
 - waitForAnimationToEnd
 - eraseText: 50
-- inputText: "TestFilterTag"
+- inputText: "${output.tag}"
 - hideKeyboard
 
 - tapOn: "Create Tag"
 - waitForAnimationToEnd
 
 # Tag appears in the list.
-- assertVisible: "TestFilterTag"
+- assertVisible: "${output.tag}"
 
 # Close Tag Manager.
 # pressKey: back does NOT work — Tag Manager uses dismissOnBackPress=false.
@@ -91,10 +94,10 @@ tags:
     timeout: 8000
 
 # "TestFilterTag" chip must be present (wordCount=0 so shows plain name).
-- assertVisible: "TestFilterTag"
+- assertVisible: "${output.tag}"
 
 # Select the chip.
-- tapOn: "TestFilterTag"
+- tapOn: "${output.tag}"
 - waitForAnimationToEnd
 
 # Save the assignment. index 1: the page title (index 0) also reads
@@ -132,10 +135,10 @@ tags:
     timeout: 8000
 
 # "TestFilterTag" must appear (wordCount > 0 after assignment).
-- assertVisible: "TestFilterTag"
+- assertVisible: "${output.tag}"
 
 # Tap the tag to start a tag-filtered review.
-- tapOn: "TestFilterTag"
+- tapOn: "${output.tag}"
 - waitForAnimationToEnd
 
 # The review screen must open — first card is face-down.
@@ -174,7 +177,7 @@ tags:
 - tapOn: "Tag Manager"
 
 - extendedWaitUntil:
-    visible: "TestFilterTag"
+    visible: "${output.tag}"
     timeout: 8000
 
 - tapOn: "Delete Tag"

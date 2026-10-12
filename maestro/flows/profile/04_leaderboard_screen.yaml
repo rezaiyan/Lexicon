@@ -28,7 +28,11 @@ tags:
     timeout: 10000
 - assertVisible: "Leaderboard"
 
-- tapOn: "Back"
+# The system nav bar's back button is also labelled "Back" and would match first; system back
+# does nothing here (dismissOnBackPress=false). The top-bar arrow sits left of the title.
+- tapOn:
+    text: "Back"
+    leftOf: "Leaderboard"
 - waitForAnimationToEnd
 
 - assertNotVisible: "Refresh"

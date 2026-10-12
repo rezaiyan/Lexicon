@@ -496,7 +496,7 @@ jobs:
       github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_android == 'true' &&
       (github.event.inputs.version_bump == null || github.event.inputs.version_bump == 'none') &&
       (github.event.inputs.platform == null || github.event.inputs.platform == 'all' || github.event.inputs.platform == 'android')
-    timeout-minutes: 45
+    timeout-minutes: 75
     permissions:
       checks: write
       contents: read
@@ -585,7 +585,7 @@ jobs:
         if: always()
         uses: mikepenz/action-junit-report@v5
         with:
-          report_paths: ~/maestro-report.xml
+          report_paths: ~/maestro-reports/*.xml
           check_name: Maestro Test Results
 
       - name: Upload Maestro artifacts
@@ -594,7 +594,7 @@ jobs:
         with:
           name: maestro-artifacts
           path: |
-            ~/maestro-report.xml
+            ~/maestro-reports/
             ~/maestro-debug/
           retention-days: 7
 

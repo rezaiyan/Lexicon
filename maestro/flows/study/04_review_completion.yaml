@@ -4,6 +4,9 @@ tags:
   - review
   - completion
 ---
+# Unique per run: tags live on the backend, and a name left over from an aborted run
+# makes the create request fail as a duplicate.
+- evalScript: ${output.tag = 'ReviewTag' + (Date.now() % 100000000)}
 # Test: Review completion screen appears after reviewing all cards.
 #
 # Uses a tag-filtered 1-word session to guarantee the session completes
@@ -40,14 +43,14 @@ tags:
 - tapOn: "Tag name"
 - waitForAnimationToEnd
 - eraseText: 50
-- inputText: "ReviewTag"
+- inputText: "${output.tag}"
 - hideKeyboard
 
 - tapOn: "Create Tag"
 - waitForAnimationToEnd
 
 - extendedWaitUntil:
-    visible: "ReviewTag"
+    visible: "${output.tag}"
     timeout: 5000
 
 # Close Tag Manager (dismissOnBackPress=false — must tap Close).
@@ -84,8 +87,8 @@ tags:
     timeout: 8000
 
 # Select the "ReviewTag" chip.
-- assertVisible: "ReviewTag"
-- tapOn: "ReviewTag"
+- assertVisible: "${output.tag}"
+- tapOn: "${output.tag}"
 - waitForAnimationToEnd
 
 # Save the assignment.
@@ -118,10 +121,10 @@ tags:
     timeout: 8000
 
 # "ReviewTag" must be listed.
-- assertVisible: "ReviewTag"
+- assertVisible: "${output.tag}"
 
 # Tap the tag to start a 1-word tag-filtered review.
-- tapOn: "ReviewTag"
+- tapOn: "${output.tag}"
 - waitForAnimationToEnd
 
 # The review card must appear.
@@ -167,7 +170,7 @@ tags:
 - tapOn: "Tag Manager"
 
 - extendedWaitUntil:
-    visible: "ReviewTag"
+    visible: "${output.tag}"
     timeout: 8000
 
 - tapOn: "Delete Tag"

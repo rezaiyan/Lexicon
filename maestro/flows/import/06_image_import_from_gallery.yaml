@@ -109,11 +109,8 @@ tags:
 # ─────────────────────────────────────────────
 # 13. VERIFY GERMAN SOURCE LANGUAGE ON WORD CARDS
 # ─────────────────────────────────────────────
-# Each word card renders: sourceLanguage.code → targetLanguage.code as pills.
-# All words imported with German selected appear as "DE → EN".
-# Asserting "DE" is visible proves sourceLanguage was stored correctly —
-# without relying on the AI extracting any specific word.
-- assertVisible: "DE"
+# Word cards no longer show language pills, so the source language isn't
+# asserted here (see the note at the end of step 14).
 
 - takeScreenshot: maestro/recordings/image_import_gallery_04_word_list_de
 
@@ -148,7 +145,7 @@ tags:
 - assertVisible: "Added"
 # Note: "German → English" is visible in the Languages row but Compose merges
 # the accessibility nodes in a way that makes substring-matching the value text
-# unreliable. The "DE" pill check in step 13 already proves German sourceLanguage.
+# unreliable, so the source language is not asserted.
 
 - takeScreenshot: maestro/recordings/image_import_gallery_05_word_detail_depression
 

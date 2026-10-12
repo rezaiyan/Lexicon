@@ -5,8 +5,8 @@ tags:
 ---
 # Test: the Subscription screen opens from the Profile tab and back returns there.
 #
-# Assumes a premium test account (the member view shows "Active" and the
-# "Manage in Google Play" link).
+# The CI account's premium is granted by the backend (not bought in a store), so the
+# member view shows the "Granted" badge and "Granted until" date, with nothing to manage.
 
 - runFlow: ../utils/navigate_to_profile.yaml
 
@@ -14,14 +14,14 @@ tags:
 - waitForAnimationToEnd
 
 - extendedWaitUntil:
-    visible: "Manage in Google Play"
+    visible: "Granted until"
     timeout: 10000
-- assertVisible: "Active"
+- assertVisible: "Granted"
 
 - pressKey: back
 - waitForAnimationToEnd
 
-- assertNotVisible: "Manage in Google Play"
+- assertNotVisible: "Granted until"
 - extendedWaitUntil:
-    visible: "Logout"
+    visible: "Edit Profile"
     timeout: 5000

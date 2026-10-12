@@ -92,7 +92,7 @@ private fun ProfileSheetContent(
             is ProfileSheetPage.EditProfile -> EditProfileSheetContent(
                 viewModel = editProfileViewModel,
                 onSaved = {
-                    pages.navigateBack()
+                    if (!pages.navigateBack()) sheetNav.dismiss()
                     scope.launch { snackbarHostState.showSuccess(profileUpdatedMessage) }
                 },
             )

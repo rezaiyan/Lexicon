@@ -128,7 +128,7 @@ jobs:
         if: always()
         uses: mikepenz/action-junit-report@v5
         with:
-          report_paths: ~/maestro-report.xml
+          report_paths: ~/maestro-reports/*.xml
           check_name: Maestro Test Results (on demand)
 
       - name: Upload Maestro artifacts
@@ -137,5 +137,5 @@ jobs:
         with:
           name: maestro-artifacts
           path: |
-            ~/maestro-report.xml
+            ~/maestro-reports/
             ~/maestro-debug/

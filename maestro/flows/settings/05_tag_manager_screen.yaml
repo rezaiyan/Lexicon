@@ -11,6 +11,10 @@ tags:
 # confirmation sheet. All destructive steps confirm then cancel to leave the
 # account clean for subsequent tests.
 
+# Unique per run: tags live on the backend, and a name left over from an aborted run
+# makes the create request fail as a duplicate.
+- evalScript: ${output.tag = 'Tag' + (Date.now() % 100000000)}
+
 - runFlow: ../utils/navigate_to_settings.yaml
 
 # The Tag Manager card must be visible on the Settings screen.
@@ -45,7 +49,7 @@ tags:
 - tapOn: "Tag name"
 - waitForAnimationToEnd
 - eraseText: 50
-- inputText: "TestTag"
+- inputText: "${output.tag}"
 - hideKeyboard
 
 # Confirm creation.
@@ -54,7 +58,7 @@ tags:
 
 # The new tag must now appear in the list.
 - extendedWaitUntil:
-    visible: "TestTag"
+    visible: "${output.tag}"
     timeout: 5000
 
 # ── Rename tag ────────────────────────────────────────────────────────────────
@@ -74,7 +78,7 @@ tags:
 - tapOn: "Tag name"
 - waitForAnimationToEnd
 - eraseText: 50
-- inputText: "TestTagRenamed"
+- inputText: "${output.tag}R"
 - hideKeyboard
 
 # Confirm rename.
@@ -86,7 +90,7 @@ tags:
 - waitForAnimationToEnd
 
 # The renamed tag must appear in the list.
-- assertVisible: "TestTagRenamed"
+- assertVisible: "${output.tag}R"
 
 # ── Delete tag (confirm then cancel to keep account clean) ────────────────────
 
@@ -109,7 +113,7 @@ tags:
 
 # After deletion the test tag must be gone.
 # Other tags may exist on the test account; only the test tag must be gone.
-- assertNotVisible: "TestTagRenamed"
+- assertNotVisible: "${output.tag}R"
 
 # ── Close Tag Manager ─────────────────────────────────────────────────────────
 

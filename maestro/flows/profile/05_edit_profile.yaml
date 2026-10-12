@@ -48,7 +48,7 @@ tags:
 # Tap "Save" to submit the profile update.
 - tapOn: "Save"
 
-# After a successful save, navigateBack() returns to the Options page.
+# After a successful save the sheet closes, back on the Profile screen.
 # Wait generously to accommodate the network round-trip for the profile save.
 - extendedWaitUntil:
     visible: "Delete Account"

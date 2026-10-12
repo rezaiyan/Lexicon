@@ -4,6 +4,9 @@ tags:
   - review
   - nope
 ---
+# Unique per run: tags live on the backend, and a name left over from an aborted run
+# makes the create request fail as a duplicate.
+- evalScript: ${output.tag = 'NopeTag' + (Date.now() % 100000000)}
 # Test: Review session completes normally when all cards are rated "Nope".
 #
 # Uses a tag-filtered 1-word session to avoid the ~15-minute loop previously
@@ -43,14 +46,14 @@ tags:
 - tapOn: "Tag name"
 - waitForAnimationToEnd
 - eraseText: 50
-- inputText: "NopeTag"
+- inputText: "${output.tag}"
 - hideKeyboard
 
 - tapOn: "Create Tag"
 - waitForAnimationToEnd
 
 - extendedWaitUntil:
-    visible: "NopeTag"
+    visible: "${output.tag}"
     timeout: 5000
 
 # Close Tag Manager (dismissOnBackPress=false — must tap Close).
@@ -87,8 +90,8 @@ tags:
     timeout: 8000
 
 # Select the "NopeTag" chip.
-- assertVisible: "NopeTag"
-- tapOn: "NopeTag"
+- assertVisible: "${output.tag}"
+- tapOn: "${output.tag}"
 - waitForAnimationToEnd
 
 # Save the assignment.
@@ -121,10 +124,10 @@ tags:
     timeout: 8000
 
 # "NopeTag" must be listed.
-- assertVisible: "NopeTag"
+- assertVisible: "${output.tag}"
 
 # Tap the tag to start a 1-word tag-filtered review.
-- tapOn: "NopeTag"
+- tapOn: "${output.tag}"
 - waitForAnimationToEnd
 
 # The review card must appear.
@@ -184,7 +187,7 @@ tags:
 - tapOn: "Tag Manager"
 
 - extendedWaitUntil:
-    visible: "NopeTag"
+    visible: "${output.tag}"
     timeout: 8000
 
 - tapOn: "Delete Tag"

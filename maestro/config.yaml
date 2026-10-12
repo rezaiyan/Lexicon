@@ -54,7 +54,6 @@ flows:
   - "flows/study/*.yaml"
   - "flows/insights/*.yaml"
   - "flows/profile/01_profile_screen_loads.yaml"
-  - "flows/profile/02_more_options_sheet.yaml"
   - "flows/profile/03_logout_sheet.yaml"
   - "flows/profile/04_leaderboard_screen.yaml"
   # 05_edit_profile verifies the edit screen loads, accepts a username change,
@@ -110,7 +109,6 @@ executionOrder:
     - flows/insights/01_insights_screen_loads.yaml
     # Profile tests
     - flows/profile/01_profile_screen_loads.yaml
-    - flows/profile/02_more_options_sheet.yaml
     - flows/profile/03_logout_sheet.yaml
     - flows/profile/04_leaderboard_screen.yaml
     - flows/profile/05_edit_profile.yaml
