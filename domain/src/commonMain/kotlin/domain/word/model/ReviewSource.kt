@@ -22,6 +22,19 @@ sealed class ReviewSource {
         override val sessionTypeLabel: String = "REVIEW"
     }
 
+    /**
+     * A comeback rescue from a push: the words a nightly plan picked for this learner, in session
+     * order (easy wins first and last). Not filtered by learning focus or capped by the daily goal.
+     */
+    data class ComebackRescue(
+        val rescueId: Long,
+        val wordIds: List<Long>,
+        val outroWin: String? = null,
+        val outroSoft: String? = null,
+    ) : ReviewSource() {
+        override val sessionTypeLabel: String = "REVIEW"
+    }
+
     data class ByStageAndTag(val stage: LearningStage, val tagId: Long) : ReviewSource() {
         override val sessionTypeLabel: String = "BROWSE"
     }

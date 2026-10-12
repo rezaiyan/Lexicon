@@ -121,6 +121,7 @@ fun ReviewScreen(
                 unknownCount = reviewState.unknownCount,
                 missedWords = reviewState.missedWords,
                 newStreak = reviewState.newStreak,
+                outro = reviewState.outro,
                 onDismiss = viewModel::acknowledgeCompletion,
             )
         }

@@ -245,6 +245,17 @@ class LoadReviewQueueUseCaseTest {
     }
 
     @Test
+    fun `ComebackRescue keeps the planned order, skips missing words and ignores daily goal`() = runTest {
+        val words = (1..5).map { testWord(it) }
+        val repo = ConfigurableWordRepository(allWords = words)
+        val useCase = buildUseCase(repo, dailyGoal = 1)
+
+        val result = useCase(ReviewSource.ComebackRescue(rescueId = 42L, wordIds = listOf(4L, 99L, 2L, 5L)))
+
+        assertEquals(listOf(words[3], words[1], words[4]), result.getOrNull())
+    }
+
+    @Test
     fun `DueCards source caps queue at daily goal`() = runTest {
         val dueWords = listOf(testWord(1), testWord(2), testWord(3), testWord(4), testWord(5))
         val repo = ConfigurableWordRepository(dueCards = dueWords)

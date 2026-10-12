@@ -8,6 +8,8 @@ import domain.analytics.repository.IAnalyticsRecorder
 import domain.analytics.usecase.EndStudySessionUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
+import domain.notifications.repository.INotificationEngagementRepository
+import domain.notifications.usecase.ReportRescueCompletedUseCase
 import domain.settings.model.ThemeMode
 import domain.settings.repository.ISettingsRepository
 import domain.settings.usecase.ObserveSpeechRateUseCase
@@ -82,6 +84,17 @@ class ReviewViewModelTest : ViewModelTestBase() {
 
     private var dueWords: List<Word> = listOf(testWord(1), testWord(2))
     private var stageWords: List<Word> = listOf(testWord(3))
+    private var allWords: List<Word> = emptyList()
+    private val engagementRepo = FakeRescueEngagementRepository()
+
+    private class FakeRescueEngagementRepository : INotificationEngagementRepository {
+        val completedRescues = mutableListOf<Long>()
+        override suspend fun reportOpened(notificationLogId: Long): Try<Unit> = Try.success(Unit)
+        override suspend fun reportRescueCompleted(rescueId: Long): Try<Unit> {
+            completedRescues += rescueId
+            return Try.success(Unit)
+        }
+    }
     private var deleteResult: Try<Unit> = Try.success(Unit)
     private var updateResult: Try<Unit> = Try.success(Unit)
     private var throwOnLoad: Boolean = false
@@ -128,7 +141,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
         override suspend fun updateWordLocal(word: Word): Try<Unit> = Try.success(Unit)
         override suspend fun batchSyncWords(words: List<Word>): Try<Unit> = Try.success(Unit)
         override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(emptyList())
-        override fun getAllWords(): Flow<List<Word>> = flowOf(emptyList())
+        override fun getAllWords(): Flow<List<Word>> = flowOf(allWords)
         override suspend fun getWordById(id: Int): Word? = null
         override suspend fun addWords(words: List<Word>): Try<AddWordsOutcome> = Try.success(AddWordsOutcome(words.size, 0))
         override suspend fun uploadPendingWords(): Try<Int> = Try.success(0)
@@ -234,6 +247,7 @@ class ReviewViewModelTest : ViewModelTestBase() {
             getNextDueDateUseCase = GetNextDueDateUseCase(wordRepo),
             stopSpeakingUseCase = StopSpeakingUseCase(ttsRepo),
             analyticsTracker = FakeAnalyticsTracker(),
+            reportRescueCompletedUseCase = ReportRescueCompletedUseCase(engagementRepo),
         )
     }
 
@@ -401,6 +415,83 @@ class ReviewViewModelTest : ViewModelTestBase() {
         assertIs<ReviewState.Completed>(state)
         assertEquals(1, state.knownCount)
         assertEquals(1, state.unknownCount)
+    }
+
+    // ---------------------------------------------------------------------------
+    // Comeback rescue
+    // ---------------------------------------------------------------------------
+
+    private fun rescue(outroWin: String? = "win", outroSoft: String? = "soft") =
+        ReviewSource.ComebackRescue(rescueId = 42L, wordIds = listOf(2L, 1L), outroWin = outroWin, outroSoft = outroSoft)
+
+    @Test
+    fun `rescue session reviews the planned words in order`() = runTest {
+        allWords = listOf(testWord(1), testWord(2))
+        val vm = createViewModel()
+        vm.startSession(rescue())
+        val state = vm.currentState.review
+        assertIs<ReviewState.Active>(state)
+        assertEquals(listOf(testWord(2).id, testWord(1).id), state.words.map { it.id })
+    }
+
+    @Test
+    fun `clean rescue run shows the win outro and reports completion once`() = runTest {
+        allWords = listOf(testWord(1), testWord(2))
+        val vm = createViewModel()
+        vm.startSession(rescue())
+        vm.reviewWord(quality = 1)
+        vm.reviewWord(quality = 1)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Completed>(state)
+        assertEquals("win", state.outro)
+        assertEquals(listOf(42L), engagementRepo.completedRescues)
+    }
+
+    @Test
+    fun `rescue run with a miss shows the soft outro`() = runTest {
+        allWords = listOf(testWord(1), testWord(2))
+        val vm = createViewModel()
+        vm.startSession(rescue())
+        vm.reviewWord(quality = 1)
+        vm.reviewWord(quality = 0)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Completed>(state)
+        assertEquals("soft", state.outro)
+    }
+
+    @Test
+    fun `rescue without outros still reports completion`() = runTest {
+        allWords = listOf(testWord(1), testWord(2))
+        val vm = createViewModel()
+        vm.startSession(rescue(outroWin = null, outroSoft = null))
+        vm.reviewWord(quality = 1)
+        vm.reviewWord(quality = 1)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Completed>(state)
+        assertEquals(null, state.outro)
+        assertEquals(listOf(42L), engagementRepo.completedRescues)
+    }
+
+    @Test
+    fun `abandoned rescue is not reported`() = runTest {
+        allWords = listOf(testWord(1), testWord(2))
+        val vm = createViewModel()
+        vm.startSession(rescue())
+        vm.reviewWord(quality = 1)
+        vm.abandonSession()
+        assertEquals(emptyList(), engagementRepo.completedRescues)
+    }
+
+    @Test
+    fun `regular sessions have no outro and are not reported`() = runTest {
+        dueWords = listOf(testWord(1))
+        val vm = createViewModel()
+        vm.startSession(ReviewSource.DueCards)
+        vm.reviewWord(quality = 1)
+        val state = vm.currentState.review
+        assertIs<ReviewState.Completed>(state)
+        assertEquals(null, state.outro)
+        assertEquals(emptyList(), engagementRepo.completedRescues)
     }
 
     // ---------------------------------------------------------------------------

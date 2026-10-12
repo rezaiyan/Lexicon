@@ -10,6 +10,7 @@ import domain.analytics.model.ReviewEventParams
 import domain.analytics.usecase.EndStudySessionUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
+import domain.notifications.usecase.ReportRescueCompletedUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
 import domain.streak.usecase.RecordStreakActivityUseCase
@@ -60,6 +61,7 @@ class ReviewViewModel(
     private val generateSessionIdUseCase: GenerateSessionIdUseCase,
     private val resolveCardLanguageUseCase: ResolveCardLanguageUseCase,
     private val getNextDueDateUseCase: GetNextDueDateUseCase,
+    private val reportRescueCompletedUseCase: ReportRescueCompletedUseCase,
 ) : BaseViewModel<ReviewViewModelState, ReviewEffect>() {
 
     override fun initialState() = ReviewViewModelState()
@@ -72,6 +74,8 @@ class ReviewViewModel(
         val sessionId: String,
         val reviewType: String,
         val startedAt: Long,
+        /** Set when the session is a comeback rescue from a push. */
+        val rescue: ReviewSource.ComebackRescue? = null,
         val reviewed: Int = 0,
         val correct: Int = 0,
         val incorrect: Int = 0,
@@ -127,7 +131,9 @@ class ReviewViewModel(
                     val startedAt = Clock.System.now().toEpochMilliseconds()
                     val sessionId = generateSessionIdUseCase()
                     val sessionType = source.sessionTypeLabel
-                    sessionContext = SessionContext(sessionId, sessionType, startedAt)
+                    sessionContext = SessionContext(
+                        sessionId, sessionType, startedAt, rescue = source as? ReviewSource.ComebackRescue,
+                    )
                     startSessionUseCase(StartStudySessionUseCase.Params(sessionId, sessionType))
                     analyticsTracker.logReviewSessionStart(cardCount = words.size)
                     updateState {
@@ -325,7 +331,10 @@ class ReviewViewModel(
                     analyticsTracker.logStreakUpdated(days = it.currentStreak, isNewRecord = false)
                 }
         }
-        updateState { copy(review = ReviewState.Completed(knownCount, unknownCount, missedWords, newStreak)) }
+        val outro = ctx.rescue?.let { if (unknownCount == 0) it.outroWin else it.outroSoft }
+        // Best-effort: a lost report only undercounts finished rescues in the funnel
+        ctx.rescue?.let { reportRescueCompletedUseCase(it.rescueId) }
+        updateState { copy(review = ReviewState.Completed(knownCount, unknownCount, missedWords, newStreak, outro)) }
     }
 
     private suspend fun endSessionInternal(ctx: SessionContext, completedNormally: Boolean) {
@@ -376,7 +385,8 @@ class ReviewViewModel(
     }
 
     private fun ReviewSource.toReviewType() = when (this) {
-        is ReviewSource.DueCards, is ReviewSource.ByTag, is ReviewSource.ByWords -> ReviewType.REVIEW
+        is ReviewSource.DueCards, is ReviewSource.ByTag, is ReviewSource.ByWords,
+        is ReviewSource.ComebackRescue -> ReviewType.REVIEW
         is ReviewSource.ByStage, is ReviewSource.ByStageAndTag -> ReviewType.BROWSE
     }
 

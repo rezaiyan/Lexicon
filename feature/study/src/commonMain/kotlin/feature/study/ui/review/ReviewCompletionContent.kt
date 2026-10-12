@@ -70,6 +70,7 @@ fun ReviewCompletionContent(
     newStreak: Int?,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
+    outro: String? = null,
 ) {
     val totalCount = knownCount + unknownCount
     val scorePercent = if (totalCount > 0) (knownCount * 100) / totalCount else 0
@@ -128,6 +129,16 @@ fun ReviewCompletionContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                     )
+                    if (outro != null) {
+                        Text(
+                            text = outro,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = Theme.spacing.xxs),
+                        )
+                    }
                     if (newStreak != null && newStreak > 0) {
                         StreakBadge(streakDays = newStreak, modifier = Modifier.padding(top = Theme.spacing.xxs))
                     }

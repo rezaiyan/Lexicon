@@ -48,6 +48,11 @@ class LoadReviewQueueUseCase(
                 wordRepository.getAllWords().first().filter { it.id.toLong() in ids }.filterBy(focus)
             }
 
+            is ReviewSource.ComebackRescue -> {
+                val byId = wordRepository.getAllWords().first().associateBy { it.id.toLong() }
+                params.wordIds.mapNotNull { byId[it] }
+            }
+
             is ReviewSource.ByStageAndTag ->
                 getWordsByStage(params.stage).first()
                     .filter { params.tagId in it.tagIds }

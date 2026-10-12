@@ -40,6 +40,8 @@ sealed class ReviewState {
         val unknownCount: Int,
         val missedWords: List<Word> = emptyList(),
         val newStreak: Int? = null,
+        /** Closing line of a comeback rescue session, written for this learner; null otherwise. */
+        val outro: String? = null,
     ) : ReviewState()
 }
 
