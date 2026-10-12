@@ -76,8 +76,22 @@ ensure_device() {
   restart_emulator
 }
 
+# Prints what was on screen and the device's warnings/errors for a flow that failed for good, so
+# the cause is readable from the job log without downloading the artifacts.
+dump_failure() { # <flow>
+  echo "::group::Diagnostics: $1"
+  echo "--- on screen (text / content descriptions) ---"
+  maestro hierarchy 2>/dev/null |
+    jq -r '.. | objects | .attributes? // empty | .text, .accessibilityText, ."hintText" | select(. != null and . != "")' |
+    awk '!seen[$0]++' | head -120
+  echo "--- logcat (warnings and errors) ---"
+  adb logcat -d -v brief '*:W' 2>/dev/null | grep -vE 'chatty|GnssHAL|ColorBuffer|goldfish|EGL_emulation' | tail -120
+  echo "::endgroup::"
+}
+
 run_flow() { # <flow> <name>
   rm -rf "${DEBUG:?}/$2"
+  adb logcat -c 2>/dev/null || true
   maestro test --format junit --output "$REPORTS/$2.xml" \
     --debug-output "$DEBUG/$2" --flatten-debug-output "maestro/$1"
 }
@@ -103,6 +117,9 @@ for flow in "${FLOWS[@]}"; do
       flaky+=("$flow")
     else
       failed+=("$flow")
+      echo "::endgroup::"
+      dump_failure "$flow"
+      continue
     fi
   fi
   echo "::endgroup::"
