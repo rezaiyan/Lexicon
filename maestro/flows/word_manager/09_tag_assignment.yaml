@@ -15,7 +15,9 @@ tags:
 #           shows on the detail sheet.
 # Teardown: delete the created tag via Settings → Tag Manager.
 
-- evalScript: ${output.tag = 'Tag' + Date.now()}
+# Tags are listed by name: the '0test' + countdown prefix puts the newest test tag
+# first, above any left over from aborted runs.
+- evalScript: ${output.tag = '0test' + (9999999999 - Math.floor(Date.now() / 1000)) + 'assign'}
 
 # ── Setup: Add a test word ────────────────────────────────────────────────────
 
@@ -34,33 +36,39 @@ tags:
 
 - tapOn: "Assign Tag"
 
-# The assignment page offers to create a tag, whatever tags already exist.
-- extendedWaitUntil:
-    visible: "New Tag"
-    timeout: 8000
 # The word is shown as context below the title.
-- assertVisible: "${output.word}"
+- extendedWaitUntil:
+    visible: "${output.word}"
+    timeout: 8000
+
+# The assignment page offers to create a tag, whatever tags already exist. It
+# sits below the tag list, so with many tags it is off screen.
+- scrollUntilVisible:
+    element: "New Tag"
+    direction: DOWN
+    timeout: 15000
 
 - tapOn: "New Tag"
 - extendedWaitUntil:
     visible: "Tag name"
     timeout: 5000
 
-# eraseText before inputText makes Maestro establish the IME connection.
-- tapOn: "Tag name"
-- waitForAnimationToEnd
-- eraseText: 50
-- inputText: "${output.tag}"
+- runFlow:
+    file: ../utils/type_tag_name.yaml
+    env:
+      NAME: "${output.tag}"
 - hideKeyboard
 
 - tapOn: "Create Tag"
 - waitForAnimationToEnd
 
 # Back on the checklist with the new tag listed (and already ticked: saving
-# without tapping it must assign it, asserted on the detail page below).
-- extendedWaitUntil:
-    visible: "${output.tag}"
-    timeout: 8000
+# without tapping it must assign it, asserted on the detail page below). It is
+# first in the list, which may be scrolled down to "New Tag".
+- scrollUntilVisible:
+    element: "${output.tag}"
+    direction: UP
+    timeout: 15000
 
 # Save. index 1: the page title (index 0) also reads "Assign Tag"; the save
 # button is index 1. Tapping the title is a silent no-op.

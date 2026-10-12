@@ -5,9 +5,10 @@ tags:
   - review
 ---
 # Unique per run: tags live on the backend, and a name left over from an aborted run
-# makes the create request fail as a duplicate.
-- evalScript: ${output.tag = 'TestFilterTag' + (Date.now() % 100000000)}
-# Test: Long-pressing "Start Review" on the Study screen opens a tag-filter
+# makes the create request fail as a duplicate. Tags are listed by name, so the
+# '0test' + countdown prefix puts the newest test tag in the first row, above leftovers.
+- evalScript: ${output.tag = '0test' + (9999999999 - Math.floor(Date.now() / 1000)) + 'filter'}
+# Test: Tapping "Start Review" on the Study screen opens a tag-filter
 # picker sheet when at least one tag with assigned words exists.  Selecting a
 # tag launches a tag-filtered review session.
 #
@@ -17,7 +18,7 @@ tags:
 #   3. Assign "TestFilterTag" to the test word via Word Manager.
 #
 # Test
-#   4. Long-press "Start Review" on the Study screen.
+#   4. Tap "Start Review" on the Study screen.
 #   5. Verify the "Tags" picker sheet appears with "TestFilterTag" listed.
 #   6. Tap "TestFilterTag" → review opens.
 #   7. Close the review immediately (no cards rated).
@@ -47,10 +48,10 @@ tags:
     visible: "New Tag"
     timeout: 5000
 
-- tapOn: "Tag name"
-- waitForAnimationToEnd
-- eraseText: 50
-- inputText: "${output.tag}"
+- runFlow:
+    file: ../utils/type_tag_name.yaml
+    env:
+      NAME: "${output.tag}"
 - hideKeyboard
 
 - tapOn: "Create Tag"
@@ -117,7 +118,7 @@ tags:
 # Dismiss the detail sheet.
 - pressKey: back
 
-# ── Test: Long-press "Start Review" opens tag picker ─────────────────────────
+# ── Test: Tap "Start Review" opens tag picker ─────────────────────────
 
 - runFlow: ../utils/navigate_to_study.yaml
 
@@ -126,12 +127,13 @@ tags:
     visible: "Start Review"
     timeout: 8000
 
-# Long-press "Start Review" to open the tag-filter picker sheet.
-- longPressOn: "Start Review"
+# With tags that have due words, tapping "Start Review" asks which to review
+# (long-press skips the question).
+- tapOn: "Start Review"
 
-# The picker sheet must appear with the "Tags" section header.
+# The picker sheet offers every due word or a single tag.
 - extendedWaitUntil:
-    visible: "Tags"
+    visible: "All due words"
     timeout: 8000
 
 # "TestFilterTag" must appear (wordCount > 0 after assignment).
@@ -178,19 +180,22 @@ tags:
     visible: "${output.tag}"
     timeout: 8000
 
+# Our tag is the first row, so the first trash icon is its own.
 - tapOn: "Delete Tag"
 
 - extendedWaitUntil:
-    visible: "Delete Tag"
+    visible: "Delete this tag? Words with this tag will not be deleted."
     timeout: 5000
-
-- assertVisible: "Delete this tag? Words with this tag will not be deleted."
-
-- tapOn: "Delete Tag"
 - waitForAnimationToEnd
 
-# Empty state must appear — confirms the tag was deleted.
-- assertVisible: "No tags yet"
+# The dialog title and its confirm button share the text; index 1 is the button.
+- tapOn:
+    text: "Delete Tag"
+    index: 1
+- waitForAnimationToEnd
+
+# Other tags may exist on the test account; only ours must be gone.
+- assertNotVisible: "${output.tag}"
 
 # Close Tag Manager.
 # pressKey: back does NOT work — Tag Manager uses dismissOnBackPress=false.

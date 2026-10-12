@@ -1,0 +1,15 @@
+appId: com.alirezaiyan.vokab
+---
+# Types ${NAME} into the open tag sheet's "Tag name" field.
+#
+# Maestro's inputText sometimes drops characters on the emulator, which created
+# tags with the wrong name and broke every later step. Check the field and
+# retype until it holds exactly ${NAME}.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn: "Tag name"
+      - waitForAnimationToEnd
+      - eraseText: 50
+      - inputText: "${NAME}"
+      - assertVisible: "${NAME}"
