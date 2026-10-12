@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -46,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import components.EmptyScreen
-import components.animation.staggeredFadeSlide
 import components.scaffold.LexiconColumn
 import components.scaffold.TopBarColor
 import components.sheet.ConfirmSheetContent
@@ -168,7 +167,7 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
                     ) {
-                        itemsIndexed(state.tags, key = { _, tag -> tag.id }) { index, tag ->
+                        items(state.tags, key = { it.id }) { tag ->
                             TagListItem(
                                 tag = tag,
                                 onRename = {
@@ -194,9 +193,9 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
                                         )
                                     }
                                 },
-                                modifier = Modifier
-                                    .animateItem()
-                                    .staggeredFadeSlide(index)
+                                // No staggered entrance: rows re-enter on every scroll, and its
+                                // alpha-0 start hid them from accessibility services.
+                                modifier = Modifier.animateItem()
                             )
                         }
                         item {
