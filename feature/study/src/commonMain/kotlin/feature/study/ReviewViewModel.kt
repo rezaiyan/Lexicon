@@ -332,9 +332,10 @@ class ReviewViewModel(
                 }
         }
         val outro = ctx.rescue?.let { if (unknownCount == 0) it.outroWin else it.outroSoft }
-        // Best-effort: a lost report only undercounts finished rescues in the funnel
-        ctx.rescue?.let { reportRescueCompletedUseCase(it.rescueId) }
         updateState { copy(review = ReviewState.Completed(knownCount, unknownCount, missedWords, newStreak, outro)) }
+        // After the state change so a slow network never holds the last card on screen. Best-effort:
+        // a lost report only undercounts finished rescues in the funnel.
+        ctx.rescue?.let { rescue -> viewModelScope.launch { reportRescueCompletedUseCase(rescue.rescueId) } }
     }
 
     private suspend fun endSessionInternal(ctx: SessionContext, completedNormally: Boolean) {
