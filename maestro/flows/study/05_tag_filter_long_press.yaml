@@ -153,10 +153,8 @@ tags:
     visible: "Exit Review?"
     timeout: 5000
 
-# Confirm exit (index 1 = the confirm button, index 0 = the title text).
-- tapOn:
-    text: "Exit Review?"
-    index: 1
+# The sheet's confirm button is "Continue Reviewing"; "Stop review" leaves the session.
+- tapOn: "Stop review"
 
 - waitForAnimationToEnd
 

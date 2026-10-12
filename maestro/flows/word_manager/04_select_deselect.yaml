@@ -39,13 +39,16 @@ tags:
 - assertVisible:
     text: ".*selected.*"
 
-# Tap "Select All" again — it toggles to deselect all since every word is selected.
-- tapOn: "Select All"
+# With every word selected the same icon reads "Deselect All"; it clears the selection but
+# stays in selection mode ("0 selected").
+- tapOn: "Deselect All"
+- extendedWaitUntil:
+    visible: "0 selected"
+    timeout: 5000
 
-# Wait for the selection mode exit animation to complete.
+# The top-bar close icon ("Cancel") leaves selection mode.
+- tapOn: "Cancel"
 - waitForAnimationToEnd
-
-# After deselecting all, selection mode exits and the bar disappears.
 - assertNotVisible:
     text: ".*selected.*"
 

@@ -491,6 +491,11 @@ jobs:
   maestro:
     name: Maestro UI Tests
     runs-on: ubuntu-latest
+    # Every Maestro run signs in as the same backend CI account; two suites at once edit the
+    # same words and tags. Shared with the on-demand Maestro workflow so runs queue instead of overlapping.
+    concurrency:
+      group: maestro-ci-account
+      cancel-in-progress: false
     needs: [test, build-android, check-version]
     if: |
       github.ref == 'refs/heads/main' && needs.check-version.outputs.should_deploy_android == 'true' &&

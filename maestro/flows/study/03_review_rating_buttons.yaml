@@ -43,10 +43,8 @@ tags:
 # The exit confirmation bottom sheet must appear.
 - assertVisible: "Exit Review?"
 
-# Confirm exit (index 1 = the button, not the title which also shows "Exit Review?").
-- tapOn:
-    text: "Exit Review?"
-    index: 1
+# The sheet's confirm button is "Continue Reviewing"; "Stop review" leaves the session.
+- tapOn: "Stop review"
 
 # Wait for the exit animation and navigation to complete.
 - waitForAnimationToEnd
