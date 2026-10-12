@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -31,11 +32,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -94,10 +100,22 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
 
+    val listState = rememberLazyListState()
+    // Tags are sorted by name and the list keeps its first visible row in place, so a tag
+    // created or renamed above it would land out of view. Scroll to it once it's listed.
+    var revealTagId by remember { mutableStateOf<Long?>(null) }
+    LaunchedEffect(revealTagId, state.tags) {
+        val index = state.tags.indexOfFirst { it.id == revealTagId }
+        if (index >= 0) {
+            listState.animateScrollToItem(index)
+            revealTagId = null
+        }
+    }
+
     OnEvents(viewModel.effects) { effect ->
         when (effect) {
-            is TagManagerEffect.TagCreated -> Unit
-            is TagManagerEffect.TagRenamed -> Unit
+            is TagManagerEffect.TagCreated -> revealTagId = effect.tag.id
+            is TagManagerEffect.TagRenamed -> revealTagId = effect.tag.id
             is TagManagerEffect.TagDeleted -> Unit
             is TagManagerEffect.Error -> snackbarHostState.showError(effect.message)
         }
@@ -146,6 +164,7 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
 
                 else -> Box(modifier = Modifier.fillMaxSize()) {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)
                     ) {
@@ -212,6 +231,7 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
                         }
                     }
 
+                    val newTagLabel = stringResource(Res.string.new_tag)
                     ExtendedFloatingActionButton(
                         onClick = {
                             overlayHost.showSizeToFitBottomSheet(tag = "create-tag") { nav ->
@@ -225,10 +245,13 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
                             }
                         },
                         icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
-                        text = { Text(stringResource(Res.string.new_tag)) },
+                        text = { Text(newTagLabel) },
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
+                            // The extended FAB doesn't expose its label to accessibility, so
+                            // screen readers announced an unlabelled button.
+                            .semantics { contentDescription = newTagLabel }
                             .align(Alignment.BottomEnd)
                             .navigationBarsPadding()
                             .padding(Theme.spacing.md)

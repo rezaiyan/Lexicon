@@ -292,7 +292,7 @@ internal fun ImportLanguageListPage(
     }
 }
 
-/** "Tag" label plus a horizontal row of chips: None, each tag, and a dashed "New tag". */
+/** "Tag" label plus a horizontal row of chips: None, an outlined "New tag", then each tag. */
 @Composable
 internal fun TagSelectorRow(
     tags: List<Tag>,
@@ -312,13 +312,7 @@ internal fun TagSelectorRow(
                     onClick = { onTagSelected(null) },
                 )
             }
-            items(tags, key = { it.id }) { tag ->
-                TagChip(
-                    label = tag.name,
-                    selected = selectedTagId == tag.id,
-                    onClick = { onTagSelected(tag.id) },
-                )
-            }
+            // Before the tags, so it stays in reach however many tags there are.
             if (onCreateTag != null) {
                 item(key = "new") {
                     Surface(
@@ -348,6 +342,13 @@ internal fun TagSelectorRow(
                         }
                     }
                 }
+            }
+            items(tags, key = { it.id }) { tag ->
+                TagChip(
+                    label = tag.name,
+                    selected = selectedTagId == tag.id,
+                    onClick = { onTagSelected(tag.id) },
+                )
             }
         }
     }
