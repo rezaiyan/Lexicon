@@ -226,4 +226,37 @@ class PushNotificationDataSourceTest {
         assertTrue(result is Try.Failure)
         assertEquals(false, called)
     }
+
+    // --- reportRescueCompleted ---
+
+    @Test
+    fun `reportRescueCompleted sends POST to the rescue complete path`() = runTest {
+        var capturedPath: String? = null
+        var capturedMethod: HttpMethod? = null
+        val mockEngine = MockEngine { request ->
+            capturedPath = request.url.encodedPath
+            capturedMethod = request.method
+            respond(successEnvelope("null"), HttpStatusCode.OK, jsonHeaders())
+        }
+
+        val result = buildDataSource(mockEngine).reportRescueCompleted(42L)
+
+        assertTrue(result is Try.Success)
+        assertEquals("/notifications/rescue/42/complete", capturedPath)
+        assertEquals(HttpMethod.Post, capturedMethod)
+    }
+
+    @Test
+    fun `reportRescueCompleted returns failure without calling backend when not authenticated`() = runTest {
+        var called = false
+        val mockEngine = MockEngine {
+            called = true
+            respond(successEnvelope("null"), HttpStatusCode.OK, jsonHeaders())
+        }
+
+        val result = buildDataSource(mockEngine, getAuthToken = { null }).reportRescueCompleted(42L)
+
+        assertTrue(result is Try.Failure)
+        assertEquals(false, called)
+    }
 }

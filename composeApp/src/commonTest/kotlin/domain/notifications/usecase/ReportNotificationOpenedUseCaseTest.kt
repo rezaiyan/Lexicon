@@ -54,4 +54,11 @@ internal class FakeNotificationEngagementRepository : INotificationEngagementRep
         reported += notificationLogId
         return result
     }
+
+    val completedRescues = mutableListOf<Long>()
+
+    override suspend fun reportRescueCompleted(rescueId: Long): Try<Unit> {
+        completedRescues += rescueId
+        return result
+    }
 }

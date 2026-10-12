@@ -16,6 +16,7 @@ import domain.notifications.usecase.InitializePushNotificationsUseCase
 import domain.notifications.usecase.OpenNotificationSettingsUseCase
 import domain.notifications.usecase.RegisterPushTokenUseCase
 import domain.notifications.usecase.ReportNotificationOpenedUseCase
+import domain.notifications.usecase.ReportRescueCompletedUseCase
 import domain.notifications.usecase.RequestNotificationPermissionUseCase
 import domain.notifications.usecase.ScheduleNotificationsUseCase
 import io.ktor.client.HttpClient
@@ -81,6 +82,7 @@ fun notificationModule(backendUrl: String, platform: Platform) = module {
     singleOf(::OpenNotificationSettingsUseCase)
     singleOf(::InitializePushNotificationsUseCase)
     factoryOf(::ReportNotificationOpenedUseCase)
+    factoryOf(::ReportRescueCompletedUseCase)
 
     single { NotificationNavigator() }
     single {

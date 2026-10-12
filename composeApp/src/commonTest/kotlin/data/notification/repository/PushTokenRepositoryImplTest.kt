@@ -271,6 +271,8 @@ class PushTokenRepositoryImplTest {
         }
 
         override suspend fun reportNotificationOpened(notificationLogId: Long): Try<Unit> = Try.success(Unit)
+
+        override suspend fun reportRescueCompleted(rescueId: Long): Try<Unit> = Try.success(Unit)
     }
 
     private class FakeSecureStorage(

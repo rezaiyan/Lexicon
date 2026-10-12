@@ -10,4 +10,7 @@ class NotificationEngagementRepositoryImpl(
 
     override suspend fun reportOpened(notificationLogId: Long): Try<Unit> =
         pushNotificationDataSource.reportNotificationOpened(notificationLogId)
+
+    override suspend fun reportRescueCompleted(rescueId: Long): Try<Unit> =
+        pushNotificationDataSource.reportRescueCompleted(rescueId)
 }

@@ -94,6 +94,27 @@ class PushNotificationDataSource(
     }
 
     /**
+     * Report that the user finished a comeback rescue session (idempotent on the backend)
+     */
+    override suspend fun reportRescueCompleted(rescueId: Long): Try<Unit> {
+        if (getAuthToken() == null) {
+            return Try.failure(Exception("User not authenticated"))
+        }
+
+        return Try {
+            httpClient.post("$baseUrl/notifications") {
+                url { appendPathSegments("rescue", rescueId.toString(), "complete") }
+            }.body<ApiResponse<Unit>>()
+        }.map { response ->
+            if (!response.success) {
+                error(response.message ?: "Failed to report rescue completion")
+            }
+        }.doOnFailure { error ->
+            logNetwork("PushNotification", "Error reporting rescue completion: ${error.message}")
+        }
+    }
+
+    /**
      * Best-effort token deactivation: any outcome (success, HTTP error, or being
      * unauthenticated) resolves to Try.success(Unit) — callers cannot act on a
      * server-side dereg failure anyway, so we just log it.

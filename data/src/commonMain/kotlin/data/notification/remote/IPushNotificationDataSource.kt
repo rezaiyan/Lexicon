@@ -8,4 +8,5 @@ interface IPushNotificationDataSource {
     suspend fun deactivateAllTokens(): Try<Unit>
     suspend fun deactivateToken(token: String): Try<Unit>
     suspend fun reportNotificationOpened(notificationLogId: Long): Try<Unit>
+    suspend fun reportRescueCompleted(rescueId: Long): Try<Unit>
 }
