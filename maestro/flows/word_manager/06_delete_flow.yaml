@@ -54,7 +54,12 @@ tags:
 # The dialog must be dismissed.
 - assertNotVisible: "Delete Words?"
 
-# Cancelling the delete dialog should also exit selection mode.
+# Cancelling the delete dialog keeps the selection; the top-bar close icon ("Cancel")
+# leaves selection mode.
+- assertVisible:
+    text: ".*selected.*"
+- tapOn: "Cancel"
+- waitForAnimationToEnd
 - assertNotVisible:
     text: ".*selected.*"
 

@@ -35,10 +35,18 @@ tags:
 - inputText: "Added by Maestro import test"
 
 - tapOn: "Add Word"
-- extendedWaitUntil:
-    visible: "Added this session"
+# After an add, focus returns to the Word field and the keyboard covers the
+# "Added this session" list below the tag row.
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Added this session"
+    direction: DOWN
     timeout: 8000
 - assertVisible: "${output.importWord} · TestImport"
+- scrollUntilVisible:
+    element: "Word"
+    direction: UP
+    timeout: 5000
 
 # Same word, different case: it's a duplicate and is not added again.
 - tapOn: "Word"
@@ -50,6 +58,7 @@ tags:
 - eraseText: 50
 - inputText: "testimport"
 - tapOn: "Add Word"
+- hideKeyboard
 - extendedWaitUntil:
     visible: "You already have this word."
     timeout: 8000
