@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import tts.IModelFileManager
@@ -164,6 +165,47 @@ class TtsRepositoryImplTest {
 
         repo.speak("Otra", "es")
         assertEquals(3, createdEngines.size)
+    }
+
+    @Test
+    fun `speak when text has slash or comma speaks each part with a pause between`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+
+        val job = launch { repo.speak("he/she, they", "en") }
+        runCurrent()
+        assertEquals(listOf("he"), ttsEngine.spokenTexts)
+
+        advanceTimeBy(TtsRepositoryImpl.SEGMENT_PAUSE_MS + 1)
+        assertEquals(listOf("he", "she"), ttsEngine.spokenTexts)
+
+        job.join()
+        assertEquals(listOf("he", "she", "they"), ttsEngine.spokenTexts)
+        assertIs<TtsState.Idle>(repo.ttsState.value)
+    }
+
+    @Test
+    fun `speak when stopped mid utterance does not speak remaining parts`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+
+        val job = launch { repo.speak("one, two, three", "en") }
+        runCurrent()
+        repo.stop()
+        job.join()
+
+        assertEquals(listOf("one"), ttsEngine.spokenTexts)
+    }
+
+    @Test
+    fun `speak when text is only separators speaks nothing`() = runTest {
+        givenModelFiles()
+        val repo = createRepo()
+
+        repo.speak(" / ", "en")
+
+        assertEquals(emptyList(), ttsEngine.spokenTexts)
+        assertIs<TtsState.Idle>(repo.ttsState.value)
     }
 
     @Test
@@ -478,6 +520,7 @@ class TtsRepositoryImplTest {
         var initializeSuccess = true
         var initializeCount = 0
         var lastSpokenText: String? = null
+        val spokenTexts = mutableListOf<String>()
         var stopped = false
         var playbackGate: CompletableDeferred<Unit>? = null
 
@@ -491,6 +534,7 @@ class TtsRepositoryImplTest {
 
         override suspend fun synthesizeAndPlay(text: String, speed: Float, speakerId: Int) {
             lastSpokenText = text
+            spokenTexts += text
             playbackGate?.await()
         }
 

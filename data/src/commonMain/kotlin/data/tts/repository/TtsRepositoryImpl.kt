@@ -4,10 +4,12 @@ import core.common.Try
 import core.common.getOrDefault
 import core.common.getOrThrow
 import data.tts.LanguageModelMapping
+import data.tts.SpeechSegments
 import domain.settings.repository.ISettingsRepository
 import domain.tts.model.TtsModelInfo
 import domain.tts.model.TtsState
 import domain.tts.repository.ITtsRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +23,7 @@ import kotlinx.coroutines.sync.withLock
 import performance.IPerformanceTracer
 import tts.IModelFileManager
 import tts.ITtsEngine
+import kotlin.concurrent.Volatile
 
 /**
  * Keeps up to [MAX_LOADED_ENGINES] engines loaded, one per language, so flows that alternate
@@ -43,17 +46,30 @@ class TtsRepositoryImpl(
     // Noise scale each loaded engine was built with; a settings change forces a reload.
     private val engineNoiseScales = mutableMapOf<String, Float>()
 
+    // Bumped by stop() so a multi-part speak() stops before its next part.
+    @Volatile
+    private var stopGeneration = 0
+
     override suspend fun speak(text: String, languageCode: String): Try<Unit> = Try {
+        val segments = SpeechSegments.split(text)
+        if (segments.isEmpty()) return@Try
+
         val ttsSettings = settingsRepository.getTtsSettings().first()
         val engine = engineFor(languageCode, ttsSettings.expressiveness) ?: return@Try
 
         val speakerId = settingsRepository.getTtsVoiceForLanguage(languageCode).first()
+        val generation = stopGeneration
         _ttsState.value = TtsState.Speaking
-        engine.synthesizeAndPlay(text, ttsSettings.speechRate, speakerId)
+        segments.forEachIndexed { index, segment ->
+            if (index > 0) delay(SEGMENT_PAUSE_MS)
+            if (stopGeneration != generation) return@Try
+            engine.synthesizeAndPlay(segment, ttsSettings.speechRate, speakerId)
+        }
         _ttsState.value = TtsState.Idle
     }
 
     override suspend fun stop(): Try<Unit> = Try {
+        stopGeneration++
         engines.values.toList().forEach { it.stop() }
         _ttsState.value = TtsState.Idle
     }
@@ -189,7 +205,10 @@ class TtsRepositoryImpl(
         modelFileManager.deleteModelFiles(languageCode)
     }
 
-    private companion object {
-        const val MAX_LOADED_ENGINES = 2
+    companion object {
+        private const val MAX_LOADED_ENGINES = 2
+
+        /** Silence between parts of a "he/she" or "big, large" text. */
+        const val SEGMENT_PAUSE_MS = 350L
     }
 }
