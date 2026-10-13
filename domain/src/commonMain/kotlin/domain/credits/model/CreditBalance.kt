@@ -1,7 +1,17 @@
 package domain.credits.model
 
 /** Something that spends AI credits. Mirrors the server's action names. */
-enum class CreditAction { PHOTO_EXTRACTION, AI_SUGGESTION, TEXT_TRANSLATION }
+enum class CreditAction {
+    PHOTO_EXTRACTION,
+    AI_SUGGESTION,
+    TEXT_TRANSLATION,
+
+    /** A photo extraction with the learner's own instructions. */
+    PHOTO_EXTRACTION_GUIDED,
+
+    /** AI suggestions with the learner's own instructions. */
+    AI_SUGGESTION_GUIDED,
+}
 
 /** The plan a monthly allowance is sized for. */
 enum class CreditTier { FREE, TRIAL, PREMIUM }

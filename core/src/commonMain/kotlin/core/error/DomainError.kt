@@ -69,5 +69,20 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
         data class ImageTooLarge(val maxBytes: Int) : AddWords("Image too large")
         data object ImageUnreadable : AddWords("Image unreadable")
         data object NothingRecognized : AddWords("No vocabulary found")
+
+        /** The server would not use the learner's own instructions to the AI; nothing was charged. */
+        data class InstructionsRefused(val reason: Reason) : AddWords("Instructions refused: $reason") {
+            enum class Reason {
+                /** Not a request for vocabulary (or an attempt to steer the AI elsewhere). */
+                OffTopic,
+                Unsafe,
+                /** Contains links, emails or phone numbers. */
+                PersonalData,
+                /** Refused too often lately; instructions pause for a while. */
+                Paused,
+                /** Could not be checked right now; the request works without them. */
+                Unavailable,
+            }
+        }
     }
 }

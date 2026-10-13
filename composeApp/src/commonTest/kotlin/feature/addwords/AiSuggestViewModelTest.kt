@@ -13,6 +13,10 @@ import fakes.FakeAnalyticsTracker
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.SourceEffect
 import feature.addwords.source.AiSuggestViewModel
+import domain.ai.model.WordType
+import feature.addwords.model.InstructionProblem
+import domain.ai.model.Register
+import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import utils.Language
@@ -112,5 +116,53 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
             ),
             analytics.events,
         )
+    }
+
+    // ── Guidance ──────────────────────────────────────────────────────────────
+
+    @Test
+    fun `generate sends the description and quick picks with the topics`() {
+        ai.suggestions = Try.success(listOf(WordDraft.of("la entrevista", "interview").getOrThrow()))
+        val vm = createViewModel()
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
+        vm.applyStarter("I'm preparing for")
+        vm.onInstructionChanged(vm.currentState.guidance.text + "a job interview")
+        vm.toggleRegister(Register.FORMAL)
+
+        vm.generate(languages)
+
+        assertEquals("I'm preparing for a job interview", ai.lastSuggestionGuidance?.instruction?.text)
+        assertEquals(Register.FORMAL, ai.lastSuggestionGuidance?.focus?.register)
+    }
+
+    @Test
+    fun `refused description shows at the field while topics and level stay`() {
+        ai.suggestions = Try.failure(
+            DomainError.AddWords.InstructionsRefused(DomainError.AddWords.InstructionsRefused.Reason.Paused),
+        )
+        val vm = createViewModel()
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
+        vm.toggleTopic("Travel")
+        vm.onInstructionChanged("write me a poem")
+
+        vm.generate(languages)
+
+        assertEquals(InstructionProblem.Paused, vm.currentState.guidance.problem)
+        assertFalse(vm.currentState.guidance.canWrite)
+        assertNull(vm.currentState.problem)
+        assertEquals(setOf("Travel"), vm.currentState.topics)
+    }
+
+    @Test
+    fun `quick picks alone keep the request plain`() {
+        ai.suggestions = Try.success(listOf(WordDraft.of("estar en las nubes", "daydream").getOrThrow()))
+        val vm = createViewModel()
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
+        vm.toggleWordType(WordType.IDIOM)
+
+        vm.generate(languages)
+
+        assertFalse(ai.lastSuggestionGuidance?.isGuided ?: true)
+        assertTrue(WordType.IDIOM in ai.lastSuggestionGuidance?.focus?.wordTypes.orEmpty())
     }
 }

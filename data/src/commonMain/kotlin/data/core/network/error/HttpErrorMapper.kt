@@ -11,15 +11,30 @@ import kotlinx.serialization.json.jsonPrimitive
 /** Machine-readable `code` values the server puts in error bodies (see the server's ApiErrorCode). */
 internal object ApiErrorCode {
     const val INSUFFICIENT_CREDITS = "INSUFFICIENT_CREDITS"
+
+    /** Prefix of the codes the server answers when it won't use the learner's AI instructions (422/429/503). */
+    const val INSTRUCTIONS_PREFIX = "INSTRUCTIONS_"
 }
 
 object HttpErrorMapper {
 
     private val json = Json { ignoreUnknownKeys = true }
 
+    private val InstructionStatuses = setOf(
+        HttpStatusCode.UnprocessableEntity,
+        HttpStatusCode.TooManyRequests,
+        HttpStatusCode.ServiceUnavailable,
+    )
+
     suspend fun mapHttpResponse(response: HttpResponse): Exception {
         val statusCode = response.status
         val message = messageFor(statusCode)
+
+        // Refused instructions come as 422, 429 or 503; only the body's code tells them apart from the rest
+        if (statusCode in InstructionStatuses) {
+            response.errorCode()?.takeIf { it.startsWith(ApiErrorCode.INSTRUCTIONS_PREFIX) }
+                ?.let { return InstructionsRefusedException(it) }
+        }
 
         return when (statusCode) {
             HttpStatusCode.Unauthorized,
@@ -57,6 +72,7 @@ object HttpErrorMapper {
             is AuthenticationException,
             is PremiumRequiredException,
             is InsufficientCreditsException,
+            is InstructionsRefusedException,
             is RateLimitedException,
             is ServerException,
             is NetworkException -> exception

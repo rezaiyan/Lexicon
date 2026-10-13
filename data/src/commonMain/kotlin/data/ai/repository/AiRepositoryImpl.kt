@@ -6,6 +6,8 @@ import core.common.map
 import data.ai.remote.IAiRemoteDataSource
 import data.ai.remote.model.ExtractWordsRequest
 import data.ai.remote.model.SuggestWordsRequest
+import data.ai.remote.model.toDtoOrNull
+import domain.ai.model.AiGuidance
 import data.onboarding.remote.model.toApiValue
 import domain.ai.repository.IAiRepository
 import domain.credits.ICreditsRepository
@@ -23,11 +25,17 @@ class AiRepositoryImpl(
     private val credits: ICreditsRepository,
 ) : IAiRepository {
 
-    override suspend fun extractWords(image: ByteArray, languages: LanguagePair): Try<List<WordDraft>> {
+    override suspend fun extractWords(
+        image: ByteArray,
+        languages: LanguagePair,
+        guidance: AiGuidance,
+    ): Try<List<WordDraft>> {
         val request = ExtractWordsRequest(
             imageBase64 = Base64.encode(image),
             learningLanguage = languages.learning.aiPromptName,
             nativeLanguage = languages.native.aiPromptName,
+            focus = guidance.focus.toDtoOrNull(),
+            instructions = guidance.instruction?.text,
         )
         return aiRemoteDataSource.extractWords(request)
             .also { credits.invalidate() }
@@ -38,6 +46,7 @@ class AiRepositoryImpl(
         languages: LanguagePair,
         level: ProficiencyLevel,
         topics: List<String>,
+        guidance: AiGuidance,
     ): Try<List<WordDraft>> = aiRemoteDataSource.suggestWords(
         SuggestWordsRequest(
             targetLanguage = languages.learning.displayName,
@@ -45,6 +54,8 @@ class AiRepositoryImpl(
             currentLevel = level.toApiValue(),
             interests = topics,
             targetLanguageCode = languages.learning.code,
+            focus = guidance.focus.toDtoOrNull(),
+            instructions = guidance.instruction?.text,
         ),
     )
         .also { credits.invalidate() }

@@ -13,6 +13,9 @@ import fakes.FakeImagePreparer
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.SourceEffect
 import feature.addwords.source.PhotoImportViewModel
+import domain.ai.model.WordType
+import feature.addwords.model.InstructionProblem
+import domain.ai.model.AiInstruction
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import utils.Language
@@ -183,5 +186,106 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
         vm.clearPhoto()
 
         assertNull(vm.currentState.photo)
+    }
+
+    // ── Guidance ──────────────────────────────────────────────────────────────
+
+    @Test
+    fun `extract sends the quick picks and the learner's words`() {
+        ai.drafts = Try.success(listOf(WordDraft.of("gehen", "to go").getOrThrow()))
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.toggleMarkedOnly()
+        vm.toggleWordType(WordType.VERB)
+        vm.onInstructionChanged("only the blue box")
+
+        vm.extract(languages)
+
+        val sent = ai.lastExtractGuidance
+        assertEquals("only the blue box", sent?.instruction?.text)
+        assertEquals(setOf(WordType.VERB), sent?.focus?.wordTypes)
+        assertTrue(sent?.focus?.markedOnly == true)
+    }
+
+    @Test
+    fun `refused words show at the field - keep the text and the photo - and are not a page error`() {
+        ai.drafts = Try.failure(
+            DomainError.AddWords.InstructionsRefused(DomainError.AddWords.InstructionsRefused.Reason.OffTopic),
+        )
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.onInstructionChanged("tell me a joke")
+
+        vm.extract(languages)
+
+        assertEquals(InstructionProblem.OffTopic, vm.currentState.guidance.problem)
+        assertEquals("tell me a joke", vm.currentState.guidance.text)
+        assertNull(vm.currentState.problem)
+        assertNotNull(vm.currentState.photo)
+        assertFalse(vm.currentState.isExtracting)
+    }
+
+    @Test
+    fun `editing the words clears the refusal`() {
+        ai.drafts = Try.failure(
+            DomainError.AddWords.InstructionsRefused(DomainError.AddWords.InstructionsRefused.Reason.Unsafe),
+        )
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.onInstructionChanged("bad")
+        vm.extract(languages)
+
+        vm.onInstructionChanged("only nouns")
+
+        assertNull(vm.currentState.guidance.problem)
+    }
+
+    @Test
+    fun `a new photo starts without guidance`() {
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.toggleSkipNames()
+        vm.onInstructionChanged("only nouns")
+
+        vm.onPhotoPicked(byteArrayOf(9))
+
+        assertEquals("", vm.currentState.guidance.text)
+        assertTrue(vm.currentState.guidance.focus.isEmpty)
+    }
+
+    @Test
+    fun `rotating keeps the guidance`() {
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.onInstructionChanged("only nouns")
+
+        vm.rotatePhoto()
+
+        assertEquals("only nouns", vm.currentState.guidance.text)
+    }
+
+    @Test
+    fun `guidance analytics carry lengths and counts - never the text`() {
+        ai.drafts = Try.success(listOf(WordDraft.of("gehen", "to go").getOrThrow()))
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+        vm.onInstructionChanged("secret words")
+
+        vm.extract(languages)
+
+        val event = analytics.events.first { it.first == "import_ai_guidance" }.second.orEmpty()
+        assertEquals(true, event["guided"])
+        assertEquals(12, event["instruction_length"])
+        assertFalse(event.values.any { it == "secret words" })
+    }
+
+    @Test
+    fun `the instruction length limit is the domain's`() {
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+
+        vm.onInstructionChanged("a".repeat(AiInstruction.MAX_LENGTH * 2))
+
+        assertEquals(AiInstruction.MAX_LENGTH, vm.currentState.guidance.text.length)
     }
 }

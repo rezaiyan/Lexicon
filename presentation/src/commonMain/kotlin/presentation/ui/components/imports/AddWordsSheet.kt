@@ -15,14 +15,20 @@ import feature.addwords.model.AddWordsEffect
 import feature.addwords.model.AddWordsUiState
 import feature.addwords.model.SourceEffect
 import feature.addwords.model.canStart
-import feature.addwords.model.creditAction
+import feature.addwords.model.costFor
+import feature.addwords.model.guidedSurcharge
 import feature.addwords.source.AiSuggestViewModel
+import feature.addwords.source.GuidedSourceViewModel
 import feature.addwords.source.FileImportViewModel
 import feature.addwords.source.ManualEntryEffect
 import feature.addwords.source.ManualEntryViewModel
 import feature.addwords.source.PhotoImportViewModel
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.add_words_native_title
+import lexicon.resources.generated.resources.ai_guidance_placeholder_photo
+import lexicon.resources.generated.resources.ai_guidance_placeholder_suggest
+import lexicon.resources.generated.resources.ai_guidance_subtitle_photo
+import lexicon.resources.generated.resources.ai_guidance_title_photo
 import lexicon.resources.generated.resources.create_tag
 import lexicon.resources.generated.resources.new_tag
 import lexicon.resources.generated.resources.word_language_title
@@ -49,8 +55,8 @@ private sealed interface AddWordsPage {
     data object Result : AddWordsPage
     data object CreateTag : AddWordsPage
 
-    /** [origin] (a paid source) costs more credits than the user has. */
-    data class OutOfCredits(val origin: WordOrigin) : AddWordsPage
+    /** [origin] (a paid source, with the learner's own words when [guided]) costs more credits than the user has. */
+    data class OutOfCredits(val origin: WordOrigin, val guided: Boolean = false) : AddWordsPage
 
     /** Language setup; continues to [then] (or back to where it was opened) once both are picked. */
     data class Learning(val then: AddWordsPage?) : AddWordsPage
@@ -241,6 +247,7 @@ private fun AddWordsSheetContent(
                 onTagSelected = host::selectTag,
                 onCreateTag = openCreateTag,
                 onChangeLanguage = changeLanguages,
+                onOutOfCredits = { pages.navigateTo(AddWordsPage.OutOfCredits(WordOrigin.Photo, guided = true)) },
             )
 
             AddWordsPage.AiLevel -> {
@@ -259,14 +266,40 @@ private fun AddWordsSheetContent(
                     BackHandler { /* generation in progress: stay */ }
                     AiGeneratingContent(learning = state.learning, level = aiState.level, topics = aiState.topics)
                 } else {
+                    val guided = aiState.guidance.isGuided
+                    val actions = rememberGuidanceActions(ai)
                     AiTopicsStep(
                         topics = aiState.availableTopics,
                         selectedTopics = aiState.topics,
                         error = aiState.problem.text(),
+                        cost = state.credits.costFor(WordOrigin.AiSuggestion, guided),
                         onToggleTopic = ai::toggleTopic,
-                        onGenerate = { ai.generate(state.languages) },
+                        onGenerate = {
+                            // Plain was affordable when the wizard opened; the guided price may not be
+                            if (state.credits.canStart(WordOrigin.AiSuggestion, guided)) {
+                                ai.generate(state.languages)
+                            } else {
+                                pages.navigateTo(AddWordsPage.OutOfCredits(WordOrigin.AiSuggestion, guided))
+                            }
+                        },
                         generateEnabled = aiState.canGenerate,
-                    )
+                    ) {
+                        AiGuidanceComposer(
+                            guidance = aiState.guidance,
+                            placeholder = stringResource(Res.string.ai_guidance_placeholder_suggest),
+                            starters = suggestStarters(),
+                            quickPicks = suggestQuickPicks(aiState.guidance.focus, actions),
+                            surcharge = state.credits.guidedSurcharge(WordOrigin.AiSuggestion),
+                            enabled = !aiState.isGenerating,
+                            onTextChange = actions.onTextChange,
+                            onStarter = actions.onStarter,
+                            onClear = actions.onClear,
+                            onContinueWithout = {
+                                ai.clearInstruction()
+                                ai.generate(state.languages)
+                            },
+                        )
+                    }
                 }
             }
 
@@ -295,7 +328,7 @@ private fun AddWordsSheetContent(
             is AddWordsPage.OutOfCredits -> {
                 val credits = state.credits
                 OutOfCreditsContent(
-                    cost = page.origin.creditAction?.let { credits?.costOf(it) },
+                    cost = credits.costFor(page.origin, page.guided),
                     balance = credits?.balance,
                     refillsAtMillis = credits?.periodEndsAtMillis,
                     premiumMonthlyAllowance = credits?.premiumMonthlyAllowance,
@@ -336,6 +369,7 @@ private fun PhotoPage(
     onTagSelected: (Long?) -> Unit,
     onCreateTag: () -> Unit,
     onChangeLanguage: () -> Unit,
+    onOutOfCredits: () -> Unit,
 ) {
     val photoState by photo.state()
     val galleryLauncher = rememberImagePickerLauncher(photo::onPhotoPicked)
@@ -356,16 +390,46 @@ private fun PhotoPage(
             onGalleryClick = galleryLauncher,
         )
     } else {
+        val guided = photoState.guidance.isGuided
+        val actions = rememberGuidanceActions(photo)
         PhotoPreviewPage(
             imageBytes = picked.bytes,
             isLoading = photoState.isExtracting,
             isEnabled = !photoState.isExtracting,
             problem = photoState.problem.text(),
             quarterTurns = photoState.quarterTurns,
+            cost = state.credits.costFor(WordOrigin.Photo, guided),
             onRotate = photo::rotatePhoto,
-            onConfirm = { photo.extract(state.languages) },
+            onConfirm = {
+                // Plain was affordable when the source opened; the guided price may not be
+                if (state.credits.canStart(WordOrigin.Photo, guided)) {
+                    photo.extract(state.languages)
+                } else {
+                    onOutOfCredits()
+                }
+            },
             onRetake = photo::clearPhoto,
-        )
+        ) {
+            AiGuidanceComposer(
+                guidance = photoState.guidance,
+                placeholder = stringResource(Res.string.ai_guidance_placeholder_photo),
+                starters = photoStarters(),
+                quickPicks = photoQuickPicks(photoState.guidance.focus, actions),
+                surcharge = state.credits.guidedSurcharge(WordOrigin.Photo),
+                enabled = !photoState.isExtracting,
+                onTextChange = actions.onTextChange,
+                onStarter = actions.onStarter,
+                onClear = actions.onClear,
+                onContinueWithout = {
+                    photo.clearInstruction()
+                    photo.extract(state.languages)
+                },
+                collapsible = true,
+                title = stringResource(Res.string.ai_guidance_title_photo),
+                subtitle = stringResource(Res.string.ai_guidance_subtitle_photo),
+                ownWordsFirst = false,
+            )
+        }
     }
 }
 
@@ -399,5 +463,20 @@ private fun ReviewPage(
         onCancelEdit = host::cancelEditingCandidate,
         onSaveEdit = host::saveCandidateEdit,
         onCommit = host::commitReview,
+    )
+}
+
+/** The guidance callbacks of [viewModel], built once so chips and the composer don't recompose for them. */
+@Composable
+private fun rememberGuidanceActions(viewModel: GuidedSourceViewModel<*>): GuidanceActions = remember(viewModel) {
+    GuidanceActions(
+        onTextChange = viewModel::onInstructionChanged,
+        onStarter = viewModel::applyStarter,
+        onClear = viewModel::clearInstruction,
+        onToggleWordType = viewModel::toggleWordType,
+        onToggleRegister = viewModel::toggleRegister,
+        onToggleGrammarNotes = viewModel::toggleGrammarNotes,
+        onToggleMarkedOnly = viewModel::toggleMarkedOnly,
+        onToggleSkipNames = viewModel::toggleSkipNames,
     )
 }

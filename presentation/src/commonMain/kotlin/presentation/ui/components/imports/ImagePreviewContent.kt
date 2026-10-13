@@ -62,7 +62,12 @@ private const val MaxAspectRatio = 2.5f
 private const val QUARTER_TURNS = 4
 private const val RIGHT_ANGLE_DEGREES = 90f
 
-/** "Looks good?" — the picked photo with extract / retake actions. */
+/**
+ * "Looks good?" — the picked photo with extract / retake actions.
+ *
+ * @param cost credits the extraction costs as currently set up (guided or not); null while unknown.
+ * @param guidance the optional "tell the AI what you want" panel, under the photo.
+ */
 @Composable
 internal fun PhotoPreviewPage(
     imageBytes: ByteArray,
@@ -70,9 +75,11 @@ internal fun PhotoPreviewPage(
     isEnabled: Boolean,
     problem: String?,
     quarterTurns: Int,
+    cost: Int?,
     onRotate: () -> Unit,
     onConfirm: () -> Unit,
     onRetake: () -> Unit,
+    guidance: @Composable () -> Unit = {},
 ) {
     val decoded = remember(imageBytes) { imageBytes.toImageBitmap() }
     // Shown exactly as it will be uploaded: sideways text is misread, so the user turns it upright here.
@@ -89,7 +96,7 @@ internal fun PhotoPreviewPage(
                     modifier = Modifier.width(IntrinsicSize.Max),
                 )
                 SheetPrimaryButton(
-                    text = stringResource(Res.string.extract_words),
+                    text = actionWithCost(stringResource(Res.string.extract_words), cost),
                     onClick = onConfirm,
                     enabled = isEnabled && imageBitmap != null,
                     isLoading = isLoading,
@@ -141,6 +148,7 @@ internal fun PhotoPreviewPage(
         }
 
         ErrorMessage(problem)
+        if (imageBitmap != null) guidance()
     }
 }
 

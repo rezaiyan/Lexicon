@@ -40,6 +40,7 @@ import components.sheet.RadioDot
 import components.sheet.SelectableCard
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
+import components.sheet.SheetSectionLabel
 import domain.onboarding.model.ProficiencyLevel
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advanced
@@ -48,9 +49,10 @@ import lexicon.resources.generated.resources.ai_wizard_generate_words
 import lexicon.resources.generated.resources.ai_wizard_level_highlight
 import lexicon.resources.generated.resources.ai_wizard_level_subtitle
 import lexicon.resources.generated.resources.ai_wizard_level_title
-import lexicon.resources.generated.resources.ai_wizard_topics_highlight
-import lexicon.resources.generated.resources.ai_wizard_topics_subtitle
-import lexicon.resources.generated.resources.ai_wizard_topics_title
+import lexicon.resources.generated.resources.ai_wizard_describe_highlight
+import lexicon.resources.generated.resources.ai_wizard_describe_subtitle
+import lexicon.resources.generated.resources.ai_wizard_describe_title
+import lexicon.resources.generated.resources.ai_wizard_or_topics
 import lexicon.resources.generated.resources.beginner
 import lexicon.resources.generated.resources.generating_step_1
 import lexicon.resources.generated.resources.generating_step_2
@@ -149,19 +151,27 @@ private val TopicIcons: Map<String, ImageVector> = mapOf(
     "Academic" to Icons.Default.School,
 )
 
+/**
+ * "What do you want to learn?": the learner describes it in their own words (with quick picks and
+ * starters in [guidance]), and/or picks topics below. Everything is optional.
+ *
+ * @param cost credits generating costs as currently set up (guided or not); null while unknown.
+ */
 @Composable
 internal fun AiTopicsStep(
     topics: List<String>,
     selectedTopics: Set<String>,
     error: String?,
+    cost: Int?,
     onToggleTopic: (String) -> Unit,
     onGenerate: () -> Unit,
     generateEnabled: Boolean = true,
+    guidance: @Composable () -> Unit = {},
 ) {
     SheetPage(
-        title = stringResource(Res.string.ai_wizard_topics_title),
-        highlight = stringResource(Res.string.ai_wizard_topics_highlight),
-        subtitle = stringResource(Res.string.ai_wizard_topics_subtitle),
+        title = stringResource(Res.string.ai_wizard_describe_title),
+        highlight = stringResource(Res.string.ai_wizard_describe_highlight),
+        subtitle = stringResource(Res.string.ai_wizard_describe_subtitle),
         footer = {
             if (selectedTopics.isNotEmpty()) {
                 Text(
@@ -173,13 +183,15 @@ internal fun AiTopicsStep(
                 )
             }
             SheetPrimaryButton(
-                text = stringResource(Res.string.ai_wizard_generate_words),
+                text = actionWithCost(stringResource(Res.string.ai_wizard_generate_words), cost),
                 onClick = onGenerate,
                 enabled = generateEnabled,
                 icon = Icons.Default.AutoAwesome,
             )
         },
     ) {
+        guidance()
+        SheetSectionLabel(stringResource(Res.string.ai_wizard_or_topics))
         BoxWithConstraints {
             // Single column when the font-scaled width can't fit two labels side by side
             val columns = if (maxWidth / LocalDensity.current.fontScale < TwoColumnMinWidth) 1 else 2

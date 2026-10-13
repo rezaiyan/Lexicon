@@ -2,13 +2,13 @@ package feature.addwords.source
 
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
-import core.base.BaseViewModel
 import core.common.fold
 import domain.onboarding.model.ProficiencyLevel
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordOrigin
 import domain.word.add.usecase.SuggestWordsUseCase
 import feature.addwords.model.AddWordsProblem
+import feature.addwords.model.GuidanceDraft
 import feature.addwords.model.SourceEffect
 import feature.addwords.model.logImportEvent
 import feature.addwords.model.logImportFailed
@@ -21,8 +21,14 @@ data class AiSuggestState(
     val availableTopics: List<String> = DefaultTopics,
     val isGenerating: Boolean = false,
     val problem: AddWordsProblem? = null,
-) {
+    /** What the learner describes in their own words, plus quick picks. */
+    override val guidance: GuidanceDraft = GuidanceDraft(),
+) : GuidedSourceState<AiSuggestState> {
     val canGenerate: Boolean get() = level != null && !isGenerating
+
+    override val isBusy: Boolean get() = isGenerating
+
+    override fun withGuidance(guidance: GuidanceDraft) = copy(guidance = guidance)
 
     companion object {
         val DefaultTopics = listOf(
@@ -32,11 +38,14 @@ data class AiSuggestState(
     }
 }
 
-/** Asks the AI for words at a level and on topics, in the sheet's language pair. Nothing is saved here. */
+/**
+ * Asks the AI for words at a level, on topics and/or described in the learner's own words, in
+ * the sheet's language pair. Nothing is saved here.
+ */
 class AiSuggestViewModel(
     private val suggestWords: SuggestWordsUseCase,
     private val analytics: IAnalyticsTracker,
-) : BaseViewModel<AiSuggestState, SourceEffect>() {
+) : GuidedSourceViewModel<AiSuggestState>(WordOrigin.AiSuggestion, analytics) {
 
     override fun initialState() = AiSuggestState()
 
@@ -54,22 +63,25 @@ class AiSuggestViewModel(
         val level = state.level ?: return
         if (!state.canGenerate || languages == null) return
 
+        logGuidanceSent()
         updateState { copy(isGenerating = true, problem = null) }
+        val params = SuggestWordsUseCase.Params(languages, level, state.topics.toList(), state.guidance.toGuidance())
         viewModelScope.launch {
-            suggestWords(SuggestWordsUseCase.Params(languages, level, state.topics.toList())).fold(
+            suggestWords(params).fold(
                 onSuccess = { drafts ->
                     updateState { copy(isGenerating = false) }
                     emitEffect(SourceEffect.CandidatesReady(drafts))
                 },
                 onFailure = { error ->
+                    updateState { copy(isGenerating = false) }
+                    if (showInstructionProblem(error)) return@fold
                     val problem = error.toProblem(WordOrigin.AiSuggestion)
                     analytics.logImportFailed(WordOrigin.AiSuggestion, step = "extract", problem)
                     // Out of credits gets its own page (with the way to get more), not an inline error
                     if (problem == AddWordsProblem.OutOfCredits) {
-                        updateState { copy(isGenerating = false) }
                         emitEffect(SourceEffect.OutOfCredits)
                     } else {
-                        updateState { copy(isGenerating = false, problem = problem) }
+                        updateState { copy(problem = problem) }
                     }
                 },
             )

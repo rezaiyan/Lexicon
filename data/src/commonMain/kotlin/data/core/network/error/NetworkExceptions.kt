@@ -14,3 +14,6 @@ class PremiumRequiredException(message: String) : Exception(message)
 /** HTTP 402 with code INSUFFICIENT_CREDITS: the AI action costs more credits than the user has. */
 class InsufficientCreditsException(message: String) : Exception(message)
 
+/** The server would not use the learner's AI instructions; [code] is one of the `INSTRUCTIONS_*` codes. */
+class InstructionsRefusedException(val code: String) : Exception("Instructions refused: $code")
+
