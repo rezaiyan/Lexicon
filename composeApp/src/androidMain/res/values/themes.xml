@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. enableEdgeToEdge() handles transparent system bars. -->
     <style name="Theme.Lexicon" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <!-- Splash screen theme -->
+    <!--
+        Splash screen theme. The system bars take the splash background and icons that read on it
+        (dark icons by day, light by night via splash_light_system_bars), so the splash is one
+        surface from top to bottom on every API level.
+    -->
     <style name="Theme.Lexicon.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
         <item name="windowSplashScreenAnimationDuration">300</item>
         <item name="postSplashScreenTheme">@style/Theme.Lexicon</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowLightStatusBar">@bool/splash_light_system_bars</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">@bool/splash_light_system_bars</item>
     </style>
 </resources>

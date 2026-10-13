@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import expects.OverrideSystemBars
 import expects.openUrl
 import lexicon.resources.generated.resources.privacy_policy
 import lexicon.resources.generated.resources.terms_of_use
@@ -88,6 +89,13 @@ fun AuthExperienceScreen(
             onSessionVerified()
         }
     }
+
+    // The backdrop runs behind both bars; opaque bars would cut it into off-colour strips
+    OverrideSystemBars(
+        statusBarColor = Color.Transparent,
+        navigationBarColor = Color.Transparent,
+        darkIcons = !isDarkBackground(),
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         LoginBackdrop()
