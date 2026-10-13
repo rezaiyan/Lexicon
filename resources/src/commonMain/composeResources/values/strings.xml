@@ -1083,8 +1083,8 @@
     <string name="add_words_problem_file_too_large">This file is too big. Split it into files under 1 MB.</string>
     <string name="add_words_problem_unsupported_file">This isn't a text file. Pick a .txt, .csv or .tsv file.</string>
     <string name="add_words_problem_empty_file">This file is empty.</string>
-    <string name="add_words_problem_nothing_in_photo">No words found in this photo. Try a sharper, well-lit shot.</string>
-    <string name="add_words_problem_nothing_suggested">No suggestions this time. Try other topics.</string>
+    <string name="add_words_problem_nothing_in_photo">No words found in this photo, so no credits were used. Try a sharper, well-lit shot.</string>
+    <string name="add_words_problem_nothing_suggested">No suggestions this time, so no credits were used. Try other topics.</string>
     <string name="listening_setup_intro">Hear a word, recall its meaning in the pause, then hear the answer. Nothing is graded.</string>
     <string name="listening_setup_words">Words to play</string>
     <string name="listening_source_due">Due</string>

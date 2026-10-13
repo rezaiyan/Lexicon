@@ -9,6 +9,7 @@ import data.core.network.interceptor.RefreshAndRetryInterceptor
 import core.isDebugMode
 import expects.logNetwork
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -22,6 +23,8 @@ import kotlinx.serialization.json.Json
  * Centralizes HttpClient configuration and ensures consistent behavior across all data sources
  */
 object HttpClientProvider {
+
+    private const val REQUEST_TIMEOUT_MILLIS = 120_000L
 
     /**
      * Creates a configured HttpClient instance with interceptors
@@ -45,6 +48,13 @@ object HttpClientProvider {
                         ignoreUnknownKeys = true
                     }
                 )
+            }
+            // An AI request can take about 70s on the server (instruction check up to 8s, model call
+            // up to 60s). Giving up sooner shows an error for words the server finished and charged
+            // for; iOS would otherwise stop waiting at 60s.
+            install(HttpTimeout) {
+                requestTimeoutMillis = REQUEST_TIMEOUT_MILLIS
+                socketTimeoutMillis = REQUEST_TIMEOUT_MILLIS
             }
             install(Logging) {
                 logger = object : Logger {
