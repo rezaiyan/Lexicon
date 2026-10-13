@@ -64,7 +64,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import components.BrandFilterChip
-import components.BrandSegmentedRow
+import components.SnapStepPicker
 import components.CounterPill
 import components.sheet.IconTile
 import components.sheet.SheetGroup
@@ -114,8 +114,11 @@ internal sealed interface QuickPickGroup {
     /** Any number apply: one scrolling row of chips. */
     data class Chips(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
 
-    /** At most one applies: a segmented control; tapping the selected one clears it. */
-    data class OneOf(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
+    /**
+     * One of a few ordered steps (level, tone): a snapping track. Tapping the selected step reports
+     * it again, so an optional choice can clear it.
+     */
+    data class Steps(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
 
     /** Independent on/off options: switch rows that explain themselves. */
     data class Toggles(override val picks: List<QuickPick>) : QuickPickGroup
@@ -443,7 +446,14 @@ private fun FineTuneSection(groups: List<QuickPickGroup>, enabled: Boolean) {
         groups.forEach { group ->
             when (group) {
                 is QuickPickGroup.Chips -> GroupWithTitle(group.title) { ChipRow(group.picks, enabled) }
-                is QuickPickGroup.OneOf -> GroupWithTitle(group.title) { SegmentedPicks(group.picks, enabled) }
+                is QuickPickGroup.Steps -> GroupWithTitle(group.title) {
+                    SnapStepPicker(
+                        labels = group.picks.map(QuickPick::label),
+                        selectedIndex = group.picks.indexOfFirst(QuickPick::selected).takeIf { it >= 0 },
+                        onSelect = { index -> group.picks[index].onClick() },
+                        enabled = enabled,
+                    )
+                }
                 is QuickPickGroup.Toggles -> SheetGroup {
                     group.picks.forEachIndexed { index, pick ->
                         SheetSwitchRow(
@@ -488,15 +498,6 @@ private fun ChipRow(picks: List<QuickPick>, enabled: Boolean) {
     }
 }
 
-@Composable
-private fun SegmentedPicks(picks: List<QuickPick>, enabled: Boolean) {
-    BrandSegmentedRow(
-        labels = picks.map(QuickPick::label),
-        selectedIndex = picks.indexOfFirst(QuickPick::selected).takeIf { it >= 0 },
-        onSelect = { index -> picks[index].onClick() },
-        enabled = { enabled },
-    )
-}
 
 /** Refusals are the learner's to fix; a pause or an outage is not about what they wrote. */
 private val InstructionProblem.isRefusal: Boolean

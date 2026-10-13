@@ -118,15 +118,15 @@ internal fun suggestQuickPicks(
     val registerLabels = Register.entries.map { it.label() }
     return remember(focus, actions, typeLabels, registerLabels, kinds, grammar, level, levelLabels) {
         listOf(
-            // Always one level: picking the selected one again keeps it
-            QuickPickGroup.OneOf(
+            // Always one level, on an ordered track: beginner to advanced
+            QuickPickGroup.Steps(
                 levelTitle,
                 ProficiencyLevel.entries.mapIndexed { index, entry ->
                     QuickPick(levelLabels[index], entry == level) { onLevelSelected(entry) }
                 },
             ),
             QuickPickGroup.Chips(kinds, wordTypePicks(WordType.entries, typeLabels, focus, actions)),
-            QuickPickGroup.OneOf(
+            QuickPickGroup.Steps(
                 tone,
                 Register.entries.mapIndexed { index, register ->
                     QuickPick(registerLabels[index], focus.register == register) { actions.onToggleRegister(register) }
