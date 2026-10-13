@@ -42,7 +42,14 @@ data class GuidanceDraft(
 
     fun toGuidance() = AiGuidance(focus, instruction)
 
-    fun withText(value: String) = copy(text = value.take(AiInstruction.MAX_LENGTH), problem = null)
+    fun withText(value: String) = copy(text = value.take(AiInstruction.MAX_LENGTH), problem = problem.keptAfterEdit())
+
+    /**
+     * Shows [value] beside the field. A pause also drops the text: kept, it would be resent and
+     * refused again on every try, and the field is locked so it can't be edited out.
+     */
+    fun withProblem(value: InstructionProblem) =
+        copy(text = if (value == InstructionProblem.Paused) "" else text, problem = value)
 
     /** A sentence starter ("I'm preparing for …"): fills an empty field, or continues what is there. */
     fun withStarter(starter: String): GuidanceDraft {
@@ -64,6 +71,8 @@ data class GuidanceDraft(
     fun toggleSkipNames() = withFocus { copy(skipNames = !skipNames) }
 
     private fun withFocus(edit: VocabularyFocus.() -> VocabularyFocus) =
-        // A pause outlives quick-pick edits: only time lifts it
-        copy(focus = focus.edit(), problem = problem.takeIf { it == InstructionProblem.Paused })
+        copy(focus = focus.edit(), problem = problem.keptAfterEdit())
+
+    // A pause outlives edits, only time lifts it; any other problem was about the old text
+    private fun InstructionProblem?.keptAfterEdit() = takeIf { it == InstructionProblem.Paused }
 }

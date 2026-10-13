@@ -80,6 +80,30 @@ class GuidanceDraftTest {
     }
 
     @Test
+    fun `withProblem when paused drops the text so it is not resent and refused again`() {
+        val draft = GuidanceDraft(text = "write me an essay").toggleGrammarNotes().withProblem(InstructionProblem.Paused)
+
+        assertEquals("", draft.text)
+        assertFalse(draft.isGuided)
+        assertEquals(InstructionProblem.Paused, draft.problem)
+    }
+
+    @Test
+    fun `withProblem when refused keeps the text to fix in place - editing clears the problem`() {
+        val refused = GuidanceDraft(text = "write me an essay").withProblem(InstructionProblem.OffTopic)
+
+        assertEquals("write me an essay", refused.text)
+        assertNull(refused.withText("only verbs").problem)
+    }
+
+    @Test
+    fun `withText keeps a pause`() {
+        val draft = GuidanceDraft().withProblem(InstructionProblem.Paused).withText("x")
+
+        assertEquals(InstructionProblem.Paused, draft.problem)
+    }
+
+    @Test
     fun `toGuidance carries picks and the normalized instruction`() {
         val guidance = GuidanceDraft(text = " only  verbs ").toggleMarkedOnly().toGuidance()
 

@@ -154,6 +154,23 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `generate after a pause goes plain with the topics`() {
+        ai.suggestions = Try.failure(
+            DomainError.AddWords.InstructionsRefused(DomainError.AddWords.InstructionsRefused.Reason.Paused),
+        )
+        val vm = createViewModel()
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
+        vm.toggleTopic("Travel")
+        vm.onInstructionChanged("write me a poem")
+        vm.generate(languages)
+
+        ai.suggestions = Try.success(listOf(WordDraft.of("estar en las nubes", "daydream").getOrThrow()))
+        vm.generate(languages)
+
+        assertNull(ai.lastSuggestionGuidance?.instruction)
+    }
+
+    @Test
     fun `quick picks alone keep the request plain`() {
         ai.suggestions = Try.success(listOf(WordDraft.of("estar en las nubes", "daydream").getOrThrow()))
         val vm = createViewModel()

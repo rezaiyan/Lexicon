@@ -71,7 +71,7 @@ abstract class GuidedSourceViewModel<S : GuidedSourceState<S>>(
     protected fun showInstructionProblem(error: Throwable): Boolean {
         val problem = error.toInstructionProblem() ?: return false
         analytics.logImportEvent("import_instructions_refused", origin, "reason" to problem.name)
-        updateState { withGuidance(guidance.copy(problem = problem)) }
+        updateState { withGuidance(guidance.withProblem(problem)) }
         return true
     }
 }

@@ -1,12 +1,17 @@
 package presentation.ui.components.imports
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import domain.ai.model.Register
 import domain.ai.model.VocabularyFocus
 import domain.ai.model.WordType
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.ai_action_with_cost
+import lexicon.resources.generated.resources.ai_group_extras
+import lexicon.resources.generated.resources.ai_group_kinds
+import lexicon.resources.generated.resources.ai_group_tone
+import lexicon.resources.generated.resources.ai_group_which
 import lexicon.resources.generated.resources.ai_pick_grammar_notes
 import lexicon.resources.generated.resources.ai_pick_marked_only
 import lexicon.resources.generated.resources.ai_pick_skip_names
@@ -27,6 +32,7 @@ import lexicon.resources.generated.resources.ai_word_type_verb
 import org.jetbrains.compose.resources.stringResource
 
 /** The guidance callbacks a source offers; method references from its ViewModel, so they stay stable. */
+@Stable
 internal class GuidanceActions(
     val onTextChange: (String) -> Unit,
     val onStarter: (String) -> Unit,
@@ -60,42 +66,62 @@ private fun Register.label(): String = stringResource(
 
 private val PhotoWordTypes = listOf(WordType.NOUN, WordType.VERB, WordType.ADJECTIVE, WordType.PHRASE)
 
-/** Photo: which marked words, which kinds, and grammar notes. Most useful first. */
+/** Photo: which marked words, which kinds, and extras. Most useful first. */
 @Composable
-internal fun photoQuickPicks(focus: VocabularyFocus, actions: GuidanceActions): List<QuickPick> {
+internal fun photoQuickPicks(focus: VocabularyFocus, actions: GuidanceActions): List<QuickPickGroup> {
+    val which = stringResource(Res.string.ai_group_which)
+    val kinds = stringResource(Res.string.ai_group_kinds)
+    val extras = stringResource(Res.string.ai_group_extras)
     val markedOnly = stringResource(Res.string.ai_pick_marked_only)
     val skipNames = stringResource(Res.string.ai_pick_skip_names)
     val grammarNotes = stringResource(Res.string.ai_pick_grammar_notes)
     val typeLabels = PhotoWordTypes.map { it.label() }
-    return remember(focus, actions, typeLabels) {
-        buildList<QuickPick> {
-            add(QuickPick(markedOnly, focus.markedOnly, actions.onToggleMarkedOnly))
-            PhotoWordTypes.forEachIndexed { index, type ->
-                add(QuickPick(typeLabels[index], type in focus.wordTypes) { actions.onToggleWordType(type) })
-            }
-            add(QuickPick(grammarNotes, focus.grammarNotes, actions.onToggleGrammarNotes))
-            add(QuickPick(skipNames, focus.skipNames, actions.onToggleSkipNames))
-        }
+    return remember(focus, actions, typeLabels, which) {
+        listOf(
+            QuickPickGroup(
+                which,
+                listOf(
+                    QuickPick(markedOnly, focus.markedOnly, actions.onToggleMarkedOnly),
+                    QuickPick(skipNames, focus.skipNames, actions.onToggleSkipNames),
+                ),
+            ),
+            QuickPickGroup(kinds, wordTypePicks(PhotoWordTypes, typeLabels, focus, actions)),
+            QuickPickGroup(extras, listOf(QuickPick(grammarNotes, focus.grammarNotes, actions.onToggleGrammarNotes))),
+        )
     }
 }
 
-/** Suggestions: kinds of words, tone, and grammar notes. */
+/** Suggestions: kinds of words, one tone, and extras. */
 @Composable
-internal fun suggestQuickPicks(focus: VocabularyFocus, actions: GuidanceActions): List<QuickPick> {
+internal fun suggestQuickPicks(focus: VocabularyFocus, actions: GuidanceActions): List<QuickPickGroup> {
+    val kinds = stringResource(Res.string.ai_group_kinds)
+    val tone = stringResource(Res.string.ai_group_tone)
+    val extras = stringResource(Res.string.ai_group_extras)
     val grammarNotes = stringResource(Res.string.ai_pick_grammar_notes)
     val typeLabels = WordType.entries.map { it.label() }
     val registerLabels = Register.entries.map { it.label() }
-    return remember(focus, actions, typeLabels, registerLabels) {
-        buildList<QuickPick> {
-            WordType.entries.forEachIndexed { index, type ->
-                add(QuickPick(typeLabels[index], type in focus.wordTypes) { actions.onToggleWordType(type) })
-            }
-            Register.entries.forEachIndexed { index, register ->
-                add(QuickPick(registerLabels[index], focus.register == register) { actions.onToggleRegister(register) })
-            }
-            add(QuickPick(grammarNotes, focus.grammarNotes, actions.onToggleGrammarNotes))
-        }
+    return remember(focus, actions, typeLabels, registerLabels, kinds) {
+        listOf(
+            QuickPickGroup(kinds, wordTypePicks(WordType.entries, typeLabels, focus, actions)),
+            QuickPickGroup(
+                tone,
+                Register.entries.mapIndexed { index, register ->
+                    QuickPick(registerLabels[index], focus.register == register) { actions.onToggleRegister(register) }
+                },
+                singleChoice = true,
+            ),
+            QuickPickGroup(extras, listOf(QuickPick(grammarNotes, focus.grammarNotes, actions.onToggleGrammarNotes))),
+        )
     }
+}
+
+private fun wordTypePicks(
+    types: List<WordType>,
+    labels: List<String>,
+    focus: VocabularyFocus,
+    actions: GuidanceActions,
+): List<QuickPick> = types.mapIndexed { index, type ->
+    QuickPick(labels[index], type in focus.wordTypes) { actions.onToggleWordType(type) }
 }
 
 @Composable

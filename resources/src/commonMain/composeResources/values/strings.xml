@@ -1247,6 +1247,11 @@
     <string name="ai_guidance_expand">Show options</string>
     <string name="ai_guidance_collapse">Hide options</string>
     <string name="ai_guidance_active">%1$d chosen</string>
+    <string name="ai_group_which">Which words</string>
+    <string name="ai_group_kinds">Kinds of words</string>
+    <string name="ai_group_tone">Tone · pick one</string>
+    <string name="ai_group_extras">Extras</string>
+    <string name="ai_generating_request">“%1$s”</string>
     <string name="ai_pick_marked_only">Marked words only</string>
     <string name="ai_pick_skip_names">Skip names &amp; numbers</string>
     <string name="ai_pick_grammar_notes">Grammar in notes</string>

@@ -42,6 +42,7 @@ import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
 import components.sheet.SheetSectionLabel
 import domain.onboarding.model.ProficiencyLevel
+import lexicon.resources.generated.resources.ai_generating_request
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advanced
 import lexicon.resources.generated.resources.ai_wizard_continue
@@ -242,13 +243,27 @@ private val GeneratingSteps = listOf(
 )
 
 /** Shown while suggestions are generated. */
+/** Long enough to recognise the request, short enough for two lines under the progress. */
+private const val MAX_REQUEST_SUMMARY = 80
+
+private fun String.ellipsized(max: Int) = if (length <= max) this else take(max - 1).trimEnd() + "…"
+
 @Composable
-internal fun AiGeneratingContent(learning: Language?, level: ProficiencyLevel?, topics: Set<String>) {
+internal fun AiGeneratingContent(
+    learning: Language?,
+    level: ProficiencyLevel?,
+    topics: Set<String>,
+    request: String? = null,
+) {
+    val quoted = request?.let { stringResource(Res.string.ai_generating_request, it.ellipsized(MAX_REQUEST_SUMMARY)) }
     val summary = listOfNotNull(
-        learning?.displayName,
-        level?.let { stringResource(it.title) },
-        topics.takeIf { it.isNotEmpty() }?.joinToString(", "),
-    ).joinToString(" · ")
+        listOfNotNull(
+            learning?.displayName,
+            level?.let { stringResource(it.title) },
+            topics.takeIf { it.isNotEmpty() }?.joinToString(", "),
+        ).joinToString(" · ").ifEmpty { null },
+        quoted,
+    ).joinToString("\n")
 
     GeneratingProgress(
         title = stringResource(Res.string.generating_title),

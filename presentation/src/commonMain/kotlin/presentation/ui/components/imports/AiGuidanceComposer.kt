@@ -3,6 +3,7 @@ package presentation.ui.components.imports
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -51,8 +52,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -91,38 +94,44 @@ private const val MAX_FIELD_LINES = 4
 internal data class QuickPick(val label: String, val selected: Boolean, val onClick: () -> Unit)
 
 /**
+ * Quick picks shown under one heading. [singleChoice] groups (tone) read as radio buttons to
+ * assistive tech, so the "one at most" rule is announced, not discovered.
+ */
+@Immutable
+internal data class QuickPickGroup(val title: String, val picks: List<QuickPick>, val singleChoice: Boolean = false)
+
+/** Heading of a panel that starts collapsed (photo); the suggestions page shows the panel open. */
+@Immutable
+internal data class GuidanceHeader(val title: String, val subtitle: String)
+
+/**
  * Lets the learner steer the AI three ways, each easier than a blank box:
- * - **quick picks**: free, fixed options (word types, register, …)
+ * - **quick picks**: free, fixed options, grouped (which words, kinds, tone, extras)
  * - **starters**: tap "I'm preparing for" to begin a sentence, then finish it
  * - **own words**: free text, screened server-side and priced at [surcharge] more credits
  *
  * A refusal shows inline with the learner's text kept, so they can fix it in place.
  *
- * @param title shown only when [collapsible]: the row that opens the panel.
+ * @param header set for a collapsible panel; null shows it open, without a heading.
+ * @param ownWordsFirst the suggestions page leads with the description; photos with the picks.
  * @param onContinueWithout offered when the words couldn't be checked: clears them and retries.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun AiGuidanceComposer(
     guidance: GuidanceDraft,
     placeholder: String,
     starters: List<String>,
-    quickPicks: List<QuickPick>,
+    quickPicks: List<QuickPickGroup>,
     surcharge: Int,
     enabled: Boolean,
-    onTextChange: (String) -> Unit,
-    onStarter: (String) -> Unit,
-    onClear: () -> Unit,
+    actions: GuidanceActions,
     onContinueWithout: () -> Unit,
     modifier: Modifier = Modifier,
-    collapsible: Boolean = false,
-    title: String? = null,
-    subtitle: String? = null,
+    header: GuidanceHeader? = null,
     ownWordsFirst: Boolean = true,
 ) {
     val hasContent = guidance.text.isNotBlank() || !guidance.focus.isEmpty
-    var expanded by rememberSaveable { mutableStateOf(!collapsible || hasContent) }
-    val focusRequester = remember { FocusRequester() }
+    var expanded by rememberSaveable { mutableStateOf(header == null || hasContent) }
 
     Column(
         modifier = modifier
@@ -133,51 +142,22 @@ internal fun AiGuidanceComposer(
             .padding(Theme.spacing.md),
         verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
-        if (collapsible && title != null) {
-            val activeCount = quickPicks.count { it.selected } + if (guidance.isGuided) 1 else 0
-            CollapsibleHeader(
-                title = title,
-                subtitle = subtitle,
-                activeCount = activeCount,
-                expanded = expanded,
-                onToggle = { expanded = !expanded },
-            )
+        header?.let {
+            val activeCount = quickPicks.sumOf { group -> group.picks.count(QuickPick::selected) } +
+                if (guidance.isGuided) 1 else 0
+            CollapsibleHeader(it, activeCount, expanded, onToggle = { expanded = !expanded })
         }
         AnimatedVisibility(
             visible = expanded,
-            enter = fadeIn(androidx.compose.animation.core.tween(Theme.motion.durationMedium)) + expandVertically(),
-            exit = fadeOut(androidx.compose.animation.core.tween(Theme.motion.durationShort)) + shrinkVertically(),
+            enter = fadeIn(tween(Theme.motion.durationMedium)) + expandVertically(),
+            exit = fadeOut(tween(Theme.motion.durationShort)) + shrinkVertically(),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
-                val ownWords: @Composable () -> Unit = {
-                    OwnWordsSection(
-                        guidance = guidance,
-                        placeholder = placeholder,
-                        starters = starters,
-                        surcharge = surcharge,
-                        enabled = enabled,
-                        focusRequester = focusRequester,
-                        onTextChange = onTextChange,
-                        onStarter = { starter ->
-                            onStarter(starter)
-                            focusRequester.requestFocus()
-                        },
-                        onClear = onClear,
-                        onContinueWithout = onContinueWithout,
-                    )
+                val ownWords = @Composable {
+                    OwnWordsSection(guidance, placeholder, starters, surcharge, enabled, actions, onContinueWithout)
                 }
                 if (ownWordsFirst) ownWords()
-                if (quickPicks.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
-                        SheetSectionLabel(stringResource(Res.string.ai_guidance_quick_picks))
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                            verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
-                        ) {
-                            quickPicks.forEach { pick -> QuickPickChip(pick, enabled) }
-                        }
-                    }
-                }
+                QuickPicksSection(quickPicks, enabled)
                 if (!ownWordsFirst) ownWords()
             }
         }
@@ -185,13 +165,7 @@ internal fun AiGuidanceComposer(
 }
 
 @Composable
-private fun CollapsibleHeader(
-    title: String,
-    subtitle: String?,
-    activeCount: Int,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-) {
+private fun CollapsibleHeader(header: GuidanceHeader, activeCount: Int, expanded: Boolean, onToggle: () -> Unit) {
     val chevron by animateFloatAsState(if (expanded) HALF_TURN_DEGREES else 0f)
     val toggleLabel = stringResource(if (expanded) Res.string.ai_guidance_collapse else Res.string.ai_guidance_expand)
     Row(
@@ -209,11 +183,12 @@ private fun CollapsibleHeader(
             modifier = Modifier.size(Theme.dimensions.iconSizeSmall + Theme.spacing.xxxs),
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-            val detail = if (activeCount > 0) stringResource(Res.string.ai_guidance_active, activeCount) else subtitle
-            detail?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            Text(header.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(
+                if (activeCount > 0) stringResource(Res.string.ai_guidance_active, activeCount) else header.subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         Icon(
             Icons.Default.ExpandMore,
@@ -226,55 +201,58 @@ private fun CollapsibleHeader(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-@Suppress("LongParameterList") // a section of the composer: data + its callbacks
+private fun QuickPicksSection(groups: List<QuickPickGroup>, enabled: Boolean) {
+    if (groups.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+        SheetSectionLabel(stringResource(Res.string.ai_guidance_quick_picks))
+        groups.forEach { group ->
+            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)) {
+                Text(
+                    group.title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+                ) {
+                    group.picks.forEach { pick -> QuickPickChip(pick, enabled, group.singleChoice) }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
 private fun OwnWordsSection(
     guidance: GuidanceDraft,
     placeholder: String,
     starters: List<String>,
     surcharge: Int,
     enabled: Boolean,
-    focusRequester: FocusRequester,
-    onTextChange: (String) -> Unit,
-    onStarter: (String) -> Unit,
-    onClear: () -> Unit,
+    actions: GuidanceActions,
     onContinueWithout: () -> Unit,
 ) {
     val canWrite = enabled && guidance.canWrite
+    val focusRequester = remember { FocusRequester() }
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
         SheetSectionLabel(stringResource(Res.string.ai_guidance_own_words))
         InstructionField(
             text = guidance.text,
             placeholder = placeholder,
             enabled = canWrite,
-            isError = guidance.problem != null && guidance.problem != InstructionProblem.Paused,
+            isError = guidance.problem?.isRefusal == true,
             focusRequester = focusRequester,
-            onTextChange = onTextChange,
-            onClear = onClear,
+            onTextChange = actions.onTextChange,
+            onClear = actions.onClear,
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = if (guidance.isGuided && surcharge > 0) {
-                    stringResource(Res.string.ai_guidance_extra_cost, creditsText(surcharge))
-                } else {
-                    ""
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f),
-            )
-            if (guidance.text.isNotEmpty()) {
-                Text(
-                    stringResource(Res.string.ai_guidance_counter, guidance.text.length, AiInstruction.MAX_LENGTH),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                )
-            }
-        }
+        FieldFooter(guidance, surcharge)
         guidance.problem?.let { problem ->
-            InstructionProblemNote(problem, onContinueWithout = onContinueWithout.takeIf {
-                problem == InstructionProblem.Unavailable
-            })
+            InstructionProblemNote(
+                problem,
+                onContinueWithout = onContinueWithout.takeIf { problem == InstructionProblem.Unavailable },
+            )
         }
         if (canWrite && starters.isNotEmpty()) {
             SheetSectionLabel(stringResource(Res.string.ai_guidance_start_with))
@@ -284,7 +262,10 @@ private fun OwnWordsSection(
             ) {
                 starters.forEach { starter ->
                     SuggestionChip(
-                        onClick = { onStarter(starter) },
+                        onClick = {
+                            actions.onStarter(starter)
+                            focusRequester.requestFocus()
+                        },
                         label = { Text("$starter …", style = MaterialTheme.typography.labelLarge) },
                         shape = RoundedCornerShape(Theme.shapes.pill),
                     )
@@ -294,9 +275,34 @@ private fun OwnWordsSection(
     }
 }
 
+/** What the words cost on the left (only once there are some), the length on the right. */
+@Composable
+private fun FieldFooter(guidance: GuidanceDraft, surcharge: Int) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = if (guidance.isGuided && surcharge > 0) {
+                stringResource(Res.string.ai_guidance_extra_cost, creditsText(surcharge))
+            } else {
+                ""
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f),
+        )
+        if (guidance.text.isNotEmpty()) {
+            Text(
+                stringResource(Res.string.ai_guidance_counter, guidance.text.length, AiInstruction.MAX_LENGTH),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
+    }
+}
+
 /**
- * Text-field-value based so a starter inserted from outside puts the cursor at the end, ready to
- * finish the sentence (a plain String field would leave it where it was).
+ * The ViewModel owns [text]; the field keeps only the cursor. When [text] changes from outside
+ * (a starter, clear) the cursor goes to the end, ready to finish the sentence.
  */
 @Composable
 private fun InstructionField(
@@ -308,18 +314,18 @@ private fun InstructionField(
     onTextChange: (String) -> Unit,
     onClear: () -> Unit,
 ) {
-    var field by remember { mutableStateOf(TextFieldValue(text, TextRange(text.length))) }
-    if (field.text != text) field = TextFieldValue(text, TextRange(text.length))
+    var editing by remember { mutableStateOf(TextFieldValue(text, TextRange(text.length))) }
+    val shown = if (editing.text == text) editing else TextFieldValue(text, TextRange(text.length))
     val focusManager = LocalFocusManager.current
     val outline = MaterialTheme.colorScheme.outlineVariant
     val container = MaterialTheme.colorScheme.surfaceContainerLow
     val ownWords = stringResource(Res.string.ai_guidance_own_words)
 
     OutlinedTextField(
-        value = field,
+        value = shown,
         onValueChange = { value ->
-            field = value.copy(text = value.text.take(AiInstruction.MAX_LENGTH))
-            if (field.text != text) onTextChange(field.text)
+            editing = value.copy(text = value.text.take(AiInstruction.MAX_LENGTH))
+            if (editing.text != text) onTextChange(editing.text)
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -357,7 +363,7 @@ private fun InstructionField(
 }
 
 @Composable
-private fun QuickPickChip(pick: QuickPick, enabled: Boolean) {
+private fun QuickPickChip(pick: QuickPick, enabled: Boolean, singleChoice: Boolean) {
     FilterChip(
         selected = pick.selected,
         onClick = pick.onClick,
@@ -375,16 +381,21 @@ private fun QuickPickChip(pick: QuickPick, enabled: Boolean) {
             null
         },
         shape = RoundedCornerShape(Theme.shapes.pill),
+        modifier = if (singleChoice) Modifier.semantics { role = Role.RadioButton } else Modifier,
     )
 }
+
+/** Refusals are the learner's to fix; a pause or an outage is not about what they wrote. */
+private val InstructionProblem.isRefusal: Boolean
+    get() = this == InstructionProblem.OffTopic || this == InstructionProblem.Unsafe ||
+        this == InstructionProblem.PersonalData
 
 /** Why the words weren't used, that nothing was charged, and (when they couldn't be checked) a way on. */
 @Composable
 private fun InstructionProblemNote(problem: InstructionProblem, onContinueWithout: (() -> Unit)?) {
-    val paused = problem == InstructionProblem.Paused
     val colors = MaterialTheme.colorScheme
-    val container = if (paused) colors.surfaceContainerHigh else colors.errorContainer
-    val content = if (paused) colors.onSurfaceVariant else colors.onErrorContainer
+    val container = if (problem.isRefusal) colors.errorContainer else colors.surfaceContainerHigh
+    val content = if (problem.isRefusal) colors.onErrorContainer else colors.onSurfaceVariant
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -403,7 +414,7 @@ private fun InstructionProblemNote(problem: InstructionProblem, onContinueWithou
             )
             Text(problem.message(), style = MaterialTheme.typography.bodyMedium, color = content)
         }
-        if (!paused) {
+        if (problem != InstructionProblem.Paused) {
             Text(
                 stringResource(Res.string.ai_instructions_not_charged),
                 style = MaterialTheme.typography.bodySmall,
