@@ -9,6 +9,7 @@ import data.core.network.mapper.ApiResponseMapper
 import domain.ai.model.AiGuidance
 import domain.ai.model.AiInstruction
 import domain.ai.model.Register
+import domain.ai.model.NoteStyle
 import domain.ai.model.VocabularyFocus
 import domain.ai.model.WordType
 import domain.onboarding.model.ProficiencyLevel
@@ -130,6 +131,20 @@ class AiRepositoryHttpTest {
 
         assertTrue(body.contains(""""register":"FORMAL""""), body)
         assertTrue(body.contains(""""instructions":"job interview""""), body)
+    }
+
+    @Test
+    fun `suggestWords sends the note style by its contract name`() = runTest {
+        var body = ""
+        val engine = MockEngine { request ->
+            body = (request.body as TextContent).text
+            respond("""{"success":true,"data":{"items":[]}}""", HttpStatusCode.OK, jsonHeaders)
+        }
+        val guidance = AiGuidance(VocabularyFocus(noteStyle = NoteStyle.EXAMPLE))
+
+        repository(engine).suggestWords(languages, ProficiencyLevel.entries.first(), emptyList(), guidance)
+
+        assertTrue(body.contains(""""noteStyle":"EXAMPLE""""), body)
     }
 
     private suspend fun refusal(status: HttpStatusCode, code: String): Throwable? {

@@ -21,7 +21,7 @@ data class ExtractWordsRequest(
 data class VocabularyFocusDto(
     val wordTypes: Set<String> = emptySet(),
     val register: String? = null,
-    val grammarNotes: Boolean = false,
+    val noteStyle: String? = null,
     val markedOnly: Boolean = false,
     val skipNames: Boolean = false,
 )
@@ -65,7 +65,7 @@ fun VocabularyFocus.toDtoOrNull(): VocabularyFocusDto? = takeUnless { it.isEmpty
     VocabularyFocusDto(
         wordTypes = wordTypes.mapTo(mutableSetOf()) { type -> type.name },
         register = register?.name,
-        grammarNotes = grammarNotes,
+        noteStyle = noteStyle?.name,
         markedOnly = markedOnly,
         skipNames = skipNames,
     )

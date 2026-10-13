@@ -1246,13 +1246,15 @@
     <string name="ai_group_level">Your level</string>
     <string name="ai_group_kinds">Kinds of words</string>
     <string name="ai_group_tone">Tone</string>
+    <string name="ai_group_notes">Notes</string>
+    <string name="ai_note_short">Short</string>
+    <string name="ai_note_example">Example</string>
+    <string name="ai_note_grammar">Grammar</string>
     <string name="ai_generating_request">“%1$s”</string>
     <string name="ai_pick_marked_only_hint">Highlighted, underlined or circled</string>
     <string name="ai_pick_skip_names_hint">Leave out people, places and numbers</string>
-    <string name="ai_pick_grammar_notes_hint">Article, plural or verb forms in the note</string>
     <string name="ai_pick_marked_only">Marked words only</string>
     <string name="ai_pick_skip_names">Skip names &amp; numbers</string>
-    <string name="ai_pick_grammar_notes">Grammar in notes</string>
     <string name="ai_word_type_noun">Nouns</string>
     <string name="ai_word_type_verb">Verbs</string>
     <string name="ai_word_type_adjective">Adjectives</string>

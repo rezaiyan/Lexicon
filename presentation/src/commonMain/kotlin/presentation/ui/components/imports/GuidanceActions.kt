@@ -2,12 +2,12 @@ package presentation.ui.components.imports
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BorderColor
-import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
+import domain.ai.model.NoteStyle
 import domain.ai.model.Register
 import domain.onboarding.model.ProficiencyLevel
 import domain.ai.model.VocabularyFocus
@@ -16,9 +16,11 @@ import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.ai_action_with_cost
 import lexicon.resources.generated.resources.ai_group_kinds
 import lexicon.resources.generated.resources.ai_group_level
+import lexicon.resources.generated.resources.ai_group_notes
 import lexicon.resources.generated.resources.ai_group_tone
-import lexicon.resources.generated.resources.ai_pick_grammar_notes
-import lexicon.resources.generated.resources.ai_pick_grammar_notes_hint
+import lexicon.resources.generated.resources.ai_note_example
+import lexicon.resources.generated.resources.ai_note_grammar
+import lexicon.resources.generated.resources.ai_note_short
 import lexicon.resources.generated.resources.ai_pick_marked_only
 import lexicon.resources.generated.resources.ai_pick_marked_only_hint
 import lexicon.resources.generated.resources.ai_pick_skip_names
@@ -49,7 +51,7 @@ internal class GuidanceActions(
     val onClear: () -> Unit,
     val onToggleWordType: (WordType) -> Unit,
     val onSelectRegister: (Register?) -> Unit,
-    val onToggleGrammarNotes: () -> Unit,
+    val onSelectNoteStyle: (NoteStyle?) -> Unit,
     val onToggleMarkedOnly: () -> Unit = {},
     val onToggleSkipNames: () -> Unit = {},
 )
@@ -78,35 +80,60 @@ private fun Register?.toneLabel(): String = stringResource(
     },
 )
 
-private val GrammarIcon = Icons.AutoMirrored.Rounded.MenuBook
+/** Notes from least to most detail: a short hint (no style), an example sentence, the grammar. */
+private val NoteScale: List<NoteStyle?> = listOf(null, NoteStyle.EXAMPLE, NoteStyle.GRAMMAR)
+
+@Composable
+private fun NoteStyle?.noteLabel(): String = stringResource(
+    when (this) {
+        null -> Res.string.ai_note_short
+        NoteStyle.EXAMPLE -> Res.string.ai_note_example
+        NoteStyle.GRAMMAR -> Res.string.ai_note_grammar
+    },
+)
+
+/** What each item's note holds, on a track: always one of the styles. */
+@Composable
+private fun notesGroup(focus: VocabularyFocus, actions: GuidanceActions): QuickPickGroup {
+    val title = stringResource(Res.string.ai_group_notes)
+    val labels = NoteScale.map { it.noteLabel() }
+    return remember(focus.noteStyle, actions, title, labels) {
+        QuickPickGroup.Steps(
+            title,
+            NoteScale.mapIndexed { index, style ->
+                QuickPick(labels[index], focus.noteStyle == style) { actions.onSelectNoteStyle(style) }
+            },
+        )
+    }
+}
 
 private val PhotoWordTypes = listOf(WordType.NOUN, WordType.VERB, WordType.ADJECTIVE, WordType.PHRASE)
 
-/** Photo: which words to read first (toggles), then the kinds of words. */
+/** Photo: which words to read first (toggles), then the kinds of words and what the notes hold. */
 @Composable
 internal fun photoQuickPicks(focus: VocabularyFocus, actions: GuidanceActions): List<QuickPickGroup> {
     val kinds = stringResource(Res.string.ai_group_kinds)
     val toggles = listOf(
         ToggleText(Res.string.ai_pick_marked_only, Res.string.ai_pick_marked_only_hint),
         ToggleText(Res.string.ai_pick_skip_names, Res.string.ai_pick_skip_names_hint),
-        ToggleText(Res.string.ai_pick_grammar_notes, Res.string.ai_pick_grammar_notes_hint),
     ).map { it.resolve() }
     val typeLabels = PhotoWordTypes.map { it.label() }
-    return remember(focus, actions, typeLabels, toggles) {
+    val notes = notesGroup(focus, actions)
+    return remember(focus, actions, typeLabels, toggles, notes) {
         listOf(
             QuickPickGroup.Toggles(
                 listOf(
                     toggles[0].pick(focus.markedOnly, Icons.Rounded.BorderColor, actions.onToggleMarkedOnly),
                     toggles[1].pick(focus.skipNames, Icons.Rounded.PersonOff, actions.onToggleSkipNames),
-                    toggles[2].pick(focus.grammarNotes, GrammarIcon, actions.onToggleGrammarNotes),
                 ),
             ),
             QuickPickGroup.Chips(kinds, wordTypePicks(PhotoWordTypes, typeLabels, focus, actions)),
+            notes,
         )
     }
 }
 
-/** Suggestions: the learner's level, kinds of words, one tone, and grammar notes. */
+/** Suggestions: the learner's level, one tone, kinds of words, and what the notes hold. */
 @Composable
 internal fun suggestQuickPicks(
     focus: VocabularyFocus,
@@ -118,10 +145,10 @@ internal fun suggestQuickPicks(
     val levelLabels = ProficiencyLevel.entries.map { stringResource(it.title) }
     val kinds = stringResource(Res.string.ai_group_kinds)
     val tone = stringResource(Res.string.ai_group_tone)
-    val grammar = ToggleText(Res.string.ai_pick_grammar_notes, Res.string.ai_pick_grammar_notes_hint).resolve()
     val typeLabels = WordType.entries.map { it.label() }
     val toneLabels = ToneScale.map { it.toneLabel() }
-    return remember(focus, actions, typeLabels, toneLabels, kinds, grammar, level, levelLabels) {
+    val notes = notesGroup(focus, actions)
+    return remember(focus, actions, typeLabels, toneLabels, kinds, notes, level, levelLabels) {
         listOf(
             // Always one level, on an ordered track: beginner to advanced
             QuickPickGroup.Steps(
@@ -137,9 +164,7 @@ internal fun suggestQuickPicks(
                 },
             ),
             QuickPickGroup.Chips(kinds, wordTypePicks(WordType.entries, typeLabels, focus, actions)),
-            QuickPickGroup.Toggles(
-                listOf(grammar.pick(focus.grammarNotes, GrammarIcon, actions.onToggleGrammarNotes)),
-            ),
+            notes,
         )
     }
 }

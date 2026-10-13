@@ -2,6 +2,7 @@ package feature.addwords.source
 
 import analytics.IAnalyticsTracker
 import core.base.BaseViewModel
+import domain.ai.model.NoteStyle
 import domain.ai.model.Register
 import domain.ai.model.WordType
 import domain.word.add.model.WordOrigin
@@ -39,7 +40,7 @@ abstract class GuidedSourceViewModel<S : GuidedSourceState<S>>(
 
     fun selectRegister(register: Register?) = editGuidance { selectRegister(register) }
 
-    fun toggleGrammarNotes() = editGuidance { toggleGrammarNotes() }
+    fun selectNoteStyle(style: NoteStyle?) = editGuidance { selectNoteStyle(style) }
 
     fun toggleMarkedOnly() = editGuidance { toggleMarkedOnly() }
 

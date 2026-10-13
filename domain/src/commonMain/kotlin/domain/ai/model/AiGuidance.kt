@@ -25,6 +25,9 @@ enum class WordType { NOUN, VERB, ADJECTIVE, PHRASE, IDIOM }
 /** The tone of the vocabulary. */
 enum class Register { FORMAL, EVERYDAY, SLANG }
 
+/** What goes in each item's note; none keeps it a short hint. */
+enum class NoteStyle { EXAMPLE, GRAMMAR }
+
 /**
  * Quick picks: fixed options the server turns into its own prompt wording, so they are free and
  * never screened. [markedOnly] and [skipNames] only apply to photos.
@@ -32,12 +35,12 @@ enum class Register { FORMAL, EVERYDAY, SLANG }
 data class VocabularyFocus(
     val wordTypes: Set<WordType> = emptySet(),
     val register: Register? = null,
-    val grammarNotes: Boolean = false,
+    val noteStyle: NoteStyle? = null,
     val markedOnly: Boolean = false,
     val skipNames: Boolean = false,
 ) {
     val isEmpty: Boolean
-        get() = wordTypes.isEmpty() && register == null && !grammarNotes && !markedOnly && !skipNames
+        get() = wordTypes.isEmpty() && register == null && noteStyle == null && !markedOnly && !skipNames
 }
 
 /**

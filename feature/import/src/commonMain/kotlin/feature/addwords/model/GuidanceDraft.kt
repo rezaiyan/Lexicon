@@ -4,6 +4,7 @@ import core.error.DomainError
 import core.error.DomainError.AddWords.InstructionsRefused.Reason
 import domain.ai.model.AiGuidance
 import domain.ai.model.AiInstruction
+import domain.ai.model.NoteStyle
 import domain.ai.model.Register
 import domain.ai.model.VocabularyFocus
 import domain.ai.model.WordType
@@ -65,7 +66,8 @@ data class GuidanceDraft(
     /** The tone to aim for; null is natural (no particular register). */
     fun selectRegister(value: Register?) = withFocus { copy(register = value) }
 
-    fun toggleGrammarNotes() = withFocus { copy(grammarNotes = !grammarNotes) }
+    /** What the notes hold; null keeps them a short hint. */
+    fun selectNoteStyle(value: NoteStyle?) = withFocus { copy(noteStyle = value) }
 
     fun toggleMarkedOnly() = withFocus { copy(markedOnly = !markedOnly) }
 

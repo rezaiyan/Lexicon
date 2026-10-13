@@ -79,7 +79,7 @@ private fun rememberGuidanceActions(viewModel: GuidedSourceViewModel<*>): Guidan
         onClear = viewModel::clearInstruction,
         onToggleWordType = viewModel::toggleWordType,
         onSelectRegister = viewModel::selectRegister,
-        onToggleGrammarNotes = viewModel::toggleGrammarNotes,
+        onSelectNoteStyle = viewModel::selectNoteStyle,
         onToggleMarkedOnly = viewModel::toggleMarkedOnly,
         onToggleSkipNames = viewModel::toggleSkipNames,
     )

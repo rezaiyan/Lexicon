@@ -3,6 +3,7 @@ package feature.addwords
 import core.error.DomainError
 import core.error.DomainError.AddWords.InstructionsRefused.Reason
 import domain.ai.model.AiInstruction
+import domain.ai.model.NoteStyle
 import domain.ai.model.Register
 import domain.ai.model.WordType
 import feature.addwords.model.GuidanceDraft
@@ -37,7 +38,7 @@ class GuidanceDraftTest {
 
     @Test
     fun `only text makes the draft guided - quick picks stay free`() {
-        val picks = GuidanceDraft().toggleWordType(WordType.VERB).toggleGrammarNotes()
+        val picks = GuidanceDraft().toggleWordType(WordType.VERB).selectNoteStyle(NoteStyle.GRAMMAR)
 
         assertFalse(picks.isGuided)
         assertTrue(picks.withText("hospital words").isGuided)
@@ -62,6 +63,15 @@ class GuidanceDraftTest {
     }
 
     @Test
+    fun `notes are one style - short is none`() {
+        val example = GuidanceDraft().selectNoteStyle(NoteStyle.EXAMPLE)
+
+        assertEquals(NoteStyle.EXAMPLE, example.focus.noteStyle)
+        assertEquals(NoteStyle.GRAMMAR, example.selectNoteStyle(NoteStyle.GRAMMAR).focus.noteStyle)
+        assertTrue(example.selectNoteStyle(null).focus.isEmpty)
+    }
+
+    @Test
     fun `natural tone is no register`() {
         val natural = GuidanceDraft().selectRegister(Register.FORMAL).selectRegister(null)
 
@@ -79,8 +89,8 @@ class GuidanceDraftTest {
 
     @Test
     fun `a pause survives quick-pick edits and blocks writing - other problems clear`() {
-        val paused = GuidanceDraft(problem = InstructionProblem.Paused).toggleGrammarNotes()
-        val offTopic = GuidanceDraft(problem = InstructionProblem.OffTopic).toggleGrammarNotes()
+        val paused = GuidanceDraft(problem = InstructionProblem.Paused).selectNoteStyle(NoteStyle.GRAMMAR)
+        val offTopic = GuidanceDraft(problem = InstructionProblem.OffTopic).selectNoteStyle(NoteStyle.GRAMMAR)
 
         assertEquals(InstructionProblem.Paused, paused.problem)
         assertFalse(paused.canWrite)
@@ -90,7 +100,7 @@ class GuidanceDraftTest {
 
     @Test
     fun `withProblem when paused drops the text so it is not resent and refused again`() {
-        val draft = GuidanceDraft(text = "write me an essay").toggleGrammarNotes().withProblem(InstructionProblem.Paused)
+        val draft = GuidanceDraft(text = "write me an essay").selectNoteStyle(NoteStyle.GRAMMAR).withProblem(InstructionProblem.Paused)
 
         assertEquals("", draft.text)
         assertFalse(draft.isGuided)
