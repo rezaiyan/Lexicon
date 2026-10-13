@@ -23,7 +23,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import domain.tag.model.Tag
 import domain.word.model.LearningStage
 import domain.word.model.WordSortOption
@@ -68,6 +67,7 @@ import lexicon.resources.generated.resources.sort_oldest
 import lexicon.resources.generated.resources.sort_oldest_first
 import lexicon.resources.generated.resources.sort_z_to_a
 import org.jetbrains.compose.resources.stringResource
+import components.BrandFilterChip
 import theme.Theme
 import utils.Language
 
@@ -355,17 +355,17 @@ private fun SortChip(
     }
 
     Box {
-        FilterChip(
+        BrandFilterChip(
+            label = sortLabel,
             selected = currentOption != WordSortOption.DATE_ADDED_DESC,
             onClick = { expanded = true },
-            label = { Text(sortLabel, style = MaterialTheme.typography.labelMedium) },
             leadingIcon = {
                 Icon(
                     Icons.AutoMirrored.Filled.Sort,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(FilterChipDefaults.IconSize),
                 )
-            }
+            },
         )
 
         DropdownMenu(
@@ -407,15 +407,10 @@ private fun LanguageFilterChip(
     var expanded by remember { mutableStateOf(false) }
 
     Box {
-        FilterChip(
+        BrandFilterChip(
+            label = selectedLanguage?.displayName ?: stringResource(Res.string.filter_language),
             selected = selectedLanguage != null,
             onClick = { expanded = true },
-            label = {
-                Text(
-                    selectedLanguage?.displayName ?: stringResource(Res.string.filter_language),
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
         )
 
         DropdownMenu(
@@ -457,11 +452,7 @@ private fun LevelFilterChip(
     val stageLabel = selectedStage?.let { stageName(it) } ?: stringResource(Res.string.filter_level)
 
     Box {
-        FilterChip(
-            selected = selectedStage != null,
-            onClick = { expanded = true },
-            label = { Text(stageLabel, style = MaterialTheme.typography.labelMedium) }
-        )
+        BrandFilterChip(label = stageLabel, selected = selectedStage != null, onClick = { expanded = true })
 
         DropdownMenu(
             expanded = expanded,

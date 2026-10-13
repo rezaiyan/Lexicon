@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -81,6 +80,7 @@ import lexicon.resources.generated.resources.tts_voice_selection
 import lexicon.resources.generated.resources.tts_voice_speaker
 import lexicon.resources.generated.resources.tts_voice_switch_hint
 import org.jetbrains.compose.resources.stringResource
+import components.BrandFilterChip
 import theme.Theme
 import utils.LexiconFormatters
 
@@ -455,11 +455,11 @@ private fun VoiceModelSelectorRow(
             horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
         ) {
             voices.forEach { voice ->
-                FilterChip(
+                BrandFilterChip(
+                    label = voice.label(),
                     selected = voice.id == selectedVoiceId,
                     onClick = { onVoiceSelected(voice.id) },
                     enabled = enabled,
-                    label = { Text(voice.label()) },
                 )
             }
         }
@@ -487,10 +487,10 @@ private fun VoiceSelectorRow(
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
     ) {
         for (speakerId in 0 until numSpeakers) {
-            FilterChip(
+            BrandFilterChip(
+                label = stringResource(Res.string.tts_voice_speaker, speakerId + 1),
                 selected = speakerId == selectedSpeakerId,
                 onClick = { onVoiceSelected(speakerId) },
-                label = { Text(stringResource(Res.string.tts_voice_speaker, speakerId + 1)) },
             )
         }
     }

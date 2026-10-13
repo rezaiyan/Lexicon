@@ -36,7 +36,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -103,6 +102,7 @@ import lexicon.resources.generated.resources.word_rush_insights_total_time
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import theme.AppColors
+import components.LabeledSwitch
 import theme.Theme
 
 @Composable
@@ -460,20 +460,11 @@ private fun StudyInsightsCard(
                             value = "${bestStudyTime.hour}:00",
                             subtitle = "${bestStudyTime.accuracyPercent.roundToInt()}% accuracy",
                         )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.insights_set_reminder),
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            Switch(
-                                checked = reviewRemindersEnabled,
-                                onCheckedChange = onSetReminder,
-                            )
-                        }
+                        LabeledSwitch(
+                            title = stringResource(Res.string.insights_set_reminder),
+                            checked = reviewRemindersEnabled,
+                            onCheckedChange = onSetReminder,
+                        )
                     }
                 }
             }

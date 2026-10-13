@@ -43,6 +43,25 @@ style:
         reason: 'Use ConfirmSheetContent / SheetPage (components.sheet) shown via showSizeToFitBottomSheet.'
       - value: 'androidx.compose.material3.BasicAlertDialog'
         reason: 'Use ConfirmSheetContent / SheetPage (components.sheet) shown via showSizeToFitBottomSheet.'
+      # Styled controls come from design-system (components.*), which is the only place allowed to use them
+      - value: 'androidx.compose.material3.FilterChip'
+        reason: 'Use BrandFilterChip (components): Material selects in the green secondary.'
+      - value: 'androidx.compose.material3.SegmentedButton'
+        reason: 'Use BrandSegmentedRow (components): Material selects in the green secondary.'
+      - value: 'androidx.compose.material3.SingleChoiceSegmentedButtonRow'
+        reason: 'Use BrandSegmentedRow (components).'
+      - value: 'androidx.compose.material3.MultiChoiceSegmentedButtonRow'
+        reason: 'Add a design-system component for multi-choice segments.'
+      - value: 'androidx.compose.material3.Switch'
+        reason: 'Use LabeledSwitch or SheetSwitchRow (components): the whole row must toggle, not just the switch.'
+      - value: 'androidx.compose.material3.Checkbox'
+        reason: 'Use SheetCheckboxRow (components.sheet): the whole row must toggle.'
+      - value: 'androidx.compose.material3.OutlinedTextField'
+        reason: 'Use SheetField / SheetSearchField (components.sheet).'
+      - value: 'androidx.compose.material3.TextField'
+        reason: 'Use SheetField / SheetSearchField (components.sheet).'
+    excludes:
+      - '**/design-system/**'
   UnusedPrivateMember:
     active: true
     ignoreAnnotated:

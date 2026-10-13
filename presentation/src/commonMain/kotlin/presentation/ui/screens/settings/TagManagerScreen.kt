@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,7 +28,6 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -77,6 +75,7 @@ import overlay.fullscreen.showFullScreen
 import presentation.ui.LocalSnackbarHostState
 import presentation.ui.components.TagFormContent
 import theme.AppColors
+import components.LabeledSwitch
 import theme.Theme
 import components.snackbar.showError
 
@@ -199,34 +198,16 @@ private fun TagManagerContent(onDismiss: () -> Unit) {
                             )
                         }
                         item {
-                            Row(
+                            LabeledSwitch(
+                                title = "Ask which tag to review",
+                                subtitle = "Show tag selector before starting a review",
+                                checked = !state.skipTagSelector,
+                                onCheckedChange = { viewModel.setSkipTagSelector(!it) },
                                 modifier = Modifier
-                                    .fillMaxWidth()
                                     .padding(vertical = Theme.spacing.sm)
                                     .navigationBarsPadding()
                                     .padding(bottom = 80.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Switch(
-                                    checked = !state.skipTagSelector,
-                                    onCheckedChange = { viewModel.setSkipTagSelector(!it) },
-                                )
-                                Spacer(Modifier.width(Theme.spacing.md))
-                                Column {
-                                    Text(
-                                        text = "Ask which tag to review",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Medium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                    )
-                                    Spacer(Modifier.height(Theme.spacing.xxxs))
-                                    Text(
-                                        text = "Show tag selector before starting a review",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    )
-                                }
-                            }
+                            )
                         }
                     }
 
