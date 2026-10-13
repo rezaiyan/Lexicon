@@ -58,9 +58,14 @@ tags:
     optional: true
 - waitForAnimationToEnd
 
-# Tap the first image in the picker grid (the asset pushed via addMedia).
+# Tap the newest photo (the asset pushed via addMedia). Matched by its label, not a
+# screen point: banners like "Choose cloud media app" shift the grid down.
+- extendedWaitUntil:
+    visible: "Photo taken on.*"
+    timeout: 10000
 - tapOn:
-    point: "17%,30%"
+    text: "Photo taken on.*"
+    index: 0
 - waitForAnimationToEnd
 - waitForAnimationToEnd
 
