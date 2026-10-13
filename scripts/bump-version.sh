@@ -3,10 +3,14 @@
 #
 # Usage:
 #   ./bump-version.sh                    # Sync only (no bump, no tag)
-#   ./bump-version.sh --hotfix            # Bump patch: 1.0.9 -> 1.0.10, sync, commit, tag
-#   ./bump-version.sh --minor             # Bump minor: 1.0.9 -> 1.1.0, sync, commit, tag
-#   ./bump-version.sh --major             # Bump major: 1.0.9 -> 2.0.0, sync, commit, tag
+#   ./bump-version.sh --hotfix            # Bump patch: 1.0.9 -> 1.0.10, sync, commit, tag, push
+#   ./bump-version.sh --minor             # Bump minor: 1.0.9 -> 1.1.0, sync, commit, tag, push
+#   ./bump-version.sh --major             # Bump major: 1.0.9 -> 2.0.0, sync, commit, tag, push
+#   ./bump-version.sh --hotfix --no-push   # Commit and tag locally; you push later
 #   ./bump-version.sh --hotfix --no-commit # Bump and sync only; you commit and tag manually
+#
+# The push deploys: the CI run on main finds the new v* tag without a ci-deployed/* marker and
+# ships Android, iOS and web. Branch and tag go in one atomic push so the tag is there when it looks.
 #
 set -euo pipefail
 
@@ -17,6 +21,7 @@ CONFIG_FILE="${PROJECT_ROOT}/iosApp/Configuration/Config.xcconfig"
 
 BUMP=""
 NO_COMMIT=false
+NO_PUSH=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --hotfix|-h)
@@ -35,13 +40,35 @@ while [[ $# -gt 0 ]]; do
       NO_COMMIT=true
       shift
       ;;
+    --no-push)
+      NO_PUSH=true
+      shift
+      ;;
     *)
       echo "Unknown option: $1" >&2
-      echo "Usage: $0 [--hotfix|--minor|--major] [--no-commit]" >&2
+      echo "Usage: $0 [--hotfix|--minor|--major] [--no-push] [--no-commit]" >&2
       exit 1
       ;;
   esac
 done
+
+# Releases ship from main, so bump only on an up-to-date main with nothing uncommitted
+if [[ -n "${BUMP}" && "${NO_COMMIT}" != true && "${NO_PUSH}" != true ]]; then
+  branch="$(git -C "${PROJECT_ROOT}" rev-parse --abbrev-ref HEAD)"
+  if [[ "${branch}" != "main" ]]; then
+    echo "Releases ship from main; current branch is ${branch}. Use --no-push to bump here anyway." >&2
+    exit 1
+  fi
+  if [[ -n "$(git -C "${PROJECT_ROOT}" status --porcelain --untracked-files=no)" ]]; then
+    echo "Working tree has uncommitted changes; commit or stash them first." >&2
+    exit 1
+  fi
+  git -C "${PROJECT_ROOT}" fetch --quiet origin main
+  if ! git -C "${PROJECT_ROOT}" merge-base --is-ancestor origin/main HEAD; then
+    echo "Local main is behind origin/main; pull first so the tag lands on the latest code." >&2
+    exit 1
+  fi
+fi
 
 if [[ ! -f "${VERSIONING_FILE}" ]]; then
   echo "Missing versioning.properties at ${VERSIONING_FILE}" >&2
@@ -144,9 +171,14 @@ if [[ -n "${BUMP}" && "${NO_COMMIT}" != true ]]; then
   fi
   (cd "${GIT_ROOT}" && git commit -m "Bump version to ${version_name} (${version_code})")
   (cd "${GIT_ROOT}" && git tag "${tag_name}")
+  if [[ "${NO_PUSH}" == true ]]; then
+    echo "Committed and created tag ${tag_name}. Push with: git push --atomic origin HEAD:main ${tag_name}"
+    exit 0
+  fi
   # One atomic push: if the branch lands before the tag, CI on main checks for an unpublished tag
   # too early, finds the previous (already deployed) version and skips every deploy.
-  echo "Committed and created tag ${tag_name}. Push with: git push --atomic origin HEAD ${tag_name}"
+  (cd "${GIT_ROOT}" && git push --atomic origin HEAD:main "${tag_name}")
+  echo "Pushed ${tag_name}; CI deploys it to Google Play, TestFlight and web."
 fi
 
 if [[ -n "${BUMP}" && "${NO_COMMIT}" == true ]]; then

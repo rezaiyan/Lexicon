@@ -217,14 +217,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump version
+      # The script pushes main and the tag in one atomic push. Separate pushes let the main run
+      # look for an unpublished tag before the tag arrived, so it skipped every deploy.
+      - name: Bump version and push
         run: ./scripts/bump-version.sh --${{ github.event.inputs.version_bump }}
-
-      - name: Push version bump
-        run: |
-          git push origin main
-          TAG=$(git describe --tags --abbrev=0)
-          git push origin "$TAG"
 
   test:
     name: Tests
