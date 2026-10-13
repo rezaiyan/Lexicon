@@ -1,16 +1,12 @@
 package presentation.ui.components.imports
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Flight
@@ -27,15 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import components.BrandFilterChip
 import components.GeneratingProgress
-import components.sheet.IconTile
-import components.sheet.SelectableCard
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
 import components.sheet.SheetSectionLabel
@@ -61,9 +51,6 @@ import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 import utils.Language
 
-// Font-scaled width below which topic cards stack in one column
-private val TwoColumnMinWidth = 300.dp
-
 internal val ProficiencyLevel.title: StringResource
     get() = when (this) {
         ProficiencyLevel.BEGINNER -> Res.string.beginner
@@ -86,7 +73,8 @@ private val TopicIcons: Map<String, ImageVector> = mapOf(
 
 /**
  * "What do you want to learn?": the learner describes it in their own words (with quick picks and
- * starters in [guidance]), and/or picks topics below. Everything is optional.
+ * starters in [guidance]), and/or picks topics, which [guidance] places under the description.
+ * Everything is optional.
  *
  * @param cost credits generating costs as currently set up (guided or not); null while unknown.
  */
@@ -99,7 +87,7 @@ internal fun AiTopicsStep(
     onToggleTopic: (String) -> Unit,
     onGenerate: () -> Unit,
     generateEnabled: Boolean = true,
-    guidance: @Composable () -> Unit = {},
+    guidance: @Composable (topics: @Composable () -> Unit) -> Unit = { it() },
 ) {
     SheetPage(
         title = stringResource(Res.string.ai_wizard_describe_title),
@@ -123,47 +111,30 @@ internal fun AiTopicsStep(
             )
         },
     ) {
-        guidance()
-        SheetSectionLabel(stringResource(Res.string.ai_wizard_or_topics))
-        BoxWithConstraints {
-            // Single column when the font-scaled width can't fit two labels side by side
-            val columns = if (maxWidth / LocalDensity.current.fontScale < TwoColumnMinWidth) 1 else 2
-            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
-                topics.chunked(columns).forEach { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
-                        row.forEach { topic ->
-                            val selected = topic in selectedTopics
-                            SelectableCard(
-                                selected = selected,
-                                onClick = { onToggleTopic(topic) },
-                                role = Role.Checkbox,
-                                modifier = Modifier.weight(1f),
-                            ) {
-                                IconTile(icon = TopicIcons[topic] ?: Icons.Default.AutoAwesome, selected = selected)
-                                Text(
-                                    topic,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                if (selected) {
-                                    Icon(
-                                        Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(Theme.dimensions.iconSizeSmall + Theme.spacing.xxxs),
-                                    )
-                                }
-                            }
-                        }
-                        if (row.size < columns) Spacer(Modifier.weight(1f))
-                    }
-                }
-            }
-        }
+        guidance { TopicChips(topics, selectedTopics, onToggleTopic) }
         ErrorMessage(error)
+    }
+}
+
+/** Topics as compact chips that wrap: another way to say what to learn, not the page's centrepiece. */
+@Composable
+private fun TopicChips(topics: List<String>, selectedTopics: Set<String>, onToggleTopic: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+        SheetSectionLabel(stringResource(Res.string.ai_wizard_or_topics))
+        QuickPickFlow(topics) { topic ->
+            BrandFilterChip(
+                label = topic,
+                selected = topic in selectedTopics,
+                onClick = { onToggleTopic(topic) },
+                leadingIcon = {
+                    Icon(
+                        TopicIcons[topic] ?: Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+                    )
+                },
+            )
+        }
     }
 }
 

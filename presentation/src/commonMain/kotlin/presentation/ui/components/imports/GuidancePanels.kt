@@ -42,8 +42,9 @@ internal fun PhotoGuidancePanel(
 }
 
 /**
- * Guidance on the topics step: open, leading with the learner's own description. The [level] sits
- * with the other options (preselected with the last one used), not on a page of its own.
+ * Guidance on the topics step: open, leading with the learner's own description, then [topics] as
+ * the other way to say what to learn. The [level] sits with the other options (preselected with the
+ * last one used), not on a page of its own.
  */
 @Composable
 internal fun SuggestGuidancePanel(
@@ -53,6 +54,7 @@ internal fun SuggestGuidancePanel(
     surcharge: Int,
     enabled: Boolean,
     onContinueWithout: () -> Unit,
+    topics: @Composable () -> Unit,
 ) {
     val actions = rememberGuidanceActions(ai)
     AiGuidanceComposer(
@@ -64,6 +66,7 @@ internal fun SuggestGuidancePanel(
         enabled = enabled,
         actions = actions,
         onContinueWithout = onContinueWithout,
+        afterOwnWords = topics,
     )
 }
 

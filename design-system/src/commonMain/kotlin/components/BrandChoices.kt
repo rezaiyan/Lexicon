@@ -44,6 +44,8 @@ fun BrandFilterChip(
             selectedContainerColor = primary.copy(alpha = Theme.opacity.focus),
             selectedLabelColor = primary,
             selectedLeadingIconColor = primary,
+            // Unselected icons stay neutral, so a row of chips doesn't fill up with accent colour
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = enabled,

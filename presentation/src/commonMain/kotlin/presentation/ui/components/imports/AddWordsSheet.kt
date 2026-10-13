@@ -268,7 +268,7 @@ private fun AddWordsSheetContent(
                             }
                         },
                         generateEnabled = aiState.canGenerate,
-                    ) {
+                    ) { topics ->
                         SuggestGuidancePanel(
                             ai = ai,
                             guidance = aiState.guidance,
@@ -279,6 +279,7 @@ private fun AddWordsSheetContent(
                                 ai.clearInstruction()
                                 ai.generate(state.languages)
                             },
+                            topics = topics,
                         )
                     }
                 }

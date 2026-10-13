@@ -17,6 +17,7 @@ import lexicon.resources.generated.resources.ai_action_with_cost
 import lexicon.resources.generated.resources.ai_group_kinds
 import lexicon.resources.generated.resources.ai_group_level
 import lexicon.resources.generated.resources.ai_group_tone
+import lexicon.resources.generated.resources.ai_tone_any
 import lexicon.resources.generated.resources.ai_pick_grammar_notes
 import lexicon.resources.generated.resources.ai_pick_grammar_notes_hint
 import lexicon.resources.generated.resources.ai_pick_marked_only
@@ -113,10 +114,11 @@ internal fun suggestQuickPicks(
     val levelLabels = ProficiencyLevel.entries.map { stringResource(it.title) }
     val kinds = stringResource(Res.string.ai_group_kinds)
     val tone = stringResource(Res.string.ai_group_tone)
+    val anyTone = stringResource(Res.string.ai_tone_any)
     val grammar = ToggleText(Res.string.ai_pick_grammar_notes, Res.string.ai_pick_grammar_notes_hint).resolve()
     val typeLabels = WordType.entries.map { it.label() }
     val registerLabels = Register.entries.map { it.label() }
-    return remember(focus, actions, typeLabels, registerLabels, kinds, grammar, level, levelLabels) {
+    return remember(focus, actions, typeLabels, registerLabels, kinds, grammar, level, levelLabels, anyTone) {
         listOf(
             // Always one level, on an ordered track: beginner to advanced
             QuickPickGroup.Steps(
@@ -125,13 +127,14 @@ internal fun suggestQuickPicks(
                     QuickPick(levelLabels[index], entry == level) { onLevelSelected(entry) }
                 },
             ),
-            QuickPickGroup.Chips(kinds, wordTypePicks(WordType.entries, typeLabels, focus, actions)),
             QuickPickGroup.Steps(
                 tone,
                 Register.entries.mapIndexed { index, register ->
                     QuickPick(registerLabels[index], focus.register == register) { actions.onToggleRegister(register) }
                 },
+                emptyLabel = anyTone,
             ),
+            QuickPickGroup.Chips(kinds, wordTypePicks(WordType.entries, typeLabels, focus, actions)),
             QuickPickGroup.Toggles(
                 listOf(grammar.pick(focus.grammarNotes, GrammarIcon, actions.onToggleGrammarNotes)),
             ),

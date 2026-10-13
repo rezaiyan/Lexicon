@@ -14,6 +14,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +33,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,9 +70,8 @@ import components.BrandFilterChip
 import components.SnapStepPicker
 import components.CounterPill
 import components.sheet.IconTile
-import components.sheet.SheetGroup
 import components.sheet.SheetSectionLabel
-import components.sheet.SheetSwitchRow
+import components.LabeledSwitch
 import domain.ai.model.AiInstruction
 import feature.addwords.model.GuidanceDraft
 import feature.addwords.model.InstructionProblem
@@ -118,7 +120,12 @@ internal sealed interface QuickPickGroup {
      * One of a few ordered steps (level, tone): a snapping track. Tapping the selected step reports
      * it again, so an optional choice can clear it.
      */
-    data class Steps(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
+    data class Steps(
+        val title: String,
+        override val picks: List<QuickPick>,
+        /** Shown by the title while nothing is picked, e.g. "Any". */
+        val emptyLabel: String? = null,
+    ) : QuickPickGroup
 
     /** Independent on/off options: switch rows that explain themselves. */
     data class Toggles(override val picks: List<QuickPick>) : QuickPickGroup
@@ -137,6 +144,8 @@ internal data class GuidanceHeader(val title: String, val subtitle: String)
  *
  * @param header set for a collapsible panel (photos); null shows the content open, without a frame.
  * @param ownWordsFirst the suggestions page leads with the description; photos with the options.
+ * @param afterOwnWords shown right under the prompt card when it leads (the topics, another way to
+ *   say what to learn), so the fine-tuning comes last.
  * @param onContinueWithout offered when the words couldn't be checked: clears them and retries.
  */
 @Composable
@@ -152,6 +161,7 @@ internal fun AiGuidanceComposer(
     modifier: Modifier = Modifier,
     header: GuidanceHeader? = null,
     ownWordsFirst: Boolean = true,
+    afterOwnWords: (@Composable () -> Unit)? = null,
 ) {
     val content = @Composable {
         Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
@@ -162,8 +172,12 @@ internal fun AiGuidanceComposer(
                     raised = header == null,
                 )
             }
-            if (ownWordsFirst) ownWords()
-            FineTuneSection(quickPicks, enabled)
+            if (ownWordsFirst) {
+                ownWords()
+                afterOwnWords?.invoke()
+            }
+            // On the page it is a card like the prompt; inside the photo panel's card it stays flat
+            FineTuneSection(quickPicks, enabled, framed = header == null)
             if (!ownWordsFirst) ownWords()
         }
     }
@@ -437,67 +451,104 @@ private fun InstructionField(
     )
 }
 
-/** Free options under one quiet label; each group draws the control its rule needs. */
+/** Free options under one label, one row per group, split by hairlines so each reads on its own. */
 @Composable
-private fun FineTuneSection(groups: List<QuickPickGroup>, enabled: Boolean) {
+private fun FineTuneSection(groups: List<QuickPickGroup>, enabled: Boolean, framed: Boolean) {
     if (groups.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+    val colors = MaterialTheme.colorScheme
+    val rows = @Composable {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+            groups.forEachIndexed { index, group ->
+                if (index > 0) {
+                    HorizontalDivider(thickness = Theme.dimensions.hairlineThickness, color = colors.outlineVariant)
+                }
+                FineTuneGroup(group, enabled)
+            }
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
         SheetSectionLabel(stringResource(Res.string.ai_guidance_quick_picks))
-        groups.forEach { group ->
-            when (group) {
-                is QuickPickGroup.Chips -> GroupWithTitle(group.title) { ChipRow(group.picks, enabled) }
-                is QuickPickGroup.Steps -> GroupWithTitle(group.title) {
-                    SnapStepPicker(
-                        labels = group.picks.map(QuickPick::label),
-                        selectedIndex = group.picks.indexOfFirst(QuickPick::selected).takeIf { it >= 0 },
-                        onSelect = { index -> group.picks[index].onClick() },
-                        enabled = enabled,
-                    )
-                }
-                is QuickPickGroup.Toggles -> SheetGroup {
-                    group.picks.forEachIndexed { index, pick ->
-                        SheetSwitchRow(
-                            title = pick.label,
-                            subtitle = pick.subtitle,
-                            icon = pick.icon,
-                            checked = pick.selected,
-                            onCheckedChange = { pick.onClick() },
-                            showDivider = index < group.picks.lastIndex,
-                            enabled = enabled,
-                        )
-                    }
-                }
+        if (framed) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(Theme.shapes.medium),
+                color = colors.surface,
+                shadowElevation = Theme.elevation.low,
+                border = BorderStroke(Theme.dimensions.borderWidth, colors.outlineVariant),
+            ) {
+                Box(Modifier.padding(Theme.spacing.cardPadding)) { rows() }
+            }
+        } else {
+            rows()
+        }
+    }
+}
+
+/** Each kind of group draws the control its rule needs. */
+@Composable
+private fun FineTuneGroup(group: QuickPickGroup, enabled: Boolean) {
+    when (group) {
+        is QuickPickGroup.Chips -> GroupWithTitle(group.title) {
+            QuickPickFlow(group.picks) { pick ->
+                BrandFilterChip(label = pick.label, selected = pick.selected, onClick = pick.onClick, enabled = enabled)
+            }
+        }
+        is QuickPickGroup.Steps -> {
+            val selected = group.picks.indexOfFirst(QuickPick::selected).takeIf { it >= 0 }
+            GroupWithTitle(group.title, trailing = group.emptyLabel.takeIf { selected == null }) {
+                SnapStepPicker(
+                    labels = group.picks.map(QuickPick::label),
+                    selectedIndex = selected,
+                    onSelect = { index -> group.picks[index].onClick() },
+                    enabled = enabled,
+                )
+            }
+        }
+        is QuickPickGroup.Toggles -> Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
+            group.picks.forEach { pick ->
+                LabeledSwitch(
+                    title = pick.label,
+                    subtitle = pick.subtitle,
+                    checked = pick.selected,
+                    onCheckedChange = { pick.onClick() },
+                    enabled = enabled,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun GroupWithTitle(title: String, content: @Composable () -> Unit) {
+private fun GroupWithTitle(title: String, trailing: String? = null, content: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
-        Text(
-            title,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            trailing?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         content()
     }
 }
 
-/** One scrolling row, so the options never wrap into a wall. */
+/** Options that wrap onto a second line rather than scrolling out of sight. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ChipRow(picks: List<QuickPick>, enabled: Boolean) {
-    Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+internal fun <T> QuickPickFlow(items: List<T>, item: @Composable (T) -> Unit) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
     ) {
-        picks.forEach { pick ->
-            BrandFilterChip(label = pick.label, selected = pick.selected, onClick = pick.onClick, enabled = enabled)
-        }
+        items.forEach { item(it) }
     }
 }
-
 
 /** Refusals are the learner's to fix; a pause or an outage is not about what they wrote. */
 private val InstructionProblem.isRefusal: Boolean
