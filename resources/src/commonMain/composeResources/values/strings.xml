@@ -1239,7 +1239,7 @@
     <string name="ai_guidance_own_words">In your own words</string>
     <string name="ai_guidance_placeholder_photo">e.g. only the words in the blue box</string>
     <string name="ai_guidance_placeholder_suggest">e.g. verbs I need for my nursing exam</string>
-    <string name="ai_guidance_quick_picks">Quick picks · free</string>
+    <string name="ai_guidance_quick_picks">Quick picks</string>
     <string name="ai_guidance_start_with">Start with</string>
     <string name="ai_guidance_counter">%1$d/%2$d</string>
     <string name="ai_guidance_extra_cost">Your own words use %1$s more.</string>
