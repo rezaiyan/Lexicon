@@ -53,6 +53,7 @@ import lexicon.resources.generated.resources.listening_mini_open
 import lexicon.resources.generated.resources.listening_mini_words_heard
 import lexicon.resources.generated.resources.listening_pause_playback
 import lexicon.resources.generated.resources.listening_play
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
@@ -115,7 +116,11 @@ fun ListeningMiniPlayerContent(
             }
             is MiniPlayerState.Finished -> MiniPlayerCard(
                 title = stringResource(Res.string.listening_finished_title),
-                subtitle = stringResource(Res.string.listening_mini_words_heard, shown.wordsHeard),
+                subtitle = pluralStringResource(
+                    Res.plurals.listening_mini_words_heard,
+                    shown.wordsHeard,
+                    shown.wordsHeard,
+                ),
                 progress = 1f,
                 onOpen = onOpen,
             ) {

@@ -50,7 +50,7 @@ class ListeningMediaBridgeTest {
     private val pauseMs = ListeningSettings.DEFAULT_PAUSE_MS
 
     private val text = ListeningMediaText(
-        labels = MediaLabels(stop = "Stop", repeat = "Repeat", close = "Close"),
+        labels = MediaLabels(stop = "Stop", close = "Close"),
         position = { current, total -> "$current of $total" },
         finishedTitle = "Nice listening!",
         finishedSubtitle = { heard, minutes -> "$heard words · $minutes min" },
@@ -221,5 +221,42 @@ class ListeningMediaBridgeTest {
         val state = active.toMediaState(ListeningOrder.WORD_FIRST, text).playing
         assertEquals("dog1", state.subtitle)
         assertFalse(state.isPlaying)
+    }
+
+    @Test
+    fun `mapper shows the example once it is spoken, with the answer joined to the word`() {
+        val withExample = word(1).copy(description = "Der Hund bellt.")
+        fun at(step: ListeningStep, word: Word = withExample) = ListeningPlayback.Active(
+            session = ListeningSession(listOf(word), step = step),
+            isPlaying = true,
+            speakableLanguages = emptySet(),
+        ).toMediaState(ListeningOrder.WORD_FIRST, text).playing
+
+        val answer = at(ListeningStep.Answer)
+        assertNull(answer.example)
+        assertEquals("Hund1", answer.displayTitle)
+        assertEquals("dog1  ·  1/1", answer.displaySubtitle)
+
+        val example = at(ListeningStep.Example)
+        assertEquals("Hund1 — dog1", example.displayTitle)
+        assertEquals("Der Hund bellt.", example.displaySubtitle)
+        assertEquals("Der Hund bellt.", at(ListeningStep.Gap).example)
+
+        val noExample = at(ListeningStep.Gap, word(1))
+        assertNull(noExample.example)
+        assertEquals("Hund1", noExample.displayTitle)
+        assertEquals("dog1  ·  1/1", noExample.displaySubtitle)
+    }
+
+    @Test
+    fun `before the answer the second line shows where we are`() {
+        val prompt = ListeningPlayback.Active(
+            session = ListeningSession(listOf(word(1)), step = ListeningStep.Prompt),
+            isPlaying = true,
+            speakableLanguages = emptySet(),
+        ).toMediaState(ListeningOrder.WORD_FIRST, text).playing
+
+        assertEquals("Hund1", prompt.displayTitle)
+        assertEquals("1 of 1 · German → English", prompt.displaySubtitle)
     }
 }

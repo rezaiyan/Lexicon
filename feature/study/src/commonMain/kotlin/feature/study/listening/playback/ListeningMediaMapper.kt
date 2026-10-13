@@ -1,6 +1,7 @@
 package feature.study.listening.playback
 
 import domain.listening.model.ListeningOrder
+import domain.listening.model.ListeningStep
 import media.ListeningMediaState
 
 /**
@@ -26,6 +27,9 @@ fun ListeningPlayback.toMediaState(order: ListeningOrder, text: ListeningMediaTe
                 total = session.words.size,
                 isPlaying = isPlaying,
                 labels = text.labels,
+                example = session.example()?.text?.takeIf {
+                    session.step == ListeningStep.Example || session.step == ListeningStep.Gap
+                },
             )
         }
         is ListeningPlayback.Finished -> ListeningMediaState.Finished(

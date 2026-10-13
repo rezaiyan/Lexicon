@@ -108,9 +108,8 @@ class IosListeningMediaSession : IListeningMediaSession {
     private fun publishNowPlaying(state: ListeningMediaState) {
         val info: Map<Any?, Any?> = when (state) {
             is ListeningMediaState.Playing -> mapOf(
-                MPMediaItemPropertyTitle to state.title,
-                // Before the answer is spoken there's nothing to spoil: show where we are instead.
-                MPMediaItemPropertyArtist to (state.subtitle ?: state.detail),
+                MPMediaItemPropertyTitle to state.displayTitle,
+                MPMediaItemPropertyArtist to state.displaySubtitle,
                 MPMediaItemPropertyAlbumTitle to state.detail,
                 MPMediaItemPropertyArtwork to artwork,
                 MPNowPlayingInfoPropertyPlaybackRate to if (state.isPlaying) 1.0 else 0.0,

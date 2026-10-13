@@ -37,7 +37,17 @@ sealed interface ListeningMediaState {
         val total: Int,
         val isPlaying: Boolean,
         override val labels: MediaLabels,
-    ) : ListeningMediaState
+        /** The word's example sentence, once it is being spoken; null for words without one. */
+        val example: String? = null,
+    ) : ListeningMediaState {
+        /** Main line: the prompt, joined by the answer once the example takes the second line. */
+        val displayTitle: String
+            get() = if (example != null && subtitle != null) "$title — $subtitle" else title
+
+        /** Second line: where we are before the answer, then the answer (and position), then the example. */
+        val displaySubtitle: String
+            get() = example ?: subtitle?.let { "$it  ·  ${index + 1}/$total" } ?: detail
+    }
 
     /** The session ended: dismissable, offers Repeat and Close. */
     data class Finished(
@@ -53,7 +63,6 @@ sealed interface ListeningMediaState {
  */
 data class MediaLabels(
     val stop: String,
-    val repeat: String,
     val close: String,
 )
 

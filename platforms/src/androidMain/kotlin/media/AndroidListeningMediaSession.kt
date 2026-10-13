@@ -7,16 +7,16 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Color
+import android.graphics.RadialGradient
 import android.graphics.Shader
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
 import android.os.Handler
 import android.os.Looper
-import androidx.core.content.ContextCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.alirezaiyan.vokab.platforms.R
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -51,6 +51,12 @@ internal class AndroidListeningMediaSession(private val context: Context) : ILis
      */
     var onFinishedChanged: ((Boolean) -> Unit)? = null
 
+    /**
+     * Told after each state is shown. Player events can't be relied on for this: after a press the
+     * player already reports the optimistic result, so the real state that follows raises no event.
+     */
+    var onShown: (() -> Unit)? = null
+
     fun dispatch(command: MediaCommand) {
         _commands.tryEmit(command)
     }
@@ -62,6 +68,7 @@ internal class AndroidListeningMediaSession(private val context: Context) : ILis
         handler.removeCallbacks(expireFinished)
         if (finished) handler.postDelayed(expireFinished, FINISHED_TTL_MS)
         player.show(state, artwork)
+        onShown?.invoke()
         if (connection == null) connect()
         audio.update(state is ListeningMediaState.Playing && state.isPlaying)
     }
@@ -110,7 +117,10 @@ internal class AndroidListeningMediaSession(private val context: Context) : ILis
         connection = MediaController.Builder(context, token).buildAsync()
     }
 
-    /** Brand gradient with a headphones glyph, so the lock screen and media card never show a grey tile. */
+    /**
+     * The app icon's gradient with a soft glow and no glyph: the system media card center-crops the
+     * artwork behind its text and controls, where any mark turns into a large grey shape.
+     */
     private fun renderArtwork(): ByteArray {
         val bitmap = Bitmap.createBitmap(ARTWORK_PX, ARTWORK_PX, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -118,14 +128,18 @@ internal class AndroidListeningMediaSession(private val context: Context) : ILis
         canvas.drawRect(
             0f, 0f, size, size,
             Paint().apply {
-                shader = LinearGradient(0f, 0f, size, size, BRAND_PURPLE, BRAND_GREEN, Shader.TileMode.CLAMP)
+                shader = LinearGradient(0f, size, size, 0f, BRAND_LIGHT, BRAND_DEEP, Shader.TileMode.CLAMP)
             },
         )
-        ContextCompat.getDrawable(context, R.drawable.ic_stat_listening)?.let { glyph ->
-            val inset = (ARTWORK_PX * GLYPH_INSET_RATIO).toInt()
-            glyph.setBounds(inset, inset, ARTWORK_PX - inset, ARTWORK_PX - inset)
-            glyph.draw(canvas)
-        }
+        canvas.drawRect(
+            0f, 0f, size, size,
+            Paint().apply {
+                shader = RadialGradient(
+                    size * GLOW_CENTER, size * (1 - GLOW_CENTER), size * GLOW_RADIUS,
+                    GLOW, Color.TRANSPARENT, Shader.TileMode.CLAMP,
+                )
+            },
+        )
         return ByteArrayOutputStream().use { out ->
             bitmap.compress(Bitmap.CompressFormat.PNG, PNG_QUALITY, out)
             bitmap.recycle()
@@ -138,9 +152,11 @@ internal class AndroidListeningMediaSession(private val context: Context) : ILis
         const val FINISHED_TTL_MS = 30 * 60 * 1000L
         const val OPEN_REQUEST_CODE = 4_202
         const val ARTWORK_PX = 512
-        const val GLYPH_INSET_RATIO = 0.28f
+        const val GLOW_CENTER = 0.78f
+        const val GLOW_RADIUS = 0.7f
+        const val GLOW = 0x40FFFFFF
         const val PNG_QUALITY = 100
-        const val BRAND_PURPLE = 0xFF7F5AF0.toInt()
-        const val BRAND_GREEN = 0xFF2CB67D.toInt()
+        const val BRAND_LIGHT = 0xFF7A8CF0.toInt()
+        const val BRAND_DEEP = 0xFF6E1EDC.toInt()
     }
 }

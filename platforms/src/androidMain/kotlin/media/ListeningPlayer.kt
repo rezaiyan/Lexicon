@@ -88,9 +88,8 @@ internal class ListeningPlayer(
             if (index == state.index) {
                 item(
                     uid = index,
-                    title = state.title,
-                    // Before the answer is spoken there is nothing to spoil: show where we are instead.
-                    artist = state.subtitle ?: state.detail,
+                    title = state.displayTitle,
+                    artist = state.displaySubtitle,
                     album = state.detail,
                 )
             } else {
@@ -183,9 +182,10 @@ internal class ListeningPlayer(
             )
             .build()
 
-        // No play/pause or seeking once finished: the card offers exactly Repeat and Close.
+        // Once finished, play means "play again" (the card's big button); no seeking.
         private val FINISHED_COMMANDS = Player.Commands.Builder()
             .addAll(
+                Player.COMMAND_PLAY_PAUSE,
                 Player.COMMAND_STOP,
                 Player.COMMAND_GET_CURRENT_MEDIA_ITEM,
                 Player.COMMAND_GET_TIMELINE,

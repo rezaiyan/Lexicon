@@ -30,7 +30,6 @@ class ListeningPlaybackService : MediaSessionService(), KoinComponent {
 
     private val playerListener = object : Player.Listener {
         override fun onEvents(player: Player, events: Player.Events) {
-            refreshButtons()
             // Released by the app (session closed): nothing left to show, so go away.
             if (player.playbackState == Player.STATE_IDLE) stopSelf()
         }
@@ -61,13 +60,17 @@ class ListeningPlaybackService : MediaSessionService(), KoinComponent {
         androidOwner.onFinishedChanged = { finished ->
             setForegroundServiceTimeoutMs(if (finished) 0L else DEFAULT_FOREGROUND_SERVICE_TIMEOUT_MS)
         }
+        androidOwner.onShown = ::refreshButtons
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
     override fun onDestroy() {
         player?.removeListener(playerListener)
-        (owner as? AndroidListeningMediaSession)?.onFinishedChanged = null
+        (owner as? AndroidListeningMediaSession)?.apply {
+            onFinishedChanged = null
+            onShown = null
+        }
         // The player belongs to the app-wide session owner and outlives this service.
         session?.release()
         session = null
@@ -79,22 +82,18 @@ class ListeningPlaybackService : MediaSessionService(), KoinComponent {
     }
 
     /**
-     * Stop in the overflow while a session runs; Repeat (left) and Close (right) once it has finished.
-     * Side slots, since system media controls keep the center for play/pause.
+     * Playing: just previous / play-pause / next, like any podcast player. Paused: a Close in the free
+     * slot so the session can be ended without reopening the app. Finished: the big center play button
+     * repeats (the player maps it), with Close beside it.
      */
     private fun buttons(): List<CommandButton> {
         val state = player?.current ?: return emptyList()
         val labels = state.labels
         return when (state) {
-            is ListeningMediaState.Playing -> listOf(
-                closeButton(labels.stop, STOP, CommandButton.SLOT_OVERFLOW),
-            )
+            is ListeningMediaState.Playing ->
+                if (state.isPlaying) emptyList()
+                else listOf(closeButton(labels.stop, STOP, CommandButton.SLOT_OVERFLOW))
             is ListeningMediaState.Finished -> listOf(
-                CommandButton.Builder(CommandButton.ICON_REPEAT_ALL)
-                    .setDisplayName(labels.repeat)
-                    .setSessionCommand(REPEAT)
-                    .setSlots(CommandButton.SLOT_BACK, CommandButton.SLOT_OVERFLOW)
-                    .build(),
                 closeButton(labels.close, CLOSE, CommandButton.SLOT_FORWARD, CommandButton.SLOT_OVERFLOW),
             )
         }
