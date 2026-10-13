@@ -1,7 +1,6 @@
 package domain.listening.model
 
 import domain.word.model.Word
-
 /** One spoken line: text plus the language its voice model must speak it in. */
 data class Utterance(val text: String, val languageCode: String)
 
