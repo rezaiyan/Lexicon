@@ -18,6 +18,12 @@ import platform.MediaPlayer.MPRemoteCommandCenter
 import platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationState
+import platform.UserNotifications.UNAuthorizationOptionAlert
+import platform.UserNotifications.UNAuthorizationOptionProvisional
+import platform.UserNotifications.UNAuthorizationStatusAuthorized
+import platform.UserNotifications.UNAuthorizationStatusEphemeral
+import platform.UserNotifications.UNAuthorizationStatusNotDetermined
+import platform.UserNotifications.UNAuthorizationStatusProvisional
 import platform.UserNotifications.UNMutableNotificationContent
 import platform.UserNotifications.UNNotificationRequest
 import platform.UserNotifications.UNUserNotificationCenter
@@ -175,7 +181,20 @@ class IosListeningMediaSession : IListeningMediaSession {
             setUserInfo(mapOf<Any?, Any?>("type" to LISTENING_NOTIFICATION_TYPE))
         }
         val request = UNNotificationRequest.requestWithIdentifier(FINISHED_ID, content, null)
-        UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request, null)
+        val center = UNUserNotificationCenter.currentNotificationCenter()
+        center.getNotificationSettingsWithCompletionHandler { settings ->
+            when (settings?.authorizationStatus) {
+                UNAuthorizationStatusAuthorized,
+                UNAuthorizationStatusProvisional,
+                UNAuthorizationStatusEphemeral -> center.addNotificationRequest(request, null)
+                // Never asked: deliver quietly to Notification Center, no prompt mid-session.
+                // A later full permission request still shows the system prompt.
+                UNAuthorizationStatusNotDetermined -> center.requestAuthorizationWithOptions(
+                    UNAuthorizationOptionProvisional or UNAuthorizationOptionAlert,
+                ) { granted, _ -> if (granted) center.addNotificationRequest(request, null) }
+                else -> Unit // Denied: Now Playing still offers Repeat.
+            }
+        }
     }
 
     private fun removeFinishedNotification() {
