@@ -1230,15 +1230,15 @@
     <string name="support_unread_reply">New reply from support</string>
 
     <!-- AI guidance: quick picks and the learner's own words (photo + generate with AI) -->
-    <string name="ai_guidance_title_photo">Tell the AI what you want</string>
-    <string name="ai_guidance_subtitle_photo">Optional · pick or describe which words to take</string>
-    <string name="ai_guidance_own_words">In your own words</string>
+    <string name="ai_guidance_title_photo">Which words should we take?</string>
+    <string name="ai_guidance_subtitle_photo">Optional · e.g. only the marked ones, just verbs</string>
+    <string name="ai_guidance_own_words">Describe what you need</string>
     <string name="ai_guidance_placeholder_photo">e.g. only the words in the blue box</string>
     <string name="ai_guidance_placeholder_suggest">e.g. verbs I need for my nursing exam</string>
     <string name="ai_guidance_quick_picks">Fine-tune</string>
     <string name="ai_guidance_start_with">Start with</string>
     <string name="ai_guidance_counter">%1$d/%2$d</string>
-    <string name="ai_guidance_extra_cost">Your own words use %1$s more.</string>
+    <string name="ai_guidance_extra_cost">Describing it uses %1$s more.</string>
     <string name="ai_guidance_clear">Clear your words</string>
     <string name="ai_guidance_expand">Show options</string>
     <string name="ai_guidance_collapse">Hide options</string>
@@ -1270,7 +1270,7 @@
     <string name="ai_instructions_off_topic">That doesn't look like a vocabulary request. Try something like "words for a doctor's visit".</string>
     <string name="ai_instructions_unsafe">We can't make vocabulary for that. Try another topic.</string>
     <string name="ai_instructions_personal_data">Remove links, emails or phone numbers and try again.</string>
-    <string name="ai_instructions_paused">Your own words are paused for a while. Quick picks still work.</string>
+    <string name="ai_instructions_paused">Describing is paused for a while. The Fine-tune options still work.</string>
     <string name="ai_instructions_unavailable">We can't check your words right now.</string>
     <string name="ai_instructions_not_charged">You weren't charged.</string>
     <string name="ai_instructions_continue_without">Continue without them</string>
