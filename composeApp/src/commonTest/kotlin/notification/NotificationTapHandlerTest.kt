@@ -105,6 +105,38 @@ class NotificationTapHandlerTest {
     }
 
     @Test
+    fun `due bite link reviews just those words- for due cards and review reminders alike`() = runTest {
+        navigator.reviewRequests.test {
+            handler().onNotificationTapped(
+                mapOf(
+                    NotificationTapHandler.TYPE_KEY to "due_cards",
+                    NotificationTapHandler.DEEP_LINK_KEY to "vokab://review/words?ids=11,12,1",
+                )
+            )
+            assertEquals(ReviewSource.ByWords(listOf(11L, 12L, 1L)), awaitItem())
+
+            handler().onNotificationTapped(
+                mapOf(
+                    NotificationTapHandler.TYPE_KEY to "review_reminder",
+                    NotificationTapHandler.DEEP_LINK_KEY to "vokab://review/words?ids=4,x,5",
+                )
+            )
+            assertEquals(ReviewSource.ByWords(listOf(4L, 5L)), awaitItem())
+        }
+    }
+
+    @Test
+    fun `due bite link without usable words falls back to the due review`() = runTest {
+        navigator.reviewRequests.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://review/words?ids=x"))
+            assertEquals(ReviewSource.DueCards, awaitItem())
+
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.TYPE_KEY to "review_reminder"))
+            assertEquals(ReviewSource.DueCards, awaitItem())
+        }
+    }
+
+    @Test
     fun `insight and stats deep links open the insights tab`() = runTest {
         navigator.destinations.test {
             handler().onNotificationTapped(mapOf(NotificationTapHandler.DEEP_LINK_KEY to "vokab://insights"))
