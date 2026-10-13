@@ -153,6 +153,18 @@ class PhotoImportViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `extract when the AI fails on the server says so and that no credits were used`() {
+        ai.drafts = Try.failure(DomainError.Network.ServerError(502))
+        val vm = createViewModel()
+        vm.onPhotoPicked(image)
+
+        vm.extract(languages)
+
+        assertEquals(AddWordsProblem.AiUnavailable, vm.currentState.problem)
+        assertFalse(vm.currentState.isExtracting)
+    }
+
+    @Test
     fun `extract refused for lack of credits logs the failure`() {
         ai.drafts = Try.failure(DomainError.Commerce.InsufficientCredits)
         val vm = createViewModel()

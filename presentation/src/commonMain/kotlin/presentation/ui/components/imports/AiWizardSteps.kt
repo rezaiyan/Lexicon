@@ -94,6 +94,9 @@ internal fun AiTopicsStep(
         highlight = stringResource(Res.string.ai_wizard_describe_highlight),
         subtitle = stringResource(Res.string.ai_wizard_describe_subtitle),
         footer = {
+            // In the sticky footer, next to the button that caused it: the page is long, and after a
+            // failed generate it comes back scrolled to the top
+            ErrorMessage(error)
             if (selectedTopics.isNotEmpty()) {
                 Text(
                     stringResource(Res.string.topics_selected, selectedTopics.size),
@@ -112,7 +115,6 @@ internal fun AiTopicsStep(
         },
     ) {
         guidance { TopicChips(topics, selectedTopics, onToggleTopic) }
-        ErrorMessage(error)
     }
 }
 

@@ -88,6 +88,9 @@ internal fun PhotoPreviewPage(
     SheetPage(
         title = stringResource(Res.string.photo_preview_title),
         footer = {
+            // In the sticky footer, next to the button that caused it, so it is seen however far down
+            // the page is scrolled
+            ErrorMessage(problem)
             Row(horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
                 SheetTonalButton(
                     text = stringResource(Res.string.retake),
@@ -147,7 +150,6 @@ internal fun PhotoPreviewPage(
             ImageLoadError()
         }
 
-        ErrorMessage(problem)
         if (imageBitmap != null) guidance()
     }
 }

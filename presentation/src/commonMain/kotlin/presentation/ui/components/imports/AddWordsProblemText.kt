@@ -3,6 +3,7 @@ package presentation.ui.components.imports
 import androidx.compose.runtime.Composable
 import feature.addwords.model.AddWordsProblem
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.add_words_problem_ai_unavailable
 import lexicon.resources.generated.resources.add_words_problem_empty_file
 import lexicon.resources.generated.resources.add_words_problem_file_too_large
 import lexicon.resources.generated.resources.add_words_problem_generic
@@ -15,6 +16,7 @@ import lexicon.resources.generated.resources.add_words_problem_nothing_suggested
 import lexicon.resources.generated.resources.add_words_problem_out_of_credits
 import lexicon.resources.generated.resources.add_words_problem_premium
 import lexicon.resources.generated.resources.add_words_problem_rate_limited
+import lexicon.resources.generated.resources.add_words_problem_timed_out
 import lexicon.resources.generated.resources.add_words_problem_too_long
 import lexicon.resources.generated.resources.add_words_problem_unsupported_file
 import lexicon.resources.generated.resources.import_error_file_empty
@@ -25,6 +27,8 @@ import org.jetbrains.compose.resources.stringResource
 private val AddWordsProblem.message: StringResource
     get() = when (this) {
         AddWordsProblem.Offline -> Res.string.import_error_network
+        AddWordsProblem.TimedOut -> Res.string.add_words_problem_timed_out
+        AddWordsProblem.AiUnavailable -> Res.string.add_words_problem_ai_unavailable
         AddWordsProblem.PremiumRequired -> Res.string.add_words_problem_premium
         AddWordsProblem.OutOfCredits -> Res.string.add_words_problem_out_of_credits
         AddWordsProblem.RateLimited -> Res.string.add_words_problem_rate_limited

@@ -1121,6 +1121,8 @@
     <string name="add_words_problem_missing_translation">Enter a translation.</string>
     <string name="add_words_problem_too_long">That's too long. Keep words under 200 characters.</string>
     <string name="add_words_problem_generic">Something went wrong. Please try again.</string>
+    <string name="add_words_problem_ai_unavailable">The AI couldn't finish this time, so no credits were used. Please try again.</string>
+    <string name="add_words_problem_timed_out">This took too long to answer. Check your connection and try again.</string>
     <string name="add_words_already_added">You already have this word.</string>
     <string name="add_words_skipped_lines">Skipped lines: %1$d (missing translation or unreadable)</string>
     <string name="add_words_duplicates_skipped">%1$d already in your list, skipped</string>
