@@ -55,6 +55,39 @@ class ListeningReducerTest {
     }
 
     @Test
+    fun `StepCompleted plays the example between answer and gap when the word has one`() {
+        val withExample = ListeningSession(listOf(word(1).copy(description = "Der Hund bellt.")))
+        val answer = withExample.copy(step = ListeningStep.Answer)
+
+        val example = ListeningReducer.reduce(answer, ListeningCommand.StepCompleted, repeatCount = 1).session()
+        assertEquals(ListeningStep.Example, example.step)
+
+        val gap = ListeningReducer.reduce(example, ListeningCommand.StepCompleted, repeatCount = 1).session()
+        assertEquals(ListeningStep.Gap, gap.step)
+    }
+
+    @Test
+    fun `StepCompleted skips the example when the word's example is blank`() {
+        val blank = ListeningSession(listOf(word(1).copy(description = "   ")))
+
+        val next = ListeningReducer.reduce(
+            blank.copy(step = ListeningStep.Answer),
+            ListeningCommand.StepCompleted,
+            repeatCount = 1,
+        ).session()
+
+        assertEquals(ListeningStep.Gap, next.step)
+    }
+
+    @Test
+    fun `example is spoken trimmed in the learned word's language`() {
+        val withExample = ListeningSession(listOf(word(1).copy(description = "  Der Hund bellt. ")))
+
+        assertEquals(Utterance("Der Hund bellt.", "de"), withExample.example())
+        assertEquals(null, twoWords.example())
+    }
+
+    @Test
     fun `StepCompleted on last gap finishes the session`() {
         val lastGap = twoWords.copy(index = 1, step = ListeningStep.Gap)
 
@@ -129,6 +162,7 @@ class ListeningReducerTest {
         assertFalse(twoWords.isAnswerRevealed)
         assertFalse(twoWords.copy(step = ListeningStep.Pause).isAnswerRevealed)
         assertTrue(twoWords.copy(step = ListeningStep.Answer).isAnswerRevealed)
+        assertTrue(twoWords.copy(step = ListeningStep.Example).isAnswerRevealed)
         assertTrue(twoWords.copy(step = ListeningStep.Gap).isAnswerRevealed)
     }
 

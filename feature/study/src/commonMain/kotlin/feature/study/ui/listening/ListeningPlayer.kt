@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -74,6 +75,7 @@ import lexicon.resources.generated.resources.listening_next
 import lexicon.resources.generated.resources.listening_order_translation_first
 import lexicon.resources.generated.resources.listening_order_word_first
 import lexicon.resources.generated.resources.listening_pause_playback
+import lexicon.resources.generated.resources.listening_phase_example
 import lexicon.resources.generated.resources.listening_phase_listen
 import lexicon.resources.generated.resources.listening_phase_meaning
 import lexicon.resources.generated.resources.listening_phase_paused
@@ -211,6 +213,9 @@ private fun WordCard(
                     answer = shown.answer(settings.order),
                     // Only the current word can be mid-reveal; the outgoing one fades as it was.
                     revealed = index == session.index && session.isAnswerRevealed,
+                    example = shown.example()?.text,
+                    exampleRevealed = index == session.index &&
+                        (session.step == ListeningStep.Example || session.step == ListeningStep.Gap),
                 )
             }
 
@@ -226,11 +231,22 @@ private fun WordCard(
 }
 
 @Composable
-private fun WordFaces(prompt: Utterance, answer: Utterance, revealed: Boolean) {
+private fun WordFaces(
+    prompt: Utterance,
+    answer: Utterance,
+    revealed: Boolean,
+    example: String?,
+    exampleRevealed: Boolean,
+) {
     val answerAlpha by animateFloatAsState(
         targetValue = if (revealed) 1f else 0f,
         animationSpec = tween(Theme.motion.durationMedium2, easing = Theme.motion.easingEmphasized),
         label = "listening-answer",
+    )
+    val exampleAlpha by animateFloatAsState(
+        targetValue = if (exampleRevealed) 1f else 0f,
+        animationSpec = tween(Theme.motion.durationMedium2, easing = Theme.motion.easingEmphasized),
+        label = "listening-example",
     )
     val riseDistance = with(LocalDensity.current) { ANSWER_RISE.toPx() }
     Column(
@@ -278,6 +294,24 @@ private fun WordFaces(prompt: Utterance, answer: Utterance, revealed: Boolean) {
                 },
             )
         }
+
+        if (example != null) {
+            Spacer(Modifier.height(Theme.spacing.lg))
+            // Keeps its space from the start so the card never jumps when the example appears.
+            Text(
+                text = example,
+                style = MaterialTheme.typography.bodyLarge,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(horizontal = Theme.spacing.lg)
+                    .graphicsLayer {
+                        alpha = exampleAlpha
+                        translationY = (1f - exampleAlpha) * riseDistance
+                    },
+            )
+        }
     }
 }
 
@@ -294,11 +328,13 @@ private fun LanguageLabel(languageCode: String) {
 /** What the player is doing right now, with a live equalizer while a line is being spoken. */
 @Composable
 private fun PhaseIndicator(step: ListeningStep, isPlaying: Boolean) {
-    val speaking = isPlaying && (step == ListeningStep.Prompt || step == ListeningStep.Answer)
+    val speaking = isPlaying &&
+        (step == ListeningStep.Prompt || step == ListeningStep.Answer || step == ListeningStep.Example)
     val label = when {
         !isPlaying -> Res.string.listening_phase_paused
         step == ListeningStep.Prompt -> Res.string.listening_phase_listen
         step == ListeningStep.Pause -> Res.string.listening_phase_recall
+        step == ListeningStep.Example -> Res.string.listening_phase_example
         else -> Res.string.listening_phase_meaning
     }
     Row(

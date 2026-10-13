@@ -135,6 +135,23 @@ class ListeningViewModelTest {
     }
 
     @Test
+    fun `start speaks the example after the translation when the word has one`() = runTest(dispatcher) {
+        val words = listOf(word(1).copy(description = "Der Hund bellt."), word(2))
+        wordRepository.dueWords = words
+        wordRepository.storedWords = words.toMutableList()
+        val viewModel = startedViewModel()
+
+        advanceTimeBy(pauseMs)
+        runCurrent()
+
+        assertEquals(
+            listOf("Hund1" to "de", "dog1" to "en", "Der Hund bellt." to "de"),
+            ttsRepository.spoken,
+        )
+        assertTrue(viewModel.active.session.isAnswerRevealed)
+    }
+
+    @Test
     fun `full session finishes with every word heard and logs completion`() = runTest(dispatcher) {
         givenDueWords(1, 2)
         val viewModel = startedViewModel()

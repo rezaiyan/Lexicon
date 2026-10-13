@@ -357,6 +357,7 @@ class ListeningViewModel(
             ListeningStep.Prompt -> speak(session.prompt(settings.order), active.speakableLanguages)
             ListeningStep.Pause -> delay(settings.pauseMs)
             ListeningStep.Answer -> speak(session.answer(settings.order), active.speakableLanguages)
+            ListeningStep.Example -> session.example()?.let { speak(it, active.speakableLanguages) }
             ListeningStep.Gap -> delay(settings.gapMs)
         }
     }

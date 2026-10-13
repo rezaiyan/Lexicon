@@ -5,11 +5,12 @@ import domain.word.model.Word
 /** One spoken line: text plus the language its voice model must speak it in. */
 data class Utterance(val text: String, val languageCode: String)
 
-/** The four beats of a listening item: prompt → pause → answer → gap. */
+/** The beats of a listening item: prompt → pause → answer → example (only if the word has one) → gap. */
 sealed interface ListeningStep {
     data object Prompt : ListeningStep
     data object Pause : ListeningStep
     data object Answer : ListeningStep
+    data object Example : ListeningStep
     data object Gap : ListeningStep
 }
 
@@ -25,7 +26,12 @@ data class ListeningSession(
 
     /** Whether the answer side should be visible: once it has been (or is being) spoken. */
     val isAnswerRevealed: Boolean
-        get() = step == ListeningStep.Answer || step == ListeningStep.Gap
+        get() = step == ListeningStep.Answer || step == ListeningStep.Example || step == ListeningStep.Gap
+
+    /** The word's example sentence, spoken in the learned language; null when the word has none. */
+    fun example(): Utterance? = currentWord.description.trim()
+        .takeIf { it.isNotEmpty() }
+        ?.let { Utterance(it, currentWord.targetLanguage.code) }
 
     fun prompt(order: ListeningOrder): Utterance = when (order) {
         ListeningOrder.WORD_FIRST -> currentWord.wordUtterance()
@@ -77,7 +83,10 @@ object ListeningReducer {
         when (session.step) {
             ListeningStep.Prompt -> ListeningTransition.Continue(session.copy(step = ListeningStep.Pause))
             ListeningStep.Pause -> ListeningTransition.Continue(session.copy(step = ListeningStep.Answer))
-            ListeningStep.Answer -> ListeningTransition.Continue(session.copy(step = ListeningStep.Gap))
+            ListeningStep.Answer -> ListeningTransition.Continue(
+                session.copy(step = if (session.example() != null) ListeningStep.Example else ListeningStep.Gap)
+            )
+            ListeningStep.Example -> ListeningTransition.Continue(session.copy(step = ListeningStep.Gap))
             ListeningStep.Gap -> if (session.repetition + 1 < repeatCount) {
                 ListeningTransition.Continue(
                     session.copy(step = ListeningStep.Prompt, repetition = session.repetition + 1)

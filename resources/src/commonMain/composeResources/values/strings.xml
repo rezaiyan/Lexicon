@@ -1073,6 +1073,7 @@
     <string name="listening_phase_listen">Listen</string>
     <string name="listening_phase_recall">Recall the meaning</string>
     <string name="listening_phase_meaning">Meaning</string>
+    <string name="listening_phase_example">Example</string>
     <string name="listening_phase_paused">Paused</string>
     <string name="listening_settings">Playback settings</string>
     <string name="listening_round">Round %1$d of %2$d</string>
