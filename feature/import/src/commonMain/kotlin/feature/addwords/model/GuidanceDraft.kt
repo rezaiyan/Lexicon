@@ -62,7 +62,8 @@ data class GuidanceDraft(
     }
 
     /** One register at most; picking the selected one again clears it. */
-    fun toggleRegister(value: Register) = withFocus { copy(register = value.takeIf { it != register }) }
+    /** The tone to aim for; null is natural (no particular register). */
+    fun selectRegister(value: Register?) = withFocus { copy(register = value) }
 
     fun toggleGrammarNotes() = withFocus { copy(grammarNotes = !grammarNotes) }
 

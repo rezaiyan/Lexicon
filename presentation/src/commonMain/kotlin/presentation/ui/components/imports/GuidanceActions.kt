@@ -17,7 +17,6 @@ import lexicon.resources.generated.resources.ai_action_with_cost
 import lexicon.resources.generated.resources.ai_group_kinds
 import lexicon.resources.generated.resources.ai_group_level
 import lexicon.resources.generated.resources.ai_group_tone
-import lexicon.resources.generated.resources.ai_tone_any
 import lexicon.resources.generated.resources.ai_pick_grammar_notes
 import lexicon.resources.generated.resources.ai_pick_grammar_notes_hint
 import lexicon.resources.generated.resources.ai_pick_marked_only
@@ -26,6 +25,7 @@ import lexicon.resources.generated.resources.ai_pick_skip_names
 import lexicon.resources.generated.resources.ai_pick_skip_names_hint
 import lexicon.resources.generated.resources.ai_register_everyday
 import lexicon.resources.generated.resources.ai_register_formal
+import lexicon.resources.generated.resources.ai_register_natural
 import lexicon.resources.generated.resources.ai_register_slang
 import lexicon.resources.generated.resources.ai_starter_only_in
 import lexicon.resources.generated.resources.ai_starter_preparing
@@ -48,7 +48,7 @@ internal class GuidanceActions(
     val onStarter: (String) -> Unit,
     val onClear: () -> Unit,
     val onToggleWordType: (WordType) -> Unit,
-    val onToggleRegister: (Register) -> Unit,
+    val onSelectRegister: (Register?) -> Unit,
     val onToggleGrammarNotes: () -> Unit,
     val onToggleMarkedOnly: () -> Unit = {},
     val onToggleSkipNames: () -> Unit = {},
@@ -65,10 +65,14 @@ private fun WordType.label(): String = stringResource(
     },
 )
 
+/** Tone from most to least formal; natural (no register) sits between formal and everyday. */
+private val ToneScale: List<Register?> = listOf(Register.FORMAL, null, Register.EVERYDAY, Register.SLANG)
+
 @Composable
-private fun Register.label(): String = stringResource(
+private fun Register?.toneLabel(): String = stringResource(
     when (this) {
         Register.FORMAL -> Res.string.ai_register_formal
+        null -> Res.string.ai_register_natural
         Register.EVERYDAY -> Res.string.ai_register_everyday
         Register.SLANG -> Res.string.ai_register_slang
     },
@@ -114,11 +118,10 @@ internal fun suggestQuickPicks(
     val levelLabels = ProficiencyLevel.entries.map { stringResource(it.title) }
     val kinds = stringResource(Res.string.ai_group_kinds)
     val tone = stringResource(Res.string.ai_group_tone)
-    val anyTone = stringResource(Res.string.ai_tone_any)
     val grammar = ToggleText(Res.string.ai_pick_grammar_notes, Res.string.ai_pick_grammar_notes_hint).resolve()
     val typeLabels = WordType.entries.map { it.label() }
-    val registerLabels = Register.entries.map { it.label() }
-    return remember(focus, actions, typeLabels, registerLabels, kinds, grammar, level, levelLabels, anyTone) {
+    val toneLabels = ToneScale.map { it.toneLabel() }
+    return remember(focus, actions, typeLabels, toneLabels, kinds, grammar, level, levelLabels) {
         listOf(
             // Always one level, on an ordered track: beginner to advanced
             QuickPickGroup.Steps(
@@ -129,10 +132,9 @@ internal fun suggestQuickPicks(
             ),
             QuickPickGroup.Steps(
                 tone,
-                Register.entries.mapIndexed { index, register ->
-                    QuickPick(registerLabels[index], focus.register == register) { actions.onToggleRegister(register) }
+                ToneScale.mapIndexed { index, register ->
+                    QuickPick(toneLabels[index], focus.register == register) { actions.onSelectRegister(register) }
                 },
-                emptyLabel = anyTone,
             ),
             QuickPickGroup.Chips(kinds, wordTypePicks(WordType.entries, typeLabels, focus, actions)),
             QuickPickGroup.Toggles(

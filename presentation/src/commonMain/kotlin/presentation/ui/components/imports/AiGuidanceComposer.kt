@@ -116,16 +116,8 @@ internal sealed interface QuickPickGroup {
     /** Any number apply: one scrolling row of chips. */
     data class Chips(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
 
-    /**
-     * One of a few ordered steps (level, tone): a snapping track. Tapping the selected step reports
-     * it again, so an optional choice can clear it.
-     */
-    data class Steps(
-        val title: String,
-        override val picks: List<QuickPick>,
-        /** Shown by the title while nothing is picked, e.g. "Any". */
-        val emptyLabel: String? = null,
-    ) : QuickPickGroup
+    /** Exactly one of a few ordered steps (level, tone): a snapping track, never empty. */
+    data class Steps(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
 
     /** Independent on/off options: switch rows that explain themselves. */
     data class Toggles(override val picks: List<QuickPick>) : QuickPickGroup
@@ -495,7 +487,7 @@ private fun FineTuneGroup(group: QuickPickGroup, enabled: Boolean) {
         }
         is QuickPickGroup.Steps -> {
             val selected = group.picks.indexOfFirst(QuickPick::selected).takeIf { it >= 0 }
-            GroupWithTitle(group.title, trailing = group.emptyLabel.takeIf { selected == null }) {
+            GroupWithTitle(group.title) {
                 SnapStepPicker(
                     labels = group.picks.map(QuickPick::label),
                     selectedIndex = selected,
@@ -519,20 +511,14 @@ private fun FineTuneGroup(group: QuickPickGroup, enabled: Boolean) {
 }
 
 @Composable
-private fun GroupWithTitle(title: String, trailing: String? = null, content: @Composable () -> Unit) {
+private fun GroupWithTitle(title: String, content: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            trailing?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
+        Text(
+            title,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         content()
     }
 }

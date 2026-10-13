@@ -53,11 +53,20 @@ class GuidanceDraftTest {
     }
 
     @Test
-    fun `one register at most - and picking it again clears it`() {
-        val formal = GuidanceDraft().toggleRegister(Register.FORMAL)
+    fun `tone is one register - picking another replaces it`() {
+        val formal = GuidanceDraft().selectRegister(Register.FORMAL)
 
-        assertEquals(Register.SLANG, formal.toggleRegister(Register.SLANG).focus.register)
-        assertNull(formal.toggleRegister(Register.FORMAL).focus.register)
+        assertEquals(Register.FORMAL, formal.focus.register)
+        assertEquals(Register.SLANG, formal.selectRegister(Register.SLANG).focus.register)
+        assertEquals(Register.FORMAL, formal.selectRegister(Register.FORMAL).focus.register)
+    }
+
+    @Test
+    fun `natural tone is no register`() {
+        val natural = GuidanceDraft().selectRegister(Register.FORMAL).selectRegister(null)
+
+        assertNull(natural.focus.register)
+        assertTrue(natural.focus.isEmpty)
     }
 
     @Test

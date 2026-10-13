@@ -153,7 +153,7 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
         vm.selectLevel(ProficiencyLevel.BEGINNER)
         vm.applyStarter("I'm preparing for")
         vm.onInstructionChanged(vm.currentState.guidance.text + "a job interview")
-        vm.toggleRegister(Register.FORMAL)
+        vm.selectRegister(Register.FORMAL)
 
         vm.generate(languages)
 

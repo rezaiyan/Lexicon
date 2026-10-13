@@ -11,7 +11,6 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -44,6 +43,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -70,9 +70,11 @@ private const val ThumbHiddenScale = 0.5f
  * get each label as a radio button.
  *
  * @param labels one per stop, in order; at least two.
- * @param selectedIndex null shows an empty track with no thumb.
- * @param onSelect called when a drag lands on a new stop, and on every tap, including a tap on the
- *   selected stop, so optional choices can treat that as clearing it.
+ * A track always sits somewhere, so give "no preference" a stop of its own (e.g. "Natural") rather
+ * than leaving it empty.
+ *
+ * @param selectedIndex null only while the value is loading: the track shows empty, no thumb.
+ * @param onSelect called when the thumb lands on a different stop.
  */
 @Composable
 fun SnapStepPicker(
@@ -109,9 +111,9 @@ fun SnapStepPicker(
         return if (span <= 0f) 0f else ((x - thumbPx / 2) / span).coerceIn(0f, 1f)
     }
 
-    fun land(index: Int, tapped: Boolean) {
+    fun land(index: Int) {
         heavyHaptic()
-        if (tapped || index != currentSelected) currentOnSelect(index)
+        if (index != currentSelected) currentOnSelect(index)
         scope.launch { position.animateTo(index / steps.toFloat(), bounce) }
         scope.launch {
             thumbScale.snapTo(ThumbHeldScale)
@@ -141,7 +143,7 @@ fun SnapStepPicker(
             .selectableGroup()
             .pointerInput(enabled) {
                 if (!enabled) return@pointerInput
-                detectTapGestures { offset -> land((fractionAt(offset.x) * steps).roundToInt(), tapped = true) }
+                detectTapGestures { offset -> land((fractionAt(offset.x) * steps).roundToInt()) }
             }
             .pointerInput(enabled) {
                 if (!enabled) return@pointerInput
@@ -153,11 +155,11 @@ fun SnapStepPicker(
                     },
                     onDragEnd = {
                         dragging = false
-                        land(nearest, tapped = false)
+                        land(nearest)
                     },
                     onDragCancel = {
                         dragging = false
-                        currentSelected?.let { land(it, tapped = false) }
+                        currentSelected?.let { land(it) }
                     },
                     onHorizontalDrag = { change, _ ->
                         change.consume()
@@ -215,36 +217,45 @@ fun SnapStepPicker(
                 Box(Modifier.size(trackHeight).background(brush, CircleShape))
             }
         }
-        Row(modifier = Modifier.fillMaxWidth()) {
+        StopLabels(thumbPx = thumbPx, modifier = Modifier.fillMaxWidth()) {
             labels.forEachIndexed { index, label ->
                 val isHighlighted = index == highlighted
                 val color by animateColorAsState(if (isHighlighted) colors.primary else colors.onSurfaceVariant)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        // The column handles touch; this gives screen readers a radio button per stop
-                        .selectable(
-                            selected = index == selected,
-                            enabled = enabled,
-                            role = Role.RadioButton,
-                            interactionSource = null,
-                            indication = null,
-                            onClick = { land(index, tapped = true) },
-                        ),
-                    contentAlignment = when (index) {
-                        0 -> Alignment.CenterStart
-                        labels.lastIndex -> Alignment.CenterEnd
-                        else -> Alignment.Center
-                    },
-                ) {
-                    Text(
-                        label,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Medium,
-                        color = color,
-                        maxLines = 1,
-                    )
-                }
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isHighlighted) FontWeight.Bold else FontWeight.Medium,
+                    color = color,
+                    maxLines = 1,
+                    // The column handles touch; this gives screen readers a radio button per stop
+                    modifier = Modifier.selectable(
+                        selected = index == selected,
+                        enabled = enabled,
+                        role = Role.RadioButton,
+                        interactionSource = null,
+                        indication = null,
+                        onClick = { land(index) },
+                    ),
+                )
+            }
+        }
+    }
+}
+
+/** Centres each label under its stop on the track, kept inside the edges so end labels don't spill. */
+@Composable
+private fun StopLabels(thumbPx: Float, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
+        val placeables = measurables.map { it.measure(constraints.copy(minWidth = 0)) }
+        val width = constraints.maxWidth
+        val steps = placeables.lastIndex.coerceAtLeast(1)
+        val span = width - thumbPx
+        layout(width, placeables.maxOfOrNull { it.height } ?: 0) {
+            placeables.forEachIndexed { index, placeable ->
+                val center = thumbPx / 2 + index / steps.toFloat() * span
+                val maxX = (width - placeable.width).coerceAtLeast(0)
+                val x = (center - placeable.width / 2f).roundToInt().coerceIn(0, maxX)
+                placeable.place(x, 0)
             }
         }
     }

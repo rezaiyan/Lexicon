@@ -37,7 +37,7 @@ abstract class GuidedSourceViewModel<S : GuidedSourceState<S>>(
 
     fun toggleWordType(type: WordType) = editGuidance { toggleWordType(type) }
 
-    fun toggleRegister(register: Register) = editGuidance { toggleRegister(register) }
+    fun selectRegister(register: Register?) = editGuidance { selectRegister(register) }
 
     fun toggleGrammarNotes() = editGuidance { toggleGrammarNotes() }
 
