@@ -175,7 +175,7 @@ tags:
 # 7. GENERATE — AI vocabulary generation
 # ─────────────────────────────────────────────
 - tapOn:
-    text: "Generate Words"
+    text: "Generate Words.*"
     optional: true
 
 # Wait for AI generation (can take 5-20 seconds).

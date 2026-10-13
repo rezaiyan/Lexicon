@@ -35,7 +35,7 @@ tags:
       text: "Travel"
     direction: DOWN
 - tapOn: "Travel"
-- tapOn: "Generate Words"
+- tapOn: "Generate Words.*"
 
 # The AI call can take a while.
 - extendedWaitUntil:

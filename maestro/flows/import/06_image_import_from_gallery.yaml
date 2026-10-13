@@ -65,10 +65,10 @@ tags:
 - waitForAnimationToEnd
 
 - extendedWaitUntil:
-    visible: "Extract words"
+    visible: "Extract words.*"
     timeout: 15000
 - takeScreenshot: maestro/recordings/image_import_gallery_01_preview
-- tapOn: "Extract words"
+- tapOn: "Extract words.*"
 - waitForAnimationToEnd
 - takeScreenshot: maestro/recordings/image_import_gallery_02_ai_scan
 
