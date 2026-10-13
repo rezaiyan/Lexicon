@@ -245,7 +245,7 @@ class LoadReviewQueueUseCaseTest {
     }
 
     @Test
-    fun `ComebackRescue keeps the planned order, skips missing words and ignores daily goal`() = runTest {
+    fun `ComebackRescue keeps the planned order - skips missing words and ignores daily goal`() = runTest {
         val words = (1..5).map { testWord(it) }
         val repo = ConfigurableWordRepository(allWords = words)
         val useCase = buildUseCase(repo, dailyGoal = 1)

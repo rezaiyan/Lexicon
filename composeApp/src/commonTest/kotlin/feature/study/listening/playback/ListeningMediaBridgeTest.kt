@@ -143,7 +143,7 @@ class ListeningMediaBridgeTest {
     }
 
     @Test
-    fun `translation-first order swaps title, answer and languages`() = runTest(dispatcher) {
+    fun `translation-first order swaps title - answer and languages`() = runTest(dispatcher) {
         settings.settings.value = ListeningSettings(order = ListeningOrder.TRANSLATION_FIRST)
         started(1)
 
@@ -224,7 +224,7 @@ class ListeningMediaBridgeTest {
     }
 
     @Test
-    fun `mapper shows the example once it is spoken, with the answer joined to the word`() {
+    fun `mapper shows the example once it is spoken - with the answer joined to the word`() {
         val withExample = word(1).copy(description = "Der Hund bellt.")
         fun at(step: ListeningStep, word: Word = withExample) = ListeningPlayback.Active(
             session = ListeningSession(listOf(word), step = step),

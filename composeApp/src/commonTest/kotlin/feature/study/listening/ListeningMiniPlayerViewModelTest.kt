@@ -94,7 +94,7 @@ class ListeningMiniPlayerViewModelTest {
     }
 
     @Test
-    fun `collapsed session shows the word, reveals the answer and tracks progress`() = runTest(dispatcher) {
+    fun `collapsed session shows the word - reveals the answer and tracks progress`() = runTest(dispatcher) {
         val (controller, viewModel) = setup()
         controller.start(listOf(word(1), word(2)), setOf("de", "en"), ListeningSelection())
         runCurrent()
@@ -114,7 +114,7 @@ class ListeningMiniPlayerViewModelTest {
     }
 
     @Test
-    fun `finished session offers repeat, close hides it`() = runTest(dispatcher) {
+    fun `finished session offers repeat - close hides it`() = runTest(dispatcher) {
         val (controller, viewModel) = setup()
         controller.start(listOf(word(1)), setOf("de", "en"), ListeningSelection())
         advanceUntilIdle()
