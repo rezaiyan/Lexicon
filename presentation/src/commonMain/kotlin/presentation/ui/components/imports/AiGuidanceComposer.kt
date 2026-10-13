@@ -8,33 +8,33 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,19 +50,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
+import components.BrandFilterChip
+import components.BrandSegmentedRow
+import components.CounterPill
+import components.sheet.IconTile
+import components.sheet.SheetGroup
 import components.sheet.SheetSectionLabel
+import components.sheet.SheetSwitchRow
 import domain.ai.model.AiInstruction
 import feature.addwords.model.GuidanceDraft
 import feature.addwords.model.InstructionProblem
@@ -75,7 +82,6 @@ import lexicon.resources.generated.resources.ai_guidance_expand
 import lexicon.resources.generated.resources.ai_guidance_extra_cost
 import lexicon.resources.generated.resources.ai_guidance_own_words
 import lexicon.resources.generated.resources.ai_guidance_quick_picks
-import lexicon.resources.generated.resources.ai_guidance_start_with
 import lexicon.resources.generated.resources.ai_instructions_continue_without
 import lexicon.resources.generated.resources.ai_instructions_not_charged
 import lexicon.resources.generated.resources.ai_instructions_off_topic
@@ -89,31 +95,45 @@ import theme.Theme
 private const val HALF_TURN_DEGREES = 180f
 private const val MAX_FIELD_LINES = 4
 
-/** One quick-pick chip: a fixed, free option. */
-@Immutable
-internal data class QuickPick(val label: String, val selected: Boolean, val onClick: () -> Unit)
 
-/**
- * Quick picks shown under one heading. [singleChoice] groups (tone) read as radio buttons to
- * assistive tech, so the "one at most" rule is announced, not discovered.
- */
+/** One fixed, free option. [subtitle] and [icon] are shown where options are rows (toggles). */
 @Immutable
-internal data class QuickPickGroup(val title: String, val picks: List<QuickPick>, val singleChoice: Boolean = false)
+internal data class QuickPick(
+    val label: String,
+    val selected: Boolean,
+    val subtitle: String? = null,
+    val icon: ImageVector? = null,
+    val onClick: () -> Unit,
+)
+
+/** Quick picks shown together; the kind decides the control, so its rule reads at a glance. */
+@Immutable
+internal sealed interface QuickPickGroup {
+    val picks: List<QuickPick>
+
+    /** Any number apply: one scrolling row of chips. */
+    data class Chips(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
+
+    /** At most one applies: a segmented control; tapping the selected one clears it. */
+    data class OneOf(val title: String, override val picks: List<QuickPick>) : QuickPickGroup
+
+    /** Independent on/off options: switch rows that explain themselves. */
+    data class Toggles(override val picks: List<QuickPick>) : QuickPickGroup
+}
 
 /** Heading of a panel that starts collapsed (photo); the suggestions page shows the panel open. */
 @Immutable
 internal data class GuidanceHeader(val title: String, val subtitle: String)
 
 /**
- * Lets the learner steer the AI three ways, each easier than a blank box:
- * - **quick picks**: free, fixed options, grouped (which words, kinds, tone, extras)
- * - **starters**: tap "I'm preparing for" to begin a sentence, then finish it
- * - **own words**: free text, screened server-side and priced at [surcharge] more credits
+ * Lets the learner steer the AI, each way easier than a blank box:
+ * - **their own words** in a prompt card, with sentence starters to tap
+ * - **fine-tuning**: free, fixed options; each kind uses the control that fits it
  *
- * A refusal shows inline with the learner's text kept, so they can fix it in place.
+ * A refusal shows inside the prompt card with the learner's text kept, so they can fix it in place.
  *
- * @param header set for a collapsible panel; null shows it open, without a heading.
- * @param ownWordsFirst the suggestions page leads with the description; photos with the picks.
+ * @param header set for a collapsible panel (photos); null shows the content open, without a frame.
+ * @param ownWordsFirst the suggestions page leads with the description; photos with the options.
  * @param onContinueWithout offered when the words couldn't be checked: clears them and retries.
  */
 @Composable
@@ -130,35 +150,50 @@ internal fun AiGuidanceComposer(
     header: GuidanceHeader? = null,
     ownWordsFirst: Boolean = true,
 ) {
-    val hasContent = guidance.text.isNotBlank() || !guidance.focus.isEmpty
-    var expanded by rememberSaveable { mutableStateOf(header == null || hasContent) }
+    val content = @Composable {
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
+            val ownWords = @Composable {
+                PromptCard(
+                    guidance, placeholder, starters, surcharge, enabled, actions, onContinueWithout,
+                    // Inside the photo panel's card it stays flat: one raised surface at a time
+                    raised = header == null,
+                )
+            }
+            if (ownWordsFirst) ownWords()
+            FineTuneSection(quickPicks, enabled)
+            if (!ownWordsFirst) ownWords()
+        }
+    }
+    if (header == null) {
+        Box(modifier.fillMaxWidth()) { content() }
+        return
+    }
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.large))
-            .background(MaterialTheme.colorScheme.surface)
-            .animateContentSize()
-            .padding(Theme.spacing.md),
-        verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+    val hasContent = guidance.text.isNotBlank() || !guidance.focus.isEmpty
+    var expanded by rememberSaveable { mutableStateOf(hasContent) }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.shapes.medium),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = Theme.elevation.low,
     ) {
-        header?.let {
+        // No padding here: the header's touch target and ripple span the card edge to edge
+        Column(modifier = Modifier.animateContentSize()) {
             val activeCount = quickPicks.sumOf { group -> group.picks.count(QuickPick::selected) } +
                 if (guidance.isGuided) 1 else 0
-            CollapsibleHeader(it, activeCount, expanded, onToggle = { expanded = !expanded })
-        }
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn(tween(Theme.motion.durationMedium)) + expandVertically(),
-            exit = fadeOut(tween(Theme.motion.durationShort)) + shrinkVertically(),
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
-                val ownWords = @Composable {
-                    OwnWordsSection(guidance, placeholder, starters, surcharge, enabled, actions, onContinueWithout)
-                }
-                if (ownWordsFirst) ownWords()
-                QuickPicksSection(quickPicks, enabled)
-                if (!ownWordsFirst) ownWords()
+            CollapsibleHeader(header, activeCount, expanded, onToggle = { expanded = !expanded })
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn(tween(Theme.motion.durationMedium)) + expandVertically(),
+                exit = fadeOut(tween(Theme.motion.durationShort)) + shrinkVertically(),
+            ) {
+                Box(
+                    Modifier.padding(
+                        start = Theme.spacing.cardPadding,
+                        end = Theme.spacing.cardPadding,
+                        bottom = Theme.spacing.cardPadding,
+                    ),
+                ) { content() }
             }
         }
     }
@@ -168,27 +203,27 @@ internal fun AiGuidanceComposer(
 private fun CollapsibleHeader(header: GuidanceHeader, activeCount: Int, expanded: Boolean, onToggle: () -> Unit) {
     val chevron by animateFloatAsState(if (expanded) HALF_TURN_DEGREES else 0f)
     val toggleLabel = stringResource(if (expanded) Res.string.ai_guidance_collapse else Res.string.ai_guidance_expand)
+    // Clickable before padding: the whole strip (full width, at least a touch target tall) reacts
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(Theme.shapes.medium))
-            .clickable(onClickLabel = toggleLabel, onClick = onToggle),
+            .heightIn(min = Theme.dimensions.touchTarget)
+            .clickable(onClickLabel = toggleLabel, role = Role.Button, onClick = onToggle)
+            .padding(Theme.spacing.cardPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
     ) {
-        Icon(
-            Icons.Default.AutoAwesome,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(Theme.dimensions.iconSizeSmall + Theme.spacing.xxxs),
-        )
+        IconTile(icon = Icons.Default.AutoAwesome, tinted = true)
         Column(modifier = Modifier.weight(1f)) {
             Text(header.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Text(
-                if (activeCount > 0) stringResource(Res.string.ai_guidance_active, activeCount) else header.subtitle,
+                header.subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        if (activeCount > 0) {
+            CounterPill(text = stringResource(Res.string.ai_guidance_active, activeCount))
         }
         Icon(
             Icons.Default.ExpandMore,
@@ -199,33 +234,31 @@ private fun CollapsibleHeader(header: GuidanceHeader, activeCount: Int, expanded
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** The one accent on the page besides the CTA: a premium-gradient tile marking where to talk to the AI. */
 @Composable
-private fun QuickPicksSection(groups: List<QuickPickGroup>, enabled: Boolean) {
-    if (groups.isEmpty()) return
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
-        SheetSectionLabel(stringResource(Res.string.ai_guidance_quick_picks))
-        groups.forEach { group ->
-            Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs)) {
-                Text(
-                    group.title,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
-                ) {
-                    group.picks.forEach { pick -> QuickPickChip(pick, enabled, group.singleChoice) }
-                }
-            }
-        }
+private fun SparkleBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(Theme.dimensions.iconSizeXLarge)
+            .clip(RoundedCornerShape(Theme.shapes.small))
+            .background(Theme.gradients.premiumHero),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            Icons.Default.AutoAwesome,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+        )
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * The learner's own words: a card whose quiet outline turns into the premium gradient once there is
+ * text, a borderless field, and starters in one scrolling row so the card never grows with them.
+ */
 @Composable
-private fun OwnWordsSection(
+private fun PromptCard(
     guidance: GuidanceDraft,
     placeholder: String,
     starters: List<String>,
@@ -233,41 +266,84 @@ private fun OwnWordsSection(
     enabled: Boolean,
     actions: GuidanceActions,
     onContinueWithout: () -> Unit,
+    raised: Boolean,
 ) {
     val canWrite = enabled && guidance.canWrite
     val focusRequester = remember { FocusRequester() }
-    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
-        SheetSectionLabel(stringResource(Res.string.ai_guidance_own_words))
-        InstructionField(
-            text = guidance.text,
-            placeholder = placeholder,
-            enabled = canWrite,
-            isError = guidance.problem?.isRefusal == true,
-            focusRequester = focusRequester,
-            onTextChange = actions.onTextChange,
-            onClear = actions.onClear,
-        )
-        FieldFooter(guidance, surcharge)
-        guidance.problem?.let { problem ->
-            InstructionProblemNote(
-                problem,
-                onContinueWithout = onContinueWithout.takeIf { problem == InstructionProblem.Unavailable },
+    val edge = if (guidance.text.isNotEmpty()) {
+        BorderStroke(Theme.dimensions.borderWidth, Theme.gradients.premiumHero)
+    } else {
+        BorderStroke(Theme.dimensions.borderWidth, MaterialTheme.colorScheme.outlineVariant)
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Theme.shapes.medium),
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = if (raised) Theme.elevation.low else Theme.elevation.none,
+        border = edge,
+    ) {
+        Column(
+            modifier = Modifier.padding(Theme.spacing.cardPadding),
+            verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+        ) {
+            PromptHeader(guidance.text, canWrite, actions.onClear)
+            InstructionField(
+                text = guidance.text,
+                placeholder = placeholder,
+                enabled = canWrite,
+                focusRequester = focusRequester,
+                onTextChange = actions.onTextChange,
             )
+            if (canWrite && starters.isNotEmpty()) {
+                StarterRow(starters) { starter ->
+                    actions.onStarter(starter)
+                    focusRequester.requestFocus()
+                }
+            }
+            if (guidance.isGuided && surcharge > 0) {
+                Text(
+                    stringResource(Res.string.ai_guidance_extra_cost, creditsText(surcharge)),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            guidance.problem?.let { problem ->
+                InstructionProblemNote(
+                    problem,
+                    onContinueWithout = onContinueWithout.takeIf { problem == InstructionProblem.Unavailable },
+                )
+            }
         }
-        if (canWrite && starters.isNotEmpty()) {
-            SheetSectionLabel(stringResource(Res.string.ai_guidance_start_with))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
-                verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
-            ) {
-                starters.forEach { starter ->
-                    SuggestionChip(
-                        onClick = {
-                            actions.onStarter(starter)
-                            focusRequester.requestFocus()
-                        },
-                        label = { Text("$starter …", style = MaterialTheme.typography.labelLarge) },
-                        shape = RoundedCornerShape(Theme.shapes.pill),
+    }
+}
+
+/** Title on the left; once there is text, its length and a clear button on the right. */
+@Composable
+private fun PromptHeader(text: String, canClear: Boolean, onClear: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm),
+    ) {
+        SparkleBadge()
+        Text(
+            stringResource(Res.string.ai_guidance_own_words),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+        )
+        if (text.isNotEmpty()) {
+            Text(
+                stringResource(Res.string.ai_guidance_counter, text.length, AiInstruction.MAX_LENGTH),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+            if (canClear) {
+                IconButton(onClick = onClear, modifier = Modifier.size(Theme.dimensions.touchTarget)) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = stringResource(Res.string.ai_guidance_clear),
+                        modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
                     )
                 }
             }
@@ -275,27 +351,34 @@ private fun OwnWordsSection(
     }
 }
 
-/** What the words cost on the left (only once there are some), the length on the right. */
+/** Sentence starters as soft pills in one row; tapping one starts (or continues) the sentence. */
 @Composable
-private fun FieldFooter(guidance: GuidanceDraft, surcharge: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = if (guidance.isGuided && surcharge > 0) {
-                stringResource(Res.string.ai_guidance_extra_cost, creditsText(surcharge))
-            } else {
-                ""
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
-        )
-        if (guidance.text.isNotEmpty()) {
-            Text(
-                stringResource(Res.string.ai_guidance_counter, guidance.text.length, AiInstruction.MAX_LENGTH),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
+private fun StarterRow(starters: List<String>, onStarter: (String) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+    ) {
+        starters.forEach { starter ->
+            Surface(
+                onClick = { onStarter(starter) },
+                shape = RoundedCornerShape(Theme.shapes.pill),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = Theme.spacing.sm, vertical = Theme.spacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+                    )
+                    Text("$starter …", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                }
+            }
         }
     }
 }
@@ -309,19 +392,18 @@ private fun InstructionField(
     text: String,
     placeholder: String,
     enabled: Boolean,
-    isError: Boolean,
     focusRequester: FocusRequester,
     onTextChange: (String) -> Unit,
-    onClear: () -> Unit,
 ) {
     var editing by remember { mutableStateOf(TextFieldValue(text, TextRange(text.length))) }
     val shown = if (editing.text == text) editing else TextFieldValue(text, TextRange(text.length))
     val focusManager = LocalFocusManager.current
-    val outline = MaterialTheme.colorScheme.outlineVariant
-    val container = MaterialTheme.colorScheme.surfaceContainerLow
     val ownWords = stringResource(Res.string.ai_guidance_own_words)
+    val textStyle = MaterialTheme.typography.bodyLarge.copy(
+        color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 
-    OutlinedTextField(
+    BasicTextField(
         value = shown,
         onValueChange = { value ->
             editing = value.copy(text = value.text.take(AiInstruction.MAX_LENGTH))
@@ -332,56 +414,87 @@ private fun InstructionField(
             .focusRequester(focusRequester)
             .semantics { contentDescription = ownWords },
         enabled = enabled,
-        isError = isError,
+        textStyle = textStyle,
         minLines = 2,
         maxLines = MAX_FIELD_LINES,
-        textStyle = MaterialTheme.typography.bodyLarge,
-        placeholder = { Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant) },
-        trailingIcon = if (text.isNotEmpty() && enabled) {
-            {
-                IconButton(onClick = onClear) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.ai_guidance_clear))
-                }
-            }
-        } else {
-            null
-        },
-        shape = RoundedCornerShape(Theme.shapes.large - Theme.spacing.xxxs),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = outline,
-            focusedContainerColor = container,
-            unfocusedContainerColor = container,
-            disabledContainerColor = container,
-        ),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.Sentences,
             imeAction = ImeAction.Done,
         ),
         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+        decorationBox = { field ->
+            Box {
+                if (text.isEmpty()) {
+                    Text(placeholder, style = textStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                field()
+            }
+        },
     )
 }
 
+/** Free options under one quiet label; each group draws the control its rule needs. */
 @Composable
-private fun QuickPickChip(pick: QuickPick, enabled: Boolean, singleChoice: Boolean) {
-    FilterChip(
-        selected = pick.selected,
-        onClick = pick.onClick,
-        enabled = enabled,
-        label = { Text(pick.label, style = MaterialTheme.typography.labelLarge) },
-        leadingIcon = if (pick.selected) {
-            {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(FilterChipDefaults.IconSize),
-                )
+private fun FineTuneSection(groups: List<QuickPickGroup>, enabled: Boolean) {
+    if (groups.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.md)) {
+        SheetSectionLabel(stringResource(Res.string.ai_guidance_quick_picks))
+        groups.forEach { group ->
+            when (group) {
+                is QuickPickGroup.Chips -> GroupWithTitle(group.title) { ChipRow(group.picks, enabled) }
+                is QuickPickGroup.OneOf -> GroupWithTitle(group.title) { SegmentedPicks(group.picks, enabled) }
+                is QuickPickGroup.Toggles -> SheetGroup {
+                    group.picks.forEachIndexed { index, pick ->
+                        SheetSwitchRow(
+                            title = pick.label,
+                            subtitle = pick.subtitle,
+                            icon = pick.icon,
+                            checked = pick.selected,
+                            onCheckedChange = { pick.onClick() },
+                            showDivider = index < group.picks.lastIndex,
+                            enabled = enabled,
+                        )
+                    }
+                }
             }
-        } else {
-            null
-        },
-        shape = RoundedCornerShape(Theme.shapes.pill),
-        modifier = if (singleChoice) Modifier.semantics { role = Role.RadioButton } else Modifier,
+        }
+    }
+}
+
+@Composable
+private fun GroupWithTitle(title: String, content: @Composable () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.xs)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        content()
+    }
+}
+
+/** One scrolling row, so the options never wrap into a wall. */
+@Composable
+private fun ChipRow(picks: List<QuickPick>, enabled: Boolean) {
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xs),
+    ) {
+        picks.forEach { pick ->
+            BrandFilterChip(label = pick.label, selected = pick.selected, onClick = pick.onClick, enabled = enabled)
+        }
+    }
+}
+
+@Composable
+private fun SegmentedPicks(picks: List<QuickPick>, enabled: Boolean) {
+    BrandSegmentedRow(
+        labels = picks.map(QuickPick::label),
+        selectedIndex = picks.indexOfFirst(QuickPick::selected).takeIf { it >= 0 },
+        onSelect = { index -> picks[index].onClick() },
+        enabled = { enabled },
     )
 }
 

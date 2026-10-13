@@ -1239,7 +1239,7 @@
     <string name="ai_guidance_own_words">In your own words</string>
     <string name="ai_guidance_placeholder_photo">e.g. only the words in the blue box</string>
     <string name="ai_guidance_placeholder_suggest">e.g. verbs I need for my nursing exam</string>
-    <string name="ai_guidance_quick_picks">Quick picks</string>
+    <string name="ai_guidance_quick_picks">Fine-tune</string>
     <string name="ai_guidance_start_with">Start with</string>
     <string name="ai_guidance_counter">%1$d/%2$d</string>
     <string name="ai_guidance_extra_cost">Your own words use %1$s more.</string>
@@ -1247,11 +1247,12 @@
     <string name="ai_guidance_expand">Show options</string>
     <string name="ai_guidance_collapse">Hide options</string>
     <string name="ai_guidance_active">%1$d chosen</string>
-    <string name="ai_group_which">Which words</string>
     <string name="ai_group_kinds">Kinds of words</string>
-    <string name="ai_group_tone">Tone · pick one</string>
-    <string name="ai_group_extras">Extras</string>
+    <string name="ai_group_tone">Tone</string>
     <string name="ai_generating_request">“%1$s”</string>
+    <string name="ai_pick_marked_only_hint">Highlighted, underlined or circled</string>
+    <string name="ai_pick_skip_names_hint">Leave out people, places and numbers</string>
+    <string name="ai_pick_grammar_notes_hint">Article, plural or verb forms in the note</string>
     <string name="ai_pick_marked_only">Marked words only</string>
     <string name="ai_pick_skip_names">Skip names &amp; numbers</string>
     <string name="ai_pick_grammar_notes">Grammar in notes</string>

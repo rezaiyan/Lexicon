@@ -242,12 +242,12 @@ private val GeneratingSteps = listOf(
     Res.string.generating_step_4,
 )
 
-/** Shown while suggestions are generated. */
 /** Long enough to recognise the request, short enough for two lines under the progress. */
 private const val MAX_REQUEST_SUMMARY = 80
 
 private fun String.ellipsized(max: Int) = if (length <= max) this else take(max - 1).trimEnd() + "…"
 
+/** Shown while suggestions are generated, with what the learner asked for. */
 @Composable
 internal fun AiGeneratingContent(
     learning: Language?,

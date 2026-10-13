@@ -18,20 +18,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,6 +39,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import components.BrandFilterChip
+import components.BrandSegmentedRow
 import components.sheet.SheetGroup
 import components.sheet.SheetPrimaryButton
 import components.sheet.SheetSectionLabel
@@ -235,11 +231,10 @@ private fun LimitPicker(selection: ListeningSelection, available: Int, onLimitSe
 
 @Composable
 private fun ShuffleToggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    val primary = MaterialTheme.colorScheme.primary
-    FilterChip(
+    BrandFilterChip(
+        label = stringResource(Res.string.listening_shuffle),
         selected = checked,
         onClick = { onCheckedChange(!checked) },
-        label = { Text(stringResource(Res.string.listening_shuffle)) },
         leadingIcon = {
             Icon(
                 Icons.Rounded.Shuffle,
@@ -247,18 +242,6 @@ private fun ShuffleToggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit) 
                 modifier = Modifier.size(FilterChipDefaults.IconSize),
             )
         },
-        shape = RoundedCornerShape(Theme.shapes.pill),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = primary.copy(alpha = Theme.opacity.focus),
-            selectedLabelColor = primary,
-            selectedLeadingIconColor = primary,
-        ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = checked,
-            selectedBorderColor = primary,
-            borderColor = MaterialTheme.colorScheme.outlineVariant,
-        ),
     )
 }
 
@@ -385,45 +368,6 @@ private fun SetupSection(
             trailing?.invoke()
         }
         content()
-    }
-}
-
-/** Equal-width single choice in brand colours (the default active colour is the green secondary). */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BrandSegmentedRow(
-    labels: List<String>,
-    selectedIndex: Int,
-    onSelect: (Int) -> Unit,
-    enabled: (Int) -> Boolean = { true },
-) {
-    val primary = MaterialTheme.colorScheme.primary
-    val colors = SegmentedButtonDefaults.colors(
-        activeContainerColor = primary.copy(alpha = Theme.opacity.focus),
-        activeContentColor = primary,
-        activeBorderColor = primary,
-        inactiveBorderColor = MaterialTheme.colorScheme.outlineVariant,
-    )
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        labels.forEachIndexed { index, label ->
-            val selected = index == selectedIndex
-            SegmentedButton(
-                selected = selected,
-                onClick = { onSelect(index) },
-                enabled = enabled(index),
-                shape = SegmentedButtonDefaults.itemShape(index = index, count = labels.size),
-                colors = colors,
-                icon = {},
-                label = {
-                    Text(
-                        text = label,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-            )
-        }
     }
 }
 

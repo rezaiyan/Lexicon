@@ -16,9 +16,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -45,8 +45,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import components.BrandFilterChip
 import components.GradientProgressBar
 import components.sheet.SheetGroup
 import domain.listening.model.ListeningOrder
@@ -587,24 +586,8 @@ private fun SettingRow(label: String, chips: @Composable () -> Unit) {
     }
 }
 
-/** Brand-tinted chip: the default FilterChip selection colour is the green secondary. */
+/** A listening option; brand selection colours come from [BrandFilterChip]. */
 @Composable
 internal fun OptionChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val primary = MaterialTheme.colorScheme.primary
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text(text, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal) },
-        shape = RoundedCornerShape(Theme.shapes.pill),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = primary.copy(alpha = Theme.opacity.focus),
-            selectedLabelColor = primary,
-        ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = selected,
-            selectedBorderColor = primary,
-            borderColor = MaterialTheme.colorScheme.outlineVariant,
-        ),
-    )
+    BrandFilterChip(label = text, selected = selected, onClick = onClick)
 }
