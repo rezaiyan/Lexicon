@@ -110,32 +110,17 @@ tags:
 - waitForAnimationToEnd
 
 # ─────────────────────────────────────────────
-# 5. STEP 3 — Proficiency level
+# 5. STEP 3 — Level (a Fine-tune option, preselected with the last one used)
 # ─────────────────────────────────────────────
-# Pause to show the three level cards.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 2000
-
-# Select Beginner level.
+- scrollUntilVisible:
+    element:
+      text: "Your level"
+    direction: DOWN
+    optional: true
 - tapOn:
     text: "Beginner"
     optional: true
 
-- waitForAnimationToEnd
-
-# Pause to show selection with border highlight.
-- swipe:
-    start: "50%,50%"
-    end: "50%,50%"
-    duration: 1500
-
-- tapOn:
-    text: "Continue"
-    optional: true
-
-- waitForAnimationToEnd
 - waitForAnimationToEnd
 
 # ─────────────────────────────────────────────

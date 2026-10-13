@@ -367,10 +367,6 @@
     <string name="ai_wizard_native_title">你的</string>
     <string name="ai_wizard_native_highlight">母语是什么？</string>
     <string name="ai_wizard_native_subtitle">我们将以此作为翻译的基础。</string>
-    <string name="ai_wizard_level_title">你目前的</string>
-    <string name="ai_wizard_level_highlight">水平是什么？</string>
-    <string name="ai_wizard_level_subtitle">我们会根据你的水平匹配词汇难度。</string>
-    <string name="ai_wizard_continue">继续</string>
     <string name="ai_wizard_topics_title">什么话题</string>
     <string name="ai_wizard_topics_highlight">你感兴趣？</string>
     <string name="ai_wizard_topics_subtitle">选择你喜欢的话题。我们会混合搭配，创建多样化的词汇包。</string>

@@ -366,10 +366,6 @@
     <string name="ai_wizard_native_title">زبان</string>
     <string name="ai_wizard_native_highlight">مادری شما چیست؟</string>
     <string name="ai_wizard_native_subtitle">از این به عنوان پایه ترجمه‌ها استفاده می‌کنیم.</string>
-    <string name="ai_wizard_level_title">سطح</string>
-    <string name="ai_wizard_level_highlight">فعلی شما چیست؟</string>
-    <string name="ai_wizard_level_subtitle">سختی واژگان را با مهارت‌های شما مطابقت می‌دهیم.</string>
-    <string name="ai_wizard_continue">ادامه</string>
     <string name="ai_wizard_topics_title">چه موضوعاتی</string>
     <string name="ai_wizard_topics_highlight">برایت جالب است؟</string>
     <string name="ai_wizard_topics_subtitle">هر کدام را که دوست داری انتخاب کن. ما آنها را ترکیب می‌کنیم تا یک بسته واژگان متنوع بسازیم.</string>

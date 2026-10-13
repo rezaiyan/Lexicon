@@ -509,10 +509,6 @@
     <string name="ai_wizard_native_title">Jaki jest Twój</string>
     <string name="ai_wizard_native_highlight">język ojczysty?</string>
     <string name="ai_wizard_native_subtitle">Użyjemy go jako podstawy do tłumaczeń.</string>
-    <string name="ai_wizard_level_title">Jaki jest Twój</string>
-    <string name="ai_wizard_level_highlight">obecny poziom?</string>
-    <string name="ai_wizard_level_subtitle">Dopasujemy trudność słownictwa do Twoich umiejętności.</string>
-    <string name="ai_wizard_continue">Kontynuuj</string>
     <string name="ai_wizard_topics_title">Jakie tematy</string>
     <string name="ai_wizard_topics_highlight">Cię interesują?</string>
     <string name="ai_wizard_topics_subtitle">Wybierz to, co Cię interesuje. Stworzymy z tego zróżnicowany pakiet słownictwa.</string>

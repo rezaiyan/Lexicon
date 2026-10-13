@@ -367,10 +367,6 @@
     <string name="ai_wizard_native_title">Was ist deine</string>
     <string name="ai_wizard_native_highlight">Muttersprache?</string>
     <string name="ai_wizard_native_subtitle">Wir nutzen diese als Basis für Übersetzungen.</string>
-    <string name="ai_wizard_level_title">Was ist dein</string>
-    <string name="ai_wizard_level_highlight">aktuelles Niveau?</string>
-    <string name="ai_wizard_level_subtitle">Wir passen die Vokabel-Schwierigkeit an dein Können an.</string>
-    <string name="ai_wizard_continue">Weiter</string>
     <string name="ai_wizard_topics_title">Welche Themen</string>
     <string name="ai_wizard_topics_highlight">interessieren dich?</string>
     <string name="ai_wizard_topics_subtitle">Wähle aus, was dich anspricht. Wir mischen sie zu einem abwechslungsreichen Vokabelpaket.</string>

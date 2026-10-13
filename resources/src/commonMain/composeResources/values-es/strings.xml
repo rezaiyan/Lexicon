@@ -367,10 +367,6 @@
     <string name="ai_wizard_native_title">¿Cuál es tu</string>
     <string name="ai_wizard_native_highlight">idioma nativo?</string>
     <string name="ai_wizard_native_subtitle">Lo usaremos como base para las traducciones.</string>
-    <string name="ai_wizard_level_title">¿Cuál es tu</string>
-    <string name="ai_wizard_level_highlight">nivel actual?</string>
-    <string name="ai_wizard_level_subtitle">Adaptaremos la dificultad del vocabulario a tus habilidades.</string>
-    <string name="ai_wizard_continue">Continuar</string>
     <string name="ai_wizard_topics_title">¿Qué temas</string>
     <string name="ai_wizard_topics_highlight">te interesan?</string>
     <string name="ai_wizard_topics_subtitle">Elige los que te gusten. Los mezclaremos para crear un pack de vocabulario variado.</string>

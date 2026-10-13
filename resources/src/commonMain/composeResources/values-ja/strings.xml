@@ -509,10 +509,6 @@
     <string name="ai_wizard_native_title">あなたの</string>
     <string name="ai_wizard_native_highlight">母語は？</string>
     <string name="ai_wizard_native_subtitle">翻訳のベースとして使用します。</string>
-    <string name="ai_wizard_level_title">あなたの</string>
-    <string name="ai_wizard_level_highlight">現在のレベルは？</string>
-    <string name="ai_wizard_level_subtitle">スキルに合わせて語彙の難易度を調整します。</string>
-    <string name="ai_wizard_continue">続ける</string>
     <string name="ai_wizard_topics_title">どんなトピックに</string>
     <string name="ai_wizard_topics_highlight">興味がありますか？</string>
     <string name="ai_wizard_topics_subtitle">気になるものを選んでください。ミックスしてバラエティ豊かな語彙パックを作ります。</string>

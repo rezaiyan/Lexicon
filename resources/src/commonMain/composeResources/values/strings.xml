@@ -618,10 +618,6 @@
     <string name="ai_wizard_native_title">What's your</string>
     <string name="ai_wizard_native_highlight">native language?</string>
     <string name="ai_wizard_native_subtitle">We'll use this as the base for translations.</string>
-    <string name="ai_wizard_level_title">What's your</string>
-    <string name="ai_wizard_level_highlight">current level?</string>
-    <string name="ai_wizard_level_subtitle">We'll match the vocabulary difficulty to your skills.</string>
-    <string name="ai_wizard_continue">Continue</string>
     <string name="ai_wizard_topics_title">What topics</string>
     <string name="ai_wizard_topics_highlight">interest you?</string>
     <string name="ai_wizard_topics_subtitle">Pick any that appeal to you. We'll mix them to create a varied vocabulary pack.</string>
@@ -1247,6 +1243,7 @@
     <string name="ai_guidance_expand">Show options</string>
     <string name="ai_guidance_collapse">Hide options</string>
     <string name="ai_guidance_active">%1$d chosen</string>
+    <string name="ai_group_level">Your level</string>
     <string name="ai_group_kinds">Kinds of words</string>
     <string name="ai_group_tone">Tone</string>
     <string name="ai_generating_request">“%1$s”</string>

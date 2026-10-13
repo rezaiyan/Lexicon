@@ -35,8 +35,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import components.GeneratingProgress
 import components.sheet.IconTile
-import components.sheet.LevelBars
-import components.sheet.RadioDot
 import components.sheet.SelectableCard
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
@@ -45,11 +43,7 @@ import domain.onboarding.model.ProficiencyLevel
 import lexicon.resources.generated.resources.ai_generating_request
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.advanced
-import lexicon.resources.generated.resources.ai_wizard_continue
 import lexicon.resources.generated.resources.ai_wizard_generate_words
-import lexicon.resources.generated.resources.ai_wizard_level_highlight
-import lexicon.resources.generated.resources.ai_wizard_level_subtitle
-import lexicon.resources.generated.resources.ai_wizard_level_title
 import lexicon.resources.generated.resources.ai_wizard_describe_highlight
 import lexicon.resources.generated.resources.ai_wizard_describe_subtitle
 import lexicon.resources.generated.resources.ai_wizard_describe_title
@@ -61,9 +55,6 @@ import lexicon.resources.generated.resources.generating_step_3
 import lexicon.resources.generated.resources.generating_step_4
 import lexicon.resources.generated.resources.generating_title
 import lexicon.resources.generated.resources.intermediate
-import lexicon.resources.generated.resources.onboarding_advanced_desc
-import lexicon.resources.generated.resources.onboarding_beginner_desc
-import lexicon.resources.generated.resources.onboarding_intermediate_desc
 import lexicon.resources.generated.resources.topics_selected
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -79,65 +70,6 @@ internal val ProficiencyLevel.title: StringResource
         ProficiencyLevel.INTERMEDIATE -> Res.string.intermediate
         ProficiencyLevel.ADVANCED -> Res.string.advanced
     }
-
-private val ProficiencyLevel.description: StringResource
-    get() = when (this) {
-        ProficiencyLevel.BEGINNER -> Res.string.onboarding_beginner_desc
-        ProficiencyLevel.INTERMEDIATE -> Res.string.onboarding_intermediate_desc
-        ProficiencyLevel.ADVANCED -> Res.string.onboarding_advanced_desc
-    }
-
-@Composable
-internal fun AiLevelStep(
-    selectedLevel: ProficiencyLevel?,
-    error: String?,
-    onLevelSelected: (ProficiencyLevel) -> Unit,
-    onContinue: () -> Unit,
-) {
-    SheetPage(
-        title = stringResource(Res.string.ai_wizard_level_title),
-        highlight = stringResource(Res.string.ai_wizard_level_highlight),
-        subtitle = stringResource(Res.string.ai_wizard_level_subtitle),
-        footer = {
-            SheetPrimaryButton(
-                text = stringResource(Res.string.ai_wizard_continue),
-                onClick = onContinue,
-                enabled = selectedLevel != null,
-            )
-        },
-    ) {
-        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
-            ProficiencyLevel.entries.forEach { level ->
-                val selected = level == selectedLevel
-                SelectableCard(
-                    selected = selected,
-                    onClick = { onLevelSelected(level) },
-                    role = Role.RadioButton,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    LevelBars(filled = level.ordinal + 1, selected = selected)
-                    Column(
-                        modifier = Modifier.weight(1f).padding(vertical = Theme.spacing.xs),
-                        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
-                    ) {
-                        Text(
-                            stringResource(level.title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            stringResource(level.description),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    RadioDot(selected = selected)
-                }
-            }
-        }
-        ErrorMessage(error)
-    }
-}
 
 private val TopicIcons: Map<String, ImageVector> = mapOf(
     "Daily Life" to Icons.Default.Home,

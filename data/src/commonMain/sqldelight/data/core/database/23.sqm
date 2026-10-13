@@ -1,0 +1,6 @@
+-- Migration from version 23 to version 24
+-- Level last used for AI word suggestions (see SuggestionLevelPreference in Lexicon.sq).
+CREATE TABLE IF NOT EXISTS SuggestionLevelPreference (
+    id    INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    level TEXT    NOT NULL
+);

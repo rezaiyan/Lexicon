@@ -44,7 +44,6 @@ private sealed interface AddWordsPage {
     data object Manual : AddWordsPage
     data object File : AddWordsPage
     data object Photo : AddWordsPage
-    data object AiLevel : AddWordsPage
     data object AiTopics : AddWordsPage
     data object Review : AddWordsPage
     data object Result : AddWordsPage
@@ -167,7 +166,7 @@ private fun AddWordsSheetContent(
                 AddWordsChooserContent(
                     aiCost = credits?.costOf(CreditAction.AI_SUGGESTION),
                     photoCost = credits?.costOf(CreditAction.PHOTO_EXTRACTION),
-                    onAiAssistant = { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiLevel) },
+                    onAiAssistant = { openSource(WordOrigin.AiSuggestion, AddWordsPage.AiTopics) },
                     onTypeWord = { openSource(WordOrigin.Manual, AddWordsPage.Manual) },
                     onImportFile = { openSource(WordOrigin.File, AddWordsPage.File) },
                     onScanPhoto = { openSource(WordOrigin.Photo, AddWordsPage.Photo) },
@@ -245,16 +244,6 @@ private fun AddWordsSheetContent(
                 onOutOfCredits = pages::navigateTo,
             )
 
-            AddWordsPage.AiLevel -> {
-                val aiState by ai.state()
-                AiLevelStep(
-                    selectedLevel = aiState.level,
-                    error = null,
-                    onLevelSelected = ai::selectLevel,
-                    onContinue = { pages.navigateTo(AddWordsPage.AiTopics) },
-                )
-            }
-
             AddWordsPage.AiTopics -> {
                 val aiState by ai.state()
                 if (aiState.isGenerating) {
@@ -283,6 +272,7 @@ private fun AddWordsSheetContent(
                         SuggestGuidancePanel(
                             ai = ai,
                             guidance = aiState.guidance,
+                            level = aiState.level,
                             surcharge = state.credits.guidedSurcharge(WordOrigin.AiSuggestion),
                             enabled = !aiState.isGenerating,
                             onContinueWithout = {

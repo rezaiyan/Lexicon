@@ -9,16 +9,19 @@ import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
 import domain.word.add.usecase.SuggestWordsUseCase
 import fakes.FakeAiRepository
+import fakes.FakeSuggestionLevelRepository
 import kotlinx.coroutines.test.runTest
 import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 
 class SuggestWordsUseCaseTest {
 
     private val ai = FakeAiRepository()
-    private val useCase = SuggestWordsUseCase(ai)
+    private val levels = FakeSuggestionLevelRepository()
+    private val useCase = SuggestWordsUseCase(ai, levels)
     private val languages = LanguagePair(Language.GERMAN, Language.ENGLISH)
     private val request = SuggestWordsUseCase.Params(languages, ProficiencyLevel.BEGINNER, listOf("Food"))
 
@@ -35,5 +38,15 @@ class SuggestWordsUseCaseTest {
     @Test
     fun `invoke with no suggestion fails with NothingRecognized`() = runTest {
         assertIs<DomainError.AddWords.NothingRecognized>(useCase(request).exceptionOrNull())
+    }
+
+    @Test
+    fun `invoke remembers the level only when words came back`() = runTest {
+        useCase(request)
+        assertNull(levels.lastUsed)
+
+        ai.suggestions = Try.success(listOf(WordDraft.of("Brot", "bread").getOrThrow()))
+        useCase(request)
+        assertEquals(ProficiencyLevel.BEGINNER, levels.lastUsed)
     }
 }

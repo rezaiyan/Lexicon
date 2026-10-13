@@ -75,10 +75,12 @@ class SettingsLocalDataSourceImpl(
 
     override suspend fun clearSettings() {
         queries.clearSettings()
-        // Learning focus, listening, add-words language pair and support chat are per-user: wipe them too.
+        // Learning focus, listening, add-words language pair and suggestion level, and support chat
+        // are per-user: wipe them too.
         queries.clearLearningFocus()
         queries.clearListeningSettings()
         queries.clearAddWordsPreference()
+        queries.clearSuggestionLevel()
         queries.clearSupportMessages()
         queries.clearSupportReadState()
     }

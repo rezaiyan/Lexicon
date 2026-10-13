@@ -3,9 +3,11 @@ package feature.addwords.source
 import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.common.fold
+import core.common.onSuccess
 import domain.onboarding.model.ProficiencyLevel
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordOrigin
+import domain.word.add.usecase.GetSuggestionLevelUseCase
 import domain.word.add.usecase.SuggestWordsUseCase
 import feature.addwords.model.AddWordsProblem
 import feature.addwords.model.GuidanceDraft
@@ -16,6 +18,7 @@ import feature.addwords.model.toProblem
 import kotlinx.coroutines.launch
 
 data class AiSuggestState(
+    /** Preselected with the level last used (see [GetSuggestionLevelUseCase]); null only while loading. */
     val level: ProficiencyLevel? = null,
     val topics: Set<String> = emptySet(),
     val availableTopics: List<String> = DefaultTopics,
@@ -44,10 +47,18 @@ data class AiSuggestState(
  */
 class AiSuggestViewModel(
     private val suggestWords: SuggestWordsUseCase,
+    getSuggestionLevel: GetSuggestionLevelUseCase,
     private val analytics: IAnalyticsTracker,
 ) : GuidedSourceViewModel<AiSuggestState>(WordOrigin.AiSuggestion, analytics) {
 
     override fun initialState() = AiSuggestState()
+
+    init {
+        viewModelScope.launch {
+            // A level the learner already picked while this loaded wins
+            getSuggestionLevel(Unit).onSuccess { level -> updateState { copy(level = this.level ?: level) } }
+        }
+    }
 
     fun selectLevel(level: ProficiencyLevel) = updateState { copy(level = level, problem = null) }
 

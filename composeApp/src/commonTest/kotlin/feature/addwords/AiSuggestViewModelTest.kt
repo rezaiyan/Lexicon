@@ -7,7 +7,9 @@ import core.error.DomainError
 import domain.onboarding.model.ProficiencyLevel
 import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
+import domain.word.add.usecase.GetSuggestionLevelUseCase
 import domain.word.add.usecase.SuggestWordsUseCase
+import fakes.FakeSuggestionLevelRepository
 import fakes.FakeAiRepository
 import fakes.FakeAnalyticsTracker
 import feature.addwords.model.AddWordsProblem
@@ -33,16 +35,40 @@ class AiSuggestViewModelTest : ViewModelTestBase() {
 
     private val analytics = FakeAnalyticsTracker()
 
-    private fun createViewModel() = AiSuggestViewModel(SuggestWordsUseCase(ai), analytics)
+    private val levels = FakeSuggestionLevelRepository()
+
+    private fun createViewModel() = AiSuggestViewModel(
+        SuggestWordsUseCase(ai, levels),
+        GetSuggestionLevelUseCase(levels),
+        analytics,
+    )
 
     @Test
-    fun `generate without a level does nothing`() {
+    fun `level starts at the one the learner used last`() {
+        levels.lastUsed = ProficiencyLevel.ADVANCED
+
         val vm = createViewModel()
+
+        assertEquals(ProficiencyLevel.ADVANCED, vm.currentState.level)
+        assertTrue(vm.currentState.canGenerate)
+    }
+
+    @Test
+    fun `level starts at intermediate the first time`() {
+        val vm = createViewModel()
+
+        assertEquals(ProficiencyLevel.INTERMEDIATE, vm.currentState.level)
+    }
+
+    @Test
+    fun `generate remembers the level for next time`() = runTest {
+        ai.suggestions = Try.success(listOf(WordDraft.of("perro", "dog").getOrThrow()))
+        val vm = createViewModel()
+        vm.selectLevel(ProficiencyLevel.BEGINNER)
 
         vm.generate(languages)
 
-        assertNull(ai.lastSuggestionRequest)
-        assertFalse(vm.currentState.canGenerate)
+        assertEquals(ProficiencyLevel.BEGINNER, levels.lastUsed)
     }
 
     @Test

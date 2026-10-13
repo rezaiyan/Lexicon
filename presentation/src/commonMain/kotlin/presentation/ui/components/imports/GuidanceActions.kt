@@ -9,11 +9,13 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import domain.ai.model.Register
+import domain.onboarding.model.ProficiencyLevel
 import domain.ai.model.VocabularyFocus
 import domain.ai.model.WordType
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.ai_action_with_cost
 import lexicon.resources.generated.resources.ai_group_kinds
+import lexicon.resources.generated.resources.ai_group_level
 import lexicon.resources.generated.resources.ai_group_tone
 import lexicon.resources.generated.resources.ai_pick_grammar_notes
 import lexicon.resources.generated.resources.ai_pick_grammar_notes_hint
@@ -99,16 +101,30 @@ internal fun photoQuickPicks(focus: VocabularyFocus, actions: GuidanceActions): 
     }
 }
 
-/** Suggestions: kinds of words, one tone, and grammar notes. */
+/** Suggestions: the learner's level, kinds of words, one tone, and grammar notes. */
 @Composable
-internal fun suggestQuickPicks(focus: VocabularyFocus, actions: GuidanceActions): List<QuickPickGroup> {
+internal fun suggestQuickPicks(
+    focus: VocabularyFocus,
+    actions: GuidanceActions,
+    level: ProficiencyLevel?,
+    onLevelSelected: (ProficiencyLevel) -> Unit,
+): List<QuickPickGroup> {
+    val levelTitle = stringResource(Res.string.ai_group_level)
+    val levelLabels = ProficiencyLevel.entries.map { stringResource(it.title) }
     val kinds = stringResource(Res.string.ai_group_kinds)
     val tone = stringResource(Res.string.ai_group_tone)
     val grammar = ToggleText(Res.string.ai_pick_grammar_notes, Res.string.ai_pick_grammar_notes_hint).resolve()
     val typeLabels = WordType.entries.map { it.label() }
     val registerLabels = Register.entries.map { it.label() }
-    return remember(focus, actions, typeLabels, registerLabels, kinds, grammar) {
+    return remember(focus, actions, typeLabels, registerLabels, kinds, grammar, level, levelLabels) {
         listOf(
+            // Always one level: picking the selected one again keeps it
+            QuickPickGroup.OneOf(
+                levelTitle,
+                ProficiencyLevel.entries.mapIndexed { index, entry ->
+                    QuickPick(levelLabels[index], entry == level) { onLevelSelected(entry) }
+                },
+            ),
             QuickPickGroup.Chips(kinds, wordTypePicks(WordType.entries, typeLabels, focus, actions)),
             QuickPickGroup.OneOf(
                 tone,

@@ -2,6 +2,7 @@ package presentation.ui.components.imports
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import domain.onboarding.model.ProficiencyLevel
 import feature.addwords.model.GuidanceDraft
 import feature.addwords.source.AiSuggestViewModel
 import feature.addwords.source.GuidedSourceViewModel
@@ -40,11 +41,15 @@ internal fun PhotoGuidancePanel(
     )
 }
 
-/** Guidance on the topics step: open, leading with the learner's own description. */
+/**
+ * Guidance on the topics step: open, leading with the learner's own description. The [level] sits
+ * with the other options (preselected with the last one used), not on a page of its own.
+ */
 @Composable
 internal fun SuggestGuidancePanel(
     ai: AiSuggestViewModel,
     guidance: GuidanceDraft,
+    level: ProficiencyLevel?,
     surcharge: Int,
     enabled: Boolean,
     onContinueWithout: () -> Unit,
@@ -54,7 +59,7 @@ internal fun SuggestGuidancePanel(
         guidance = guidance,
         placeholder = stringResource(Res.string.ai_guidance_placeholder_suggest),
         starters = suggestStarters(),
-        quickPicks = suggestQuickPicks(guidance.focus, actions),
+        quickPicks = suggestQuickPicks(guidance.focus, actions, level, ai::selectLevel),
         surcharge = surcharge,
         enabled = enabled,
         actions = actions,
