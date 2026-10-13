@@ -20,6 +20,7 @@ import domain.tts.usecase.SpeakWordUseCase
 import domain.tts.usecase.StopSpeakingUseCase
 import domain.tag.model.Tag
 import domain.word.model.Word
+import feature.study.listening.playback.ListeningPlaybackController
 import fakes.FakeAnalyticsTracker
 import fakes.FakeLearningFocusRepository
 import fakes.FakeListeningRecorder
@@ -28,7 +29,10 @@ import fakes.FakeSettingsRepository
 import fakes.FakeTagRepository
 import fakes.FakeTtsRepository
 import fakes.FakeWordRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -58,6 +62,7 @@ class ListeningViewModelTest {
     private val recorder = FakeListeningRecorder()
 
     private val pauseMs = ListeningSettings.DEFAULT_PAUSE_MS
+    private val playbackScope = CoroutineScope(SupervisorJob() + dispatcher)
 
     @BeforeTest
     fun setUp() {
@@ -66,6 +71,7 @@ class ListeningViewModelTest {
 
     @AfterTest
     fun tearDown() {
+        playbackScope.cancel()
         Dispatchers.resetMain()
     }
 
@@ -87,23 +93,35 @@ class ListeningViewModelTest {
         wordRepository.storedWords = words.toMutableList()
     }
 
-    private fun createViewModel(): ListeningViewModel {
+    private fun TestScope.createController(): ListeningPlaybackController {
+        val settings = FakeSettingsRepository()
+        return ListeningPlaybackController(
+            // Not backgroundScope: advanceUntilIdle must drive playback like foreground work.
+            scope = playbackScope,
+            speakWord = SpeakWordUseCase(ttsRepository),
+            stopSpeaking = StopSpeakingUseCase(ttsRepository),
+            observeSettings = ObserveListeningSettingsUseCase(listeningSettings),
+            observeSpeechRate = ObserveSpeechRateUseCase(settings),
+            analyticsTracker = analytics,
+            recordSession = RecordListeningSessionUseCase(recorder),
+            generateSessionId = GenerateSessionIdUseCase(Random(2)),
+            now = { testScheduler.currentTime },
+        )
+    }
+
+    private fun TestScope.createViewModel(): ListeningViewModel {
         val settings = FakeSettingsRepository()
         val observeFocus = ObserveLearningFocusUseCase(wordRepository, FakeLearningFocusRepository(LearningFocus.All))
         return ListeningViewModel(
             buildQueue = BuildListeningQueueUseCase(wordRepository, observeFocus, Random(1)),
             checkVoices = CheckListeningVoicesUseCase(ttsRepository),
             downloadVoice = DownloadTtsModelUseCase(ttsRepository),
-            speakWord = SpeakWordUseCase(ttsRepository),
-            stopSpeaking = StopSpeakingUseCase(ttsRepository),
+            playback = createController(),
             observeSettings = ObserveListeningSettingsUseCase(listeningSettings),
             observeOptions = ObserveListeningOptionsUseCase(wordRepository, tagRepository, observeFocus),
             saveSettings = SaveListeningSettingsUseCase(listeningSettings),
             observeSpeechRate = ObserveSpeechRateUseCase(settings),
             setTtsSpeechRate = SetTtsSpeechRateUseCase(settings),
-            analyticsTracker = analytics,
-            recordSession = RecordListeningSessionUseCase(recorder),
-            generateSessionId = GenerateSessionIdUseCase(Random(2)),
         )
     }
 

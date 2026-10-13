@@ -53,6 +53,9 @@ sealed interface ListeningCommand {
     data object StepCompleted : ListeningCommand
     data object Next : ListeningCommand
     data object Previous : ListeningCommand
+
+    /** Replays the current word from its prompt. */
+    data object Restart : ListeningCommand
 }
 
 sealed interface ListeningTransition {
@@ -76,6 +79,9 @@ object ListeningReducer {
                 step = ListeningStep.Prompt,
                 repetition = 0,
             )
+        )
+        ListeningCommand.Restart -> ListeningTransition.Continue(
+            session.copy(step = ListeningStep.Prompt, repetition = 0)
         )
     }
 

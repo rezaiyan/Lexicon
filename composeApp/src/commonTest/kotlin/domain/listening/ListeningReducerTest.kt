@@ -150,6 +150,15 @@ class ListeningReducerTest {
     }
 
     @Test
+    fun `Restart replays the current word from its prompt`() {
+        val midWord = twoWords.copy(index = 1, step = ListeningStep.Gap, repetition = 1)
+
+        val restarted = ListeningReducer.reduce(midWord, ListeningCommand.Restart, repeatCount = 2).session()
+
+        assertEquals(midWord.copy(step = ListeningStep.Prompt, repetition = 0), restarted)
+    }
+
+    @Test
     fun `prompt and answer follow read order and each side's language`() {
         assertEquals(Utterance("Hund1", "de"), twoWords.prompt(ListeningOrder.WORD_FIRST))
         assertEquals(Utterance("dog1", "en"), twoWords.answer(ListeningOrder.WORD_FIRST))

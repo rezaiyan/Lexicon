@@ -1,47 +1,34 @@
 package feature.study.listening
 
-import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.getOrNull
 import core.common.onFailure
 import core.common.onSuccess
-import domain.listening.model.ListeningCommand
 import domain.listening.model.ListeningOptions
 import domain.listening.model.ListeningOrder
-import domain.listening.model.ListeningReducer
 import domain.listening.model.ListeningSelection
 import domain.listening.model.ListeningSession
-import domain.listening.model.ListeningSessionTracker
 import domain.listening.model.ListeningSettings
 import domain.listening.model.ListeningSource
-import domain.listening.model.ListeningStep
-import domain.listening.model.ListeningTransition
 import domain.listening.model.ListeningVoiceCheck
-import domain.listening.model.Utterance
 import domain.listening.model.VoiceStatus
 import domain.listening.usecase.BuildListeningQueueUseCase
 import domain.listening.usecase.CheckListeningVoicesUseCase
 import domain.listening.usecase.ObserveListeningOptionsUseCase
 import domain.listening.usecase.ObserveListeningSettingsUseCase
-import domain.listening.usecase.RecordListeningSessionUseCase
 import domain.listening.usecase.SaveListeningSettingsUseCase
 import domain.settings.usecase.ObserveSpeechRateUseCase
 import domain.settings.usecase.SetTtsSpeechRateUseCase
-import domain.study.usecase.GenerateSessionIdUseCase
 import domain.tts.usecase.DownloadTtsModelUseCase
-import domain.tts.usecase.SpeakWordUseCase
-import domain.tts.usecase.StopSpeakingUseCase
 import domain.word.model.Word
+import feature.study.listening.playback.ListeningPlayback
+import feature.study.listening.playback.ListeningPlaybackController
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import utils.Language
-import kotlin.time.Clock
 
 sealed interface ListeningScreenState {
     data object Idle : ListeningScreenState
@@ -99,11 +86,14 @@ data class ListeningState(
 
     /** Words the current selection would play. */
     val sessionSize: Int get() = selection.sessionSize(options.count(selection.source))
+
+    /** A session is playing (not paused), so closing the screen should keep it going in the mini player. */
+    val isPlaying: Boolean get() = (screen as? ListeningScreenState.Active)?.isPlaying == true
 }
 
 /**
- * Hands-free audio review: speaks prompt → pause → answer → gap for each word.
- * Passive exposure only — never grades words, never touches SRS scheduling or streaks.
+ * Hands-free audio review screen: setup and voice pre-flight happen here; playback itself runs in
+ * the app-scoped [ListeningPlaybackController] so it survives backgrounding and this ViewModel.
  */
 @Suppress(
     "TooManyFunctions",   // each public method is a distinct event-sink entry point required by the screen
@@ -113,27 +103,17 @@ class ListeningViewModel(
     private val buildQueue: BuildListeningQueueUseCase,
     private val checkVoices: CheckListeningVoicesUseCase,
     private val downloadVoice: DownloadTtsModelUseCase,
-    private val speakWord: SpeakWordUseCase,
-    private val stopSpeaking: StopSpeakingUseCase,
+    private val playback: ListeningPlaybackController,
     observeSettings: ObserveListeningSettingsUseCase,
     observeOptions: ObserveListeningOptionsUseCase,
     private val saveSettings: SaveListeningSettingsUseCase,
     observeSpeechRate: ObserveSpeechRateUseCase,
     private val setTtsSpeechRate: SetTtsSpeechRateUseCase,
-    private val analyticsTracker: IAnalyticsTracker,
-    private val recordSession: RecordListeningSessionUseCase,
-    private val generateSessionId: GenerateSessionIdUseCase,
 ) : BaseViewModel<ListeningState, Nothing>() {
 
     override fun initialState() = ListeningState()
 
-    private var playJob: Job? = null
-    private var stopJob: Job? = null
     private var setupJob: Job? = null
-    private var startedAt: Long = 0L
-
-    /** What the current session has done so far; null when no session is playing. */
-    private var tracker: ListeningSessionTracker? = null
 
     init {
         observeSettings(Unit)
@@ -150,17 +130,27 @@ class ListeningViewModel(
             .onEach { options -> updateState { copy(options = options) } }
             .catch { }
             .launchIn(viewModelScope)
+
+        playback.playback
+            .onEach(::onPlayback)
+            .launchIn(viewModelScope)
     }
 
     // ---------------------------------------------------------------------------
     // Public event-sink API
     // ---------------------------------------------------------------------------
 
-    /** Shows the setup step, where the user picks words before anything plays. */
+    /** Shows the setup step, where the user picks words — unless a session is still playing, which stays. */
     fun open() {
-        haltPlayback()
         setupJob?.cancel()
+        if (playback.playback.value is ListeningPlayback.Active) return
+        playback.close()
         updateState { copy(screen = ListeningScreenState.Setup) }
+    }
+
+    /** Reopens on the live session (mini player, notification), or on setup when nothing is running. */
+    fun reveal() {
+        if (playback.playback.value == ListeningPlayback.Idle) open()
     }
 
     fun selectSource(source: ListeningSource) = persistSelection { copy(source = source) }
@@ -171,7 +161,7 @@ class ListeningViewModel(
 
     /** Plays the current selection; also "Listen again" and retry after an error. */
     fun start() {
-        haltPlayback()
+        playback.close()
         setupJob?.cancel()
         val selection = currentState.selection
         setupJob = viewModelScope.launch {
@@ -181,7 +171,7 @@ class ListeningViewModel(
                     if (words.isEmpty()) {
                         updateState { copy(screen = ListeningScreenState.Empty) }
                     } else {
-                        prepare(words, selection.source)
+                        prepare(words)
                     }
                 }
                 .onFailure { error ->
@@ -213,7 +203,7 @@ class ListeningViewModel(
             if (failed) {
                 updateNeedsVoices { copy(download = null, downloadFailed = true) }
             } else {
-                prepare(needs.words, currentState.selection.source)
+                prepare(needs.words)
             }
         }
     }
@@ -222,28 +212,14 @@ class ListeningViewModel(
     fun startWithoutMissingVoices() {
         val needs = currentState.screen as? ListeningScreenState.NeedsVoices ?: return
         setupJob?.cancel()
-        begin(needs.words, needs.check, currentState.selection.source)
+        begin(needs.words, needs.check)
     }
 
-    fun togglePlayback() {
-        val active = currentState.screen as? ListeningScreenState.Active ?: return
-        if (active.isPlaying) {
-            haltPlayback()
-            tracker = tracker?.paused(now())
-            updateActive { copy(isPlaying = false) }
-        } else {
-            tracker = tracker?.resumed(now())
-            updateActive { copy(isPlaying = true) }
-            play()
-        }
-    }
+    fun togglePlayback() = playback.togglePlayback()
 
-    fun next() {
-        if (currentState.screen is ListeningScreenState.Active) tracker = tracker?.skipped()
-        jump(ListeningCommand.Next)
-    }
+    fun next() = playback.next()
 
-    fun previous() = jump(ListeningCommand.Previous)
+    fun previous() = playback.previous()
 
     fun setPause(pauseMs: Long) = persist { copy(pauseMs = pauseMs) }
 
@@ -255,143 +231,57 @@ class ListeningViewModel(
         viewModelScope.launch { setTtsSpeechRate(rate) }
     }
 
-    /** User left the screen mid-session. */
+    /** User stopped listening (close while paused, on setup or on the summary): nothing keeps running. */
     fun abandon() {
-        (currentState.screen as? ListeningScreenState.Active)?.let { endSession(it, completed = false) }
-        haltPlayback()
+        playback.close()
         setupJob?.cancel()
         updateState { copy(screen = ListeningScreenState.Idle) }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        playJob?.cancel()
-        setupJob?.cancel()
-        (currentState.screen as? ListeningScreenState.Active)?.let { endSession(it, completed = false) }
-        viewModelScope.launch(NonCancellable) { stopSpeaking() }
     }
 
     // ---------------------------------------------------------------------------
     // Setup
     // ---------------------------------------------------------------------------
 
-    private suspend fun prepare(words: List<Word>, source: ListeningSource) {
+    private suspend fun prepare(words: List<Word>) {
         val check = checkVoices(words).getOrNull()
             ?: ListeningVoiceCheck(emptyList())
         when {
             !check.canSpeakAnything -> updateState { copy(screen = ListeningScreenState.NoVoices) }
             check.missing.isNotEmpty() ->
                 updateState { copy(screen = ListeningScreenState.NeedsVoices(words, check)) }
-            else -> begin(words, check, source)
+            else -> begin(words, check)
         }
     }
 
-    private fun begin(words: List<Word>, check: ListeningVoiceCheck, source: ListeningSource) {
-        startedAt = now()
-        tracker = ListeningSessionTracker(
-            clientSessionId = generateSessionId(),
-            selection = currentState.selection.copy(source = source),
-            settings = currentState.settings,
-            speechRate = currentState.speechRate,
-            plannedWords = words.size,
-            startedAt = startedAt,
-        )
+    private fun begin(words: List<Word>, check: ListeningVoiceCheck) {
         val speakable = check.voices
             .filter { it.status == VoiceStatus.READY }
             .mapTo(mutableSetOf()) { it.languageCode }
-        updateState {
-            copy(
-                screen = ListeningScreenState.Active(
-                    session = ListeningSession(words),
-                    isPlaying = true,
-                    speakableLanguages = speakable,
+        playback.start(words, speakable, currentState.selection)
+    }
+
+    /** Mirrors the controller into the screen; setup phases are owned here and left alone. */
+    private fun onPlayback(state: ListeningPlayback) {
+        when (state) {
+            is ListeningPlayback.Active -> updateState {
+                copy(
+                    screen = ListeningScreenState.Active(
+                        session = state.session,
+                        isPlaying = state.isPlaying,
+                        speakableLanguages = state.speakableLanguages,
+                        heardWordIds = state.heardWordIds,
+                    )
                 )
-            )
-        }
-        analyticsTracker.logEvent(
-            "listening_session_start",
-            mapOf("word_count" to words.size, "source" to source.analyticsName),
-        )
-        play()
-    }
-
-    // ---------------------------------------------------------------------------
-    // Playback
-    // ---------------------------------------------------------------------------
-
-    private fun play() {
-        playJob?.cancel()
-        val pendingStop = stopJob
-        playJob = viewModelScope.launch {
-            pendingStop?.join()
-            while (true) {
-                val active = currentState.screen as? ListeningScreenState.Active ?: return@launch
-                performStep(active)
-                val transition = ListeningReducer.reduce(
-                    active.session,
-                    ListeningCommand.StepCompleted,
-                    currentState.settings.repeatCount,
-                )
-                val heard = if (active.session.step == ListeningStep.Answer) {
-                    tracker = tracker?.heard(active.session.currentWord, now())
-                    active.heardWordIds + active.session.currentWord.id
-                } else {
-                    active.heardWordIds
-                }
-                when (transition) {
-                    is ListeningTransition.Continue ->
-                        updateActive { copy(session = transition.session, heardWordIds = heard) }
-                    ListeningTransition.Finished -> {
-                        finish(active.copy(heardWordIds = heard))
-                        return@launch
-                    }
-                }
             }
-        }
-    }
-
-    private suspend fun performStep(active: ListeningScreenState.Active) {
-        val settings = currentState.settings
-        val session = active.session
-        when (session.step) {
-            ListeningStep.Prompt -> speak(session.prompt(settings.order), active.speakableLanguages)
-            ListeningStep.Pause -> delay(settings.pauseMs)
-            ListeningStep.Answer -> speak(session.answer(settings.order), active.speakableLanguages)
-            ListeningStep.Example -> session.example()?.let { speak(it, active.speakableLanguages) }
-            ListeningStep.Gap -> delay(settings.gapMs)
-        }
-    }
-
-    private suspend fun speak(utterance: Utterance, speakable: Set<String>) {
-        if (Language.toCode(utterance.languageCode) !in speakable) return
-        speakWord(utterance.text, utterance.languageCode)
-    }
-
-    private fun jump(command: ListeningCommand) {
-        val active = currentState.screen as? ListeningScreenState.Active ?: return
-        haltPlayback()
-        when (val transition = ListeningReducer.reduce(active.session, command, currentState.settings.repeatCount)) {
-            is ListeningTransition.Continue -> {
-                updateActive { copy(session = transition.session) }
-                if (active.isPlaying) play()
+            is ListeningPlayback.Finished -> updateState {
+                copy(screen = ListeningScreenState.Finished(state.wordsHeard, state.durationMs))
             }
-            ListeningTransition.Finished -> finish(active)
-        }
-    }
-
-    /** Cancels the sequencer and silences any in-flight synthesis or playback. */
-    private fun haltPlayback() {
-        val job = playJob ?: return
-        playJob = null
-        job.cancel()
-        stopJob = viewModelScope.launch { stopSpeaking() }
-    }
-
-    private fun finish(active: ListeningScreenState.Active) {
-        val durationMs = now() - startedAt
-        endSession(active, completed = true)
-        updateState {
-            copy(screen = ListeningScreenState.Finished(active.heardWordIds.size, durationMs))
+            ListeningPlayback.Idle -> if (
+                currentState.screen is ListeningScreenState.Active ||
+                currentState.screen is ListeningScreenState.Finished
+            ) {
+                updateState { copy(screen = ListeningScreenState.Idle) }
+            }
         }
     }
 
@@ -408,41 +298,6 @@ class ListeningViewModel(
     private fun persistSelection(change: ListeningSelection.() -> ListeningSelection) =
         // Start from what the user sees, so a fallback source becomes the saved one once they edit it.
         persist { copy(selection = currentState.selection.change()) }
-
-    private val ListeningSource.analyticsName: String
-        get() = when (this) {
-            ListeningSource.Due -> "due"
-            ListeningSource.All -> "all"
-            is ListeningSource.Level -> "level"
-            is ListeningSource.Tag -> "tag"
-        }
-
-    /** Logs the session and stores it for study insights; runs once per session. */
-    private fun endSession(active: ListeningScreenState.Active, completed: Boolean) {
-        logSession(active, completed)
-        val record = tracker?.end(now(), completed) ?: return
-        tracker = null
-        // NonCancellable: the session is often ended by leaving the screen, which clears this scope.
-        viewModelScope.launch(NonCancellable) { recordSession(record) }
-    }
-
-    private fun now(): Long = Clock.System.now().toEpochMilliseconds()
-
-    private fun logSession(active: ListeningScreenState.Active, completed: Boolean) {
-        analyticsTracker.logEvent(
-            if (completed) "listening_session_complete" else "listening_session_abandoned",
-            mapOf(
-                "words_heard" to active.heardWordIds.size,
-                "word_count" to active.session.words.size,
-                "duration_ms" to now() - startedAt,
-            ),
-        )
-    }
-
-    private fun updateActive(reducer: ListeningScreenState.Active.() -> ListeningScreenState.Active) {
-        val active = currentState.screen as? ListeningScreenState.Active ?: return
-        updateState { copy(screen = active.reducer()) }
-    }
 
     private fun updateNeedsVoices(
         reducer: ListeningScreenState.NeedsVoices.() -> ListeningScreenState.NeedsVoices,

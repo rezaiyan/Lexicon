@@ -12,7 +12,11 @@ import feature.study.StudyProgressViewModel
 import feature.study.StudyFocusUseCases
 import feature.study.StudyTagUseCases
 import feature.study.listening.ListeningViewModel
+import feature.study.listening.playback.ListeningPlaybackController
 import feature.study.wordrush.WordRushViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
@@ -48,6 +52,20 @@ fun studyModule() = module {
     }
 
     viewModelOf(::ReviewViewModel)
+
+    // App-scoped so listening keeps playing in the background and outlives the Study screen.
+    single {
+        ListeningPlaybackController(
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
+            speakWord = get(),
+            stopSpeaking = get(),
+            observeSettings = get(),
+            observeSpeechRate = get(),
+            analyticsTracker = get(),
+            recordSession = get(),
+            generateSessionId = get(),
+        )
+    }
     viewModelOf(::ListeningViewModel)
     viewModel {
         WordRushViewModel(
