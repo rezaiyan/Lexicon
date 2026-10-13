@@ -14,6 +14,8 @@ import di.mobileModule
 import domain.auth.repository.IAuthRepository
 import domain.notifications.usecase.ReportNotificationOpenedUseCase
 import kotlinx.coroutines.MainScope
+import media.IListeningMediaSession
+import media.IosListeningMediaSession
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import notification.NotificationCategory
@@ -115,6 +117,12 @@ fun notifyNotificationTapped(notificationLogId: String?, type: String?, deepLink
     if (data.isEmpty()) return
     startKoinIfNeeded()
     koinInstance?.get<NotificationTapHandler>()?.onNotificationTapped(data)
+}
+
+/** Called from Swift for Repeat / Close / swipe on the "listening finished" notification. */
+fun handleListeningNotificationAction(actionId: String) {
+    startKoinIfNeeded()
+    (koinInstance?.get<IListeningMediaSession>() as? IosListeningMediaSession)?.handleNotificationAction(actionId)
 }
 
 /**

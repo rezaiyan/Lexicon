@@ -35,6 +35,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -76,6 +77,11 @@ fun ListeningScreen(
     onDismiss: () -> Unit,
 ) {
     val state by viewModel.state()
+    // While the full player is up, the mini player stays hidden.
+    DisposableEffect(viewModel) {
+        viewModel.setVisible(true)
+        onDispose { viewModel.setVisible(false) }
+    }
     ListeningContent(
         state = state,
         actions = ListeningActions(

@@ -21,6 +21,7 @@ import domain.tts.usecase.StopSpeakingUseCase
 import domain.tag.model.Tag
 import domain.word.model.Word
 import feature.study.listening.playback.ListeningPlaybackController
+import feature.study.listening.playback.ListeningPlayerVisibility
 import fakes.FakeAnalyticsTracker
 import fakes.FakeLearningFocusRepository
 import fakes.FakeListeningRecorder
@@ -117,6 +118,7 @@ class ListeningViewModelTest {
             checkVoices = CheckListeningVoicesUseCase(ttsRepository),
             downloadVoice = DownloadTtsModelUseCase(ttsRepository),
             playback = createController(),
+            visibility = ListeningPlayerVisibility(),
             observeSettings = ObserveListeningSettingsUseCase(listeningSettings),
             observeOptions = ObserveListeningOptionsUseCase(wordRepository, tagRepository, observeFocus),
             saveSettings = SaveListeningSettingsUseCase(listeningSettings),

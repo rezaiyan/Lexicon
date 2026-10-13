@@ -55,6 +55,20 @@ class NotificationTapHandlerTest {
     }
 
     @Test
+    fun `listening media notification tap shows the player without reporting`() = runTest {
+        navigator.listeningRequests.test {
+            handler().onNotificationTapped(mapOf(NotificationTapHandler.TYPE_KEY to "listening"))
+
+            awaitItem()
+            testScheduler.advanceUntilIdle()
+            assertEquals(emptyList(), engagementRepository.reported)
+        }
+        navigator.destinations.test {
+            assertEquals(NotificationDestination.Study, awaitItem())
+        }
+    }
+
+    @Test
     fun `support reply tap opens the support chat`() = runTest {
         navigator.destinations.test {
             handler().onNotificationTapped(mapOf(NotificationTapHandler.TYPE_KEY to PushTypes.SUPPORT_REPLY))

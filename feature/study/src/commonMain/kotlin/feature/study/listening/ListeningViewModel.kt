@@ -24,6 +24,7 @@ import domain.tts.usecase.DownloadTtsModelUseCase
 import domain.word.model.Word
 import feature.study.listening.playback.ListeningPlayback
 import feature.study.listening.playback.ListeningPlaybackController
+import feature.study.listening.playback.ListeningPlayerVisibility
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
@@ -104,6 +105,7 @@ class ListeningViewModel(
     private val checkVoices: CheckListeningVoicesUseCase,
     private val downloadVoice: DownloadTtsModelUseCase,
     private val playback: ListeningPlaybackController,
+    private val visibility: ListeningPlayerVisibility,
     observeSettings: ObserveListeningSettingsUseCase,
     observeOptions: ObserveListeningOptionsUseCase,
     private val saveSettings: SaveListeningSettingsUseCase,
@@ -230,6 +232,14 @@ class ListeningViewModel(
     fun setSpeechRate(rate: Float) {
         viewModelScope.launch { setTtsSpeechRate(rate) }
     }
+
+    /** The full player is on screen (or not); the mini player hides meanwhile. */
+    fun setVisible(visible: Boolean) = visibility.setOpen(visible)
+
+    val isPlayerVisible: Boolean get() = visibility.isOpen.value
+
+    /** Something else is about to speak (e.g. a review): pause rather than talk over it. */
+    fun pauseForOtherAudio() = playback.pause()
 
     /** User stopped listening (close while paused, on setup or on the summary): nothing keeps running. */
     fun abandon() {

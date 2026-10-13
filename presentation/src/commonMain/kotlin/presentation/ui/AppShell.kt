@@ -29,6 +29,11 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import components.snackbar.LexiconSnackbarHost
+import core.getPlatformName
+import feature.study.listening.ListeningMiniPlayerViewModel
+import feature.study.ui.listening.ListeningMiniPlayer
+import org.koin.compose.viewmodel.koinViewModel
+import presentation.navigation.NotificationNavigator
 import feature.insights.navigation.InsightsRoute
 import feature.profile.navigation.ProfileRoute
 import org.jetbrains.compose.resources.stringResource
@@ -150,6 +155,8 @@ internal fun AppContent(
             } else {
                 WindowInsets(0)
             },
+            // A collapsed listening session keeps playing here, above the bottom bar.
+            bottomBar = { if (isListeningSupported) ListeningMiniPlayerBar() },
             snackbarHost = {
                 LexiconSnackbarHost(
                     hostState = snackbarHostState,
@@ -169,6 +176,18 @@ internal fun AppContent(
             )
         }
     }
+}
+
+/** WasmJs has no on-device TTS engine, so listening mode (and its mini player) is mobile-only. */
+private val isListeningSupported = getPlatformName() != "Web"
+
+@Composable
+private fun ListeningMiniPlayerBar() {
+    val navigator = koinInject<NotificationNavigator>()
+    ListeningMiniPlayer(
+        viewModel = koinViewModel<ListeningMiniPlayerViewModel>(),
+        onOpen = navigator::openListening,
+    )
 }
 
 @Composable

@@ -20,7 +20,6 @@ import domain.tts.usecase.StopSpeakingUseCase
 import domain.word.model.Word
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -279,7 +278,7 @@ class ListeningPlaybackController(
         )
         val record = tracker?.end(now(), completed) ?: return
         tracker = null
-        scope.launch(NonCancellable) { recordSession(record) }
+        scope.launch { recordSession(record) }
     }
 
     private fun updateActive(reducer: ListeningPlayback.Active.() -> ListeningPlayback.Active) {

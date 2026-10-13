@@ -20,6 +20,7 @@ class NotificationNavigator {
     private val reviews = Channel<ReviewSource>(Channel.CONFLATED)
     private val addWords = Channel<Unit>(Channel.CONFLATED)
     private val wordRush = Channel<Unit>(Channel.CONFLATED)
+    private val listening = Channel<Unit>(Channel.CONFLATED)
 
     /** One-shot destinations; collect with OnEvents. */
     val destinations: Flow<NotificationDestination> = requests.receiveAsFlow()
@@ -29,6 +30,9 @@ class NotificationNavigator {
 
     /** One-shot requests to start a Word Rush game; collected by the Study screen once it's shown. */
     val wordRushRequests: Flow<Unit> = wordRush.receiveAsFlow()
+
+    /** One-shot requests to show the listening player; collected by the Study screen once it's shown. */
+    val listeningRequests: Flow<Unit> = listening.receiveAsFlow()
 
     /** One-shot requests to open the add-words sheet; collected by the Study screen once it's shown. */
     val addWordsRequests: Flow<Unit> = addWords.receiveAsFlow()
@@ -50,6 +54,15 @@ class NotificationNavigator {
     fun openWordRush() {
         open(NotificationDestination.Study)
         wordRush.trySend(Unit)
+    }
+
+    /**
+     * Switches to the Study tab and shows the listening player there, on the live session when one
+     * is running (media notification, lock screen, mini player).
+     */
+    fun openListening() {
+        open(NotificationDestination.Study)
+        listening.trySend(Unit)
     }
 
     /** Switches to the Study tab and opens the add-words sheet there. */

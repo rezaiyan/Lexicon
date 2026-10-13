@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notification channel of the listening-mode media controls (Settings → Notifications). -->
+    <string name="listening_notification_channel">Listening mode</string>
+</resources>

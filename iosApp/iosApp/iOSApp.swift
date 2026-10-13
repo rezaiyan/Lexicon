@@ -15,6 +15,7 @@ enum NotificationCategory: String {
     case streakReminder = "STREAK_REMINDER"
     case reviewReminder = "REVIEW_REMINDER"
     case achievementUnlocked = "ACHIEVEMENT_UNLOCKED"
+    case listeningFinished = "LISTENING_FINISHED"
     case generic = "GENERIC"
     
     var identifier: String {
@@ -59,6 +60,20 @@ enum NotificationCategory: String {
                     options: [.foreground]
                 )
             ]
+        case .listeningFinished:
+            return [
+                // Opens the app, which plays the same words again.
+                UNNotificationAction(
+                    identifier: "LISTENING_REPEAT",
+                    title: "Repeat",
+                    options: [.foreground]
+                ),
+                UNNotificationAction(
+                    identifier: "LISTENING_CLOSE",
+                    title: "Close",
+                    options: []
+                )
+            ]
         case .generic:
             return []
         }
@@ -68,7 +83,7 @@ enum NotificationCategory: String {
         switch self {
         case .accountDeleted:
             return []
-        case .streakReminder, .reviewReminder, .achievementUnlocked:
+        case .streakReminder, .reviewReminder, .achievementUnlocked, .listeningFinished:
             return [.customDismissAction]
         case .generic:
             return []
@@ -86,6 +101,8 @@ enum NotificationCategory: String {
                 return .reviewReminder
             case "achievement_unlocked":
                 return .achievementUnlocked
+            case "listening":
+                return .listeningFinished
             default:
                 return .generic
             }
@@ -395,6 +412,20 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         
         print(" Notification tapped - Category: \(category.identifier), Action: \(actionIdentifier)")
         
+        // Listening's own notification: Repeat/Close/swipe go to the player, taps open it.
+        if category == .listeningFinished {
+            if actionIdentifier == UNNotificationDefaultActionIdentifier || actionIdentifier == "LISTENING_REPEAT" {
+                MainViewControllerKt.notifyNotificationTapped(notificationLogId: nil, type: "listening", deepLink: nil)
+            }
+            if actionIdentifier != UNNotificationDefaultActionIdentifier {
+                MainViewControllerKt.handleListeningNotificationAction(
+                    actionId: actionIdentifier == UNNotificationDismissActionIdentifier ? "LISTENING_CLOSE" : actionIdentifier
+                )
+            }
+            completionHandler()
+            return
+        }
+
         // Any interaction except dismissal counts as an open for the backend's engagement tracking
         if actionIdentifier != UNNotificationDismissActionIdentifier {
             MainViewControllerKt.notifyNotificationTapped(
@@ -433,6 +464,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
             if let achievementId = userInfo["achievement_id"] as? String {
                 postNotification(name: "ShowAchievementDetails", userInfo: ["achievement_id": achievementId])
             }
+        case .listeningFinished:
+            // Routed to Kotlin before reaching here (see didReceive).
+            break
         case .generic:
             print("ℹ Generic notification tapped")
         }

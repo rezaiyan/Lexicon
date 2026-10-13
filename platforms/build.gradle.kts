@@ -69,6 +69,7 @@ kotlin {
             implementation(files("libs/sherpa-onnx-1.13.8.aar"))
             implementation(libs.commons.compress)
             implementation(libs.work.runtime)
+            implementation(libs.androidx.media3.session)
         }
 
         iosMain.dependencies {

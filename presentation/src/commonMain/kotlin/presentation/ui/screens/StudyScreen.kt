@@ -140,6 +140,8 @@ fun StudyScreen(
 
     // Single entry point for all review flows.
     val openReviewScreen: (ReviewSource) -> Unit = { source ->
+        // Reviews speak words too: don't talk over them.
+        listeningViewModel.pauseForOtherAudio()
         reviewViewModel.startSession(source)
         overlayHost.showFullScreen(
             tag = "review-${source::class.simpleName}",
@@ -209,8 +211,7 @@ fun StudyScreen(
         }
     }
 
-    val openListening: () -> Unit = {
-        listeningViewModel.open()
+    val showListeningPlayer: () -> Unit = {
         overlayHost.showFullScreen(
             tag = "listening",
             properties = FullScreenProperties(
@@ -222,10 +223,22 @@ fun StudyScreen(
             ListeningScreen(
                 viewModel = listeningViewModel,
                 onDismiss = {
-                    listeningViewModel.abandon()
+                    // Playing: collapse into the mini player and keep going. Otherwise: stop.
+                    if (!listeningViewModel.currentState.isPlaying) listeningViewModel.abandon()
                     navigator.dismiss()
                 },
             )
+        }
+    }
+    val openListening: () -> Unit = {
+        listeningViewModel.open()
+        showListeningPlayer()
+    }
+    // Media notification, lock screen and mini player taps: back to the live session.
+    OnEvents(studyLauncher.listeningRequests) {
+        if (isListeningSupported && !listeningViewModel.isPlayerVisible) {
+            listeningViewModel.reveal()
+            showListeningPlayer()
         }
     }
 

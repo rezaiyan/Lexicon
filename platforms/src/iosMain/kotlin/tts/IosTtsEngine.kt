@@ -106,7 +106,10 @@ class IosTtsEngine : ITtsEngine {
     private suspend fun playWavFile(path: String) {
         withContext(Dispatchers.Main) {
             val session = AVAudioSession.sharedInstance()
-            session.setCategory(AVAudioSessionCategoryPlayback, null)
+            // Listening mode configures the session for long-form spoken audio; don't reset its mode.
+            if (session.category != AVAudioSessionCategoryPlayback) {
+                session.setCategory(AVAudioSessionCategoryPlayback, null)
+            }
             session.setActive(true, null)
 
             val url = NSURL.fileURLWithPath(path)

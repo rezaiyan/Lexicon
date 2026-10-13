@@ -1104,6 +1104,14 @@
     <string name="listening_setup_playback">Playback</string>
     <string name="listening_start">Start listening · %1$d words</string>
     <string name="listening_estimate">About %1$d min</string>
+    <!-- Media notification / lock screen / mini player -->
+    <string name="listening_media_position">%1$d of %2$d</string>
+    <string name="listening_media_finished_subtitle">%1$d words heard · %2$d min</string>
+    <string name="listening_media_stop">Stop listening</string>
+    <string name="listening_media_repeat">Repeat</string>
+    <string name="listening_media_close">Close</string>
+    <string name="listening_mini_open">Open listening player</string>
+    <string name="listening_mini_words_heard">%1$d words heard</string>
     <string name="listening_change_words">Choose other words</string>
     <string name="add_words_problem_image_unreadable">Couldn't read this image. Try another photo.</string>
     <string name="add_words_problem_image_too_large">This photo is too large. Try a smaller one.</string>

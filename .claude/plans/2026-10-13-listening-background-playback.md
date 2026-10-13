@@ -138,7 +138,7 @@ Principle: **behave like a podcast app.** Users already know Spotify/Podcasts co
 - WakeLock and keep-alive held **only while playing**.
 
 ### Permissions (Android 13+)
-- First time the user taps Start in listening and notification permission was never asked: show the system prompt right then, preceded by a one-line rationale in the setup screen ("Show controls on your lock screen"). If denied: playback still works in the background, no nagging. A subtle row in listening settings ("Lock-screen controls off · Enable") deep-links to system settings.
+- **None needed (as built).** Media-session notifications are exempt from `POST_NOTIFICATIONS`, so the media card always shows. No prompt, no rationale row.
 
 ### Accessibility
 - Notification actions and remote commands have localized content descriptions. Mini player buttons ≥ 48 dp with TalkBack/VoiceOver labels ("Pause listening", "Stop listening"). Mini player respects reduced motion (no slide, fade only).
@@ -167,7 +167,7 @@ Principle: **behave like a podcast app.** Users already know Spotify/Podcasts co
 - [ ] Tests: mapper tests (prompt-only, revealed, translation-first order, finished) and bridge tests with `FakeListeningMediaSession` (state → render calls; Repeat/Close/Next commands → controller state).
 
 ### Phase 3: Android
-- [ ] Dependency: `androidx.media:media` (`MediaSessionCompat` + `NotificationCompat.MediaStyle`) in `libs.versions.toml`. **Why not media3:** media3 needs a `Player` facade over our TTS sequencer, and its auto-notification makes the custom "ended → dismissable with Repeat/Close" state hard to control. Revisit if we ever move to ExoPlayer.
+- [x] **As built: Media3 1.11.1** (`MediaSessionService` + `SimpleBasePlayer` facade `ListeningPlayer`), not `androidx.media`. Android 13+ draws media controls from the session, not notification actions, so only a real session gives correct controls on the shade, lock screen, BT, Wear and Auto. Each word is a playlist item (native next/previous + position). Finished = `STATE_ENDED` with Repeat (left slot) / Close (right slot) custom buttons; the service leaves the foreground immediately on finish (foreground timeout 0) and keeps Media3's 10-min grace after a pause. Swipe-dismiss is caught via `Callback.onMediaButtonEvent` (`NOTIFICATION_DISMISSED_EVENT_KEY`). The QS carousel swipe only hides a stopped player, so a finished card also expires after 30 min.
 - [ ] Manifest: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK` and `WAKE_LOCK` permissions. `<service android:name="media.ListeningPlaybackService" android:exported="false" android:foregroundServiceType="mediaPlayback"/>`.
 - [ ] `ListeningPlaybackService` (platforms/androidMain):
   - Started by `AndroidListeningMediaSession.render(Playing)` via `ContextCompat.startForegroundService` on the first render, which happens while the user is tapping Play, so it's in the foreground. `startForeground(id, notif, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)`.
@@ -179,7 +179,7 @@ Principle: **behave like a podcast app.** Users already know Spotify/Podcasts co
   - **Finished:** `stopForeground(STOP_FOREGROUND_DETACH)`, then post a non-ongoing notification "Session complete · 18/20 words" with actions **Repeat** and **Close**, plus a `deleteIntent` (swipe) → Close. **Repeat** re-enters the foreground and starts playback. That's allowed because it comes from a notification action PendingIntent, which is an FGS-start exemption.
   - Close/Idle → release session, cancel notification, `stopSelf()`.
 - [ ] MainActivity: route the `type == "listening"` tap extra to open the listening overlay (StudyScreen shows it when `controller.playback != Idle`).
-- [ ] Wire `POST_NOTIFICATIONS`. If denied, playback still runs (the FGS is legal without a visible notification) but no card shows. Don't block, and don't add a new permission prompt.
+- [x] No `POST_NOTIFICATIONS` work: media-session notifications are exempt.
 
 ### Phase 4: iOS
 - [ ] `Info.plist`: add `audio` to `UIBackgroundModes`.
@@ -200,7 +200,7 @@ Principle: **behave like a podcast app.** Users already know Spotify/Podcasts co
 - [ ] Overlay close logic: playing → collapse to mini player; otherwise → close as today.
 - [ ] Previous 2-second rule in `ListeningReducer` (pure, takes `elapsedInWordMs`), plus tests.
 - [ ] End chime asset in `resources`, played via the TTS engine output path (so it shares audio session/focus).
-- [ ] Notification permission rationale row in setup + settings row when denied.
+- [x] ~~Notification permission rationale~~: dropped, media notifications are exempt.
 - [ ] Global TTS hook: word-tap speakers call `controller.pauseForExternalSpeech()` before speaking.
 - [ ] Branded artwork asset (Android drawable + iOS bundle image) for media session/Now Playing.
 - [ ] Strings in `resources/.../strings.xml`: channel name, "Session complete", "%1$d of %2$d words", Repeat, Close. Feed them into the platform session as resolved strings from the bridge, so `platforms` needs no Compose resources.

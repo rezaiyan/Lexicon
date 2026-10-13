@@ -4,6 +4,7 @@ import domain.notifications.usecase.ReportNotificationOpenedUseCase
 import domain.word.model.ReviewSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import media.LISTENING_NOTIFICATION_TYPE
 import presentation.navigation.NotificationDestination
 import presentation.navigation.NotificationNavigator
 
@@ -18,6 +19,11 @@ class NotificationTapHandler(
     private val scope: CoroutineScope,
 ) {
     fun onNotificationTapped(data: Map<String, String>) {
+        // The listening player's own media notification: local, nothing to report.
+        if (data[TYPE_KEY] == LISTENING_NOTIFICATION_TYPE) {
+            navigator.openListening()
+            return
+        }
         when (data[TYPE_KEY]) {
             PushTypes.BILLING_ISSUE -> navigator.open(NotificationDestination.Subscription)
             PushTypes.REVIEW_REMINDER -> navigator.openDueReview()
