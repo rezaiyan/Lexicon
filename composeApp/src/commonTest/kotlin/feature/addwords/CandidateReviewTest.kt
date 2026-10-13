@@ -23,6 +23,17 @@ class CandidateReviewTest {
     }
 
     @Test
+    fun `AI and photo results lock the languages - they were translated for that pair`() {
+        assertTrue(CandidateReview.of(WordOrigin.Photo, listOf(draft("Hund"))).languagesLocked)
+        assertTrue(CandidateReview.of(WordOrigin.AiSuggestion, listOf(draft("Hund"))).languagesLocked)
+    }
+
+    @Test
+    fun `file results keep the languages changeable - nothing was translated`() {
+        assertFalse(CandidateReview.of(WordOrigin.File, listOf(draft("Hund"))).languagesLocked)
+    }
+
+    @Test
     fun `toggle removes a word from the selection only`() {
         val toggled = review.toggle(1)
 

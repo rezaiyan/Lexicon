@@ -21,6 +21,13 @@ data class CandidateReview(
 ) {
     val selectedDrafts: List<WordDraft> get() = candidates.filter { it.selected }.map { it.draft }
     val selectedCount: Int get() = candidates.count { it.selected }
+
+    /**
+     * AI and photo results were translated for the language pair of the request, so changing the
+     * pair here would mislabel them; it is picked before the request instead. File rows are the
+     * learner's own, so their pair stays changeable.
+     */
+    val languagesLocked: Boolean get() = origin == WordOrigin.Photo || origin == WordOrigin.AiSuggestion
     val allSelected: Boolean get() = candidates.isNotEmpty() && candidates.all { it.selected }
     val editing: Candidate? get() = candidates.firstOrNull { it.id == editingId }
 

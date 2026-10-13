@@ -80,6 +80,9 @@ private val TopicIcons: Map<String, ImageVector> = mapOf(
  */
 @Composable
 internal fun AiTopicsStep(
+    learning: Language,
+    native: Language,
+    onChangeLanguage: () -> Unit,
     topics: List<String>,
     selectedTopics: Set<String>,
     error: String?,
@@ -93,6 +96,8 @@ internal fun AiTopicsStep(
         title = stringResource(Res.string.ai_wizard_describe_title),
         highlight = stringResource(Res.string.ai_wizard_describe_highlight),
         subtitle = stringResource(Res.string.ai_wizard_describe_subtitle),
+        // Chosen before generating: the words are made and translated for this pair
+        headerAccessory = { LanguagePairChip(source = learning, target = native, onClick = onChangeLanguage) },
         footer = {
             // In the sticky footer, next to the button that caused it: the page is long, and after a
             // failed generate it comes back scrolled to the top

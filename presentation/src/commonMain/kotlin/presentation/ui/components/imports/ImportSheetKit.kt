@@ -33,24 +33,36 @@ import utils.Language
  * design-system `components.sheet`.
  */
 
-/** "German → English ⌄" — shows the import language pair and opens the language picker. */
+/**
+ * "German → English ⌄" — shows the import language pair and opens the language picker. With
+ * [onClick] null it only shows the pair (no chevron, not tappable): the words were already made
+ * for it, or a request is running.
+ */
 @Composable
 internal fun LanguagePairChip(
     source: Language,
     target: Language,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val description = stringResource(Res.string.change_languages)
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val pair = "${source.displayName} to ${target.displayName}"
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(Theme.shapes.pill))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = "$description: ${source.displayName} to ${target.displayName}" }
+            .then(
+                if (onClick != null) {
+                    Modifier
+                        .clickable(role = Role.Button, onClick = onClick)
+                        .semantics { contentDescription = "$description: $pair" }
+                } else {
+                    Modifier.semantics { contentDescription = pair }
+                },
+            )
             .heightIn(min = Theme.dimensions.touchTargetSmall)
-            .padding(start = Theme.spacing.sm, end = Theme.spacing.xs),
+            .padding(start = Theme.spacing.sm, end = if (onClick != null) Theme.spacing.xs else Theme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxs + Theme.spacing.xxxs),
     ) {
@@ -62,11 +74,13 @@ internal fun LanguagePairChip(
             modifier = Modifier.size(Theme.dimensions.iconSizeSmall - Theme.spacing.xxxs),
         )
         Text(target.displayName, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-        Icon(
-            Icons.Default.KeyboardArrowDown,
-            contentDescription = null,
-            tint = muted,
-            modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
-        )
+        if (onClick != null) {
+            Icon(
+                Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                tint = muted,
+                modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+            )
+        }
     }
 }

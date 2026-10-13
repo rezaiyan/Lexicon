@@ -52,6 +52,7 @@ import lexicon.resources.generated.resources.rotate_photo
 import lexicon.resources.generated.resources.try_another_image
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
+import utils.Language
 import utils.toImageBitmap
 
 private val ErrorPlaceholderHeight = 180.dp
@@ -71,6 +72,9 @@ private const val RIGHT_ANGLE_DEGREES = 90f
 @Composable
 internal fun PhotoPreviewPage(
     imageBytes: ByteArray,
+    learning: Language,
+    native: Language,
+    onChangeLanguage: () -> Unit,
     isLoading: Boolean,
     isEnabled: Boolean,
     problem: String?,
@@ -87,6 +91,10 @@ internal fun PhotoPreviewPage(
 
     SheetPage(
         title = stringResource(Res.string.photo_preview_title),
+        // Chosen before extracting: the words are translated for this pair
+        headerAccessory = {
+            LanguagePairChip(source = learning, target = native, onClick = onChangeLanguage.takeIf { isEnabled })
+        },
         footer = {
             // In the sticky footer, next to the button that caused it, so it is seen however far down
             // the page is scrolled

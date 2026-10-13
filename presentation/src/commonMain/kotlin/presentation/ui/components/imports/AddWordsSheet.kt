@@ -257,6 +257,9 @@ private fun AddWordsSheetContent(
                 } else {
                     val guided = aiState.guidance.isGuided
                     AiTopicsStep(
+                        learning = learning,
+                        native = native,
+                        onChangeLanguage = changeLanguages,
                         topics = aiState.availableTopics,
                         selectedTopics = aiState.topics,
                         error = aiState.problem.text(),
@@ -375,6 +378,9 @@ private fun PhotoPage(
         val guided = photoState.guidance.isGuided
         PhotoPreviewPage(
             imageBytes = picked.bytes,
+            learning = state.learning ?: Language.ENGLISH,
+            native = state.native ?: Language.ENGLISH,
+            onChangeLanguage = onChangeLanguage,
             isLoading = photoState.isExtracting,
             isEnabled = !photoState.isExtracting,
             problem = photoState.problem.text(),
@@ -440,7 +446,8 @@ private fun ReviewPage(
         problem = state.problem.text(),
         onTagSelected = host::selectTag,
         onCreateTag = onCreateTag,
-        onChangeLanguage = onChangeLanguage,
+        // AI and photo words were translated for this pair; only file rows can be relabelled
+        onChangeLanguage = onChangeLanguage.takeUnless { review.languagesLocked },
         onToggle = host::toggleCandidate,
         onSetAllSelected = host::setAllCandidatesSelected,
         onStartEdit = host::startEditingCandidate,

@@ -77,7 +77,7 @@ internal fun CandidateReviewPage(
     problem: String?,
     onTagSelected: (Long?) -> Unit,
     onCreateTag: () -> Unit,
-    onChangeLanguage: () -> Unit,
+    onChangeLanguage: (() -> Unit)?,
     onToggle: (Int) -> Unit,
     onSetAllSelected: (Boolean) -> Unit,
     onStartEdit: (Int) -> Unit,
