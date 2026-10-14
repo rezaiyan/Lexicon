@@ -97,7 +97,7 @@ class WordDraftTest {
     }
 
     @Test
-    fun `of trims tags, drops blanks and case-insensitive duplicates`() {
+    fun `of trims tags and drops blanks and case-insensitive duplicates`() {
         val draft = WordDraft.of("Hund", "dog", tags = listOf(" animals ", "", "Animals", "A1")).getOrNull()
 
         assertEquals(listOf("animals", "A1"), draft?.tags)

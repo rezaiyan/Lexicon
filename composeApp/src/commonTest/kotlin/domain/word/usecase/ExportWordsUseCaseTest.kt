@@ -515,7 +515,7 @@ class ExportWordsUseCaseTest {
     }
 
     @Test
-    fun `export with tags quotes fields holding separators, quotes or line breaks`() = runTest {
+    fun `export with tags quotes fields holding separators or quotes or line breaks`() = runTest {
         val words = listOf(
             createWord(originalWord = "gehen", translation = "to go, to walk", description = "say \"hi\"\nnow"),
         )

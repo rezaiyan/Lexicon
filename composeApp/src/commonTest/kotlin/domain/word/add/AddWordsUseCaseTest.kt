@@ -129,7 +129,7 @@ class AddWordsUseCaseTest {
     }
 
     @Test
-    fun `invoke attaches existing tags named by the draft, matching case-insensitively`() = runTest {
+    fun `invoke attaches existing tags named by the draft matching case-insensitively`() = runTest {
         tags.tags = listOf(Tag(5L, "Animals", createdAt = 0L, updatedAt = 0L))
 
         useCase(command(draft("Hund", "dog", tags = listOf("animals")), tagIds = setOf(3L)))
