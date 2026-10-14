@@ -4,6 +4,8 @@ package domain.connectedapps.model
 data class ConnectedApp(
     val id: String,
     val name: String,
+    /** Where the app really lives (verified by the server), shown next to the name it chose for itself. */
+    val website: String?,
     val access: Set<ConnectedAppAccess>,
     val connectedAtMillis: Long,
 )

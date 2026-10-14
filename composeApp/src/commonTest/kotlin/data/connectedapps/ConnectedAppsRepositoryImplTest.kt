@@ -16,7 +16,7 @@ class ConnectedAppsRepositoryImplTest {
         val disconnected = mutableListOf<String>()
 
         override suspend fun getConnections(): Try<List<ConnectedAppResponse>> = Try.success(
-            listOf(ConnectedAppResponse("c1", "Claude", listOf("words:read", "progress:read", "admin:all"), 1_000))
+            listOf(ConnectedAppResponse("c1", "Claude", "claude.ai", listOf("words:read", "progress:read", "admin:all"), 1_000))
         )
 
         override suspend fun disconnect(id: String): Try<Unit> {
@@ -31,7 +31,7 @@ class ConnectedAppsRepositoryImplTest {
         val apps = repository.getConnectedApps().getOrNull()
 
         assertEquals(
-            listOf(ConnectedApp("c1", "Claude", setOf(ConnectedAppAccess.READ_WORDS, ConnectedAppAccess.READ_PROGRESS), 1_000)),
+            listOf(ConnectedApp("c1", "Claude", "claude.ai", setOf(ConnectedAppAccess.READ_WORDS, ConnectedAppAccess.READ_PROGRESS), 1_000)),
             apps,
         )
     }

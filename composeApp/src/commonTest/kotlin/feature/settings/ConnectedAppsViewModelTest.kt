@@ -14,8 +14,8 @@ import kotlin.test.assertNull
 
 class ConnectedAppsViewModelTest : ViewModelTestBase() {
 
-    private val claude = ConnectedApp("c1", "Claude", setOf(ConnectedAppAccess.READ_WORDS), 1_000)
-    private val chatGpt = ConnectedApp("c2", "ChatGPT", ConnectedAppAccess.entries.toSet(), 2_000)
+    private val claude = ConnectedApp("c1", "Claude", "claude.ai", setOf(ConnectedAppAccess.READ_WORDS), 1_000)
+    private val chatGpt = ConnectedApp("c2", "ChatGPT", "chatgpt.com", ConnectedAppAccess.entries.toSet(), 2_000)
     private val repository = FakeConnectedAppsRepository(apps = listOf(claude, chatGpt))
 
     private fun createViewModel() = ConnectedAppsViewModel(
@@ -66,7 +66,7 @@ class ConnectedAppsViewModelTest : ViewModelTestBase() {
     @Test
     fun `refresh picks up apps connected since`() = runTest {
         val vm = createViewModel()
-        val gemini = ConnectedApp("c3", "Gemini", emptySet(), 3_000)
+        val gemini = ConnectedApp("c3", "Gemini", null, emptySet(), 3_000)
         repository.apps = repository.apps + gemini
 
         vm.refresh()

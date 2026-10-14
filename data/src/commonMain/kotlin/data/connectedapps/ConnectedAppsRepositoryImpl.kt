@@ -21,6 +21,7 @@ class ConnectedAppsRepositoryImpl(
 internal fun ConnectedAppResponse.toDomain() = ConnectedApp(
     id = id,
     name = clientName,
+    website = website,
     access = scopes.mapNotNull(ConnectedAppAccess::fromScope).toSet(),
     connectedAtMillis = connectedAt,
 )

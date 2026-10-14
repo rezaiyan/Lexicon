@@ -112,7 +112,8 @@ private fun ConnectedAppsContent(
                         subtitle = when {
                             disconnecting -> stringResource(Res.string.connected_app_disconnecting)
                             app.id == failedId -> stringResource(Res.string.connected_app_disconnect_failed)
-                            else -> app.access.label()
+                            else -> listOfNotNull(app.website, app.access.label()).joinToString(" · ")
+                                .ifEmpty { null }
                         },
                         onClick = { if (disconnectingId == null) onAppClick(app) },
                         showDivider = index < apps.lastIndex,

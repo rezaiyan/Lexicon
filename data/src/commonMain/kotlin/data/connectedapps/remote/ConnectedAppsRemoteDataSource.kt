@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 data class ConnectedAppResponse(
     val id: String,
     val clientName: String,
+    val website: String? = null,
     val scopes: List<String> = emptyList(),
     /** Epoch millis. */
     val connectedAt: Long,
