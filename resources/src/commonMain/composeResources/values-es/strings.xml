@@ -673,4 +673,5 @@
     <string name="share_words_title">Compartir %1$d palabras</string>
     <string name="include_tags">Incluir etiquetas</string>
     <string name="include_tags_hint">Añade una columna de etiquetas para que al importar el archivo se recuperen.</string>
+    <string name="format_example_tags">Encabezado word,translation,note,tags añade etiquetas (separadas con ;)</string>
 </resources>

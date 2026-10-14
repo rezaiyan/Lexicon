@@ -832,4 +832,5 @@
     <string name="share_words_title">단어 %1$d개 공유</string>
     <string name="include_tags">태그 포함</string>
     <string name="include_tags_hint">태그 열을 추가해 파일을 가져오면 태그도 복원됩니다.</string>
+    <string name="format_example_tags">머리글 word,translation,note,tags 로 태그 추가 (; 로 구분)</string>
 </resources>

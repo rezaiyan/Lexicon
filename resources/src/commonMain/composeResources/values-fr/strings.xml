@@ -673,4 +673,5 @@
     <string name="share_words_title">Partager %1$d mots</string>
     <string name="include_tags">Inclure les tags</string>
     <string name="include_tags_hint">Ajoute une colonne de tags pour qu'ils soient restaurés à l'import du fichier.</string>
+    <string name="format_example_tags">L'en-tête word,translation,note,tags ajoute des tags (séparés par ;)</string>
 </resources>

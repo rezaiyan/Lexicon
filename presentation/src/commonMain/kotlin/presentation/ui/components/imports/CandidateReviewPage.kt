@@ -200,6 +200,15 @@ private fun CandidateRow(
                 )
                 SecondaryLine(draft.translation, MaterialTheme.typography.bodyMedium)
                 if (draft.note.isNotBlank()) SecondaryLine(draft.note, MaterialTheme.typography.bodySmall)
+                if (draft.tags.isNotEmpty()) {
+                    Text(
+                        draft.tags.joinToString("  ") { "#$it" },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             IconButton(onClick = onEdit) {
                 Icon(

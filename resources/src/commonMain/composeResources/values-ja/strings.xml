@@ -832,4 +832,5 @@
     <string name="share_words_title">%1$d語を共有</string>
     <string name="include_tags">タグを含める</string>
     <string name="include_tags_hint">タグ列を追加し、ファイルを読み込むとタグも復元されます。</string>
+    <string name="format_example_tags">見出し行 word,translation,note,tags でタグを追加（; で区切る）</string>
 </resources>

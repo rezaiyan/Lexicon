@@ -39,6 +39,7 @@ import lexicon.resources.generated.resources.file_hint
 import lexicon.resources.generated.resources.file_import_subtitle
 import lexicon.resources.generated.resources.format_example_1
 import lexicon.resources.generated.resources.format_example_2
+import lexicon.resources.generated.resources.format_example_tags
 import lexicon.resources.generated.resources.format_example_3
 import lexicon.resources.generated.resources.how_to_format
 import lexicon.resources.generated.resources.processing_file
@@ -91,7 +92,12 @@ internal fun FileImportContent(
         Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
             SheetSectionLabel(stringResource(Res.string.how_to_format))
             FormatSample()
-            listOf(Res.string.format_example_1, Res.string.format_example_2, Res.string.format_example_3).forEach {
+            listOf(
+                Res.string.format_example_1,
+                Res.string.format_example_2,
+                Res.string.format_example_tags,
+                Res.string.format_example_3,
+            ).forEach {
                 FormatRule(stringResource(it))
             }
         }

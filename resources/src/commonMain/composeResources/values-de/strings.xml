@@ -673,4 +673,5 @@
     <string name="share_words_title">%1$d Wörter teilen</string>
     <string name="include_tags">Tags einschließen</string>
     <string name="include_tags_hint">Fügt eine Tag-Spalte hinzu, damit ein Import die Tags wiederherstellt.</string>
+    <string name="format_example_tags">Kopfzeile word,translation,note,tags fügt Tags hinzu (mit ; trennen)</string>
 </resources>

@@ -832,4 +832,5 @@
     <string name="share_words_title">Udostępnij słowa: %1$d</string>
     <string name="include_tags">Dołącz tagi</string>
     <string name="include_tags_hint">Dodaje kolumnę tagów, więc import pliku je przywróci.</string>
+    <string name="format_example_tags">Nagłówek word,translation,note,tags dodaje tagi (oddziel ;)</string>
 </resources>

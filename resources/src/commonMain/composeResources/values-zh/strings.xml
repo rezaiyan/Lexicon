@@ -673,4 +673,5 @@
     <string name="share_words_title">分享 %1$d 个单词</string>
     <string name="include_tags">包含标签</string>
     <string name="include_tags_hint">添加标签列，导入文件时会恢复标签。</string>
+    <string name="format_example_tags">标题行 word,translation,note,tags 可添加标签（用 ; 分隔）</string>
 </resources>
