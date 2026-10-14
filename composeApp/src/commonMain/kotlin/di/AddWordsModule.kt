@@ -25,7 +25,7 @@ fun addWordsModule() = module {
     single { SuggestionLevelRepositoryImpl(queries = get()) } bind ISuggestionLevelRepository::class
     single<IImagePreparer> { ImagePreparer() }
 
-    factory { AddWordsUseCase(wordRepository = get(), clock = Clock.System) }
+    factory { AddWordsUseCase(wordRepository = get(), tagRepository = get(), clock = Clock.System) }
     factoryOf(::ResolveAddWordsLanguagesUseCase)
     factoryOf(::ParseWordFileUseCase)
     factoryOf(::ExtractWordsFromImageUseCase)

@@ -2,6 +2,7 @@ package presentation.ui.screens.settings
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -12,6 +13,7 @@ import components.sheet.ConfirmTone
 import components.sheet.SheetFooterRow
 import components.sheet.SheetPage
 import components.sheet.SheetPrimaryButton
+import components.sheet.SheetSwitchRow
 import components.sheet.SheetTonalButton
 import components.sheet.WordFormSheetPage
 import domain.tag.model.Tag
@@ -24,7 +26,11 @@ import lexicon.resources.generated.resources.delete
 import lexicon.resources.generated.resources.delete_words_message
 import lexicon.resources.generated.resources.delete_words_title
 import lexicon.resources.generated.resources.edit_word
+import lexicon.resources.generated.resources.include_tags
+import lexicon.resources.generated.resources.include_tags_hint
 import lexicon.resources.generated.resources.set_tag
+import lexicon.resources.generated.resources.share
+import lexicon.resources.generated.resources.share_words_title
 import lexicon.resources.generated.resources.translation_language_label
 import lexicon.resources.generated.resources.update_languages
 import lexicon.resources.generated.resources.update_words_count
@@ -205,4 +211,45 @@ internal fun BatchTagAssignmentContent(
         onApply = { onConfirm(selectedTagIds.toList()) },
         onClose = onClose,
     )
+}
+
+/** Asks whether tags go along before sharing; shown only when a shared word has tags. */
+@Composable
+internal fun ShareWordsContent(
+    count: Int,
+    onShare: (includeTags: Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var includeTags by remember { mutableStateOf(true) }
+
+    SheetPage(
+        title = stringResource(Res.string.share_words_title, count),
+        footer = {
+            SheetFooterRow(
+                secondary = {
+                    SheetTonalButton(
+                        text = stringResource(Res.string.cancel),
+                        onClick = onDismiss,
+                        modifier = it,
+                    )
+                },
+                primary = {
+                    SheetPrimaryButton(
+                        text = stringResource(Res.string.share),
+                        onClick = { onShare(includeTags) },
+                        modifier = it,
+                    )
+                },
+            )
+        },
+    ) {
+        SheetSwitchRow(
+            title = stringResource(Res.string.include_tags),
+            subtitle = stringResource(Res.string.include_tags_hint),
+            icon = Icons.AutoMirrored.Filled.Label,
+            checked = includeTags,
+            onCheckedChange = { includeTags = it },
+            showDivider = false,
+        )
+    }
 }

@@ -37,6 +37,10 @@ data class WordManagerScreenState(
 
     val selectedCount: Int get() = selectedWordIds.size
 
+    /** Whether any word about to be shared (the selection, or all words) carries a tag. */
+    val shareHasTags: Boolean
+        get() = words.any { it.tagIds.isNotEmpty() && (selectedWordIds.isEmpty() || it.id in selectedWordIds) }
+
     val isFiltered: Boolean
         get() = searchQuery.isNotBlank() || filterLanguage != null || filterLearningStage != null || filterTagId != null
 }

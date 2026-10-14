@@ -670,4 +670,7 @@
     <string name="support_chars_left">还可输入 %1$d 个字符</string>
     <string name="support_not_sent">未发送</string>
     <string name="support_unread_reply">客服有新回复</string>
+    <string name="share_words_title">分享 %1$d 个单词</string>
+    <string name="include_tags">包含标签</string>
+    <string name="include_tags_hint">添加标签列，导入文件时会恢复标签。</string>
 </resources>

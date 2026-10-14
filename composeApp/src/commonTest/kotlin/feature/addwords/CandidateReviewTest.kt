@@ -77,4 +77,13 @@ class CandidateReviewTest {
     fun `startEditing ignores unknown ids`() {
         assertNull(review.startEditing(42).editingId)
     }
+
+    @Test
+    fun `saveEdit keeps the tags the file gave the word`() {
+        val tagged = CandidateReview.of(WordOrigin.File, listOf(WordDraft.of("Hund", "dog", tags = listOf("A1")).getOrThrow()))
+
+        val edited = tagged.startEditing(0).saveEdit("der Hund", "the dog", "").getOrThrow()
+
+        assertEquals(listOf("A1"), edited.candidates.single().draft.tags)
+    }
 }

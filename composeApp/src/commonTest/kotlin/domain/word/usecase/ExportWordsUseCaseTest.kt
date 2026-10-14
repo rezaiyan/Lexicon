@@ -1,6 +1,7 @@
 package domain.word.usecase
 
 import core.common.getOrThrow
+import domain.word.add.parser.VocabularyTextParser
 import domain.word.model.Word
 import kotlinx.coroutines.test.runTest
 import utils.Language
@@ -26,7 +27,11 @@ class ExportWordsUseCaseTest {
 
     private val exportUseCase = ExportWordsUseCase()
 
-    private suspend fun export(words: List<Word>): String = exportUseCase(words).getOrThrow()
+    private suspend fun export(words: List<Word>): String =
+        exportUseCase(ExportWordsUseCase.Params(words)).getOrThrow()
+
+    private suspend fun exportWithTags(words: List<Word>, tagNames: Map<Long, String>): String =
+        exportUseCase(ExportWordsUseCase.Params(words, tagNames)).getOrThrow()
     
     // Helper to create test words
     private fun createWord(
@@ -35,7 +40,8 @@ class ExportWordsUseCaseTest {
         translation: String,
         description: String = "",
         sourceLanguage: Language = Language.ENGLISH,
-        targetLanguage: Language = Language.SPANISH
+        targetLanguage: Language = Language.SPANISH,
+        tagIds: List<Long> = emptyList(),
     ) = Word(
         id = id,
         originalWord = originalWord,
@@ -48,7 +54,8 @@ class ExportWordsUseCaseTest {
         interval = 0,
         repetitions = 0,
         lastReviewDate = 0L,
-        nextReviewDate = 0L
+        nextReviewDate = 0L,
+        tagIds = tagIds,
     )
 
     
@@ -494,5 +501,43 @@ class ExportWordsUseCaseTest {
         val semicolonCount = result.count { it == ';' }
         assertEquals(99, semicolonCount, "Should have 99 semicolons for 100 words")
     }
-}
 
+    @Test
+    fun `export with tags writes one line per word under a header with a tags column`() = runTest {
+        val words = listOf(
+            createWord(id = 1, originalWord = "Hund", translation = "dog", description = "a pet", tagIds = listOf(1L, 2L)),
+            createWord(id = 2, originalWord = "Katze", translation = "cat"),
+        )
+
+        val result = exportWithTags(words, mapOf(1L to "animals", 2L to "A1"))
+
+        assertEquals("word,translation,note,tags\nHund,dog,a pet,\"animals;A1\"\nKatze,cat,,", result)
+    }
+
+    @Test
+    fun `export with tags quotes fields holding separators, quotes or line breaks`() = runTest {
+        val words = listOf(
+            createWord(originalWord = "gehen", translation = "to go, to walk", description = "say \"hi\"\nnow"),
+        )
+
+        val result = exportWithTags(words, emptyMap())
+
+        assertEquals("word,translation,note,tags\ngehen,\"to go, to walk\",\"say \"\"hi\"\"\nnow\",", result)
+    }
+
+    @Test
+    fun `export with tags round-trips through the import parser`() = runTest {
+        val words = listOf(
+            createWord(id = 1, originalWord = "gehen", translation = "to go, to walk", description = "irregular; strong", tagIds = listOf(1L)),
+            createWord(id = 2, originalWord = "Hund", translation = "dog", tagIds = listOf(1L, 2L)),
+            createWord(id = 3, originalWord = "Katze", translation = "cat"),
+        )
+
+        val drafts = VocabularyTextParser.parse(exportWithTags(words, mapOf(1L to "verbs, basic", 2L to "A1"))).drafts
+
+        assertEquals(listOf("gehen", "Hund", "Katze"), drafts.map { it.term })
+        assertEquals("to go, to walk", drafts[0].translation)
+        assertEquals("irregular; strong", drafts[0].note)
+        assertEquals(listOf(listOf("verbs basic"), listOf("verbs basic", "A1"), emptyList()), drafts.map { it.tags })
+    }
+}

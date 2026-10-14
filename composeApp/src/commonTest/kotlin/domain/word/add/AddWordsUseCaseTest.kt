@@ -11,6 +11,8 @@ import domain.word.add.model.LanguagePair
 import domain.word.add.model.WordDraft
 import domain.word.add.model.WordOrigin
 import domain.word.add.usecase.AddWordsUseCase
+import domain.tag.model.Tag
+import fakes.FakeTagRepository
 import fakes.FakeWordRepository
 import kotlinx.coroutines.test.runTest
 import utils.Language
@@ -28,11 +30,12 @@ class AddWordsUseCaseTest {
         override fun now(): Instant = Instant.fromEpochMilliseconds(now)
     }
     private val repository = FakeWordRepository()
-    private val useCase = AddWordsUseCase(repository, clock)
+    private val tags = FakeTagRepository()
+    private val useCase = AddWordsUseCase(repository, tags, clock)
     private val germanFromEnglish = LanguagePair(learning = Language.GERMAN, native = Language.ENGLISH)
 
-    private fun draft(term: String, translation: String, note: String = "") =
-        WordDraft.of(term, translation, note).getOrThrow()
+    private fun draft(term: String, translation: String, note: String = "", tags: List<String> = emptyList()) =
+        WordDraft.of(term, translation, note, tags).getOrThrow()
 
     private fun command(vararg drafts: WordDraft, tagIds: Set<Long> = emptySet()) =
         AddWordsCommand(drafts.toList(), germanFromEnglish, tagIds, WordOrigin.Manual)
@@ -123,5 +126,34 @@ class AddWordsUseCaseTest {
 
         assertEquals("db", result.exceptionOrNull()?.message)
         assertEquals(null, result.getOrNull())
+    }
+
+    @Test
+    fun `invoke attaches existing tags named by the draft, matching case-insensitively`() = runTest {
+        tags.tags = listOf(Tag(5L, "Animals", createdAt = 0L, updatedAt = 0L))
+
+        useCase(command(draft("Hund", "dog", tags = listOf("animals")), tagIds = setOf(3L)))
+
+        assertEquals(listOf(3L, 5L), repository.addedWords.single().tagIds)
+        assertTrue(tags.createdNames.isEmpty())
+    }
+
+    @Test
+    fun `invoke creates missing tags once and reuses them across words`() = runTest {
+        useCase(command(draft("Hund", "dog", tags = listOf("A1")), draft("Katze", "cat", tags = listOf("a1"))))
+
+        assertEquals(listOf("A1"), tags.createdNames)
+        val created = tags.tags.single().id
+        assertEquals(listOf(listOf(created), listOf(created)), repository.addedWords.map { it.tagIds })
+    }
+
+    @Test
+    fun `invoke still adds the words when a tag cannot be created`() = runTest {
+        tags.createTagResult = Try.failure(DomainError.Network.NoConnection)
+
+        val outcome = useCase(command(draft("Hund", "dog", tags = listOf("A1")), tagIds = setOf(3L))).getOrThrow()
+
+        assertEquals(1, outcome.added)
+        assertEquals(listOf(3L), repository.addedWords.single().tagIds)
     }
 }

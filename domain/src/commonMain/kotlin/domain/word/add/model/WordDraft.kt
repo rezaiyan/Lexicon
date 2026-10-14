@@ -13,6 +13,8 @@ data class WordDraft private constructor(
     val term: String,
     val translation: String,
     val note: String,
+    /** Tag names to attach (from an imported file); resolved to tags when the word is added. */
+    val tags: List<String> = emptyList(),
 ) {
     /** Case-insensitive identity used to spot duplicates. */
     val key: DraftKey get() = DraftKey(term.lowercase(), translation.lowercase())
@@ -20,8 +22,14 @@ data class WordDraft private constructor(
     companion object {
         const val MAX_TERM_LENGTH = 200
         const val MAX_NOTE_LENGTH = 1_000
+        const val MAX_TAG_LENGTH = 100
 
-        fun of(term: String, translation: String, note: String = ""): Try<WordDraft> {
+        fun of(
+            term: String,
+            translation: String,
+            note: String = "",
+            tags: List<String> = emptyList(),
+        ): Try<WordDraft> {
             val cleanTerm = term.normalizeInline()
             val cleanTranslation = translation.normalizeInline()
             val cleanNote = note.normalizeMultiline()
@@ -34,7 +42,7 @@ data class WordDraft private constructor(
                 else -> null
             }
             return if (reason == null) {
-                Try.success(WordDraft(cleanTerm, cleanTranslation, cleanNote))
+                Try.success(WordDraft(cleanTerm, cleanTranslation, cleanNote, tags.normalizeTags()))
             } else {
                 Try.failure(DomainError.AddWords.InvalidDraft(reason))
             }
@@ -55,6 +63,12 @@ private fun String.normalizeInline(): String =
     filterNot { it.isStrippedControl(keepLineBreaks = false) && !it.isWhitespace() }
         .replace(Whitespace, " ")
         .trim()
+
+/** A tag that can't be stored (blank, too long, repeated) is dropped rather than failing the word. */
+private fun List<String>.normalizeTags(): List<String> =
+    map { it.normalizeInline() }
+        .filter { it.isNotEmpty() && it.length <= WordDraft.MAX_TAG_LENGTH }
+        .distinctBy { it.lowercase() }
 
 private fun String.normalizeMultiline(): String =
     replace("\r\n", "\n").replace('\r', '\n')

@@ -670,4 +670,7 @@
     <string name="support_chars_left">Quedan %1$d caracteres</string>
     <string name="support_not_sent">No enviado</string>
     <string name="support_unread_reply">Nueva respuesta del soporte</string>
+    <string name="share_words_title">Compartir %1$d palabras</string>
+    <string name="include_tags">Incluir etiquetas</string>
+    <string name="include_tags_hint">Añade una columna de etiquetas para que al importar el archivo se recuperen.</string>
 </resources>

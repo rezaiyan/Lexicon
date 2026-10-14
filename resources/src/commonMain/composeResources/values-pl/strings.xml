@@ -829,4 +829,7 @@
     <string name="support_chars_left">Pozostało znaków: %1$d</string>
     <string name="support_not_sent">Nie wysłano</string>
     <string name="support_unread_reply">Nowa odpowiedź od wsparcia</string>
+    <string name="share_words_title">Udostępnij słowa: %1$d</string>
+    <string name="include_tags">Dołącz tagi</string>
+    <string name="include_tags_hint">Dodaje kolumnę tagów, więc import pliku je przywróci.</string>
 </resources>

@@ -1,5 +1,6 @@
 package feature.addwords
 
+import fakes.FakeTagRepository
 import app.cash.turbine.test
 import core.common.Try
 import core.error.DomainError
@@ -27,7 +28,7 @@ class ManualEntryViewModelTest : ViewModelTestBase() {
     private val words = FakeWordRepository()
     private val analytics = FakeAnalyticsTracker()
 
-    private fun createViewModel() = ManualEntryViewModel(AddWordsUseCase(words, Clock.System), analytics)
+    private fun createViewModel() = ManualEntryViewModel(AddWordsUseCase(words, FakeTagRepository(), Clock.System), analytics)
 
     private fun ManualEntryViewModel.type(term: String, translation: String, note: String = "") {
         setTerm(term)
@@ -134,7 +135,7 @@ class ManualEntryViewModelTest : ViewModelTestBase() {
             override suspend fun addWords(words: List<domain.word.model.Word>) =
                 gate.await().let { this@ManualEntryViewModelTest.words.addWords(words) }
         }
-        val vm = ManualEntryViewModel(AddWordsUseCase(slowWords, Clock.System), analytics)
+        val vm = ManualEntryViewModel(AddWordsUseCase(slowWords, FakeTagRepository(), Clock.System), analytics)
         vm.type("Hund", "dog")
 
         vm.add(languages, emptySet())

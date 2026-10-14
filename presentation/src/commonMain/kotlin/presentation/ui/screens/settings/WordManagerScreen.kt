@@ -207,7 +207,22 @@ fun WordManagerScreen() {
                         onDragSelectStart = viewModel::startDragSelection,
                         onDragSelectTo = viewModel::dragSelectionTo,
                         onDragSelectEnd = viewModel::endDragSelection,
-                        onShareWords = viewModel::shareWords,
+                        onShareWords = {
+                            if (state.shareHasTags) {
+                                overlayHost.showSizeToFitBottomSheet(tag = "share-words") { nav ->
+                                    ShareWordsContent(
+                                        count = state.selectedCount.takeIf { it > 0 } ?: state.words.size,
+                                        onShare = { includeTags ->
+                                            viewModel.shareWords(includeTags)
+                                            nav.dismiss()
+                                        },
+                                        onDismiss = { nav.dismiss() },
+                                    )
+                                }
+                            } else {
+                                viewModel.shareWords(includeTags = false)
+                            }
+                        },
                         onSortOptionChange = viewModel::setSortOption,
                         onFilterLanguageChange = viewModel::setFilterLanguage,
                         onFilterLearningStageChange = viewModel::setFilterLearningStage,

@@ -670,4 +670,7 @@
     <string name="support_chars_left">%1$d caractères restants</string>
     <string name="support_not_sent">Non envoyé</string>
     <string name="support_unread_reply">Nouvelle réponse du support</string>
+    <string name="share_words_title">Partager %1$d mots</string>
+    <string name="include_tags">Inclure les tags</string>
+    <string name="include_tags_hint">Ajoute une colonne de tags pour qu'ils soient restaurés à l'import du fichier.</string>
 </resources>

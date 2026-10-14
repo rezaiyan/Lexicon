@@ -2,7 +2,9 @@ package presentation.viewmodel
 
 import domain.word.add.model.AddWordsOutcome
 import analytics.IAnalyticsTracker
+import app.cash.turbine.test
 import core.common.Try
+import feature.words.model.WordManagerEffect
 import domain.focus.model.LearningFocus
 import domain.focus.usecase.ObserveLearningFocusUseCase
 import fakes.FakeLearningFocusRepository
@@ -34,6 +36,7 @@ import utils.Language
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class WordManagerViewModelTest : ViewModelTestBase() {
@@ -104,8 +107,10 @@ class WordManagerViewModelTest : ViewModelTestBase() {
         override fun logNonFatalError(message: String, additionalInfo: Map<String, Any>?) {}
     }
 
+    private var tags: List<Tag> = emptyList()
+
     private fun fakeTagRepo() = object : ITagRepository {
-        override fun getTags(): Flow<List<Tag>> = flowOf(emptyList())
+        override fun getTags(): Flow<List<Tag>> = flowOf(tags)
         override fun getTagsByLevel(): Flow<Map<Int, List<Tag>>> = flowOf(emptyMap())
         override fun getDueTags(): Flow<List<Tag>> = flowOf(emptyList())
         override suspend fun createTag(name: String): Try<Tag> = Try.success(Tag(1L, name, 0L, 0L, 0L))
@@ -394,5 +399,41 @@ class WordManagerViewModelTest : ViewModelTestBase() {
 
         assertFalse(vm.currentState.isFiltered)
         assertEquals(3, vm.currentState.filteredWords.size)
+    }
+
+    @Test
+    fun `shareHasTags is true only when a word being shared has a tag`() = runTest {
+        wordsFlow.value = listOf(testWord(1).copy(tagIds = listOf(9L)), testWord(2))
+        val vm = createViewModel()
+
+        assertTrue(vm.currentState.shareHasTags)
+        vm.toggleWordSelection(2)
+        assertFalse(vm.currentState.shareHasTags)
+    }
+
+    @Test
+    fun `shareWords with tags exports a tags column`() = runTest {
+        tags = listOf(Tag(9L, "animals", 0L, 0L, 0L))
+        wordsFlow.value = listOf(testWord(1, original = "Hund").copy(tagIds = listOf(9L)))
+        val vm = createViewModel()
+
+        vm.effects.test {
+            vm.shareWords(includeTags = true)
+            val shared = assertIs<WordManagerEffect.WordsShared>(awaitItem())
+            assertEquals("word,translation,note,tags\nHund,trans1,desc1,animals", shared.text)
+        }
+    }
+
+    @Test
+    fun `shareWords without tags keeps the compact format`() = runTest {
+        tags = listOf(Tag(9L, "animals", 0L, 0L, 0L))
+        wordsFlow.value = listOf(testWord(1, original = "Hund").copy(tagIds = listOf(9L)))
+        val vm = createViewModel()
+
+        vm.effects.test {
+            vm.shareWords(includeTags = false)
+            val shared = assertIs<WordManagerEffect.WordsShared>(awaitItem())
+            assertEquals("Hund,trans1,desc1", shared.text)
+        }
     }
 }

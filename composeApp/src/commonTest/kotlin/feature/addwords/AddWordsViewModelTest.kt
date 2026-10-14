@@ -50,7 +50,7 @@ class AddWordsViewModelTest : ViewModelTestBase() {
     private fun createViewModel() = AddWordsViewModel(
         resolveLanguages = ResolveAddWordsLanguagesUseCase(languages, FakeLearningFocusRepository()),
         languageRepository = languages,
-        addWords = AddWordsUseCase(words, Clock.System),
+        addWords = AddWordsUseCase(words, tags, Clock.System),
         getTags = GetTagsUseCase(tags),
         createTagUseCase = CreateTagUseCase(tags),
         observeCredits = ObserveCreditsUseCase(credits),

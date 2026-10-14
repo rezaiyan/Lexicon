@@ -152,4 +152,30 @@ class VocabularyTextParserTest {
             report.drafts.map { it.term to it.translation },
         )
     }
+
+    @Test
+    fun `parse tags column from header`() {
+        val drafts = VocabularyTextParser.parse("word,translation,note,tags\nHund,dog,a pet,\"animals;A1\"\nKatze,cat,,pets").drafts
+
+        assertEquals(listOf("animals", "A1"), drafts[0].tags)
+        assertEquals("a pet", drafts[0].note)
+        assertEquals(listOf("pets"), drafts[1].tags)
+        assertEquals("", drafts[1].note)
+    }
+
+    @Test
+    fun `parse tags column may sit anywhere after the translation`() {
+        val draft = VocabularyTextParser.parse("term\tmeaning\ttag\tnotes\nHund\tdog\tanimals|A1\tloyal").drafts.single()
+
+        assertEquals(listOf("animals", "A1"), draft.tags)
+        assertEquals("loyal", draft.note)
+    }
+
+    @Test
+    fun `parse without tags header keeps fourth column in the note`() {
+        val draft = VocabularyTextParser.parse("Hund,dog,a pet,animals").drafts.single()
+
+        assertEquals(emptyList(), draft.tags)
+        assertEquals("a pet, animals", draft.note)
+    }
 }

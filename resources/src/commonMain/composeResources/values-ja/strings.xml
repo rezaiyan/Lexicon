@@ -829,4 +829,7 @@
     <string name="support_chars_left">残り %1$d 文字</string>
     <string name="support_not_sent">未送信</string>
     <string name="support_unread_reply">サポートから新しい返信</string>
+    <string name="share_words_title">%1$d語を共有</string>
+    <string name="include_tags">タグを含める</string>
+    <string name="include_tags_hint">タグ列を追加し、ファイルを読み込むとタグも復元されます。</string>
 </resources>

@@ -293,10 +293,11 @@ class WordManagerViewModel(
         }
     }
 
-    fun shareWords() {
+    fun shareWords(includeTags: Boolean) {
         exportHandler.shareWords(
             words = currentState.words,
-            selectedWordIds = currentState.selectedWordIds
+            selectedWordIds = currentState.selectedWordIds,
+            tags = currentState.tags.takeIf { includeTags },
         )
     }
 

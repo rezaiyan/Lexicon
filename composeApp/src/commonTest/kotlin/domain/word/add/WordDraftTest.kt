@@ -95,4 +95,18 @@ class WordDraftTest {
     fun `LanguagePair orNull returns null for identical languages`() {
         assertNull(LanguagePair.orNull(Language.GERMAN, Language.GERMAN))
     }
+
+    @Test
+    fun `of trims tags, drops blanks and case-insensitive duplicates`() {
+        val draft = WordDraft.of("Hund", "dog", tags = listOf(" animals ", "", "Animals", "A1")).getOrNull()
+
+        assertEquals(listOf("animals", "A1"), draft?.tags)
+    }
+
+    @Test
+    fun `of drops tags longer than the server limit`() {
+        val draft = WordDraft.of("Hund", "dog", tags = listOf("x".repeat(WordDraft.MAX_TAG_LENGTH + 1), "ok")).getOrNull()
+
+        assertEquals(listOf("ok"), draft?.tags)
+    }
 }

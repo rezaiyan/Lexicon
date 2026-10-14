@@ -669,4 +669,7 @@
     <string name="support_chars_left">%1$d نویسه باقی مانده</string>
     <string name="support_not_sent">ارسال نشد</string>
     <string name="support_unread_reply">پاسخ جدید از پشتیبانی</string>
+    <string name="share_words_title">اشتراک‌گذاری %1$d واژه</string>
+    <string name="include_tags">شامل برچسب‌ها</string>
+    <string name="include_tags_hint">یک ستون برچسب اضافه می‌کند تا با وارد کردن فایل، برچسب‌ها برگردند.</string>
 </resources>

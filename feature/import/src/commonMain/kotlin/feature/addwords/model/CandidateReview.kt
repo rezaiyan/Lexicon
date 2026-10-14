@@ -49,7 +49,8 @@ data class CandidateReview(
     /** Replaces the word being edited; fails (review unchanged) when the edit is not a valid word. */
     fun saveEdit(term: String, translation: String, note: String): Try<CandidateReview> {
         val id = editingId ?: return Try.success(this)
-        return WordDraft.of(term, translation, note).map { draft ->
+        val tags = editing?.draft?.tags.orEmpty()
+        return WordDraft.of(term, translation, note, tags).map { draft ->
             copy(
                 candidates = candidates.map { if (it.id == id) it.copy(draft = draft, selected = true) else it },
                 editingId = null,

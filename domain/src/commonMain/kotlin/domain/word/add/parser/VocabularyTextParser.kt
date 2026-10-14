@@ -17,7 +17,9 @@ enum class RejectReason { MissingTranslation, TooLong, Malformed }
  * Supports comma / tab / semicolon / pipe separated lines, RFC-4180 quoting (fields may contain the
  * separator, escaped quotes and line breaks), a byte order mark, Windows line endings, `#` and `//`
  * comments, a header row, and the legacy single-line `word,translation;word,translation` format.
- * Columns: term, translation, optional note (any extra columns are folded into the note).
+ * Columns: term, translation, optional note (any extra columns are folded into the note). A header row may
+ * name a tags column (`tags`, `tag`, `labels`, `label`) after the translation; its `;`, `,` or `|` separated
+ * names become the draft's tags.
  * Pure: no I/O, never throws.
  */
 object VocabularyTextParser {
@@ -28,6 +30,8 @@ object VocabularyTextParser {
         "word", "words", "term", "front", "original", "source", "vocabulary",
         "translation", "meaning", "back", "definition", "target", "description", "note", "notes",
     )
+    private val TagHeaders = setOf("tags", "tag", "labels", "label")
+    private val TagSeparators = Regex("[;,|]")
 
     fun parse(text: String): ParseReport {
         val normalized = text.removePrefix("﻿").replace("\r\n", "\n").replace('\r', '\n')
@@ -38,16 +42,20 @@ object VocabularyTextParser {
             .filterNot { it.raw.isBlank() || it.isComment() }
             .flatMap { it.expandLegacy(delimiter) }
             .map { it.splitByOwnDelimiter() }
-            .let { if (it.firstOrNull()?.isHeader() == true) it.drop(1) else it }
+        val header = records.firstOrNull()?.takeIf { it.isHeader() }
+        val tagColumn = header?.tagColumn()
 
         val drafts = mutableListOf<WordDraft>()
         val rejected = mutableListOf<RejectedLine>()
-        records.forEach { record ->
+        records.drop(if (header != null) 1 else 0).forEach { record ->
             val fields = record.fields.map { it.trim() }
+            val extra = fields.withIndex().drop(2)
             WordDraft.of(
                 term = fields.first(),
                 translation = fields.getOrElse(1) { "" },
-                note = fields.drop(2).joinToString(noteJoiner(record.delimiter ?: delimiter)),
+                note = extra.filter { it.index != tagColumn }
+                    .joinToString(noteJoiner(record.delimiter ?: delimiter)) { it.value },
+                tags = tagColumn?.let { fields.getOrNull(it) }?.split(TagSeparators).orEmpty(),
             ).fold(
                 onSuccess = { drafts += it },
                 onFailure = { error ->
@@ -86,6 +94,9 @@ object VocabularyTextParser {
 
         fun isHeader(): Boolean = fields.size >= 2 &&
             fields.take(2).all { it.trim().lowercase() in HeaderWords }
+
+        /** Index of the header's tags column; only columns after the translation count. */
+        fun tagColumn(): Int? = fields.indexOfFirst { it.trim().lowercase() in TagHeaders }.takeIf { it >= 2 }
 
         /** `a,b;c,d` on one line: the old app and AI format used `;` between entries. */
         fun expandLegacy(delimiter: Char): List<Record> {

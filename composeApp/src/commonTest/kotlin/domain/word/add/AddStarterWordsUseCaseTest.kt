@@ -1,5 +1,6 @@
 package domain.word.add
 
+import fakes.FakeTagRepository
 import core.common.getOrThrow
 import domain.onboarding.model.SuggestedVocabulary
 import domain.word.add.model.AddWordsOutcome
@@ -19,7 +20,7 @@ class AddStarterWordsUseCaseTest {
 
     private val words = FakeWordRepository()
     private val languages = FakeAddWordsLanguageRepository()
-    private val useCase = AddStarterWordsUseCase(AddWordsUseCase(words, Clock.System), languages)
+    private val useCase = AddStarterWordsUseCase(AddWordsUseCase(words, FakeTagRepository(), Clock.System), languages)
 
     private fun starter(term: String, translation: String) =
         SuggestedVocabulary(term, translation, "", sourceLanguage = Language.ENGLISH, targetLanguage = Language.GERMAN)

@@ -1,5 +1,6 @@
 package presentation.viewmodel
 
+import fakes.FakeTagRepository
 import domain.word.add.model.AddWordsOutcome
 import core.common.NoParamUseCase
 import core.common.Try
@@ -109,7 +110,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             retryAnalyticsSyncUseCase = retryAnalyticsSyncUseCase,
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, FakeTagRepository(), Clock.System), FakeAddWordsLanguageRepository()),
             uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
             analytics = analytics,
         )
@@ -167,7 +168,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, FakeTagRepository(), Clock.System), FakeAddWordsLanguageRepository()),
             uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
             analytics = analytics,
         )
@@ -194,7 +195,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, FakeTagRepository(), Clock.System), FakeAddWordsLanguageRepository()),
             uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
             analytics = analytics,
         )
@@ -212,7 +213,7 @@ class AppNavigationViewModelTest : ViewModelTestBase() {
             retryAnalyticsSyncUseCase = FakeRetryAnalyticsSyncUseCase(),
             determineAppStartupStateUseCase = DetermineAppStartupStateUseCase(onboardingRepo),
             determinePostAuthDestinationUseCase = DeterminePostAuthDestinationUseCase(onboardingRepo, wordRepo),
-            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, Clock.System), FakeAddWordsLanguageRepository()),
+            addStarterWordsUseCase = AddStarterWordsUseCase(AddWordsUseCase(wordRepo, FakeTagRepository(), Clock.System), FakeAddWordsLanguageRepository()),
             uploadPendingWordsUseCase = UploadPendingWordsUseCase(wordRepo),
             analytics = analytics,
         )

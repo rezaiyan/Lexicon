@@ -670,4 +670,7 @@
     <string name="support_chars_left">Noch %1$d Zeichen</string>
     <string name="support_not_sent">Nicht gesendet</string>
     <string name="support_unread_reply">Neue Antwort vom Support</string>
+    <string name="share_words_title">%1$d Wörter teilen</string>
+    <string name="include_tags">Tags einschließen</string>
+    <string name="include_tags_hint">Fügt eine Tag-Spalte hinzu, damit ein Import die Tags wiederherstellt.</string>
 </resources>

@@ -1284,4 +1284,7 @@
     <string name="ai_wizard_describe_subtitle">Describe it, pick a few options, or choose topics. All optional.</string>
     <string name="ai_wizard_or_topics">Or pick topics</string>
     <string name="ai_action_with_cost">%1$s · %2$s</string>
+    <string name="share_words_title">Share %1$d words</string>
+    <string name="include_tags">Include tags</string>
+    <string name="include_tags_hint">Adds a tags column, so importing the file restores them.</string>
 </resources>
