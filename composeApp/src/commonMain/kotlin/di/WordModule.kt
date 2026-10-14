@@ -48,6 +48,7 @@ import domain.word.usecase.LoadReviewQueueUseCase
 import domain.word.usecase.GetProgressStatsUseCase
 import domain.word.usecase.GetWordsByStageUseCase
 import domain.word.usecase.FlushReviewSyncQueueUseCase
+import domain.word.usecase.RefreshWordsUseCase
 import domain.word.usecase.ReviewWordUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
 import domain.word.usecase.UpdateWordUseCase
@@ -109,6 +110,7 @@ fun wordModule() = module {
     singleOf(::IsAiAvailableUseCase)
     singleOf(::SyncRemoteToLocalUseCase)
     singleOf(::FlushReviewSyncQueueUseCase)
+    singleOf(::RefreshWordsUseCase)
 
     // Use Cases - Word Management
     singleOf(::GetAllWordsUseCase)

@@ -111,6 +111,7 @@ internal class FakeWordLocalDataSource : IWordLocalDataSource {
 
 internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
     var syncWordsToRemoteCallCount = 0
+    var lastUpdatedAfter: Long? = null
     var syncWordUpdateCallCount = 0
     var syncWordDeletionCallCount = 0
     var syncFromRemoteCallCount = 0
@@ -166,6 +167,7 @@ internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
 
     override suspend fun syncFromRemote(updatedAfter: Long): Try<List<RemoteWord>> {
         syncFromRemoteCallCount++
+        lastUpdatedAfter = updatedAfter
         return if (shouldFailSyncFromRemote) {
             Try.failure(RuntimeException("Remote fetch failed"))
         } else {

@@ -45,6 +45,10 @@ class WordRepositoryImpl(
 
     companion object {
         private const val SYNC_FRESH_THRESHOLD_MS = 30_000L
+
+        // The server compares its own clock with this device's last-sync time. Asking from a bit
+        // earlier keeps a fast device clock from skipping changes; re-pulled words just overwrite.
+        private const val SYNC_CLOCK_SKEW_MS = 10 * 60_000L
     }
 
     override suspend fun getAllWordsAsync(): Try<List<Word>> {
@@ -194,7 +198,8 @@ class WordRepositoryImpl(
         val syncStartedAt = Clock.System.now().toEpochMilliseconds()
         if (syncStartedAt - lastSyncedAt < SYNC_FRESH_THRESHOLD_MS) return Try.success(Unit)
         return Try {
-            val remoteWordsResult = remoteSyncHandler.syncFromRemote(updatedAfter = lastSyncedAt)
+            val updatedAfter = if (lastSyncedAt > 0) (lastSyncedAt - SYNC_CLOCK_SKEW_MS).coerceAtLeast(1) else 0L
+            val remoteWordsResult = remoteSyncHandler.syncFromRemote(updatedAfter = updatedAfter)
 
             remoteWordsResult.fold(
                 onSuccess = { remoteWords ->

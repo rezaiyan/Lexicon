@@ -6,6 +6,8 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Clock
+
 class WordRepositoryImplTest {
 
     // -------------------------------------------------------------------------
@@ -269,6 +271,28 @@ class WordRepositoryImplTest {
         repo.syncWithRemote()  // second call — should be suppressed by timestamp guard
 
         assertEquals(1, remote.syncFromRemoteCallCount)
+    }
+
+    @Test
+    fun `syncWithRemote pulls from a few minutes before the last sync to absorb clock skew`() = runTest {
+        val remote = FakeWordRemoteSyncHandler()
+        val lastSync = Clock.System.now().toEpochMilliseconds() - 60 * 60_000L
+        val settings = FakeSettingsLocalDataSource().apply { wordSyncTimestamp = lastSync }
+        val repo = makeRepository(remote = remote, settings = settings)
+
+        repo.syncWithRemote()
+
+        assertEquals(lastSync - 10 * 60_000L, remote.lastUpdatedAfter)
+    }
+
+    @Test
+    fun `syncWithRemote pulls everything on the first sync`() = runTest {
+        val remote = FakeWordRemoteSyncHandler()
+        val repo = makeRepository(remote = remote)
+
+        repo.syncWithRemote()
+
+        assertEquals(0L, remote.lastUpdatedAfter)
     }
 
     // -------------------------------------------------------------------------

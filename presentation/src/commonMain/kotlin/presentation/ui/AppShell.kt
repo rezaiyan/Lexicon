@@ -44,6 +44,7 @@ import domain.credits.usecase.RefreshCreditsUseCase
 import domain.settings.usecase.SyncDeviceTimezoneUseCase
 import domain.subscription.usecase.RefreshFeatureAccessUseCase
 import domain.support.usecase.SyncSupportRepliesUseCase
+import domain.word.usecase.RefreshWordsUseCase
 import kotlinx.coroutines.launch
 import presentation.model.SettingsRoute
 import presentation.model.TabDestination
@@ -68,16 +69,19 @@ internal fun AppContent(
     // Same for the AI credit balance: a renewal reset or a purchase on another device changes it.
     // And the device timezone (the user may have travelled), so pushes arrive at local hours.
     // And support replies, so the unread dots show without opening the chat.
+    // And words changed elsewhere (another device, an AI client), so the lists are current.
     val refreshFeatureAccess = koinInject<RefreshFeatureAccessUseCase>()
     val refreshCredits = koinInject<RefreshCreditsUseCase>()
     val syncDeviceTimezone = koinInject<SyncDeviceTimezoneUseCase>()
     val syncSupportReplies = koinInject<SyncSupportRepliesUseCase>()
+    val refreshWords = koinInject<RefreshWordsUseCase>()
     val scope = rememberCoroutineScope()
-    LifecycleResumeEffect(refreshFeatureAccess, refreshCredits, syncDeviceTimezone, syncSupportReplies) {
+    LifecycleResumeEffect(refreshFeatureAccess, refreshCredits, syncDeviceTimezone, syncSupportReplies, refreshWords) {
         scope.launch { refreshFeatureAccess() }
         scope.launch { refreshCredits() }
         scope.launch { syncDeviceTimezone() }
         scope.launch { syncSupportReplies(Unit) }
+        scope.launch { refreshWords(Unit) }
         onPauseOrDispose { }
     }
 
