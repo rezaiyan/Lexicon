@@ -60,11 +60,14 @@ tags:
 
 # Tap the newest photo (the asset pushed via addMedia). Matched by its label, not a
 # screen point: banners like "Choose cloud media app" shift the grid down.
+# The photo picker (Android 13+) labels it "Photo taken on …"; DocumentsUI on the
+# API 31 CI emulator labels it "german-vocab-worksheet.jpg, 88 kB, …". The "kB" keeps
+# the match off DocumentsUI's "Preview the file …" icon, which opens a preview instead.
 - extendedWaitUntil:
-    visible: "Photo taken on.*"
+    visible: "Photo taken on.*|german-vocab-worksheet.*kB.*"
     timeout: 10000
 - tapOn:
-    text: "Photo taken on.*"
+    text: "Photo taken on.*|german-vocab-worksheet.*kB.*"
     index: 0
 - waitForAnimationToEnd
 - waitForAnimationToEnd
