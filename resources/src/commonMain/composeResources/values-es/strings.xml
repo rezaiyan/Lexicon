@@ -674,4 +674,18 @@
     <string name="include_tags">Incluir etiquetas</string>
     <string name="include_tags_hint">Añade una columna de etiquetas para que al importar el archivo se recuperen.</string>
     <string name="format_example_tags">Encabezado word,translation,note,tags añade etiquetas (separadas con ;)</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">Apps conectadas</string>
+    <string name="connected_apps_subtitle">Asistentes de IA que pueden usar tus palabras</string>
+    <string name="connected_apps_sheet_subtitle">Estas apps de IA pueden usar tus palabras de Lexicon. Desconecta las que ya no uses.</string>
+    <string name="connected_apps_empty">No hay apps conectadas.</string>
+    <string name="connected_app_access_read_words">Ver palabras</string>
+    <string name="connected_app_access_add_words">Añadir palabras</string>
+    <string name="connected_app_access_read_progress">Ver progreso</string>
+    <string name="connected_app_disconnecting">Desconectando…</string>
+    <string name="connected_app_disconnect_failed">No se pudo desconectar. Toca para reintentar.</string>
+    <string name="connected_app_disconnect_title">¿Desconectar %1$s?</string>
+    <string name="connected_app_disconnect_message">%1$s pierde el acceso a tus palabras al instante. Tus palabras no cambian y puedes volver a conectarla cuando quieras.</string>
+    <string name="connected_app_disconnect">Desconectar</string>
 </resources>

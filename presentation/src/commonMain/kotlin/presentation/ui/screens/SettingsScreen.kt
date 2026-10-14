@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import components.GroupedSection
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+import feature.settings.ConnectedAppsViewModel
 import feature.settings.SettingsViewModel
 import components.scaffold.LexiconColumn
 import overlay.LocalOverlayHost
@@ -21,6 +22,8 @@ import presentation.ui.components.DailyGoalContent
 import feature.support.SupportBadgeViewModel
 import feature.support.navigation.showSupport
 import presentation.ui.components.settings.AboutSettingsCard
+import presentation.ui.components.settings.ConnectedAppsSettingsCard
+import presentation.ui.components.settings.showConnectedAppsSheet
 import presentation.ui.components.settings.DailyGoalSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
 import presentation.ui.components.settings.SupportSettingsCard
@@ -67,6 +70,8 @@ private fun SettingsSections() {
     val supportBadge = koinViewModel<SupportBadgeViewModel>()
     val supportUnread by supportBadge.state()
     LaunchedEffect(supportBadge) { supportBadge.onSettingsOpened() }
+    val connectedAppsViewModel = koinViewModel<ConnectedAppsViewModel>()
+    val connectedApps by connectedAppsViewModel.state()
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
         GroupedSection(title = stringResource(Res.string.learning)) {
@@ -173,6 +178,10 @@ private fun SettingsSections() {
                 hasUnreadReply = supportUnread.inChat,
                 onClick = { overlayHost.showSupport() },
             )
+
+            if (connectedApps.apps.isNotEmpty()) {
+                ConnectedAppsSettingsCard(onClick = { overlayHost.showConnectedAppsSheet(connectedAppsViewModel) })
+            }
 
             AboutSettingsCard(appVersion = state.appVersion, showDivider = false)
         }

@@ -674,4 +674,18 @@
     <string name="include_tags">包含标签</string>
     <string name="include_tags_hint">添加标签列，导入文件时会恢复标签。</string>
     <string name="format_example_tags">标题行 word,translation,note,tags 可添加标签（用 ; 分隔）</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">已连接的应用</string>
+    <string name="connected_apps_subtitle">可以使用你单词的 AI 助手</string>
+    <string name="connected_apps_sheet_subtitle">这些 AI 应用可以使用你在 Lexicon 中的单词。不再使用的应用可以断开连接。</string>
+    <string name="connected_apps_empty">没有已连接的应用。</string>
+    <string name="connected_app_access_read_words">查看单词</string>
+    <string name="connected_app_access_add_words">添加单词</string>
+    <string name="connected_app_access_read_progress">查看进度</string>
+    <string name="connected_app_disconnecting">正在断开…</string>
+    <string name="connected_app_disconnect_failed">断开失败，点按重试。</string>
+    <string name="connected_app_disconnect_title">断开 %1$s？</string>
+    <string name="connected_app_disconnect_message">%1$s 将立即失去对你单词的访问权限。你的单词保持不变，你可以随时重新连接。</string>
+    <string name="connected_app_disconnect">断开连接</string>
 </resources>

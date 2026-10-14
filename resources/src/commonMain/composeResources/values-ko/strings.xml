@@ -833,4 +833,18 @@
     <string name="include_tags">태그 포함</string>
     <string name="include_tags_hint">태그 열을 추가해 파일을 가져오면 태그도 복원됩니다.</string>
     <string name="format_example_tags">머리글 word,translation,note,tags 로 태그 추가 (; 로 구분)</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">연결된 앱</string>
+    <string name="connected_apps_subtitle">내 단어를 사용할 수 있는 AI 어시스턴트</string>
+    <string name="connected_apps_sheet_subtitle">이 AI 앱들은 내 Lexicon 단어를 사용할 수 있어요. 더 이상 쓰지 않는 앱은 연결을 해제하세요.</string>
+    <string name="connected_apps_empty">연결된 앱이 없어요.</string>
+    <string name="connected_app_access_read_words">단어 보기</string>
+    <string name="connected_app_access_add_words">단어 추가</string>
+    <string name="connected_app_access_read_progress">진도 보기</string>
+    <string name="connected_app_disconnecting">연결 해제 중…</string>
+    <string name="connected_app_disconnect_failed">연결을 해제하지 못했어요. 탭해서 다시 시도하세요.</string>
+    <string name="connected_app_disconnect_title">%1$s 연결을 해제할까요?</string>
+    <string name="connected_app_disconnect_message">%1$s은(는) 즉시 내 단어에 접근할 수 없게 돼요. 단어는 그대로 남고, 언제든 다시 연결할 수 있어요.</string>
+    <string name="connected_app_disconnect">연결 해제</string>
 </resources>

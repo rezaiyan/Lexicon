@@ -833,4 +833,18 @@
     <string name="include_tags">Dołącz tagi</string>
     <string name="include_tags_hint">Dodaje kolumnę tagów, więc import pliku je przywróci.</string>
     <string name="format_example_tags">Nagłówek word,translation,note,tags dodaje tagi (oddziel ;)</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">Połączone aplikacje</string>
+    <string name="connected_apps_subtitle">Asystenci AI, którzy mogą korzystać z Twoich słówek</string>
+    <string name="connected_apps_sheet_subtitle">Te aplikacje AI mogą korzystać z Twoich słówek w Lexicon. Odłącz te, których już nie używasz.</string>
+    <string name="connected_apps_empty">Brak połączonych aplikacji.</string>
+    <string name="connected_app_access_read_words">Widzi słówka</string>
+    <string name="connected_app_access_add_words">Dodaje słówka</string>
+    <string name="connected_app_access_read_progress">Widzi postępy</string>
+    <string name="connected_app_disconnecting">Odłączanie…</string>
+    <string name="connected_app_disconnect_failed">Nie udało się odłączyć. Dotknij, aby spróbować ponownie.</string>
+    <string name="connected_app_disconnect_title">Odłączyć %1$s?</string>
+    <string name="connected_app_disconnect_message">%1$s od razu traci dostęp do Twoich słówek. Słówka zostają bez zmian, a aplikację możesz połączyć ponownie w każdej chwili.</string>
+    <string name="connected_app_disconnect">Odłącz</string>
 </resources>

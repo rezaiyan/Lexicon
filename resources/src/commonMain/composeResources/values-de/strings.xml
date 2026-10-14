@@ -674,4 +674,18 @@
     <string name="include_tags">Tags einschließen</string>
     <string name="include_tags_hint">Fügt eine Tag-Spalte hinzu, damit ein Import die Tags wiederherstellt.</string>
     <string name="format_example_tags">Kopfzeile word,translation,note,tags fügt Tags hinzu (mit ; trennen)</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">Verbundene Apps</string>
+    <string name="connected_apps_subtitle">KI-Assistenten, die deine Wörter nutzen können</string>
+    <string name="connected_apps_sheet_subtitle">Diese KI-Apps können deine Lexicon-Wörter nutzen. Trenne alle, die du nicht mehr verwendest.</string>
+    <string name="connected_apps_empty">Keine Apps verbunden.</string>
+    <string name="connected_app_access_read_words">Wörter sehen</string>
+    <string name="connected_app_access_add_words">Wörter hinzufügen</string>
+    <string name="connected_app_access_read_progress">Fortschritt sehen</string>
+    <string name="connected_app_disconnecting">Wird getrennt…</string>
+    <string name="connected_app_disconnect_failed">Trennen fehlgeschlagen. Tippe, um es erneut zu versuchen.</string>
+    <string name="connected_app_disconnect_title">%1$s trennen?</string>
+    <string name="connected_app_disconnect_message">%1$s verliert sofort den Zugriff auf deine Wörter. Deine Wörter bleiben unverändert, und du kannst die App jederzeit wieder verbinden.</string>
+    <string name="connected_app_disconnect">Trennen</string>
 </resources>

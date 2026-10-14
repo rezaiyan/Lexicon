@@ -833,4 +833,18 @@
     <string name="include_tags">タグを含める</string>
     <string name="include_tags_hint">タグ列を追加し、ファイルを読み込むとタグも復元されます。</string>
     <string name="format_example_tags">見出し行 word,translation,note,tags でタグを追加（; で区切る）</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">連携中のアプリ</string>
+    <string name="connected_apps_subtitle">単語を使えるAIアシスタント</string>
+    <string name="connected_apps_sheet_subtitle">これらのAIアプリはLexiconの単語を使えます。使わなくなったアプリは連携を解除してください。</string>
+    <string name="connected_apps_empty">連携中のアプリはありません。</string>
+    <string name="connected_app_access_read_words">単語の閲覧</string>
+    <string name="connected_app_access_add_words">単語の追加</string>
+    <string name="connected_app_access_read_progress">進捗の閲覧</string>
+    <string name="connected_app_disconnecting">解除中…</string>
+    <string name="connected_app_disconnect_failed">解除できませんでした。タップして再試行。</string>
+    <string name="connected_app_disconnect_title">%1$sの連携を解除しますか？</string>
+    <string name="connected_app_disconnect_message">%1$sはすぐに単語へアクセスできなくなります。単語はそのまま残り、いつでも再連携できます。</string>
+    <string name="connected_app_disconnect">連携を解除</string>
 </resources>

@@ -1288,4 +1288,18 @@
     <string name="include_tags">Include tags</string>
     <string name="include_tags_hint">Adds a tags column, so importing the file restores them.</string>
     <string name="format_example_tags">Header word,translation,note,tags adds tags (split with ;)</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">Connected apps</string>
+    <string name="connected_apps_subtitle">AI assistants that can use your words</string>
+    <string name="connected_apps_sheet_subtitle">These AI apps can use your Lexicon words. Disconnect any you no longer use.</string>
+    <string name="connected_apps_empty">No apps are connected.</string>
+    <string name="connected_app_access_read_words">See words</string>
+    <string name="connected_app_access_add_words">Add words</string>
+    <string name="connected_app_access_read_progress">See progress</string>
+    <string name="connected_app_disconnecting">Disconnecting…</string>
+    <string name="connected_app_disconnect_failed">Couldn't disconnect. Tap to try again.</string>
+    <string name="connected_app_disconnect_title">Disconnect %1$s?</string>
+    <string name="connected_app_disconnect_message">%1$s loses access to your words right away. Your words stay as they are, and you can connect it again anytime.</string>
+    <string name="connected_app_disconnect">Disconnect</string>
 </resources>

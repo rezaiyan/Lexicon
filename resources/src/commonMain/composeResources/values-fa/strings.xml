@@ -673,4 +673,18 @@
     <string name="include_tags">شامل برچسب‌ها</string>
     <string name="include_tags_hint">یک ستون برچسب اضافه می‌کند تا با وارد کردن فایل، برچسب‌ها برگردند.</string>
     <string name="format_example_tags">سطر عنوان word,translation,note,tags برچسب اضافه می‌کند (جدا با ;)</string>
+
+    <!-- Connected AI apps (MCP) -->
+    <string name="connected_apps">برنامه‌های متصل</string>
+    <string name="connected_apps_subtitle">دستیارهای هوش مصنوعی که می‌توانند از واژه‌هایت استفاده کنند</string>
+    <string name="connected_apps_sheet_subtitle">این برنامه‌های هوش مصنوعی می‌توانند از واژه‌های Lexicon تو استفاده کنند. هر کدام را که دیگر استفاده نمی‌کنی قطع کن.</string>
+    <string name="connected_apps_empty">هیچ برنامه‌ای متصل نیست.</string>
+    <string name="connected_app_access_read_words">دیدن واژه‌ها</string>
+    <string name="connected_app_access_add_words">افزودن واژه</string>
+    <string name="connected_app_access_read_progress">دیدن پیشرفت</string>
+    <string name="connected_app_disconnecting">در حال قطع اتصال…</string>
+    <string name="connected_app_disconnect_failed">قطع اتصال انجام نشد. برای تلاش دوباره ضربه بزن.</string>
+    <string name="connected_app_disconnect_title">اتصال %1$s قطع شود؟</string>
+    <string name="connected_app_disconnect_message">%1$s فوراً دسترسی به واژه‌هایت را از دست می‌دهد. واژه‌هایت دست‌نخورده می‌مانند و هر وقت بخواهی می‌توانی دوباره وصلش کنی.</string>
+    <string name="connected_app_disconnect">قطع اتصال</string>
 </resources>
