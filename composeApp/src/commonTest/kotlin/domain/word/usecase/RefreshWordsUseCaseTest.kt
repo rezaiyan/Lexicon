@@ -1,8 +1,10 @@
 package domain.word.usecase
 
 import core.common.Try
+import domain.tag.usecase.SyncTagsFromRemoteUseCase
 import domain.word.model.Word
 import fakes.FakeReviewSyncRepository
+import fakes.FakeTagRepository
 import fakes.FakeWordRepository
 import kotlinx.coroutines.test.runTest
 import utils.Language
@@ -15,13 +17,36 @@ class RefreshWordsUseCaseTest {
 
     private val reviewSync = FakeReviewSyncRepository()
     private val words = FakeWordRepository()
-    private val useCase = RefreshWordsUseCase(FlushReviewSyncQueueUseCase(reviewSync, words), words)
+    private val tags = FakeTagRepository()
+    private val useCase = RefreshWordsUseCase(
+        FlushReviewSyncQueueUseCase(reviewSync, words),
+        words,
+        SyncTagsFromRemoteUseCase(tags),
+    )
 
     @Test
     fun `invoke with no pending reviews pulls words`() = runTest {
         val result = useCase(Unit)
 
         assertTrue(result.isSuccess)
+        assertTrue(words.syncWithRemoteCalled)
+    }
+
+    @Test
+    fun `invoke pulls tags too so tags made elsewhere show up`() = runTest {
+        val result = useCase(Unit)
+
+        assertTrue(result.isSuccess)
+        assertTrue(tags.syncTagsFromRemoteCalled)
+    }
+
+    @Test
+    fun `invoke when the tag pull fails still pulls words and returns failure`() = runTest {
+        tags.syncTagsFromRemoteResult = Try.failure(RuntimeException("server down"))
+
+        val result = useCase(Unit)
+
+        assertTrue(result.isFailure)
         assertTrue(words.syncWithRemoteCalled)
     }
 
@@ -47,6 +72,7 @@ class RefreshWordsUseCaseTest {
 
         assertTrue(result.isFailure)
         assertFalse(words.syncWithRemoteCalled)
+        assertFalse(tags.syncTagsFromRemoteCalled)
         assertEquals(listOf(1), reviewSync.pendingIds)
     }
 
