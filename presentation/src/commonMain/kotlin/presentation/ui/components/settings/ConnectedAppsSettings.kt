@@ -22,6 +22,7 @@ import feature.settings.ConnectedAppsViewModel
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.cancel
 import lexicon.resources.generated.resources.connected_app_access_add_words
+import lexicon.resources.generated.resources.connected_app_access_delete_words
 import lexicon.resources.generated.resources.connected_app_access_read_progress
 import lexicon.resources.generated.resources.connected_app_access_read_words
 import lexicon.resources.generated.resources.connected_app_disconnect
@@ -136,6 +137,7 @@ private fun Set<ConnectedAppAccess>.label(): String? {
         when (access) {
             ConnectedAppAccess.READ_WORDS -> stringResource(Res.string.connected_app_access_read_words)
             ConnectedAppAccess.ADD_WORDS -> stringResource(Res.string.connected_app_access_add_words)
+            ConnectedAppAccess.DELETE_WORDS -> stringResource(Res.string.connected_app_access_delete_words)
             ConnectedAppAccess.READ_PROGRESS -> stringResource(Res.string.connected_app_access_read_progress)
         }
     }

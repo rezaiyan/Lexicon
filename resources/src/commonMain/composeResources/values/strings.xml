@@ -1296,6 +1296,7 @@
     <string name="connected_apps_empty">No apps are connected.</string>
     <string name="connected_app_access_read_words">See words</string>
     <string name="connected_app_access_add_words">Add words</string>
+    <string name="connected_app_access_delete_words">Delete words</string>
     <string name="connected_app_access_read_progress">See progress</string>
     <string name="connected_app_disconnecting">Disconnecting…</string>
     <string name="connected_app_disconnect_failed">Couldn't disconnect. Tap to try again.</string>

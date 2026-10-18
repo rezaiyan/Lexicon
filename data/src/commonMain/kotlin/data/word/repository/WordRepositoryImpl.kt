@@ -7,6 +7,7 @@ import data.word.remote.model.RemoteWord
 import data.word.sync.IWordConflictResolver
 import data.word.sync.IWordRemoteSyncHandler
 import core.common.Try
+import core.common.getOrThrow
 import core.common.flatMap
 import core.common.fold
 import core.common.map
@@ -219,6 +220,9 @@ class WordRepositoryImpl(
                         }
                         localDataSource.insertWords(resolvedWords)
                     }
+                    // A first (full) pull has nothing stale to drop. A failure skips the timestamp, so
+                    // the next sync asks again instead of missing these deletions for good.
+                    if (updatedAfter > 0) removeWordsDeletedElsewhere(since = updatedAfter)
                     settingsLocalDataSource.setWordSyncTimestamp(syncStartedAt)
                 },
                 onFailure = { error ->
@@ -226,6 +230,18 @@ class WordRepositoryImpl(
                 }
             )
         }
+    }
+
+    /**
+     * Drops words deleted on another device or by a connected app. Words still waiting to upload
+     * keep their local ids, which can coincide with a deleted server id, so they're never touched.
+     */
+    private suspend fun removeWordsDeletedElsewhere(since: Long) {
+        val deleted = remoteSyncHandler.deletedSince(since).getOrThrow()
+        if (deleted.isEmpty()) return
+        val unsent = localDataSource.getPendingUploads().map { it.id }.toSet()
+        val toRemove = deleted.filter { it in 1..Int.MAX_VALUE }.map { it.toInt() }.filterNot { it in unsent }
+        if (toRemove.isNotEmpty()) localDataSource.deleteWords(toRemove)
     }
 
     override suspend fun syncRemoteToLocal(clearFirst: Boolean): Try<Unit> {

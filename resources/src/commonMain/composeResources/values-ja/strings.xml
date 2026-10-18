@@ -841,6 +841,7 @@
     <string name="connected_apps_empty">連携中のアプリはありません。</string>
     <string name="connected_app_access_read_words">単語の閲覧</string>
     <string name="connected_app_access_add_words">単語の追加</string>
+    <string name="connected_app_access_delete_words">単語の削除</string>
     <string name="connected_app_access_read_progress">進捗の閲覧</string>
     <string name="connected_app_disconnecting">解除中…</string>
     <string name="connected_app_disconnect_failed">解除できませんでした。タップして再試行。</string>

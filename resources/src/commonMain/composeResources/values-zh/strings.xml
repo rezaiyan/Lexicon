@@ -682,6 +682,7 @@
     <string name="connected_apps_empty">没有已连接的应用。</string>
     <string name="connected_app_access_read_words">查看单词</string>
     <string name="connected_app_access_add_words">添加单词</string>
+    <string name="connected_app_access_delete_words">删除单词</string>
     <string name="connected_app_access_read_progress">查看进度</string>
     <string name="connected_app_disconnecting">正在断开…</string>
     <string name="connected_app_disconnect_failed">断开失败，点按重试。</string>

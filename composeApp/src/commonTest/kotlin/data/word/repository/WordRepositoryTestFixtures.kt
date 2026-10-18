@@ -165,6 +165,16 @@ internal class FakeWordRemoteSyncHandler : IWordRemoteSyncHandler {
         targetLanguage: String?
     ): Try<Unit> = Try.success(Unit)
 
+    var deletedIdsToReturn: List<Long> = emptyList()
+    var shouldFailDeletedSince = false
+    var lastDeletedSince: Long? = null
+
+    override suspend fun deletedSince(since: Long): Try<List<Long>> {
+        lastDeletedSince = since
+        return if (shouldFailDeletedSince) Try.failure(RuntimeException("Deleted ids fetch failed"))
+        else Try.success(deletedIdsToReturn)
+    }
+
     override suspend fun syncFromRemote(updatedAfter: Long): Try<List<RemoteWord>> {
         syncFromRemoteCallCount++
         lastUpdatedAfter = updatedAfter

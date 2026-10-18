@@ -681,6 +681,7 @@
     <string name="connected_apps_empty">هیچ برنامه‌ای متصل نیست.</string>
     <string name="connected_app_access_read_words">دیدن واژه‌ها</string>
     <string name="connected_app_access_add_words">افزودن واژه</string>
+    <string name="connected_app_access_delete_words">حذف واژه</string>
     <string name="connected_app_access_read_progress">دیدن پیشرفت</string>
     <string name="connected_app_disconnecting">در حال قطع اتصال…</string>
     <string name="connected_app_disconnect_failed">قطع اتصال انجام نشد. برای تلاش دوباره ضربه بزن.</string>

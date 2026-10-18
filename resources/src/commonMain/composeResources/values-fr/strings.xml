@@ -682,6 +682,7 @@
     <string name="connected_apps_empty">Aucune app connectée.</string>
     <string name="connected_app_access_read_words">Voir les mots</string>
     <string name="connected_app_access_add_words">Ajouter des mots</string>
+    <string name="connected_app_access_delete_words">Supprimer des mots</string>
     <string name="connected_app_access_read_progress">Voir la progression</string>
     <string name="connected_app_disconnecting">Déconnexion…</string>
     <string name="connected_app_disconnect_failed">Échec de la déconnexion. Touchez pour réessayer.</string>

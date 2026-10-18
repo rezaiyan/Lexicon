@@ -24,6 +24,9 @@ class WordRemoteDataSource(
         return apiClient.get<List<RemoteWord>>(path).map { it ?: emptyList() }
     }
 
+    override suspend fun getDeletedWordIds(since: Long): Try<List<Long>> =
+        apiClient.get<List<Long>>("/words/deleted?since=$since").map { it ?: emptyList() }
+
     override suspend fun upsertWords(words: List<RemoteWord>): Try<List<RemoteWord>> =
         apiClient.post<List<RemoteWord>>(
             path = "/words",

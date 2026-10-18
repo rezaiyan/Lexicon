@@ -841,6 +841,7 @@
     <string name="connected_apps_empty">연결된 앱이 없어요.</string>
     <string name="connected_app_access_read_words">단어 보기</string>
     <string name="connected_app_access_add_words">단어 추가</string>
+    <string name="connected_app_access_delete_words">단어 삭제</string>
     <string name="connected_app_access_read_progress">진도 보기</string>
     <string name="connected_app_disconnecting">연결 해제 중…</string>
     <string name="connected_app_disconnect_failed">연결을 해제하지 못했어요. 탭해서 다시 시도하세요.</string>

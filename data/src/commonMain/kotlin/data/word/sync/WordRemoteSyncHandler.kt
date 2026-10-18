@@ -20,6 +20,9 @@ interface IWordRemoteSyncHandler {
     ): Try<Unit>
 
     suspend fun syncFromRemote(updatedAfter: Long = 0L): Try<List<RemoteWord>>
+
+    /** Ids of words deleted elsewhere after [since], which a pull by update time never returns. */
+    suspend fun deletedSince(since: Long): Try<List<Long>>
 }
 
 class WordRemoteSyncHandler(
@@ -74,6 +77,9 @@ class WordRemoteSyncHandler(
             performanceTracer.stopTrace(trace)
         }
     }
+
+    override suspend fun deletedSince(since: Long): Try<List<Long>> =
+        wordRemoteDataSource.getDeletedWordIds(since)
 
     private fun Word.toRemote(): RemoteWord = RemoteWord(
         id = this.id.takeIf { it != 0 }?.toLong(),

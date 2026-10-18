@@ -6,6 +6,8 @@ import core.common.Try
 
 interface IWordRemoteDataSource {
     suspend fun getWords(updatedAfter: Long? = null): Try<List<RemoteWord>>
+    /** Ids of the user's words deleted after [since] (epoch ms), on any device or by a connected app. */
+    suspend fun getDeletedWordIds(since: Long): Try<List<Long>>
     /** Returns the words as saved by the server (with server ids); empty from servers that predate this. */
     suspend fun upsertWords(words: List<RemoteWord>): Try<List<RemoteWord>>
     suspend fun updateWord(id: Long, word: RemoteWord): Try<Unit>

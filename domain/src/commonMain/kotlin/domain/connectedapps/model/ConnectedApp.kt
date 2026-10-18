@@ -14,6 +14,7 @@ data class ConnectedApp(
 enum class ConnectedAppAccess(val scope: String) {
     READ_WORDS("words:read"),
     ADD_WORDS("words:write"),
+    DELETE_WORDS("words:delete"),
     READ_PROGRESS("progress:read");
 
     companion object {

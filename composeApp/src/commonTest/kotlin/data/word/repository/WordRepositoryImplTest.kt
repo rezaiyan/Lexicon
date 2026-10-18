@@ -286,6 +286,52 @@ class WordRepositoryImplTest {
     }
 
     @Test
+    fun `syncWithRemote removes words deleted elsewhere since the last sync but keeps unsent new words`() = runTest {
+        val lastSync = Clock.System.now().toEpochMilliseconds() - 60 * 60_000L
+        val local = FakeWordLocalDataSource().apply {
+            storedWords = mutableListOf(makeWord(id = 5), makeWord(id = 9))
+            pendingUploadIds.add(9)
+        }
+        // Word 9 was added offline and its upload fails again now, so it still has its local id
+        val remote = FakeWordRemoteSyncHandler().apply {
+            deletedIdsToReturn = listOf(5L, 9L)
+            shouldFailSyncWordsToRemote = true
+        }
+        val settings = FakeSettingsLocalDataSource().apply { wordSyncTimestamp = lastSync }
+        val repo = makeRepository(local = local, remote = remote, settings = settings)
+
+        val result = repo.syncWithRemote()
+
+        assertTrue(result.isSuccess)
+        assertEquals(remote.lastUpdatedAfter, remote.lastDeletedSince)
+        assertEquals(listOf(5), local.deletedIds)
+    }
+
+    @Test
+    fun `syncWithRemote keeps the last sync time when deletions can't be fetched so it asks again`() = runTest {
+        val lastSync = Clock.System.now().toEpochMilliseconds() - 60 * 60_000L
+        val remote = FakeWordRemoteSyncHandler().apply { shouldFailDeletedSince = true }
+        val settings = FakeSettingsLocalDataSource().apply { wordSyncTimestamp = lastSync }
+        val repo = makeRepository(remote = remote, settings = settings)
+
+        val result = repo.syncWithRemote()
+
+        assertTrue(result.isFailure)
+        assertEquals(lastSync, settings.wordSyncTimestamp)
+    }
+
+    @Test
+    fun `syncWithRemote on the first sync has no deletions to ask about`() = runTest {
+        val remote = FakeWordRemoteSyncHandler().apply { shouldFailDeletedSince = true }
+        val repo = makeRepository(remote = remote)
+
+        val result = repo.syncWithRemote()
+
+        assertTrue(result.isSuccess)
+        assertEquals(null, remote.lastDeletedSince)
+    }
+
+    @Test
     fun `syncWithRemote pulls everything on the first sync`() = runTest {
         val remote = FakeWordRemoteSyncHandler()
         val repo = makeRepository(remote = remote)

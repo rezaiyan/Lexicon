@@ -841,6 +841,7 @@
     <string name="connected_apps_empty">Brak połączonych aplikacji.</string>
     <string name="connected_app_access_read_words">Widzi słówka</string>
     <string name="connected_app_access_add_words">Dodaje słówka</string>
+    <string name="connected_app_access_delete_words">Usuwa słówka</string>
     <string name="connected_app_access_read_progress">Widzi postępy</string>
     <string name="connected_app_disconnecting">Odłączanie…</string>
     <string name="connected_app_disconnect_failed">Nie udało się odłączyć. Dotknij, aby spróbować ponownie.</string>

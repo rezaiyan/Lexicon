@@ -682,6 +682,7 @@
     <string name="connected_apps_empty">Keine Apps verbunden.</string>
     <string name="connected_app_access_read_words">Wörter sehen</string>
     <string name="connected_app_access_add_words">Wörter hinzufügen</string>
+    <string name="connected_app_access_delete_words">Wörter löschen</string>
     <string name="connected_app_access_read_progress">Fortschritt sehen</string>
     <string name="connected_app_disconnecting">Wird getrennt…</string>
     <string name="connected_app_disconnect_failed">Trennen fehlgeschlagen. Tippe, um es erneut zu versuchen.</string>
