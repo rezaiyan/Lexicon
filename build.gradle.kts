@@ -53,11 +53,23 @@ kover {
 // Force Kotlin stdlib to match compiler version — prevents Kotlin/Wasm stdlib mismatch
 // when transitive dependencies (e.g. SQLDelight) pull in a newer stdlib.
 val kotlinVersion = libs.versions.kotlin.get()
+// Pin androidx.core + androidx.activity: kmpauth 3.x declares core 1.19.0 (and activity 1.13.0,
+// which needs core 1.19), and core 1.19 requires AGP 9.1+. kmpauth never touches androidx.core
+// and only uses long-stable ActivityResult APIs, so our own versions are safe.
+// Remove once the project moves to AGP 9.
+val androidxCoreVersion = libs.versions.androidx.core.ktx.get()
+val androidxActivityVersion = libs.versions.androidx.activityCompose.get()
 subprojects {
     configurations.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group == "org.jetbrains.kotlin" && requested.name.startsWith("kotlin-stdlib")) {
                 useVersion(kotlinVersion)
+            }
+            if (requested.group == "androidx.core" && (requested.name == "core" || requested.name == "core-ktx")) {
+                useVersion(androidxCoreVersion)
+            }
+            if (requested.group == "androidx.activity") {
+                useVersion(androidxActivityVersion)
             }
         }
     }

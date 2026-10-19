@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -24,6 +24,7 @@
 		414C330A2E9868EC0067B975 /* FirebaseAnalyticsHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 414C33092E9868EC0067B975 /* FirebaseAnalyticsHelper.swift */; };
 		41C529AE2ED8F18200D6C5F6 /* PurchasesHybridCommon in Frameworks */ = {isa = PBXBuildFile; productRef = 41C529AD2ED8F18200D6C5F6 /* PurchasesHybridCommon */; };
 		41C529B02ED8F18200D6C5F6 /* PurchasesHybridCommonUI in Frameworks */ = {isa = PBXBuildFile; productRef = 41C529AF2ED8F18200D6C5F6 /* PurchasesHybridCommonUI */; };
+		6FE194BAA5DB3DA304AA4F4D /* KotlinMultiplatformLinkedPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 61FF02A711DD8806DDDCE0FF /* KotlinMultiplatformLinkedPackage */; };
 		7555FF83242A565900829871 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* ContentView.swift */; };
 		FF0001 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = FF0000 /* FirebaseAnalytics */; };
 		FF0003 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FF0002 /* FirebaseAuth */; };
@@ -75,6 +76,7 @@
 				FF0013 /* GoogleSignInSwift in Frameworks */,
 				FF0015 /* FacebookCore in Frameworks */,
 				FF0017 /* FacebookLogin in Frameworks */,
+				6FE194BAA5DB3DA304AA4F4D /* KotlinMultiplatformLinkedPackage in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,6 +161,7 @@
 				FF0016 /* FacebookLogin */,
 				41C529AD2ED8F18200D6C5F6 /* PurchasesHybridCommon */,
 				41C529AF2ED8F18200D6C5F6 /* PurchasesHybridCommonUI */,
+				61FF02A711DD8806DDDCE0FF /* KotlinMultiplatformLinkedPackage */,
 			);
 			productName = iosApp;
 			productReference = 7555FF7B242A565900829871 /* Lexicon.app */;
@@ -194,6 +197,7 @@
 				FF0200 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				FF0300 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */,
 				41C529AC2ED8F18200D6C5F6 /* XCRemoteSwiftPackageReference "purchases-hybrid-common" */,
+				1B979A4CB6D66B6C39A2753D /* XCLocalSwiftPackageReference "KotlinMultiplatformLinkedPackage" */,
 			);
 			productRefGroup = 7555FF7C242A565900829871 /* Products */;
 			projectDirPath = "";
@@ -477,6 +481,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		1B979A4CB6D66B6C39A2753D /* XCLocalSwiftPackageReference "KotlinMultiplatformLinkedPackage" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = KotlinMultiplatformLinkedPackage;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		41C529AC2ED8F18200D6C5F6 /* XCRemoteSwiftPackageReference "purchases-hybrid-common" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -499,7 +510,7 @@
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
+				minimumVersion = 9.1.0;
 			};
 		};
 		FF0300 /* XCRemoteSwiftPackageReference "facebook-ios-sdk" */ = {
@@ -522,6 +533,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 41C529AC2ED8F18200D6C5F6 /* XCRemoteSwiftPackageReference "purchases-hybrid-common" */;
 			productName = PurchasesHybridCommonUI;
+		};
+		61FF02A711DD8806DDDCE0FF /* KotlinMultiplatformLinkedPackage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KotlinMultiplatformLinkedPackage;
 		};
 		FF0000 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
