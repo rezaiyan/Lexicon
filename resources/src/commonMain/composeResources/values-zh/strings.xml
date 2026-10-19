@@ -695,4 +695,7 @@
     <string name="ask_tag_before_review_subtitle">每次开始复习前选择一个标签</string>
     <string name="search_tags">搜索标签</string>
     <string name="no_tags_match">没有与“%1$s”匹配的标签</string>
+    <plurals name="word_count_label">
+        <item quantity="other">%1$d 个单词</item>
+    </plurals>
 </resources>

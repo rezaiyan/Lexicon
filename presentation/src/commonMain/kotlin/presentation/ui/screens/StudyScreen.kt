@@ -80,6 +80,7 @@ import lexicon.resources.generated.resources.study_load_failed
 import lexicon.resources.generated.resources.study_loading
 import lexicon.resources.generated.resources.study_practice
 import lexicon.resources.generated.resources.word_count_label
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -560,7 +561,7 @@ private fun ReviewSelectorSheetContent(
 @Composable
 private fun CountBadge(count: Int) {
     SheetBadge(
-        text = stringResource(Res.string.word_count_label, count),
+        text = pluralStringResource(Res.plurals.word_count_label, count, count),
         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = Theme.opacity.focus),
         contentColor = MaterialTheme.colorScheme.primary,
     )

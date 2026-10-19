@@ -694,4 +694,8 @@
     <string name="ask_tag_before_review_subtitle">هر بار پیش از شروع مرور یک برچسب انتخاب کن</string>
     <string name="search_tags">جستجوی برچسب‌ها</string>
     <string name="no_tags_match">هیچ برچسبی با «%1$s» مطابقت ندارد</string>
+    <plurals name="word_count_label">
+        <item quantity="one">%1$d واژه</item>
+        <item quantity="other">%1$d واژه</item>
+    </plurals>
 </resources>

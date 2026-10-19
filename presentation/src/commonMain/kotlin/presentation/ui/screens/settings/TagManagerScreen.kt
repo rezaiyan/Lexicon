@@ -72,6 +72,7 @@ import lexicon.resources.generated.resources.tag_manager
 import lexicon.resources.generated.resources.tag_manager_review_section
 import lexicon.resources.generated.resources.tag_manager_tags_section
 import lexicon.resources.generated.resources.word_count_label
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import overlay.LocalOverlayHost
@@ -300,13 +301,19 @@ private fun TagRow(
     ) {
         GroupedRow(
             title = tag.name,
-            value = stringResource(Res.string.word_count_label, tag.wordCount.toInt()),
+            value = wordCountLabel(tag),
             icon = Icons.Rounded.Label,
             iconColor = AppColors.settingsTagManagerIcon,
             onClick = onClick,
             showDivider = !isLast,
         )
     }
+}
+
+@Composable
+private fun wordCountLabel(tag: Tag): String {
+    val count = tag.wordCount.toInt()
+    return pluralStringResource(Res.plurals.word_count_label, count, count)
 }
 
 private sealed interface TagSheetPage {
@@ -323,7 +330,7 @@ private fun OverlayHost.showTagActionsSheet(tag: Tag, viewModel: TagManagerViewM
             when (page) {
                 TagSheetPage.Actions -> SheetPage(
                     title = tag.name,
-                    subtitle = stringResource(Res.string.word_count_label, tag.wordCount.toInt()),
+                    subtitle = wordCountLabel(tag),
                 ) {
                     SheetGroup {
                         SheetOptionRow(

@@ -22,6 +22,7 @@ import lexicon.resources.generated.resources.assign_tags
 import lexicon.resources.generated.resources.new_tag
 import lexicon.resources.generated.resources.no_tags
 import lexicon.resources.generated.resources.word_count_label
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -67,9 +68,10 @@ internal fun TagChecklistContent(
 
             else -> SheetGroup {
                 tags.forEachIndexed { index, tag ->
+                    val wordCount = tag.wordCount.toInt()
                     SheetCheckboxRow(
                         title = tag.name,
-                        subtitle = stringResource(Res.string.word_count_label, tag.wordCount.toInt()),
+                        subtitle = pluralStringResource(Res.plurals.word_count_label, wordCount, wordCount),
                         icon = Icons.AutoMirrored.Filled.Label,
                         checked = tag.id in selectedTagIds,
                         onCheckedChange = { onToggle(tag.id) },
