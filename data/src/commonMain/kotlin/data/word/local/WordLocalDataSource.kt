@@ -244,15 +244,15 @@ class WordLocalDataSource(
                 val row = queries.progressRow(currentTime).awaitAsOneOrNull()
                 if (row != null) {
                     ProgressStats(
-                        level0Count = row.level0Count.toInt(),
-                        level1Count = row.level1Count.toInt(),
-                        level2Count = row.level2Count.toInt(),
-                        level3Count = row.level3Count.toInt(),
-                        level4Count = row.level4Count.toInt(),
-                        level5Count = row.level5Count.toInt(),
-                        level6Count = row.level6Count.toInt(),
+                        level0Count = row.level0Count?.toInt() ?: 0,
+                        level1Count = row.level1Count?.toInt() ?: 0,
+                        level2Count = row.level2Count?.toInt() ?: 0,
+                        level3Count = row.level3Count?.toInt() ?: 0,
+                        level4Count = row.level4Count?.toInt() ?: 0,
+                        level5Count = row.level5Count?.toInt() ?: 0,
+                        level6Count = row.level6Count?.toInt() ?: 0,
                         totalWords = row.totalWords.toInt(),
-                        dueCards = row.dueCards.toInt()
+                        dueCards = row.dueCards?.toInt() ?: 0
                     )
                 } else {
                     ProgressStats()
