@@ -689,4 +689,10 @@
     <string name="connected_app_disconnect_title">Déconnecter %1$s ?</string>
     <string name="connected_app_disconnect_message">%1$s perd immédiatement l'accès à vos mots. Vos mots restent inchangés et vous pouvez la reconnecter à tout moment.</string>
     <string name="connected_app_disconnect">Déconnecter</string>
+    <string name="tag_manager_review_section">Révision</string>
+    <string name="tag_manager_tags_section">Vos étiquettes</string>
+    <string name="ask_tag_before_review">Demander quelle étiquette réviser</string>
+    <string name="ask_tag_before_review_subtitle">Choisir une étiquette à chaque début de révision</string>
+    <string name="search_tags">Rechercher des étiquettes</string>
+    <string name="no_tags_match">Aucune étiquette ne correspond à « %1$s »</string>
 </resources>

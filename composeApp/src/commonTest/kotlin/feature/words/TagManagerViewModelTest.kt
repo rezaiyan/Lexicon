@@ -24,6 +24,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class TagManagerViewModelTest : ViewModelTestBase() {
 
@@ -101,6 +102,62 @@ class TagManagerViewModelTest : ViewModelTestBase() {
         val vm = createViewModel()
 
         assertNull(vm.currentState.errorMessage)
+    }
+
+    // --- search ---
+
+    @Test
+    fun `search when query matches part of a name shows only matching tags ignoring case`() = runTest {
+        tagsFlow.value = listOf(tagA, tagB)
+        val vm = createViewModel()
+
+        vm.search("fre")
+
+        assertEquals("fre", vm.currentState.query)
+        assertEquals(listOf(tagB), vm.currentState.visibleTags)
+    }
+
+    @Test
+    fun `search when query is blank shows all tags`() = runTest {
+        tagsFlow.value = listOf(tagA, tagB)
+        val vm = createViewModel()
+
+        vm.search("   ")
+
+        assertEquals(listOf(tagA, tagB), vm.currentState.visibleTags)
+    }
+
+    @Test
+    fun `search when tags change keeps filtering with the current query`() = runTest {
+        tagsFlow.value = listOf(tagA)
+        val vm = createViewModel()
+        vm.search("fr")
+
+        tagsFlow.value = listOf(tagA, tagB)
+
+        assertEquals(listOf(tagB), vm.currentState.visibleTags)
+    }
+
+    @Test
+    fun `showSearch when few tags is false and when many tags is true`() = runTest {
+        tagsFlow.value = listOf(tagA, tagB)
+        val vm = createViewModel()
+        assertFalse(vm.currentState.showSearch)
+
+        tagsFlow.value = (1L..8L).map { tagA.copy(id = it, name = "Tag $it") }
+
+        assertTrue(vm.currentState.showSearch)
+    }
+
+    @Test
+    fun `createTag on success clears the search so the new tag is listed`() = runTest {
+        createResult = Try.success(tagA)
+        val vm = createViewModel()
+        vm.search("fr")
+
+        vm.createTag("Spanish")
+
+        assertEquals("", vm.currentState.query)
     }
 
     // --- createTag ---

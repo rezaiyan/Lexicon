@@ -689,4 +689,10 @@
     <string name="connected_app_disconnect_title">%1$s trennen?</string>
     <string name="connected_app_disconnect_message">%1$s verliert sofort den Zugriff auf deine Wörter. Deine Wörter bleiben unverändert, und du kannst die App jederzeit wieder verbinden.</string>
     <string name="connected_app_disconnect">Trennen</string>
+    <string name="tag_manager_review_section">Wiederholen</string>
+    <string name="tag_manager_tags_section">Deine Tags</string>
+    <string name="ask_tag_before_review">Fragen, welcher Tag wiederholt wird</string>
+    <string name="ask_tag_before_review_subtitle">Vor jeder Wiederholung einen Tag wählen</string>
+    <string name="search_tags">Tags suchen</string>
+    <string name="no_tags_match">Keine Tags passen zu „%1$s“</string>
 </resources>

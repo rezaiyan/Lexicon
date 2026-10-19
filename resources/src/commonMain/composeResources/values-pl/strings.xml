@@ -848,4 +848,10 @@
     <string name="connected_app_disconnect_title">Odłączyć %1$s?</string>
     <string name="connected_app_disconnect_message">%1$s od razu traci dostęp do Twoich słówek. Słówka zostają bez zmian, a aplikację możesz połączyć ponownie w każdej chwili.</string>
     <string name="connected_app_disconnect">Odłącz</string>
+    <string name="tag_manager_review_section">Powtórka</string>
+    <string name="tag_manager_tags_section">Twoje tagi</string>
+    <string name="ask_tag_before_review">Pytaj, który tag powtórzyć</string>
+    <string name="ask_tag_before_review_subtitle">Wybieraj tag przed każdą powtórką</string>
+    <string name="search_tags">Szukaj tagów</string>
+    <string name="no_tags_match">Żaden tag nie pasuje do „%1$s”</string>
 </resources>

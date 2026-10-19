@@ -848,4 +848,10 @@
     <string name="connected_app_disconnect_title">%1$sの連携を解除しますか？</string>
     <string name="connected_app_disconnect_message">%1$sはすぐに単語へアクセスできなくなります。単語はそのまま残り、いつでも再連携できます。</string>
     <string name="connected_app_disconnect">連携を解除</string>
+    <string name="tag_manager_review_section">復習</string>
+    <string name="tag_manager_tags_section">あなたのタグ</string>
+    <string name="ask_tag_before_review">復習するタグを毎回確認</string>
+    <string name="ask_tag_before_review_subtitle">復習を始めるたびにタグを選びます</string>
+    <string name="search_tags">タグを検索</string>
+    <string name="no_tags_match">「%1$s」に一致するタグはありません</string>
 </resources>

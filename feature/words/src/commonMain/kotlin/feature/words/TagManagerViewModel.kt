@@ -53,10 +53,18 @@ class TagManagerViewModel(
         }
     }
 
+    fun search(query: String) {
+        updateState { copy(query = query) }
+    }
+
     fun createTag(name: String) {
         viewModelScope.launch {
             createTagUseCase(name).fold(
-                onSuccess = { tag -> emitEffect(TagManagerEffect.TagCreated(tag)) },
+                onSuccess = { tag ->
+                    // A filter hiding the new tag would make the create look like it failed
+                    updateState { copy(query = "") }
+                    emitEffect(TagManagerEffect.TagCreated(tag))
+                },
                 onFailure = { error -> emitEffect(TagManagerEffect.Error(error.toUserMessage())) }
             )
         }

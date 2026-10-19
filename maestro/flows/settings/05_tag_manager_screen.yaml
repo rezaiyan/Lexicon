@@ -64,9 +64,14 @@ tags:
 
 # ── Rename tag ────────────────────────────────────────────────────────────────
 
-# Tap the Edit (rename) icon for the tag (content description "Rename Tag" on
-# the icon button in the list row — this opens the rename bottom sheet).
+# Tapping a tag row opens its action sheet; "Rename Tag" moves to the rename page.
+- tapOn: "${output.tag}"
+- extendedWaitUntil:
+    visible: "Rename Tag"
+    timeout: 5000
+- assertVisible: "Delete Tag"
 - tapOn: "Rename Tag"
+- waitForAnimationToEnd
 
 # The rename bottom sheet must appear pre-filled with the current name.
 - extendedWaitUntil:
@@ -95,8 +100,13 @@ tags:
 
 # ── Delete tag (confirm then cancel to keep account clean) ────────────────────
 
-# Tap the Delete icon for the tag.
+# Open the tag's action sheet and pick "Delete Tag" to reach the confirmation page.
+- tapOn: "${output.tag}renamed"
+- extendedWaitUntil:
+    visible: "Delete Tag"
+    timeout: 5000
 - tapOn: "Delete Tag"
+- waitForAnimationToEnd
 
 # The delete confirmation sheet must appear.
 - extendedWaitUntil:

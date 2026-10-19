@@ -689,4 +689,10 @@
     <string name="connected_app_disconnect_title">¿Desconectar %1$s?</string>
     <string name="connected_app_disconnect_message">%1$s pierde el acceso a tus palabras al instante. Tus palabras no cambian y puedes volver a conectarla cuando quieras.</string>
     <string name="connected_app_disconnect">Desconectar</string>
+    <string name="tag_manager_review_section">Repaso</string>
+    <string name="tag_manager_tags_section">Tus etiquetas</string>
+    <string name="ask_tag_before_review">Preguntar qué etiqueta repasar</string>
+    <string name="ask_tag_before_review_subtitle">Elige una etiqueta cada vez que empieces un repaso</string>
+    <string name="search_tags">Buscar etiquetas</string>
+    <string name="no_tags_match">Ninguna etiqueta coincide con «%1$s»</string>
 </resources>

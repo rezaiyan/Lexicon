@@ -1303,4 +1303,10 @@
     <string name="connected_app_disconnect_title">Disconnect %1$s?</string>
     <string name="connected_app_disconnect_message">%1$s loses access to your words right away. Your words stay as they are, and you can connect it again anytime.</string>
     <string name="connected_app_disconnect">Disconnect</string>
+    <string name="tag_manager_review_section">Review</string>
+    <string name="tag_manager_tags_section">Your tags</string>
+    <string name="ask_tag_before_review">Ask which tag to review</string>
+    <string name="ask_tag_before_review_subtitle">Pick a tag each time you start a review</string>
+    <string name="search_tags">Search tags</string>
+    <string name="no_tags_match">No tags match “%1$s”</string>
 </resources>

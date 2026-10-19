@@ -688,4 +688,10 @@
     <string name="connected_app_disconnect_title">اتصال %1$s قطع شود؟</string>
     <string name="connected_app_disconnect_message">%1$s فوراً دسترسی به واژه‌هایت را از دست می‌دهد. واژه‌هایت دست‌نخورده می‌مانند و هر وقت بخواهی می‌توانی دوباره وصلش کنی.</string>
     <string name="connected_app_disconnect">قطع اتصال</string>
+    <string name="tag_manager_review_section">مرور</string>
+    <string name="tag_manager_tags_section">برچسب‌های شما</string>
+    <string name="ask_tag_before_review">بپرس کدام برچسب مرور شود</string>
+    <string name="ask_tag_before_review_subtitle">هر بار پیش از شروع مرور یک برچسب انتخاب کن</string>
+    <string name="search_tags">جستجوی برچسب‌ها</string>
+    <string name="no_tags_match">هیچ برچسبی با «%1$s» مطابقت ندارد</string>
 </resources>

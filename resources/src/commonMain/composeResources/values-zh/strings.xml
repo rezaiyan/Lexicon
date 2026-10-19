@@ -689,4 +689,10 @@
     <string name="connected_app_disconnect_title">断开 %1$s？</string>
     <string name="connected_app_disconnect_message">%1$s 将立即失去对你单词的访问权限。你的单词保持不变，你可以随时重新连接。</string>
     <string name="connected_app_disconnect">断开连接</string>
+    <string name="tag_manager_review_section">复习</string>
+    <string name="tag_manager_tags_section">你的标签</string>
+    <string name="ask_tag_before_review">询问要复习哪个标签</string>
+    <string name="ask_tag_before_review_subtitle">每次开始复习前选择一个标签</string>
+    <string name="search_tags">搜索标签</string>
+    <string name="no_tags_match">没有与“%1$s”匹配的标签</string>
 </resources>
