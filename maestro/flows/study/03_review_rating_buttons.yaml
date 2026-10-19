@@ -16,8 +16,9 @@ tags:
 # Add a test word so we have something to review.
 - runFlow: ../utils/add_test_word.yaml
 
-# Start a review session.
-- tapOn: "Start Review"
+# Long-press "Start Review" to review all due words. A plain tap opens the tag
+# picker when the test account has tagged due words (leftover test tags do).
+- longPressOn: "Start Review"
 
 # Before flipping: the hint must be visible.
 - assertVisible: "Tap card to reveal"

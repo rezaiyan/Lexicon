@@ -38,7 +38,8 @@ tags:
 # ─────────────────────────────────────────────
 # 2. START REVIEW — Enter the flashcard experience
 # ─────────────────────────────────────────────
-- tapOn: "Start Review"
+# Long-press skips the tag picker a plain tap opens when tags have due words.
+- longPressOn: "Start Review"
 - waitForAnimationToEnd
 - waitForAnimationToEnd
 
