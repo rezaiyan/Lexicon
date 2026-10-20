@@ -46,7 +46,7 @@ tags:
 - scrollUntilVisible:
     element: "New Tag"
     direction: DOWN
-    timeout: 15000
+    timeout: 30000
 
 - tapOn: "New Tag"
 - extendedWaitUntil:
@@ -103,25 +103,10 @@ tags:
     visible: "${output.tag}"
     timeout: 8000
 
-# The trash icon in this tag's row: other tags may exist, so scope the tap to
-# the row that holds the tag name.
-- tapOn:
-    text: "Delete Tag"
-    childOf:
-      containsChild: "${output.tag}"
-
-- extendedWaitUntil:
-    visible: "Delete this tag? Words with this tag will not be deleted."
-    timeout: 5000
-# Until the sheet settles, the list's trash icons are still in the hierarchy and
-# index 1 could resolve to one of them.
-- waitForAnimationToEnd
-
-# The dialog title and its confirm button share the text; index 1 is the button.
-- tapOn:
-    text: "Delete Tag"
-    index: 1
-- waitForAnimationToEnd
+- runFlow:
+    file: ../utils/delete_tag.yaml
+    env:
+      NAME: "${output.tag}"
 
 - assertNotVisible: "${output.tag}"
 

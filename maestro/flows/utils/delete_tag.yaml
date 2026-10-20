@@ -1,0 +1,19 @@
+appId: com.alirezaiyan.vokab
+---
+# Deletes the tag named ${NAME} from the open Tag Manager.
+#
+# A tag row opens its action sheet; "Delete Tag" there leads to a confirmation
+# page whose title and confirm button both read "Delete Tag" (index 1 is the button).
+- tapOn: "${NAME}"
+- extendedWaitUntil:
+    visible: "Delete Tag"
+    timeout: 5000
+- tapOn: "Delete Tag"
+- extendedWaitUntil:
+    visible: "Delete this tag? Words with this tag will not be deleted."
+    timeout: 5000
+- waitForAnimationToEnd
+- tapOn:
+    text: "Delete Tag"
+    index: 1
+- waitForAnimationToEnd

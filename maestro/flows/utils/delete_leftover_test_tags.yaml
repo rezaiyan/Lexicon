@@ -1,0 +1,17 @@
+appId: com.alirezaiyan.vokab
+---
+# Deletes tags left behind by earlier runs from the open Tag Manager.
+#
+# Test tags live on the backend, so any run whose teardown didn't get to run
+# leaves its tag on the CI account. Enough of them push "New Tag" on the Assign
+# Tag sheet below where a flow can scroll in time. Matches only test-made names:
+# '0test<digits><suffix>', and the older 'ReviewTag<digits>' and 'Tag<epoch ms>'.
+- repeat:
+    times: 80
+    while:
+      visible: "0test\\d+[a-z]+|ReviewTag\\d*|Tag\\d{10,}"
+    commands:
+      - runFlow:
+          file: delete_tag.yaml
+          env:
+            NAME: "0test\\d+[a-z]+|ReviewTag\\d*|Tag\\d{10,}"

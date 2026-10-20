@@ -38,6 +38,8 @@ tags:
     visible: "Tag Manager"
     timeout: 8000
 
+- runFlow: ../utils/delete_leftover_test_tags.yaml
+
 - tapOn: "New Tag"
 
 - extendedWaitUntil:
@@ -195,19 +197,10 @@ tags:
     visible: "${output.tag}"
     timeout: 8000
 
-# Our tag is the first row, so the first trash icon is its own.
-- tapOn: "Delete Tag"
-
-- extendedWaitUntil:
-    visible: "Delete this tag? Words with this tag will not be deleted."
-    timeout: 5000
-- waitForAnimationToEnd
-
-# The dialog title and its confirm button share the text; index 1 is the button.
-- tapOn:
-    text: "Delete Tag"
-    index: 1
-- waitForAnimationToEnd
+- runFlow:
+    file: ../utils/delete_tag.yaml
+    env:
+      NAME: "${output.tag}"
 
 # Other tags may exist on the test account; only ours must be gone.
 - assertNotVisible: "${output.tag}"
