@@ -209,6 +209,15 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(project(":test"))
         }
+
+        // On the JVM, kotlin.test's @Test/@BeforeTest/@AfterTest are typealiases of JUnit's,
+        // provided only by kotlin-test's JUnit variant. Kotlin 2.4 no longer picks that variant
+        // for Android unit tests on its own, so name the framework explicitly.
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test.junit)
+            }
+        }
     }
     jvmToolchain(11)
 }
