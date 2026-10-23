@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
+import kotlinx.datetime.UtcOffset
+import kotlinx.datetime.asTimeZone
 import kotlinx.datetime.toInstant
 import utils.Language
 import kotlin.test.Test
@@ -14,7 +15,8 @@ import kotlin.test.assertEquals
 
 class ObserveReviewForecastUseCaseTest {
 
-    private val zone = TimeZone.of("Europe/Berlin")
+    // Fixed offset: wasmJs tests ship no tz database, so named zones throw there.
+    private val zone = UtcOffset(hours = 2).asTimeZone()
     private val now = LocalDateTime(2026, 10, 23, 18, 0).toInstant(zone)
     private val repository = FakeWordRepository()
     private val useCase = ObserveReviewForecastUseCase(repository, now = { now }, timeZone = { zone })
