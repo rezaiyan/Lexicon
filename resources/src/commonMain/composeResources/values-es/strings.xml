@@ -695,6 +695,8 @@
     <string name="ask_tag_before_review_subtitle">Elige una etiqueta cada vez que empieces un repaso</string>
     <string name="search_tags">Buscar etiquetas</string>
     <string name="no_tags_match">Ninguna etiqueta coincide con «%1$s»</string>
+    <string name="insights_tab">Estadísticas</string>
+    <string name="insights_accuracy_by_day">Precisión por día</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d palabra</item>
         <item quantity="other">%1$d palabras</item>

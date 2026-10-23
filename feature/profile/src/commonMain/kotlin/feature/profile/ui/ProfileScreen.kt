@@ -28,6 +28,7 @@ fun ProfileScreen(
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
     onOpenSubscription: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val profileViewModel = koinViewModel<ProfileViewModel>()
 
@@ -69,6 +70,7 @@ fun ProfileScreen(
                         onDeleteAccount = onDeleteAccount,
                         onLogout = onLogout,
                         onOpenSubscription = onOpenSubscription,
+                        onOpenSettings = onOpenSettings,
                     )
                 }
             }

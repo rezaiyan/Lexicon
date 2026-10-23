@@ -79,6 +79,7 @@ internal fun NavigationGraph(
         profileGraph(
             snackbarHostState = snackbarHostState,
             onOpenSubscription = { navController.navigate(SubscriptionRoute) },
+            onOpenSettings = { navController.navigate(SettingsRoute) { launchSingleTop = true } },
         )
 
         subscriptionGraph(

@@ -17,7 +17,7 @@ tags:
     visible: "Import Words"
     timeout: 25000
 
-- tapOn: "Study Insights"
+- tapOn: "(?-i)Insights"
 - waitForAnimationToEnd
 
 - tapOn: "Leaderboard"

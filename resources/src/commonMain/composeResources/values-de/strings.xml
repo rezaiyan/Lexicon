@@ -695,6 +695,8 @@
     <string name="ask_tag_before_review_subtitle">Vor jeder Wiederholung einen Tag wählen</string>
     <string name="search_tags">Tags suchen</string>
     <string name="no_tags_match">Keine Tags passen zu „%1$s“</string>
+    <string name="insights_tab">Einblicke</string>
+    <string name="insights_accuracy_by_day">Genauigkeit nach Tag</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d Wort</item>
         <item quantity="other">%1$d Wörter</item>

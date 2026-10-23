@@ -49,7 +49,7 @@ import kotlinx.coroutines.launch
 import presentation.model.SettingsRoute
 import presentation.model.TabDestination
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.insights_title
+import lexicon.resources.generated.resources.insights_tab
 import lexicon.resources.generated.resources.profile
 import lexicon.resources.generated.resources.study
 import lexicon.resources.generated.resources.words_tab
@@ -141,7 +141,7 @@ internal fun AppContent(
                 selected = insightsSelected,
                 onClick = { navController.selectTab(InsightsRoute, insightsSelected) },
                 icon = { TabIcon(Icons.Outlined.BarChart) },
-                label = { TabLabel(stringResource(Res.string.insights_title), insightsSelected) },
+                label = { TabLabel(stringResource(Res.string.insights_tab), insightsSelected) },
                 colors = itemColors,
             )
             item(

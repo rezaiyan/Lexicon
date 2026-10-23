@@ -5,7 +5,7 @@ tags:
 ---
 # Test: Bottom tab navigation works across all tabs.
 #
-# Tabs: Study, Words, Study Insights (premium only) and Profile. Tab labels are
+# Tabs: Study, Words, Insights (premium only) and Profile. Tab labels are
 # matched case-sensitively: the Study screen also shows an uppercase "WORDS".
 
 - stopApp
@@ -25,9 +25,9 @@ tags:
 
 - runFlow:
     when:
-      visible: "Study Insights"
+      visible: "(?-i)Insights"
     commands:
-      - tapOn: "Study Insights"
+      - tapOn: "(?-i)Insights"
       - extendedWaitUntil:
           visible: "Leaderboard"
           timeout: 5000

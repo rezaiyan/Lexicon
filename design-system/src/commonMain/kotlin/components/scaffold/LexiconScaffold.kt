@@ -1,5 +1,6 @@
 package components.scaffold
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Badge
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,7 +24,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -71,6 +77,7 @@ fun LexiconColumn(
                     topBarColor = topBarColor,
                     collapsedContent = collapsedContent,
                 )
+                ScrolledEdge(resolvedScrollState)
             }
             Column(
                 modifier = Modifier
@@ -107,6 +114,18 @@ fun LexiconColumn(
         }
     }
 
+}
+
+/** Hairline under the top bar once content has scrolled beneath it, so the cut-off reads as an edge. */
+@Composable
+private fun ScrolledEdge(scrollState: ScrollState) {
+    val isScrolled by remember(scrollState) { derivedStateOf { scrollState.value > 0 } }
+    val edgeAlpha by animateFloatAsState(if (isScrolled) 1f else 0f)
+    HorizontalDivider(
+        modifier = Modifier.alpha(edgeAlpha),
+        thickness = Theme.dimensions.borderWidth,
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = Theme.opacity.dimming),
+    )
 }
 
 @Composable

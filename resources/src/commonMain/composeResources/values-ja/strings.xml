@@ -854,6 +854,8 @@
     <string name="ask_tag_before_review_subtitle">復習を始めるたびにタグを選びます</string>
     <string name="search_tags">タグを検索</string>
     <string name="no_tags_match">「%1$s」に一致するタグはありません</string>
+    <string name="insights_tab">分析</string>
+    <string name="insights_accuracy_by_day">曜日別の正答率</string>
     <plurals name="word_count_label">
         <item quantity="other">%1$d 語</item>
     </plurals>

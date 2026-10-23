@@ -62,6 +62,14 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.insights_accuracy_by_level
+import lexicon.resources.generated.resources.insights_accuracy_by_day
+import lexicon.resources.generated.resources.weekday_initial_1
+import lexicon.resources.generated.resources.weekday_initial_2
+import lexicon.resources.generated.resources.weekday_initial_3
+import lexicon.resources.generated.resources.weekday_initial_4
+import lexicon.resources.generated.resources.weekday_initial_5
+import lexicon.resources.generated.resources.weekday_initial_6
+import lexicon.resources.generated.resources.weekday_initial_7
 import lexicon.resources.generated.resources.insights_level_format
 import lexicon.resources.generated.resources.insights_level_from_to
 import lexicon.resources.generated.resources.insights_level_transitions
@@ -95,7 +103,8 @@ internal fun TrendsTab(state: InsightsState) {
                     AccuracyByLevelCard(levels)
                 }
             }
-        if (state.accuracyByDayOfWeek.isNotEmpty()) {
+        // A week with no reviews would draw seven empty stubs: nothing to read yet.
+        if (state.accuracyByDayOfWeek.any { it.totalReviews > 0L }) {
             DayOfWeekAccuracyChart(state.accuracyByDayOfWeek)
         }
         state.levelTransitions
@@ -283,7 +292,15 @@ private fun DayOfWeekAccuracyChart(days: List<DayOfWeekAccuracy>) {
     val currentDayOfWeek = remember {
         Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).dayOfWeek.ordinal + 1
     }
-    val dayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+    val dayInitials = listOf(
+        stringResource(Res.string.weekday_initial_1),
+        stringResource(Res.string.weekday_initial_2),
+        stringResource(Res.string.weekday_initial_3),
+        stringResource(Res.string.weekday_initial_4),
+        stringResource(Res.string.weekday_initial_5),
+        stringResource(Res.string.weekday_initial_6),
+        stringResource(Res.string.weekday_initial_7),
+    )
     val maxAccuracy = days.maxOfOrNull { it.accuracyPercent }.takeIf { (it ?: 0.0) > 0.0 } ?: 100.0
 
     Box(
@@ -317,7 +334,7 @@ private fun DayOfWeekAccuracyChart(days: List<DayOfWeekAccuracy>) {
                         modifier = Modifier.size(20.dp),
                     )
                     Text(
-                        "Accuracy by Day",
+                        stringResource(Res.string.insights_accuracy_by_day),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -376,7 +393,7 @@ private fun DayOfWeekAccuracyChart(days: List<DayOfWeekAccuracy>) {
                 days.forEach { day ->
                     val isToday = day.dayOfWeek == currentDayOfWeek
                     Text(
-                        dayNames[day.dayOfWeek - 1],
+                        dayInitials[day.dayOfWeek - 1],
                         modifier = Modifier.weight(1f),
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 10.sp,

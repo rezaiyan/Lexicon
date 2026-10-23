@@ -1,22 +1,17 @@
 package feature.profile.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import components.GroupedRow
 import components.GroupedSection
 import components.Pill
@@ -30,6 +25,7 @@ import lexicon.resources.generated.resources.account_section
 import lexicon.resources.generated.resources.delete_account
 import lexicon.resources.generated.resources.edit_profile
 import lexicon.resources.generated.resources.logout
+import lexicon.resources.generated.resources.settings
 import lexicon.resources.generated.resources.subscription
 import lexicon.resources.generated.resources.upgrade
 import lexicon.resources.generated.resources.upgrade_to_premium
@@ -44,6 +40,7 @@ internal fun ProfileContent(
     onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
     onOpenSubscription: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     val userInfo = profileData.userInfo ?: return
 
@@ -80,6 +77,26 @@ internal fun ProfileContent(
                 title = stringResource(Res.string.edit_profile),
                 icon = Icons.Default.Edit,
                 onClick = onEditProfile,
+                showDivider = false,
+            )
+        }
+
+        GroupedSection(title = null) {
+            GroupedRow(
+                title = stringResource(Res.string.settings),
+                icon = Icons.Default.Settings,
+                onClick = onOpenSettings,
+                showDivider = false,
+            )
+        }
+
+        GroupedSection(title = null) {
+            GroupedRow(
+                title = stringResource(Res.string.logout),
+                icon = Icons.AutoMirrored.Filled.Logout,
+                iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                onClick = onLogout,
+                showChevron = false,
             )
             GroupedRow(
                 title = stringResource(Res.string.delete_account),
@@ -90,22 +107,6 @@ internal fun ProfileContent(
                 onClick = onDeleteAccount,
                 showChevron = false,
                 showDivider = false,
-            )
-        }
-
-        OutlinedButton(
-            onClick = onLogout,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(Theme.dimensions.buttonHeight),
-            shape = RoundedCornerShape(Theme.shapes.pill),
-            border = BorderStroke(Theme.dimensions.borderWidth * 1.5f, MaterialTheme.colorScheme.error),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        ) {
-            Text(
-                text = stringResource(Res.string.logout),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
             )
         }
     }

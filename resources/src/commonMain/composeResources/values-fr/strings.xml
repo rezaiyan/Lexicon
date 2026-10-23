@@ -695,6 +695,8 @@
     <string name="ask_tag_before_review_subtitle">Choisir une étiquette à chaque début de révision</string>
     <string name="search_tags">Rechercher des étiquettes</string>
     <string name="no_tags_match">Aucune étiquette ne correspond à « %1$s »</string>
+    <string name="insights_tab">Statistiques</string>
+    <string name="insights_accuracy_by_day">Précision par jour</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d mot</item>
         <item quantity="other">%1$d mots</item>

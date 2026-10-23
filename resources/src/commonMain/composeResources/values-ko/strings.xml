@@ -854,6 +854,8 @@
     <string name="ask_tag_before_review_subtitle">복습을 시작할 때마다 태그를 선택합니다</string>
     <string name="search_tags">태그 검색</string>
     <string name="no_tags_match">“%1$s”와 일치하는 태그가 없습니다</string>
+    <string name="insights_tab">인사이트</string>
+    <string name="insights_accuracy_by_day">요일별 정확도</string>
     <plurals name="word_count_label">
         <item quantity="other">%1$d개 단어</item>
     </plurals>
