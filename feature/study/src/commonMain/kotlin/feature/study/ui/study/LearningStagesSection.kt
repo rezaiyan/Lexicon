@@ -37,7 +37,7 @@ import theme.Theme
 private const val EXPANDED_CHEVRON_ROTATION = 180f
 
 /**
- * Distribution bar plus one card per stage. Stages holding no words are folded behind a
+ * One card per stage. Stages holding no words are folded behind a
  * "Show N empty stages" toggle so a young library isn't a wall of zero cards.
  */
 @Composable
@@ -72,8 +72,6 @@ fun LearningStagesSection(
                 )
             }
         }
-
-        WordDistributionBar(stats = stats)
 
         LearningStagesList(
             stats = stats,
