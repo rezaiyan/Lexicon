@@ -43,26 +43,20 @@ class FilterAndSortWordsUseCase {
             result = result.filter { it.tagIds.contains(tagId) }
         }
 
-        // Sort with tiebreakers for stable, predictable ordering
-        return when (params.sortOption) {
-            WordSortOption.DATE_ADDED_DESC -> result.sortedWith(
-                compareByDescending<Word> { it.dateAdded }.thenByDescending { it.id }
-            )
-            WordSortOption.DATE_ADDED_ASC -> result.sortedWith(
-                compareBy<Word> { it.dateAdded }.thenBy { it.id }
-            )
-            WordSortOption.ALPHABETICAL_AZ -> result.sortedWith(
-                compareBy<Word> { it.originalWord.lowercase() }.thenBy { it.id }
-            )
-            WordSortOption.ALPHABETICAL_ZA -> result.sortedWith(
-                compareByDescending<Word> { it.originalWord.lowercase() }.thenByDescending { it.id }
-            )
-            WordSortOption.LEVEL_ASC -> result.sortedWith(
-                compareBy<Word> { it.level }.thenByDescending { it.dateAdded }.thenByDescending { it.id }
-            )
-            WordSortOption.LEVEL_DESC -> result.sortedWith(
-                compareByDescending<Word> { it.level }.thenByDescending { it.dateAdded }.thenByDescending { it.id }
-            )
-        }
+        return result.sortedWith(params.sortOption.comparator())
     }
+}
+
+/** Sort order with tiebreakers for stable, predictable ordering. */
+private fun WordSortOption.comparator(): Comparator<Word> = when (this) {
+    WordSortOption.DATE_ADDED_DESC -> compareByDescending<Word> { it.dateAdded }.thenByDescending { it.id }
+    WordSortOption.DATE_ADDED_ASC -> compareBy<Word> { it.dateAdded }.thenBy { it.id }
+    WordSortOption.ALPHABETICAL_AZ -> compareBy<Word> { it.originalWord.lowercase() }.thenBy { it.id }
+    WordSortOption.ALPHABETICAL_ZA ->
+        compareByDescending<Word> { it.originalWord.lowercase() }.thenByDescending { it.id }
+    WordSortOption.LEVEL_ASC ->
+        compareBy<Word> { it.level }.thenByDescending { it.dateAdded }.thenByDescending { it.id }
+    WordSortOption.LEVEL_DESC ->
+        compareByDescending<Word> { it.level }.thenByDescending { it.dateAdded }.thenByDescending { it.id }
+    WordSortOption.DUE_SOONEST -> compareBy<Word> { it.nextReviewDate }.thenBy { it.id }
 }

@@ -57,6 +57,7 @@ import lexicon.resources.generated.resources.filter_level
 import lexicon.resources.generated.resources.filters
 import lexicon.resources.generated.resources.search_words
 import lexicon.resources.generated.resources.sort_a_to_z
+import lexicon.resources.generated.resources.sort_due_soonest
 import lexicon.resources.generated.resources.sort_level_asc
 import lexicon.resources.generated.resources.sort_level_desc
 import lexicon.resources.generated.resources.sort_level_high_low
@@ -352,6 +353,7 @@ private fun SortChip(
         WordSortOption.ALPHABETICAL_ZA -> stringResource(Res.string.sort_z_to_a)
         WordSortOption.LEVEL_ASC -> stringResource(Res.string.sort_level_asc)
         WordSortOption.LEVEL_DESC -> stringResource(Res.string.sort_level_desc)
+        WordSortOption.DUE_SOONEST -> stringResource(Res.string.sort_due_soonest)
     }
 
     Box {
@@ -380,6 +382,7 @@ private fun SortChip(
                     WordSortOption.ALPHABETICAL_ZA -> stringResource(Res.string.sort_z_to_a)
                     WordSortOption.LEVEL_ASC -> stringResource(Res.string.sort_level_low_high)
                     WordSortOption.LEVEL_DESC -> stringResource(Res.string.sort_level_high_low)
+                    WordSortOption.DUE_SOONEST -> stringResource(Res.string.sort_due_soonest)
                 }
                 DropdownMenuItem(
                     text = {

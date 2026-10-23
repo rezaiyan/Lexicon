@@ -891,4 +891,10 @@
     <string name="insights_coach_welcome_title">인사이트는 여기서 시작돼요</string>
     <string name="insights_coach_welcome_body">첫 복습을 마치면 진행 상황과 다음에 공부할 내용을 보여드려요.</string>
     <string name="insights_coach_welcome_action">첫 복습 시작</string>
+    <!-- Words list -->
+    <string name="word_due_now">복습할 때</string>
+    <string name="word_due_in_hours">%1$d시간 후</string>
+    <string name="word_due_in_days">%1$d일 후</string>
+    <string name="sort_due_soonest">복습 임박순</string>
+    <string name="word_row_status">%1$s, %2$s</string>
 </resources>

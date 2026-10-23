@@ -95,8 +95,8 @@ import presentation.navigation.NotificationNavigator
 import presentation.ui.components.imports.AddWordsSheet
 import theme.Theme
 
-/** Non-dismissable sheet configuration reused for import flows. */
-private val LockedSheetProperties = BottomSheetProperties(
+/** Non-dismissable sheet configuration reused for import flows (Study and Words). */
+internal val LockedSheetProperties = BottomSheetProperties(
     dismissOnTouchOutside = false,
     dismissOnBackPress = false,
     isNavigationBarsPaddingEnabled = true,

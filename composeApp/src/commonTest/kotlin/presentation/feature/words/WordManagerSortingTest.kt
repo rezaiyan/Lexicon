@@ -15,7 +15,8 @@ class WordManagerSortingTest {
         id: Int,
         original: String = "word$id",
         dateAdded: Long = 0L,
-        level: Int = 0
+        level: Int = 0,
+        nextReviewDate: Long = 0L,
     ) = Word(
         id = id,
         originalWord = original,
@@ -23,7 +24,7 @@ class WordManagerSortingTest {
         description = "desc$id",
         sourceLanguage = Language.ENGLISH,
         targetLanguage = Language.GERMAN,
-        nextReviewDate = 0L,
+        nextReviewDate = nextReviewDate,
         dateAdded = dateAdded,
         level = level
     )
@@ -195,6 +196,30 @@ class WordManagerSortingTest {
             listOf(2, 3, 1), ids,
             "Same level should show newest first as tiebreaker"
         )
+    }
+
+    // --- DUE_SOONEST ---
+
+    @Test
+    fun `DUE_SOONEST sorts earliest next review first`() {
+        val words = listOf(
+            word(1, nextReviewDate = 3000L),
+            word(2, nextReviewDate = 1000L),
+            word(3, nextReviewDate = 2000L)
+        )
+        val ids = sort(words, WordSortOption.DUE_SOONEST).map { it.id }
+        assertEquals(listOf(2, 3, 1), ids)
+    }
+
+    @Test
+    fun `DUE_SOONEST same due time falls back to id`() {
+        val words = listOf(
+            word(3, nextReviewDate = 1000L),
+            word(1, nextReviewDate = 1000L),
+            word(2, nextReviewDate = 1000L)
+        )
+        val ids = sort(words, WordSortOption.DUE_SOONEST).map { it.id }
+        assertEquals(listOf(1, 2, 3), ids)
     }
 
     // --- Sorting with filters ---

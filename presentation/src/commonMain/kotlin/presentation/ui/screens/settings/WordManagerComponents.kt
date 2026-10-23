@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import kotlinx.coroutines.isActive
+import kotlin.time.Clock
 import feature.words.model.WordManagerScreenState
 import domain.word.model.WordSortOption
 import theme.Theme
@@ -124,6 +125,8 @@ internal fun WordListContent(
             }
 
             val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+            // Due labels are read against one clock per list update, so rows never disagree.
+            val nowMs = remember(state.words) { Clock.System.now().toEpochMilliseconds() }
             LazyColumn(
                 state = lazyListState,
                 userScrollEnabled = !dragSelectState.isDragging,
@@ -151,6 +154,7 @@ internal fun WordListContent(
                         word = word,
                         isFirst = index == 0,
                         isLast = index == lastIndex,
+                        nowMs = nowMs,
                         isSelected = state.selectedWordIds.contains(word.id),
                         isSelectionMode = state.isSelectionMode,
                         onTap = {

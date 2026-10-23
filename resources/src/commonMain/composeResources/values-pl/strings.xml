@@ -894,4 +894,10 @@
     <string name="insights_coach_welcome_title">Tu zaczynają się Twoje statystyki</string>
     <string name="insights_coach_welcome_body">Ukończ pierwszą powtórkę, a pokażemy Ci postępy i co dalej.</string>
     <string name="insights_coach_welcome_action">Zacznij pierwszą powtórkę</string>
+    <!-- Words list -->
+    <string name="word_due_now">Do powtórki</string>
+    <string name="word_due_in_hours">za %1$d h</string>
+    <string name="word_due_in_days">za %1$d dni</string>
+    <string name="sort_due_soonest">Najbliższe powtórki</string>
+    <string name="word_row_status">%1$s, %2$s</string>
 </resources>

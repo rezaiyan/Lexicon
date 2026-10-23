@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import components.snackbar.showSuccess
+import domain.word.model.ReviewSource
 import kotlinx.coroutines.launch
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.insights_coach_reminder_on
@@ -113,7 +114,10 @@ internal fun NavigationGraph(
         }
 
         composable<TabDestination.Words> {
-            WordManagerScreen()
+            WordManagerScreen(
+                onStartReview = { notificationNavigator.openReview(ReviewSource.DueCards) },
+                onOpenSubscription = { navController.navigate(SubscriptionRoute) { launchSingleTop = true } },
+            )
         }
 
         composable<SettingsRoute> {

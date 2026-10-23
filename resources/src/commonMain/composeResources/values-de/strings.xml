@@ -733,4 +733,10 @@
     <string name="insights_coach_welcome_title">Hier beginnen deine Einblicke</string>
     <string name="insights_coach_welcome_body">Schließe deine erste Wiederholung ab, dann zeigen wir dir deinen Fortschritt und was du als Nächstes lernen solltest.</string>
     <string name="insights_coach_welcome_action">Erste Wiederholung starten</string>
+    <!-- Words list -->
+    <string name="word_due_now">Fällig</string>
+    <string name="word_due_in_hours">in %1$d h</string>
+    <string name="word_due_in_days">in %1$d T</string>
+    <string name="sort_due_soonest">Bald fällig</string>
+    <string name="word_row_status">%1$s, %2$s</string>
 </resources>

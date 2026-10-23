@@ -733,4 +733,10 @@
     <string name="insights_coach_welcome_title">Aquí empiezan tus estadísticas</string>
     <string name="insights_coach_welcome_body">Termina tu primer repaso y te mostraremos cómo vas y qué estudiar después.</string>
     <string name="insights_coach_welcome_action">Empieza tu primer repaso</string>
+    <!-- Words list -->
+    <string name="word_due_now">Pendiente</string>
+    <string name="word_due_in_hours">en %1$d h</string>
+    <string name="word_due_in_days">en %1$d d</string>
+    <string name="sort_due_soonest">Próximos a repasar</string>
+    <string name="word_row_status">%1$s, %2$s</string>
 </resources>

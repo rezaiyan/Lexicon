@@ -891,4 +891,10 @@
     <string name="insights_coach_welcome_title">ここから分析が始まります</string>
     <string name="insights_coach_welcome_body">最初の復習を終えると、進み具合と次に学ぶことを表示します。</string>
     <string name="insights_coach_welcome_action">最初の復習を始める</string>
+    <!-- Words list -->
+    <string name="word_due_now">復習時期</string>
+    <string name="word_due_in_hours">%1$d時間後</string>
+    <string name="word_due_in_days">%1$d日後</string>
+    <string name="sort_due_soonest">復習が近い順</string>
+    <string name="word_row_status">%1$s、%2$s</string>
 </resources>

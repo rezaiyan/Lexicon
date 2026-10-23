@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,21 +36,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import components.Pill
+import domain.word.model.DueIn
 import domain.word.model.LearningStage
 import domain.word.model.Word
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.select
+import lexicon.resources.generated.resources.word_due_in_days
+import lexicon.resources.generated.resources.word_due_in_hours
+import lexicon.resources.generated.resources.word_due_now
+import lexicon.resources.generated.resources.word_row_status
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
 private val CheckSize = 22.dp
+private val MeterStepWidth = 6.dp
 
 /**
  * One row of the grouped word list. Rows stack edge to edge; [isFirst] / [isLast]
@@ -68,11 +74,11 @@ internal fun WordCard(
     onTap: () -> Unit,
     isFirst: Boolean,
     isLast: Boolean,
+    nowMs: Long,
     onLongPress: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val stage = LearningStage.fromLevel(word.level)
-    val color = levelColor(stage)
     val selectLabel = stringResource(Res.string.select)
 
     val backgroundColor by animateColorAsState(
@@ -145,26 +151,11 @@ internal fun WordCard(
                 )
             }
 
-            LevelPill(
+            WordStatus(
                 stage = stage,
-                color = color,
+                dueIn = DueIn.of(word.nextReviewDate, nowMs),
                 modifier = Modifier.padding(start = Theme.spacing.inlineGap),
             )
-
-            AnimatedVisibility(
-                visible = !isSelectionMode,
-                enter = expandHorizontally() + fadeIn(),
-                exit = shrinkHorizontally() + fadeOut(),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .padding(start = Theme.spacing.inlineGap)
-                        .size(Theme.dimensions.iconSizeMedium)
-                )
-            }
         }
         if (!isLast) {
             HorizontalDivider(
@@ -206,18 +197,54 @@ private fun SelectionCheck(checked: Boolean, modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Right side of a row: a six-step strength meter (one step per level above new) over when the
+ * word comes back. Reads as one phrase for screen readers.
+ */
 @Composable
-private fun LevelPill(
+private fun WordStatus(
     stage: LearningStage,
-    color: Color,
+    dueIn: DueIn,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier) {
-        Pill(
-            text = stageName(stage),
-            color = color,
-            backgroundAlpha = 0.15f,
-            fontWeight = FontWeight.Medium
+    val stageLabel = stageName(stage)
+    val dueLabel = when (dueIn) {
+        DueIn.Now -> stringResource(Res.string.word_due_now)
+        is DueIn.Hours -> stringResource(Res.string.word_due_in_hours, dueIn.hours)
+        is DueIn.Days -> stringResource(Res.string.word_due_in_days, dueIn.days)
+    }
+    val description = stringResource(Res.string.word_row_status, stageLabel, dueLabel)
+    Column(
+        modifier = modifier.clearAndSetSemantics { contentDescription = description },
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxs),
+    ) {
+        StrengthMeter(level = stage.level, color = levelColor(stage))
+        Text(
+            text = dueLabel,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (dueIn == DueIn.Now) FontWeight.Bold else FontWeight.Normal,
+            color = if (dueIn == DueIn.Now) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            maxLines = 1,
         )
+    }
+}
+
+@Composable
+private fun StrengthMeter(level: Int, color: Color) {
+    val empty = MaterialTheme.colorScheme.outlineVariant
+    Row(horizontalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
+        repeat(LearningStage.LEVEL_6_MASTERED.level) { step ->
+            Box(
+                modifier = Modifier
+                    .size(width = MeterStepWidth, height = Theme.spacing.xxs)
+                    .clip(RoundedCornerShape(Theme.shapes.extraSmall))
+                    .background(if (step < level) color else empty),
+            )
+        }
     }
 }

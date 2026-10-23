@@ -1257,4 +1257,10 @@
     <string name="insights_stage_learning">Learning</string>
     <string name="insights_stage_strong">Strong</string>
     <string name="insights_stage_mastered">Mastered</string>
+    <!-- Words list -->
+    <string name="word_due_now">Due</string>
+    <string name="word_due_in_hours">in %1$dh</string>
+    <string name="word_due_in_days">in %1$dd</string>
+    <string name="sort_due_soonest">Due soonest</string>
+    <string name="word_row_status">%1$s, %2$s</string>
 </resources>

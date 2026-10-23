@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Deselect
 import androidx.compose.material.icons.filled.SelectAll
@@ -48,6 +50,8 @@ import overlay.bottomsheet.BottomSheetPages
 import overlay.bottomsheet.rememberBottomSheetPageNavigator
 import overlay.bottomsheet.showSizeToFitBottomSheet
 import presentation.util.shareContentAsFile
+import presentation.ui.components.imports.AddWordsSheet
+import presentation.ui.screens.LockedSheetProperties
 import feature.words.WordManagerViewModel
 import feature.words.WordTagAssignmentViewModel
 import feature.words.model.WordTagAssignmentEffect
@@ -60,6 +64,8 @@ import theme.Theme
 import utils.Language
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.deleting_words_please_wait
+import lexicon.resources.generated.resources.import_words
+import lexicon.resources.generated.resources.select
 import lexicon.resources.generated.resources.failed_to_update_word
 import lexicon.resources.generated.resources.no_words_to_share
 import lexicon.resources.generated.resources.share_title_format
@@ -85,7 +91,10 @@ private sealed interface WordDetailPage {
 }
 
 @Composable
-fun WordManagerScreen() {
+fun WordManagerScreen(
+    onStartReview: () -> Unit,
+    onOpenSubscription: () -> Unit,
+) {
     val viewModel = koinViewModel<WordManagerViewModel>()
     val state by viewModel.state()
     val snackbarHostState = LocalSnackbarHostState.current
@@ -160,6 +169,23 @@ fun WordManagerScreen() {
 
     BackHandler(enabled = state.isSelectionMode, onBack = viewModel::exitSelectionMode)
 
+    val openAddWords: () -> Unit = {
+        overlayHost.showSizeToFitBottomSheet(tag = "import", properties = LockedSheetProperties) { sheetNav ->
+            AddWordsSheet(
+                onClose = { sheetNav.dismiss() },
+                onWordsAdded = {},
+                onStartReview = {
+                    sheetNav.dismiss()
+                    onStartReview()
+                },
+                onOpenSubscription = {
+                    sheetNav.dismiss()
+                    onOpenSubscription()
+                },
+            )
+        }
+    }
+
     val allSelected = state.filteredWords.isNotEmpty() && state.selectedCount == state.filteredWords.size
     LexiconColumn(
         title = if (state.isSelectionMode) {
@@ -180,6 +206,22 @@ fun WordManagerScreen() {
                 onClick = viewModel::selectAll,
             )
         } else {
+            ActionIconConfig(
+                icon = Icons.Default.Add,
+                contentDescription = stringResource(Res.string.import_words),
+                onClick = openAddWords,
+                size = Theme.dimensions.iconSize,
+            )
+        },
+        // Long-press drag selects too; this makes multi-select findable without knowing that.
+        actionIcon2 = if (!state.isSelectionMode && state.words.isNotEmpty()) {
+            ActionIconConfig(
+                icon = Icons.Default.Checklist,
+                contentDescription = stringResource(Res.string.select),
+                onClick = viewModel::enterSelectionMode,
+                size = Theme.dimensions.iconSize,
+            )
+        } else {
             null
         },
         scrollable = false,
@@ -197,7 +239,7 @@ fun WordManagerScreen() {
                 when {
                     loading -> LoadingView()
                     error != null -> ErrorView(message = error, classification = state.errorClassification)
-                    empty -> EmptyLibraryView()
+                    empty -> EmptyLibraryView(onAddWords = openAddWords)
                     else -> WordListContent(
                         state = state,
                         onSearchQueryChange = viewModel::updateSearchQuery,

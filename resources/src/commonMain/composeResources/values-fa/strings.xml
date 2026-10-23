@@ -732,4 +732,10 @@
     <string name="insights_coach_welcome_title">آمار شما از اینجا شروع می‌شود</string>
     <string name="insights_coach_welcome_body">نخستین مرورتان را تمام کنید تا پیشرفت و گام بعدی را نشانتان دهیم.</string>
     <string name="insights_coach_welcome_action">شروع نخستین مرور</string>
+    <!-- Words list -->
+    <string name="word_due_now">موعد مرور</string>
+    <string name="word_due_in_hours">%1$d ساعت دیگر</string>
+    <string name="word_due_in_days">%1$d روز دیگر</string>
+    <string name="sort_due_soonest">نزدیک‌ترین مرور</string>
+    <string name="word_row_status">%1$s، %2$s</string>
 </resources>

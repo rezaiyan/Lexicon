@@ -33,6 +33,7 @@ import domain.word.model.ImportErrorClassification
 import domain.word.model.LearningStage
 import domain.common.util.EpochDateFormatter
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.add_words_title
 import lexicon.resources.generated.resources.empty_library
 import lexicon.resources.generated.resources.error
 import lexicon.resources.generated.resources.level_0_fresh
@@ -72,10 +73,12 @@ internal fun ErrorView(
 }
 
 @Composable
-internal fun EmptyLibraryView() {
+internal fun EmptyLibraryView(onAddWords: () -> Unit) {
     EmptyScreen(
         title = stringResource(Res.string.empty_library),
         subtitle = stringResource(Res.string.start_by_importing),
+        actionLabel = stringResource(Res.string.add_words_title),
+        onAction = onAddWords,
         icon = {
             Icon(
                 imageVector = Icons.Default.FileUpload,

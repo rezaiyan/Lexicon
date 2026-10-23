@@ -733,4 +733,10 @@
     <string name="insights_coach_welcome_title">Vos statistiques commencent ici</string>
     <string name="insights_coach_welcome_body">Terminez votre première révision et nous vous montrerons vos progrès et quoi étudier ensuite.</string>
     <string name="insights_coach_welcome_action">Commencer la première révision</string>
+    <!-- Words list -->
+    <string name="word_due_now">À réviser</string>
+    <string name="word_due_in_hours">dans %1$d h</string>
+    <string name="word_due_in_days">dans %1$d j</string>
+    <string name="sort_due_soonest">À réviser bientôt</string>
+    <string name="word_row_status">%1$s, %2$s</string>
 </resources>

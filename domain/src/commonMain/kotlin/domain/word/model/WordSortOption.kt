@@ -6,5 +6,6 @@ enum class WordSortOption {
     ALPHABETICAL_AZ,
     ALPHABETICAL_ZA,
     LEVEL_ASC,
-    LEVEL_DESC
+    LEVEL_DESC,
+    DUE_SOONEST
 }
