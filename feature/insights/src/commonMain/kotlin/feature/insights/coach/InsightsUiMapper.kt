@@ -2,43 +2,66 @@ package feature.insights.coach
 
 import domain.insights.model.CoachAction
 import domain.insights.model.CoachCard
-import domain.insights.model.HabitsSection
-import domain.insights.model.InsightSectionKey
 import domain.insights.model.InsightsScreen
-import domain.insights.model.LockedSection
-import domain.insights.model.MasterySection
 import domain.insights.model.Metric
 import domain.insights.model.WeeklyHero
-import domain.insights.model.WordRushSection
-import domain.insights.model.WordsSection
+import domain.word.model.ProgressStats
+import domain.word.model.ReviewForecast
 import feature.insights.coach.model.ChangeUnit
 import feature.insights.coach.model.CoachCardUi
 import feature.insights.coach.model.DayDotUi
-import feature.insights.coach.model.DeepDiveUi
-import feature.insights.coach.model.HeatCellUi
+import feature.insights.coach.model.ForecastBarUi
+import feature.insights.coach.model.ForecastUi
 import feature.insights.coach.model.HeroUi
 import feature.insights.coach.model.InsightsUiModel
-import feature.insights.coach.model.LevelBarUi
-import feature.insights.coach.model.SectionKind
+import feature.insights.coach.model.StagesUi
 import feature.insights.coach.model.StatUi
 import feature.insights.coach.model.Trend
-import feature.insights.coach.model.WeekdayBarUi
 import kotlinx.datetime.LocalDate
 import kotlin.math.abs
 
 /** Domain → UI. Every spec §6 display rule that is not wording lives here. */
 object InsightsUiMapper {
 
-    /** Must match the server's MIN_REVIEWS_PER_BUCKET (habits unlock threshold). */
-    private const val HABITS_UNLOCK_REVIEWS = 30
-    private const val HEAT_LEVELS = 4
+    /** Hardest words listed on screen; the review button covers the same set. */
+    const val HARDEST_SHOWN = 5
 
     fun map(screen: InsightsScreen, dismissed: Set<String>, today: LocalDate, use24Hour: Boolean) = InsightsUiModel(
         hero = screen.hero.toUi(today),
-        coach = screen.coach.filterNot { it.id in dismissed }.map { it.toUi(use24Hour) },
-        sections = sections(screen, use24Hour),
+        // A card without an action only restates numbers the hero already shows.
+        coach = screen.coach
+            .filterNot { it.id in dismissed || it.action == CoachAction.None }
+            .map { it.toUi(use24Hour) },
+        hardest = screen.words?.hardest.orEmpty().take(HARDEST_SHOWN),
         isNewUser = screen.totalReviews == 0L,
     )
+
+    fun forecast(forecast: ReviewForecast): ForecastUi {
+        val max = forecast.days.maxOfOrNull { it.reviews }?.takeIf { it > 0 } ?: 1
+        val busiest = forecast.days.drop(1).maxByOrNull { it.reviews }?.takeIf { it.reviews > 0 }
+        return ForecastUi(
+            dueNow = forecast.dueNow,
+            tomorrow = forecast.days.getOrNull(1)?.reviews ?: 0,
+            busiest = busiest?.reviews,
+            bars = forecast.days.mapIndexed { index, day ->
+                ForecastBarUi(
+                    isoDay = day.date.dayOfWeek.ordinal + 1,
+                    reviews = day.reviews,
+                    fraction = day.reviews.toFloat() / max,
+                    isToday = index == 0,
+                    isBusiest = day == busiest,
+                )
+            },
+        )
+    }
+
+    /** Level 0 new, 1–2 learning, 3–5 strong, 6 mastered. Null for an empty library. */
+    fun stages(stats: ProgressStats): StagesUi? = StagesUi(
+        new = stats.level0Count,
+        learning = stats.level1Count + stats.level2Count,
+        strong = stats.level3Count + stats.level4Count + stats.level5Count,
+        mastered = stats.level6Count,
+    ).takeIf { it.total > 0 }
 
     private fun WeeklyHero.toUi(today: LocalDate) = HeroUi(
         headline = headline,
@@ -80,55 +103,5 @@ object InsightsUiMapper {
         moreWordsCount = moreWordsCount,
         action = action,
         hourLabel = (action as? CoachAction.EnableReminder)?.let { InsightsFormatter.hour(it.hour, use24Hour) },
-    )
-
-    private fun sections(screen: InsightsScreen, use24Hour: Boolean): List<DeepDiveUi> {
-        val locked = screen.locked.associateBy { it.section }
-        return listOfNotNull(
-            screen.mastery?.toUi() ?: locked[InsightSectionKey.MASTERY]?.toUi(SectionKind.MASTERY),
-            screen.habits?.toUi(use24Hour) ?: locked[InsightSectionKey.HABITS]?.toUi(SectionKind.HABITS),
-            screen.words?.toUi() ?: locked[InsightSectionKey.WORDS]?.toUi(SectionKind.WORDS),
-            screen.wordRush?.toUi() ?: locked[InsightSectionKey.WORD_RUSH]?.toUi(SectionKind.WORD_RUSH),
-        )
-    }
-
-    private fun LockedSection.toUi(kind: SectionKind) = DeepDiveUi.Locked(
-        kind = kind,
-        reviewsNeeded = reviewsNeeded,
-        progress = ((HABITS_UNLOCK_REVIEWS - reviewsNeeded).toFloat() / HABITS_UNLOCK_REVIEWS).coerceIn(0f, 1f),
-    )
-
-    private fun MasterySection.toUi(): DeepDiveUi.Mastery {
-        val max = levels.maxOfOrNull { it.words }?.takeIf { it > 0 } ?: 1L
-        return DeepDiveUi.Mastery(
-            caption = caption,
-            levels = levels.map { LevelBarUi(it.level, it.words, it.words.toFloat() / max) },
-            promoted = promotedThisWeek,
-            demoted = demotedThisWeek,
-        )
-    }
-
-    private fun HabitsSection.toUi(use24Hour: Boolean): DeepDiveUi.Habits {
-        val maxReviews = heatmap.maxOfOrNull { it.reviews }?.takeIf { it > 0 } ?: 1
-        val bestDay = weekdays.maxByOrNull { it.accuracyPct }?.isoDay
-        return DeepDiveUi.Habits(
-            caption = caption,
-            heatmap = heatmap.map { day ->
-                val intensity = ((day.reviews.toFloat() / maxReviews) * HEAT_LEVELS).toInt().coerceIn(1, HEAT_LEVELS)
-                HeatCellUi(day.date.toEpochDays().toLong(), day.reviews, intensity)
-            },
-            bestHourLabel = bestHour?.let { InsightsFormatter.hour(it.hour, use24Hour) },
-            bestHourAccuracy = bestHour?.accuracyPct,
-            weekdays = weekdays.map { WeekdayBarUi(it.isoDay, it.accuracyPct, it.isoDay == bestDay) },
-        )
-    }
-
-    private fun WordsSection.toUi() = DeepDiveUi.Words(caption, hardest, comebacks)
-
-    private fun WordRushSection.toUi() = DeepDiveUi.WordRush(
-        caption = caption,
-        gamesPlayed = InsightsFormatter.compactCount(gamesPlayed),
-        bestScore = InsightsFormatter.compactCount(bestScore),
-        recentScores = recentScores,
     )
 }

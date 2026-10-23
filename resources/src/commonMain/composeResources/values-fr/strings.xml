@@ -646,11 +646,6 @@
     <string name="word_rush_powerup_peek_desc">Montre brièvement la bonne réponse</string>
     <string name="word_rush_powerup_unlocked">%1$s débloqué · %2$s</string>
     <string name="word_rush_lives_left">Encore %1$d vies</string>
-    <string name="word_rush_insights_best_streak">Meilleure série</string>
-    <string name="word_rush_insights_avg_accuracy">Précision moy.</string>
-    <string name="word_rush_insights_avg_score">Score moy.</string>
-    <string name="word_rush_insights_total_time">Temps de jeu</string>
-    <string name="word_rush_insights_completion_rate">Taux de complétion</string>
 
     <!-- Support chat -->
     <string name="support_title">Aide et support</string>
@@ -696,9 +691,46 @@
     <string name="search_tags">Rechercher des étiquettes</string>
     <string name="no_tags_match">Aucune étiquette ne correspond à « %1$s »</string>
     <string name="insights_tab">Statistiques</string>
-    <string name="insights_accuracy_by_day">Précision par jour</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d mot</item>
         <item quantity="other">%1$d mots</item>
     </plurals>
+    <string name="insights_coming_up">À venir</string>
+    <string name="insights_offline">Impossible de charger le bilan de la semaine. Vos mots ci-dessous sont à jour.</string>
+    <string name="insights_forecast_due_now">%1$d à réviser maintenant</string>
+    <string name="insights_forecast_all_caught_up">Tout est à jour</string>
+    <string name="insights_forecast_tomorrow">Demain %1$d</string>
+    <string name="insights_forecast_busiest">Jour le plus chargé %1$d</string>
+    <string name="insights_forecast_review_now">Réviser</string>
+    <string name="insights_hardest_right">%1$d%% justes</string>
+    <string name="insights_review_hardest">Réviser ces %1$d</string>
+    <string name="insights_stage_new">Nouveaux</string>
+    <string name="insights_stage_learning">En cours</string>
+    <string name="insights_stage_strong">Solides</string>
+    <string name="insights_stage_mastered">Maîtrisés</string>
+    <string name="insights_coach_this_week">Cette semaine</string>
+    <string name="insights_coach_reviews">Révisions</string>
+    <string name="insights_coach_accuracy">Précision</string>
+    <string name="insights_coach_leveled_up">Mots montés de niveau</string>
+    <string name="insights_coach_accuracy_locked">Après 20 révisions</string>
+    <string name="insights_coach_change_more">▲ %1$d de plus que la semaine dernière</string>
+    <string name="insights_coach_change_fewer">▼ %1$d de moins que la semaine dernière</string>
+    <string name="insights_coach_change_points_up">▲ %1$d points de plus que la semaine dernière</string>
+    <string name="insights_coach_change_points_down">▼ %1$d points de moins que la semaine dernière</string>
+    <string name="insights_coach_change_same">Comme la semaine dernière</string>
+    <string name="insights_coach_streak">Série de %1$d jours</string>
+    <string name="insights_coach_next_steps">Vos prochaines étapes</string>
+    <string name="insights_coach_dismiss">Masquer pour aujourd'hui</string>
+    <string name="insights_coach_more_words">+%1$d de plus</string>
+    <string name="insights_coach_reminder_at">Chaque jour à %1$s</string>
+    <string name="insights_coach_reminder_on">Rappel quotidien activé</string>
+    <string name="insights_coach_section_words">Vos mots</string>
+    <string name="insights_coach_hardest">Les plus difficiles en ce moment</string>
+    <string name="insights_coach_updated_just_now">Mis à jour à l'instant</string>
+    <string name="insights_coach_updated_minutes">Mis à jour il y a %1$d min</string>
+    <string name="insights_coach_updated_hours">Mis à jour il y a %1$d h</string>
+    <string name="insights_coach_updated_days">Mis à jour il y a %1$d j</string>
+    <string name="insights_coach_welcome_title">Vos statistiques commencent ici</string>
+    <string name="insights_coach_welcome_body">Terminez votre première révision et nous vous montrerons vos progrès et quoi étudier ensuite.</string>
+    <string name="insights_coach_welcome_action">Commencer la première révision</string>
 </resources>

@@ -2,20 +2,28 @@ package feature.insights.navigation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import feature.insights.ui.InsightsScreen
+import domain.word.model.ReviewSource
+import feature.insights.coach.ui.InsightsCoachScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
 data object InsightsRoute
 
+/** Reviews and Word Rush run on the Study tab, so Insights hands them off through the callbacks. */
 fun NavGraphBuilder.insightsGraph(
-    onShowLeaderboard: () -> Unit = {},
-    onNavigateToNotificationSettings: () -> Unit = {},
+    onShowLeaderboard: () -> Unit,
+    onStartReview: (ReviewSource) -> Unit,
+    onStartWordRush: () -> Unit,
+    onNavigateToNotificationSettings: () -> Unit,
+    onReminderEnabled: () -> Unit,
 ) {
     composable<InsightsRoute> {
-        InsightsScreen(
+        InsightsCoachScreen(
             onShowLeaderboard = onShowLeaderboard,
-            onNavigateToNotificationSettings = onNavigateToNotificationSettings,
+            onStartReview = onStartReview,
+            onStartWordRush = onStartWordRush,
+            onOpenNotificationSettings = onNavigateToNotificationSettings,
+            onReminderEnabled = onReminderEnabled,
         )
     }
 }

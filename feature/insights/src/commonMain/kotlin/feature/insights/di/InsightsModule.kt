@@ -1,27 +1,22 @@
 package feature.insights.di
 
-import data.storage.DailyInsightCache
-import domain.settings.usecase.ObserveReviewRemindersEnabledUseCase
-import domain.wordrush.usecase.GetWordRushInsightsUseCase
-import feature.insights.InsightsUseCases
-import feature.insights.InsightsViewModel
+import domain.word.usecase.ObserveReviewForecastUseCase
+import feature.insights.coach.InsightsCoachUseCases
+import feature.insights.coach.InsightsCoachViewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
+import time.is24HourClock
 
 fun insightsModule() = module {
-    factoryOf(::GetWordRushInsightsUseCase)
-    factoryOf(::ObserveReviewRemindersEnabledUseCase)
-    factoryOf(::InsightsUseCases)
+    factory { ObserveReviewForecastUseCase(wordRepository = get()) }
+    factoryOf(::InsightsCoachUseCases)
 
     viewModel {
-        InsightsViewModel(
+        InsightsCoachViewModel(
             useCases = get(),
-            getWordRushInsightsUseCase = get(),
-            getProfileStatsUseCase = get(),
-            dailyInsightCache = get<DailyInsightCache>(),
-            setReviewRemindersEnabledUseCase = get(),
-            observeReviewRemindersEnabledUseCase = get(),
+            analyticsTracker = get(),
+            use24Hour = ::is24HourClock,
         )
     }
 }

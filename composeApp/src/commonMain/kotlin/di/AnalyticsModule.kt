@@ -24,15 +24,6 @@ import domain.analytics.repository.IAnalyticsStatsRepository
 import domain.analytics.repository.IAnalyticsWordRepository
 import domain.analytics.usecase.EndStudySessionUseCase
 import domain.analytics.usecase.RetryAnalyticsSyncUseCase
-import domain.analytics.usecase.GetAccuracyByLevelUseCase
-import domain.analytics.usecase.GetAccuracyTrendUseCase
-import domain.analytics.usecase.GetBestStudyTimeUseCase
-import domain.analytics.usecase.GetDifficultWordsUseCase
-import domain.analytics.usecase.GetStudyHeatmapUseCase
-import domain.analytics.usecase.GetStudyInsightsUseCase
-import domain.analytics.usecase.GetLevelTransitionsUseCase
-import domain.analytics.usecase.GetResponseTimeTrendUseCase
-import domain.analytics.usecase.GetWeeklyReportUseCase
 import domain.analytics.usecase.RecordReviewEventUseCase
 import domain.analytics.usecase.StartStudySessionUseCase
 import domain.insights.repository.IDismissedCoachCardsRepository
@@ -71,15 +62,6 @@ fun analyticsModule() = module {
     singleOf(::RetryAnalyticsSyncUseCase)
 
     // Use Cases — querying
-    singleOf(::GetStudyInsightsUseCase)
-    singleOf(::GetDifficultWordsUseCase)
-    singleOf(::GetAccuracyTrendUseCase)
-    singleOf(::GetAccuracyByLevelUseCase)
-    singleOf(::GetStudyHeatmapUseCase)
-    singleOf(::GetBestStudyTimeUseCase)
-    singleOf(::GetWeeklyReportUseCase)
-    singleOf(::GetLevelTransitionsUseCase)
-    singleOf(::GetResponseTimeTrendUseCase)
 
     // --- Word Rush Analytics ---
 

@@ -646,11 +646,6 @@
     <string name="word_rush_powerup_peek_desc">Muestra un instante la respuesta correcta</string>
     <string name="word_rush_powerup_unlocked">%1$s desbloqueado · %2$s</string>
     <string name="word_rush_lives_left">Te quedan %1$d vidas</string>
-    <string name="word_rush_insights_best_streak">Mejor racha</string>
-    <string name="word_rush_insights_avg_accuracy">Precisión media</string>
-    <string name="word_rush_insights_avg_score">Puntuación media</string>
-    <string name="word_rush_insights_total_time">Tiempo jugado</string>
-    <string name="word_rush_insights_completion_rate">Tasa de finalización</string>
 
     <!-- Support chat -->
     <string name="support_title">Ayuda y soporte</string>
@@ -696,9 +691,46 @@
     <string name="search_tags">Buscar etiquetas</string>
     <string name="no_tags_match">Ninguna etiqueta coincide con «%1$s»</string>
     <string name="insights_tab">Estadísticas</string>
-    <string name="insights_accuracy_by_day">Precisión por día</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d palabra</item>
         <item quantity="other">%1$d palabras</item>
     </plurals>
+    <string name="insights_coming_up">Próximamente</string>
+    <string name="insights_offline">No se pudo cargar el resumen semanal. Tus palabras de abajo están al día.</string>
+    <string name="insights_forecast_due_now">%1$d pendientes ahora</string>
+    <string name="insights_forecast_all_caught_up">Todo al día</string>
+    <string name="insights_forecast_tomorrow">Mañana %1$d</string>
+    <string name="insights_forecast_busiest">Día más cargado %1$d</string>
+    <string name="insights_forecast_review_now">Repasar ahora</string>
+    <string name="insights_hardest_right">%1$d%% acierto</string>
+    <string name="insights_review_hardest">Repasar estas %1$d</string>
+    <string name="insights_stage_new">Nuevas</string>
+    <string name="insights_stage_learning">Aprendiendo</string>
+    <string name="insights_stage_strong">Firmes</string>
+    <string name="insights_stage_mastered">Dominadas</string>
+    <string name="insights_coach_this_week">Esta semana</string>
+    <string name="insights_coach_reviews">Repasos</string>
+    <string name="insights_coach_accuracy">Precisión</string>
+    <string name="insights_coach_leveled_up">Palabras que subieron</string>
+    <string name="insights_coach_accuracy_locked">Tras 20 repasos</string>
+    <string name="insights_coach_change_more">▲ %1$d más que la semana pasada</string>
+    <string name="insights_coach_change_fewer">▼ %1$d menos que la semana pasada</string>
+    <string name="insights_coach_change_points_up">▲ %1$d puntos más que la semana pasada</string>
+    <string name="insights_coach_change_points_down">▼ %1$d puntos menos que la semana pasada</string>
+    <string name="insights_coach_change_same">Igual que la semana pasada</string>
+    <string name="insights_coach_streak">Racha de %1$d días</string>
+    <string name="insights_coach_next_steps">Tus próximos pasos</string>
+    <string name="insights_coach_dismiss">Ocultar por hoy</string>
+    <string name="insights_coach_more_words">+%1$d más</string>
+    <string name="insights_coach_reminder_at">Cada día a las %1$s</string>
+    <string name="insights_coach_reminder_on">Recordatorio diario activado</string>
+    <string name="insights_coach_section_words">Tus palabras</string>
+    <string name="insights_coach_hardest">Las más difíciles ahora</string>
+    <string name="insights_coach_updated_just_now">Actualizado ahora</string>
+    <string name="insights_coach_updated_minutes">Actualizado hace %1$d min</string>
+    <string name="insights_coach_updated_hours">Actualizado hace %1$d h</string>
+    <string name="insights_coach_updated_days">Actualizado hace %1$d d</string>
+    <string name="insights_coach_welcome_title">Aquí empiezan tus estadísticas</string>
+    <string name="insights_coach_welcome_body">Termina tu primer repaso y te mostraremos cómo vas y qué estudiar después.</string>
+    <string name="insights_coach_welcome_action">Empieza tu primer repaso</string>
 </resources>

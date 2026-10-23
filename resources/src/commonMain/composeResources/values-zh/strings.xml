@@ -646,11 +646,6 @@
     <string name="word_rush_powerup_peek_desc">短暂显示正确答案</string>
     <string name="word_rush_powerup_unlocked">已解锁%1$s · %2$s</string>
     <string name="word_rush_lives_left">剩余 %1$d 条命</string>
-    <string name="word_rush_insights_best_streak">最佳连胜</string>
-    <string name="word_rush_insights_avg_accuracy">平均准确率</string>
-    <string name="word_rush_insights_avg_score">平均得分</string>
-    <string name="word_rush_insights_total_time">游戏时长</string>
-    <string name="word_rush_insights_completion_rate">完成率</string>
 
     <!-- Support chat -->
     <string name="support_title">帮助与支持</string>
@@ -696,8 +691,45 @@
     <string name="search_tags">搜索标签</string>
     <string name="no_tags_match">没有与“%1$s”匹配的标签</string>
     <string name="insights_tab">洞察</string>
-    <string name="insights_accuracy_by_day">按星期的正确率</string>
     <plurals name="word_count_label">
         <item quantity="other">%1$d 个单词</item>
     </plurals>
+    <string name="insights_coming_up">即将到来</string>
+    <string name="insights_offline">无法加载本周总结。下方单词是最新的。</string>
+    <string name="insights_forecast_due_now">现在待复习 %1$d 个</string>
+    <string name="insights_forecast_all_caught_up">全部完成</string>
+    <string name="insights_forecast_tomorrow">明天 %1$d</string>
+    <string name="insights_forecast_busiest">最多的一天 %1$d</string>
+    <string name="insights_forecast_review_now">立即复习</string>
+    <string name="insights_hardest_right">正确率 %1$d%%</string>
+    <string name="insights_review_hardest">复习这 %1$d 个</string>
+    <string name="insights_stage_new">新词</string>
+    <string name="insights_stage_learning">学习中</string>
+    <string name="insights_stage_strong">稳固</string>
+    <string name="insights_stage_mastered">已掌握</string>
+    <string name="insights_coach_this_week">本周</string>
+    <string name="insights_coach_reviews">复习</string>
+    <string name="insights_coach_accuracy">正确率</string>
+    <string name="insights_coach_leveled_up">升级的单词</string>
+    <string name="insights_coach_accuracy_locked">复习 20 次后</string>
+    <string name="insights_coach_change_more">▲ 比上周多 %1$d</string>
+    <string name="insights_coach_change_fewer">▼ 比上周少 %1$d</string>
+    <string name="insights_coach_change_points_up">▲ 比上周高 %1$d 个百分点</string>
+    <string name="insights_coach_change_points_down">▼ 比上周低 %1$d 个百分点</string>
+    <string name="insights_coach_change_same">与上周相同</string>
+    <string name="insights_coach_streak">连续 %1$d 天</string>
+    <string name="insights_coach_next_steps">下一步</string>
+    <string name="insights_coach_dismiss">今天隐藏</string>
+    <string name="insights_coach_more_words">还有 %1$d 个</string>
+    <string name="insights_coach_reminder_at">每天 %1$s</string>
+    <string name="insights_coach_reminder_on">每日提醒已开启</string>
+    <string name="insights_coach_section_words">你的单词</string>
+    <string name="insights_coach_hardest">目前最难的单词</string>
+    <string name="insights_coach_updated_just_now">刚刚更新</string>
+    <string name="insights_coach_updated_minutes">%1$d 分钟前更新</string>
+    <string name="insights_coach_updated_hours">%1$d 小时前更新</string>
+    <string name="insights_coach_updated_days">%1$d 天前更新</string>
+    <string name="insights_coach_welcome_title">你的洞察从这里开始</string>
+    <string name="insights_coach_welcome_body">完成第一次复习后，我们会告诉你进度以及接下来学什么。</string>
+    <string name="insights_coach_welcome_action">开始第一次复习</string>
 </resources>

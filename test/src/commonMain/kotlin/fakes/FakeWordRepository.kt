@@ -116,7 +116,8 @@ class FakeWordRepository : IWordRepository {
         return syncResult
     }
 
-    override fun getProgressStats(): Flow<ProgressStats> = flowOf(ProgressStats())
+    var progressStats = ProgressStats()
+    override fun getProgressStats(): Flow<ProgressStats> = flowOf(progressStats)
     override suspend fun getTotalCount(): Try<Int> = totalCountResult
     override suspend fun getDueCount(): Try<Int> = dueCountResult
     override suspend fun getNextDueAt(): Try<Long?> = Try.success(null)

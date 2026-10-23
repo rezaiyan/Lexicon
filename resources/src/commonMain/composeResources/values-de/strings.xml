@@ -646,11 +646,6 @@
     <string name="word_rush_powerup_peek_desc">Zeigt kurz die richtige Antwort</string>
     <string name="word_rush_powerup_unlocked">%1$s freigeschaltet · %2$s</string>
     <string name="word_rush_lives_left">Noch %1$d Leben</string>
-    <string name="word_rush_insights_best_streak">Beste Serie</string>
-    <string name="word_rush_insights_avg_accuracy">Ø Genauigkeit</string>
-    <string name="word_rush_insights_avg_score">Ø Punkte</string>
-    <string name="word_rush_insights_total_time">Spielzeit</string>
-    <string name="word_rush_insights_completion_rate">Abschlussrate</string>
 
     <!-- Support chat -->
     <string name="support_title">Hilfe &amp; Support</string>
@@ -696,9 +691,46 @@
     <string name="search_tags">Tags suchen</string>
     <string name="no_tags_match">Keine Tags passen zu „%1$s“</string>
     <string name="insights_tab">Einblicke</string>
-    <string name="insights_accuracy_by_day">Genauigkeit nach Tag</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d Wort</item>
         <item quantity="other">%1$d Wörter</item>
     </plurals>
+    <string name="insights_coming_up">Demnächst</string>
+    <string name="insights_offline">Wochenübersicht konnte nicht geladen werden. Deine Wörter unten sind aktuell.</string>
+    <string name="insights_forecast_due_now">%1$d jetzt fällig</string>
+    <string name="insights_forecast_all_caught_up">Alles erledigt</string>
+    <string name="insights_forecast_tomorrow">Morgen %1$d</string>
+    <string name="insights_forecast_busiest">Vollster Tag %1$d</string>
+    <string name="insights_forecast_review_now">Jetzt üben</string>
+    <string name="insights_hardest_right">%1$d%% richtig</string>
+    <string name="insights_review_hardest">Diese %1$d üben</string>
+    <string name="insights_stage_new">Neu</string>
+    <string name="insights_stage_learning">Am Lernen</string>
+    <string name="insights_stage_strong">Sicher</string>
+    <string name="insights_stage_mastered">Gemeistert</string>
+    <string name="insights_coach_this_week">Diese Woche</string>
+    <string name="insights_coach_reviews">Wiederholungen</string>
+    <string name="insights_coach_accuracy">Genauigkeit</string>
+    <string name="insights_coach_leveled_up">Wörter aufgestiegen</string>
+    <string name="insights_coach_accuracy_locked">Nach 20 Wiederholungen</string>
+    <string name="insights_coach_change_more">▲ %1$d mehr als letzte Woche</string>
+    <string name="insights_coach_change_fewer">▼ %1$d weniger als letzte Woche</string>
+    <string name="insights_coach_change_points_up">▲ %1$d Punkte mehr als letzte Woche</string>
+    <string name="insights_coach_change_points_down">▼ %1$d Punkte weniger als letzte Woche</string>
+    <string name="insights_coach_change_same">Wie letzte Woche</string>
+    <string name="insights_coach_streak">%1$d Tage in Folge</string>
+    <string name="insights_coach_next_steps">Deine nächsten Schritte</string>
+    <string name="insights_coach_dismiss">Für heute ausblenden</string>
+    <string name="insights_coach_more_words">+%1$d weitere</string>
+    <string name="insights_coach_reminder_at">Täglich um %1$s</string>
+    <string name="insights_coach_reminder_on">Tägliche Erinnerung ist an</string>
+    <string name="insights_coach_section_words">Deine Wörter</string>
+    <string name="insights_coach_hardest">Gerade am schwersten</string>
+    <string name="insights_coach_updated_just_now">Gerade aktualisiert</string>
+    <string name="insights_coach_updated_minutes">Vor %1$d Min. aktualisiert</string>
+    <string name="insights_coach_updated_hours">Vor %1$d Std. aktualisiert</string>
+    <string name="insights_coach_updated_days">Vor %1$d Tagen aktualisiert</string>
+    <string name="insights_coach_welcome_title">Hier beginnen deine Einblicke</string>
+    <string name="insights_coach_welcome_body">Schließe deine erste Wiederholung ab, dann zeigen wir dir deinen Fortschritt und was du als Nächstes lernen solltest.</string>
+    <string name="insights_coach_welcome_action">Erste Wiederholung starten</string>
 </resources>

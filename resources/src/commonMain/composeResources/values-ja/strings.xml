@@ -805,11 +805,6 @@
     <string name="word_rush_powerup_peek_desc">正解を一瞬表示します</string>
     <string name="word_rush_powerup_unlocked">%1$sを獲得 · %2$s</string>
     <string name="word_rush_lives_left">残りライフ %1$d</string>
-    <string name="word_rush_insights_best_streak">最高連続正解</string>
-    <string name="word_rush_insights_avg_accuracy">平均正答率</string>
-    <string name="word_rush_insights_avg_score">平均スコア</string>
-    <string name="word_rush_insights_total_time">プレイ時間</string>
-    <string name="word_rush_insights_completion_rate">完了率</string>
 
     <!-- Support chat -->
     <string name="support_title">ヘルプとサポート</string>
@@ -855,8 +850,45 @@
     <string name="search_tags">タグを検索</string>
     <string name="no_tags_match">「%1$s」に一致するタグはありません</string>
     <string name="insights_tab">分析</string>
-    <string name="insights_accuracy_by_day">曜日別の正答率</string>
     <plurals name="word_count_label">
         <item quantity="other">%1$d 語</item>
     </plurals>
+    <string name="insights_coming_up">これから</string>
+    <string name="insights_offline">今週のまとめを読み込めませんでした。下の単語は最新です。</string>
+    <string name="insights_forecast_due_now">今すぐ %1$d 件</string>
+    <string name="insights_forecast_all_caught_up">すべて完了</string>
+    <string name="insights_forecast_tomorrow">明日 %1$d</string>
+    <string name="insights_forecast_busiest">最も多い日 %1$d</string>
+    <string name="insights_forecast_review_now">今すぐ復習</string>
+    <string name="insights_hardest_right">正答率 %1$d%%</string>
+    <string name="insights_review_hardest">この %1$d 語を復習</string>
+    <string name="insights_stage_new">新規</string>
+    <string name="insights_stage_learning">学習中</string>
+    <string name="insights_stage_strong">定着</string>
+    <string name="insights_stage_mastered">習得</string>
+    <string name="insights_coach_this_week">今週</string>
+    <string name="insights_coach_reviews">復習</string>
+    <string name="insights_coach_accuracy">正答率</string>
+    <string name="insights_coach_leveled_up">レベルアップした単語</string>
+    <string name="insights_coach_accuracy_locked">20回の復習後</string>
+    <string name="insights_coach_change_more">▲ 先週より %1$d 多い</string>
+    <string name="insights_coach_change_fewer">▼ 先週より %1$d 少ない</string>
+    <string name="insights_coach_change_points_up">▲ 先週より %1$d ポイント上昇</string>
+    <string name="insights_coach_change_points_down">▼ 先週より %1$d ポイント低下</string>
+    <string name="insights_coach_change_same">先週と同じ</string>
+    <string name="insights_coach_streak">%1$d日連続</string>
+    <string name="insights_coach_next_steps">次にやること</string>
+    <string name="insights_coach_dismiss">今日は非表示</string>
+    <string name="insights_coach_more_words">他 %1$d 語</string>
+    <string name="insights_coach_reminder_at">毎日 %1$s</string>
+    <string name="insights_coach_reminder_on">毎日のリマインダーをオンにしました</string>
+    <string name="insights_coach_section_words">あなたの単語</string>
+    <string name="insights_coach_hardest">今いちばん難しい単語</string>
+    <string name="insights_coach_updated_just_now">たった今更新</string>
+    <string name="insights_coach_updated_minutes">%1$d分前に更新</string>
+    <string name="insights_coach_updated_hours">%1$d時間前に更新</string>
+    <string name="insights_coach_updated_days">%1$d日前に更新</string>
+    <string name="insights_coach_welcome_title">ここから分析が始まります</string>
+    <string name="insights_coach_welcome_body">最初の復習を終えると、進み具合と次に学ぶことを表示します。</string>
+    <string name="insights_coach_welcome_action">最初の復習を始める</string>
 </resources>

@@ -13,9 +13,12 @@ import domain.insights.usecase.ObserveInsightsScreenUseCase
 import domain.insights.usecase.RefreshInsightsScreenUseCase
 import domain.settings.usecase.SetReviewRemindersEnabledUseCase
 import domain.word.model.ReviewSource
+import domain.word.usecase.GetProgressStatsUseCase
+import domain.word.usecase.ObserveReviewForecastUseCase
 import feature.insights.coach.model.CoachCardUi
+import feature.insights.coach.model.ForecastUi
 import feature.insights.coach.model.InsightsUiModel
-import feature.insights.coach.model.SectionKind
+import feature.insights.coach.model.StagesUi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -33,7 +36,9 @@ data class InsightsCoachState(
     /** Cached content shown after a failed refresh. */
     val isStale: Boolean = false,
     val updatedAgo: UpdatedAgo? = null,
-    val expanded: Set<SectionKind> = emptySet(),
+    /** From local words, so it shows offline and before the server answers. */
+    val forecast: ForecastUi? = null,
+    val stages: StagesUi? = null,
 )
 
 sealed interface InsightsCoachEffect {
@@ -49,6 +54,8 @@ class InsightsCoachUseCases(
     val observeDismissed: ObserveDismissedCoachCardsUseCase,
     val dismissCard: DismissCoachCardUseCase,
     val setReviewReminders: SetReviewRemindersEnabledUseCase,
+    val observeForecast: ObserveReviewForecastUseCase,
+    val observeProgress: GetProgressStatsUseCase,
 )
 
 /** Time sources, injectable for tests. */
@@ -76,6 +83,12 @@ class InsightsCoachViewModel(
         ) { cached, dismissed -> cached to dismissed }
             .onEach { (cached, dismissed) -> render(cached, dismissed) }
             .launchIn(viewModelScope)
+        useCases.observeForecast(Unit)
+            .onEach { updateState { copy(forecast = InsightsUiMapper.forecast(it)) } }
+            .launchIn(viewModelScope)
+        useCases.observeProgress(Unit)
+            .onEach { updateState { copy(stages = InsightsUiMapper.stages(it)) } }
+            .launchIn(viewModelScope)
     }
 
     fun refresh() {
@@ -100,7 +113,7 @@ class InsightsCoachViewModel(
                 emitEffect(InsightsCoachEffect.StartReview(ReviewSource.ByWords(action.wordIds)))
             is CoachAction.StartReview -> emitEffect(InsightsCoachEffect.StartReview(ReviewSource.DueCards))
             is CoachAction.StartWordRush -> emitEffect(InsightsCoachEffect.StartWordRush)
-            is CoachAction.EnableReminder -> enableReminders()
+            is CoachAction.EnableReminder -> enableReminders(card)
             CoachAction.None -> Unit
         }
     }
@@ -110,14 +123,26 @@ class InsightsCoachViewModel(
         viewModelScope.launch { useCases.dismissCard(card.id) }
     }
 
-    fun toggleSection(kind: SectionKind) {
-        updateState { copy(expanded = if (kind in expanded) expanded - kind else expanded + kind) }
+    fun reviewDueNow() {
+        analyticsTracker.logEvent("insights_review_due", emptyMap())
+        emitEffect(InsightsCoachEffect.StartReview(ReviewSource.DueCards))
     }
 
-    private fun enableReminders() {
+    fun reviewHardest() {
+        val ids = currentState.content?.hardest?.map { it.id }.orEmpty()
+        if (ids.isEmpty()) return
+        analyticsTracker.logEvent("insights_review_hardest", mapOf("count" to ids.size.toString()))
+        emitEffect(InsightsCoachEffect.StartReview(ReviewSource.ByWords(ids)))
+    }
+
+    private fun enableReminders(card: CoachCardUi) {
         viewModelScope.launch {
             useCases.setReviewReminders(true).fold(
-                onSuccess = { emitEffect(InsightsCoachEffect.ReminderEnabled) },
+                onSuccess = {
+                    // Done: the card has nothing left to offer today
+                    useCases.dismissCard(card.id)
+                    emitEffect(InsightsCoachEffect.ReminderEnabled)
+                },
                 onFailure = { emitEffect(InsightsCoachEffect.OpenNotificationSettings) },
             )
         }

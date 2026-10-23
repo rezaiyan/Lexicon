@@ -645,11 +645,6 @@
     <string name="word_rush_powerup_peek_desc">پاسخ درست را لحظه‌ای نشان می‌دهد</string>
     <string name="word_rush_powerup_unlocked">%1$s باز شد · %2$s</string>
     <string name="word_rush_lives_left">%1$d جان باقی مانده</string>
-    <string name="word_rush_insights_best_streak">بهترین زنجیره</string>
-    <string name="word_rush_insights_avg_accuracy">میانگین دقت</string>
-    <string name="word_rush_insights_avg_score">میانگین امتیاز</string>
-    <string name="word_rush_insights_total_time">زمان بازی</string>
-    <string name="word_rush_insights_completion_rate">نرخ تکمیل</string>
 
     <!-- Support chat -->
     <string name="support_title">راهنما و پشتیبانی</string>
@@ -695,9 +690,46 @@
     <string name="search_tags">جستجوی برچسب‌ها</string>
     <string name="no_tags_match">هیچ برچسبی با «%1$s» مطابقت ندارد</string>
     <string name="insights_tab">آمار</string>
-    <string name="insights_accuracy_by_day">دقت بر اساس روز</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d واژه</item>
         <item quantity="other">%1$d واژه</item>
     </plurals>
+    <string name="insights_coming_up">پیش رو</string>
+    <string name="insights_offline">خلاصهٔ این هفته بارگیری نشد. واژه‌های پایین به‌روز هستند.</string>
+    <string name="insights_forecast_due_now">%1$d آماده مرور</string>
+    <string name="insights_forecast_all_caught_up">همه مرور شده</string>
+    <string name="insights_forecast_tomorrow">فردا %1$d</string>
+    <string name="insights_forecast_busiest">شلوغ‌ترین روز %1$d</string>
+    <string name="insights_forecast_review_now">مرور کن</string>
+    <string name="insights_hardest_right">%1$d%% درست</string>
+    <string name="insights_review_hardest">مرور این %1$d</string>
+    <string name="insights_stage_new">جدید</string>
+    <string name="insights_stage_learning">در حال یادگیری</string>
+    <string name="insights_stage_strong">تثبیت‌شده</string>
+    <string name="insights_stage_mastered">مسلط</string>
+    <string name="insights_coach_this_week">این هفته</string>
+    <string name="insights_coach_reviews">مرورها</string>
+    <string name="insights_coach_accuracy">دقت</string>
+    <string name="insights_coach_leveled_up">واژه‌های ارتقایافته</string>
+    <string name="insights_coach_accuracy_locked">پس از ۲۰ مرور</string>
+    <string name="insights_coach_change_more">▲ %1$d بیشتر از هفتهٔ پیش</string>
+    <string name="insights_coach_change_fewer">▼ %1$d کمتر از هفتهٔ پیش</string>
+    <string name="insights_coach_change_points_up">▲ %1$d امتیاز بیشتر از هفتهٔ پیش</string>
+    <string name="insights_coach_change_points_down">▼ %1$d امتیاز کمتر از هفتهٔ پیش</string>
+    <string name="insights_coach_change_same">مانند هفتهٔ پیش</string>
+    <string name="insights_coach_streak">%1$d روز پیاپی</string>
+    <string name="insights_coach_next_steps">گام‌های بعدی</string>
+    <string name="insights_coach_dismiss">پنهان برای امروز</string>
+    <string name="insights_coach_more_words">+%1$d دیگر</string>
+    <string name="insights_coach_reminder_at">هر روز ساعت %1$s</string>
+    <string name="insights_coach_reminder_on">یادآور روزانه روشن شد</string>
+    <string name="insights_coach_section_words">واژه‌های شما</string>
+    <string name="insights_coach_hardest">سخت‌ترین‌ها در حال حاضر</string>
+    <string name="insights_coach_updated_just_now">همین حالا به‌روز شد</string>
+    <string name="insights_coach_updated_minutes">%1$d دقیقه پیش به‌روز شد</string>
+    <string name="insights_coach_updated_hours">%1$d ساعت پیش به‌روز شد</string>
+    <string name="insights_coach_updated_days">%1$d روز پیش به‌روز شد</string>
+    <string name="insights_coach_welcome_title">آمار شما از اینجا شروع می‌شود</string>
+    <string name="insights_coach_welcome_body">نخستین مرورتان را تمام کنید تا پیشرفت و گام بعدی را نشانتان دهیم.</string>
+    <string name="insights_coach_welcome_action">شروع نخستین مرور</string>
 </resources>

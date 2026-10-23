@@ -103,58 +103,8 @@
     <string name="total_reviews_format">%1$d reviews</string>
 
     <!-- Weekly Report Card -->
-    <string name="weekly_report_title">This Week</string>
-    <string name="weekly_report_cards_reviewed">cards reviewed</string>
-    <string name="weekly_report_accuracy">Accuracy</string>
-    <string name="weekly_report_mastered">Mastered</string>
-    <string name="weekly_report_study_time">Study time</string>
-    <string name="weekly_report_sessions">Sessions</string>
-    <string name="weekly_report_view_insights">View Insights</string>
-    <string name="weekly_report_best_day">Best day</string>
 
     <!-- Insights Screen -->
-    <string name="insights_title">Study Insights</string>
-    <string name="insights_tab_overview">Overview</string>
-    <string name="insights_tab_trends">Trends</string>
-    <string name="insights_tab_words">Words</string>
-    <string name="insights_loading">Loading insights…</string>
-    <string name="insights_loading_levels">Loading levels…</string>
-    <string name="insights_loading_words">Loading words…</string>
-    <string name="insights_best_study_time">Best Study Time</string>
-    <string name="insights_accuracy_format">%1$d% accuracy</string>
-    <string name="insights_cards_reviewed">Cards Reviewed</string>
-    <string name="insights_accuracy">Accuracy</string>
-    <string name="insights_words_mastered">Words Mastered</string>
-    <string name="insights_days_studied">Days Studied</string>
-    <string name="insights_total_study_time">Total Study Time</string>
-    <string name="insights_sessions_words">%1$d sessions, %2$d unique words</string>
-    <string name="insights_accuracy_by_level">Accuracy by SRS Level</string>
-    <string name="insights_no_review_data">No review data yet. Start studying to see trends!</string>
-    <string name="insights_level_format">Level %1$d</string>
-    <string name="insights_accuracy_reviews_format">%1$d% (%2$d reviews)</string>
-    <string name="insights_this_week">This Week</string>
-    <string name="insights_activity_title">Activity (last 90 days)</string>
-    <string name="insights_activity_summary">%1$d active days, %2$d cards reviewed</string>
-    <string name="insights_most_difficult_words">Most Difficult Words</string>
-    <string name="insights_no_difficult_words">No difficult words found yet. Keep studying!</string>
-    <string name="insights_error_rate_format">%1$d% error</string>
-    <string name="insights_reviews_format">%1$d reviews</string>
-    <string name="insights_empty_title">No activity yet</string>
-    <string name="insights_empty_subtitle">Complete a study session to unlock your learning insights</string>
-    <string name="insights_load_error">Failed to load insights. Please check your connection and try again.</string>
-    <string name="insights_level_transitions">Level Transitions</string>
-    <string name="insights_level_transitions_promotions">promotions</string>
-    <string name="insights_level_transitions_demotions">demotions</string>
-    <string name="insights_level_from_to">Level %1$d → %2$d</string>
-    <string name="insights_level_transitions_words">%1$d words</string>
-    <string name="insights_response_time_trend">Response Time</string>
-    <string name="insights_response_time_avg_ms">%1$s avg</string>
-    <string name="insights_response_time_improving">Getting faster!</string>
-    <string name="insights_response_time_declining">Slowing down</string>
-    <string name="insights_response_time_stable">Consistent pace</string>
-    <string name="insights_response_time_week">Week %1$d</string>
-    <string name="insights_study_these_words">Study These Words</string>
-    <string name="insights_set_reminder">Set Reminder</string>
     <string name="review_reminders_enabled">Reminder set for your best study time</string>
     <string name="languages">Languages</string>
     <string name="member_since">Member since %1$s</string>
@@ -380,7 +330,6 @@
     <string name="filter_all_tags">All Tags</string>
     <string name="assign_tags">Assign Tag</string>
     <string name="insights_tab">Insights</string>
-    <string name="insights_accuracy_by_day">Accuracy by day</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d word</item>
         <item quantity="other">%1$d words</item>
@@ -829,13 +778,6 @@
     <string name="word_rush_lives_left">%1$d lives left</string>
 
     <!-- Word Rush Insights -->
-    <string name="word_rush_insights_title">Word Rush</string>
-    <string name="word_rush_insights_total_games">Games Played</string>
-    <string name="word_rush_insights_best_streak">Best Streak</string>
-    <string name="word_rush_insights_avg_accuracy">Avg Accuracy</string>
-    <string name="word_rush_insights_avg_score">Avg Score</string>
-    <string name="word_rush_insights_total_time">Time Played</string>
-    <string name="word_rush_insights_completion_rate">Completion Rate</string>
     <string name="filter_all">All</string>
     <string name="filters">Filters</string>
     <string name="account_section">Account</string>
@@ -1187,20 +1129,8 @@
     <string name="insights_coach_dismiss">Hide for today</string>
     <string name="insights_coach_more_words">+%1$d more</string>
     <string name="insights_coach_reminder_at">Daily at %1$s</string>
-    <string name="insights_coach_deep_dive">Dig deeper</string>
-    <string name="insights_coach_section_mastery">Mastery journey</string>
-    <string name="insights_coach_section_habits">Study habits</string>
     <string name="insights_coach_section_words">Your words</string>
-    <string name="insights_coach_section_word_rush">Word Rush</string>
-    <string name="insights_coach_locked">Unlocks after %1$d more reviews</string>
-    <string name="insights_coach_stage">Stage %1$d</string>
-    <string name="insights_coach_moved_up">%1$d moved up</string>
-    <string name="insights_coach_slipped">%1$d slipped back</string>
-    <string name="insights_coach_best_hour">Sharpest hour: %1$s (%2$d%% right)</string>
-    <string name="insights_coach_hardest">Hardest words</string>
-    <string name="insights_coach_comebacks">Comeback wins</string>
-    <string name="insights_coach_games_played">Games played</string>
-    <string name="insights_coach_best_score">Best score</string>
+    <string name="insights_coach_hardest">Hardest right now</string>
     <string name="insights_coach_updated_just_now">Updated just now</string>
     <string name="insights_coach_updated_minutes">Updated %1$dm ago</string>
     <string name="insights_coach_updated_hours">Updated %1$dh ago</string>
@@ -1314,4 +1244,17 @@
     <string name="ask_tag_before_review_subtitle">Pick a tag each time you start a review</string>
     <string name="search_tags">Search tags</string>
     <string name="no_tags_match">No tags match “%1$s”</string>
+    <string name="insights_coming_up">Coming up</string>
+    <string name="insights_offline">Couldn't load this week's summary. Your words below are up to date.</string>
+    <string name="insights_forecast_due_now">%1$d due now</string>
+    <string name="insights_forecast_all_caught_up">All caught up</string>
+    <string name="insights_forecast_tomorrow">Tomorrow %1$d</string>
+    <string name="insights_forecast_busiest">Busiest day %1$d</string>
+    <string name="insights_forecast_review_now">Review now</string>
+    <string name="insights_hardest_right">%1$d%% right</string>
+    <string name="insights_review_hardest">Review these %1$d</string>
+    <string name="insights_stage_new">New</string>
+    <string name="insights_stage_learning">Learning</string>
+    <string name="insights_stage_strong">Strong</string>
+    <string name="insights_stage_mastered">Mastered</string>
 </resources>

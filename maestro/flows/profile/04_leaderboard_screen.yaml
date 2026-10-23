@@ -3,7 +3,7 @@ tags:
   - profile
   - leaderboard
 ---
-# Test: Leaderboard opens from the Study Insights tab and can be dismissed.
+# Test: Leaderboard opens from the Insights tab and can be dismissed.
 #
 # The Insights tab (premium only) has a Leaderboard icon in its top bar. The
 # leaderboard opens as a fullscreen overlay with dismissOnBackPress=false, so it
@@ -40,4 +40,4 @@ tags:
 - waitForAnimationToEnd
 
 - assertNotVisible: "Refresh"
-- assertVisible: "Study Insights"
+- assertVisible: "This week"

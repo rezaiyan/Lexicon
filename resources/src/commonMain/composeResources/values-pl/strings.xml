@@ -805,11 +805,6 @@
     <string name="word_rush_powerup_peek_desc">Na chwilę pokazuje poprawną odpowiedź</string>
     <string name="word_rush_powerup_unlocked">Odblokowano: %1$s · %2$s</string>
     <string name="word_rush_lives_left">Pozostałe życia: %1$d</string>
-    <string name="word_rush_insights_best_streak">Najlepsza seria</string>
-    <string name="word_rush_insights_avg_accuracy">Śr. dokładność</string>
-    <string name="word_rush_insights_avg_score">Śr. wynik</string>
-    <string name="word_rush_insights_total_time">Czas gry</string>
-    <string name="word_rush_insights_completion_rate">Wskaźnik ukończenia</string>
 
     <!-- Support chat -->
     <string name="support_title">Pomoc i wsparcie</string>
@@ -855,11 +850,48 @@
     <string name="search_tags">Szukaj tagów</string>
     <string name="no_tags_match">Żaden tag nie pasuje do „%1$s”</string>
     <string name="insights_tab">Statystyki</string>
-    <string name="insights_accuracy_by_day">Dokładność wg dnia</string>
     <plurals name="word_count_label">
         <item quantity="one">%1$d słowo</item>
         <item quantity="few">%1$d słowa</item>
         <item quantity="many">%1$d słów</item>
         <item quantity="other">%1$d słowa</item>
     </plurals>
+    <string name="insights_coming_up">Nadchodzące</string>
+    <string name="insights_offline">Nie udało się wczytać podsumowania tygodnia. Słowa poniżej są aktualne.</string>
+    <string name="insights_forecast_due_now">%1$d do powtórki teraz</string>
+    <string name="insights_forecast_all_caught_up">Wszystko powtórzone</string>
+    <string name="insights_forecast_tomorrow">Jutro %1$d</string>
+    <string name="insights_forecast_busiest">Najwięcej %1$d</string>
+    <string name="insights_forecast_review_now">Powtórz teraz</string>
+    <string name="insights_hardest_right">%1$d%% poprawnie</string>
+    <string name="insights_review_hardest">Powtórz te %1$d</string>
+    <string name="insights_stage_new">Nowe</string>
+    <string name="insights_stage_learning">W nauce</string>
+    <string name="insights_stage_strong">Utrwalone</string>
+    <string name="insights_stage_mastered">Opanowane</string>
+    <string name="insights_coach_this_week">Ten tydzień</string>
+    <string name="insights_coach_reviews">Powtórki</string>
+    <string name="insights_coach_accuracy">Trafność</string>
+    <string name="insights_coach_leveled_up">Słowa awansowane</string>
+    <string name="insights_coach_accuracy_locked">Po 20 powtórkach</string>
+    <string name="insights_coach_change_more">▲ o %1$d więcej niż w zeszłym tygodniu</string>
+    <string name="insights_coach_change_fewer">▼ o %1$d mniej niż w zeszłym tygodniu</string>
+    <string name="insights_coach_change_points_up">▲ o %1$d pkt więcej niż w zeszłym tygodniu</string>
+    <string name="insights_coach_change_points_down">▼ o %1$d pkt mniej niż w zeszłym tygodniu</string>
+    <string name="insights_coach_change_same">Tak jak w zeszłym tygodniu</string>
+    <string name="insights_coach_streak">%1$d dni z rzędu</string>
+    <string name="insights_coach_next_steps">Twoje kolejne kroki</string>
+    <string name="insights_coach_dismiss">Ukryj na dziś</string>
+    <string name="insights_coach_more_words">+%1$d więcej</string>
+    <string name="insights_coach_reminder_at">Codziennie o %1$s</string>
+    <string name="insights_coach_reminder_on">Codzienne przypomnienie włączone</string>
+    <string name="insights_coach_section_words">Twoje słowa</string>
+    <string name="insights_coach_hardest">Najtrudniejsze teraz</string>
+    <string name="insights_coach_updated_just_now">Zaktualizowano przed chwilą</string>
+    <string name="insights_coach_updated_minutes">Zaktualizowano %1$d min temu</string>
+    <string name="insights_coach_updated_hours">Zaktualizowano %1$d godz. temu</string>
+    <string name="insights_coach_updated_days">Zaktualizowano %1$d dni temu</string>
+    <string name="insights_coach_welcome_title">Tu zaczynają się Twoje statystyki</string>
+    <string name="insights_coach_welcome_body">Ukończ pierwszą powtórkę, a pokażemy Ci postępy i co dalej.</string>
+    <string name="insights_coach_welcome_action">Zacznij pierwszą powtórkę</string>
 </resources>

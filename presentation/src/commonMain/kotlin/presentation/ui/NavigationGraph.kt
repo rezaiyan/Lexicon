@@ -7,6 +7,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import components.snackbar.showSuccess
+import kotlinx.coroutines.launch
+import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.insights_coach_reminder_on
+import org.jetbrains.compose.resources.stringResource
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -40,6 +46,8 @@ internal fun NavigationGraph(
     val snackbarHostState = LocalSnackbarHostState.current
     val overlayHost = LocalOverlayHost.current
     val analyticsTracker = koinInject<IAnalyticsTracker>()
+    val scope = rememberCoroutineScope()
+    val reminderOnMessage = stringResource(Res.string.insights_coach_reminder_on)
 
     DisposableEffect(navController) {
         val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
@@ -54,7 +62,8 @@ internal fun NavigationGraph(
     }
 
     // Taps on actionable notifications (a failed renewal, due cards, an insight...) open the screen they're about
-    OnEvents(koinInject<NotificationNavigator>().destinations) { destination ->
+    val notificationNavigator = koinInject<NotificationNavigator>()
+    OnEvents(notificationNavigator.destinations) { destination ->
         when (destination) {
             NotificationDestination.Subscription -> navController.navigate(SubscriptionRoute) {
                 launchSingleTop = true
@@ -89,7 +98,10 @@ internal fun NavigationGraph(
 
         insightsGraph(
             onShowLeaderboard = { overlayHost.showLeaderboard() },
+            onStartReview = notificationNavigator::openReview,
+            onStartWordRush = notificationNavigator::openWordRush,
             onNavigateToNotificationSettings = { overlayHost.showNotificationSettingsSheet() },
+            onReminderEnabled = { scope.launch { snackbarHostState.showSuccess(reminderOnMessage) } },
         )
 
         // Presentation-owned routes (screens still in :presentation)

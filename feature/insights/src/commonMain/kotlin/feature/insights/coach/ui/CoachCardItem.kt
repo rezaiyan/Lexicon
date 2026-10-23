@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AlarmOn
 import androidx.compose.material.icons.rounded.AutoAwesome
@@ -15,7 +14,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material.icons.rounded.LocalFireDepartment
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +51,8 @@ internal fun CoachCardItem(
         onClick = { onAction(card) },
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(Modifier.padding(Theme.spacing.md), verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
+        // AccentCard already pads its content
+        Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(Theme.spacing.sm)) {
                 AccentIconBadge(icon = iconFor(card.type), accent = accent)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Theme.spacing.xxxs)) {
@@ -112,7 +112,7 @@ private fun ActionButton(card: CoachCardUi, onAction: (CoachCardUi) -> Unit) {
         }
         CoachAction.None -> return
     }
-    FilledTonalButton(onClick = { onAction(card) }) { Text(label) }
+    Button(onClick = { onAction(card) }) { Text(label) }
 }
 
 private fun iconFor(type: String): ImageVector = when (type) {

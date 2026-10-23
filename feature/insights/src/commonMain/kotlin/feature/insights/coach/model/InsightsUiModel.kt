@@ -45,68 +45,38 @@ data class CoachCardUi(
     val hourLabel: String?,
 )
 
-enum class SectionKind { MASTERY, HABITS, WORDS, WORD_RUSH }
-
-@Immutable
-data class LevelBarUi(val level: Int, val words: Long, val fraction: Float)
-
-@Immutable
-data class HeatCellUi(val epochDay: Long, val reviews: Int, val intensity: Int)
-
-@Immutable
-data class WeekdayBarUi(val isoDay: Int, val accuracyPct: Int, val isBest: Boolean)
-
-@Immutable
-sealed interface DeepDiveUi {
-    val kind: SectionKind
-    val caption: String
-
-    data class Mastery(
-        override val caption: String,
-        val levels: List<LevelBarUi>,
-        val promoted: Int,
-        val demoted: Int,
-    ) : DeepDiveUi {
-        override val kind = SectionKind.MASTERY
-    }
-
-    data class Habits(
-        override val caption: String,
-        val heatmap: List<HeatCellUi>,
-        val bestHourLabel: String?,
-        val bestHourAccuracy: Int?,
-        val weekdays: List<WeekdayBarUi>,
-    ) : DeepDiveUi {
-        override val kind = SectionKind.HABITS
-    }
-
-    data class Words(
-        override val caption: String,
-        val hardest: List<InsightWord>,
-        val comebacks: List<WordChip>,
-    ) : DeepDiveUi {
-        override val kind = SectionKind.WORDS
-    }
-
-    data class WordRush(
-        override val caption: String,
-        val gamesPlayed: String,
-        val bestScore: String,
-        val recentScores: List<Int>,
-    ) : DeepDiveUi {
-        override val kind = SectionKind.WORD_RUSH
-    }
-
-    /** Not enough data yet: teaser with progress instead of an empty chart. */
-    data class Locked(override val kind: SectionKind, val reviewsNeeded: Int, val progress: Float) : DeepDiveUi {
-        override val caption: String = ""
-    }
-}
-
+/** Server-side part of the screen: how this week went and what to do about it. */
 @Immutable
 data class InsightsUiModel(
     val hero: HeroUi,
+    /** Only cards the learner can act on. */
     val coach: List<CoachCardUi>,
-    val sections: List<DeepDiveUi>,
+    val hardest: List<InsightWord>,
     val isNewUser: Boolean,
 )
+
+@Immutable
+data class ForecastBarUi(
+    val isoDay: Int,
+    val reviews: Int,
+    /** Height relative to the busiest day, 0..1. */
+    val fraction: Float,
+    val isToday: Boolean,
+    val isBusiest: Boolean,
+)
+
+/** Reviews coming due today and the next six days, from local words. */
+@Immutable
+data class ForecastUi(
+    val dueNow: Int,
+    val tomorrow: Int,
+    /** Reviews on the busiest day after today; null when none are scheduled. */
+    val busiest: Int?,
+    val bars: List<ForecastBarUi>,
+)
+
+/** The library in four plain-language buckets instead of seven internal levels. */
+@Immutable
+data class StagesUi(val new: Int, val learning: Int, val strong: Int, val mastered: Int) {
+    val total: Int get() = new + learning + strong + mastered
+}

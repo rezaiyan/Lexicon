@@ -805,11 +805,6 @@
     <string name="word_rush_powerup_peek_desc">정답을 잠깐 보여줘요</string>
     <string name="word_rush_powerup_unlocked">%1$s 획득 · %2$s</string>
     <string name="word_rush_lives_left">남은 목숨 %1$d개</string>
-    <string name="word_rush_insights_best_streak">최고 연속 정답</string>
-    <string name="word_rush_insights_avg_accuracy">평균 정확도</string>
-    <string name="word_rush_insights_avg_score">평균 점수</string>
-    <string name="word_rush_insights_total_time">플레이 시간</string>
-    <string name="word_rush_insights_completion_rate">완료율</string>
 
     <!-- Support chat -->
     <string name="support_title">도움말 및 지원</string>
@@ -855,8 +850,45 @@
     <string name="search_tags">태그 검색</string>
     <string name="no_tags_match">“%1$s”와 일치하는 태그가 없습니다</string>
     <string name="insights_tab">인사이트</string>
-    <string name="insights_accuracy_by_day">요일별 정확도</string>
     <plurals name="word_count_label">
         <item quantity="other">%1$d개 단어</item>
     </plurals>
+    <string name="insights_coming_up">다가오는 복습</string>
+    <string name="insights_offline">이번 주 요약을 불러오지 못했어요. 아래 단어는 최신 상태예요.</string>
+    <string name="insights_forecast_due_now">지금 %1$d개 복습</string>
+    <string name="insights_forecast_all_caught_up">모두 끝냈어요</string>
+    <string name="insights_forecast_tomorrow">내일 %1$d</string>
+    <string name="insights_forecast_busiest">가장 많은 날 %1$d</string>
+    <string name="insights_forecast_review_now">지금 복습</string>
+    <string name="insights_hardest_right">정답률 %1$d%%</string>
+    <string name="insights_review_hardest">이 %1$d개 복습</string>
+    <string name="insights_stage_new">새 단어</string>
+    <string name="insights_stage_learning">학습 중</string>
+    <string name="insights_stage_strong">탄탄함</string>
+    <string name="insights_stage_mastered">마스터</string>
+    <string name="insights_coach_this_week">이번 주</string>
+    <string name="insights_coach_reviews">복습</string>
+    <string name="insights_coach_accuracy">정확도</string>
+    <string name="insights_coach_leveled_up">레벨 업한 단어</string>
+    <string name="insights_coach_accuracy_locked">복습 20회 후</string>
+    <string name="insights_coach_change_more">▲ 지난주보다 %1$d 많음</string>
+    <string name="insights_coach_change_fewer">▼ 지난주보다 %1$d 적음</string>
+    <string name="insights_coach_change_points_up">▲ 지난주보다 %1$d포인트 상승</string>
+    <string name="insights_coach_change_points_down">▼ 지난주보다 %1$d포인트 하락</string>
+    <string name="insights_coach_change_same">지난주와 같음</string>
+    <string name="insights_coach_streak">%1$d일 연속</string>
+    <string name="insights_coach_next_steps">다음 할 일</string>
+    <string name="insights_coach_dismiss">오늘은 숨기기</string>
+    <string name="insights_coach_more_words">+%1$d개 더</string>
+    <string name="insights_coach_reminder_at">매일 %1$s</string>
+    <string name="insights_coach_reminder_on">매일 알림이 켜졌어요</string>
+    <string name="insights_coach_section_words">내 단어</string>
+    <string name="insights_coach_hardest">지금 가장 어려운 단어</string>
+    <string name="insights_coach_updated_just_now">방금 업데이트됨</string>
+    <string name="insights_coach_updated_minutes">%1$d분 전 업데이트</string>
+    <string name="insights_coach_updated_hours">%1$d시간 전 업데이트</string>
+    <string name="insights_coach_updated_days">%1$d일 전 업데이트</string>
+    <string name="insights_coach_welcome_title">인사이트는 여기서 시작돼요</string>
+    <string name="insights_coach_welcome_body">첫 복습을 마치면 진행 상황과 다음에 공부할 내용을 보여드려요.</string>
+    <string name="insights_coach_welcome_action">첫 복습 시작</string>
 </resources>

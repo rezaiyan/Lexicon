@@ -1,16 +1,16 @@
 package feature.insights.coach
 
 import domain.insights.InsightsFixtures
-import domain.insights.model.BestHour
 import domain.insights.model.CoachAction
-import domain.insights.model.DayCount
-import domain.insights.model.HabitsSection
+import domain.insights.model.InsightWord
 import domain.insights.model.InsightsScreen
 import domain.insights.model.Metric
-import domain.insights.model.WeekdayAccuracy
+import domain.insights.model.WordsSection
+import domain.word.model.ForecastDay
+import domain.word.model.ProgressStats
+import domain.word.model.ReviewForecast
 import feature.insights.coach.model.ChangeUnit
-import feature.insights.coach.model.DeepDiveUi
-import feature.insights.coach.model.SectionKind
+import feature.insights.coach.model.StagesUi
 import feature.insights.coach.model.StatUi
 import feature.insights.coach.model.Trend
 import kotlinx.datetime.LocalDate
@@ -77,34 +77,64 @@ class InsightsUiMapperTest {
     }
 
     @Test
-    fun `sections keep fixed order and locked ones become teasers`() {
-        val sections = map().sections
-        assertEquals(listOf(SectionKind.MASTERY, SectionKind.HABITS, SectionKind.WORDS), sections.map { it.kind })
-        val locked = sections[1] as DeepDiveUi.Locked
-        assertEquals(18, locked.reviewsNeeded)
-        assertEquals(0.4f, locked.progress, 0.01f) // (30 - 18) / 30
+    fun `cards without an action are left out`() {
+        val trend = InsightsFixtures.card(type = "WEEK_TREND", action = CoachAction.None)
+        val coach = map(InsightsFixtures.screen(coach = listOf(trend, InsightsFixtures.card()))).coach
+        assertEquals(listOf("SLIPPING_WORDS"), coach.map { it.type })
     }
 
     @Test
-    fun `mastery bars are scaled to the largest stage`() {
-        val mastery = map().sections.first() as DeepDiveUi.Mastery
-        assertEquals(1f, mastery.levels.last().fraction)
-        assertEquals(0f, mastery.levels.first().fraction)
+    fun `hardest words are capped at five`() {
+        val words = (1..8).map { InsightWord(it.toLong(), "w$it", 20) }
+        val screen = InsightsFixtures.screen().copy(words = WordsSection("", words, emptyList()))
+        assertEquals((1L..5L).toList(), map(screen).hardest.map { it.id })
     }
 
     @Test
-    fun `habits mark the best weekday and bucket heat`() {
-        val habits = HabitsSection(
-            caption = "You're sharpest on Tuesdays",
-            heatmap = listOf(DayCount(LocalDate(2026, 10, 1), 2), DayCount(LocalDate(2026, 10, 2), 40)),
-            bestHour = BestHour(20, 91),
-            weekdays = listOf(WeekdayAccuracy(1, 70, 40), WeekdayAccuracy(2, 88, 40)),
+    fun `forecast scales bars and finds tomorrow and the busiest later day`() {
+        val counts = listOf(30, 12, 0, 40, 5, 0, 1)
+        val forecast = ReviewForecast(
+            dueNow = 25,
+            days = counts.mapIndexed { i, n -> ForecastDay(LocalDate.fromEpochDays(wednesday.toEpochDays() + i), n) },
         )
-        val ui = map(InsightsFixtures.screen(habits = habits, locked = emptyList())).sections
-            .filterIsInstance<DeepDiveUi.Habits>().single()
-        assertEquals("8 PM", ui.bestHourLabel)
-        assertEquals(listOf(false, true), ui.weekdays.map { it.isBest })
-        assertEquals(listOf(1, 4), ui.heatmap.map { it.intensity })
+
+        val ui = InsightsUiMapper.forecast(forecast)
+
+        assertEquals(25, ui.dueNow)
+        assertEquals(12, ui.tomorrow)
+        assertEquals(40, ui.busiest)
+        assertEquals(listOf(3, 4, 5, 6, 7, 1, 2), ui.bars.map { it.isoDay })
+        assertEquals(1f, ui.bars[3].fraction)
+        assertEquals(0.75f, ui.bars[0].fraction)
+        assertEquals(listOf(true, false, false, false, false, false, false), ui.bars.map { it.isToday })
+        assertEquals(3, ui.bars.indexOfFirst { it.isBusiest })
+    }
+
+    @Test
+    fun `forecast with nothing scheduled after today has no busiest day`() {
+        val forecast = ReviewForecast(
+            dueNow = 0,
+            days = (0..6).map { ForecastDay(LocalDate.fromEpochDays(wednesday.toEpochDays() + it), 0) },
+        )
+
+        val ui = InsightsUiMapper.forecast(forecast)
+
+        assertNull(ui.busiest)
+        assertTrue(ui.bars.none { it.isBusiest })
+    }
+
+    @Test
+    fun `stages group seven levels into four plain buckets`() {
+        val stats = ProgressStats(
+            level0Count = 4, level1Count = 3, level2Count = 2, level3Count = 1,
+            level4Count = 1, level5Count = 1, level6Count = 5, totalWords = 17,
+        )
+        assertEquals(StagesUi(new = 4, learning = 5, strong = 3, mastered = 5), InsightsUiMapper.stages(stats))
+    }
+
+    @Test
+    fun `stages are null for an empty library`() {
+        assertNull(InsightsUiMapper.stages(ProgressStats()))
     }
 
     @Test
