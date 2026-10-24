@@ -11,9 +11,13 @@
 #   ./maestro/record_showcase.sh --gif                # convert existing MP4s to GIFs
 #   ./maestro/record_showcase.sh --skip-build         # skip APK build (use existing)
 #
-# Required environment variables (or fetched automatically):
-#   BACKEND_URL       — Vokab backend URL (defaults to production)
-#   CI_TEST_SECRET    — CI auth secret (fetched from VPS if not set)
+# Signs in as the showcase account (ci-token?showcase=true): curated demo data,
+# kept apart from the CI test user. Seed it before recording.
+#
+# Environment variables (all optional):
+#   BACKEND_URL       — backend URL (defaults to production)
+#   CI_TEST_SECRET    — CI auth secret (fetched from VPS_SSH_HOST if not set)
+#   VPS_SSH_HOST      — defaults to root@alirezaiyan.com
 #
 # Output:
 #   docs/demos/*.mp4  — raw screen recordings
@@ -30,8 +34,9 @@ OUTPUT_DIR="$PROJECT_DIR/docs/demos"
 PACKAGE="com.alirezaiyan.vokab"
 APK_PATTERN="$PROJECT_DIR/composeApp/build/outputs/apk/debug/*.apk"
 
-BACKEND_URL="${BACKEND_URL:-}"
+BACKEND_URL="${BACKEND_URL:-https://lexicon.alirezaiyan.com}"
 CI_TEST_SECRET="${CI_TEST_SECRET:-}"
+VPS_SSH_HOST="${VPS_SSH_HOST:-root@alirezaiyan.com}"
 
 # Showcase flows — onboarding FIRST (needs clearState), then authenticated flows.
 FLOWS=(
@@ -71,6 +76,17 @@ ensure_output_dir() {
   mkdir -p "$OUTPUT_DIR"
 }
 
+# Store-style status bar: 9:41, full battery and Wi-Fi, no notification icons.
+clean_status_bar() {
+  adb shell settings put global sysui_demo_allowed 1
+  local demo=(adb shell am broadcast -a com.android.systemui.demo -e command)
+  "${demo[@]}" enter >/dev/null
+  "${demo[@]}" clock -e hhmm 0941 >/dev/null
+  "${demo[@]}" battery -e level 100 -e plugged false >/dev/null
+  "${demo[@]}" network -e wifi show -e level 4 -e fully true -e mobile hide >/dev/null
+  "${demo[@]}" notifications -e visible false >/dev/null
+}
+
 # ──────────────────────────────────────────────
 # App lifecycle: build, uninstall, install, auth
 # ──────────────────────────────────────────────
@@ -103,10 +119,9 @@ fetch_ci_secret() {
   fi
 
   info "CI_TEST_SECRET not set — fetching from VPS..."
-  # Set VPS_SSH_HOST to your VPS SSH host (e.g. root@your-server.com)
   if [ -n "$VPS_SSH_HOST" ] && command -v ssh >/dev/null 2>&1; then
     CI_TEST_SECRET=$(ssh -o ConnectTimeout=5 "$VPS_SSH_HOST" \
-      "docker inspect vokab-server --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null" 2>/dev/null \
+      "docker inspect lexicon-server --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null" 2>/dev/null \
       | grep '^CI_TEST_SECRET=' | cut -d= -f2) || true
   fi
   [ -n "$CI_TEST_SECRET" ] || fail "CI_TEST_SECRET not set. Export it or set VPS_SSH_HOST for auto-fetch."
@@ -122,7 +137,7 @@ inject_auth_tokens() {
   local http_code
   http_code=$(curl -sL -o /tmp/ci-auth-response.json -w "%{http_code}" \
     --connect-timeout 15 --max-time 30 --retry 3 --retry-delay 5 \
-    -X POST "${BACKEND_URL}/api/v1/auth/ci-token" \
+    -X POST "${BACKEND_URL}/api/v1/auth/ci-token?showcase=true" \
     -H "X-CI-Secret: $CI_TEST_SECRET" \
     -H "Content-Type: application/json")
 
@@ -315,6 +330,7 @@ main() {
   done
 
   ensure_output_dir
+  if [ "$mode" != "gif" ]; then clean_status_bar; fi
 
   case "$mode" in
     gif)
