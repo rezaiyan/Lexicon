@@ -6,7 +6,6 @@ import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.word.model.Word
 import fakes.FakeLearningFocusRepository
 import utils.Language
-import domain.word.usecase.GetWordRushWordsUseCase
 import fakes.FakeAnalyticsTracker
 import domain.wordrush.model.WordRushGameRecord
 import domain.wordrush.model.WordRushDirection
@@ -16,8 +15,12 @@ import domain.wordrush.repository.IWordRushRecorder
 import domain.wordrush.repository.IWordRushStatsRepository
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.GetWordRushRoundUseCase
+import domain.wordrush.usecase.ObserveWordRushAvailabilityUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import fakes.FakeWordRepository
+import domain.word.repository.IWordRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
@@ -89,12 +92,11 @@ class WordRushViewModelTest : ViewModelTestBase() {
         val repo = fakeRepo(words)
         val observeLearningFocus = ObserveLearningFocusUseCase(repo, focusRepo)
         return WordRushViewModel(
-            getWordRushWordsUseCase = GetWordRushWordsUseCase(repo, observeLearningFocus),
             getWordRushRoundUseCase = GetWordRushRoundUseCase(repo, observeLearningFocus),
             recordWordRushGameUseCase = RecordWordRushGameUseCase(recorder),
             analyticsTracker = FakeAnalyticsTracker(),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(FakeWordRushStatsRepository(bestStreakEver)),
-            observeLearningFocus = observeLearningFocus,
+            observeWordRushAvailability = ObserveWordRushAvailabilityUseCase(repo, observeLearningFocus),
         )
     }
 
@@ -109,6 +111,35 @@ class WordRushViewModelTest : ViewModelTestBase() {
         focusRepo.preference.value = LearningFocus.Single(Language.SPANISH)
 
         assertFalse(vm.currentState.hasEnoughWords)
+    }
+
+    /** Word store whose list stream re-emits, like the local DB filling up after the post-login sync. */
+    private class SyncingWordRepository(
+        private val delegate: FakeWordRepository = FakeWordRepository(),
+    ) : IWordRepository by delegate {
+        val words = MutableStateFlow<List<Word>>(emptyList())
+
+        override fun getAllWords(): Flow<List<Word>> = words
+        override suspend fun getAllWordsAsync(): Try<List<Word>> = Try.success(words.value)
+    }
+
+    @Test
+    fun `hasEnoughWords turns true when words arrive after the first check`() {
+        val repo = SyncingWordRepository()
+        val observeLearningFocus = ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository())
+        val vm = WordRushViewModel(
+            getWordRushRoundUseCase = GetWordRushRoundUseCase(repo, observeLearningFocus),
+            recordWordRushGameUseCase = RecordWordRushGameUseCase(defaultRecorder),
+            analyticsTracker = FakeAnalyticsTracker(),
+            getWordRushInsightsUseCase = GetWordRushInsightsUseCase(FakeWordRushStatsRepository()),
+            observeWordRushAvailability = ObserveWordRushAvailabilityUseCase(repo, observeLearningFocus),
+        )
+        assertFalse(vm.currentState.hasEnoughWords)
+
+        // Same language before and after, so the resolved focus (All) does not change.
+        repo.words.value = createWords(72)
+
+        assertTrue(vm.currentState.hasEnoughWords)
     }
 
     @Test

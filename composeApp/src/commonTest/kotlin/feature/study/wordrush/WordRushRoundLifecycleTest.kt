@@ -3,7 +3,6 @@ package feature.study.wordrush
 import core.common.Try
 import domain.focus.usecase.ObserveLearningFocusUseCase
 import domain.word.model.Word
-import domain.word.usecase.GetWordRushWordsUseCase
 import domain.wordrush.model.WordRushGameRecord
 import domain.wordrush.model.WordRushGrade
 import domain.wordrush.model.WordRushInsights
@@ -12,6 +11,7 @@ import domain.wordrush.repository.IWordRushRecorder
 import domain.wordrush.repository.IWordRushStatsRepository
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.GetWordRushRoundUseCase
+import domain.wordrush.usecase.ObserveWordRushAvailabilityUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import fakes.FakeAnalyticsTracker
 import fakes.FakeLearningFocusRepository
@@ -55,12 +55,11 @@ class WordRushRoundLifecycleTest : ViewModelTestBase() {
         val repo = FakeWordRepository().apply { storedWords = words.toMutableList() }
         val observeLearningFocus = ObserveLearningFocusUseCase(repo, FakeLearningFocusRepository())
         return WordRushViewModel(
-            getWordRushWordsUseCase = GetWordRushWordsUseCase(repo, observeLearningFocus),
             getWordRushRoundUseCase = GetWordRushRoundUseCase(repo, observeLearningFocus),
             recordWordRushGameUseCase = RecordWordRushGameUseCase(NoOpRecorder),
             analyticsTracker = FakeAnalyticsTracker(),
             getWordRushInsightsUseCase = GetWordRushInsightsUseCase(NoStatsRepository),
-            observeLearningFocus = observeLearningFocus,
+            observeWordRushAvailability = ObserveWordRushAvailabilityUseCase(repo, observeLearningFocus),
         )
     }
 

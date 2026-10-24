@@ -4,8 +4,6 @@ import analytics.IAnalyticsTracker
 import androidx.lifecycle.viewModelScope
 import core.base.BaseViewModel
 import core.common.fold
-import domain.focus.usecase.ObserveLearningFocusUseCase
-import domain.word.usecase.GetWordRushWordsUseCase
 import domain.wordrush.model.WordRushDirection
 import domain.wordrush.model.WordRushGameRecord
 import domain.wordrush.model.WordRushGrade
@@ -13,10 +11,10 @@ import domain.wordrush.model.WordRushMiss
 import domain.wordrush.model.WordRushQuestion
 import domain.wordrush.usecase.GetWordRushInsightsUseCase
 import domain.wordrush.usecase.GetWordRushRoundUseCase
+import domain.wordrush.usecase.ObserveWordRushAvailabilityUseCase
 import domain.wordrush.usecase.RecordWordRushGameUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 
@@ -82,12 +80,11 @@ sealed interface WordRushEffect {
 
 @Suppress("TooManyFunctions")
 class WordRushViewModel(
-    private val getWordRushWordsUseCase: GetWordRushWordsUseCase,
     private val getWordRushRoundUseCase: GetWordRushRoundUseCase,
     private val recordWordRushGameUseCase: RecordWordRushGameUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val getWordRushInsightsUseCase: GetWordRushInsightsUseCase,
-    private val observeLearningFocus: ObserveLearningFocusUseCase,
+    private val observeWordRushAvailability: ObserveWordRushAvailabilityUseCase,
 ) : BaseViewModel<WordRushState, WordRushEffect>() {
 
     override fun initialState() = WordRushState()
@@ -115,14 +112,9 @@ class WordRushViewModel(
 
     init {
         analyticsTracker.logScreenView("WordRush")
-        // Word availability depends on the learning focus: re-check whenever it changes.
+        // Availability follows both the learning focus and the local words (which can land after login).
         viewModelScope.launch {
-            observeLearningFocus().collectLatest {
-                getWordRushWordsUseCase(GetWordRushWordsUseCase.MINIMUM_WORDS).fold(
-                    onSuccess = { updateState { copy(hasEnoughWords = true) } },
-                    onFailure = { updateState { copy(hasEnoughWords = false) } },
-                )
-            }
+            observeWordRushAvailability().collect { hasEnough -> updateState { copy(hasEnoughWords = hasEnough) } }
         }
         viewModelScope.launch {
             getWordRushInsightsUseCase(Unit).fold(
