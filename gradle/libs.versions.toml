@@ -38,6 +38,7 @@ sqldelight = "2.4.0"
 securityCrypto = "1.1.0"
 firebaseBom = "34.4.0"
 kmpauth = "3.0.6"
+passki = "0.1.0-alpha03"
 gitliveFirebase = "2.7.0"
 revenuecat-kmp = "2.2.10+17.19.1"
 emoji-kt = "2.3.0"
@@ -113,6 +114,8 @@ firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 # KMPAuth
+passki = { module = "com.alirezaiyan.passki:passki", version.ref = "passki" }
+passki-test = { module = "com.alirezaiyan.passki:passki-test", version.ref = "passki" }
 kmpauth-google = { module = "io.github.mirzemehdi:kmpauth-google", version.ref = "kmpauth" }
 kmpauth-uihelper = { module = "io.github.mirzemehdi:kmpauth-uihelper", version.ref = "kmpauth" }
 

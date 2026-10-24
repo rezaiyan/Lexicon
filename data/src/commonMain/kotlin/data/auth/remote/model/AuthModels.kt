@@ -15,6 +15,12 @@ data class AppleAuthRequest(
     val appleUserId: String? = null
 )
 
+/** A passkey response from the device, sent to the server unchanged. */
+@Serializable
+data class PasskeyResponseRequest(
+    val responseJson: String
+)
+
 @Serializable
 data class RefreshTokenRequest(
     val refreshToken: String

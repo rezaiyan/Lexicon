@@ -25,6 +25,8 @@ data class AuthState(
     val isAuthenticated: Boolean = false,
     val user: AuthUser? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    /** The device can sign in with a passkey: the sign-in screen offers it. */
+    val passkeySignInAvailable: Boolean = false,
 )
 

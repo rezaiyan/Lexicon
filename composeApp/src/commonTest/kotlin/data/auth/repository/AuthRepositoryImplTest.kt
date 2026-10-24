@@ -1,5 +1,7 @@
 package data.auth.repository
 
+import data.core.network.error.AuthenticationException
+import core.error.DomainError
 import auth.IAppleAuthStateProvider
 import auth.IGoogleAuthStateProvider
 import core.common.Try
@@ -127,6 +129,29 @@ class AuthRepositoryImplTest {
         val result = repo.loginWithApple("id-token", null, "apple-123")
 
         assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun `loginWithPasskey sends the device response and saves tokens on success`() = runTest {
+        authDataSource.passkeyResult = Try.success(testAuthResponse)
+        val repo = createRepo()
+
+        val result = repo.loginWithPasskey("""{"id":"cred"}""")
+
+        assertTrue(result.isSuccess)
+        assertEquals("""{"id":"cred"}""", authDataSource.lastPasskeyResponse)
+        assertEquals("access-token", tokenManager.savedAccessToken)
+    }
+
+    @Test
+    fun `loginWithPasskey returns a typed auth error and saves no tokens when the server rejects it`() = runTest {
+        authDataSource.passkeyResult = Try.failure(AuthenticationException("Passkey could not be verified", 401))
+        val repo = createRepo()
+
+        val result = repo.loginWithPasskey("{}")
+
+        assertEquals(DomainError.Auth.NotAuthenticated, (result as Try.Failure).throwable)
+        assertEquals(null, tokenManager.savedAccessToken)
     }
 
     // --- logout ---
@@ -303,6 +328,14 @@ class AuthRepositoryImplTest {
             fullName: String?,
             appleUserId: String,
         ): Try<AuthResponse> = appleResult
+
+        var passkeyResult: Try<AuthResponse> = Try.failure(RuntimeException("not set"))
+        var lastPasskeyResponse: String? = null
+
+        override suspend fun authenticateWithPasskey(responseJson: String): Try<AuthResponse> {
+            lastPasskeyResponse = responseJson
+            return passkeyResult
+        }
 
         override suspend fun refreshTokens(refreshToken: String): Try<AuthResponse> =
             Try.failure(RuntimeException("not impl"))

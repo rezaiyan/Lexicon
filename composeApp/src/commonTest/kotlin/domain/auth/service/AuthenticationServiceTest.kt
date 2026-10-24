@@ -97,6 +97,7 @@ class AuthenticationServiceTest {
         var deleteResult: Try<Unit> = Try.success(Unit)
 
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = loginResult
+        override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> = Try.failure(NotImplementedError())
         override suspend fun loginWithApple(
             idToken: String,
             fullName: String?,

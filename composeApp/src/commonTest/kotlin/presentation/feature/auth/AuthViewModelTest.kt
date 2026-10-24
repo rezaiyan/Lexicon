@@ -3,7 +3,9 @@ package presentation.feature.auth
 import domain.word.add.model.AddWordsOutcome
 import fakes.FakeSubscriptionAccessRepository
 import domain.subscription.usecase.SyncSubscriptionWithServerUseCase
+import feature.auth.AuthEffect
 import feature.auth.AuthViewModel
+import app.cash.turbine.test
 import analytics.IAnalyticsTracker
 import core.common.Try
 import domain.auth.manager.IUserManager
@@ -38,7 +40,13 @@ import domain.word.model.ProgressStats
 import domain.word.model.Word
 import domain.tag.usecase.SyncTagsFromRemoteUseCase
 import domain.word.usecase.SyncRemoteToLocalUseCase
+import fakes.FakePasskeyAuthenticator
+import fakes.FakePasskeyRepository
 import fakes.FakeTagRepository
+import core.error.DomainError
+import core.error.toUserMessage
+import domain.passkey.usecase.IsPasskeyAvailableUseCase
+import domain.passkey.usecase.SignInWithPasskeyUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,6 +67,9 @@ class AuthViewModelTest : ViewModelTestBase() {
 
     private var isAuthenticatedFlow: Flow<Boolean> = flowOf(false)
     private var loginResult: Try<AuthUser> = Try.failure(RuntimeException("not configured"))
+    private val passkeyLogins = mutableListOf<String>()
+    private val passkeyDevice = FakePasskeyAuthenticator()
+    private val passkeyRepository = FakePasskeyRepository()
 
     private fun testUser(id: Long = 1L) = AuthUser(
         id = id,
@@ -68,6 +79,8 @@ class AuthViewModelTest : ViewModelTestBase() {
 
     private fun fakeAuthRepo() = object : IAuthRepository {
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = loginResult
+        override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> =
+            loginResult.also { passkeyLogins += responseJson }
         override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = loginResult
         override suspend fun logout(): Try<Unit> = Try.success(Unit)
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
@@ -177,6 +190,8 @@ class AuthViewModelTest : ViewModelTestBase() {
         return AuthViewModel(
             loginWithGoogleUseCase = LoginWithGoogleUseCase(service),
             loginWithAppleUseCase = LoginWithAppleUseCase(service),
+            signInWithPasskeyUseCase = SignInWithPasskeyUseCase(passkeyRepository, passkeyDevice, authRepo),
+            isPasskeyAvailableUseCase = IsPasskeyAvailableUseCase(passkeyDevice),
             observeAuthStateUseCase = ObserveAuthStateUseCase(authRepo),
             verifySessionUseCase = VerifySessionUseCase(fakeSessionRepo(sessionVerificationResult)),
             handleLoginSuccessUseCase = HandleLoginSuccessUseCase(
@@ -283,6 +298,92 @@ class AuthViewModelTest : ViewModelTestBase() {
         assertFalse(vm.currentState.isAuthenticated)
         assertFalse(vm.currentState.isLoading)
         assertNotNull(vm.currentState.error)
+    }
+
+    @Test
+    fun `loginWithPasskey success signs in with the device response`() = runTest {
+        val user = testUser(id = 3L)
+        loginResult = Try.success(user)
+        val vm = createViewModel()
+
+        vm.loginWithPasskey()
+
+        assertTrue(vm.currentState.isAuthenticated)
+        assertEquals(user, vm.currentState.user)
+        assertFalse(vm.currentState.isLoading)
+        assertEquals(listOf("signed:request-options"), passkeyLogins)
+    }
+
+    @Test
+    fun `loginWithPasskey when the user closes the sheet shows no error`() = runTest {
+        passkeyDevice.nextFailure = DomainError.Passkey.Cancelled
+        val vm = createViewModel()
+
+        vm.loginWithPasskey()
+
+        assertFalse(vm.currentState.isAuthenticated)
+        assertFalse(vm.currentState.isLoading)
+        assertNull(vm.currentState.error)
+        assertTrue(passkeyLogins.isEmpty())
+    }
+
+    @Test
+    fun `loginWithPasskey when the device has no passkey sends a neutral notice, not an error`() = runTest {
+        passkeyDevice.nextFailure = DomainError.Passkey.NoPasskeys
+        val vm = createViewModel()
+
+        vm.effects.test {
+            vm.loginWithPasskey()
+
+            assertEquals(AuthEffect.NoPasskeyOnDevice, awaitItem())
+        }
+        assertFalse(vm.currentState.isAuthenticated)
+        assertFalse(vm.currentState.isLoading)
+        assertNull(vm.currentState.error)
+    }
+
+    @Test
+    fun `loginWithPasskey rejected by the server says the passkey failed, not to sign in`() = runTest {
+        loginResult = Try.failure(DomainError.Auth.NotAuthenticated)
+        val vm = createViewModel()
+
+        vm.loginWithPasskey()
+
+        assertFalse(vm.currentState.isAuthenticated)
+        assertEquals(DomainError.Passkey.Rejected.toUserMessage(), vm.currentState.error)
+    }
+
+    @Test
+    fun `loginWithPasskey when the server won't give options never opens the sheet or blames the passkey`() = runTest {
+        passkeyRepository.failure = DomainError.Auth.NotAuthenticated
+        val vm = createViewModel()
+
+        vm.loginWithPasskey()
+
+        assertTrue(passkeyDevice.requests.isEmpty())
+        assertEquals(DomainError.Passkey.Failed("No sign-in options").toUserMessage(), vm.currentState.error)
+    }
+
+    @Test
+    fun `passkey sign-in stays offered after a failed sign-in and after logout`() = runTest {
+        loginResult = Try.failure(RuntimeException("network error"))
+        val vm = createViewModel()
+        assertTrue(vm.currentState.passkeySignInAvailable)
+
+        vm.loginWithGoogle("bad-token")
+        assertTrue(vm.currentState.passkeySignInAvailable)
+
+        loginResult = Try.success(testUser())
+        vm.loginWithGoogle("valid-id-token")
+        vm.logout()
+        assertTrue(vm.currentState.passkeySignInAvailable)
+    }
+
+    @Test
+    fun `passkey sign-in is not offered where the device can't do passkeys`() = runTest {
+        passkeyDevice.available = false
+        val vm = createViewModel()
+        assertFalse(vm.currentState.passkeySignInAvailable)
     }
 
     @Test

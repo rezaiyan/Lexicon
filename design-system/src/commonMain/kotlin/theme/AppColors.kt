@@ -51,6 +51,7 @@ object AppColors {
     val settingsDailyGoalIcon = Color(0xFF2196F3)
     val settingsSupportIcon = Color(0xFFFF9800)
     val settingsConnectedAppsIcon = Color(0xFF7E57C2)
+    val settingsPasskeysIcon = Color(0xFF26A69A)
 
     @Deprecated(
         "Use MaterialTheme.colorScheme.background",

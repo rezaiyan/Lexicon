@@ -96,6 +96,7 @@ internal class FakeAuthRepository : IAuthRepository {
         return Try.success(AuthUser(1L, "test@test.com", "Test"))
     }
 
+    override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> = Try.failure(NotImplementedError())
     override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> {
         loginCallCount++
         return Try.success(AuthUser(1L, "test@test.com", "Test"))

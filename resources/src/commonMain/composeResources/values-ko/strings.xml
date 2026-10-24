@@ -897,4 +897,22 @@
     <string name="word_due_in_days">%1$d일 후</string>
     <string name="sort_due_soonest">복습 임박순</string>
     <string name="word_row_status">%1$s, %2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">패스키</string>
+    <string name="passkeys_subtitle">얼굴, 지문 또는 화면 잠금으로 로그인</string>
+    <string name="passkeys_sheet_subtitle">Google이나 Apple 없이 Lexicon에 로그인하세요. 패스키는 비밀번호 관리자에 저장됩니다.</string>
+    <string name="passkeys_empty">아직 패스키가 없습니다.</string>
+    <string name="passkey_create">패스키 만들기</string>
+    <string name="passkey_title">패스키</string>
+    <string name="passkey_created_on">%1$s에 만듦</string>
+    <string name="passkey_last_used">%1$s에 마지막 사용</string>
+    <string name="passkey_synced">동기화됨</string>
+    <string name="passkey_deleting">삭제 중…</string>
+    <string name="passkey_delete_title">이 패스키를 삭제할까요?</string>
+    <string name="passkey_delete_message">더 이상 이 패스키로 로그인할 수 없습니다. 기기에서도 지우려면 비밀번호 관리자에서 삭제하세요.</string>
+    <string name="passkey_delete">삭제</string>
+    <string name="sign_in_with_passkey">패스키로 로그인</string>
+    <string name="sign_in_with_passkey_hint">처음이신가요? Google 또는 Apple로 로그인한 뒤 설정에서 패스키를 추가하세요.</string>
+    <string name="passkey_none_on_device">이 기기에는 아직 패스키가 없습니다. Google 또는 Apple로 로그인한 뒤 설정에서 추가하세요.</string>
 </resources>

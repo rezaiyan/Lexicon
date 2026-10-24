@@ -87,6 +87,7 @@ class ProfileViewModelTest : ViewModelTestBase() {
         featureAccessFlow: Flow<FeatureAccessResponse> = flowOf(testFeatureAccessResponse)
     ) = object : IAuthRepository {
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = Try.failure(NotImplementedError())
+        override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> = Try.failure(NotImplementedError())
         override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = Try.failure(NotImplementedError())
         override suspend fun logout(): Try<Unit> = Try.failure(NotImplementedError())
         override suspend fun deleteAccount(): Try<Unit> = Try.failure(NotImplementedError())

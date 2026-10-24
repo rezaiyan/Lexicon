@@ -18,6 +18,14 @@ fun Throwable.toUserMessage(): String = when (this) {
     is DomainError.Auth.NotAuthenticated -> "Please sign in to continue."
     is DomainError.Auth.SessionExpired -> "Your session expired. Please sign in again."
     is DomainError.Auth.Unauthorized -> "You don't have permission to do that."
+    is DomainError.Passkey.Cancelled -> "Passkey cancelled."
+    is DomainError.Passkey.NoPasskeys ->
+        "No Lexicon passkey on this device. Sign in with Google or Apple, then create one in Settings."
+    is DomainError.Passkey.AlreadyRegistered -> "This device already has a passkey for your account."
+    is DomainError.Passkey.Unavailable -> "Passkeys aren't available on this device."
+    is DomainError.Passkey.Rejected ->
+        "This passkey didn't work. If you deleted it, sign in with Google or Apple and create a new one."
+    is DomainError.Passkey.Failed -> "Passkey didn't work. Please try again."
     is DomainError.Commerce.PremiumRequired -> "This feature requires a subscription."
     is DomainError.Commerce.InsufficientCredits -> "You don't have enough credits for this."
     is DomainError.Commerce.PurchaseFailed -> "Purchase failed. Please try again."

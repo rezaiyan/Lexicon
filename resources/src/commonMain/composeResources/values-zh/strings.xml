@@ -738,4 +738,22 @@
     <string name="word_due_in_days">%1$d天后</string>
     <string name="sort_due_soonest">即将复习</string>
     <string name="word_row_status">%1$s，%2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">通行密钥</string>
+    <string name="passkeys_subtitle">使用面容、指纹或屏幕锁定登录</string>
+    <string name="passkeys_sheet_subtitle">无需 Google 或 Apple 即可登录 Lexicon。通行密钥保存在你的密码管理器中。</string>
+    <string name="passkeys_empty">还没有通行密钥。</string>
+    <string name="passkey_create">创建通行密钥</string>
+    <string name="passkey_title">通行密钥</string>
+    <string name="passkey_created_on">创建于 %1$s</string>
+    <string name="passkey_last_used">上次使用于 %1$s</string>
+    <string name="passkey_synced">已同步</string>
+    <string name="passkey_deleting">正在删除…</string>
+    <string name="passkey_delete_title">删除此通行密钥？</string>
+    <string name="passkey_delete_message">你将无法再用它登录。如需从设备上移除，请在密码管理器中删除。</string>
+    <string name="passkey_delete">删除</string>
+    <string name="sign_in_with_passkey">使用通行密钥登录</string>
+    <string name="sign_in_with_passkey_hint">第一次使用？请先用 Google 或 Apple 登录，然后在设置中添加通行密钥。</string>
+    <string name="passkey_none_on_device">此设备上还没有通行密钥。请先用 Google 或 Apple 登录，然后在设置中添加。</string>
 </resources>

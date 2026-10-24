@@ -33,6 +33,11 @@ class FakeAuthRepository : IAuthRepository {
         return Try.success(AuthUser(1L, "test@test.com", "Test"))
     }
 
+    override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> {
+        loginCallCount++
+        return Try.success(AuthUser(1L, "test@test.com", "Test"))
+    }
+
     override suspend fun logout(): Try<Unit> {
         logoutCallCount++
         return Try.success(Unit)

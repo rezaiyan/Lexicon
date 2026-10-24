@@ -11,6 +11,7 @@ import components.GroupedSection
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import feature.settings.ConnectedAppsViewModel
+import feature.settings.PasskeysViewModel
 import feature.settings.SettingsViewModel
 import components.scaffold.LexiconColumn
 import overlay.LocalOverlayHost
@@ -24,6 +25,8 @@ import feature.support.navigation.showSupport
 import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.ConnectedAppsSettingsCard
 import presentation.ui.components.settings.showConnectedAppsSheet
+import presentation.ui.components.settings.PasskeysSettingsCard
+import presentation.ui.components.settings.showPasskeysSheet
 import presentation.ui.components.settings.DailyGoalSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
 import presentation.ui.components.settings.SupportSettingsCard
@@ -72,6 +75,8 @@ private fun SettingsSections() {
     LaunchedEffect(supportBadge) { supportBadge.onSettingsOpened() }
     val connectedAppsViewModel = koinViewModel<ConnectedAppsViewModel>()
     val connectedApps by connectedAppsViewModel.state()
+    val passkeysViewModel = koinViewModel<PasskeysViewModel>()
+    val passkeys by passkeysViewModel.state()
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
         GroupedSection(title = stringResource(Res.string.learning)) {
@@ -178,6 +183,10 @@ private fun SettingsSections() {
                 hasUnreadReply = supportUnread.inChat,
                 onClick = { overlayHost.showSupport() },
             )
+
+            if (passkeys.available) {
+                PasskeysSettingsCard(onClick = { overlayHost.showPasskeysSheet(passkeysViewModel) })
+            }
 
             if (connectedApps.apps.isNotEmpty()) {
                 ConnectedAppsSettingsCard(onClick = { overlayHost.showConnectedAppsSheet(connectedAppsViewModel) })

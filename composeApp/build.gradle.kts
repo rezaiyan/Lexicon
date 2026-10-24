@@ -208,6 +208,8 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(project(":test"))
+            // PassKiAuthenticator tests: real WebAuthn responses without a device
+            implementation(libs.passki.test)
         }
 
         // On the JVM, kotlin.test's @Test/@BeforeTest/@AfterTest are typealiases of JUnit's,

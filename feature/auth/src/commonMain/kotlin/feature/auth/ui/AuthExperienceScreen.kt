@@ -17,7 +17,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +44,14 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
+import feature.auth.AuthEffect
 import feature.auth.AuthPhase
+import androidx.compose.material3.SnackbarHostState
+import components.snackbar.LexiconSnackbarHost
+import events.OnEvents
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import lexicon.resources.generated.resources.passkey_none_on_device
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -59,8 +72,10 @@ import theme.Theme
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.app_name
 import lexicon.resources.generated.resources.sign_in_failed
+import lexicon.resources.generated.resources.sign_in_with_passkey
+import lexicon.resources.generated.resources.sign_in_with_passkey_hint
 
-private enum class SignInProvider { GOOGLE, APPLE }
+private enum class SignInProvider { GOOGLE, APPLE, PASSKEY }
 
 @Composable
 fun AuthExperienceScreen(
@@ -71,7 +86,18 @@ fun AuthExperienceScreen(
     onLoginWithApple: (String, String?, String) -> Unit,
     isLoading: Boolean = false,
     error: String? = null,
+    /** Null hides passkey sign-in (the device can't do passkeys). */
+    onLoginWithPasskey: (() -> Unit)? = null,
+    effects: Flow<AuthEffect> = emptyFlow(),
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val noPasskeyText = stringResource(Res.string.passkey_none_on_device)
+    OnEvents(effects) { effect ->
+        when (effect) {
+            AuthEffect.NoPasskeyOnDevice -> snackbarHostState.showSnackbar(noPasskeyText)
+        }
+    }
+
     var activeProvider by remember { mutableStateOf<SignInProvider?>(null) }
     var firebaseSignInError by remember { mutableStateOf(false) }
     var logoVisible by remember { mutableStateOf(false) }
@@ -100,7 +126,10 @@ fun AuthExperienceScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         LoginBackdrop()
 
-        Scaffold(containerColor = Color.Transparent) { padding ->
+        Scaffold(
+            containerColor = Color.Transparent,
+            snackbarHost = { LexiconSnackbarHost(snackbarHostState) },
+        ) { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -137,6 +166,13 @@ fun AuthExperienceScreen(
                             activeProvider = SignInProvider.APPLE
                             firebaseSignInError = false
                             onLoginWithApple(idToken, fullName, userId)
+                        },
+                        onLoginWithPasskey = onLoginWithPasskey?.let { login ->
+                            {
+                                activeProvider = SignInProvider.PASSKEY
+                                firebaseSignInError = false
+                                login()
+                            }
                         },
                         onGoogleError = { activeProvider = null; firebaseSignInError = true },
                         onAppleError = { activeProvider = null },
@@ -259,6 +295,7 @@ private fun SignInCard(
     activeProvider: SignInProvider?,
     onLoginWithGoogle: suspend (String) -> Unit,
     onLoginWithApple: (String, String?, String) -> Unit,
+    onLoginWithPasskey: (() -> Unit)?,
     onGoogleError: () -> Unit,
     onAppleError: () -> Unit,
 ) {
@@ -297,7 +334,52 @@ private fun SignInCard(
             modifier = Modifier.fillMaxWidth(),
         )
 
+        if (onLoginWithPasskey != null) {
+            PasskeySignInButton(
+                onClick = onLoginWithPasskey,
+                isLoading = isLoading && activeProvider == SignInProvider.PASSKEY,
+                enabled = !isLoading,
+            )
+        }
+
         LegalLinks()
+    }
+}
+
+/**
+ * Quieter than the Google and Apple buttons: it only works for someone who already made a passkey,
+ * which the hint under it says.
+ */
+@Composable
+private fun PasskeySignInButton(onClick: () -> Unit, isLoading: Boolean, enabled: Boolean) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        PasskeyButton(onClick = onClick, isLoading = isLoading, enabled = enabled)
+        Text(
+            text = stringResource(Res.string.sign_in_with_passkey_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@Composable
+private fun PasskeyButton(onClick: () -> Unit, isLoading: Boolean, enabled: Boolean) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(Theme.dimensions.buttonHeight),
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+        } else {
+            Icon(imageVector = Icons.Rounded.Key, contentDescription = null, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(Theme.spacing.sm))
+            Text(text = stringResource(Res.string.sign_in_with_passkey), style = MaterialTheme.typography.labelLarge)
+        }
     }
 }
 

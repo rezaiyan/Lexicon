@@ -738,4 +738,22 @@
     <string name="word_due_in_days">%1$d روز دیگر</string>
     <string name="sort_due_soonest">نزدیک‌ترین مرور</string>
     <string name="word_row_status">%1$s، %2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">کلیدهای عبور</string>
+    <string name="passkeys_subtitle">ورود با چهره، اثر انگشت یا قفل صفحه</string>
+    <string name="passkeys_sheet_subtitle">بدون Google یا Apple وارد Lexicon شوید. مدیر رمز عبور شما کلید عبور را نگه می‌دارد.</string>
+    <string name="passkeys_empty">هنوز کلید عبوری ندارید.</string>
+    <string name="passkey_create">ساخت کلید عبور</string>
+    <string name="passkey_title">کلید عبور</string>
+    <string name="passkey_created_on">ساخته‌شده در %1$s</string>
+    <string name="passkey_last_used">آخرین استفاده در %1$s</string>
+    <string name="passkey_synced">همگام‌شده</string>
+    <string name="passkey_deleting">در حال حذف…</string>
+    <string name="passkey_delete_title">این کلید عبور حذف شود؟</string>
+    <string name="passkey_delete_message">دیگر نمی‌توانید با آن وارد شوید. برای حذف آن از دستگاه‌هایتان، آن را در مدیر رمز عبور هم حذف کنید.</string>
+    <string name="passkey_delete">حذف</string>
+    <string name="sign_in_with_passkey">ورود با کلید عبور</string>
+    <string name="sign_in_with_passkey_hint">بار اول است؟ با Google یا Apple وارد شوید، سپس در تنظیمات یک کلید عبور بسازید.</string>
+    <string name="passkey_none_on_device">هنوز کلید عبوری روی این دستگاه نیست. با Google یا Apple وارد شوید، سپس در تنظیمات یکی بسازید.</string>
 </resources>

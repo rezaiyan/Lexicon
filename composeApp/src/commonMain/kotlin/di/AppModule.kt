@@ -24,6 +24,7 @@ fun appModule(
         leaderboardModule(),
         supportModule(),
         connectedAppsModule(),
+        passkeyModule(),
         presentationModule(),
         analyticsModule(),
     )

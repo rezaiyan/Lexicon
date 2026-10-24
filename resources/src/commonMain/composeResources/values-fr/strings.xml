@@ -739,4 +739,22 @@
     <string name="word_due_in_days">dans %1$d j</string>
     <string name="sort_due_soonest">À réviser bientôt</string>
     <string name="word_row_status">%1$s, %2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">Clés d'accès</string>
+    <string name="passkeys_subtitle">Connectez-vous avec votre visage, votre empreinte ou le verrouillage de l'écran</string>
+    <string name="passkeys_sheet_subtitle">Connectez-vous à Lexicon sans Google ni Apple. Votre gestionnaire de mots de passe conserve la clé d'accès.</string>
+    <string name="passkeys_empty">Aucune clé d'accès pour l'instant.</string>
+    <string name="passkey_create">Créer une clé d'accès</string>
+    <string name="passkey_title">Clé d'accès</string>
+    <string name="passkey_created_on">Créée le %1$s</string>
+    <string name="passkey_last_used">Utilisée le %1$s</string>
+    <string name="passkey_synced">Synchronisée</string>
+    <string name="passkey_deleting">Suppression…</string>
+    <string name="passkey_delete_title">Supprimer cette clé d'accès ?</string>
+    <string name="passkey_delete_message">Vous ne pourrez plus vous connecter avec. Pour la retirer aussi de vos appareils, supprimez-la dans votre gestionnaire de mots de passe.</string>
+    <string name="passkey_delete">Supprimer</string>
+    <string name="sign_in_with_passkey">Se connecter avec une clé d'accès</string>
+    <string name="sign_in_with_passkey_hint">Première fois ? Connectez-vous avec Google ou Apple, puis ajoutez une clé d'accès dans les Réglages.</string>
+    <string name="passkey_none_on_device">Pas encore de clé d'accès sur cet appareil. Connectez-vous avec Google ou Apple, puis ajoutez-en une dans les Réglages.</string>
 </resources>

@@ -739,4 +739,22 @@
     <string name="word_due_in_days">in %1$d T</string>
     <string name="sort_due_soonest">Bald fällig</string>
     <string name="word_row_status">%1$s, %2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">Passkeys</string>
+    <string name="passkeys_subtitle">Mit Gesicht, Fingerabdruck oder Displaysperre anmelden</string>
+    <string name="passkeys_sheet_subtitle">Melde dich ohne Google oder Apple bei Lexicon an. Dein Passwortmanager bewahrt den Passkey auf.</string>
+    <string name="passkeys_empty">Noch keine Passkeys.</string>
+    <string name="passkey_create">Passkey erstellen</string>
+    <string name="passkey_title">Passkey</string>
+    <string name="passkey_created_on">Erstellt am %1$s</string>
+    <string name="passkey_last_used">Zuletzt genutzt am %1$s</string>
+    <string name="passkey_synced">Synchronisiert</string>
+    <string name="passkey_deleting">Wird gelöscht…</string>
+    <string name="passkey_delete_title">Diesen Passkey löschen?</string>
+    <string name="passkey_delete_message">Du kannst dich damit nicht mehr anmelden. Um ihn auch von deinen Geräten zu entfernen, lösche ihn in deinem Passwortmanager.</string>
+    <string name="passkey_delete">Löschen</string>
+    <string name="sign_in_with_passkey">Mit Passkey anmelden</string>
+    <string name="sign_in_with_passkey_hint">Zum ersten Mal hier? Melde dich mit Google oder Apple an und füge dann in den Einstellungen einen Passkey hinzu.</string>
+    <string name="passkey_none_on_device">Auf diesem Gerät gibt es noch keinen Passkey. Melde dich mit Google oder Apple an und füge ihn dann in den Einstellungen hinzu.</string>
 </resources>

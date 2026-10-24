@@ -3,6 +3,7 @@ package data.auth.remote
 import data.auth.remote.model.AppleAuthRequest
 import data.auth.remote.model.AuthResponse
 import data.auth.remote.model.GoogleAuthRequest
+import data.auth.remote.model.PasskeyResponseRequest
 import data.auth.remote.model.RefreshTokenRequest
 import data.auth.remote.model.UserDto
 import data.core.network.error.AuthenticationException
@@ -75,6 +76,25 @@ class AuthDataSource(
             response.data
         }.doOnFailure { error ->
             logNetwork("Auth", "Error in authenticateWithApple: ${error.message}")
+        }
+    }
+
+    override suspend fun authenticateWithPasskey(responseJson: String): Try<AuthResponse> {
+        logNetwork("Auth", "Authenticating with a passkey")
+
+        return Try {
+            httpClient.post("$baseUrl/auth/passkeys/sign-in") {
+                contentType(ContentType.Application.Json)
+                setBody(PasskeyResponseRequest(responseJson = responseJson))
+            }.body<ApiResponse<AuthResponse>>()
+        }.map { response ->
+            if (!response.success || response.data == null) {
+                throw AuthenticationException(response.message ?: "Authentication failed")
+            }
+            logNetwork("Auth", "Successfully authenticated with a passkey")
+            response.data
+        }.doOnFailure { error ->
+            logNetwork("Auth", "Error in authenticateWithPasskey: ${error.message}")
         }
     }
 

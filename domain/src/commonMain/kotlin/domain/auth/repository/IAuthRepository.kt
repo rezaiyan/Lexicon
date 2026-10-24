@@ -18,6 +18,11 @@ interface IAuthRepository {
      * Login with Apple ID token
      */
     suspend fun loginWithApple(idToken: String, fullName: String? = null, appleUserId: String): Try<AuthUser>
+
+    /**
+     * Login with a passkey sign-in response from the device
+     */
+    suspend fun loginWithPasskey(responseJson: String): Try<AuthUser>
     
     /**
      * Logout current user

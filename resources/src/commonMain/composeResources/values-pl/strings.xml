@@ -900,4 +900,22 @@
     <string name="word_due_in_days">za %1$d dni</string>
     <string name="sort_due_soonest">Najbliższe powtórki</string>
     <string name="word_row_status">%1$s, %2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">Klucze dostępu</string>
+    <string name="passkeys_subtitle">Logowanie twarzą, odciskiem palca lub blokadą ekranu</string>
+    <string name="passkeys_sheet_subtitle">Loguj się do Lexicon bez Google i Apple. Klucz dostępu przechowuje Twój menedżer haseł.</string>
+    <string name="passkeys_empty">Nie masz jeszcze kluczy dostępu.</string>
+    <string name="passkey_create">Utwórz klucz dostępu</string>
+    <string name="passkey_title">Klucz dostępu</string>
+    <string name="passkey_created_on">Utworzono %1$s</string>
+    <string name="passkey_last_used">Ostatnio użyto %1$s</string>
+    <string name="passkey_synced">Zsynchronizowany</string>
+    <string name="passkey_deleting">Usuwanie…</string>
+    <string name="passkey_delete_title">Usunąć ten klucz dostępu?</string>
+    <string name="passkey_delete_message">Nie zalogujesz się już nim. Aby usunąć go także z urządzeń, usuń go w menedżerze haseł.</string>
+    <string name="passkey_delete">Usuń</string>
+    <string name="sign_in_with_passkey">Zaloguj się kluczem dostępu</string>
+    <string name="sign_in_with_passkey_hint">Pierwszy raz? Zaloguj się przez Google lub Apple, a potem dodaj klucz dostępu w Ustawieniach.</string>
+    <string name="passkey_none_on_device">Na tym urządzeniu nie ma jeszcze klucza dostępu. Zaloguj się przez Google lub Apple, a potem dodaj go w Ustawieniach.</string>
 </resources>

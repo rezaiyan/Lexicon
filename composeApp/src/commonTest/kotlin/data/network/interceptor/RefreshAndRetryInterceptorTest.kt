@@ -239,6 +239,38 @@ class RefreshAndRetryInterceptorTest {
     }
 
     @Test
+    fun `passkey management under auth is refreshed and retried like any signed-in call`() = runTest {
+        val refreshManager = FakeTokenRefreshManager(refreshResult = Try.success("new-refreshed-token"))
+        var callCount = 0
+        val engine = MockEngine {
+            callCount++
+            if (callCount == 1) respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeaders())
+            else respond("""{"ok":true}""", HttpStatusCode.OK, jsonHeaders())
+        }
+        val client = buildClient(engine, refreshManager)
+
+        val response = client.get("https://api.test/auth/passkeys") {
+            header(HttpHeaders.Authorization, "Bearer old-token")
+        }
+
+        assertEquals(200, response.status.value)
+        assertEquals(1, refreshManager.refreshCallCount)
+    }
+
+    @Test
+    fun `passkey sign-in endpoints do not trigger refresh on 401`() = runTest {
+        val refreshManager = FakeTokenRefreshManager()
+        val engine = MockEngine { respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeaders()) }
+        val client = buildClient(engine, refreshManager)
+
+        listOf("https://api.test/auth/passkeys/sign-in", "https://api.test/auth/passkeys/sign-in-options").forEach { url ->
+            val response = client.get(url) { header(HttpHeaders.Authorization, "Bearer old-token") }
+            assertEquals(401, response.status.value)
+        }
+        assertEquals(0, refreshManager.refreshCallCount)
+    }
+
+    @Test
     fun `auth refresh endpoint does not trigger refresh on 401`() = runTest {
         val refreshManager = FakeTokenRefreshManager()
         val engine = MockEngine { respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeaders()) }

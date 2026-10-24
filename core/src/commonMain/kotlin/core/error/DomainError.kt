@@ -31,6 +31,21 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
         data object Unauthorized : Auth()
     }
 
+    /** Passkey create / sign-in failures on the device (the system passkey sheet). */
+    sealed class Passkey(message: String? = null) : DomainError(message) {
+        /** The user closed the passkey sheet: not an error to surface. */
+        data object Cancelled : Passkey("Passkey cancelled")
+        /** Sign-in: this device has no Lexicon passkey. */
+        data object NoPasskeys : Passkey("No passkey on this device")
+        /** Create: this device already holds a passkey for this account. */
+        data object AlreadyRegistered : Passkey("Passkey already exists")
+        /** The device or its credential provider can't do passkeys, or the app isn't set up for them. */
+        data object Unavailable : Passkey("Passkeys unavailable")
+        /** The server refused the passkey: deleted from the account, or not one of Lexicon's. */
+        data object Rejected : Passkey("Passkey rejected")
+        data class Failed(val reason: String) : Passkey(reason)
+    }
+
     sealed class Commerce : DomainError() {
         data object PremiumRequired : Commerce()
         /** The server refused an AI action: the balance is below its cost. */

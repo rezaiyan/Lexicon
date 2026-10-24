@@ -1263,4 +1263,22 @@
     <string name="word_due_in_days">in %1$dd</string>
     <string name="sort_due_soonest">Due soonest</string>
     <string name="word_row_status">%1$s, %2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">Passkeys</string>
+    <string name="passkeys_subtitle">Sign in with your face, fingerprint or screen lock</string>
+    <string name="passkeys_sheet_subtitle">Sign in to Lexicon without Google or Apple. Your password manager keeps the passkey.</string>
+    <string name="passkeys_empty">No passkeys yet.</string>
+    <string name="passkey_create">Create a passkey</string>
+    <string name="passkey_title">Passkey</string>
+    <string name="passkey_created_on">Created %1$s</string>
+    <string name="passkey_last_used">Last used %1$s</string>
+    <string name="passkey_synced">Synced</string>
+    <string name="passkey_deleting">Deleting…</string>
+    <string name="passkey_delete_title">Delete this passkey?</string>
+    <string name="passkey_delete_message">You can no longer sign in with it. To remove it from your devices too, delete it in your password manager.</string>
+    <string name="passkey_delete">Delete</string>
+    <string name="sign_in_with_passkey">Sign in with a passkey</string>
+    <string name="sign_in_with_passkey_hint">First time? Sign in with Google or Apple, then add a passkey in Settings.</string>
+    <string name="passkey_none_on_device">No passkey on this device yet. Sign in with Google or Apple, then add one in Settings.</string>
 </resources>

@@ -1,5 +1,7 @@
 package data.auth.repository
 
+import data.core.error.toDomainError
+import core.common.mapFailure
 import auth.IAppleAuthStateProvider
 import auth.IGoogleAuthStateProvider
 import data.auth.mapper.toDomain
@@ -45,6 +47,10 @@ class AuthRepositoryImpl(
             authDataSource.authenticateWithApple(idToken, fullName, appleUserId)
         }
     }
+
+    // Typed errors, so a refused passkey (401) can be told apart from other failures
+    override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> =
+        performLogin { authDataSource.authenticateWithPasskey(responseJson) }.mapFailure { it.toDomainError() }
 
     private suspend fun performLogin(
         authenticate: suspend () -> Try<data.auth.remote.model.AuthResponse>

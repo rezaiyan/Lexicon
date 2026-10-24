@@ -197,6 +197,12 @@ fun LexiconApp() {
                             },
                             isLoading = authState.isLoading,
                             error = authState.error,
+                            onLoginWithPasskey = if (authState.passkeySignInAvailable) {
+                                authViewModel::loginWithPasskey
+                            } else {
+                                null
+                            },
+                            effects = authViewModel.effects,
                         )
 
                         if (state.phase == AuthPhase.LoginRequired) {

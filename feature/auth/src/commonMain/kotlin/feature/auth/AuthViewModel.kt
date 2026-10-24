@@ -11,7 +11,11 @@ import domain.auth.usecase.LoginWithAppleUseCase
 import domain.auth.usecase.LoginWithGoogleUseCase
 import domain.auth.usecase.ObserveAuthStateUseCase
 import domain.auth.usecase.VerifySessionUseCase
+import domain.passkey.usecase.IsPasskeyAvailableUseCase
+import domain.passkey.usecase.SignInWithPasskeyUseCase
+import core.common.fold
 import core.common.getOrElse
+import core.error.DomainError
 import core.common.onFailure
 import core.error.toUserMessage
 import domain.notifications.usecase.DeactivatePushTokenUseCase
@@ -21,16 +25,22 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import core.base.BaseViewModel
 
+@Suppress(
+    "LongParameterList", // one use case per sign-in method plus session plumbing
+    "TooManyFunctions",  // each public method is a distinct event-sink entry point required by the screen
+)
 class AuthViewModel(
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val loginWithAppleUseCase: LoginWithAppleUseCase,
+    private val signInWithPasskeyUseCase: SignInWithPasskeyUseCase,
+    private val isPasskeyAvailableUseCase: IsPasskeyAvailableUseCase,
     private val observeAuthStateUseCase: ObserveAuthStateUseCase,
     private val verifySessionUseCase: VerifySessionUseCase,
     private val handleLoginSuccessUseCase: HandleLoginSuccessUseCase,
     private val deactivatePushTokenUseCase: DeactivatePushTokenUseCase,
     private val analyticsTracker: IAnalyticsTracker,
     private val userManager: IUserManager,
-) : BaseViewModel<AuthState, Nothing>() {
+) : BaseViewModel<AuthState, AuthEffect>() {
 
     private val authMutex = Mutex()
 
@@ -39,6 +49,14 @@ class AuthViewModel(
     init {
         verifyAndRestoreSession { }
         observeAuthenticationState()
+        checkPasskeySupport()
+    }
+
+    private fun checkPasskeySupport() {
+        viewModelScope.launch {
+            val available = isPasskeyAvailableUseCase(Unit).getOrElse { false }
+            updateState { copy(passkeySignInAvailable = available) }
+        }
     }
 
     private fun observeAuthenticationState() {
@@ -51,14 +69,7 @@ class AuthViewModel(
                     )
                     deactivatePushTokenUseCase.deactivateCurrentToken()
                     userManager.setUser(null)
-                    updateState {
-                        AuthState(
-                            isAuthenticated = false,
-                            isLoading = false,
-                            user = null,
-                            error = null
-                        )
-                    }
+                    updateState { signedOut() }
                 }
             }
         }
@@ -75,6 +86,7 @@ class AuthViewModel(
             is SessionVerificationResult.Valid -> {
                 updateState {
                     AuthState(
+                        passkeySignInAvailable = currentState.passkeySignInAvailable,
                         isAuthenticated = true,
                         isLoading = false,
                         user = result.user,
@@ -100,7 +112,7 @@ class AuthViewModel(
                 onComplete()
             }
             is SessionVerificationResult.NotAuthenticated -> {
-                updateState { AuthState(isAuthenticated = false, isLoading = false) }
+                updateState { signedOut() }
                 onComplete()
             }
             is SessionVerificationResult.ServerError -> {
@@ -129,7 +141,7 @@ class AuthViewModel(
                         )
                     )
                     analyticsTracker.logError(error, "google_login_backend_error")
-                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.toUserMessage()) }
+                    updateState { signedOut(error.toUserMessage()) }
                 }
                 .collect { user -> onLoginSuccess(user, provider = "google") }
         }
@@ -141,9 +153,32 @@ class AuthViewModel(
             loginWithAppleUseCase(LoginWithAppleUseCase.Params(idToken, fullName, appleUserId))
                 .catch { error ->
                     analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
-                    updateState { AuthState(isAuthenticated = false, isLoading = false, error = error.toUserMessage()) }
+                    updateState { signedOut(error.toUserMessage()) }
                 }
                 .collect { user -> onLoginSuccess(user, provider = "apple") }
+        }
+    }
+
+    private suspend fun processLoginWithPasskey() {
+        updateState { copy(isLoading = true, error = null) }
+        authMutex.withLock {
+            signInWithPasskeyUseCase(Unit).fold(
+                onSuccess = { user -> onLoginSuccess(user, provider = "passkey") },
+                onFailure = { error ->
+                    if (error is DomainError.Passkey.Cancelled) {
+                        updateState { copy(isLoading = false) }
+                    } else if (error is DomainError.Passkey.NoPasskeys) {
+                        updateState { copy(isLoading = false) }
+                        emitEffect(AuthEffect.NoPasskeyOnDevice)
+                    } else {
+                        analyticsTracker.logEvent(
+                            "login_failed",
+                            mapOf("provider" to "passkey", "error_type" to (error::class.simpleName ?: "unknown")),
+                        )
+                        updateState { copy(isAuthenticated = false, isLoading = false, error = error.toUserMessage()) }
+                    }
+                },
+            )
         }
     }
 
@@ -153,7 +188,13 @@ class AuthViewModel(
             mapOf("user_id" to user.id.toString(), "provider" to provider)
         )
         updateState {
-            AuthState(isAuthenticated = true, isLoading = true, user = user, error = null)
+            AuthState(
+                isAuthenticated = true,
+                isLoading = true,
+                user = user,
+                error = null,
+                passkeySignInAvailable = currentState.passkeySignInAvailable,
+            )
         }
         userManager.setUser(user)
         handleLoginSuccessUseCase(HandleLoginSuccessUseCase.Params(user, syncData = true))
@@ -169,8 +210,16 @@ class AuthViewModel(
     private suspend fun processLogout() {
         analyticsTracker.logEvent("logout")
         userManager.logout()
-        updateState { AuthState(isAuthenticated = false, isLoading = false) }
+        updateState { signedOut() }
     }
+
+    /** Signed out, keeping what the device supports (the sign-in screen shows it). */
+    private fun signedOut(error: String? = null) = AuthState(
+        isAuthenticated = false,
+        isLoading = false,
+        error = error,
+        passkeySignInAvailable = currentState.passkeySignInAvailable,
+    )
 
     fun verifyAndRestoreSession(onComplete: () -> Unit) {
         viewModelScope.launch { processVerifyAndRestore(onComplete) }
@@ -182,6 +231,10 @@ class AuthViewModel(
 
     fun loginWithApple(idToken: String, fullName: String?, appleUserId: String) {
         viewModelScope.launch { processLoginWithApple(idToken, fullName, appleUserId) }
+    }
+
+    fun loginWithPasskey() {
+        viewModelScope.launch { processLoginWithPasskey() }
     }
 
     fun logout() {

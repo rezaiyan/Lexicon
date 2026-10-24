@@ -897,4 +897,22 @@
     <string name="word_due_in_days">%1$d日後</string>
     <string name="sort_due_soonest">復習が近い順</string>
     <string name="word_row_status">%1$s、%2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">パスキー</string>
+    <string name="passkeys_subtitle">顔、指紋、画面ロックでサインイン</string>
+    <string name="passkeys_sheet_subtitle">Google や Apple を使わずに Lexicon にサインインできます。パスキーはパスワード管理アプリに保存されます。</string>
+    <string name="passkeys_empty">パスキーはまだありません。</string>
+    <string name="passkey_create">パスキーを作成</string>
+    <string name="passkey_title">パスキー</string>
+    <string name="passkey_created_on">作成日 %1$s</string>
+    <string name="passkey_last_used">最終使用日 %1$s</string>
+    <string name="passkey_synced">同期済み</string>
+    <string name="passkey_deleting">削除中…</string>
+    <string name="passkey_delete_title">このパスキーを削除しますか？</string>
+    <string name="passkey_delete_message">このパスキーではサインインできなくなります。端末からも消すには、パスワード管理アプリで削除してください。</string>
+    <string name="passkey_delete">削除</string>
+    <string name="sign_in_with_passkey">パスキーでサインイン</string>
+    <string name="sign_in_with_passkey_hint">初めての方は、Google または Apple でサインインしてから、設定でパスキーを追加してください。</string>
+    <string name="passkey_none_on_device">この端末にはまだパスキーがありません。Google または Apple でサインインしてから、設定で追加してください。</string>
 </resources>

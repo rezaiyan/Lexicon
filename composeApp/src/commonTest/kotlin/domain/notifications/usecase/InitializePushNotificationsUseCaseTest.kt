@@ -56,6 +56,7 @@ class InitializePushNotificationsUseCaseTest {
         override suspend fun isAuthenticated(): Boolean = authenticated
         override fun isAuthenticatedAsFlow(): Flow<Boolean> = flowOf(authenticated)
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = Try.success(AuthUser(1, "", ""))
+        override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> = Try.failure(NotImplementedError())
         override suspend fun loginWithApple(
             idToken: String,
             fullName: String?,

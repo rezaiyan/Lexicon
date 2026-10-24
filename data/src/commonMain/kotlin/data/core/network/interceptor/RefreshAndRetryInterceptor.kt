@@ -90,7 +90,10 @@ class RefreshAndRetryInterceptor(
             !request.headers[HttpHeaders.Authorization].isNullOrBlank() &&
             !request.isAuthEndpoint()
 
+    /** Sign-in and token endpoints, where a 401 is the answer itself. Passkey management is not one. */
     private fun HttpRequestBuilder.isAuthEndpoint(): Boolean {
-        return url.build().encodedPath.lowercase().contains("/auth/")
+        val path = url.build().encodedPath.lowercase()
+        if (path.contains("/auth/passkeys") && !path.contains("/auth/passkeys/sign-in")) return false
+        return path.contains("/auth/")
     }
 }

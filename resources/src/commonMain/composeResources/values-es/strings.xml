@@ -739,4 +739,22 @@
     <string name="word_due_in_days">en %1$d d</string>
     <string name="sort_due_soonest">Próximos a repasar</string>
     <string name="word_row_status">%1$s, %2$s</string>
+
+    <!-- Passkeys -->
+    <string name="passkeys">Llaves de acceso</string>
+    <string name="passkeys_subtitle">Inicia sesión con tu cara, huella o bloqueo de pantalla</string>
+    <string name="passkeys_sheet_subtitle">Inicia sesión en Lexicon sin Google ni Apple. Tu gestor de contraseñas guarda la llave de acceso.</string>
+    <string name="passkeys_empty">Aún no tienes llaves de acceso.</string>
+    <string name="passkey_create">Crear una llave de acceso</string>
+    <string name="passkey_title">Llave de acceso</string>
+    <string name="passkey_created_on">Creada el %1$s</string>
+    <string name="passkey_last_used">Usada por última vez el %1$s</string>
+    <string name="passkey_synced">Sincronizada</string>
+    <string name="passkey_deleting">Eliminando…</string>
+    <string name="passkey_delete_title">¿Eliminar esta llave de acceso?</string>
+    <string name="passkey_delete_message">Ya no podrás iniciar sesión con ella. Para quitarla también de tus dispositivos, elimínala en tu gestor de contraseñas.</string>
+    <string name="passkey_delete">Eliminar</string>
+    <string name="sign_in_with_passkey">Iniciar sesión con llave de acceso</string>
+    <string name="sign_in_with_passkey_hint">¿Primera vez? Inicia sesión con Google o Apple y luego añade una llave de acceso en Ajustes.</string>
+    <string name="passkey_none_on_device">Aún no hay ninguna llave de acceso en este dispositivo. Inicia sesión con Google o Apple y añade una en Ajustes.</string>
 </resources>
