@@ -1,6 +1,6 @@
 # Lexicon ad video — creative brief
 
-Status: **draft — open questions below must be answered before storyboard.**
+Status: **v1 rendered (25 s 9:16) — awaiting review.**
 Skill: `.claude/skills/ad-video/SKILL.md` · Project: `~/projects/lexicon-motion`
 
 ## 1. Lessons from the sources
@@ -57,8 +57,8 @@ Skill: `.claude/skills/ad-video/SKILL.md` · Project: `~/projects/lexicon-motion
 - [x] Brand palette + claims + formats written into the `ad-video` skill
 - [x] Fresh UI reference captured (dark theme, showcase account): 30 stills + 8 clips, inventory in the `ad-video` skill
 - [x] `src/lexicon/brand.ts` + DM Sans font loader (verified with the `LexiconBrandCheck` still)
-- [ ] Brief answers locked
-- [ ] Storyboard approved
+- [x] Brief answers locked (defaults, 2026-10-24)
+- [x] Storyboard approved (2026-10-24); v1 built: `src/lexicon/LexiconAd.tsx`, `timelines/lexicon-ad.json`, `sfx/cues/lexicon-ad.py` → `out/lexicon-ad.mp4`
 
 ## 6. What the real app gives us (from the capture)
 

@@ -102,6 +102,14 @@ Recapture or extend with the tools in `~/projects/lexicon-motion/capture/` (READ
 
 For a fresh account or store screenshots: `./maestro/record_showcase.sh <flow>` signs in as the showcase account. Read a flow before running it, because some add test words.
 
+## The 25 s ad (`LexiconAd`)
+
+Work on it from `~/projects/lexicon-motion` (its `CLAUDE.md` has the file map): `/lexicon-ad <change>` edits, reviews and rebuilds it; `/lexicon-add-language <code>` adds a language; `npm run lex -- review|build [lang|all]` runs the pipeline.
+
+- One composition per learning language: `LexiconAd-de`, `LexiconAd-es`. Every word on screen comes from `src/lexicon/lang.ts`. To add a language: write a book page (`capture/page-<id>.txt` → `public/lexicon/ref/`), scan it in the app on the showcase account, copy five real results and the real count into `lang.ts`, then discard the scan. Never type a count or translation by hand.
+- Sound: `sfx/cues/lexicon-ad.py` (SFX + music, the beat locked so the hero lands on a downbeat) and `lexicon-ad-sfx.py` (no music, for a track picked on the platform). Outputs: `out/lexicon-ad-<lang>.mp4` and `out/lexicon-ad-<lang>-sfx.mp4`.
+- Keep anything readable left of `SAFE_R` (x 940) in `kit.tsx`: TikTok/Reels buttons cover the right edge.
+
 ## Formats
 
 | Use | Size | Length |
