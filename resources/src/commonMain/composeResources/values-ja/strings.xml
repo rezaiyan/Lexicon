@@ -916,9 +916,6 @@
     <string name="sign_in_with_passkey_hint">初めての方は、Google または Apple でサインインしてから、設定でパスキーを追加してください。</string>
     <string name="passkey_none_on_device">この端末にはまだパスキーがありません。</string>
     <string name="passkey_removed">このパスキーはアカウントから削除されています。</string>
-    <string name="server_status">接続</string>
-    <string name="server_status_online">Lexicon に接続済み</string>
-    <string name="server_status_checking">接続を確認中…</string>
     <string name="server_status_offline">オフラインです</string>
     <string name="server_status_unavailable">Lexicon のサーバーに接続できません</string>
     <string name="server_status_works_offline">単語と復習はそのまま使えます。同期と AI は自動で再開します。</string>

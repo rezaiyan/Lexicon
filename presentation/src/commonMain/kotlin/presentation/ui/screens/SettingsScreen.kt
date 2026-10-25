@@ -32,7 +32,7 @@ import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.ConnectedAppsSettingsCard
 import presentation.ui.components.settings.showConnectedAppsSheet
 import presentation.ui.components.settings.PasskeysSettingsCard
-import presentation.ui.components.settings.ServerStatusSection
+import presentation.ui.components.settings.ServerStatusNotice
 import presentation.ui.components.settings.showPasskeysSheet
 import presentation.ui.components.settings.DailyGoalSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
@@ -89,8 +89,8 @@ private fun SettingsSections() {
     val serverStatus by serverStatusViewModel.state()
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
-        // First, so an outage is the first thing seen; a single quiet row while all is well
-        ServerStatusSection(
+        // Nothing while connected; a slim notice on top when the server can't be reached
+        ServerStatusNotice(
             status = serverStatus.status,
             retrying = serverStatus.retrying,
             onRetry = serverStatusViewModel::retry,

@@ -1,122 +1,105 @@
 package presentation.ui.components.settings
 
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import components.GroupedRow
-import components.GroupedSection
 import domain.connectivity.model.ServerStatus
 import lexicon.resources.generated.resources.Res
-import lexicon.resources.generated.resources.server_status
-import lexicon.resources.generated.resources.server_status_checking
 import lexicon.resources.generated.resources.server_status_offline
-import lexicon.resources.generated.resources.server_status_online
 import lexicon.resources.generated.resources.server_status_retry
 import lexicon.resources.generated.resources.server_status_unavailable
 import lexicon.resources.generated.resources.server_status_works_offline
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import theme.Theme
 
 /**
- * One quiet row saying whether Lexicon's server can be reached. Degraded states say what still works
- * (everything on the device) and tapping re-checks; while online it's a plain confirmation.
+ * Slim notice shown only while the server can't be reached; nothing at all while connected or
+ * still checking. Says what keeps working and offers a re-check.
  */
 @Composable
-fun ServerStatusSection(
+fun ServerStatusNotice(
     status: ServerStatus,
     retrying: Boolean,
     onRetry: () -> Unit,
 ) {
-    val look = status.look()
-    val checking = retrying || status == ServerStatus.Checking
-    GroupedSection(title = stringResource(Res.string.server_status)) {
-        GroupedRow(
-            title = stringResource(look.title),
-            subtitle = look.detail?.let { stringResource(it) },
-            onClick = onRetry,
+    val offline = status == ServerStatus.Offline
+    AnimatedVisibility(
+        visible = offline || status == ServerStatus.Unavailable,
+        enter = expandVertically() + fadeIn(),
+        exit = shrinkVertically() + fadeOut(),
+    ) {
+        Row(
             modifier = Modifier
-                .animateContentSize()
-                // Screen readers hear the change when the server goes down or comes back
-                .semantics { liveRegion = LiveRegionMode.Polite },
-            icon = look.icon,
-            iconColor = look.tint(),
-            showChevron = false,
-            showDivider = false,
-            trailingContent = when {
-                checking -> {
-                    {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
-                            strokeWidth = 2.dp,
-                        )
-                    }
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(Theme.shapes.medium))
+                .background(Theme.colors.warningContainer)
+                // Screen readers hear it when the server goes down or comes back
+                .semantics { liveRegion = LiveRegionMode.Polite }
+                .padding(start = Theme.spacing.cardPadding, end = Theme.spacing.xxs)
+                .padding(vertical = Theme.spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(Theme.spacing.inlineGap),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = if (offline) Icons.Rounded.WifiOff else Icons.Rounded.CloudOff,
+                contentDescription = null,
+                tint = Theme.colors.warning,
+                modifier = Modifier.size(Theme.dimensions.iconSizeMedium),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(
+                        if (offline) Res.string.server_status_offline else Res.string.server_status_unavailable,
+                    ),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Theme.colors.onWarningContainer,
+                )
+                Text(
+                    text = stringResource(Res.string.server_status_works_offline),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Theme.colors.onWarningContainer.copy(alpha = 0.8f),
+                )
+            }
+            if (retrying) {
+                Box(modifier = Modifier.size(Theme.dimensions.touchTargetSmall), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(Theme.dimensions.iconSizeSmall),
+                        strokeWidth = 2.dp,
+                        color = Theme.colors.onWarningContainer,
+                    )
                 }
-                look.degraded -> {
-                    {
-                        Text(
-                            text = stringResource(Res.string.server_status_retry),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+            } else {
+                TextButton(onClick = onRetry) {
+                    Text(text = stringResource(Res.string.server_status_retry))
                 }
-                else -> null
-            },
-        )
+            }
+        }
     }
-}
-
-private class StatusLook(
-    val title: StringResource,
-    val detail: StringResource?,
-    val icon: ImageVector,
-    val degraded: Boolean,
-    val tint: @Composable () -> Color,
-)
-
-private fun ServerStatus.look(): StatusLook = when (this) {
-    ServerStatus.Online -> StatusLook(
-        title = Res.string.server_status_online,
-        detail = null,
-        icon = Icons.Rounded.CloudDone,
-        degraded = false,
-        tint = { Theme.colors.success },
-    )
-    ServerStatus.Checking -> StatusLook(
-        title = Res.string.server_status_checking,
-        detail = null,
-        icon = Icons.Rounded.CloudSync,
-        degraded = false,
-        tint = { MaterialTheme.colorScheme.onSurfaceVariant },
-    )
-    ServerStatus.Offline -> StatusLook(
-        title = Res.string.server_status_offline,
-        detail = Res.string.server_status_works_offline,
-        icon = Icons.Rounded.WifiOff,
-        degraded = true,
-        tint = { Theme.colors.warning },
-    )
-    ServerStatus.Unavailable -> StatusLook(
-        title = Res.string.server_status_unavailable,
-        detail = Res.string.server_status_works_offline,
-        icon = Icons.Rounded.CloudOff,
-        degraded = true,
-        tint = { Theme.colors.warning },
-    )
 }

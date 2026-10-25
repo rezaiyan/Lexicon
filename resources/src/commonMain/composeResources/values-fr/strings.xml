@@ -758,9 +758,6 @@
     <string name="sign_in_with_passkey_hint">Première fois ? Connectez-vous avec Google ou Apple, puis ajoutez une clé d'accès dans les Réglages.</string>
     <string name="passkey_none_on_device">Pas encore de clé d'accès sur cet appareil.</string>
     <string name="passkey_removed">Cette clé d'accès a été supprimée de votre compte.</string>
-    <string name="server_status">Connexion</string>
-    <string name="server_status_online">Connecté à Lexicon</string>
-    <string name="server_status_checking">Vérification de la connexion…</string>
     <string name="server_status_offline">Vous êtes hors ligne</string>
     <string name="server_status_unavailable">Impossible de joindre le serveur Lexicon</string>
     <string name="server_status_works_offline">Mots et révisions fonctionnent. Synchro et IA reprennent toutes seules.</string>

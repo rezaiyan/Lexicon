@@ -757,9 +757,6 @@
     <string name="sign_in_with_passkey_hint">第一次使用？请先用 Google 或 Apple 登录，然后在设置中添加通行密钥。</string>
     <string name="passkey_none_on_device">此设备上还没有通行密钥。</string>
     <string name="passkey_removed">此通行密钥已从你的账户中删除。</string>
-    <string name="server_status">连接</string>
-    <string name="server_status_online">已连接到 Lexicon</string>
-    <string name="server_status_checking">正在检查连接…</string>
     <string name="server_status_offline">你已离线</string>
     <string name="server_status_unavailable">无法连接 Lexicon 服务器</string>
     <string name="server_status_works_offline">单词和复习照常可用。同步和 AI 会自动恢复。</string>

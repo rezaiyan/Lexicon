@@ -1282,9 +1282,6 @@
     <string name="sign_in_with_passkey_hint">First time? Sign in with Google or Apple, then add a passkey in Settings.</string>
     <string name="passkey_none_on_device">No passkey on this device yet.</string>
     <string name="passkey_removed">This passkey was removed from your account.</string>
-    <string name="server_status">Connection</string>
-    <string name="server_status_online">Connected to Lexicon</string>
-    <string name="server_status_checking">Checking connection…</string>
     <string name="server_status_offline">You're offline</string>
     <string name="server_status_unavailable">Can't reach Lexicon's server</string>
     <string name="server_status_works_offline">Words and reviews still work. Sync and AI resume automatically.</string>

@@ -2,20 +2,14 @@ appId: com.alirezaiyan.vokab
 tags:
   - settings
 ---
-# Test: Settings opens with the live connection row on top.
+# Test: while connected, Settings shows no connection notice at all.
 #
-# Online here; the offline / server-down wording is covered by unit tests, since a
-# flow can't take the network away without adb.
+# The offline / server-down notice is covered by unit tests, since a flow can't
+# take the network away without adb.
 
 - runFlow: ../utils/navigate_to_settings.yaml
 
-- assertVisible: "Connection"
-- extendedWaitUntil:
-    visible: "Connected to Lexicon"
-    timeout: 15000
-
-# Tapping re-checks and settles back on connected
-- tapOn: "Connected to Lexicon"
-- extendedWaitUntil:
-    visible: "Connected to Lexicon"
-    timeout: 15000
+- assertVisible: "Daily Goal"
+- assertNotVisible: "You're offline"
+- assertNotVisible: "Can't reach Lexicon's server"
+- assertNotVisible: "Retry"
