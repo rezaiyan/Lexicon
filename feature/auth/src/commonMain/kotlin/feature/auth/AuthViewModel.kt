@@ -165,11 +165,15 @@ class AuthViewModel(
             signInWithPasskeyUseCase(Unit).fold(
                 onSuccess = { user -> onLoginSuccess(user, provider = "passkey") },
                 onFailure = { error ->
-                    if (error is DomainError.Passkey.Cancelled) {
+                    // No passkey here, or one deleted from the account: hints, shown as a neutral notice
+                    val notice = when (error) {
+                        DomainError.Passkey.NoPasskeys -> AuthEffect.NoPasskeyOnDevice
+                        DomainError.Passkey.Removed -> AuthEffect.PasskeyRemoved
+                        else -> null
+                    }
+                    if (error is DomainError.Passkey.Cancelled || notice != null) {
                         updateState { copy(isLoading = false) }
-                    } else if (error is DomainError.Passkey.NoPasskeys) {
-                        updateState { copy(isLoading = false) }
-                        emitEffect(AuthEffect.NoPasskeyOnDevice)
+                        notice?.let { emitEffect(it) }
                     } else {
                         analyticsTracker.logEvent(
                             "login_failed",

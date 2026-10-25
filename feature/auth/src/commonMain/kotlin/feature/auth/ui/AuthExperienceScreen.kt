@@ -52,6 +52,7 @@ import events.OnEvents
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import lexicon.resources.generated.resources.passkey_none_on_device
+import lexicon.resources.generated.resources.passkey_removed
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -92,9 +93,11 @@ fun AuthExperienceScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val noPasskeyText = stringResource(Res.string.passkey_none_on_device)
+    val passkeyRemovedText = stringResource(Res.string.passkey_removed)
     OnEvents(effects) { effect ->
         when (effect) {
             AuthEffect.NoPasskeyOnDevice -> snackbarHostState.showSnackbar(noPasskeyText)
+            AuthEffect.PasskeyRemoved -> snackbarHostState.showSnackbar(passkeyRemovedText)
         }
     }
 

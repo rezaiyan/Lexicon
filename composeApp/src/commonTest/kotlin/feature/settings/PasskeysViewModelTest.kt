@@ -1,13 +1,13 @@
 package feature.settings
 
 import core.error.DomainError
-import domain.passkey.model.Passkey
 import domain.passkey.usecase.CreatePasskeyUseCase
 import domain.passkey.usecase.DeletePasskeyUseCase
 import domain.passkey.usecase.GetPasskeysUseCase
 import domain.passkey.usecase.IsPasskeyAvailableUseCase
 import fakes.FakePasskeyAuthenticator
 import fakes.FakePasskeyRepository
+import fakes.fakePasskey
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
 import kotlin.test.Test
@@ -19,15 +19,15 @@ import kotlin.test.assertTrue
 
 class PasskeysViewModelTest : ViewModelTestBase() {
 
-    private val phone = Passkey(id = 1, createdAtMillis = 1_000, lastUsedAtMillis = 2_000, synced = true)
+    private val phone = fakePasskey(id = 1, lastUsedAtMillis = 2_000)
     private val repository = FakePasskeyRepository(passkeys = listOf(phone))
     private val device = FakePasskeyAuthenticator()
 
     private fun createViewModel() = PasskeysViewModel(
         isPasskeyAvailable = IsPasskeyAvailableUseCase(device),
-        getPasskeys = GetPasskeysUseCase(repository),
+        getPasskeys = GetPasskeysUseCase(repository, device),
         createPasskey = CreatePasskeyUseCase(repository, device),
-        deletePasskey = DeletePasskeyUseCase(repository),
+        deletePasskey = DeletePasskeyUseCase(repository, device),
     )
 
     @Test
@@ -45,6 +45,15 @@ class PasskeysViewModelTest : ViewModelTestBase() {
         vm.refresh()
 
         assertEquals(listOf(phone), vm.currentState.passkeys)
+    }
+
+    @Test
+    fun `refresh tells the device which passkeys still exist, so deleted ones leave its sign-in sheet`() = runTest {
+        val vm = createViewModel()
+
+        vm.refresh()
+
+        assertEquals(listOf(phone.credentialId), device.keptOnly)
     }
 
     @Test
@@ -96,6 +105,29 @@ class PasskeysViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `delete asks the device to forget the passkey`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+
+        vm.delete(1)
+
+        assertEquals(listOf(phone.credentialId), device.forgotten)
+    }
+
+    @Test
+    fun `delete still succeeds where the device can't forget passkeys`() = runTest {
+        val vm = createViewModel()
+        vm.refresh()
+        device.signalsSupported = false
+
+        vm.delete(1)
+
+        assertEquals(listOf(1L), repository.deleted)
+        assertTrue(vm.currentState.passkeys.isEmpty())
+        assertNull(vm.currentState.error)
+    }
+
+    @Test
     fun `failed delete keeps the passkey and shows an error`() = runTest {
         val vm = createViewModel()
         vm.refresh()
@@ -106,5 +138,6 @@ class PasskeysViewModelTest : ViewModelTestBase() {
         assertEquals(listOf(phone), vm.currentState.passkeys)
         assertNull(vm.currentState.deletingId)
         assertNotNull(vm.currentState.error)
+        assertTrue(device.forgotten.isEmpty())
     }
 }

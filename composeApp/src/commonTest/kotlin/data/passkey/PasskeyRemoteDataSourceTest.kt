@@ -3,6 +3,7 @@ package data.passkey
 import core.common.getOrNull
 import data.core.network.client.ApiClient
 import data.core.network.mapper.ApiResponseMapper
+import data.passkey.remote.PasskeyListResponse
 import data.passkey.remote.PasskeyRemoteDataSource
 import data.passkey.remote.PasskeyResponse
 import io.ktor.client.HttpClient
@@ -58,12 +59,32 @@ class PasskeyRemoteDataSourceTest {
     fun `register sends the device response as a string field`() = runTest {
         val response = """{"id":"cred","type":"public-key"}"""
 
-        val passkey = dataSource("""{"success":true,"data":{"id":7,"createdAt":1000,"synced":true}}""")
+        val passkey = dataSource("""{"success":true,"data":{"id":7,"credentialId":"cred","createdAt":1000,"synced":true}}""")
             .register(response).getOrNull()
 
         assertEquals("https://api.test/auth/passkeys", requests.single().url.toString())
         val sent = json.parseToJsonElement(bodies.single()).jsonObject
         assertEquals(response, sent.getValue("responseJson").jsonPrimitive.content)
-        assertEquals(PasskeyResponse(id = 7, createdAt = 1000, lastUsedAt = null, synced = true), passkey)
+        assertEquals(
+            PasskeyResponse(id = 7, credentialId = "cred", createdAt = 1000, lastUsedAt = null, synced = true),
+            passkey,
+        )
+    }
+
+    @Test
+    fun `the list carries the RP ID and user handle the device needs for signals`() = runTest {
+        val body = """{"success":true,"data":{"rpId":"lexicon.alirezaiyan.com","userHandle":"uh",""" +
+            """"passkeys":[{"id":7,"credentialId":"cred","createdAt":1000,"lastUsedAt":2000,"synced":true}]}}"""
+
+        val list = dataSource(body).getPasskeys().getOrNull()
+
+        assertEquals(
+            PasskeyListResponse(
+                rpId = "lexicon.alirezaiyan.com",
+                userHandle = "uh",
+                passkeys = listOf(PasskeyResponse(7, "cred", 1000, 2000, synced = true)),
+            ),
+            list,
+        )
     }
 }

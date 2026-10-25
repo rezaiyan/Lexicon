@@ -7,7 +7,11 @@ import com.alirezaiyan.passki.SignInMode
 import core.common.Try
 import core.error.DomainError
 import domain.passkey.IPasskeyAuthenticator
+import domain.passkey.model.PasskeySignIn
 import expects.logPlatform
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * The system passkey sheet through PassKi: Credential Manager on Android, AuthenticationServices
@@ -27,14 +31,29 @@ class PassKiAuthenticator(
      * Only passkeys already on this device: without one it fails at once as NoPasskeys instead of a
      * system sheet offering a QR code for another phone, which only confuses someone who never made one.
      */
-    override suspend fun signIn(optionsJson: String): Try<String> {
+    override suspend fun signIn(optionsJson: String): Try<PasskeySignIn> {
         val mode = if (passkeys.capabilities().immediateSignIn) SignInMode.ImmediateOnly else SignInMode.Modal
-        return passkeys.signIn(optionsJson, mode).toTry("sign-in") { it.json }
+        return passkeys.signIn(optionsJson, mode).toTry("sign-in") {
+            PasskeySignIn(responseJson = it.json, credentialId = it.credentialId, rpId = rpIdOf(optionsJson))
+        }
     }
 
-    private inline fun <T> PasskeyResult<T>.toTry(ceremony: String, json: (T) -> String): Try<String> = when (this) {
-        is PasskeyResult.Success -> Try.success(json(value))
+    override suspend fun forget(rpId: String, credentialId: String): Try<Unit> =
+        passkeys.signals.unknownCredential(rpId, credentialId).toTry("forget") { }
+
+    override suspend fun keepOnly(rpId: String, userHandle: String, credentialIds: List<String>): Try<Unit> =
+        passkeys.signals.acceptedCredentials(rpId, userHandle, credentialIds).toTry("keep-only") { }
+
+    private inline fun <T, R> PasskeyResult<T>.toTry(ceremony: String, transform: (T) -> R): Try<R> = when (this) {
+        is PasskeyResult.Success -> Try.success(transform(value))
         is PasskeyResult.Failure -> Try.failure(error.toDomain(ceremony))
+    }
+
+    /** PassKi already refused options without an RP ID, so a successful sign-in always has one. */
+    private fun rpIdOf(optionsJson: String): String {
+        val options = Json.parseToJsonElement(optionsJson).jsonObject
+        val publicKey = options["publicKey"]?.jsonObject ?: options
+        return publicKey["rpId"]?.jsonPrimitive?.content.orEmpty()
     }
 
     private fun PasskeyError.toDomain(ceremony: String): DomainError.Passkey {

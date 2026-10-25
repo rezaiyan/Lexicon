@@ -1,6 +1,7 @@
 package data.auth.repository
 
 import data.core.network.error.AuthenticationException
+import data.core.network.error.ServerException
 import core.error.DomainError
 import auth.IAppleAuthStateProvider
 import auth.IGoogleAuthStateProvider
@@ -152,6 +153,16 @@ class AuthRepositoryImplTest {
 
         assertEquals(DomainError.Auth.NotAuthenticated, (result as Try.Failure).throwable)
         assertEquals(null, tokenManager.savedAccessToken)
+    }
+
+    @Test
+    fun `loginWithPasskey keeps the 404 for a passkey the server doesn't know`() = runTest {
+        authDataSource.passkeyResult = Try.failure(ServerException("Resource not found.", 404))
+        val repo = createRepo()
+
+        val result = repo.loginWithPasskey("{}")
+
+        assertEquals(DomainError.Network.ServerError(404), (result as Try.Failure).throwable)
     }
 
     // --- logout ---

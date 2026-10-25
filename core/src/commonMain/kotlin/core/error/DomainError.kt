@@ -43,6 +43,8 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
         data object Unavailable : Passkey("Passkeys unavailable")
         /** The server refused the passkey: deleted from the account, or not one of Lexicon's. */
         data object Rejected : Passkey("Passkey rejected")
+        /** Sign-in: the account no longer has this passkey (deleted); the device was told to forget it. */
+        data object Removed : Passkey("Passkey removed")
         data class Failed(val reason: String) : Passkey(reason)
     }
 

@@ -10,8 +10,17 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 
 @Serializable
+data class PasskeyListResponse(
+    val rpId: String,
+    val userHandle: String? = null,
+    val passkeys: List<PasskeyResponse> = emptyList(),
+)
+
+@Serializable
 data class PasskeyResponse(
     val id: Long,
+    /** Base64url WebAuthn credential id. */
+    val credentialId: String,
     /** Epoch millis. */
     val createdAt: Long,
     /** Epoch millis. */
@@ -24,7 +33,7 @@ interface IPasskeyRemoteDataSource {
     /** WebAuthn creation options JSON. */
     suspend fun registrationOptions(): Try<String>
     suspend fun register(responseJson: String): Try<PasskeyResponse>
-    suspend fun getPasskeys(): Try<List<PasskeyResponse>>
+    suspend fun getPasskeys(): Try<PasskeyListResponse>
     suspend fun delete(id: Long): Try<Unit>
 
     /** WebAuthn request options JSON. */
@@ -45,8 +54,8 @@ class PasskeyRemoteDataSource(
         apiClient.postNotNull<PasskeyResponse>(PATH, PasskeyResponseRequest(responseJson))
             .doOnFailure { logNetwork(TAG, "Register failed: ${it.message}") }
 
-    override suspend fun getPasskeys(): Try<List<PasskeyResponse>> =
-        apiClient.getNotNull<List<PasskeyResponse>>(PATH)
+    override suspend fun getPasskeys(): Try<PasskeyListResponse> =
+        apiClient.getNotNull<PasskeyListResponse>(PATH)
             .doOnFailure { logNetwork(TAG, "Fetch failed: ${it.message}") }
 
     override suspend fun delete(id: Long): Try<Unit> =

@@ -17,6 +17,8 @@ data class PasskeysState(
     /** The device can create passkeys; Settings shows the row only then. */
     val available: Boolean = false,
     val passkeys: List<Passkey> = emptyList(),
+    /** The domain the passkeys belong to, from the last list; deleting needs it to clean up the device. */
+    val rpId: String? = null,
     val creating: Boolean = false,
     val deletingId: Long? = null,
     /** Why the last create or delete failed; cleared by the next attempt. */
@@ -43,7 +45,7 @@ class PasskeysViewModel(
     fun refresh() {
         viewModelScope.launch {
             getPasskeys(Unit).fold(
-                onSuccess = { passkeys -> updateState { copy(passkeys = passkeys) } },
+                onSuccess = { account -> updateState { copy(passkeys = account.passkeys, rpId = account.rpId) } },
                 onFailure = { /* keep what is shown; the sheet still offers to create one */ },
             )
         }
@@ -65,9 +67,10 @@ class PasskeysViewModel(
 
     fun delete(id: Long) {
         if (currentState.deletingId != null) return
+        val passkey = currentState.passkeys.firstOrNull { it.id == id } ?: return
         updateState { copy(deletingId = id, error = null) }
         viewModelScope.launch {
-            deletePasskey(id).fold(
+            deletePasskey(DeletePasskeyUseCase.Params(passkey, currentState.rpId)).fold(
                 onSuccess = { updateState { copy(passkeys = passkeys.filterNot { it.id == id }, deletingId = null) } },
                 onFailure = { error -> updateState { copy(deletingId = null, error = error.toUserMessage()) } },
             )

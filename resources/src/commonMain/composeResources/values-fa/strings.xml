@@ -756,4 +756,5 @@
     <string name="sign_in_with_passkey">ورود با کلید عبور</string>
     <string name="sign_in_with_passkey_hint">بار اول است؟ با Google یا Apple وارد شوید، سپس در تنظیمات یک کلید عبور بسازید.</string>
     <string name="passkey_none_on_device">هنوز کلید عبوری روی این دستگاه نیست. با Google یا Apple وارد شوید، سپس در تنظیمات یکی بسازید.</string>
+    <string name="passkey_removed">این کلید عبور از حساب شما حذف شده است. با Google یا Apple وارد شوید.</string>
 </resources>

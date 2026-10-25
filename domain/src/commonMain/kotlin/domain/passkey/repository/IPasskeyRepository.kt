@@ -1,6 +1,7 @@
 package domain.passkey.repository
 
 import core.common.Try
+import domain.passkey.model.AccountPasskeys
 import domain.passkey.model.Passkey
 
 /**
@@ -14,7 +15,7 @@ interface IPasskeyRepository {
     /** Stores the passkey the device created from [registrationOptions]. */
     suspend fun register(responseJson: String): Try<Passkey>
 
-    suspend fun getPasskeys(): Try<List<Passkey>>
+    suspend fun getPasskeys(): Try<AccountPasskeys>
 
     suspend fun delete(id: Long): Try<Unit>
 

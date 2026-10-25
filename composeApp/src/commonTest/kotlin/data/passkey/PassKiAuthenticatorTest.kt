@@ -4,6 +4,7 @@ import com.alirezaiyan.passki.PasskeyError
 import com.alirezaiyan.passki.test.FakePasskeys
 import com.alirezaiyan.passki.test.TestOptions
 import core.common.Try
+import core.common.getOrThrow
 import core.error.DomainError
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -40,6 +41,36 @@ class PassKiAuthenticatorTest {
         val result = authenticator.signIn(TestOptions.request(rpId))
 
         assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `sign-in reports which passkey was used and for which domain`() = runTest {
+        authenticator.create(TestOptions.creation(rpId))
+
+        val signIn = authenticator.signIn(TestOptions.request(rpId)).getOrThrow()
+
+        assertEquals(rpId, signIn.rpId)
+        assertTrue(signIn.credentialId.isNotBlank())
+    }
+
+    @Test
+    fun `a forgotten passkey is no longer offered at sign-in`() = runTest {
+        authenticator.create(TestOptions.creation(rpId))
+        val signIn = authenticator.signIn(TestOptions.request(rpId)).getOrThrow()
+
+        assertTrue(authenticator.forget(rpId, signIn.credentialId).isSuccess)
+
+        val again = authenticator.signIn(TestOptions.request(rpId))
+        assertEquals(DomainError.Passkey.NoPasskeys, (again as Try.Failure).throwable)
+    }
+
+    @Test
+    fun `where the password manager ignores signals, forgetting fails as Unavailable`() = runTest {
+        device.signalsSupported = false
+
+        val result = authenticator.forget(rpId, "Y3JlZA")
+
+        assertEquals(DomainError.Passkey.Unavailable, (result as Try.Failure).throwable)
     }
 
     @Test

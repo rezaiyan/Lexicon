@@ -25,6 +25,8 @@ fun Throwable.toUserMessage(): String = when (this) {
     is DomainError.Passkey.Unavailable -> "Passkeys aren't available on this device."
     is DomainError.Passkey.Rejected ->
         "This passkey didn't work. If you deleted it, sign in with Google or Apple and create a new one."
+    is DomainError.Passkey.Removed ->
+        "This passkey was removed from your account. Sign in with Google or Apple."
     is DomainError.Passkey.Failed -> "Passkey didn't work. Please try again."
     is DomainError.Commerce.PremiumRequired -> "This feature requires a subscription."
     is DomainError.Commerce.InsufficientCredits -> "You don't have enough credits for this."

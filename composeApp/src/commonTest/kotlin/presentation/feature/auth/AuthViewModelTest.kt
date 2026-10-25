@@ -343,6 +343,22 @@ class AuthViewModelTest : ViewModelTestBase() {
     }
 
     @Test
+    fun `loginWithPasskey with a passkey deleted from the account forgets it and sends a neutral notice`() = runTest {
+        loginResult = Try.failure(DomainError.Network.ServerError(404))
+        val vm = createViewModel()
+
+        vm.effects.test {
+            vm.loginWithPasskey()
+
+            assertEquals(AuthEffect.PasskeyRemoved, awaitItem())
+        }
+        assertEquals(listOf(passkeyDevice.signInCredentialId), passkeyDevice.forgotten)
+        assertFalse(vm.currentState.isAuthenticated)
+        assertFalse(vm.currentState.isLoading)
+        assertNull(vm.currentState.error)
+    }
+
+    @Test
     fun `loginWithPasskey rejected by the server says the passkey failed, not to sign in`() = runTest {
         loginResult = Try.failure(DomainError.Auth.NotAuthenticated)
         val vm = createViewModel()
