@@ -40,7 +40,7 @@ class ReachabilityInterceptorTest {
     }
 
     @Test
-    fun `a 4xx answer still proves the server is up, and the error reaches the caller`() = runTest {
+    fun `a 4xx answer still proves the server is up and the error reaches the caller`() = runTest {
         assertFailsWith<Exception> { answering(HttpStatusCode.Unauthorized).get("https://api/words") }
         assertFailsWith<Exception> { answering(HttpStatusCode.NotFound).get("https://api/words") }
 

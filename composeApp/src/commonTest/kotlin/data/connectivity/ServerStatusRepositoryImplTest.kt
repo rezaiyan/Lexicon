@@ -60,7 +60,7 @@ class ServerStatusRepositoryImplTest {
     }
 
     @Test
-    fun `observeStatus when the server is down reports unavailable, then online once a retry passes`() = runTest {
+    fun `observeStatus when the server is down reports unavailable then online once a retry passes`() = runTest {
         health.up = false
         val status = watch(repository(backgroundScope))
         assertEquals(ServerStatus.Unavailable, status())
@@ -118,7 +118,7 @@ class ServerStatusRepositoryImplTest {
     }
 
     @Test
-    fun `a failed request ends the wait early, so an outage shows without waiting for the next recheck`() = runTest {
+    fun `a failed request ends the wait early so an outage shows without waiting for the next recheck`() = runTest {
         val status = watch(repository(backgroundScope))
         health.up = false
 

@@ -78,7 +78,7 @@ class PassKiAuthenticatorTest {
     }
 
     @Test
-    fun `where the password manager ignores signals, forgetting fails as Unavailable`() = runTest {
+    fun `where the password manager ignores signals forgetting fails as Unavailable`() = runTest {
         device.signalsSupported = false
 
         val result = authenticator.forget(rpId, "Y3JlZA")
@@ -96,7 +96,7 @@ class PassKiAuthenticatorTest {
     }
 
     @Test
-    fun `closing the sheet is Cancelled, not an error to show`() = runTest {
+    fun `closing the sheet is Cancelled not an error to show`() = runTest {
         device.failNextWith(PasskeyError.Cancelled)
 
         val result = authenticator.create(TestOptions.creation(rpId))

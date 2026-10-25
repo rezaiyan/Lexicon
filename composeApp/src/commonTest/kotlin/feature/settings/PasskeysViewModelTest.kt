@@ -49,7 +49,7 @@ class PasskeysViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `refresh tells the device which passkeys still exist, so deleted ones leave its sign-in sheet`() = runTest {
+    fun `refresh tells the device which passkeys still exist so deleted ones leave its sign-in sheet`() = runTest {
         val vm = createViewModel()
 
         vm.refresh()
@@ -58,7 +58,7 @@ class PasskeysViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `refresh labels this device's passkeys with their account, so several accounts are told apart`() = runTest {
+    fun `refresh labels this device's passkeys with their account so several accounts are told apart`() = runTest {
         val vm = createViewModel()
 
         vm.refresh()

@@ -32,7 +32,7 @@ class ProfileUserUiModelTest {
     }
 
     @Test
-    fun `a real address is not hidden, iCloud included`() {
+    fun `a real address is not hidden iCloud included`() {
         assertFalse(ProfileUserUiModel(name = "", email = "jane@icloud.com").isEmailHiddenByApple)
         assertFalse(ProfileUserUiModel(name = "", email = "jane@gmail.com").isEmailHiddenByApple)
     }

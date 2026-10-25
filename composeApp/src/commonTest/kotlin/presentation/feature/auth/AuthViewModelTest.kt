@@ -340,7 +340,7 @@ class AuthViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `loginWithPasskey when the device has no passkey sends a neutral notice, not an error`() = runTest {
+    fun `loginWithPasskey when the device has no passkey sends a neutral notice not an error`() = runTest {
         passkeyDevice.nextFailure = DomainError.Passkey.NoPasskeys
         val vm = createViewModel()
 
@@ -371,7 +371,7 @@ class AuthViewModelTest : ViewModelTestBase() {
     }
 
     @Test
-    fun `loginWithPasskey rejected by the server says the passkey failed, not to sign in`() = runTest {
+    fun `loginWithPasskey rejected by the server says the passkey failed not to sign in`() = runTest {
         loginResult = Try.failure(DomainError.Auth.NotAuthenticated)
         val vm = createViewModel()
 
