@@ -23,6 +23,7 @@ fun Throwable.toUserMessage(): String = when (this) {
         "No Lexicon passkey on this device. Sign in with Google or Apple, then create one in Settings."
     is DomainError.Passkey.AlreadyRegistered -> "This device already has a passkey for your account."
     is DomainError.Passkey.Unavailable -> "Passkeys aren't available on this device."
+    is DomainError.Passkey.SetupProblem -> "Passkeys aren't working right now. Please try again later."
     is DomainError.Passkey.Rejected ->
         "This passkey didn't work. If you deleted it, sign in with Google or Apple and create a new one."
     is DomainError.Passkey.Removed ->

@@ -66,7 +66,9 @@ class PassKiAuthenticator(
             PasskeyError.Cancelled, PasskeyError.Interrupted -> DomainError.Passkey.Cancelled
             PasskeyError.NoCredentials -> DomainError.Passkey.NoPasskeys
             PasskeyError.AlreadyRegistered -> DomainError.Passkey.AlreadyRegistered
-            is PasskeyError.NotSupported, is PasskeyError.Misconfigured -> DomainError.Passkey.Unavailable
+            is PasskeyError.NotSupported -> DomainError.Passkey.Unavailable
+            // Our domain or app setup, not the user's device: the log line above names the check
+            is PasskeyError.Misconfigured -> DomainError.Passkey.SetupProblem
             is PasskeyError.InvalidOptions, is PasskeyError.Unknown -> DomainError.Passkey.Failed(toString())
         }
     }

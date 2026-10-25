@@ -74,6 +74,15 @@ class PassKiAuthenticatorTest {
     }
 
     @Test
+    fun `a setup problem on our side is not blamed on the device`() = runTest {
+        device.failNextWith(PasskeyError.Misconfigured("RP ID cannot be validated.", "Serve assetlinks.json", "AND-03"))
+
+        val result = authenticator.create(TestOptions.creation(rpId))
+
+        assertEquals(DomainError.Passkey.SetupProblem, (result as Try.Failure).throwable)
+    }
+
+    @Test
     fun `closing the sheet is Cancelled, not an error to show`() = runTest {
         device.failNextWith(PasskeyError.Cancelled)
 

@@ -39,8 +39,13 @@ sealed class DomainError(message: String? = null, cause: Throwable? = null) : Ex
         data object NoPasskeys : Passkey("No passkey on this device")
         /** Create: this device already holds a passkey for this account. */
         data object AlreadyRegistered : Passkey("Passkey already exists")
-        /** The device or its credential provider can't do passkeys, or the app isn't set up for them. */
+        /** The device or its credential provider can't do passkeys. */
         data object Unavailable : Passkey("Passkeys unavailable")
+        /**
+         * Our side isn't set up (yet): the platform couldn't link the app to the passkey domain, e.g.
+         * a fresh well-known file Google or Apple hasn't picked up. Not the user's device.
+         */
+        data object SetupProblem : Passkey("Passkey setup problem")
         /** The server refused the passkey: deleted from the account, or not one of Lexicon's. */
         data object Rejected : Passkey("Passkey rejected")
         /** Sign-in: the account no longer has this passkey (deleted); the device was told to forget it. */
