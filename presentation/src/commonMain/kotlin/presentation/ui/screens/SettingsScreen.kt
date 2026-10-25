@@ -3,15 +3,21 @@ package presentation.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import components.GroupedSection
+import feature.profile.navigation.showDeleteAccountSheet
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import feature.settings.ConnectedAppsViewModel
 import feature.settings.PasskeysViewModel
+import feature.settings.ServerStatusViewModel
 import feature.settings.SettingsViewModel
 import components.scaffold.LexiconColumn
 import overlay.LocalOverlayHost
@@ -26,6 +32,7 @@ import presentation.ui.components.settings.AboutSettingsCard
 import presentation.ui.components.settings.ConnectedAppsSettingsCard
 import presentation.ui.components.settings.showConnectedAppsSheet
 import presentation.ui.components.settings.PasskeysSettingsCard
+import presentation.ui.components.settings.ServerStatusSection
 import presentation.ui.components.settings.showPasskeysSheet
 import presentation.ui.components.settings.DailyGoalSettingsCard
 import presentation.ui.components.settings.NotificationSettingsCard
@@ -39,6 +46,7 @@ import presentation.ui.components.settings.showNotificationSettingsSheet
 import presentation.ui.screens.settings.showTagManagerScreen
 import theme.Theme
 import lexicon.resources.generated.resources.Res
+import lexicon.resources.generated.resources.delete_account
 import lexicon.resources.generated.resources.learning
 import lexicon.resources.generated.resources.navigate_back
 import lexicon.resources.generated.resources.settings
@@ -77,8 +85,17 @@ private fun SettingsSections() {
     val connectedApps by connectedAppsViewModel.state()
     val passkeysViewModel = koinViewModel<PasskeysViewModel>()
     val passkeys by passkeysViewModel.state()
+    val serverStatusViewModel = koinViewModel<ServerStatusViewModel>()
+    val serverStatus by serverStatusViewModel.state()
 
     Column(verticalArrangement = Arrangement.spacedBy(Theme.spacing.lg)) {
+        // First, so an outage is the first thing seen; a single quiet row while all is well
+        ServerStatusSection(
+            status = serverStatus.status,
+            retrying = serverStatus.retrying,
+            onRetry = serverStatusViewModel::retry,
+        )
+
         GroupedSection(title = stringResource(Res.string.learning)) {
             DailyGoalSettingsCard(
                 onClick = {
@@ -193,6 +210,18 @@ private fun SettingsSections() {
             }
 
             AboutSettingsCard(appVersion = state.appVersion, showDivider = false)
+        }
+
+        // Plain muted link under everything else so it's findable but never draws taps.
+        TextButton(
+            onClick = { overlayHost.showDeleteAccountSheet() },
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        ) {
+            Text(
+                text = stringResource(Res.string.delete_account),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

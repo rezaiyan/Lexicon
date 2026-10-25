@@ -25,7 +25,6 @@ import components.snackbar.showError
 fun ProfileScreen(
     snackbarHostState: SnackbarHostState,
     onEditProfile: () -> Unit,
-    onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
     onOpenSubscription: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -67,7 +66,6 @@ fun ProfileScreen(
                     ProfileContent(
                         profileData = profileData,
                         onEditProfile = onEditProfile,
-                        onDeleteAccount = onDeleteAccount,
                         onLogout = onLogout,
                         onOpenSubscription = onOpenSubscription,
                         onOpenSettings = onOpenSettings,

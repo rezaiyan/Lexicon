@@ -1,10 +1,12 @@
 package di
 
 import data.auth.refresh.ITokenRefreshManager
+import data.connectivity.ServerReachability
 import data.core.network.HttpClientProvider
 import data.core.network.client.ApiClient
 import data.core.network.interceptor.AuthInterceptor
 import data.core.network.interceptor.ErrorInterceptor
+import data.core.network.interceptor.ReachabilityInterceptor
 import data.core.network.mapper.ApiResponseMapper
 import io.ktor.client.HttpClient
 import org.koin.dsl.module
@@ -13,6 +15,9 @@ fun networkModule(backendUrl: String) = module {
 
     // HTTP Interceptors
     single<ErrorInterceptor> { ErrorInterceptor() }
+
+    // What every request says about reaching the server; read by the server status repository
+    single { ServerReachability() }
 
     // HttpClient Singleton with interceptors
     single<HttpClient> {
@@ -27,7 +32,8 @@ fun networkModule(backendUrl: String) = module {
         HttpClientProvider.createHttpClient(
             authInterceptor = authInterceptor,
             tokenRefreshManagerProvider = tokenRefreshManagerProvider,
-            errorInterceptor = get()
+            errorInterceptor = get(),
+            reachabilityInterceptor = ReachabilityInterceptor(reachability = get()),
         )
     }
 

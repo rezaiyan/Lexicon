@@ -25,6 +25,7 @@ fun appModule(
         supportModule(),
         connectedAppsModule(),
         passkeyModule(),
+        connectivityModule(),
         presentationModule(),
         analyticsModule(),
     )

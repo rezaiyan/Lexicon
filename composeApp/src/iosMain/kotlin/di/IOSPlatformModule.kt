@@ -14,9 +14,11 @@ import data.storage.IosDailyInsightCache
 import data.storage.SecureStorage
 import org.koin.core.module.Module
 import org.koin.dsl.module
+import domain.connectivity.INetworkMonitor
 import domain.widget.IWidgetRefresher
 import platform.IAppVersionProvider
 import platform.IOSAppVersionProvider
+import platform.IOSNetworkMonitor
 import widget.IosWidgetRefresher
 
 /**
@@ -52,6 +54,9 @@ fun iosPlatformModule(): Module = module {
 
     // Widget Refresher
     single<IWidgetRefresher> { IosWidgetRefresher() }
+
+    // Device network state, for the server status
+    single<INetworkMonitor> { IOSNetworkMonitor() }
 
     // Account Deletion Handler
     single {

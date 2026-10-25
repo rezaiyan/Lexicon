@@ -5,6 +5,7 @@ import data.core.network.interceptor.AuthInterceptor
 import data.core.network.interceptor.ErrorInterceptor
 import data.core.network.interceptor.LoggingTimingInterceptor
 import data.core.network.interceptor.PlatformHeaderInterceptor
+import data.core.network.interceptor.ReachabilityInterceptor
 import data.core.network.interceptor.RefreshAndRetryInterceptor
 import core.isDebugMode
 import expects.logNetwork
@@ -33,11 +34,13 @@ object HttpClientProvider {
      * @param authInterceptor Optional auth interceptor for adding Authorization headers
      * @param tokenRefreshManagerProvider Optional provider for token refresh manager
      * @param errorInterceptor Optional error interceptor for handling HTTP errors
+     * @param reachabilityInterceptor Optional observer that feeds the server status from every request
      */
     fun createHttpClient(
         authInterceptor: AuthInterceptor? = null,
         tokenRefreshManagerProvider: (() -> ITokenRefreshManager)? = null,
-        errorInterceptor: ErrorInterceptor? = null
+        errorInterceptor: ErrorInterceptor? = null,
+        reachabilityInterceptor: ReachabilityInterceptor? = null,
     ): HttpClient {
         return HttpClient {
             install(ContentNegotiation) {
@@ -82,6 +85,7 @@ object HttpClientProvider {
                 }
             }
             errorInterceptor?.let { install(it.createPlugin()) }
+            reachabilityInterceptor?.let { install(it.createPlugin()) }
         }
     }
 }

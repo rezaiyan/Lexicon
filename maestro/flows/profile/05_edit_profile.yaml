@@ -51,7 +51,7 @@ tags:
 # After a successful save the sheet closes, back on the Profile screen.
 # Wait generously to accommodate the network round-trip for the profile save.
 - extendedWaitUntil:
-    visible: "Delete Account"
+    visible: "Logout"
     timeout: 15000
 
 # The Save button must no longer be visible (EditProfile screen was dismissed).

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.MaterialTheme
@@ -22,7 +21,6 @@ import feature.profile.model.ProfileUiData
 import feature.profile.ui.components.UserInfoSection
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.account_section
-import lexicon.resources.generated.resources.delete_account
 import lexicon.resources.generated.resources.edit_profile
 import lexicon.resources.generated.resources.logout
 import lexicon.resources.generated.resources.settings
@@ -37,7 +35,6 @@ import theme.Theme
 internal fun ProfileContent(
     profileData: ProfileUiData,
     onEditProfile: () -> Unit,
-    onDeleteAccount: () -> Unit,
     onLogout: () -> Unit,
     onOpenSubscription: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -96,15 +93,6 @@ internal fun ProfileContent(
                 icon = Icons.AutoMirrored.Filled.Logout,
                 iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = onLogout,
-                showChevron = false,
-            )
-            GroupedRow(
-                title = stringResource(Res.string.delete_account),
-                icon = Icons.Default.Delete,
-                // Deliberately muted so it doesn't draw taps; confirmation sheet still uses error styling.
-                iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                titleColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                onClick = onDeleteAccount,
                 showChevron = false,
                 showDivider = false,
             )

@@ -3,6 +3,7 @@ package feature.settings.di
 import feature.settings.ConnectedAppsViewModel
 import feature.settings.NotificationPermissionMonitor
 import feature.settings.PasskeysViewModel
+import feature.settings.ServerStatusViewModel
 import feature.settings.SettingsViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -12,6 +13,7 @@ fun settingsModule() = module {
     single { NotificationPermissionMonitor(notificationRepository = get()) }
     viewModelOf(::ConnectedAppsViewModel)
     viewModelOf(::PasskeysViewModel)
+    viewModelOf(::ServerStatusViewModel)
 
     viewModel {
         SettingsViewModel(

@@ -5,12 +5,12 @@ tags:
 ---
 # Test: the Profile tab lists the account actions.
 #
-# Subscription, Edit Profile, Delete Account and Logout sit in the ACCOUNT
-# section of the Profile tab (they used to be behind a "More options" menu).
+# Subscription, Edit Profile and Logout sit on the Profile tab. Delete Account
+# moved to the bottom of Settings so it stays out of the way.
 
 - runFlow: ../utils/navigate_to_profile.yaml
 
 - assertVisible: "Subscription"
 - assertVisible: "Edit Profile"
-- assertVisible: "Delete Account"
 - assertVisible: "Logout"
+- assertNotVisible: "Delete Account"

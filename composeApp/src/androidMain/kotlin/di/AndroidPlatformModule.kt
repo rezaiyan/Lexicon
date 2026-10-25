@@ -14,8 +14,10 @@ import data.storage.SecureStorage
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import com.alirezaiyan.vokab.widget.AndroidWidgetRefresher
+import domain.connectivity.INetworkMonitor
 import domain.widget.IWidgetRefresher
 import platform.AndroidAppVersionProvider
+import platform.AndroidNetworkMonitor
 import platform.IAppVersionProvider
 
 /**
@@ -57,6 +59,9 @@ fun androidPlatformModule(context: Context): Module = module {
 
     // Widget Refresher
     single<IWidgetRefresher> { AndroidWidgetRefresher(get()) }
+
+    // Device network state, for the server status
+    single<INetworkMonitor> { AndroidNetworkMonitor(context) }
 
     // Notification Display Service
     single<notification.NotificationDisplayService> {

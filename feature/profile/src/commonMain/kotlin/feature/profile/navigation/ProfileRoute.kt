@@ -9,8 +9,6 @@ import feature.profile.EditProfileViewModel
 import feature.profile.ProfileViewModel
 import feature.profile.ui.ProfileScreen
 import feature.profile.ui.ProfileSheetPage
-import feature.profile.ui.components.DeleteAccountCoolingContent
-import feature.profile.ui.components.DeleteAccountHiddenContent
 import feature.profile.ui.components.EditProfileSheetContent
 import feature.profile.ui.components.LogoutDialogContent
 import components.scaffold.LexiconColumn
@@ -48,7 +46,6 @@ fun NavGraphBuilder.profileGraph(
             ProfileScreen(
                 snackbarHostState = snackbarHostState,
                 onEditProfile = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.EditProfile) },
-                onDeleteAccount = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.DeleteConfirm) },
                 onLogout = { overlayHost.showProfileSheet(snackbarHostState, ProfileSheetPage.Logout) },
                 onOpenSubscription = onOpenSubscription,
                 onOpenSettings = onOpenSettings,
@@ -99,19 +96,6 @@ private fun ProfileSheetContent(
                 },
             )
 
-            is ProfileSheetPage.DeleteConfirm -> DeleteAccountHiddenContent(
-                onConfirm = { pages.navigateTo(ProfileSheetPage.DeleteCooling) },
-                onDismiss = { sheetNav.dismiss() },
-            )
-
-            is ProfileSheetPage.DeleteCooling -> DeleteAccountCoolingContent(
-                onConfirm = {
-                    sheetNav.dismiss()
-                    profileViewModel.deleteAccount()
-                },
-                onDismiss = { sheetNav.dismiss() },
-            )
-
             is ProfileSheetPage.Logout -> LogoutDialogContent(
                 onConfirm = {
                     sheetNav.dismiss()
@@ -127,14 +111,6 @@ private fun profileSheetPageConfig(page: ProfileSheetPage): BottomSheetPageConfi
     is ProfileSheetPage.EditProfile -> BottomSheetPageConfig(
         showBackButton = true,
         showCloseButton = true,
-        properties = BottomSheetProperties(),
-    )
-    is ProfileSheetPage.DeleteConfirm -> BottomSheetPageConfig(
-        showCloseButton = false,
-        properties = BottomSheetProperties(),
-    )
-    is ProfileSheetPage.DeleteCooling -> BottomSheetPageConfig(
-        showCloseButton = false,
         properties = BottomSheetProperties(),
     )
     is ProfileSheetPage.Logout -> BottomSheetPageConfig(

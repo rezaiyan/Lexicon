@@ -757,4 +757,11 @@
     <string name="sign_in_with_passkey_hint">بار اول است؟ با Google یا Apple وارد شوید، سپس در تنظیمات یک کلید عبور بسازید.</string>
     <string name="passkey_none_on_device">هنوز کلید عبوری روی این دستگاه نیست.</string>
     <string name="passkey_removed">این کلید عبور از حساب شما حذف شده است.</string>
+    <string name="server_status">اتصال</string>
+    <string name="server_status_online">به Lexicon متصل است</string>
+    <string name="server_status_checking">در حال بررسی اتصال…</string>
+    <string name="server_status_offline">آفلاین هستید</string>
+    <string name="server_status_unavailable">سرور Lexicon در دسترس نیست</string>
+    <string name="server_status_works_offline">واژه‌ها و مرورها کار می‌کنند. همگام‌سازی و هوش مصنوعی خودکار برمی‌گردند.</string>
+    <string name="server_status_retry">تلاش دوباره</string>
 </resources>

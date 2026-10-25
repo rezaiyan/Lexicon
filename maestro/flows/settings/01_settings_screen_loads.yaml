@@ -22,4 +22,10 @@ tags:
     direction: DOWN
     timeout: 3000
 
+# Delete Account is a muted link at the very bottom, not a card.
+- scrollUntilVisible:
+    element: "Delete Account"
+    direction: DOWN
+    timeout: 3000
+
 - assertNotVisible: "Word Manager"

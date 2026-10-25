@@ -758,4 +758,11 @@
     <string name="sign_in_with_passkey_hint">Zum ersten Mal hier? Melde dich mit Google oder Apple an und füge dann in den Einstellungen einen Passkey hinzu.</string>
     <string name="passkey_none_on_device">Auf diesem Gerät gibt es noch keinen Passkey.</string>
     <string name="passkey_removed">Dieser Passkey wurde aus deinem Konto entfernt.</string>
+    <string name="server_status">Verbindung</string>
+    <string name="server_status_online">Mit Lexicon verbunden</string>
+    <string name="server_status_checking">Verbindung wird geprüft…</string>
+    <string name="server_status_offline">Du bist offline</string>
+    <string name="server_status_unavailable">Lexicon-Server nicht erreichbar</string>
+    <string name="server_status_works_offline">Wörter und Wiederholungen funktionieren. Sync und KI laufen automatisch weiter.</string>
+    <string name="server_status_retry">Erneut versuchen</string>
 </resources>

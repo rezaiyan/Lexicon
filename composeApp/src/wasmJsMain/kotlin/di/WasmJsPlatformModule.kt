@@ -12,11 +12,13 @@ import data.storage.SecureStorage
 import data.storage.WasmJsDailyInsightCache
 import data.storage.WasmJsSecureStorage
 import data.subscription.WebSubscriptionManager
+import domain.connectivity.INetworkMonitor
 import domain.subscription.ISubscriptionManager
 import domain.widget.IWidgetRefresher
 import org.koin.dsl.module
 import platform.IAppVersionProvider
 import platform.WasmJsAppVersionProvider
+import platform.WasmJsNetworkMonitor
 
 fun wasmJsPlatformModule() = module {
     // Database
@@ -39,6 +41,9 @@ fun wasmJsPlatformModule() = module {
 
     // Widget Refresher (no-op on web)
     single<IWidgetRefresher> { widget.NoOpWidgetRefresher }
+
+    // Device network state, for the server status
+    single<INetworkMonitor> { WasmJsNetworkMonitor() }
 
     // Subscription Manager (web stub)
     single<ISubscriptionManager> { WebSubscriptionManager() }

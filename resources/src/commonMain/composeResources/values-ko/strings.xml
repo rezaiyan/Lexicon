@@ -916,4 +916,11 @@
     <string name="sign_in_with_passkey_hint">처음이신가요? Google 또는 Apple로 로그인한 뒤 설정에서 패스키를 추가하세요.</string>
     <string name="passkey_none_on_device">이 기기에는 아직 패스키가 없습니다.</string>
     <string name="passkey_removed">이 패스키는 계정에서 삭제되었습니다.</string>
+    <string name="server_status">연결</string>
+    <string name="server_status_online">Lexicon에 연결됨</string>
+    <string name="server_status_checking">연결 확인 중…</string>
+    <string name="server_status_offline">오프라인 상태입니다</string>
+    <string name="server_status_unavailable">Lexicon 서버에 연결할 수 없습니다</string>
+    <string name="server_status_works_offline">단어와 복습은 그대로 사용 가능. 동기화와 AI는 자동으로 재개됩니다.</string>
+    <string name="server_status_retry">다시 시도</string>
 </resources>
