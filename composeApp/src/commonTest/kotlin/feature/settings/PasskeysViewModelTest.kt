@@ -5,6 +5,7 @@ import domain.passkey.usecase.CreatePasskeyUseCase
 import domain.passkey.usecase.DeletePasskeyUseCase
 import domain.passkey.usecase.GetPasskeysUseCase
 import domain.passkey.usecase.IsPasskeyAvailableUseCase
+import fakes.FAKE_ACCOUNT_NAME
 import fakes.FakePasskeyAuthenticator
 import fakes.FakePasskeyRepository
 import fakes.fakePasskey
@@ -54,6 +55,26 @@ class PasskeysViewModelTest : ViewModelTestBase() {
         vm.refresh()
 
         assertEquals(listOf(phone.credentialId), device.keptOnly)
+    }
+
+    @Test
+    fun `refresh labels this device's passkeys with their account, so several accounts are told apart`() = runTest {
+        val vm = createViewModel()
+
+        vm.refresh()
+
+        assertEquals(FAKE_ACCOUNT_NAME, device.accountName)
+    }
+
+    @Test
+    fun `refresh leaves the labels alone when the server doesn't send one`() = runTest {
+        repository.accountName = null
+        val vm = createViewModel()
+
+        vm.refresh()
+
+        assertNull(device.accountName)
+        assertEquals(listOf(phone), vm.currentState.passkeys)
     }
 
     @Test

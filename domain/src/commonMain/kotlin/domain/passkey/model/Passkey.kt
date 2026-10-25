@@ -18,8 +18,13 @@ data class AccountPasskeys(
     val rpId: String,
     /** Base64url user handle shared by all of the account's passkeys; null when there are none. */
     val userHandle: String?,
+    /** The label the passkeys should show in the password manager; null from servers that don't send one. */
+    val accountName: PasskeyAccountName?,
     val passkeys: List<Passkey>,
 )
+
+/** How the password manager labels the account's passkeys, so someone with several accounts can tell them apart. */
+data class PasskeyAccountName(val name: String, val displayName: String)
 
 /** What the device's passkey sheet returned for a sign-in. */
 data class PasskeySignIn(

@@ -1,6 +1,7 @@
 package domain.passkey
 
 import core.common.Try
+import domain.passkey.model.PasskeyAccountName
 import domain.passkey.model.PasskeySignIn
 
 /**
@@ -28,4 +29,7 @@ interface IPasskeyAuthenticator {
      * the ones deleted elsewhere. Best effort, like [forget].
      */
     suspend fun keepOnly(rpId: String, userHandle: String, credentialIds: List<String>): Try<Unit>
+
+    /** Updates the account label on [userHandle]'s passkeys in the password manager. Best effort, like [forget]. */
+    suspend fun relabel(rpId: String, userHandle: String, accountName: PasskeyAccountName): Try<Unit>
 }

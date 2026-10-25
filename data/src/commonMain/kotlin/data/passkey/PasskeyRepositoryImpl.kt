@@ -7,6 +7,7 @@ import data.passkey.remote.PasskeyListResponse
 import data.passkey.remote.PasskeyResponse
 import domain.passkey.model.AccountPasskeys
 import domain.passkey.model.Passkey
+import domain.passkey.model.PasskeyAccountName
 import domain.passkey.repository.IPasskeyRepository
 
 class PasskeyRepositoryImpl(
@@ -29,6 +30,7 @@ class PasskeyRepositoryImpl(
 internal fun PasskeyListResponse.toDomain() = AccountPasskeys(
     rpId = rpId,
     userHandle = userHandle,
+    accountName = accountName?.let { PasskeyAccountName(it, accountDisplayName ?: it) },
     passkeys = passkeys.map { it.toDomain() },
 )
 

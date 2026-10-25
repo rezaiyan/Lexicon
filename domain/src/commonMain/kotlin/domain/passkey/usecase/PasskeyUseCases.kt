@@ -32,7 +32,8 @@ class CreatePasskeyUseCase(
 
 /**
  * The account's passkeys. Also tells this device's password manager which ones still exist, so
- * passkeys deleted on another device stop showing up in its sign-in sheet.
+ * passkeys deleted on another device stop showing up in its sign-in sheet, and which account they
+ * belong to, so passkeys saved before the label changed show the current one.
  */
 class GetPasskeysUseCase(
     private val repository: IPasskeyRepository,
@@ -43,6 +44,7 @@ class GetPasskeysUseCase(
             val userHandle = account.userHandle ?: return@onSuccess
             // Best effort: the list is right whether or not the password manager listens
             authenticator.keepOnly(account.rpId, userHandle, account.passkeys.map { it.credentialId })
+            account.accountName?.let { authenticator.relabel(account.rpId, userHandle, it) }
         }
 }
 

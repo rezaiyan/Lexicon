@@ -7,6 +7,7 @@ import com.alirezaiyan.passki.SignInMode
 import core.common.Try
 import core.error.DomainError
 import domain.passkey.IPasskeyAuthenticator
+import domain.passkey.model.PasskeyAccountName
 import domain.passkey.model.PasskeySignIn
 import expects.logPlatform
 import kotlinx.serialization.json.Json
@@ -43,6 +44,10 @@ class PassKiAuthenticator(
 
     override suspend fun keepOnly(rpId: String, userHandle: String, credentialIds: List<String>): Try<Unit> =
         passkeys.signals.acceptedCredentials(rpId, userHandle, credentialIds).toTry("keep-only") { }
+
+    override suspend fun relabel(rpId: String, userHandle: String, accountName: PasskeyAccountName): Try<Unit> =
+        passkeys.signals.currentUserDetails(rpId, userHandle, accountName.name, accountName.displayName)
+            .toTry("relabel") { }
 
     private inline fun <T, R> PasskeyResult<T>.toTry(ceremony: String, transform: (T) -> R): Try<R> = when (this) {
         is PasskeyResult.Success -> Try.success(transform(value))

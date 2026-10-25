@@ -13,6 +13,9 @@ import kotlinx.serialization.json.JsonObject
 data class PasskeyListResponse(
     val rpId: String,
     val userHandle: String? = null,
+    /** The label the device's passkey picker shows for the account. */
+    val accountName: String? = null,
+    val accountDisplayName: String? = null,
     val passkeys: List<PasskeyResponse> = emptyList(),
 )
 

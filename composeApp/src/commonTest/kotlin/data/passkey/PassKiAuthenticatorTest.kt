@@ -2,10 +2,12 @@ package data.passkey
 
 import com.alirezaiyan.passki.PasskeyError
 import com.alirezaiyan.passki.test.FakePasskeys
+import com.alirezaiyan.passki.test.FakeSignal
 import com.alirezaiyan.passki.test.TestOptions
 import core.common.Try
 import core.common.getOrThrow
 import core.error.DomainError
+import domain.passkey.model.PasskeyAccountName
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -62,6 +64,17 @@ class PassKiAuthenticatorTest {
 
         val again = authenticator.signIn(TestOptions.request(rpId))
         assertEquals(DomainError.Passkey.NoPasskeys, (again as Try.Failure).throwable)
+    }
+
+    @Test
+    fun `relabel tells the password manager which account the passkeys are for`() = runTest {
+        val result = authenticator.relabel(rpId, "dXNlcg", PasskeyAccountName("Ali (Apple ID)", "Ali"))
+
+        assertTrue(result.isSuccess)
+        assertEquals(
+            FakeSignal.CurrentUserDetails(rpId, "dXNlcg", "Ali (Apple ID)", "Ali"),
+            device.receivedSignals.single(),
+        )
     }
 
     @Test

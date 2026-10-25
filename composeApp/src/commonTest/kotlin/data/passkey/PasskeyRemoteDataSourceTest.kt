@@ -74,6 +74,7 @@ class PasskeyRemoteDataSourceTest {
     @Test
     fun `the list carries the RP ID and user handle the device needs for signals`() = runTest {
         val body = """{"success":true,"data":{"rpId":"lexicon.alirezaiyan.com","userHandle":"uh",""" +
+            """"accountName":"pat@gmail.com","accountDisplayName":"Pat",""" +
             """"passkeys":[{"id":7,"credentialId":"cred","createdAt":1000,"lastUsedAt":2000,"synced":true}]}}"""
 
         val list = dataSource(body).getPasskeys().getOrNull()
@@ -82,6 +83,8 @@ class PasskeyRemoteDataSourceTest {
             PasskeyListResponse(
                 rpId = "lexicon.alirezaiyan.com",
                 userHandle = "uh",
+                accountName = "pat@gmail.com",
+                accountDisplayName = "Pat",
                 passkeys = listOf(PasskeyResponse(7, "cred", 1000, 2000, synced = true)),
             ),
             list,
