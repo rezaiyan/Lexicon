@@ -917,6 +917,6 @@
     <string name="passkey_delete">Usuń</string>
     <string name="sign_in_with_passkey">Zaloguj się kluczem dostępu</string>
     <string name="sign_in_with_passkey_hint">Pierwszy raz? Zaloguj się przez Google lub Apple, a potem dodaj klucz dostępu w Ustawieniach.</string>
-    <string name="passkey_none_on_device">Na tym urządzeniu nie ma jeszcze klucza dostępu. Zaloguj się przez Google lub Apple, a potem dodaj go w Ustawieniach.</string>
-    <string name="passkey_removed">Ten klucz dostępu został usunięty z Twojego konta. Zaloguj się przez Google lub Apple.</string>
+    <string name="passkey_none_on_device">Na tym urządzeniu nie ma jeszcze klucza dostępu.</string>
+    <string name="passkey_removed">Ten klucz dostępu został usunięty z Twojego konta.</string>
 </resources>

@@ -46,8 +46,8 @@ import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import feature.auth.AuthEffect
 import feature.auth.AuthPhase
-import androidx.compose.material3.SnackbarHostState
-import components.snackbar.LexiconSnackbarHost
+import components.toast.ToastHost
+import components.toast.rememberToastState
 import events.OnEvents
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -91,13 +91,13 @@ fun AuthExperienceScreen(
     onLoginWithPasskey: (() -> Unit)? = null,
     effects: Flow<AuthEffect> = emptyFlow(),
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val toastState = rememberToastState()
     val noPasskeyText = stringResource(Res.string.passkey_none_on_device)
     val passkeyRemovedText = stringResource(Res.string.passkey_removed)
     OnEvents(effects) { effect ->
         when (effect) {
-            AuthEffect.NoPasskeyOnDevice -> snackbarHostState.showSnackbar(noPasskeyText)
-            AuthEffect.PasskeyRemoved -> snackbarHostState.showSnackbar(passkeyRemovedText)
+            AuthEffect.NoPasskeyOnDevice -> toastState.show(noPasskeyText)
+            AuthEffect.PasskeyRemoved -> toastState.show(passkeyRemovedText)
         }
     }
 
@@ -131,7 +131,7 @@ fun AuthExperienceScreen(
 
         Scaffold(
             containerColor = Color.Transparent,
-            snackbarHost = { LexiconSnackbarHost(snackbarHostState) },
+            snackbarHost = { ToastHost(toastState) },
         ) { padding ->
             Column(
                 modifier = Modifier

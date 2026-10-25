@@ -756,6 +756,6 @@
     <string name="passkey_delete">Eliminar</string>
     <string name="sign_in_with_passkey">Iniciar sesión con llave de acceso</string>
     <string name="sign_in_with_passkey_hint">¿Primera vez? Inicia sesión con Google o Apple y luego añade una llave de acceso en Ajustes.</string>
-    <string name="passkey_none_on_device">Aún no hay ninguna llave de acceso en este dispositivo. Inicia sesión con Google o Apple y añade una en Ajustes.</string>
-    <string name="passkey_removed">Esta llave de acceso se eliminó de tu cuenta. Inicia sesión con Google o Apple.</string>
+    <string name="passkey_none_on_device">Aún no hay ninguna llave de acceso en este dispositivo.</string>
+    <string name="passkey_removed">Esta llave de acceso se eliminó de tu cuenta.</string>
 </resources>

@@ -755,6 +755,6 @@
     <string name="passkey_delete">删除</string>
     <string name="sign_in_with_passkey">使用通行密钥登录</string>
     <string name="sign_in_with_passkey_hint">第一次使用？请先用 Google 或 Apple 登录，然后在设置中添加通行密钥。</string>
-    <string name="passkey_none_on_device">此设备上还没有通行密钥。请先用 Google 或 Apple 登录，然后在设置中添加。</string>
-    <string name="passkey_removed">此通行密钥已从你的账户中删除。请用 Google 或 Apple 登录。</string>
+    <string name="passkey_none_on_device">此设备上还没有通行密钥。</string>
+    <string name="passkey_removed">此通行密钥已从你的账户中删除。</string>
 </resources>

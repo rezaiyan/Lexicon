@@ -756,6 +756,6 @@
     <string name="passkey_delete">Löschen</string>
     <string name="sign_in_with_passkey">Mit Passkey anmelden</string>
     <string name="sign_in_with_passkey_hint">Zum ersten Mal hier? Melde dich mit Google oder Apple an und füge dann in den Einstellungen einen Passkey hinzu.</string>
-    <string name="passkey_none_on_device">Auf diesem Gerät gibt es noch keinen Passkey. Melde dich mit Google oder Apple an und füge ihn dann in den Einstellungen hinzu.</string>
-    <string name="passkey_removed">Dieser Passkey wurde aus deinem Konto entfernt. Melde dich mit Google oder Apple an.</string>
+    <string name="passkey_none_on_device">Auf diesem Gerät gibt es noch keinen Passkey.</string>
+    <string name="passkey_removed">Dieser Passkey wurde aus deinem Konto entfernt.</string>
 </resources>

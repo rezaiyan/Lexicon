@@ -914,6 +914,6 @@
     <string name="passkey_delete">削除</string>
     <string name="sign_in_with_passkey">パスキーでサインイン</string>
     <string name="sign_in_with_passkey_hint">初めての方は、Google または Apple でサインインしてから、設定でパスキーを追加してください。</string>
-    <string name="passkey_none_on_device">この端末にはまだパスキーがありません。Google または Apple でサインインしてから、設定で追加してください。</string>
-    <string name="passkey_removed">このパスキーはアカウントから削除されています。Google または Apple でサインインしてください。</string>
+    <string name="passkey_none_on_device">この端末にはまだパスキーがありません。</string>
+    <string name="passkey_removed">このパスキーはアカウントから削除されています。</string>
 </resources>

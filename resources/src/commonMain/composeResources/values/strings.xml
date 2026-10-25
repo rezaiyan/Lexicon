@@ -1280,6 +1280,6 @@
     <string name="passkey_delete">Delete</string>
     <string name="sign_in_with_passkey">Sign in with a passkey</string>
     <string name="sign_in_with_passkey_hint">First time? Sign in with Google or Apple, then add a passkey in Settings.</string>
-    <string name="passkey_none_on_device">No passkey on this device yet. Sign in with Google or Apple, then add one in Settings.</string>
-    <string name="passkey_removed">This passkey was removed from your account. Sign in with Google or Apple.</string>
+    <string name="passkey_none_on_device">No passkey on this device yet.</string>
+    <string name="passkey_removed">This passkey was removed from your account.</string>
 </resources>
