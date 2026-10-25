@@ -16,7 +16,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * The system passkey sheet through PassKi: Credential Manager on Android, AuthenticationServices
- * on iOS. On the web every call fails as [DomainError.Passkey.Unavailable].
+ * on iOS, navigator.credentials in the browser.
  */
 class PassKiAuthenticator(
     // No Activity or window needed: PassKi finds the foreground screen itself

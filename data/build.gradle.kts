@@ -26,7 +26,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.koin.core)
             implementation(libs.kotlinx.coroutines.core)
-            // Passkeys: the system passkey sheet on Android and iOS (NotSupported on the web)
+            // Passkeys: the system passkey sheet on Android and iOS, navigator.credentials on the web
             implementation(libs.passki)
         }
 
