@@ -564,6 +564,8 @@
     <string name="sub_paused_resume_now">立即在 %1$s 中恢复</string>
     <string name="profile_premium_paused">暂停至 %1$s</string>
     <string name="profile_payment_issue">付款问题</string>
+    <string name="profile_add_your_name">添加你的名字</string>
+    <string name="profile_email_hidden_by_apple">邮箱已被 Apple 隐藏</string>
     <string name="onboarding_welcome_title">来设置你的</string>
     <string name="onboarding_welcome_highlight">单词列表</string>
     <string name="onboarding_welcome_subtitle">回答四个简单问题，我们会为你挑选合适的入门单词。</string>

@@ -165,6 +165,23 @@ class AuthDataSourceTest {
     }
 
     @Test
+    fun `authenticateWithApple sends the authorization code so the backend can keep the Apple token`() = runTest {
+        var capturedBody: String? = null
+        val mockEngine = MockEngine { request ->
+            capturedBody = (request.body as io.ktor.http.content.TextContent).text
+            respond(successEnvelope(authResponseJson), HttpStatusCode.OK, jsonHeaders())
+        }
+        buildDataSource(mockEngine).authenticateWithApple(
+            idToken = "apple-id-token",
+            fullName = null,
+            appleUserId = "apple-user-001",
+            authorizationCode = "one-time-code",
+        )
+
+        assertTrue(capturedBody.orEmpty().contains("\"authorizationCode\":\"one-time-code\""), "body: $capturedBody")
+    }
+
+    @Test
     fun `authenticateWithApple returns failure when success is false`() = runTest {
         val mockEngine = MockEngine {
             respond(failureEnvelope("Apple authentication failed"), HttpStatusCode.OK, jsonHeaders())

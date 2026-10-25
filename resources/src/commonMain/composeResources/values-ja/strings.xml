@@ -731,6 +731,8 @@
     <string name="sub_paused_resume_now">%1$sで今すぐ再開</string>
     <string name="profile_premium_paused">%1$sまで一時停止中</string>
     <string name="profile_payment_issue">支払いの問題</string>
+    <string name="profile_add_your_name">名前を追加</string>
+    <string name="profile_email_hidden_by_apple">メールはAppleにより非公開</string>
     <string name="onboarding_welcome_title">さあ、</string>
     <string name="onboarding_welcome_highlight">単語リストを準備しましょう</string>
     <string name="onboarding_welcome_subtitle">4つの簡単な質問に答えると、あなたに合ったスターター単語を選びます。</string>

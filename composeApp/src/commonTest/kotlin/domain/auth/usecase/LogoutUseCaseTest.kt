@@ -65,7 +65,7 @@ class LogoutUseCaseTest {
         var shouldThrow = false
 
         override fun loginWithGoogle(idToken: String): Flow<AuthUser> = flowOf()
-        override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Flow<AuthUser> = flowOf()
+        override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Flow<AuthUser> = flowOf()
         override fun logout(): Flow<Unit> {
             if (shouldThrow) return flow { throw RuntimeException("Logout failed") }
             return flowOf(Unit)

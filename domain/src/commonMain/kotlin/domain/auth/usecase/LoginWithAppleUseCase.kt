@@ -9,11 +9,20 @@ class LoginWithAppleUseCase(
     private val authenticationService: IAuthenticationService
 ) : FlowUseCase<LoginWithAppleUseCase.Params, AuthUser> {
 
-    data class Params(val idToken: String, val fullName: String?, val appleUserId: String)
+    data class Params(
+        val idToken: String,
+        val fullName: String?,
+        val appleUserId: String,
+        val authorizationCode: String? = null,
+    )
 
     override operator fun invoke(params: Params): Flow<AuthUser> =
-        invoke(params.idToken, params.fullName, params.appleUserId)
+        invoke(params.idToken, params.fullName, params.appleUserId, params.authorizationCode)
 
-    fun invoke(idToken: String, fullName: String?, appleUserId: String): Flow<AuthUser> =
-        authenticationService.loginWithApple(idToken, fullName, appleUserId)
+    fun invoke(
+        idToken: String,
+        fullName: String?,
+        appleUserId: String,
+        authorizationCode: String? = null,
+    ): Flow<AuthUser> = authenticationService.loginWithApple(idToken, fullName, appleUserId, authorizationCode)
 }

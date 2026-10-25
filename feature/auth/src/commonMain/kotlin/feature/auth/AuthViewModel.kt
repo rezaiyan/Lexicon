@@ -147,10 +147,15 @@ class AuthViewModel(
         }
     }
 
-    private suspend fun processLoginWithApple(idToken: String, fullName: String?, appleUserId: String) {
+    private suspend fun processLoginWithApple(
+        idToken: String,
+        fullName: String?,
+        appleUserId: String,
+        authorizationCode: String?,
+    ) {
         updateState { copy(isLoading = true) }
         authMutex.withLock {
-            loginWithAppleUseCase(LoginWithAppleUseCase.Params(idToken, fullName, appleUserId))
+            loginWithAppleUseCase(LoginWithAppleUseCase.Params(idToken, fullName, appleUserId, authorizationCode))
                 .catch { error ->
                     analyticsTracker.logEvent("login_failed", mapOf("provider" to "apple"))
                     updateState { signedOut(error.toUserMessage()) }
@@ -233,8 +238,8 @@ class AuthViewModel(
         viewModelScope.launch { processLogin(idToken) }
     }
 
-    fun loginWithApple(idToken: String, fullName: String?, appleUserId: String) {
-        viewModelScope.launch { processLoginWithApple(idToken, fullName, appleUserId) }
+    fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String? = null) {
+        viewModelScope.launch { processLoginWithApple(idToken, fullName, appleUserId, authorizationCode) }
     }
 
     fun loginWithPasskey() {

@@ -53,7 +53,8 @@ class AuthDataSource(
     override suspend fun authenticateWithApple(
         idToken: String,
         fullName: String?,
-        appleUserId: String
+        appleUserId: String,
+        authorizationCode: String?,
     ): Try<AuthResponse> {
         logNetwork("Auth", "Authenticating with Apple")
 
@@ -64,7 +65,8 @@ class AuthDataSource(
                     AppleAuthRequest(
                         idToken = idToken,
                         fullName = fullName,
-                        appleUserId = appleUserId
+                        appleUserId = appleUserId,
+                        authorizationCode = authorizationCode,
                     )
                 )
             }.body<ApiResponse<AuthResponse>>()

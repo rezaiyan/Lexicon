@@ -563,6 +563,8 @@
     <string name="sub_paused_resume_now">همین حالا در %1$s ادامه دهید</string>
     <string name="profile_premium_paused">متوقف تا %1$s</string>
     <string name="profile_payment_issue">مشکل پرداخت</string>
+    <string name="profile_add_your_name">نام خود را اضافه کنید</string>
+    <string name="profile_email_hidden_by_apple">ایمیل توسط اپل پنهان شده</string>
     <string name="onboarding_welcome_title">بیایید</string>
     <string name="onboarding_welcome_highlight">فهرست واژه‌هایتان را بسازیم</string>
     <string name="onboarding_welcome_subtitle">چهار سؤال کوتاه. بعد واژه‌های شروع مناسب شما را انتخاب می‌کنیم.</string>

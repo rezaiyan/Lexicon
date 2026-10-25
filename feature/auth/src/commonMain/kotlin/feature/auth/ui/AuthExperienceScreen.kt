@@ -84,7 +84,7 @@ fun AuthExperienceScreen(
     onVerifySession: (onComplete: () -> Unit) -> Unit,
     onSessionVerified: () -> Unit,
     onLoginWithGoogle: suspend (String) -> Unit,
-    onLoginWithApple: (String, String?, String) -> Unit,
+    onLoginWithApple: (String, String?, String, String?) -> Unit,
     isLoading: Boolean = false,
     error: String? = null,
     /** Null hides passkey sign-in (the device can't do passkeys). */
@@ -165,10 +165,10 @@ fun AuthExperienceScreen(
                             firebaseSignInError = false
                             onLoginWithGoogle(idToken)
                         },
-                        onLoginWithApple = { idToken, fullName, userId ->
+                        onLoginWithApple = { idToken, fullName, userId, authorizationCode ->
                             activeProvider = SignInProvider.APPLE
                             firebaseSignInError = false
-                            onLoginWithApple(idToken, fullName, userId)
+                            onLoginWithApple(idToken, fullName, userId, authorizationCode)
                         },
                         onLoginWithPasskey = onLoginWithPasskey?.let { login ->
                             {
@@ -297,7 +297,7 @@ private fun SignInCard(
     isLoading: Boolean,
     activeProvider: SignInProvider?,
     onLoginWithGoogle: suspend (String) -> Unit,
-    onLoginWithApple: (String, String?, String) -> Unit,
+    onLoginWithApple: (String, String?, String, String?) -> Unit,
     onLoginWithPasskey: (() -> Unit)?,
     onGoogleError: () -> Unit,
     onAppleError: () -> Unit,

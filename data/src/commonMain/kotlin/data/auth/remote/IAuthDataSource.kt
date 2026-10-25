@@ -9,7 +9,8 @@ interface IAuthDataSource {
     suspend fun authenticateWithApple(
         idToken: String,
         fullName: String?,
-        appleUserId: String
+        appleUserId: String,
+        authorizationCode: String? = null,
     ): Try<AuthResponse>
     /** Verifies a passkey sign-in response; see `PasskeyRemoteDataSource` for its options. */
     suspend fun authenticateWithPasskey(responseJson: String): Try<AuthResponse>

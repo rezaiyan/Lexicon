@@ -8,7 +8,12 @@ import kotlinx.coroutines.flow.flow
 
 interface IAuthenticationService {
     fun loginWithGoogle(idToken: String): Flow<AuthUser>
-    fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Flow<AuthUser>
+    fun loginWithApple(
+        idToken: String,
+        fullName: String?,
+        appleUserId: String,
+        authorizationCode: String? = null,
+    ): Flow<AuthUser>
     fun logout(): Flow<Unit>
     fun deleteAccount(): Flow<Unit>
 }
@@ -21,8 +26,8 @@ class AuthenticationService(
         emit(authRepository.loginWithGoogle(idToken).getOrThrow())
     }
 
-    override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Flow<AuthUser> = flow {
-        emit(authRepository.loginWithApple(idToken, fullName, appleUserId).getOrThrow())
+    override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Flow<AuthUser> = flow {
+        emit(authRepository.loginWithApple(idToken, fullName, appleUserId, authorizationCode).getOrThrow())
     }
 
     override fun logout(): Flow<Unit> = flow {

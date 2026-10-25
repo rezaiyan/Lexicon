@@ -102,6 +102,7 @@ class AuthenticationServiceTest {
             idToken: String,
             fullName: String?,
             appleUserId: String,
+            authorizationCode: String?,
         ): Try<AuthUser> = loginResult
         override suspend fun logout(): Try<Unit> = logoutResult
         override suspend fun deleteAccount(): Try<Unit> = deleteResult

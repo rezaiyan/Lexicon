@@ -76,7 +76,7 @@ class DeleteAccountUseCaseTest {
 
     private class FakeAuthService : IAuthenticationService {
         override fun loginWithGoogle(idToken: String): Flow<AuthUser> = flowOf()
-        override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Flow<AuthUser> = flowOf()
+        override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Flow<AuthUser> = flowOf()
         override fun logout(): Flow<Unit> = flowOf(Unit)
         override fun deleteAccount(): Flow<Unit> = flowOf(Unit)
     }

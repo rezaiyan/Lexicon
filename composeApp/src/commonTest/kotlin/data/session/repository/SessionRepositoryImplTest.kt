@@ -137,6 +137,7 @@ class SessionRepositoryImplTest {
             idToken: String,
             fullName: String?,
             appleUserId: String,
+            authorizationCode: String?,
         ): Try<AuthResponse> = Try.failure(RuntimeException("not impl"))
 
         override suspend fun authenticateWithPasskey(responseJson: String): Try<AuthResponse> =

@@ -41,6 +41,8 @@ import androidx.compose.material3.CardDefaults
 import lexicon.resources.generated.resources.Res
 import lexicon.resources.generated.resources.free_plan
 import lexicon.resources.generated.resources.member_since
+import lexicon.resources.generated.resources.profile_add_your_name
+import lexicon.resources.generated.resources.profile_email_hidden_by_apple
 import lexicon.resources.generated.resources.premium_member
 import lexicon.resources.generated.resources.profile_payment_issue
 import lexicon.resources.generated.resources.profile_premium_paused
@@ -68,7 +70,9 @@ fun UserInfoSection(
     creditBalance: Int? = null,
     creditsRefillAtMillis: Long? = null,
 ) {
-    val displayName = userInfo.displayAlias ?: userInfo.name.ifBlank { userInfo.email }
+    val shownName = userInfo.shownName
+    // A relay address means nothing to the user, and its random first letter makes a misleading avatar
+    val shownEmail = if (userInfo.isEmailHiddenByApple) null else userInfo.email
     val memberSinceText = memberSince?.let {
         stringResource(Res.string.member_since, remember(it) { formatMemberSince(it) })
     }
@@ -87,21 +91,22 @@ fun UserInfoSection(
                 horizontalArrangement = Arrangement.spacedBy(Theme.spacing.md),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CompactAvatar(name = userInfo.name, email = userInfo.email)
+                CompactAvatar(name = shownName.orEmpty(), email = shownEmail.orEmpty())
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(Theme.spacing.textGap),
                 ) {
                     Text(
-                        text = displayName,
+                        // Unnamed (Apple shared no name): point at Edit profile rather than show the address
+                        text = shownName ?: stringResource(Res.string.profile_add_your_name),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = if (shownName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text = userInfo.email,
+                        text = shownEmail ?: stringResource(Res.string.profile_email_hidden_by_apple),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

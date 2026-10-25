@@ -644,6 +644,10 @@ extension AppleSignInNotificationHandler: ASAuthorizationControllerDelegate {
         if let email = email {
             userInfo["email"] = email
         }
+        // One-time code the backend exchanges for the user's Apple token, so deleting the account can revoke it
+        if let codeData = credential.authorizationCode, let code = String(data: codeData, encoding: .utf8) {
+            userInfo["authorizationCode"] = code
+        }
         
         print(" [AppleSignInHandler] Success - posting notification to Kotlin")
         NotificationCenter.default.post(

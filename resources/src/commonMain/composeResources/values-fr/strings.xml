@@ -564,6 +564,8 @@
     <string name="sub_paused_resume_now">Reprendre maintenant dans %1$s</string>
     <string name="profile_premium_paused">En pause jusqu'au %1$s</string>
     <string name="profile_payment_issue">Problème de paiement</string>
+    <string name="profile_add_your_name">Ajoutez votre nom</string>
+    <string name="profile_email_hidden_by_apple">E-mail masqué par Apple</string>
     <string name="onboarding_welcome_title">Configurons ta</string>
     <string name="onboarding_welcome_highlight">liste de mots</string>
     <string name="onboarding_welcome_subtitle">Quatre questions rapides. Ensuite, on choisit des mots de départ pour toi.</string>

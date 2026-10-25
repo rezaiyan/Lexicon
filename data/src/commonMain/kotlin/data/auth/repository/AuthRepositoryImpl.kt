@@ -41,10 +41,11 @@ class AuthRepositoryImpl(
     override suspend fun loginWithApple(
         idToken: String,
         fullName: String?,
-        appleUserId: String
+        appleUserId: String,
+        authorizationCode: String?,
     ): Try<AuthUser> {
         return performLogin {
-            authDataSource.authenticateWithApple(idToken, fullName, appleUserId)
+            authDataSource.authenticateWithApple(idToken, fullName, appleUserId, authorizationCode)
         }
     }
 

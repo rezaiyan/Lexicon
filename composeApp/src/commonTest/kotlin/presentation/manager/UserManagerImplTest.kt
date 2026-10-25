@@ -44,7 +44,7 @@ class UserManagerImplTest {
     private fun fakeAuthRepo() = object : IAuthRepository {
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = Try.failure(RuntimeException("not used"))
         override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> = Try.failure(NotImplementedError())
-        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = Try.failure(RuntimeException("not used"))
+        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Try<AuthUser> = Try.failure(RuntimeException("not used"))
         override suspend fun logout(): Try<Unit> = Try.success(Unit)
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
         override suspend fun getAccessToken(): String? = null

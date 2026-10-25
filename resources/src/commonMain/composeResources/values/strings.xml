@@ -946,6 +946,8 @@
     <string name="sub_paused_resume_now">Resume now in %1$s</string>
     <string name="profile_premium_paused">Paused until %1$s</string>
     <string name="profile_payment_issue">Payment issue</string>
+    <string name="profile_add_your_name">Add your name</string>
+    <string name="profile_email_hidden_by_apple">Email hidden by Apple</string>
     <string name="onboarding_welcome_title">Let's set up your</string>
     <string name="onboarding_welcome_highlight">word list</string>
     <string name="onboarding_welcome_subtitle">Four quick questions. Then we'll pick starter words that fit you.</string>

@@ -17,7 +17,7 @@ import expects.AppleSignInHelper
 
 @Composable
 actual fun AppleSignInButton(
-    onSignInSuccess: (idToken: String, fullName: String?, appleUserId: String) -> Unit,
+    onSignInSuccess: (idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?) -> Unit,
     onSignInFailure: (error: String) -> Unit,
     isLoading: Boolean,
     modifier: Modifier
@@ -38,9 +38,9 @@ actual fun AppleSignInButton(
                 .clip(RoundedCornerShape(Theme.shapes.pill))
         ) {
             appleSignInHelper.signIn(
-                onSuccess = { idToken, fullName, appleUserId ->
+                onSuccess = { idToken, fullName, appleUserId, authorizationCode ->
                     println(" [AppleSignInButton] Success - token obtained")
-                    onSignInSuccess(idToken, fullName, appleUserId)
+                    onSignInSuccess(idToken, fullName, appleUserId, authorizationCode)
                 },
                 onFailure = { error ->
                     println(" [AppleSignInButton] Failure: $error")

@@ -731,6 +731,8 @@
     <string name="sub_paused_resume_now">지금 %1$s에서 재개</string>
     <string name="profile_premium_paused">%1$s까지 일시중지</string>
     <string name="profile_payment_issue">결제 문제</string>
+    <string name="profile_add_your_name">이름 추가</string>
+    <string name="profile_email_hidden_by_apple">Apple에서 이메일 숨김</string>
     <string name="onboarding_welcome_title">이제</string>
     <string name="onboarding_welcome_highlight">단어 목록을 만들어 볼까요</string>
     <string name="onboarding_welcome_subtitle">간단한 질문 네 개에 답하면 맞춤 시작 단어를 골라 드려요.</string>

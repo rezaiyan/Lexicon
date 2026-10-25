@@ -11,7 +11,7 @@ actual class AppleSignInHelper {
     private var failureObserver: NSObjectProtocol? = null
     
     actual fun signIn(
-        onSuccess: (idToken: String, fullName: String?, appleUserId: String) -> Unit,
+        onSuccess: (idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?) -> Unit,
         onFailure: (error: String) -> Unit
     ) {
         println(" [AppleSignIn.kt] Initiating Apple Sign In")
@@ -32,9 +32,10 @@ actual class AppleSignInHelper {
                 val idToken = userInfo["idToken"] as? String
                 val fullName = userInfo["fullName"] as? String
                 val appleUserId = userInfo["appleUserId"] as? String
+                val authorizationCode = userInfo["authorizationCode"] as? String
                 
                 if (idToken != null && appleUserId != null) {
-                    onSuccess(idToken, fullName, appleUserId)
+                    onSuccess(idToken, fullName, appleUserId, authorizationCode)
                 } else {
                     onFailure("Invalid token or user ID received")
                 }

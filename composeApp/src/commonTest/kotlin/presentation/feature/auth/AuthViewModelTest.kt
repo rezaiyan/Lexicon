@@ -68,6 +68,7 @@ class AuthViewModelTest : ViewModelTestBase() {
     private var isAuthenticatedFlow: Flow<Boolean> = flowOf(false)
     private var loginResult: Try<AuthUser> = Try.failure(RuntimeException("not configured"))
     private val passkeyLogins = mutableListOf<String>()
+    private val appleAuthorizationCodes = mutableListOf<String?>()
     private val passkeyDevice = FakePasskeyAuthenticator()
     private val passkeyRepository = FakePasskeyRepository()
 
@@ -81,7 +82,8 @@ class AuthViewModelTest : ViewModelTestBase() {
         override suspend fun loginWithGoogle(idToken: String): Try<AuthUser> = loginResult
         override suspend fun loginWithPasskey(responseJson: String): Try<AuthUser> =
             loginResult.also { passkeyLogins += responseJson }
-        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> = loginResult
+        override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Try<AuthUser> =
+            loginResult.also { appleAuthorizationCodes += authorizationCode }
         override suspend fun logout(): Try<Unit> = Try.success(Unit)
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
         override suspend fun getAccessToken(): String? = null
@@ -288,6 +290,16 @@ class AuthViewModelTest : ViewModelTestBase() {
         assertEquals(user, vm.currentState.user)
         assertFalse(vm.currentState.isLoading)
         assertNull(vm.currentState.error)
+    }
+
+    @Test
+    fun `loginWithApple passes Apple's authorization code on to sign-in`() = runTest {
+        loginResult = Try.success(testUser())
+        val vm = createViewModel()
+
+        vm.loginWithApple("apple-token", null, "apple-user-id", "one-time-code")
+
+        assertEquals(listOf<String?>("one-time-code"), appleAuthorizationCodes)
     }
 
     @Test

@@ -192,8 +192,8 @@ fun LexiconApp() {
                             onLoginWithGoogle = { idToken ->
                                 authViewModel.loginWithGoogle(idToken)
                             },
-                            onLoginWithApple = { idToken, fullName, appleUserId ->
-                                authViewModel.loginWithApple(idToken, fullName, appleUserId)
+                            onLoginWithApple = { idToken, fullName, appleUserId, authorizationCode ->
+                                authViewModel.loginWithApple(idToken, fullName, appleUserId, authorizationCode)
                             },
                             isLoading = authState.isLoading,
                             error = authState.error,

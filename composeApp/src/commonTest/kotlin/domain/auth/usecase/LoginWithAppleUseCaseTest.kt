@@ -63,7 +63,7 @@ class LoginWithAppleUseCaseTest {
         var shouldThrow = false
 
         override fun loginWithGoogle(idToken: String): Flow<AuthUser> = flowOf()
-        override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Flow<AuthUser> {
+        override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Flow<AuthUser> {
             lastAppleIdToken = idToken
             lastAppleFullName = fullName
             lastAppleUserId = appleUserId

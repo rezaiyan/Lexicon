@@ -338,6 +338,7 @@ class AuthRepositoryImplTest {
             idToken: String,
             fullName: String?,
             appleUserId: String,
+            authorizationCode: String?,
         ): Try<AuthResponse> = appleResult
 
         var passkeyResult: Try<AuthResponse> = Try.failure(RuntimeException("not set"))

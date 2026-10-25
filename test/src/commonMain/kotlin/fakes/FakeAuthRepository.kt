@@ -28,7 +28,7 @@ class FakeAuthRepository : IAuthRepository {
         return Try.success(AuthUser(1L, "test@test.com", "Test"))
     }
 
-    override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String): Try<AuthUser> {
+    override suspend fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Try<AuthUser> {
         loginCallCount++
         return Try.success(AuthUser(1L, "test@test.com", "Test"))
     }

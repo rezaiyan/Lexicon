@@ -15,9 +15,15 @@ interface IAuthRepository {
     suspend fun loginWithGoogle(idToken: String): Try<AuthUser>
 
     /**
-     * Login with Apple ID token
+     * Login with Apple ID token. [authorizationCode] lets the backend keep the user's Apple token, so
+     * deleting the account can unlink it from their Apple ID.
      */
-    suspend fun loginWithApple(idToken: String, fullName: String? = null, appleUserId: String): Try<AuthUser>
+    suspend fun loginWithApple(
+        idToken: String,
+        fullName: String? = null,
+        appleUserId: String,
+        authorizationCode: String? = null,
+    ): Try<AuthUser>
 
     /**
      * Login with a passkey sign-in response from the device

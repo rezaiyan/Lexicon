@@ -61,6 +61,7 @@ class InitializePushNotificationsUseCaseTest {
             idToken: String,
             fullName: String?,
             appleUserId: String,
+            authorizationCode: String?,
         ): Try<AuthUser> = Try.success(AuthUser(1, "", ""))
         override suspend fun logout(): Try<Unit> = Try.success(Unit)
         override suspend fun deleteAccount(): Try<Unit> = Try.success(Unit)
