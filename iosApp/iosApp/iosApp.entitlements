@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:alirezaiyan.com</string>
+		<string>webcredentials:lexicon.alirezaiyan.com</string>
 	</array>
 	<key>com.apple.developer.applesignin</key>
 	<array>

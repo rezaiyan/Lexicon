@@ -45,7 +45,7 @@ class PasskeyRemoteDataSourceTest {
 
     @Test
     fun `sign-in options come back as the server's WebAuthn JSON, untouched`() = runTest {
-        val options = """{"challenge":"abc","rpId":"alirezaiyan.com","timeout":300000,"allowCredentials":[]}"""
+        val options = """{"challenge":"abc","rpId":"lexicon.alirezaiyan.com","timeout":300000,"allowCredentials":[]}"""
 
         val result = dataSource("""{"success":true,"data":$options}""").signInOptions().getOrNull()
 

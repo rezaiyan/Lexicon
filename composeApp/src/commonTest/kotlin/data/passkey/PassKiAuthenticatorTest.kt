@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 
 class PassKiAuthenticatorTest {
 
-    private val rpId = "alirezaiyan.com"
+    private val rpId = "lexicon.alirezaiyan.com"
     private val device = FakePasskeys(origin = "https://$rpId")
     private val authenticator = PassKiAuthenticator(device)
 
