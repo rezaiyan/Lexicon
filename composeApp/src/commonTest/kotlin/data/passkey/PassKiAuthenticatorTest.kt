@@ -46,6 +46,22 @@ class PassKiAuthenticatorTest {
     }
 
     @Test
+    fun `sign-in retries with the full sheet when the browser rejects device-only sign-in`() = runTest {
+        authenticator.create(TestOptions.creation(rpId))
+        // Chromium can report immediateGet yet reject mediation "immediate" as an unknown value
+        device.failNextWith(
+            PasskeyError.InvalidOptions(
+                "The browser rejected the options: The provided value 'immediate' is not a valid enum value",
+                checkId = null,
+            ),
+        )
+
+        val result = authenticator.signIn(TestOptions.request(rpId))
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
     fun `sign-in reports which passkey was used and for which domain`() = runTest {
         authenticator.create(TestOptions.creation(rpId))
 

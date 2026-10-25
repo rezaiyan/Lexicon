@@ -34,7 +34,13 @@ class PassKiAuthenticator(
      */
     override suspend fun signIn(optionsJson: String): Try<PasskeySignIn> {
         val mode = if (passkeys.capabilities().immediateSignIn) SignInMode.ImmediateOnly else SignInMode.Modal
-        return passkeys.signIn(optionsJson, mode).toTry("sign-in") {
+        var result = passkeys.signIn(optionsJson, mode)
+        // Chromium can report immediate sign-in yet reject mediation "immediate": fall back to the full sheet
+        val rejected = (result as? PasskeyResult.Failure)?.error
+        if (mode == SignInMode.ImmediateOnly && (rejected is PasskeyError.InvalidOptions || rejected is PasskeyError.NotSupported)) {
+            result = passkeys.signIn(optionsJson, SignInMode.Modal)
+        }
+        return result.toTry("sign-in") {
             PasskeySignIn(responseJson = it.json, credentialId = it.credentialId, rpId = rpIdOf(optionsJson))
         }
     }
