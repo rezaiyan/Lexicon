@@ -48,17 +48,22 @@ class PassKiAuthenticatorTest {
     @Test
     fun `sign-in retries with the full sheet when the browser rejects device-only sign-in`() = runTest {
         authenticator.create(TestOptions.creation(rpId))
-        // Chromium can report immediateGet yet reject mediation "immediate" as an unknown value
-        device.failNextWith(
-            PasskeyError.InvalidOptions(
-                "The browser rejected the options: The provided value 'immediate' is not a valid enum value",
-                checkId = null,
-            ),
-        )
+        // Chromium can report immediateGet yet reject mediation "immediate": PassKi turns that into NotSupported
+        device.failNextWith(PasskeyError.NotSupported("Immediate sign-in is not supported by this browser"))
 
         val result = authenticator.signIn(TestOptions.request(rpId))
 
         assertTrue(result.isSuccess)
+    }
+
+    @Test
+    fun `sign-in does not retry options the browser refuses`() = runTest {
+        authenticator.create(TestOptions.creation(rpId))
+        device.failNextWith(PasskeyError.InvalidOptions("challenge is not base64url", checkId = null))
+
+        val result = authenticator.signIn(TestOptions.request(rpId))
+
+        assertTrue((result as Try.Failure).throwable is DomainError.Passkey.Failed)
     }
 
     @Test
@@ -94,12 +99,13 @@ class PassKiAuthenticatorTest {
     }
 
     @Test
-    fun `where the password manager ignores signals forgetting fails as Unavailable`() = runTest {
+    fun `where the password manager ignores signals forgetting still succeeds`() = runTest {
         device.signalsSupported = false
 
         val result = authenticator.forget(rpId, "Y3JlZA")
 
-        assertEquals(DomainError.Passkey.Unavailable, (result as Try.Failure).throwable)
+        // PassKi reports a skipped signal as success: nothing for the user to fix
+        assertTrue(result.isSuccess)
     }
 
     @Test

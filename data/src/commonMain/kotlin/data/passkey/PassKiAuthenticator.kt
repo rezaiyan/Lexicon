@@ -1,8 +1,11 @@
 package data.passkey
 
+import com.alirezaiyan.passki.PassKi
 import com.alirezaiyan.passki.PasskeyError
 import com.alirezaiyan.passki.PasskeyResult
 import com.alirezaiyan.passki.Passkeys
+import com.alirezaiyan.passki.PasskiLogHandler
+import com.alirezaiyan.passki.PasskiLogLevel
 import com.alirezaiyan.passki.SignInMode
 import core.common.Try
 import core.error.DomainError
@@ -23,10 +26,19 @@ class PassKiAuthenticator(
     private val passkeys: Passkeys = Passkeys(),
 ) : IPasskeyAuthenticator {
 
+    init {
+        // PassKi logs each failed call once: setup problems with their check id and fix, plus Warn for
+        // NotSupported and Interrupted. Closing the sheet and having no passkey stay quiet.
+        PassKi.logLevel = PasskiLogLevel.Warn
+        PassKi.logHandler = PasskiLogHandler { _, tag, message, throwable ->
+            logPlatform(tag, throwable?.let { "$message\n${it.stackTraceToString()}" } ?: message)
+        }
+    }
+
     override suspend fun isAvailable(): Boolean = passkeys.capabilities().isSupported
 
     override suspend fun create(optionsJson: String): Try<String> =
-        passkeys.register(optionsJson).toTry("create") { it.json }
+        passkeys.register(optionsJson).toTry { it.json }
 
     /**
      * Only passkeys already on this device: without one it fails at once as NoPasskeys instead of a
@@ -35,30 +47,29 @@ class PassKiAuthenticator(
     override suspend fun signIn(optionsJson: String): Try<PasskeySignIn> {
         val mode = if (passkeys.capabilities().immediateSignIn) SignInMode.ImmediateOnly else SignInMode.Modal
         var result = passkeys.signIn(optionsJson, mode)
-        // Chromium can report immediate sign-in yet reject mediation "immediate": fall back to the full sheet
-        val rejected = (result as? PasskeyResult.Failure)?.error
-        val unsupported = rejected is PasskeyError.InvalidOptions || rejected is PasskeyError.NotSupported
+        // A browser that claimed immediate sign-in but rejects it fails as NotSupported: use the full sheet
+        val unsupported = (result as? PasskeyResult.Failure)?.error is PasskeyError.NotSupported
         if (mode == SignInMode.ImmediateOnly && unsupported) {
             result = passkeys.signIn(optionsJson, SignInMode.Modal)
         }
-        return result.toTry("sign-in") {
+        return result.toTry {
             PasskeySignIn(responseJson = it.json, credentialId = it.credentialId, rpId = rpIdOf(optionsJson))
         }
     }
 
     override suspend fun forget(rpId: String, credentialId: String): Try<Unit> =
-        passkeys.signals.unknownCredential(rpId, credentialId).toTry("forget") { }
+        passkeys.signals.unknownCredential(rpId, credentialId).toTry { }
 
     override suspend fun keepOnly(rpId: String, userHandle: String, credentialIds: List<String>): Try<Unit> =
-        passkeys.signals.acceptedCredentials(rpId, userHandle, credentialIds).toTry("keep-only") { }
+        passkeys.signals.acceptedCredentials(rpId, userHandle, credentialIds).toTry { }
 
     override suspend fun relabel(rpId: String, userHandle: String, accountName: PasskeyAccountName): Try<Unit> =
         passkeys.signals.currentUserDetails(rpId, userHandle, accountName.name, accountName.displayName)
-            .toTry("relabel") { }
+            .toTry { }
 
-    private inline fun <T, R> PasskeyResult<T>.toTry(ceremony: String, transform: (T) -> R): Try<R> = when (this) {
+    private inline fun <T, R> PasskeyResult<T>.toTry(transform: (T) -> R): Try<R> = when (this) {
         is PasskeyResult.Success -> Try.success(transform(value))
-        is PasskeyResult.Failure -> Try.failure(error.toDomain(ceremony))
+        is PasskeyResult.Failure -> Try.failure(error.toDomain())
     }
 
     /** PassKi already refused options without an RP ID, so a successful sign-in always has one. */
@@ -68,24 +79,13 @@ class PassKiAuthenticator(
         return publicKey["rpId"]?.jsonPrimitive?.content.orEmpty()
     }
 
-    private fun PasskeyError.toDomain(ceremony: String): DomainError.Passkey {
-        if (this !is PasskeyError.Cancelled) {
-            // Misconfigured carries the fix and the PassKi check id (AND-03, IOS-02, …): the setup to repair
-            val hint = (this as? PasskeyError.Misconfigured)?.let { " fix=${it.fixHint} check=${it.checkId}" }.orEmpty()
-            logPlatform(TAG, "Passkey $ceremony failed: $this$hint")
-        }
-        return when (this) {
-            PasskeyError.Cancelled, PasskeyError.Interrupted -> DomainError.Passkey.Cancelled
-            PasskeyError.NoCredentials -> DomainError.Passkey.NoPasskeys
-            PasskeyError.AlreadyRegistered -> DomainError.Passkey.AlreadyRegistered
-            is PasskeyError.NotSupported -> DomainError.Passkey.Unavailable
-            // Our domain or app setup, not the user's device: the log line above names the check
-            is PasskeyError.Misconfigured -> DomainError.Passkey.SetupProblem
-            is PasskeyError.InvalidOptions, is PasskeyError.Unknown -> DomainError.Passkey.Failed(toString())
-        }
-    }
-
-    private companion object {
-        const val TAG = "Passkey"
+    private fun PasskeyError.toDomain(): DomainError.Passkey = when (this) {
+        PasskeyError.Cancelled, PasskeyError.Interrupted -> DomainError.Passkey.Cancelled
+        PasskeyError.NoCredentials -> DomainError.Passkey.NoPasskeys
+        PasskeyError.AlreadyRegistered -> DomainError.Passkey.AlreadyRegistered
+        is PasskeyError.NotSupported -> DomainError.Passkey.Unavailable
+        // Our domain or app setup, not the user's device: PassKi's log line names the check and the fix
+        is PasskeyError.Misconfigured -> DomainError.Passkey.SetupProblem
+        is PasskeyError.InvalidOptions, is PasskeyError.Unknown -> DomainError.Passkey.Failed(toString())
     }
 }
