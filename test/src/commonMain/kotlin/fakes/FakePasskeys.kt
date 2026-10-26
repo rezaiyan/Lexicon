@@ -8,7 +8,9 @@ import domain.passkey.model.AccountPasskeys
 import domain.passkey.model.Passkey
 import domain.passkey.model.PasskeyAccountName
 import domain.passkey.model.PasskeySignIn
+import domain.passkey.model.PasskeySignalsSent
 import domain.passkey.repository.IPasskeyRepository
+import domain.passkey.repository.IPasskeySignalRepository
 
 const val FAKE_RP_ID = "lexicon.alirezaiyan.com"
 val FAKE_ACCOUNT_NAME = PasskeyAccountName(name = "pat@gmail.com", displayName = "Pat")
@@ -36,6 +38,10 @@ class FakePasskeyAuthenticator(
     /** The last account label the password manager was told to show. */
     var accountName: PasskeyAccountName? = null
 
+    /** Every keep-only / relabel signal sent, including ones the password manager ignored. */
+    var keepOnlyCalls = 0
+    var relabelCalls = 0
+
     override suspend fun isAvailable(): Boolean = available
 
     override suspend fun create(optionsJson: String): Try<String> = respond("created:$optionsJson")
@@ -45,11 +51,15 @@ class FakePasskeyAuthenticator(
 
     override suspend fun forget(rpId: String, credentialId: String): Try<Unit> = signal { forgotten += credentialId }
 
-    override suspend fun keepOnly(rpId: String, userHandle: String, credentialIds: List<String>): Try<Unit> =
-        signal { keptOnly = credentialIds }
+    override suspend fun keepOnly(rpId: String, userHandle: String, credentialIds: List<String>): Try<Unit> {
+        keepOnlyCalls++
+        return signal { keptOnly = credentialIds }
+    }
 
-    override suspend fun relabel(rpId: String, userHandle: String, accountName: PasskeyAccountName): Try<Unit> =
-        signal { this.accountName = accountName }
+    override suspend fun relabel(rpId: String, userHandle: String, accountName: PasskeyAccountName): Try<Unit> {
+        relabelCalls++
+        return signal { this.accountName = accountName }
+    }
 
     private fun respond(response: String): Try<String> {
         nextFailure?.let { nextFailure = null; return Try.failure(it) }
@@ -67,6 +77,7 @@ class FakePasskeyRepository(
     /** When set, every call fails with it. */
     var failure: Throwable? = null
     var accountName: PasskeyAccountName? = FAKE_ACCOUNT_NAME
+    var userHandle = "user-handle"
     val registeredResponses = mutableListOf<String>()
     val deleted = mutableListOf<Long>()
 
@@ -79,7 +90,7 @@ class FakePasskeyRepository(
     }
 
     override suspend fun getPasskeys(): Try<AccountPasskeys> = result {
-        AccountPasskeys(FAKE_RP_ID, userHandle = if (passkeys.isEmpty()) null else "user-handle", accountName, passkeys)
+        AccountPasskeys(FAKE_RP_ID, userHandle = userHandle.takeIf { passkeys.isNotEmpty() }, accountName, passkeys)
     }
 
     override suspend fun delete(id: Long): Try<Unit> = result {
@@ -90,6 +101,15 @@ class FakePasskeyRepository(
     override suspend fun signInOptions(): Try<String> = result { "request-options" }
 
     private inline fun <T> result(value: () -> T): Try<T> = failure?.let { Try.failure(it) } ?: Try.success(value())
+}
+
+/** What this device last told its password manager, kept in memory. */
+class FakePasskeySignalRepository(
+    var sent: PasskeySignalsSent? = null,
+) : IPasskeySignalRepository {
+    override suspend fun lastSent(): Try<PasskeySignalsSent?> = Try.success(sent)
+
+    override suspend fun save(sent: PasskeySignalsSent): Try<Unit> = Try.success(Unit).also { this.sent = sent }
 }
 
 fun fakePasskey(id: Long, lastUsedAtMillis: Long? = null) = Passkey(

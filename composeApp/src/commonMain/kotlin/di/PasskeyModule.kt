@@ -2,10 +2,12 @@ package di
 
 import data.passkey.PassKiAuthenticator
 import data.passkey.PasskeyRepositoryImpl
+import data.passkey.PasskeySignalRepositoryImpl
 import data.passkey.remote.IPasskeyRemoteDataSource
 import data.passkey.remote.PasskeyRemoteDataSource
 import domain.passkey.IPasskeyAuthenticator
 import domain.passkey.repository.IPasskeyRepository
+import domain.passkey.repository.IPasskeySignalRepository
 import domain.passkey.usecase.CreatePasskeyUseCase
 import domain.passkey.usecase.DeletePasskeyUseCase
 import domain.passkey.usecase.GetPasskeysUseCase
@@ -19,6 +21,7 @@ fun passkeyModule() = module {
     single<IPasskeyAuthenticator> { PassKiAuthenticator() }
     single<IPasskeyRemoteDataSource> { PasskeyRemoteDataSource(apiClient = get()) }
     single<IPasskeyRepository> { PasskeyRepositoryImpl(remote = get()) }
+    single<IPasskeySignalRepository> { PasskeySignalRepositoryImpl(queries = get()) }
 
     factoryOf(::IsPasskeyAvailableUseCase)
     factoryOf(::CreatePasskeyUseCase)

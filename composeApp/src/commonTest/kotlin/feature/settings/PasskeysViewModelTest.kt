@@ -4,10 +4,12 @@ import core.error.DomainError
 import domain.passkey.usecase.CreatePasskeyUseCase
 import domain.passkey.usecase.DeletePasskeyUseCase
 import domain.passkey.usecase.GetPasskeysUseCase
+import domain.passkey.model.PasskeyAccountName
 import domain.passkey.usecase.IsPasskeyAvailableUseCase
 import fakes.FAKE_ACCOUNT_NAME
 import fakes.FakePasskeyAuthenticator
 import fakes.FakePasskeyRepository
+import fakes.FakePasskeySignalRepository
 import fakes.fakePasskey
 import kotlinx.coroutines.test.runTest
 import presentation.ViewModelTestBase
@@ -23,10 +25,11 @@ class PasskeysViewModelTest : ViewModelTestBase() {
     private val phone = fakePasskey(id = 1, lastUsedAtMillis = 2_000)
     private val repository = FakePasskeyRepository(passkeys = listOf(phone))
     private val device = FakePasskeyAuthenticator()
+    private val signalsSent = FakePasskeySignalRepository()
 
     private fun createViewModel() = PasskeysViewModel(
         isPasskeyAvailable = IsPasskeyAvailableUseCase(device),
-        getPasskeys = GetPasskeysUseCase(repository, device),
+        getPasskeys = GetPasskeysUseCase(repository, device, signalsSent),
         createPasskey = CreatePasskeyUseCase(repository, device),
         deletePasskey = DeletePasskeyUseCase(repository, device),
     )
@@ -75,6 +78,66 @@ class PasskeysViewModelTest : ViewModelTestBase() {
 
         assertNull(device.accountName)
         assertEquals(listOf(phone), vm.currentState.passkeys)
+    }
+
+    @Test
+    fun `refresh again with nothing changed sends the password manager nothing`() = runTest {
+        createViewModel().refresh()
+
+        createViewModel().refresh()
+
+        assertEquals(1, device.keepOnlyCalls)
+        assertEquals(1, device.relabelCalls)
+    }
+
+    @Test
+    fun `refresh after a passkey changed elsewhere resends only the list`() = runTest {
+        createViewModel().refresh()
+        repository.passkeys = listOf(phone, fakePasskey(id = 2))
+
+        createViewModel().refresh()
+
+        assertEquals(listOf(phone.credentialId, "credential-2"), device.keptOnly)
+        assertEquals(2, device.keepOnlyCalls)
+        assertEquals(1, device.relabelCalls)
+    }
+
+    @Test
+    fun `refresh after the account name changed resends only the label`() = runTest {
+        createViewModel().refresh()
+        val renamed = PasskeyAccountName(name = "pat@work.com", displayName = "Pat")
+        repository.accountName = renamed
+
+        createViewModel().refresh()
+
+        assertEquals(renamed, device.accountName)
+        assertEquals(1, device.keepOnlyCalls)
+        assertEquals(2, device.relabelCalls)
+    }
+
+    @Test
+    fun `refresh for another account on this device sends both signals`() = runTest {
+        createViewModel().refresh()
+        repository.userHandle = "other-user"
+
+        createViewModel().refresh()
+
+        assertEquals(2, device.keepOnlyCalls)
+        assertEquals(2, device.relabelCalls)
+    }
+
+    @Test
+    fun `refresh retries signals the password manager did not take`() = runTest {
+        device.signalsSupported = false
+        createViewModel().refresh()
+        device.signalsSupported = true
+
+        createViewModel().refresh()
+
+        assertEquals(listOf(phone.credentialId), device.keptOnly)
+        assertEquals(FAKE_ACCOUNT_NAME, device.accountName)
+        assertEquals(2, device.keepOnlyCalls)
+        assertEquals(2, device.relabelCalls)
     }
 
     @Test

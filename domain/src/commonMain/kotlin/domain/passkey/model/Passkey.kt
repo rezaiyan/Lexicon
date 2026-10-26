@@ -26,6 +26,16 @@ data class AccountPasskeys(
 /** How the password manager labels the account's passkeys, so someone with several accounts can tell them apart. */
 data class PasskeyAccountName(val name: String, val displayName: String)
 
+/** What the password manager was last told about [userHandle]'s passkeys on [rpId]. */
+data class PasskeySignalsSent(
+    val rpId: String,
+    val userHandle: String,
+    /** The full list of passkeys it was told to keep; null until that signal went through. */
+    val credentialIds: Set<String>?,
+    /** The label it was told to show; null until that signal went through. */
+    val accountName: PasskeyAccountName?,
+)
+
 /** What the device's passkey sheet returned for a sign-in. */
 data class PasskeySignIn(
     /** The response for the server to verify. */

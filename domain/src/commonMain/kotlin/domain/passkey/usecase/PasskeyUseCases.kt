@@ -3,6 +3,8 @@ package domain.passkey.usecase
 import core.common.Try
 import core.common.UseCase
 import core.common.flatMap
+import core.common.fold
+import core.common.getOrNull
 import core.common.mapFailure
 import core.common.onSuccess
 import core.error.DomainError
@@ -11,7 +13,9 @@ import domain.auth.repository.IAuthRepository
 import domain.passkey.IPasskeyAuthenticator
 import domain.passkey.model.AccountPasskeys
 import domain.passkey.model.Passkey
+import domain.passkey.model.PasskeySignalsSent
 import domain.passkey.repository.IPasskeyRepository
+import domain.passkey.repository.IPasskeySignalRepository
 
 class IsPasskeyAvailableUseCase(
     private val authenticator: IPasskeyAuthenticator,
@@ -34,17 +38,37 @@ class CreatePasskeyUseCase(
  * The account's passkeys. Also tells this device's password manager which ones still exist, so
  * passkeys deleted on another device stop showing up in its sign-in sheet, and which account they
  * belong to, so passkeys saved before the label changed show the current one.
+ *
+ * Password managers announce every signal ("passkey updated"), so each one goes out only when it
+ * differs from what this device last sent.
  */
 class GetPasskeysUseCase(
     private val repository: IPasskeyRepository,
     private val authenticator: IPasskeyAuthenticator,
+    private val signals: IPasskeySignalRepository,
 ) : UseCase<Unit, AccountPasskeys> {
     override suspend fun invoke(params: Unit): Try<AccountPasskeys> =
         repository.getPasskeys().onSuccess { account ->
             val userHandle = account.userHandle ?: return@onSuccess
             // Best effort: the list is right whether or not the password manager listens
-            authenticator.keepOnly(account.rpId, userHandle, account.passkeys.map { it.credentialId })
-            account.accountName?.let { authenticator.relabel(account.rpId, userHandle, it) }
+            val last = signals.lastSent().getOrNull()?.takeIf { it.rpId == account.rpId && it.userHandle == userHandle }
+            val credentialIds = account.passkeys.map { it.credentialId }
+            val kept = if (last?.credentialIds == credentialIds.toSet()) {
+                last.credentialIds
+            } else {
+                authenticator.keepOnly(account.rpId, userHandle, credentialIds)
+                    .fold(onSuccess = { credentialIds.toSet() }, onFailure = { last?.credentialIds })
+            }
+            val label = account.accountName?.let { name ->
+                if (last?.accountName == name) {
+                    name
+                } else {
+                    authenticator.relabel(account.rpId, userHandle, name)
+                        .fold(onSuccess = { name }, onFailure = { last?.accountName })
+                }
+            } ?: last?.accountName
+            val sent = PasskeySignalsSent(account.rpId, userHandle, kept, label)
+            if (sent != last) signals.save(sent)
         }
 }
 

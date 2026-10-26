@@ -1,0 +1,10 @@
+-- Migration from version 24 to version 25
+-- What this device last told its password manager about passkeys (see PasskeySignalState in Lexicon.sq).
+CREATE TABLE IF NOT EXISTS PasskeySignalState (
+    id                 INTEGER NOT NULL PRIMARY KEY DEFAULT 1,
+    rpId               TEXT    NOT NULL,
+    userHandle         TEXT    NOT NULL,
+    credentialIds      TEXT,
+    accountName        TEXT,
+    accountDisplayName TEXT
+);
