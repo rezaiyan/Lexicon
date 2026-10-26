@@ -37,7 +37,8 @@ class PassKiAuthenticator(
         var result = passkeys.signIn(optionsJson, mode)
         // Chromium can report immediate sign-in yet reject mediation "immediate": fall back to the full sheet
         val rejected = (result as? PasskeyResult.Failure)?.error
-        if (mode == SignInMode.ImmediateOnly && (rejected is PasskeyError.InvalidOptions || rejected is PasskeyError.NotSupported)) {
+        val unsupported = rejected is PasskeyError.InvalidOptions || rejected is PasskeyError.NotSupported
+        if (mode == SignInMode.ImmediateOnly && unsupported) {
             result = passkeys.signIn(optionsJson, SignInMode.Modal)
         }
         return result.toTry("sign-in") {

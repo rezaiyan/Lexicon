@@ -26,7 +26,12 @@ class AuthenticationService(
         emit(authRepository.loginWithGoogle(idToken).getOrThrow())
     }
 
-    override fun loginWithApple(idToken: String, fullName: String?, appleUserId: String, authorizationCode: String?): Flow<AuthUser> = flow {
+    override fun loginWithApple(
+        idToken: String,
+        fullName: String?,
+        appleUserId: String,
+        authorizationCode: String?,
+    ): Flow<AuthUser> = flow {
         emit(authRepository.loginWithApple(idToken, fullName, appleUserId, authorizationCode).getOrThrow())
     }
 

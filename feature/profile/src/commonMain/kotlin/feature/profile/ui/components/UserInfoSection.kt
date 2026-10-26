@@ -101,7 +101,11 @@ fun UserInfoSection(
                         text = shownName ?: stringResource(Res.string.profile_add_your_name),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = if (shownName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary,
+                        color = if (shownName != null) {
+                            MaterialTheme.colorScheme.onSurface
+                        } else {
+                            MaterialTheme.colorScheme.primary
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
