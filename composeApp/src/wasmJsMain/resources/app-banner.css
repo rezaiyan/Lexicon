@@ -1,0 +1,111 @@
+/* "Get the app" banner — see app-banner.js. Sits above #root in the body's flex column. */
+:root {
+    --app-banner-bg: #FFFFFF;
+    --app-banner-border: #E7E3F7;
+    --app-banner-title: #1A1A2E;
+    --app-banner-subtitle: #6B6880;
+    --app-banner-close: #8A87A0;
+    --app-banner-action-bg: #7F5AF0;
+    --app-banner-action-fg: #FFFFFF;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --app-banner-bg: #1A1A2E;
+        --app-banner-border: #2A2A44;
+        --app-banner-title: #F2F0FF;
+        --app-banner-subtitle: #A5A2BD;
+        --app-banner-close: #8A87A0;
+        --app-banner-action-bg: #A78BFA;
+        --app-banner-action-fg: #0F0F1E;
+    }
+}
+
+.app-banner {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 12px 0 6px;
+    padding-top: env(safe-area-inset-top, 0px);
+    background: var(--app-banner-bg);
+    border-bottom: 1px solid transparent;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    transition: max-height 0.25s ease-out, border-color 0.25s ease-out;
+}
+
+.app-banner--visible {
+    max-height: calc(68px + env(safe-area-inset-top, 0px));
+    min-height: calc(68px + env(safe-area-inset-top, 0px));
+    border-bottom-color: var(--app-banner-border);
+}
+
+.app-banner__close {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--app-banner-close);
+    font-size: 22px;
+    line-height: 32px;
+    cursor: pointer;
+}
+
+.app-banner__icon {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+}
+
+.app-banner__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.app-banner__title,
+.app-banner__subtitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.app-banner__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--app-banner-title);
+}
+
+.app-banner__subtitle {
+    font-size: 12px;
+    color: var(--app-banner-subtitle);
+}
+
+.app-banner__action {
+    flex: 0 0 auto;
+    min-width: 72px;
+    height: 32px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--app-banner-action-bg);
+    color: var(--app-banner-action-fg);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.app-banner__action:focus-visible,
+.app-banner__close:focus-visible {
+    outline: 2px solid var(--app-banner-action-bg);
+    outline-offset: 2px;
+}
