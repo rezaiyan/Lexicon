@@ -85,7 +85,7 @@ class IosNotificationManager : INotificationManager {
                 setTitle(title)
                 setBody(message)
                 setSound(UNNotificationSound.defaultSound())
-                setBadge(NSNumber(int = dueCount))
+                setBadge(NSNumber(int = AppIconBadge.cap(dueCount)))
             }
             
             // Use consistent identifier so new notifications replace old ones

@@ -75,7 +75,7 @@ class IosNotificationManager : INotificationManager {
                 setTitle(title)
                 setBody(message)
                 setSound(UNNotificationSound.defaultSound())
-                setBadge(NSNumber(int = dueCount))
+                setBadge(NSNumber(int = AppIconBadge.cap(dueCount)))
                 
                 // Set category identifier for interactive actions
                 setCategoryIdentifier(com.alirezaiyan.vokab.NotificationCategoryConstants.REVIEW_REMINDER)
